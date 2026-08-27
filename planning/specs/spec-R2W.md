@@ -14,7 +14,7 @@ A child spec. The contract was written at R2's triage and is not being invented 
 and this spec's acceptance criteria are those clauses with the evidence that settles each one
 attached. Where this spec says something the parent did not, it is marked **new**.
 
-The parent's scope note, `spec-R2.md:60`, is the reason it was deferred and the reason it is hard:
+The parent's scope note, "`watch.ts` is deferred to a child spec (R2-W).** This is a scope decision made on", `spec-R2.md:60` at `93cbbf2`, is the reason it was deferred and the reason it is hard:
 
 > the watcher's central correctness requirement is a **cross-process** one: the watcher and the
 > daemon are separate processes, both write `servers.json`, and R3's control-API PATCH writes it
@@ -29,7 +29,7 @@ Two further things the parent registered as this item's:
   as intended rather than as a regression.
 - **`docs/install.sh` installs a second launchd agent** (`gg.rhodes.mcp-router-watch`) that still
   runs `node dist/index.js watch` even when `MCPR_ROUTER_BINARY` is set, because no Swift watcher
-  existed to point it at (`docs/install.sh:100-107`). Fixing that is part of this item.
+  existed to point it at ("BOTH agents move together. They used to not: the `watch` agent stayed on node because", `docs/install.sh:100-107` at `93cbbf2`). Fixing that is part of this item.
 
 ### The three parity rows this unblocks
 
@@ -60,7 +60,7 @@ What does **not** survive unchanged is the concurrency story. In Node the watche
 of `servers.json` that anyone worried about, because the reference's control API and its watcher are
 rarely both mutating. In the Swift product they are three writers — the watcher, R3's control API
 inside the daemon, and the Mac app driving that control API — and R3 has already shipped
-`ConfigEdit.edit`, a read-modify-write with **no lock at all** (`ConfigEdit.swift:38-95`). The
+`ConfigEdit.edit`, a read-modify-write with **no lock at all** (`/// **R2-W adds the lock (X2).** The whole read-modify-write happens under`, `ConfigEdit.swift:38-95` at `93cbbf2`). The
 daemon's window is microseconds; the watcher's, because it spawns and indexes a child first, is
 **seconds**. A protocol has to exist, and W10 is where this spec earns its separate existence.
 
@@ -125,10 +125,10 @@ states it as clauses so the choice is testable rather than described.
   unchanged.
 - **X2a** *(new, from review C1)* — The watcher **shares the lock, not the writer**. It does not
   route its own write through `ConfigEdit.edit`, for three measured reasons: `edit` writes
-  unconditionally where the reference writes only when `configChanged` (`watch.ts:279`), which would
+  unconditionally where the reference writes only when `configChanged` (`if (configChanged) {`, `watch.ts:279` at `93cbbf2`), which would
   issue a restart the reference does not; `edit` emits no trailing newline at mode `0600`
-  (`ConfigEdit.swift:87-91`) where the watcher's reference writes `JSON.stringify(…, null, 2) + "\n"`
-  at `0644` (`watch.ts:282`), which `cli-watch`'s byte diff would fail on; and nesting the two would
+  (`let existing = root.first { $0.key == key }?.value`, `ConfigEdit.swift:87-91` at `93cbbf2`) where the watcher's reference writes `JSON.stringify(…, null, 2) + "\n"`
+  at `0644` ("writeAtomic(DEFAULT_CONFIG_PATH, `${JSON.stringify(routerCfg, null, 2)}\n`, 0o644);", `watch.ts:282` at `93cbbf2`), which `cli-watch`'s byte diff would fail on; and nesting the two would
   have the watcher's own `edit` call block on the watcher's own outer lock.
 - **X2b** *(new, from review C1)* — A **re-entrant acquire throws** `LockProblem.reentrant` rather
   than blocking. `flock` is per open file description, so a second `open` in the same process
@@ -155,9 +155,9 @@ states it as clauses so the choice is testable rather than described.
 ### The second contended file — `manifest.json`
 
 - **X4b** *(new, from review C2)* — The watcher **never holds a `manifest.json` snapshot across
-  indexing**. The reference loads the manifest at `watch.ts:212`, spends seconds spawning and
+  indexing**. The reference loads the manifest at "let manifest: Manifest = loadManifest(manifestPath);", `watch.ts:212` at `93cbbf2`, spends seconds spawning and
   indexing children, and saves at `:253` — and the daemon writes the same file throughout
-  (`ServicePorts.swift:341`, `AuthRoutes.swift:120`, `control.ts:195,361`). A user approving a held
+  (`try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `ServicePorts.swift:341` at `93cbbf2`, `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `AuthRoutes.swift:120` at `93cbbf2`, `control.ts:195,361`). A user approving a held
   tool-change in the Mac app mid-adoption would have that approval erased. This is W10's own
   argument applied to the file the parent's clause did not name.
   *Evidence:* an approval written to `manifest.json` while an adoption is indexing is still there
@@ -170,7 +170,7 @@ states it as clauses so the choice is testable rather than described.
 
 - **X5** *(new)* — The protocol's residual is **declared, not hidden**: `flock` is advisory, and the
   TypeScript router does not take it. Only one watcher is installed at a time
-  (`docs/install.sh:154`), so this is a statement about the migration window, not a live hole. It is
+  (`docs/install.sh:154` at `93cbbf2`), so this is a statement about the migration window, not a live hole. It is
   recorded as divergence **W-D4** and as a note on the `div-r2-d7` row's neighbours, not left for
   R4 to discover.
 
@@ -178,7 +178,7 @@ states it as clauses so the choice is testable rather than described.
 
 - **X6** *(new)* — The restart is issued **as soon as `servers.json` has been written**, before
   `~/.claude.json` is touched at all. No later early return can skip it, which is precisely the
-  reference's failure (`watch.ts:285-300` returns at 299, past the `restartRouter()` at 336).
+  reference's failure (`if (adopted.length > 0) {`, `watch.ts:285-300` at `93cbbf2` returns at 299, past the `restartRouter()` at 336).
 - **X7** *(new)* — A restart that fails is **owed, not lost**: watcher state carries
   `restartPending`, **persisted before the `servers.json` write** and cleared only after a
   successful `launchctl kickstart`. Any later fire that sees it retries. The order matters and the
@@ -187,7 +187,7 @@ states it as clauses so the choice is testable rather than described.
   writes nothing, owes nothing, and seals the hash. Persisting first costs at most one restart that
   was not needed, which is the cheap side of that trade.
 - **X7a** *(new, from review M5)* — The reference's own `saveState` writes `{mcpServersHash,
-  failures}` with no spread (`watch.ts:342`), so a single TypeScript run on a machine switching back
+  failures}` with no spread ("saveState({ mcpServersHash: after, failures });", `watch.ts:342` at `93cbbf2`), so a single TypeScript run on a machine switching back
   **erases** `restartPending`. Declared as part of **W-D4**; it is a migration-window statement, not
   a live hole.
 - **X8** *(new)* — The mechanism stays `launchctl kickstart -k gui/<uid>/<label>`. A reload endpoint
@@ -201,12 +201,12 @@ states it as clauses so the choice is testable rather than described.
   override, so the lanes are additionally arranged (X12b) so the reference is never driven down a
   path that restarts anything.
 - **X13** *(new, from review M4)* — The port handed to `SelfReference.isSelfReference` is the
-  literal **8879**, not the configured port. `watch.ts:182` hardcodes `const routerPort = 8879`, so
+  literal **8879**, not the configured port. "const routerPort = 8879;", `watch.ts:182` at `93cbbf2` hardcodes `const routerPort = 8879`, so
   reading the real port would make Swift skip a self-URL on a non-default port that the reference
   adopts. It looks like a bug and is parity; it is written down here so no later runner "fixes" it.
 - **X14** *(new, from review L2)* — A **flat `servers.json`** — one whose servers sit at the top
   level with no `mcpServers` object — is **refused**, logged, and left untouched. The reference's
-  `routerCfg.mcpServers ?? {}` (`watch.ts:203`) creates an empty object over it and writes back,
+  `routerCfg.mcpServers ?? {}` ("const routerServers = (routerCfg.mcpServers ?? {}) as Record<string, RawServer>;", `watch.ts:203` at `93cbbf2`) creates an empty object over it and writes back,
   discarding every server the file declared: R1's D1, reached through the watcher. Reproducing a
   destructive bug is not parity worth having. Declared as **W-D7**.
 
@@ -232,12 +232,12 @@ states it as clauses so the choice is testable rather than described.
 - **X12b** *(new, from review H1)* — No lane scenario drives **the reference** down a restarting
   path. Two arrangements do it: `cli-watch`'s adoption scenario pre-seeds `servers.json` with the
   same definition that is staged, so the entry is indexed, adopted and deleted from `~/.claude.json`
-  while `configChanged` stays false on both sides (`watch.ts:273`); and in `div-r2-d7` the reference
+  while `configChanged` stays false on both sides (`if (JSON.stringify(stable(routerServers[name])) !== JSON.stringify(stable(server))) {`, `watch.ts:273` at `93cbbf2`); and in `div-r2-d7` the reference
   reaches its early return, which is the divergence itself. The Swift side, which does restart in
   the second case, runs under a scratch `MCPR_LAUNCHD_LABEL`.
 - **X12c** *(new, from review H3)* — `cli-watch` diffs `servers.json` and the remaining
   `~/.claude.json`, and **not** `manifest.json`. Manifest entries carry `builtAt` at millisecond
-  resolution (`ManifestBookkeeping.swift:51`) and failure records carry an epoch, so two binaries run
+  resolution (`let timestamp = JSString(JSDate.iso8601(milliseconds: nowMilliseconds))`, `ManifestBookkeeping.swift:51` at `93cbbf2`) and failure records carry an epoch, so two binaries run
   in sequence cannot produce equal bytes; normalising them away would mean adding a time normaliser
   to a lane whose header says nothing but coordinates are normalised. Manifest parity is the fixture
   and state lanes', and is already proven there.
@@ -265,16 +265,16 @@ R4 must not read any of these as a regression.
 
 | # | Divergence | Why | R4 impact |
 |---|---|---|---|
-| **W-D1** | **The restart is never lost.** Issued immediately after the `servers.json` write, and owed in watcher state until it succeeds. | `watch.ts:285-300` returns before line 336's `restartRouter()` when the pre-delete re-read fails, having already written `servers.json`; the next fire sees `configChanged === false` and never restarts. Declared as D7 by the parent and registered as deferred child **D-i** for the TypeScript side. | This is the `div-r2-d7` row. Asserted in **both** directions: the reference logs no restart line in the D7 scenario, the Swift watcher logs one. |
+| **W-D1** | **The restart is never lost.** Issued immediately after the `servers.json` write, and owed in watcher state until it succeeds. | `if (adopted.length > 0) {`, `watch.ts:285-300` at `93cbbf2` returns before line 336's `restartRouter()` when the pre-delete re-read fails, having already written `servers.json`; the next fire sees `configChanged === false` and never restarts. Declared as D7 by the parent and registered as deferred child **D-i** for the TypeScript side. | This is the `div-r2-d7` row. Asserted in **both** directions: the reference logs no restart line in the D7 scenario, the Swift watcher logs one. |
 | **W-D2** | **`~/.claude.json` is resolved from `HOME`**, not from `NSHomeDirectory()`. | Measured: `NSHomeDirectory()` ignores `$HOME`, `os.homedir()` honours it. Matching the reference *requires* reading the environment. | Parity-**restoring**, not a difference. Recorded because the mechanism differs even though the behaviour agrees. |
 | **W-D3** | **`servers.json` writes take an advisory `flock` on `servers.json.lock`.** The reference takes no lock anywhere. | W10. Without it a seconds-long adoption erases a concurrent PATCH. | A file the reference never creates appears in the router home. It is a lock, holds no data, and is never read. |
-| **W-D4** | **The lock is advisory and the TypeScript router does not take it**, and a TypeScript run erases `restartPending` (`watch.ts:342` saves without a spread). | `flock` is advisory by definition, and modifying `src/*.ts` is refused by S4. | Only one watcher is installed at a time, so the two never race in a supported configuration. Stated so R4 does not read the asymmetry as an unexplained gap. |
-| **W-D5** | The watcher's temporary indexing pool is constructed **once for the whole stale set**, matching `watch.ts:232-236`, rather than per upstream as `ManifestIndexer` does. | The reference's shape; and `ManifestBookkeeping.build` already produces the reference's `built`/`failed` strings from an observation set, so reusing it is both closer and less code. | None observable. Recorded because it differs from the Swift `index` verb's own path. |
+| **W-D4** | **The lock is advisory and the TypeScript router does not take it**, and a TypeScript run erases `restartPending` ("saveState({ mcpServersHash: after, failures });", `watch.ts:342` at `93cbbf2` saves without a spread). | `flock` is advisory by definition, and modifying `src/*.ts` is refused by S4. | Only one watcher is installed at a time, so the two never race in a supported configuration. Stated so R4 does not read the asymmetry as an unexplained gap. |
+| **W-D5** | The watcher's temporary indexing pool is constructed **once for the whole stale set**, matching `const pool = new UpstreamPool(`, `watch.ts:232-236` at `93cbbf2`, rather than per upstream as `ManifestIndexer` does. | The reference's shape; and `ManifestBookkeeping.build` already produces the reference's `built`/`failed` strings from an observation set, so reusing it is both closer and less code. | None observable. Recorded because it differs from the Swift `index` verb's own path. |
 | **W-D6** | **`manifest.json` is written per upstream from a freshly loaded copy**, where the reference loads once, indexes for seconds, and saves the stale object (`watch.ts:212,253`). | The reference erases a concurrent approval; X4b refuses to. The residual microsecond window between the daemon's own manifest writers is unchanged and is deferred child **D-w3**. | The file's *content* agrees; the number of writes differs. Nothing compares write counts. |
-| **W-D7** | **A flat `servers.json` is refused**, where the reference creates an `mcpServers` object over it and discards every server it declared (`watch.ts:203`). | R1's D1, reached through the watcher rather than through the control API. Reproducing a data-loss bug is not parity worth having. | The same divergence R1 already declared for the config reader and R3 for the control API's writer; this extends it to the third writer. |
-| **W-D8** | **`MCPR_LAUNCHD_LABEL` overrides the restart target.** The reference hardcodes `gg.rhodes.mcp-router` (`watch.ts:49`). | X8a: measured, that label is loaded and serving on this machine, so an un-overridable label makes every lane run bounce the developer's live router. | The default is the reference's value, so an un-set environment behaves identically. |
+| **W-D7** | **A flat `servers.json` is refused**, where the reference creates an `mcpServers` object over it and discards every server it declared ("const routerServers = (routerCfg.mcpServers ?? {}) as Record<string, RawServer>;", `watch.ts:203` at `93cbbf2`). | R1's D1, reached through the watcher rather than through the control API. Reproducing a data-loss bug is not parity worth having. | The same divergence R1 already declared for the config reader and R3 for the control API's writer; this extends it to the third writer. |
+| **W-D8** | **`MCPR_LAUNCHD_LABEL` overrides the restart target.** The reference hardcodes `gg.rhodes.mcp-router` ("const LAUNCHD_LABEL = 'gg.rhodes.mcp-router';", `watch.ts:49` at `93cbbf2`). | X8a: measured, that label is loaded and serving on this machine, so an un-overridable label makes every lane run bounce the developer's live router. | The default is the reference's value, so an un-set environment behaves identically. |
 | **W-D9** | **The lock serialises writes; it does not arbitrate intent.** A PATCH that *deletes or edits the very server being adopted*, landing during indexing, is overwritten by the merge: the watcher re-adds its own version and then deletes the entry from `~/.claude.json`, so the user's deletion reverses with no trace in the file they touched. | The staged entry is also fresh user intent, and the watcher cannot tell "deleted deliberately" from "not yet adopted". W10's evidence clause says an *unrelated* PATCH, and this is the case that wording does not cover. | Behaviour is defined and asserted rather than accidental. Not a regression against the reference, which loses the PATCH entirely. |
-| **W-D10** | **The watcher-state bytes differ on three paths the reference reaches too**, with the same retry semantics: a failed pre-delete re-read nils `mcpServersHash` where the reference preserves the stale value (`watch.ts:298` spreads `...state`); a non-object root at that re-read withholds the hash where the reference would seal the hash of `{}`; and `WatchState` drops top-level keys it does not model, where the reference's spread preserves them. | Found by the Phase D critic. Each is a *file* difference rather than a behaviour difference — every one of them produces the same next fire — and `watch-state.json` is derived and recoverable (W4 exempts it). | `watch-state.json` is compared by no lane, deliberately: it is per-run state, not a wire surface. Declared so the difference is not discovered later and read as drift. |
+| **W-D10** | **The watcher-state bytes differ on three paths the reference reaches too**, with the same retry semantics: a failed pre-delete re-read nils `mcpServersHash` where the reference preserves the stale value ("saveState({ ...state, failures });", `watch.ts:298` at `93cbbf2` spreads `...state`); a non-object root at that re-read withholds the hash where the reference would seal the hash of `{}`; and `WatchState` drops top-level keys it does not model, where the reference's spread preserves them. | Found by the Phase D critic. Each is a *file* difference rather than a behaviour difference — every one of them produces the same next fire — and `watch-state.json` is derived and recoverable (W4 exempts it). | `watch-state.json` is compared by no lane, deliberately: it is per-run state, not a wire surface. Declared so the difference is not discovered later and read as drift. |
 | **W-D11** | **A filesystem with no advisory locking is written unlocked** rather than refused. `flock` answering `ENOTSUP`, `EOPNOTSUPP` or `EINVAL` proceeds to the body. | Refusing would turn a control-API PATCH that worked before this item into one that fails, on a mount that never had exclusion to lose. Degrading to the status quo ante is the smaller harm, and `ConfigEdit.edit`'s "error cases unchanged" claim is only true with this branch present. | No lane reaches such a filesystem. Declared because the alternative — a PATCH that fails on a network home directory — is exactly the kind of regression R4 would attribute to the port. |
 
 ---
@@ -385,14 +385,14 @@ none. Every finding is dispositioned; four changed code.
 
 | Severity | Finding | Disposition |
 |---|---|---|
-| medium | An unparseable `servers.json` was discovered only at the merge, so the Swift watcher spawned and tore down real children the reference never spawns (`watch.ts:200` parses first). | **Fixed.** `requireParseableRouterConfig()` runs before any indexing, with `unparseableRouterConfigSpawnsNothing` asserting no child started — proved red by removing the guard. |
-| medium | `still pending (not adopted)` was logged on *every* pending path; the reference logs it only in the adopted-something branch (`watch.ts:346` vs `:352-355`). | **Fixed.** `sealOrWithhold` takes `announcing:`, and the no-adoption path passes `false`. |
+| medium | An unparseable `servers.json` was discovered only at the merge, so the Swift watcher spawned and tore down real children the reference never spawns (`const routerCfg = JSON.parse(readFileSync(DEFAULT_CONFIG_PATH, 'utf8')) as {`, `watch.ts:200` at `93cbbf2` parses first). | **Fixed.** `requireParseableRouterConfig()` runs before any indexing, with `unparseableRouterConfigSpawnsNothing` asserting no child started — proved red by removing the guard. |
+| medium | `still pending (not adopted)` was logged on *every* pending path; the reference logs it only in the adopted-something branch ("watchLog(`still pending (not adopted): ${pending.join(', ')}`);", `watch.ts:346` at `93cbbf2` vs `:352-355`). | **Fixed.** `sealOrWithhold` takes `announcing:`, and the no-adoption path passes `false`. |
 | medium | `WatchAdoption`'s header claimed `cli-watch` diffs the written `servers.json` bytes. Under X12b no lane scenario ever writes that file, so the check named cannot run. | **Fixed — the comment was wrong, not the code.** It now names the checks that do prove it (`modesAreHonoured`, `JSStringify`'s parity suite) and says why the lane structurally cannot. |
 | medium | The re-entrancy guard was keyed by the path as spelled, so two spellings of one file defeat it; and on a filesystem without advisory locking, `ConfigEdit.edit` would newly fail where R3 worked. | **Both fixed.** `lockPath` standardises the path before keying; `ENOTSUP`/`EOPNOTSUPP`/`EINVAL` proceed unlocked, declared as **W-D11**. |
 | low | The plan promised a red half for X4b's manifest guard. | **Already done, invisible to the critic.** Mutation 2 in `planning/evidence/R2W-acceptance.md` is exactly that: a pre-index manifest snapshot, proved red (`approvedByTheUser → nil`), then restored. |
 | low | `kept.last?.hasSuffix("-011Z") == true \|\| kept.last != nil` is a tautology. | **Fixed.** Both ends of the pruned list are now asserted by exact name. |
 | low | Three watcher-state byte differences from the reference, all with identical retry semantics. | **Declared as W-D10** rather than changed: matching the bytes would mean modelling keys this watcher does not use. |
-| low, favourable | Swift catches an after-hash re-read failure that `watch.ts:340` leaves unprotected. | **Declared in W-D10's neighbourhood.** A robustness improvement, recorded so it is not read as drift. |
+| low, favourable | Swift catches an after-hash re-read failure that "const after = hashOf((JSON.parse(readFileSync(CLAUDE_JSON, 'utf8')) as typeof", `watch.ts:340` at `93cbbf2` leaves unprotected. | **Declared in W-D10's neighbourhood.** A robustness improvement, recorded so it is not read as drift. |
 | low, process | `spec-R2W.md` and `plan-R2W.md` are in the main tree, not on the branch; `dist/` sits untracked in the worktree. | **Correct as-is for the first** — the pipeline keeps docs in the main working tree and code on the branch. The `dist` symlink was scaffolding for the parity lanes and is removed before the commit. |
 
 ### Assumptions carried forward
@@ -413,5 +413,5 @@ Reported to the orchestrator, not registered here.
 | Suggested id | Title | Deps | Why |
 |---|---|---|---|
 | **D-w1** | Surface a server that keeps failing to index | M3 | Nothing in the product reads `watch.log`; a server that fails adoption three days running is invisible |
-| **D-w2** | `ImportVerb` resolves `~/.claude.json` from `NSHomeDirectory()`, not `HOME` | R4 | `ImportVerb.swift:22` — the same defect W-D2 fixes in the watcher, still present in `import`. Not reached by `cli-import`, which passes `--from` |
-| **D-w3** | Take the config mutation lock across **every** `manifest.json` writer | R3, R5 | X4c / W-D6 — this item removes the watcher's seconds-wide window, but `ServicePorts.swift:341` and `AuthRoutes.swift:120` still race each other on a microsecond one |
+| **D-w2** | `ImportVerb` resolves `~/.claude.json` from `NSHomeDirectory()`, not `HOME` | R4 | `?? (NSHomeDirectory() as NSString).appendingPathComponent(".claude.json")`, `ImportVerb.swift:22` at `93cbbf2` — the same defect W-D2 fixes in the watcher, still present in `import`. Not reached by `cli-import`, which passes `--from` |
+| **D-w3** | Take the config mutation lock across **every** `manifest.json` writer | R3, R5 | X4c / W-D6 — this item removes the watcher's seconds-wide window, but `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `ServicePorts.swift:341` at `93cbbf2` and `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `AuthRoutes.swift:120` at `93cbbf2` still race each other on a microsecond one |

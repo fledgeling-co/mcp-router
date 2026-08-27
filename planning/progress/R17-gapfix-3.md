@@ -27,8 +27,8 @@ reads:
 647  read window, and the declaration says which one save on each side it covers and which six it does not.
 ```
 
-Both counts now agree with the declaration itself. `surface.tsv:122` says *one save on each side is
-what the declaration covers* and *SIX sites are left uncovered, not four*; `R17-acceptance.md:315`
+Both counts now agree with the declaration itself. "cli cli-watch watch proven - FOUR scenarios over identical inputs with a scratch HOME per", `surface.tsv:122` at `0951650` says *one save on each side is
+what the declaration covers* and *SIX sites are left uncovered, not four*; `. It does **not** cover the other four`, `R17-acceptance.md:315` at `0951650`
 and `:321-325` carry the node-four-plus-Swift-two breakdown that adds to six, and are unchanged.
 
 ## Acceptance 3 — a sweep that can read a wrapped corpus
@@ -110,18 +110,18 @@ blocking classes A1+A2+A3 total: 0
 
 `A1`–`A3` are the blocking classes and are empty. `A5` and `A6` are the point of the pass: all four
 homes of the count now say six, and the two the earlier pattern missed — `**six**` behind markdown
-emphasis at `:318`, and *SIX sites are left uncovered* in the other word order at `surface.tsv:122`
+emphasis at `:318`, and *SIX sites are left uncovered* in the other word order at "cli cli-watch watch proven - FOUR scenarios over identical inputs with a scratch HOME per", `surface.tsv:122` at `0951650`
 and `R19*.md:52` — are visible only because the pattern was widened to reach them.
 
 The 19 `A4` hits were each read. Two are the count correctly scoped to node's own inventory
-(`R17-acceptance.md:315` and `:324`, the second of which is the node-four-plus-Swift-two breakdown);
-two are a different four altogether — the BL-1 citation sites, at `R17-gapfix.md:90` and
-`ORCHESTRATOR.md:261`; two are the archived `agy` and Fable lanes quoting the old claim under
+(`. It does **not** cover the other four`, `R17-acceptance.md:315` at `0951650` and `:324`, the second of which is the node-four-plus-Swift-two breakdown);
+two are a different four altogether — the BL-1 citation sites, at `1. The claim reads sufficient-not-exclusive at all four sites, citing R19.`, `R17-gapfix.md:90` at `0951650` and
+"R17 | A failed index leaves a recorded error for one server and nothing at all for", `ORCHESTRATOR.md:261` at `0951650`; two are the archived `agy` and Fable lanes quoting the old claim under
 attribution; three are gap-fix 2's own progress doc, including its record of the pattern it ran. The
 remaining ten are unrelated counts — M14's rotted test sites, V1's `JSNumber` guards, plan-M15's
 window destinations, P2's lint splits, M23's `Context.__init__` sites, G3's shape census.
 `B1`–`B4` survive only in gap-fix 2's progress doc, which records what it withdrew, and in
-`R17-gapfix-review-fable.md:37`, the archived lane quoting the clause in order to refute it.
+`8. The partition argument is UNDER-claimed — twice.** (Q1, and the explicit under-claim`, `R17-gapfix-review-fable.md:37` at `0951650`, the archived lane quoting the clause in order to refute it.
 
 ## Acceptance 4 — gates, measured at this base
 
@@ -160,7 +160,7 @@ compares branches merged into `main` against the rows in this branch's `ORCHESTR
 > **on** `main` timed 14:26:58; `ai/g5` was cut from it and had committed **nothing** by 14:33, so
 > its tip *was* a `main` commit. `git branch --merged main --list ai/*` therefore listed it from the
 > instant it was created, and `main`'s merge list holds M21, R7, M23 and G3 and **no G5**. What made
-> that unreadable is the premise at `ledger-reconcile.py:282`, whose docstring calls that listing
+> that unreadable is the premise at "def merged_branches(root: Path) -> dict[str, str]:", `ledger-reconcile.py:282` at `9194208`, whose docstring calls that listing
 > *the hardest evidence an id is taken* — true of a branch with commits, false of an empty one. This
 > is the **check-E false-RED**, recorded on `main` as a dispatch hazard and as `D-g4-b`, G4's twelfth
 > instance: *a check-E finding naming a branch created after this worktree's base is this, not a
@@ -235,7 +235,7 @@ in both:                          servers
 
 The fixture directory is 24 files, all git-tracked, `git status --porcelain` empty over it for the
 whole run. Two mutually exclusive findings about one unchanging file cannot both be true, and cannot
-come from the inputs, so they come from the comparison: `parity-manifest-check.sh:431` and `:437`
+come from the inputs, so they come from the comparison: `printf '%s\n' "$fixtures_in_manifest" | grep -qxF "$fixture" \`, `parity-manifest-check.sh:431` at `0951650` and `:437`
 pipe a `printf` of the list into `grep -qxF` per item and read any non-zero exit as *not found*. It
 is not confined to the fixture loop — the cli check at `:189` is the same shape, and named
 `src/index.ts dispatches "serve"` for the verifier and `"tools"` here, with the control, authserver,

@@ -35,9 +35,9 @@ correction landing in some of the places its claim appears. One clause.
 the same pass refuted it:
 
 - **Six** sites are uncovered, not four.
-- `src/index.ts:146` and `:186` have **no Swift `ManifestIO.save` twin**, so the symmetry claim is
+- "saveManifest(manifestPath, manifest);", `src/index.ts:146` at `afc087f` and `:186` have **no Swift `ManifestIO.save` twin**, so the symmetry claim is
   not merely imprecise, it is untrue of half the list.
-- The two Swift sites that *are* uncovered — `AuthRoutes.swift:120` and `ServicePorts.swift:391` —
+- The two Swift sites that *are* uncovered — `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `AuthRoutes.swift:120` at `afc087f` and `try ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `ServicePorts.swift:391` at `afc087f` —
   appear **nowhere** in `R19.md` or in `surface.tsv`, which is where the declaration itself lives.
 
 `R17-acceptance.md` and `WatchIndexing.swift` both state it correctly, so the correction landed in
@@ -46,9 +46,9 @@ two of the four places the claim appears — BL-1's shape again, in the same pas
 **The consequence is downstream**: R19's runner is sent looking for four Swift twins that do not
 exist, and past the two that do.
 
-The settled counts, measured from both sides: node has **5** `saveManifest` sites (`watch.ts:292`,
-`index.ts:146`, `index.ts:186`, `control.ts:262`, `control.ts:432`) with `saveManifest` the only
-writer; Swift has **3** `ManifestIO.save` sites (`AuthRoutes.swift:120`, `ServicePorts.swift:391`,
+The settled counts, measured from both sides: node has **5** `saveManifest` sites ("fresh2 = JSON.parse(rawNow) as typeof fresh2;", `watch.ts:292` at `afc087f`,
+"saveManifest(manifestPath, manifest);", `index.ts:146` at `afc087f`, "saveManifest(manifestPath, next);", `index.ts:186` at `afc087f`, "saveManifest(cfg.manifestPath, manifest);", `control.ts:262` at `afc087f`, "saveManifest(deps.cfg.manifestPath, manifest);", `control.ts:432` at `afc087f`) with `saveManifest` the only
+writer; Swift has **3** `ManifestIO.save` sites (`try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `AuthRoutes.swift:120` at `afc087f`, `try ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `ServicePorts.swift:391` at `afc087f`,
 `WatchIndexing.swift:187`) and no other manifest writer. **This number has been wrong three times in
 three directions** — five, then three, then four-of-six. State both figures and where each is from.
 
@@ -67,8 +67,8 @@ three directions** — five, then three, then four-of-six. State both figures an
 
 - **`VER2-R17-3`** — the same divergence is readable from source on the `index` and `import` verbs
   and is filed as merely unmeasured. Swift routes every upstream through `ManifestIndexer.index` →
-  `record`, re-loading at `ServicePorts.swift:381` and saving at `:391` **per entry**; node's
-  `cmdIndex` loads once at `src/index.ts:177` and saves once at `:186`, and `cmdImport` at `:101`
+  `record`, re-loading at `var manifest = ManifestIO.load(path: manifestPath, fileSystem: fileSystem).manifest`, `ServicePorts.swift:381` at `afc087f` and saving at `:391` **per entry**; node's
+  `cmdIndex` loads once at "const manifest = loadManifest(manifestPath);", `src/index.ts:177` at `afc087f` and saves once at `:186`, and `cmdImport` at `:101`
   and `:146`. Same read-window disagreement the declaration covers for `watch`, on the writer R19's
   own reproduction used. Established by reading, not measuring — say so.
 - **`VER2-R17-4`** — LEDGER's compressed R17 row reads *"the orchestrator's five save sites corrected

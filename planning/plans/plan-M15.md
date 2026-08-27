@@ -83,7 +83,7 @@ re-houses that work; it does not re-derive it.
     draws 200 and its own `mac-craft:metrics` block carries `sidebar 256px` and **no 200 of any
     name**, so the mock disagrees with itself as well as with the document. `DesignTokenParityTests`
     compares `MetricToken`'s name set against §2's table for **exact equality in both directions**
-    (`DesignTokenParityTests.swift:118-126`), so a `settingsSidebar` case without a new §2 row
+    (`let inCode = Set(MetricToken.allCases.map(\.rawValue))`, `DesignTokenParityTests.swift:118-126` at `1c6a5cd`), so a `settingsSidebar` case without a new §2 row
     reddens it, and authoring that row is M21's substance.
     The third option — `.navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 240)` — was
     weighed and loses twice: three geometry literals where the rule permits none, and a range is
@@ -99,7 +99,7 @@ re-houses that work; it does not re-derive it.
     plus a test edit for a shortcut the repo has already argued against. M20 owns the accelerator
     map (`⌘1`–`⌘9` in the mock's store-first order) and is where `⌘0` belongs if it is wanted.
     Surfaced as a narrowing in §11.
-20. **No Window-menu item is declared.** `MCPRouterApp.swift:57-60` records the precedent: a
+20. **No Window-menu item is declared.** "// A `Window` scene is listed in the Window menu under its own title, which is macOS", `MCPRouterApp.swift:57-60` at `1c6a5cd` records the precedent: a
     `Window` scene "is listed in the Window menu under its own title, which is macOS contributing an
     entry rather than the app declaring a command", and `mac-shell.sh` excludes `Design system` by
     name for exactly that. Declaring a second Settings command would put two items with two
@@ -125,7 +125,7 @@ to it — spec §2 assumption 5, `DESIGN.md` §6, `SWIFT_PRACTICES.md` §5 — r
 Measured against the wire and the source, 2026-08-22: the control API owns `/servers`, `/usage` and
 `/registry` only (`ControlPaths.isControlPath`, `ControlToken.swift:13-19`). `ServersResponse`
 carries `port`, `idleMs`, `since`, `pendingAuth` and `servers[]` and nothing else
-(`Models.swift:114-121`). There is **no analyst** anywhere in the product, **no update checking**,
+(`public struct ServersResponse: Codable, Hashable, Sendable {`, `Models.swift:114-121` at `1c6a5cd`). There is **no analyst** anywhere in the product, **no update checking**,
 **no start-at-login or `SMAppService`**, **no activation-policy control**, **no harnesses endpoint**
 on the control API, and **no rotate endpoint** — `SettingsBoardModel.forget()`'s own docstring says
 so. The mock's error state quotes `GET /control/settings → 200`, a route that does not exist.
@@ -172,24 +172,24 @@ Eleven, not four. Each is a real edit; none is optional.
 
 | # | Reader | What it does today | Becomes |
 |---|---|---|---|
-| R1 | `MCPRouterKit/Shell/Destination.swift:54` | `case settings`, plus five exhaustive switches (`title`, `group`, `selectionDigit`, `badgeSource`, `iconName`) | case deleted; each switch loses its arm. The doc comment "The eight places" becomes seven |
+| R1 | `case settings`, `MCPRouterKit/Shell/Destination.swift:54` at `1c6a5cd` | `case settings`, plus five exhaustive switches (`title`, `group`, `selectionDigit`, `badgeSource`, `iconName`) | case deleted; each switch loses its arm. The doc comment "The eight places" becomes seven |
 | R2 | `Destination.group` / `inGroup(_:)` | `.settings` is the only `nil`, the ungrouped tail | `group` becomes non-optional `DestinationGroup`; `inGroup(_:)` takes a non-optional. Dead optionality is not left behind — M22 reworks the groups next and inherits a clean type |
-| R3 | `MCPRouterUI/Shell/Sidebar.swift:118-123` | an ungrouped `Section` with no header | deleted; the list ends at the Library group, and `Readout` sits directly beneath it — which is the mock's own arrangement |
-| R4 | `MCPRouterUI/Shell/ScaffoldPane.swift:53-55` | `BoardRegistry.installed` names eight | names seven. `board-registry.sh`'s awk reader is indifferent to the wrap; the count check in `mac-shell.sh` derives rather than pins |
-| R5 | `MCPRouterUI/Shell/ShellWindow.swift:217-218` | `ContentZone.board`'s `case .settings: SettingsBoard(shell:)` | arm deleted; the switch stays exhaustive with no `default` |
-| R6 | `MCPRouterUI/Shell/ShellCommandRouter.swift:105-108` | `case .settings: .select(.settings)`, with the comment naming this as the line M8 would change | `case .settings: .openSettingsScene` (§6, step C2) |
-| R7 | `MCPRouterUI/Icon.swift:47` | `case .settings: "gearshape"` | **kept** — `Icon.settings` is `Icon`'s own case and the settings source list still needs a gear. `Destination.iconName`'s `settings` arm goes; the `Icon` case does not |
+| R3 | `// The ungrouped tail: Settings, with no header above it.`, `MCPRouterUI/Shell/Sidebar.swift:118-123` at `1c6a5cd` | an ungrouped `Section` with no header | deleted; the list ends at the Library group, and `Readout` sits directly beneath it — which is the mock's own arrangement |
+| R4 | `public static let installed: Set<Destination> = [`, `MCPRouterUI/Shell/ScaffoldPane.swift:53-55` at `1c6a5cd` | `BoardRegistry.installed` names eight | names seven. `board-registry.sh`'s awk reader is indifferent to the wrap; the count check in `mac-shell.sh` derives rather than pins |
+| R5 | "case .settings:", `MCPRouterUI/Shell/ShellWindow.swift:217-218` at `1c6a5cd` | `ContentZone.board`'s `case .settings: SettingsBoard(shell:)` | arm deleted; the switch stays exhaustive with no `default` |
+| R6 | "// `⌘,` selects the Settings destination rather than opening a further view, which is why", `MCPRouterUI/Shell/ShellCommandRouter.swift:105-108` at `1c6a5cd` | `case .settings: .select(.settings)`, with the comment naming this as the line M8 would change | `case .settings: .openSettingsScene` (§6, step C2) |
+| R7 | `case .settings: "gearshape"`, `MCPRouterUI/Icon.swift:47` at `1c6a5cd` | `case .settings: "gearshape"` | **kept** — `Icon.settings` is `Icon`'s own case and the settings source list still needs a gear. `Destination.iconName`'s `settings` arm goes; the `Icon` case does not |
 | R8 | `ShellRestoration` / `Destination.restoring` | persists and restores the `rawValue` | **the code does not change and the behaviour does.** At `8863264` a stored `"settings"` restores to `.settings`, because the case exists; after R1 the same stored value restores to `.activity`, because `restoring`'s `guard let` fails. The observation flips without a line of `ShellRestoration` moving, which is exactly what that path was written for, and is why acceptance criterion 8 is falsifiable at base rather than already true |
 | R9 | `Tests/MCPRouterKitTests/ShellDestinationTests.swift:12,54,65` | `inGroup(nil) == [.settings]`, a round-trip list, `settings.selectionDigit == nil` | `inGroup` assertion re-pointed at the group split; `.settings` dropped from the round-trip list; the digit assertion deleted with its subject |
-| R10 | `Tests/MCPRouterUITests/ActivityBoardContractTests.swift:190-203` and `ShellScaffoldRetirementTests.swift:33-52` | two exact set equalities naming eight, plus `installed == Set(Destination.allCases)` | the two literals lose `.settings`. **The `allCases` invariant is not relaxed** — it is what proves the removal was complete rather than partial |
-| R11 | `Tests/MCPRouterUITests/SettingsAndMenuBarTests.swift:18-23`, `ShellCommandRouterTests.swift:39,42,65,151-152` | assert Settings is an installed board and `⌘,` moves the selection | re-pointed at the scene (§9) rather than deleted, so M8's clauses keep an evidence lane in their new form |
+| R10 | `== [.servers, .activity, .skills, .settings, .discover, .evals, .cleanup, .inbox]`, `Tests/MCPRouterUITests/ActivityBoardContractTests.swift:190-203` at `1c6a5cd` and "BoardRegistry.installed == Set(Destination.allCases),", `ShellScaffoldRetirementTests.swift:33-52` at `1c6a5cd` | two exact set equalities naming eight, plus `installed == Set(Destination.allCases)` | the two literals lose `.settings`. **The `allCases` invariant is not relaxed** — it is what proves the removal was complete rather than partial |
+| R11 | `expect(BoardRegistry.installed.contains(.settings))`, `Tests/MCPRouterUITests/SettingsAndMenuBarTests.swift:18-23` at `1c6a5cd`, `ShellCommandRouterTests.swift:39,42,65,151-152` | assert Settings is an installed board and `⌘,` moves the selection | re-pointed at the scene (§9) rather than deleted, so M8's clauses keep an evidence lane in their new form |
 
 Two more that are not Swift and are the ones a source-only sweep misses:
 
 | # | Reader | Breaks how |
 |---|---|---|
 | R12 | `scripts/acceptance/mac-shell.sh:276, 324, 718, 1013` | walks `Activity Servers Skills Discover Inbox Checks Cleanup Settings` three times, asserts the window title is one of those eight, and calls `select_and_check Settings`. All four sites drop Settings; line 718's `select_and_check Settings` is replaced by `select_and_check Skills`, so the block still exercises four destinations |
-| R13 | `scripts/acceptance/m6-inbox-pairing.sh:204` | the same eight-name loop | drops Settings |
+| R13 | `for dest in Activity Servers Skills Discover Inbox Checks Cleanup Settings; do`, `scripts/acceptance/m6-inbox-pairing.sh:204` at `1c6a5cd` | the same eight-name loop | drops Settings |
 
 `scripts/acceptance/m8-settings-menubar.sh` is a fourteenth reader and is handled separately at
 step D4: it presses the Settings row in the sidebar (`:106`) and reads the pane out of the main
@@ -201,13 +201,13 @@ are untouched.
 `ShellCommandRouter.perform` is a static function taking an optional `ShellModel`. A SwiftUI
 `Settings` scene has no opener reachable from there: `EnvironmentValues.openSettings` needs a view
 inside a scene, and a menu command is outside every scene — which is the same `@FocusedValue`
-problem `ShellCommandRouter.swift:12-21` already measured and recorded. `SettingsLink` is the
+problem `/// That lane turned out to be unavailable without taking the user's screen, and the`, `ShellCommandRouter.swift:12-21` at `1c6a5cd` already measured and recorded. `SettingsLink` is the
 documented API for exactly this position, so the item declares it and keeps the inventory where it
 already is:
 
 - `MenuCommand.settings.title` becomes **`Settings…`**. `DESIGN.md` §3.4 makes the ellipsis mean
   "opens a further view", and a window is one. `opensAFurtherView` is derived from the title, so it
-  flips for free. `ShellCommandRouter.swift:100-102`'s comment — *"No ellipsis: Settings is a
+  flips for free. `/// The shell's own commands, and everything macOS performs for itself.`, `ShellCommandRouter.swift:100-102` at `1c6a5cd` — its comment — *"No ellipsis: Settings is a
   sidebar destination in this build"* — is the sentence this item makes false, and it is replaced
   rather than left.
 - `ShellCommands` keeps `CommandGroup(replacing: .appSettings)` and renders a
@@ -223,7 +223,7 @@ already is:
 
   The opener is **injected, from the one place that can reach it.**
   `EnvironmentValues.openSettings` is genuinely unreachable from a `Commands` builder, which is the
-  same `@FocusedValue` fact `ShellCommandRouter.swift:12-21` measured. It is perfectly reachable
+  same `@FocusedValue` fact `/// That lane turned out to be unavailable without taking the user's screen, and the`, `ShellCommandRouter.swift:12-21` at `1c6a5cd` measured. It is perfectly reachable
   from a *view inside a scene*, and `ShellWindow` already installs exactly this kind of capability
   at `:74-78`:
 
@@ -251,13 +251,13 @@ Sendable, Identifiable` with `router, harnesses, analyst, updates, security, men
 that order, each carrying `title`, `subtitle` (the one line under the name) and `iconName` in the
 `Destination.iconName` shape. `CaseIterable` for the reason `Destination` is: the seven are a
 compile-time fact, and an exhaustive switch over them fails to compile when one is added.
-*Reference:* `Destination.swift:43-153`. *Fulfils:* 4, 5.
+*Reference:* `public enum Destination: String, CaseIterable, Sendable, Identifiable {`, `Destination.swift:43-153` at `1c6a5cd`. *Fulfils:* 4, 5.
 
 **Icons: four of the seven have no case, and none is added.** The mock's source list draws
 `#i-servers`, `#i-harness`, `#i-bolt`, `#i-download`, `#i-shield`, `#i-menubar`, `#i-sliders`.
 `Icon` carries `servers`, `bolt` and `shield` exactly; it has no `harness`, `download`, `menubar` or
 `sliders`, and its count is asserted as `spriteSymbols (21) + drawnReplacementsForUnicode (1)`
-against **the prototype's** sprite (`DesignSystemTests.swift:19-33`). Adding four cases re-bases
+against **the prototype's** sprite ("/// The prototype's sprite is 21 symbols and remains the inventory's base. `frost` is the", `DesignSystemTests.swift:19-33` at `1c6a5cd`). Adding four cases re-bases
 that inventory from the prototype's sprite to the console mock's, which is the same whole-document
 decision as the palette and belongs to M21. So the panes reuse existing cases —
 Router `.servers`, Harnesses `.layers`, Session analyst `.bolt`, Updates `.tray`, Security
@@ -307,13 +307,13 @@ survived because `ShellRestoration` held it. So the pane is stored the way the d
 `ShellRestoration` gains `settingsPaneKey = "shell.settingsPane"`, `restoredSettingsPane()` falling
 back to `.router` for an absent or unknown value exactly as `Destination.restoring` does, and
 `save(settingsPane:)`. That also gives it the evidence lane a scene-local `@State` has none of —
-`ShellTestSupport.scratchStore()` — which is the argument `ShellRestoration.swift:64-67` already
+`ShellTestSupport.scratchStore()` — which is the argument "/// This lives here rather than as `@AppStorage` in the scene so it has an evidence lane", `ShellRestoration.swift:64-67` at `1c6a5cd` already
 makes about the menu-bar preference.
 
 **Arrow-key traversal** is the brief's explicit requirement, and is *expected* to come free from
 `List(selection:)` with `.listStyle(.sidebar)`. Expected is not measured: it is read back at D3
 alongside the other platform behaviours, and if the list does not traverse, `.focusable()` plus an
-explicit `.onMoveCommand` ships. *Reference:* `ShellWindow.swift:26-58`, `Sidebar.swift:108-126`.
+explicit `.onMoveCommand` ships. *Reference:* `public var body: some View {`, `ShellWindow.swift:26-58` at `1c6a5cd`, `var body: some View {`, `Sidebar.swift:108-126` at `1c6a5cd`.
 *Fulfils:* 5, 6, 12, 16, and the brief's traversal clause.
 
 **B3 · `Settings/SettingsPaneRow.swift`** *(create)* — one source-list row, mirroring
@@ -467,7 +467,7 @@ write are already surface-generic and need no edit.
 
 **E2 · `.measured(…)` annotations** on the window, the source list, each row and each pane's header,
 cards and rows, plus one `.measureSurface("settings.\(state)")` at the window root. Innermost
-`measured`, outermost `onPreferenceChange` — the order is load-bearing and `Measured.swift:304-308`
+`measured`, outermost `onPreferenceChange` — the order is load-bearing and `// The order is load-bearing. The surface's own node has to be measured *innermost* so`, `Measured.swift:304-308` at `1c6a5cd`
 says why.
 
 **E3 · `planning/fidelity/settings.layers.json`** *(create)* — `surface: "settings"`,
@@ -500,9 +500,9 @@ out-of-family review was right that this is circular: M23's bar is *"A citation 
 **pre-existing** … a justification composed during the audit is motivated classification wearing a
 citation's clothes"*, and a plan written for this item is neither external nor pre-existing. So each
 omitted row cites the artifact that already said the capability is absent, all of which predate this
-item: `ControlToken.swift:13-19` (the control API owns three paths), `Models.swift:114-121`
+item: `public static func isControlPath(_ pathname: String) -> Bool {`, `ControlToken.swift:13-19` at `1c6a5cd` (the control API owns three paths), `public struct ServersResponse: Codable, Hashable, Sendable {`, `Models.swift:114-121` at `1c6a5cd`
 (`ServersResponse` carries five fields), `SettingsBoardModel.swift:71-72` (*"There is no rotate
-endpoint and this is not one"*), `SettingsPresentation.swift:100-105` (no megabyte figure, and no
+endpoint and this is not one"*), `/// How many servers are kept resident, and which.`, `SettingsPresentation.swift:100-105` at `1c6a5cd` (no megabyte figure, and no
 field for one), `DESIGN.md` §6 (numbers the router does not observe are never displayed), and — for
 the analyst, updates and login-item rows — the absence itself, recorded as the grep and its date.
 An absence is admissible as a citation only when the search that established it is named, so each
@@ -675,7 +675,7 @@ requirement 17. Assumption 9 (M17 owns the state count) is decision 22.
   `app/Sources/MCPRouterUI/{Shell,Boards,Measure}`, `app/Sources/MeasureDump`,
   `app/Sources/RouterCore/Control`, `app/Tests/{MCPRouterKitTests,MCPRouterUITests}`,
   `scripts/acceptance`, `scripts/lint`, `Makefile`, `planning/fidelity`, and the mock's Settings
-  markup at `design/mcp-router-console.html:1511-1745`.
+  markup at `<!-- ===================== Settings — a window of its own ===================== -->`, `design/mcp-router-console.html:1511-1745` at `1c6a5cd`.
 - **Mechanical path check.** Every backtick-quoted path verified present, except those marked
   *create*.
 - **Out-of-family review.** Ran on one lane and is recorded in §14 with its disposition.
@@ -708,7 +708,7 @@ what a runner still has to treat as open.
 | 1 | Critical | Deleting `Boards/SettingsBoard.swift` in B6 breaks `ShellWindow.swift` for all of B and C, until R5 lands in D1 | **Accepted.** B6 became additive — `Settings/SettingsParts.swift` is *copied* and the original stays — and every deletion moved into the new **D0**, one atomic step whose error list is §5's table |
 | 2 | Critical | Deleting `SettingsPresentation.Group` in A3 breaks `SettingsBoard.swift` immediately, before B6 removes it | **Accepted.** A3 is now *modify, additively*; `Group` goes with its last caller in D0 |
 | 3 | High | `perform(.openSettingsScene)` as a documented no-op leaves the router structurally unable to open Settings, and a test over it asserts a command maps to inaction | **Accepted for the no-op, overruled on the remedy.** The arm now calls an opener injected by `ShellWindow` from `@Environment(\.openSettings)`, beside the `ShellMenuReasons.provideContext` line already at `:74-78`, and the clause is behaviourally testable. The review's `NSApp.sendAction(Selector(("showSettingsWindow:")))` is **not** taken: it is an undocumented selector spelled `showPreferencesWindow:` two releases ago, and `SWIFT_PRACTICES.md` §6 forbids a symbol present in neither this repo nor a pinned dependency |
-| 4 | High | Acceptance criterion 3 accepts exit 1; E3's floors are calibrated after the first run; E4's omitted rows cite this plan's own §4 | **Accepted, in three parts.** Criterion 3 now allows exit 1 only where **every** finding is a divergence the manifest's `note` already declares. E3 states that the floors are a recorded ratchet taken from the first structurally-clean run, names the failure mode (a floor lowered later to make a run green), and points at `servers.layers.json`'s own note for the precedent. E4's citations move to external, pre-existing artifacts — `ControlToken.swift:13-19`, `Models.swift:114-121`, `SettingsBoardModel.swift:71-72`, `SettingsPresentation.swift:100-105`, `DESIGN.md` §6 — with an absence admissible only when the search that established it is named |
+| 4 | High | Acceptance criterion 3 accepts exit 1; E3's floors are calibrated after the first run; E4's omitted rows cite this plan's own §4 | **Accepted, in three parts.** Criterion 3 now allows exit 1 only where **every** finding is a divergence the manifest's `note` already declares. E3 states that the floors are a recorded ratchet taken from the first structurally-clean run, names the failure mode (a floor lowered later to make a run green), and points at `servers.layers.json`'s own note for the precedent. E4's citations move to external, pre-existing artifacts — `public static func isControlPath(_ pathname: String) -> Bool {`, `ControlToken.swift:13-19` at `1c6a5cd`, `public struct ServersResponse: Codable, Hashable, Sendable {`, `Models.swift:114-121` at `1c6a5cd`, `SettingsBoardModel.swift:71-72`, `/// How many servers are kept resident, and which.`, `SettingsPresentation.swift:100-105` at `1c6a5cd`, `DESIGN.md` §6 — with an absence admissible only when the search that established it is named |
 | 5 | Medium | 256pt source list against the brief's 200 is a 28% distortion, and citing the fidelity manifest to ratify it corrupts the gate | **Overruled, with the reason rewritten into decision 18.** A settings source list is a sidebar, `DESIGN.md` §2 specifies `Sidebar 256pt`, and the mock's own `mac-craft:metrics` block carries `sidebar 256px` and no 200 of any name — so the mock disagrees with itself. The review's third option, `.navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 240)`, was weighed and loses twice: three geometry literals where `no-raw-design-values.sh` permits none, and a range is three numbers picked by eye where the complaint was one. The 56pt gap is declared in the manifest `note` and reported on every run |
 | 6 | Medium | `@State` selection resets the pane to Router on every `⌘,`, a regression against the board | **Accepted.** The pane persists through `ShellRestoration` — `settingsPaneKey = "shell.settingsPane"`, `restoredSettingsPane()` falling back to `.router`, `save(settingsPane:)` — which also gives it the `ShellTestSupport.scratchStore()` evidence lane a scene-local `@State` has none of |
 | 7 | Medium | "The five panes §4 empties" contradicts §4, which empties three; and four undeclared narrowings | **Accepted in part.** The count is corrected to three at all three sites. The four §11 declarations were the planner's next step and were never written — see below |
@@ -734,7 +734,7 @@ the review found rather than a second planning pass.
   than shares the console's row view, reasoned at B3 and undeclared; functional requirement 11
   (sheet attachment) is untestable because no sheets are built, and §12 assigns the sheets to M18
   while §11 carries no line for the dropped requirement; and §11 says *"the eight triage
-  assumptions"* where **`spec-M15.md:23-31` lists nine** — verified here, and `spec-M15.md:227`
+  assumptions"* where **`M8 specifies Settings as a board in the console's source list. The mock moves it to a`, `spec-M15.md:23-31` at `0086136` lists nine** — verified here, and "Out-of-family spec review: `agy` / `gemini-3.7-flash-high`, read-only, over all eight", `spec-M15.md:227` at `0086136`
   repeats the miscount, so both files are wrong by one.
 - **Three §8 parity rows the review named are still missing.** Router · Endpoint's **Copy**
   affordance, which §4 builds and §8 does not inventory; `forget()`'s async transition, disabled

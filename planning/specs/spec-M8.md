@@ -50,7 +50,7 @@ complete; that draft was wrong, and the correction is the most important thing i
 **reviewing one of the two things the router quarantines**, which the first draft of this spec
 missed and the spec gate caught.
 
-`diffTools` (`src/manifest.ts:73-102`) holds a change when **either** the description **or** the
+`diffTools` (`export function diffTools(before: Tool[], after: Tool[]): ToolChange[] {`, `src/manifest.ts:73-102` at `9481582`) holds a change when **either** the description **or** the
 input schema differs:
 
 ```js
@@ -60,8 +60,8 @@ if (prevShape.description !== nextShape.description || prevShape.schema !== next
 ```
 
 Both fields are shipped on the wire — `ToolShape` carries `description` **and** `schema`
-(`Control/Models.swift:193-196`). `ToolChangeCard` renders `before?.description` and
-`after?.description` and **nothing else** (`ServerSheets.swift:217-222`).
+(`public struct ToolShape: Codable, Hashable, Sendable {`, `Control/Models.swift:193-196` at `9481582`). `ToolChangeCard` renders `before?.description` and
+`after?.description` and **nothing else** (`if let before = change.before?.description {`, `ServerSheets.swift:217-222` at `9481582`).
 
 **The consequence is a silent hole in the security surface this product exists for.** A server that
 leaves its description untouched and rewrites `inputSchema` to add, say, a `context` parameter
@@ -74,7 +74,7 @@ So the scope decision is narrower than "the sheet exists, leave it alone":
 | The brief asks for | Status |
 |---|---|
 | show the before/after **description** diff | **M3 shipped it** — `ToolChangeCard`'s `was`/`now` fields |
-| name invisible codepoints in a description | **M3 shipped it** — `ServerSheets.swift:223` |
+| name invisible codepoints in a description | **M3 shipped it** — `if let invisible = change.invisible, !invisible.isEmpty {`, `ServerSheets.swift:223` at `9481582` |
 | require an explicit accept | **M3 shipped it** — `approvePendingChange(server:)` |
 | do not offer a dead accept button | **M3 shipped it** — `acceptReason`, `ServerSheets.swift:143` |
 | show the before/after **schema** diff | **absent. M8 ships it.** |
@@ -111,7 +111,7 @@ which fails the same way the missing field does.
 Also caught by the spec gate, and also load-bearing.
 
 `ShellModel.run()` is the poll loop, and it is driven from exactly one place:
-`ShellWindow.swift:45`'s `.task { await model.run() }`. `.task` is cancelled when its view goes
+`.task { await model.run() }`, `ShellWindow.swift:45` at `9481582` — its `.task { await model.run() }`. `.task` is cancelled when its view goes
 away, which its own doc comment describes as correct — *"a sleep that is interrupted means the
 window went away, and continuing to poll for it is how a closed window keeps working"*.
 
@@ -143,14 +143,14 @@ tree.
 
 | Fact | Served? | Where |
 |---|---|---|
-| `port` | yes | `GET /servers` → `ServersResponse.port` (`src/control.ts:246`) |
+| `port` | yes | `GET /servers` → `ServersResponse.port` (`if (p === '/servers' && req.method === 'GET') {`, `src/control.ts:246` at `9481582`) |
 | `idleMs` | yes | `ServersResponse.idleMs`, already retained on `TrackerState.idleMs` |
 | `since` | yes | `ServersResponse.since` — when the usage counter last opened |
 | per-server `warm` | yes | `MCPServer.warm`; writable per-server via `ServerPatch.warm` |
 | held change | yes | `MCPServer.pendingChange`, `GET /servers/:n/changes` |
 | recent calls | yes | `GET /usage` → `CallRecord` incl. `ok`, `ms`, `cold` |
-| **any router setting write** | **no** | `isControlPath` admits only `/servers`, `/usage`, `/registry` (`src/control.ts:206-215`). There is no endpoint that writes `port`, `idleMs`, or anything else about the router itself. |
-| **resident memory** | **no** | `residentMb()` exists (`src/pool.ts:319`) and **has zero callers**. It never reaches `describe()` and never reaches the wire. |
+| **any router setting write** | **no** | `isControlPath` admits only `/servers`, `/usage`, `/registry` (`export function isControlPath(pathname: string): boolean {`, `src/control.ts:206-215` at `9481582`). There is no endpoint that writes `port`, `idleMs`, or anything else about the router itself. |
+| **resident memory** | **no** | `residentMb()` exists (`async residentMb(): Promise<Record<string, number>> {`, `src/pool.ts:319` at `9481582`) and **has zero callers**. It never reaches `describe()` and never reaches the wire. |
 | **client install targets** | **no** | `ClientConfigs.discover` lives in `RouterCore`, which `app/Package.swift` links from **neither app**, deliberately. |
 | **app update state** | **no** | there is no updater in the app at all. |
 
@@ -516,7 +516,7 @@ reader to discover — the spec gate found all three as unrecorded overrides, wh
 verdict on a silent departure however good its reasoning.
 
 **§5 Offline: "say so *and offer to start it*". M8 says so and offers nothing.**
-`ControlAPIError.actionLabel` ships the string "Start the router" (`ControlAPIClient.swift:81`) and
+`ControlAPIError.actionLabel` ships the string "Start the router" (`case .routerNotRunning: "Start the router"`, `ControlAPIClient.swift:81` at `9481582`) and
 **nothing in the merged tree renders it as an action** — M3's banners show headline and advice only.
 There is no launch path in either app: `RouterCore` is linked by neither, and spawning
 `node dist/index.js` from the app would be the second channel the standing constraints forbid.
@@ -581,7 +581,7 @@ scene. It does not: a separate scene needs its own poller for data the shell alr
 
 **D6 — "Reset call history" is not in this item.** The prototype puts it in Settings' Danger group
 and it would fit. M2's spec already filed it as child **M2a** together with a new File-menu command
-(`spec-M2.md:365`). Shipping the button without the command breaks §3.9; shipping both means editing
+("Reset usage history — named-consequence dialog (§9), a new `MenuCommand` in File, and the", `spec-M2.md:365` at `9481582`). Shipping the button without the command breaks §3.9; shipping both means editing
 `MenuCommand.swift` while M4 is in it. Left to M2a and reported.
 
 **D7 — The bar's dot is one colour.** Argued both ways. Two colours would let a glance distinguish
@@ -651,12 +651,12 @@ Claude, and on this occasion it still found the thing that mattered.
 verified both against the source before acting rather than taking them on the reviewer's word:
 
 - **Finding 1 (disqualifying, upheld).** The router quarantines **descriptions and input schemas**
-  (`src/manifest.ts:80-93`); `ToolChangeCard` rendered only descriptions. A schema-only rewrite drew
+  ("const nextShape = { description: tool.description, schema:", `src/manifest.ts:80-93` at `9481582`); `ToolChangeCard` rendered only descriptions. A schema-only rewrite drew
   two identical fields and no indication of change. The first draft of this spec certified that
   surface as complete. It was a gap disguised as a scope decision, which is exactly what the
   reviewer was pointed at. The spec now ships the schema half (A27a–A27d).
 - **Finding 2 (disqualifying, upheld).** `ShellModel.run()` is driven only by `ShellWindow`'s
-  `.task` (`ShellWindow.swift:45`), so a menu-bar app with its window closed has no poller. The spec
+  `.task` (`.task { await model.run() }`, `ShellWindow.swift:45` at `9481582`), so a menu-bar app with its window closed has no poller. The spec
   now specifies an app-lifetime poll (A27e, A27f) and records the reversal of M1's rationale.
 
 The other thirteen, and what each produced:

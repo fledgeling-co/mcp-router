@@ -22,12 +22,12 @@ Every reader across the TypeScript and Swift implementations was checked:
 
 | Consumer | Location | Handling with `entry.error` |
 | :--- | :--- | :--- |
-| **Watcher Staging / Adoption** | [`src/watch.ts:286-290`](file:///Users/lukerhodes/Dev/mcp-router/src/watch.ts#L286-L290)<br>[`WatchRun.swift:182-188`](file:///Users/lukerhodes/Dev/mcp-router/app/Sources/RouterCore/Watch/WatchRun.swift#L182-L188) | `if (!entry || entry.error || entry.hash !== upstreamHash(upstream))` rejects adoption and pushes the server to `pending`. |
-| **Staleness Checker** | [`src/manifest.ts:198-201`](file:///Users/lukerhodes/Dev/mcp-router/src/manifest.ts#L198-L201)<br>[`ToolUnion.swift:39-46`](file:///Users/lukerhodes/Dev/mcp-router/app/Sources/RouterCore/Manifest/ToolUnion.swift#L39-L46) | `isStale` evaluates `!entry || entry.hash !== ... || !!entry.error` &rarr; returns `true`. The server remains marked for re-indexing once backoff expires. |
-| **Tool Serving (`unionTools`)** | [`src/manifest.ts:326`](file:///Users/lukerhodes/Dev/mcp-router/src/manifest.ts#L326)<br>[`ToolUnion.swift:65`](file:///Users/lukerhodes/Dev/mcp-router/app/Sources/RouterCore/Manifest/ToolUnion.swift#L65) | `if (!entry || entry.tools.length === 0) continue;` skips the entry entirely because `entry.tools` is `[]`. No broken or empty tool surface is served to clients. |
-| **Status & Describe (`/servers`)** | [`src/control.ts:214-217`](file:///Users/lukerhodes/Dev/mcp-router/src/control.ts#L214-L217)<br>[`Describe.swift:27-31`](file:///Users/lukerhodes/Dev/mcp-router/app/Sources/RouterCore/Control/Describe.swift#L27-L31) | Explicitly checks `tools: entry?.error ? 0 : ...` and surfaces `indexError: entry?.error`. |
-| **Upstream Health (`reportUpstreams`)** | [`src/oauth.ts:279-306`](file:///Users/lukerhodes/Dev/mcp-router/src/oauth.ts#L279-L306)<br>[`UpstreamStateReport.swift:80-120`](file:///Users/lukerhodes/Dev/mcp-router/app/Sources/RouterCore/AuthServer/UpstreamStateReport.swift#L80-L120) | Checks `indexError = entry?.error`. Switches the recommendation from the generic *"Re-index it and see what it reports"* to *"Fix the error below, then re-index it"* and surfaces the exact error string in `detail`. |
-| **Direct Tool Dispatch (`callTool`)** | [`src/router.ts:208-222`](file:///Users/lukerhodes/Dev/mcp-router/src/router.ts#L208-L222)<br>[`MCPEndpointToolCall.swift:70-75`](file:///Users/lukerhodes/Dev/mcp-router/app/Sources/RouterCore/Service/MCPEndpointToolCall.swift#L70-L75) | [`placardFor`](file:///Users/lukerhodes/Dev/mcp-router/src/manifest.ts#L301-L308) returns `{ reason: entry.error }`. If a client attempts to call a tool on a failed server using a stale cached name, the router immediately returns an `INOPERATIVE` response rather than attempting to spawn a broken process. |
+| **Watcher Staging / Adoption** | ["const entry = manifest.servers[name];", `src/watch.ts:286-290` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/src/watch.ts#L286-L290)<br>[`let entry = manifest.entry(named: candidate.name)`, `WatchRun.swift:182-188` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/app/Sources/RouterCore/Watch/WatchRun.swift#L182-L188) | `if (!entry || entry.error || entry.hash !== upstreamHash(upstream))` rejects adoption and pushes the server to `pending`. |
+| **Staleness Checker** | [`export function isStale(manifest: Manifest, u: UpstreamConfig): boolean {`, `src/manifest.ts:198-201` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/src/manifest.ts#L198-L201)<br>[`public static func isStale(_ manifest: Manifest, _ upstream: UpstreamConfig) -> Bool {`, `ToolUnion.swift:39-46` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/app/Sources/RouterCore/Manifest/ToolUnion.swift#L39-L46) | `isStale` evaluates `!entry || entry.hash !== ... || !!entry.error` &rarr; returns `true`. The server remains marked for re-indexing once backoff expires. |
+| **Tool Serving (`unionTools`)** | ["entry.tools.length === 0) continue;", `src/manifest.ts:326` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/src/manifest.ts#L326)<br>[`guard let entry = manifest.entry(named: upstream.name) else { continue }`, `ToolUnion.swift:65` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/app/Sources/RouterCore/Manifest/ToolUnion.swift#L65) | `if (!entry || entry.tools.length === 0) continue;` skips the entry entirely because `entry.tools` is `[]`. No broken or empty tool surface is served to clients. |
+| **Status & Describe (`/servers`)** | ["tools: entry?.error ? 0 : (entry?.tools.length ?? 0),", `src/control.ts:214-217` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/src/control.ts#L214-L217)<br>[`var members: [JSONMember] = [`, `Describe.swift:27-31` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/app/Sources/RouterCore/Control/Describe.swift#L27-L31) | Explicitly checks `tools: entry?.error ? 0 : ...` and surfaces `indexError: entry?.error`. |
+| **Upstream Health (`reportUpstreams`)** | ["const indexError = entry?.error;", `src/oauth.ts:279-306` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/src/oauth.ts#L279-L306)<br>[`) async -> UpstreamReport {`, `UpstreamStateReport.swift:80-120` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/app/Sources/RouterCore/AuthServer/UpstreamStateReport.swift#L80-L120) | Checks `indexError = entry?.error`. Switches the recommendation from the generic *"Re-index it and see what it reports"* to *"Fix the error below, then re-index it"* and surfaces the exact error string in `detail`. |
+| **Direct Tool Dispatch (`callTool`)** | ["const placard = upstream ? placardFor(upstream, manifest.current().servers[serverName]) :", `src/router.ts:208-222` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/src/router.ts#L208-L222)<br>[`let entry = await deps.manifest.current().entry(named: serverName)`, `MCPEndpointToolCall.swift:70-75` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/app/Sources/RouterCore/Service/MCPEndpointToolCall.swift#L70-L75) | [`placardFor`](file:///Users/lukerhodes/Dev/mcp-router/src/manifest.ts#L301-L308) returns `{ reason: entry.error }`. If a client attempts to call a tool on a failed server using a stale cached name, the router immediately returns an `INOPERATIVE` response rather than attempting to spawn a broken process. |
 
 ---
 
@@ -37,13 +37,13 @@ Every reader across the TypeScript and Swift implementations was checked:
 
 - **Sequence**:
   1. A server (e.g. `pocketsmith`) is staged in `~/.claude.json`.
-  2. `watch.ts` attempts to index it; `buildManifest` fails and writes `manifest.servers['pocketsmith'] = { ... error }` ([`src/manifest.ts:260-265`](file:///Users/lukerhodes/Dev/mcp-router/src/manifest.ts#L260-L265)).
+  2. `watch.ts` attempts to index it; `buildManifest` fails and writes `manifest.servers['pocketsmith'] = { ... error }` ([`manifest.servers[u.name] = {`, `src/manifest.ts:260-265` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/src/manifest.ts#L260-L265)).
   3. The user removes `pocketsmith` from `~/.claude.json`.
-  4. On the next watch run ([`src/watch.ts:207-209`](file:///Users/lukerhodes/Dev/mcp-router/src/watch.ts#L207-L209)), `state.failures['pocketsmith']` is pruned from `watch-state.json`.
+  4. On the next watch run ([`for (const name of Object.keys(failures)) {`, `src/watch.ts:207-209` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/src/watch.ts#L207-L209)), `state.failures['pocketsmith']` is pruned from `watch-state.json`.
   5. **However, `manifest.servers['pocketsmith']` is never pruned from `manifest.json`.**
 - **Impact Assessment**:
   - **No functional leak**: All operational endpoints (`unionTools`, `reportUpstreams`, `describe`, `/servers`, `status`) iterate over `config.upstreams` (from `servers.json`), **not** `Object.keys(manifest.servers)`. Staged rows that were never adopted are never iterated or served.
-  - **Existing design consistency**: Manifest keys are never pruned anywhere in the architecture (see [`ManifestBookkeeping.swift:97-98`](file:///Users/lukerhodes/Dev/mcp-router/app/Sources/RouterCore/Manifest/ManifestBookkeeping.swift#L97-L98): *"an upstream that is no longer declared keeps its entry rather than being pruned"*). Removing an adopted server via `POST /servers/:name` (`DELETE`) removes it from `servers.json`, but also leaves its historical entry in `manifest.json`.
+  - **Existing design consistency**: Manifest keys are never pruned anywhere in the architecture (see ["/// rather than in ``apply(previous:observation:configHash:nowMilliseconds:)``: an", `ManifestBookkeeping.swift:97-98` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/app/Sources/RouterCore/Manifest/ManifestBookkeeping.swift#L97-L98): *"an upstream that is no longer declared keeps its entry rather than being pruned"*). Removing an adopted server via `POST /servers/:name` (`DELETE`) removes it from `servers.json`, but also leaves its historical entry in `manifest.json`.
   - **Storage**: At ~120 bytes per failure row, thousands of distinct failed server configurations would be required to consume even 1 MB.
 
 ---
@@ -53,14 +53,14 @@ Every reader across the TypeScript and Swift implementations was checked:
 **Verdict: Pre-index configuration parse rejections bypass `buildManifest` by design, but runtime failures are completely captured.**
 
 1. **Config Syntax Rejection (`parseServer`)**:
-   - **File & Line**: [`src/config.ts:139-180`](file:///Users/lukerhodes/Dev/mcp-router/src/config.ts#L139-L180) / [`src/config.ts:252-256`](file:///Users/lukerhodes/Dev/mcp-router/src/config.ts#L252-L256)
+   - **File & Line**: [`export function parseServer(name: string, s: RawServer): { upstream: UpstreamConfig }`, `src/config.ts:139-180` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/src/config.ts#L139-L180) / [`for (const [name, s] of Object.entries(raw.mcpServers ?? {})) {`, `src/config.ts:252-256` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/src/config.ts#L252-L256)
    - **Sequence**: If an entry in `servers.json` or `~/.claude.json` has an invalid name (e.g. contains `__`), missing `command` for stdio, or an unparseable URL for HTTP, `parseServer` returns `{ reason }`.
    - **Result**: It is added to `skipped` and excluded from `config.upstreams`. It never reaches `buildManifest` and leaves no manifest row. It is reported only in server startup logs (`not proxied: <name>`). This is schema validation rather than an indexing failure.
 2. **Filesystem Write Failures on `saveManifest`**:
-   - **File & Line**: [`src/watch.ts:273`](file:///Users/lukerhodes/Dev/mcp-router/src/watch.ts#L273) vs [`WatchIndexing.swift:156`](file:///Users/lukerhodes/Dev/mcp-router/app/Sources/RouterCore/Watch/WatchIndexing.swift#L156)
+   - **File & Line**: ["saveManifest(manifestPath, manifest);", `src/watch.ts:273` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/src/watch.ts#L273) vs [`try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `WatchIndexing.swift:156` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/app/Sources/RouterCore/Watch/WatchIndexing.swift#L156)
    - **Sequence**: If disk write fails (e.g. `ENOSPC`), Node throws an uncaught error whereas Swift executes `try? ManifestIO.save(...)` which silently discards the write. In either case, the manifest on disk cannot receive the failure row.
 3. **Runtime Execution Failures**:
-   - **File & Line**: [`src/manifest.ts:223-279`](file:///Users/lukerhodes/Dev/mcp-router/src/manifest.ts#L223-L279)
+   - **File & Line**: ["const handle = await pool.acquire(u.name);", `src/manifest.ts:223-279` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/src/manifest.ts#L223-L279)
    - **Sequence**: The per-upstream `try/catch` in `buildManifest` encapsulates `pool.acquire()` and `client.listTools()`. Non-existent binaries (`ENOENT`), permissions errors (`EACCES`), process crashes on startup, crashes during `initialize`, timeouts, and RPC errors on `tools/list` are all caught and committed to the manifest.
 
 ---
@@ -69,9 +69,9 @@ Every reader across the TypeScript and Swift implementations was checked:
 
 **Verdict: `builtAt` is not a lie; downstream OAuth state reconciliation strictly requires it.**
 
-- **File & Line**: [`src/manifest.ts:262`](file:///Users/lukerhodes/Dev/mcp-router/src/manifest.ts#L262), [`src/control.ts:196-201`](file:///Users/lukerhodes/Dev/mcp-router/src/control.ts#L196-L201)
+- **File & Line**: ["builtAt: new Date().toISOString(),", `src/manifest.ts:262` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/src/manifest.ts#L262), [`const refusalIsStale =`, `src/control.ts:196-201` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/src/control.ts#L196-L201)
 - **Downstream Dependency**:
-  In [`src/control.ts:196-201`](file:///Users/lukerhodes/Dev/mcp-router/src/control.ts#L196-L201), the router calculates `refusalIsStale`:
+  In [`const refusalIsStale =`, `src/control.ts:196-201` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/src/control.ts#L196-L201), the router calculates `refusalIsStale`:
   ```ts
   const refusalIsStale =
     recordedRefusal !== undefined &&
@@ -90,7 +90,7 @@ Every reader across the TypeScript and Swift implementations was checked:
 
 **Verdict: Keeping the row does not destroy previously-good tool surfaces; `buildManifest` already replaces `tools` on failure.**
 
-- **File & Line**: [`src/manifest.ts:260-265`](file:///Users/lukerhodes/Dev/mcp-router/src/manifest.ts#L260-L265)
+- **File & Line**: [`manifest.servers[u.name] = {`, `src/manifest.ts:260-265` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/src/manifest.ts#L260-L265)
 - **Sequence**:
   When an existing upstream with working tools fails a re-index:
   1. `buildManifest` overwrites `manifest.servers[u.name]` with `{ hash, builtAt, tools: [], error: message }`.
@@ -105,8 +105,8 @@ Every reader across the TypeScript and Swift implementations was checked:
 
 **Verdict: The fix is generic and applies to the core indexing lifecycle.**
 
-- The deletion was unconditionally removed from the generic `failed` loop in [`src/watch.ts:239-267`](file:///Users/lukerhodes/Dev/mcp-router/src/watch.ts#L239-L267) and [`WatchIndexing.swift:141-160`](file:///Users/lukerhodes/Dev/mcp-router/app/Sources/RouterCore/Watch/WatchIndexing.swift#L141-L160).
-- The test suite ([`IndexFailureRecordTests.swift`](file:///Users/lukerhodes/Dev/mcp-router/app/Tests/RouterCoreTests/IndexFailureRecordTests.swift#L72-L146) and [`parity-cli.sh:473-500`](file:///Users/lukerhodes/Dev/mcp-router/scripts/acceptance/parity-cli.sh#L473-L500)) exercises arbitrary failure points (`deadcommand` for pre-session ENOENT failure and `refuseslist` for JSON-RPC -32000 failure), verifying that error records are produced uniformly regardless of entry origin.
+- The deletion was unconditionally removed from the generic `failed` loop in [`for (const f of failed) {`, `src/watch.ts:239-267` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/src/watch.ts#L239-L267) and ["nowMilliseconds: { clock.nowMilliseconds },", `WatchIndexing.swift:141-160` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/app/Sources/RouterCore/Watch/WatchIndexing.swift#L141-L160).
+- The test suite ([`IndexFailureRecordTests.swift`](file:///Users/lukerhodes/Dev/mcp-router/app/Tests/RouterCoreTests/IndexFailureRecordTests.swift#L72-L146) and [`WATCH_PROBE='{`, `parity-cli.sh:473-500` at `1004d10`](file:///Users/lukerhodes/Dev/mcp-router/scripts/acceptance/parity-cli.sh#L473-L500)) exercises arbitrary failure points (`deadcommand` for pre-session ENOENT failure and `refuseslist` for JSON-RPC -32000 failure), verifying that error records are produced uniformly regardless of entry origin.
 
 ---
 

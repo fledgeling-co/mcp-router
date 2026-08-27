@@ -20,10 +20,10 @@ The brief reads *"R2-R shipped the Swift CLI and proved 8 of 10 verbs. `import` 
 **Half of that premise is wrong, and the wrong half changes the work.** Measured on `317d957`:
 
 - `import` **is** implemented (`app/Sources/MCPRouterCLI/ImportVerb.swift`, 154 lines) and its
-  parity row `cli-import` reads **`proven`** (`planning/parity/surface.tsv:97`). Not a missing verb.
+  parity row `cli-import` reads **`proven`** (`mcp — the endpoint the brief's tool-list and call-result corpora travel over.`, `planning/parity/surface.tsv:97` at `7babd97`). Not a missing verb.
 - The reference's `import` (`src/index.ts:80` `cmdImport`) **does not touch `~/.claude.json`**. It
   reads it and writes only `servers.json`. The rewrite is a **separate installer step** —
-  `docs/install.sh:167`, an inline `node -e` script — and is a verb of no binary today.
+  `project and Claude Code rewrites it constantly, so touch only the router key.`, `docs/install.sh:167` at `7babd97`, an inline `node -e` script — and is a verb of no binary today.
 
 So P2 is not "write the import verb". It is three rows, and the useful question is what each needs.
 
@@ -36,7 +36,7 @@ So P2 is not "write the import verb". It is three rows, and the useful question 
 | `install-claude-json` | install | "`install.sh:141` rewrites the user's own config through a `node -e` script … the step that actually points Claude Code at the router" | Genuinely absent. No Swift code performs this rewrite |
 
 `div-r1-d3` is worth dwelling on. The divergence lane already records `div-r1-d3-control`, and
-`parity-divergence.sh:180` is explicit that it measured the **control-API** writer, not this one,
+`record div-r1-d3-control ok "swift and the reference both preserve unknownTopLevel across`, `parity-divergence.sh:180` at `7babd97` is explicit that it measured the **control-API** writer, not this one,
 because *"recording that as proof of this claim would be proving a capability by measuring another
 one"*. That honesty is why the row is still open, and P2 must not spend it.
 
@@ -51,7 +51,7 @@ one"*. That honesty is why the row is still open, and P2 must not spend it.
 2. **S2 — `ImportVerb.writeAdopted` becomes a third `servers.json` writer**: atomic, preserving
    unknown top-level keys, holding the config mutation lock across read-modify-write, and using the
    **import verb's own** mode rule.
-3. **S3 — a Swift `~/.claude.json` router-entry rewrite**, reproducing `docs/install.sh:162-188`
+3. **S3 — a Swift `~/.claude.json` router-entry rewrite**, reproducing `if [[ -f "$CLAUDE_JSON" ]]; then`, `docs/install.sh:162-188` at `7babd97`
    on disk, exposed as a CLI verb the installer can call after the cutover.
 4. **S4 — parity lanes** that measure S1–S3 as the three rows above.
 
@@ -72,7 +72,7 @@ one"*. That honesty is why the row is still open, and P2 must not spend it.
 
 `ImportVerb.swift:22` is `(NSHomeDirectory() as NSString).appendingPathComponent(".claude.json")`.
 The reference is `join(homedir(), '.claude.json')`, and `homedir()` reads `$HOME`.
-`NSHomeDirectory()` does not: R2-W measured this and wrote it into `WatchPaths.swift:5-10` — under
+`NSHomeDirectory()` does not: R2-W measured this and wrote it into "/// **`~/.claude.json` is resolved from `HOME` in the environment**, not from", `WatchPaths.swift:5-10` at `7babd97` — under
 `HOME=/tmp/fakehome`, node returns `/tmp/fakehome` and `NSHomeDirectory()` returns the real account
 directory.
 
@@ -82,8 +82,8 @@ fix, second of the two places that needed it.
 
 **A2.2** `RouterHome` is derived from **that same resolved home**. `ImportVerb` currently calls
 `RouterHome()` bare, which re-reads `NSHomeDirectory()`. The reference derives both from one
-`homedir()` (`src/config.ts:79`), so **two homes in one run is not a shape the reference can
-produce** — the invariant `WatchPaths.swift:16-21` records.
+`homedir()` (`export const ROUTER_HOME = process.env.MCP_ROUTER_HOME`, `src/config.ts:79` at `7babd97`), so **two homes in one run is not a shape the reference can
+produce** — the invariant "/// The router's own home, resolved from the **same** `HOME` as everything above.", `WatchPaths.swift:16-21` at `7babd97` records.
 
 **This is not cosmetic and the first draft of this spec said it was.** `docs/install.sh:60,77` sets
 `ROUTER_HOME="$HOME/.claude/mcp-router"` and then runs a **bare** `node dist/index.js import` — no
@@ -94,13 +94,13 @@ router home too, and A2.2 is exactly what `install-import-servers` measures. A l
 
 **A2.3 — a safety property, not only a parity one.** Without it, the moment a lane runs `import`
 with no `--from` it adopts out of, and later steps rewrite, the developer's own `~/.claude.json` —
-the reasoning `WatchPaths.swift:8-10` records. This is why the row was blocked.
+the reasoning `/// reference therefore *requires* reading the environment — and a watcher that did not`, `WatchPaths.swift:8-10` at `7babd97` records. This is why the row was blocked.
 
 ---
 
 ## 4. S2 — the import writer
 
-`spec-R1.md:148` declares D3: the Swift `servers.json` writer is **atomic** and **preserves
+"The `servers.json` writer is **atomic** and **preserves top-level keys it did not set**.", `spec-R1.md:148` at `7babd97` declares D3: the Swift `servers.json` writer is **atomic** and **preserves
 top-level keys it did not set**, where the reference's writer *in `src/index.ts`* writes four keys
 non-atomically. `ImportVerb.writeAdopted` (lines 113-131) does neither: it builds a fresh four-key
 object and calls the mode-less `fileSystem.writeFile(_:atPath:)`.
@@ -128,7 +128,7 @@ and its `backed up existing config -> …` stdout line are unchanged.
 
 **A3.3 — the mode rule, stated as an implementation constraint because two obvious ways to write it
 are wrong.** The reference passes `{ mode: 0o600 }` to an **in-place** `writeFileSync`
-(`src/index.ts:141`). Measured on this machine, 2026-08-15:
+(`{ mode: 0o600 }`, `src/index.ts:141` at `7babd97`). Measured on this machine, 2026-08-15:
 
 ```
 in-place writeFileSync(dest, …, {mode:0o600}) over an existing 0644 file  ->  644
@@ -141,7 +141,7 @@ Node's `mode` applies **only when the file is created**. So:
   Using it unconditionally would silently narrow every existing `0644` `servers.json` — the file
   holding every server's `env`, i.e. its API keys — on every import.
 - `fileSystem.writeFile(dest, mode: 0o600)` is equally wrong in the other direction:
-  `FileModeWriting.swift:46-48` **always `fchmod`s**, deliberately, so it too narrows an existing
+  `// O_CREAT honours the mode only when the file is new; an existing record keeps its old`, `FileModeWriting.swift:46-48` at `7babd97` **always `fchmod`s**, deliberately, so it too narrows an existing
   file. Neither call may be used bare.
 
 **The rule:** resolve `.fixed(0o600)` when the destination does **not** exist, `.preserveExisting`
@@ -156,7 +156,7 @@ correction, not a divergence.
 **A3.4 — hold the config mutation lock across the whole read-modify-write.** `servers.json` is the
 file `ConfigMutationLock` exists for, and the import writer is the one writer that never took it.
 The critical section is the **re-read, merge and write** — not the 60 s indexing pass — for exactly
-the reason `WatchAdoption.swift:16-17` gives: the object the delta is applied to must be the one
+the reason `/// Re-reading **inside** the lock is what makes a concurrent control-API PATCH survive:`, `WatchAdoption.swift:16-17` at `7babd97` gives: the object the delta is applied to must be the one
 currently on disk. Reading outside the lock and writing inside it would let a control-API PATCH
 landing in the window be clobbered by a stale snapshot, and A3.1's "preserved" keys would be
 preserved from the wrong file.
@@ -166,7 +166,7 @@ nothing waiting on it, and failing an import the user waited through a 60 s inde
 PATCH held the lock 100 ms — is the worse of the two failures.
 
 **A3.5 — `cli-import` must stay green, and here is every way this change could redden it.** Checked
-before writing a line: `parity-cli.sh:81-93`'s `seed` writes a `servers.json` containing **exactly**
+before writing a line: `cat > "$1/servers.json" <<JSON`, `parity-cli.sh:81-93` at `7babd97` — its `seed` writes a `servers.json` containing **exactly**
 the four keys, so preservation has nothing to preserve there. The three live risks are the trailing
 newline (A3.2), the backup filename and its stdout line (A3.2), and the file mode — which `seed`
 creates at the umask default, so both sides take the `.preserveExisting` branch. Each is asserted,
@@ -178,7 +178,7 @@ not assumed.
 
 ### 5.1 What the reference does
 
-`docs/install.sh:162-188`, as one installer step:
+`if [[ -f "$CLAUDE_JSON" ]]; then`, `docs/install.sh:162-188` at `7babd97`, as one installer step:
 
 1. `cp "$CLAUDE_JSON" "$CLAUDE_JSON.bak-mcp-router-$(date +%Y%m%d-%H%M%S)"`.
 2. Parse the file.
@@ -203,7 +203,7 @@ reproduces install.sh's shape exactly, second-resolution collision included, bec
 reference's behaviour and not P2's to improve.
 
 **A4.3 — it does not appear in `Copy.usage`.** **`cli-help` is a `proven` row**, and
-`parity-cli.sh:144-147` compares `help`, `--help`, `-h` **and the unknown-verb arm** between the two
+`run_both cli-help "help prints the usage block" -- help`, `parity-cli.sh:144-147` at `7babd97` compares `help`, `--help`, `-h` **and the unknown-verb arm** between the two
 binaries. A line in the Swift usage block reddens it — trading one row for another and calling it
 progress.
 
@@ -217,7 +217,7 @@ defensible on its own, and that keeping `cli-help` green is the second reason ra
 one. Declared as **P2-D2** with a vector.
 
 **A4.4 — `MCPRouterCLI.dispatch`'s own contract changes with it.** Its comment reads "one arm per
-verb `src/index.ts` dispatches, and nothing else" (`MCPRouterCLI.swift:37-38`). An eleventh verb
+verb `src/index.ts` dispatches, and nothing else" (`/// The whole verb surface: the reference's, plus **one verb it does not have**.`, `MCPRouterCLI.swift:37-38` at `7babd97`). An eleventh verb
 breaks that invariant, so the comment is rewritten in the same patch rather than left to read as a
 promise the code no longer keeps.
 
@@ -228,7 +228,7 @@ identically on both binaries.
 
 **A4.6** The rewrite goes through `WatchBackup.writeAtomic(…, mode: .preserveExisting)` — R2-W's
 writer, which already reproduces `statSync → write tmp at mode → rename`. `.preserveExisting` has
-**no fallback mode** by deliberate design (`WatchBackup.swift:57-64`): if the file vanished mid-run
+**no fallback mode** by deliberate design ("/// `~/.claude.json` — `statSync(CLAUDE_JSON).mode & 0o777` at", `WatchBackup.swift:57-64` at `7babd97`): if the file vanished mid-run
 the `stat` throws and nothing is written, rather than recreating session state the user just
 discarded. Inherited, not re-derived.
 
@@ -247,7 +247,7 @@ missing. On `~/.claude.json` the same lock would exclude **nothing**:
   first draft's "the Mac app driving it while a script runs" was false.
 
 What the lock **would** do is create `~/.claude.json.lock` — `0600`, never read, never deleted
-(`ConfigMutationLock.swift:11-16`) — a permanent new file in the user's home directory, next to a
+("/// **The lock object is a sidecar, `servers.json.lock`, never `servers.json` itself", `ConfigMutationLock.swift:11-16` at `7babd97`) — a permanent new file in the user's home directory, next to a
 document the installer itself describes as live session state, in exchange for excluding a verb
 nobody runs two of. A lock believed to exclude more than it does is worse than no lock. Registered as
 **`D-p2-a`**: neither writer locks this file, and giving both of them the lock is R4's call
@@ -260,7 +260,7 @@ alongside `D-v1f`.
 
 **A4.9** Unparseable: exit non-zero, write **nothing** — neither the file nor a backup. The node
 script throws and `install.sh` inherits the failure. Never write anything derived from a parse that
-failed, the rule `WatchBackup.swift:5-7` already states for this file.
+failed, the rule "/// `~/.claude.json` is ~268 KB and holds live session state for every project on the", `WatchBackup.swift:5-7` at `7babd97` already states for this file.
 
 **A4.10** `mcpServers` absent, `null`, or any other falsy value becomes a fresh object, matching
 `||`. A **truthy non-object** (a string, a number, an array) is left in place and the member
@@ -304,7 +304,7 @@ it.
 **The caveat this row carries, and it is written into the manifest note, not only here.** The lane
 drives the Swift binary against the installer's own extracted script under installer-equivalent
 conditions. It does **not** run `docs/install.sh`, and after P2 the installer still invokes `node`.
-That is the same standard `install-launchd-serve` is held to — `parity-install.sh:33-35` states it
+That is the same standard `install-launchd-serve` is held to — `CAVEAT, printed into the gate's report: two real agents under real launchd supervision,`, `parity-install.sh:33-35` at `7babd97` states it
 does not run the installer either, and that row reads `proven` — but the review argued the row
 should stay blocked until R4-C flips the caller, and that argument is recorded in §11 rather than
 resolved unilaterally by the runner who benefits from resolving it.
@@ -322,7 +322,7 @@ the row's note says so — "the writer is `WatchBackup.writeAtomic`" is identity
 completed non-atomic write also leaves no partial file.
 
 **A5.4 — the guard against the easy pass.** A lane that exits 0 having recorded nothing is an
-environment failure, not a pass (`parity-gate.sh:20-23`); the new lanes record through the same
+environment failure, not a pass (`3. A lane that exits 0 having printed nothing did not run. A lane that produces no result`, `parity-gate.sh:20-23` at `7babd97`); the new lanes record through the same
 `PARITY_RESULTS` mechanism. Each new lane is additionally **made to fail once, deliberately**, and
 that is recorded in the evidence file.
 
@@ -374,7 +374,7 @@ as defects found.
 |---|---|---|---|
 | `D-p2-a` | **Neither** Swift writer of `~/.claude.json` takes the config mutation lock — not the watcher (`D-v1f`), not `install-entry` | R4, with `D-v1f` | Taking it in one of the two would exclude nothing and would put a permanent `~/.claude.json.lock` in the user's home. §5.3 |
 | `D-p2-b` | `install.sh` still calls `node -e` for the rewrite, and still calls `node dist/index.js import` | R4-C | `docs/` is the published site of a public repo; the cutover commit is specified in `spec-R4.md`. P2 supplies the capability, R4-C flips the caller |
-| `D-p2-c` | `import`'s `servers.json.bak-<epoch>` backup is written mode-less, so a `0600` config yields a world-readable backup of a file holding API keys | R4 | The reference has the identical bug (`src/index.ts:135`), so fixing it is a **new declared divergence** rather than a fix, and P2's job on this path is parity. Named rather than left for someone to find |
+| `D-p2-c` | `import`'s `servers.json.bak-<epoch>` backup is written mode-less, so a `0600` config yields a world-readable backup of a file holding API keys | R4 | The reference has the identical bug ("writeFileSync(backup, readFileSync(DEFAULT_CONFIG_PATH));", `src/index.ts:135` at `7babd97`), so fixing it is a **new declared divergence** rather than a fix, and P2's job on this path is parity. Named rather than left for someone to find |
 
 ---
 
@@ -396,7 +396,7 @@ in-family **with the downgrade logged**.
 grok-4.6, exit 0, 12,486 bytes, 17 findings, **VERDICT: AMEND**. Four of its load-bearing factual
 claims were **re-measured on this machine before any of them were accepted**, and all four held:
 Node's in-place `{mode:0600}` leaves an existing `0644` file alone while tmp-plus-rename lands
-`0600`; `FileModeWriting.swift:46-48` always `fchmod`s; nothing under `MCPRouterUI`/`MCPRouterKit`
+`0600`; `// O_CREAT honours the mode only when the file is new; an existing record keeps its old`, `FileModeWriting.swift:46-48` at `7babd97` always `fchmod`s; nothing under `MCPRouterUI`/`MCPRouterKit`
 mentions `.claude.json`; `ConfigEdit` writes no trailing newline where `WatchAdoption` writes one.
 
 | # | Severity | Finding | Disposition |

@@ -25,7 +25,7 @@ reports record their instruments by counts rather than by content — so a recon
 instrument built to return the numbers already written down, which is a worse claim than an honest
 absence. `(gone)` is the true thing to say.
 
-Note what the last two are. `LEDGER.md:81` is the `G6` row itself: the ledger entry that describes
+Note what the last two are. "G6 | Evidence kept in `/tmp` is not evidence |", `LEDGER.md:81` at `c367fc1` is the `G6` row itself: the ledger entry that describes
 the dead-path defect carries two dead-path citations of its own, unmarked. The defect reproduced
 inside its own description, which is the clearest argument for the gate that either half of this
 item makes.

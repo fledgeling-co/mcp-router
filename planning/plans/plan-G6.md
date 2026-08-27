@@ -14,7 +14,7 @@ briefs into worktrees and makes the tracked-artifact problem universal instead o
 Three of the brief's figures were re-measured on `0e5ff49` before planning, and two of them move:
 
 - **`/tmp` is cited in durable specs, not only in progress docs.** `planning/specs/spec-P4.md`
-  at 43, 85, 300; `planning/specs/spec-F1.md:166`; and six further specs the brief never names
+  at 43, 85, 300; `effort, read-only, wire-verified`, `planning/specs/spec-F1.md:166` at `c4b75bd`; and six further specs the brief never names
   (`spec-R1`, `spec-R2`, `spec-R2W`, `spec-R3`, `spec-R6`, `spec-P2`). A spec is the most durable
   record in the pipeline, so this is the worst place the defect could have been sitting.
 - **`WORK-ORDER.md` is on `main`, not in four of twelve worktrees.** It is tracked at the repo

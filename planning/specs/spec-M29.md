@@ -99,7 +99,7 @@ three answers independently. Evidence: `planning/evidence/M29-decisions-agy.md`,
 **Decided: it keeps all of it.** Disabling never writes to `manifest.json`, and `disabled` is
 absent from `upstreamHash`, so the cache is not invalidated by the toggle.
 
-The mechanism is already in the codebase and needs no new rule: `upstreamHash` (`src/config.ts:98`)
+The mechanism is already in the codebase and needs no new rule: `upstreamHash` (`export function upstreamHash(u: UpstreamConfig): string {`, `src/config.ts:98` at `9c48d2d`)
 hashes only transport identity — `['stdio', command, args, cwd ?? null, sorted env]` or
 `[transport, url, sorted headers]`. `projects`, `warm` and `placard` are all outside it for the
 same reason, because none of them changes what the upstream advertises. `disabled` is the fourth
@@ -196,11 +196,11 @@ Servers board — and that surface does not exist.
 | D4 | `POST /servers/:name/reindex` still works on a disabled server. The **automatic** index sweeps skip it | Re-index is the user asking; the sweeps are the router deciding. A disabled server that is never indexable cannot be inspected before re-enabling, and one the startup sweep still spawns is not "not served" in the only sense that costs anything |
 | D5 | The serving surface is enumerated, not assumed: `unionTools` (list), the `tools/call` guard, `pool.warmUp()`, and the two automatic index sweeps. Each takes the check | This is the answer to what B1 was better at (§3.2). A closed list is checkable; "the predicate exists" is not |
 | D6 | A disabled server's `tools/call` is refused with **its own reason**, not the scoped-server message | `Upstream "x" is not available in this project` is a false statement about a globally disabled server. Two branches, two sentences |
-| D7 | The held-change sheet's destructive button becomes `Disable <server>`, replacing `Remove <server>` | The mock draws `Disable mobbin` at `3945`; the build shipped `Remove` because disable did not exist. Remove has a strictly larger blast radius — it deletes the config entry and its unrecoverable secrets, which `RemoveServerDialog` documents at length. Remove stays reachable from the inspector (`ServerInspectorSections.swift:155`) and the shell command router, so no path is orphaned |
+| D7 | The held-change sheet's destructive button becomes `Disable <server>`, replacing `Remove <server>` | The mock draws `Disable mobbin` at `3945`; the build shipped `Remove` because disable did not exist. Remove has a strictly larger blast radius — it deletes the config entry and its unrecoverable secrets, which `RemoveServerDialog` documents at length. Remove stays reachable from the inspector (`board.request(.removeInstalledCapability, subject: server.name)`, `ServerInspectorSections.swift:155` at `9c48d2d`) and the shell command router, so no path is orphaned |
 | D8 | A disabled row's one action is **`Enable`** | The mock draws no enable control, and shipping a one-way disable whose only reversal is hand-editing `servers.json` is a defect rather than a design decision. The row-action slot is the app's own mechanism and already carries `Reset` in the same shape. Recorded as an addition to the mock rather than a reading of it |
 | D9 | A disabled row's Tools cell is withheld (`ServerRowModel.tools` becomes `Int?`), not zeroed | §2. The model carries the withholding so it is unit-testable without a host, which is where every other row rule in this app lives |
 | D10 | `disabled` does not enter `upstreamHash`, in either router | §3.1. This is what mechanically guarantees the manifest row survives |
-| D11 | A disabled server **summons nobody**: `MCPServer.needsAttention` gains a `!disabled` term, and `ServerFilter.needsYou` gains one for the `placard` limb that sits outside it | Found by the out-of-family plan review, which correctly said A1 does not fall out of the existing cases; reading `needsAttention`'s consumers widened it from the board to the sidebar badge (`Destination.swift`), the menu-bar band (`MenuBarPresentation.swift:137,150`) and `ReadoutModel.swift:218`. A disabled server holding a schema change would otherwise put a count on the menu bar for a decision nothing can act on and nothing is exposed to. The **record survives and only the summons is dropped** — the hold stays on `pendingChange` and stays visible in the inspector, which is what *disabled by you* means |
+| D11 | A disabled server **summons nobody**: `MCPServer.needsAttention` gains a `!disabled` term, and `ServerFilter.needsYou` gains one for the `placard` limb that sits outside it | Found by the out-of-family plan review, which correctly said A1 does not fall out of the existing cases; reading `needsAttention`'s consumers widened it from the board to the sidebar badge (`Destination.swift`), the menu-bar band (`servers.contains(where: \.needsAttention)`, `MenuBarPresentation.swift:137` at `9c48d2d` and `:150`) and `case .serversNeedingAttention: servers.filter(\.needsAttention).count`, `ReadoutModel.swift:218` at `9c48d2d`. A disabled server holding a schema change would otherwise put a count on the menu bar for a decision nothing can act on and nothing is exposed to. The **record survives and only the summons is dropped** — the hold stays on `pendingChange` and stays visible in the inspector, which is what *disabled by you* means |
 
 **Assumption A1.** A disabled server still appears in the Servers board's `All` and `Idle`
 filters and does **not** appear in `Needs you`, nor in any attention count. It is a state the user
@@ -211,7 +211,7 @@ or who wants a held change to keep summoning while the server is off.
 **Assumption A2.** The subtitle text is `disabled by you`, lower case, tint `--t3`. The mock's
 state cell is `Disabled by you`; §6 asks for sentence case and this cell is a subtitle rather than
 a sentence start, matching `dormant` and `warm · never reaped` beside it. `--t4` is refused
-because `DESIGN.md:138` reserves it for disabled *controls* and never live text; the row-level dim
+because "`--t4` | disabled | `#6E6E76` | `#9A9AA2` | 3.37:1 | 2.79:1 | **disabled controls only —", `DESIGN.md:138` at `9c48d2d` reserves it for disabled *controls* and never live text; the row-level dim
 is the view's job.
 
 **Assumption A3.** Disabling does not close a server's live child process. The reaper closes it
@@ -274,7 +274,7 @@ Every line is a behaviour, and each names what would witness it.
     `.reviewHeldChange` or `.beginAuthorization`.
 12. The held-change sheet's destructive button reads `Disable <server>` and its dimmed reason is
     readable when the server is already disabled.
-13. A `warm` server that is disabled **is reaped**. Today `src/pool.ts:435` returns before arming
+13. A `warm` server that is disabled **is reaped**. Today "if (u?.warm) return;", `src/pool.ts:435` at `9c48d2d` returns before arming
     the reap timer for any warm server, so a disabled warm server would stay resident forever with
     no route to it. Found while enumerating the serving surface for the plan, not by the spec.
 14. A disabled server appears under `All` and `Idle` and never under `Needs you`, asserted with

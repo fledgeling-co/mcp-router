@@ -5,7 +5,7 @@
 
 ## The finding
 
-`cmdWatch` snapshots the manifest at `src/watch.ts:212` and saves that snapshot at `:292`. Anything
+`cmdWatch` snapshots the manifest at "let manifest: Manifest = loadManifest(manifestPath);", `src/watch.ts:212` at `193fd35` and saves that snapshot at `:292`. Anything
 written to `manifest.json` in the window between is clobbered — **with no delete statement anywhere
 in the code path.**
 
@@ -46,31 +46,31 @@ it runs the binaries **sequentially**. Whatever is decided here has to be declar
 `surface.tsv` or covered by a scenario that overlaps a writer.
 
 **Declared 2026-08-22 by R17's gap-fix pass**, in `surface.tsv`'s `cli-watch` note and at the head
-of `WatchIndexing.swift`. The declaration is scoped to the **watch save alone** — `src/watch.ts:292`
-against `WatchIndexing.swift:187`.
+of `WatchIndexing.swift`. The declaration is scoped to the **watch save alone** — "saveManifest(manifestPath, manifest);", `src/watch.ts:292` at `8592e5c`
+against `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `WatchIndexing.swift:187` at `aaee8b9`.
 
 **Six sites are left uncovered, and they are not four pairs.** The two inventories are different
 sizes, counted from source on 2026-08-22. node has **five** `saveManifest` sites and `saveManifest`
-is its only manifest writer — `src/watch.ts:292`, `src/index.ts:146`, `src/index.ts:186`,
-`src/control.ts:262`, `src/control.ts:432` (`grep -rn saveManifest src/`). Swift has **three**
-`ManifestIO.save` sites and no other manifest writer — `AuthRoutes.swift:120`,
-`ServicePorts.swift:391`, `WatchIndexing.swift:187` (`grep -rn ManifestIO.save app/Sources/`). One
+is its only manifest writer — "saveManifest(manifestPath, manifest);", `src/watch.ts:292` at `8592e5c`, "saveManifest(manifestPath, manifest);", `src/index.ts:146` at `c03bf3e`, "saveManifest(manifestPath, next);", `src/index.ts:186` at `13e728b`,
+"saveManifest(cfg.manifestPath, manifest);", `src/control.ts:262` at `c03bf3e`, "saveManifest(deps.cfg.manifestPath, manifest);", `src/control.ts:432` at `13e728b` (`grep -rn saveManifest src/`). Swift has **three**
+`ManifestIO.save` sites and no other manifest writer — `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `AuthRoutes.swift:120` at `4de2080`,
+`try ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `ServicePorts.swift:391` at `4de2080`, `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `WatchIndexing.swift:187` at `aaee8b9` (`grep -rn ManifestIO.save app/Sources/`). One
 save on each side is declared, which leaves **four on node and two on Swift**:
 
 | Uncovered site | Verb | What it faces on the other side |
 |---|---|---|
-| `src/index.ts:146` | `import` | Nothing positional. Swift has no once-per-run save on this verb |
-| `src/index.ts:186` | `index` | Nothing positional. Same |
-| `src/control.ts:262` | control re-index | `ServicePorts.swift:391`, which saves per entry |
-| `src/control.ts:432` | `/approve` | `AuthRoutes.swift:120` — the one genuine pair in this list |
-| `AuthRoutes.swift:120` | `/approve` | `src/control.ts:432` |
-| `ServicePorts.swift:391` | `index`, `import`, control re-index | node's three above, none of them positionally |
+| "saveManifest(manifestPath, manifest);", `src/index.ts:146` at `c03bf3e` | `import` | Nothing positional. Swift has no once-per-run save on this verb |
+| "saveManifest(manifestPath, next);", `src/index.ts:186` at `13e728b` | `index` | Nothing positional. Same |
+| "saveManifest(cfg.manifestPath, manifest);", `src/control.ts:262` at `c03bf3e` | control re-index | `try ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `ServicePorts.swift:391` at `4de2080`, which saves per entry |
+| "saveManifest(deps.cfg.manifestPath, manifest);", `src/control.ts:432` at `13e728b` | `/approve` | `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `AuthRoutes.swift:120` at `4de2080` — the one genuine pair in this list |
+| `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `AuthRoutes.swift:120` at `4de2080` | `/approve` | "saveManifest(deps.cfg.manifestPath, manifest);", `src/control.ts:432` at `13e728b` |
+| `try ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `ServicePorts.swift:391` at `4de2080` | `index`, `import`, control re-index | node's three above, none of them positionally |
 
 Each of the six carries an unlocked read-then-save window **on its own side**; there is no
 site-for-site symmetry between the sides to claim, and on half the node list there is no twin to be
 symmetric with. `src/index.ts` loads once at `:101` and `:177` and saves once at `:146` and `:186`,
 while Swift routes both verbs through `ManifestIndexer.record`, which re-loads at
-`ServicePorts.swift:381` and saves at `:391` **per entry** — the same read-window disagreement the
+`var manifest = ManifestIO.load(path: manifestPath, fileSystem: fileSystem).manifest`, `ServicePorts.swift:381` at `13e728b` and saves at `:391` **per entry** — the same read-window disagreement the
 declaration records for `watch`, on the writer this item's own reproduction drove. That one is
 established by reading the source rather than by measuring it, and is registered as `VER2-R17-3`.
 
@@ -135,8 +135,8 @@ the work.
 
 ### Sizing
 
-Eight call sites — node `watch.ts:253`, `index.ts:146`, `index.ts:186`, `control.ts:262`,
-`control.ts:432`; Swift `AuthRoutes.swift:120`, `ServicePorts.swift:391`, `WatchIndexing.swift:150`
+Eight call sites — node "saveManifest(manifestPath, manifest);", `watch.ts:253` at `4de2080`, "saveManifest(manifestPath, manifest);", `index.ts:146` at `c03bf3e`, "saveManifest(manifestPath, next);", `index.ts:186` at `4de2080`, "saveManifest(cfg.manifestPath, manifest);", `control.ts:262` at `c03bf3e`,
+"saveManifest(deps.cfg.manifestPath, manifest);", `control.ts:432` at `4de2080`; Swift `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `AuthRoutes.swift:120` at `4de2080`, `try ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `ServicePorts.swift:391` at `4de2080`, `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `WatchIndexing.swift:150` at `4de2080`
 — a node lock module, and one overlapping-writer scenario. The scenario is the part with no
 precedent in this repo: `parity-cli.sh` runs the binaries sequentially, so it is structurally
 blind here and a new lane is needed rather than a new row in an existing one.

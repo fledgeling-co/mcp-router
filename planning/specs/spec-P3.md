@@ -34,14 +34,14 @@ both routers over a real socket, holds both connections open, drives three ident
 compared 1 rows: 1 ok, 0 failed          EXIT 0
 ```
 
-The row is blocked anyway, for one mechanical reason: `parity-gate.sh:32` reads
+The row is blocked anyway, for one mechanical reason: `A lane that is not NAMED here is not run, and nothing says so. The missing-script guard`, `parity-gate.sh:32` at `42ea4d3` reads
 
 ```
 LANES="${PARITY_LANES:-control fixture divergence pool suite mcp cli install state log}"
 ```
 
 **`stream` is not in that list.** The lane script exists, is executable, is correct, and is
-dispatched by nothing. The gate's own missing-script guard (`parity-gate.sh:74`) only fires
+dispatched by nothing. The gate's own missing-script guard (`classifies every affected row blocked, exits 2 and names the remedy. That behaviour is`, `parity-gate.sh:74` at `42ea4d3`) only fires
 for a lane it was *asked* to run, so a lane nobody asks for produces no result, no
 environment failure and no complaint — the row simply stays blocked with a note about SSE
 that stopped being true when R2-R merged.
@@ -62,11 +62,11 @@ GET /registry/search?q=github&limit=2
 
 The mechanism, traced to source and confirmed by grep across the whole of `app/Sources`:
 
-- `ControlRegistry.swift:9` guards on `deps.registry`, and answers 502 when it is `nil`.
-- `RouterServiceDispatch.swift:109` builds the daemon's `ControlDeps` and **never sets
+- `guard let registryDeps = deps.registry else {`, `ControlRegistry.swift:9` at `42ea4d3` guards on `deps.registry`, and answers 502 when it is `nil`.
+- `var deps = await ControlDeps(`, `RouterServiceDispatch.swift:109` at `42ea4d3` builds the daemon's `ControlDeps` and **never sets
   `registry:`**, so it is `nil` in the only process that ships.
 - There is **no production conformance to `HTTPFetching` anywhere in `app/Sources`.** The
-  protocol is declared at `RegistrySearch.swift:4`; every implementation of it lives under
+  protocol is declared at `public protocol HTTPFetching: Sendable {`, `RegistrySearch.swift:4` at `42ea4d3`; every implementation of it lives under
   `app/Tests`. `RegistryDeps(` appears in no source file at all.
 
 `Registry.search`, `RegistryMerge`, `coerceLimit` and the GitHub-cache logic are all
@@ -92,14 +92,14 @@ separate assertion:
 
 | # | Dimension | State on `main` |
 |---|---|---|
-| A | Status line and **every response header** | **not compared anywhere.** `cache-control: no-store` and `connection: keep-alive` (`control.ts:456-459`) are asserted by nothing |
+| A | Status line and **every response header** | **not compared anywhere.** `cache-control: no-store` and `connection: keep-alive` (`if (p === '/usage/stream' && req.method === 'GET') {`, `control.ts:456-459` at `42ea4d3`) are asserted by nothing |
 | B | Opening frame arrives before the body ends | covered |
 | C | One `data:` frame per call, bodies byte-identical | covered, but see the blind spot below |
 | D | The 25s heartbeat actually fires | covered |
 | E | **A late subscriber gets no backlog** | **not covered** |
 | F | The stream does not terminate itself | **not covered** — the lane kills the reader without ever checking it was still alive |
 
-**The blind spot in C.** `parity-stream.sh:252` extracts frames with
+**The blind spot in C.** `"the response head — status line and every header — is byte-identical on both routers,`, `parity-stream.sh:252` at `42ea4d3` extracts frames with
 
 ```
 sed -n '1,/^: ping$/p' "$1" | grep -E '^(: connected|data: |: ping)'
@@ -114,7 +114,7 @@ clean today. SSE frames are delimited by the blank line; a stream without them i
 parseable by any client, and this lane would call it parity.
 
 **E is the dimension the brief names and the one most likely to diverge.** The reference
-subscribes and nothing more (`control.ts:462`): a client that connects after ten calls have
+subscribes and nothing more ("res.write(`: connected\n\n`);", `control.ts:462` at `42ea4d3`): a client that connects after ten calls have
 happened sees none of them. A port that replayed history to a new subscriber would double
 every record in the Activity board of an app that reconnects — and every existing assertion
 in this lane would still pass, because they all measure a single reader that connected
@@ -130,13 +130,13 @@ the ledger already named as the honest route:
    oracle is not what blocks it.
 2. **Both binaries must query the same deterministic thing.** The reference resolves its
    two indexes from `process.env.MCP_ROUTER_REGISTRY` and `process.env.MCP_ROUTER_SMITHERY`
-   (`src/registry.ts:18-19`), and `RegistryDeps.officialBase` / `.smitheryBase` are the
+   ("const OFFICIAL = process.env.MCP_ROUTER_REGISTRY ??", `src/registry.ts:18-19` at `42ea4d3`), and `RegistryDeps.officialBase` / `.smitheryBase` are the
    Swift side of exactly that seam. A recorded fixture registry served over loopback makes
    both sides read identical upstream bytes, so any difference in the response is the
    port's.
 
 **GitHub is a third live dependency and is pinned rather than avoided.** `enrichWithStars`
-(`src/registry.ts:220`) calls `https://api.github.com/repos/…` for every entry whose
+("`GITHUB_TOKEN` raises the ceiling to 5,000 if one is present.", `src/registry.ts:220` at `42ea4d3`) calls `https://api.github.com/repos/…` for every entry whose
 `repository` matches `github.com`, and that host is **hard-coded in the reference** — there
 is no env seam for it. Two ways to make the route deterministic:
 
@@ -145,7 +145,7 @@ is no env seam for it. Two ways to make the route deterministic:
   how a server appearing in both indexes becomes one `source: "both"` row. That is the most
   interesting behaviour on the route and losing it would be a real hole.
 - **pre-seed `github-cache.json` in both scratch homes.** Both implementations read a
-  day-old cache before fetching (`src/registry.ts:235`; `RegistrySearch.swift:225`,
+  day-old cache before fetching (`if (hit && now - hit.at < GH_TTL_MS) {`, `src/registry.ts:235` at `42ea4d3`; `if let hit, let cachedAt, deps.nowMs - cachedAt < githubTTLMs {`, `RegistrySearch.swift:225` at `42ea4d3`,
   `githubTTLMs`), so a seeded entry with a fresh `at` is a cache hit and the network is
   never touched. Deterministic **and** the dedupe, the star enrichment and the
   `useCount → stars → updatedAt` ranking are all exercised.

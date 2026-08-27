@@ -36,8 +36,8 @@ other testable-without-a-host decision in this app already lives (`MenuCommand`,
 `MCPRouterUI/Boards/` then loses its five per-board `Sheet` enums and its three `isPresented:`
 presentations. **The conversion is not a rename.** All three `isPresented:` sites hold their
 subject *by id* in the model and look it up fresh on every render — `InboxBoardModel.sheetItemID`
-(`InboxBoardModel.swift:118-121`), `DiscoverBoardModel.sheetEntryID`
-(`DiscoverBoardModel.swift:71-77`) — with M5's reason written on both: *"a copy taken when the
+(`/// The item the review sheet is open for, held **by id** rather than as a captured value`, `InboxBoardModel.swift:118-121` at `706cefb`), `DiscoverBoardModel.sheetEntryID`
+(`/// The entry the sheet is open for, held **by id**.`, `DiscoverBoardModel.swift:71-77` at `706cefb`) — with M5's reason written on both: *"a copy taken when the
 sheet opened goes stale the moment the row does, and the sheet's action then disagrees with the
 board about what has already happened."* A naive `.sheet(item:)` carrying a captured
 `RegistryEntry` would satisfy the brief's letter and reintroduce exactly the bug those two
@@ -63,21 +63,21 @@ reads off it.
 |---|---|---|---|---|
 | 1 | `pair` | Inbox ✓ | `PairingSheet.swift` | re-house · gate |
 | 2 | `reconcile` | Harnesses — **M22** | — | **parked** — no host |
-| 3 | `quarantine` | Servers ✓ | `HeldChangeSheet` (`ServerSheets.swift:134`) | re-house · gate |
+| 3 | `quarantine` | Servers ✓ | `HeldChangeSheet` (`struct HeldChangeSheet: View {`, `ServerSheets.swift:134` at `706cefb`) | re-house · gate |
 | 4 | `readme` | — **M19** | — | **parked** — no host, no renderer |
-| 5 | `capability-delta` | Skills ✓ | `HeldVersionSheet` (`SkillSheets.swift:31`) | re-house · gate |
-| 6 | `add-server` | Servers ✓ | `AddServerSheet` (`ServerSheets.swift:45`) | re-house · gate |
-| 7 | `add-marketplace` | Skills ✓ | `MarketplacesSheet` (`SkillSheets.swift:108`) | re-house · gate |
+| 5 | `capability-delta` | Skills ✓ | `HeldVersionSheet` (`struct HeldVersionSheet: View {`, `SkillSheets.swift:31` at `706cefb`) | re-house · gate |
+| 6 | `add-server` | Servers ✓ | `AddServerSheet` (`struct AddServerSheet: View {`, `ServerSheets.swift:45` at `706cefb`) | re-house · gate |
+| 7 | `add-marketplace` | Skills ✓ | `MarketplacesSheet` (`struct MarketplacesSheet: View {`, `SkillSheets.swift:108` at `706cefb`) | re-house · gate |
 | 8 | `recommendation` | Insights — **M22** | — | **parked** — no host |
-| 9 | `queued-detail` | Inbox ✓ | `InboxReviewSheet.swift:18` | re-house · gate |
+| 9 | `queued-detail` | Inbox ✓ | `struct InboxReviewSheet: View {`, `InboxReviewSheet.swift:18` at `706cefb` | re-house · gate |
 | 10 | `analyzer` | Insights/Settings — **M22** | — | **parked** — no host |
 | 11 | `path` | Settings ✓ | — | **draw as a refusal** — §4.1, no observed data |
-| 12 | `confirm-remove` | Servers ✓ · Cleanup ✓ | `RemoveServerDialog` (`ServerSheets.swift:220`) · `RemoveServerSheet` (`CleanupSheets.swift:33`) | re-house · gate · §4.2 |
+| 12 | `confirm-remove` | Servers ✓ · Cleanup ✓ | `RemoveServerDialog` (`struct RemoveServerDialog: View {`, `ServerSheets.swift:220` at `706cefb`) · `RemoveServerSheet` (`struct RemoveServerSheet: View {`, `CleanupSheets.swift:33` at `706cefb`) | re-house · gate · §4.2 |
 | 13 | `official` | Discover ✓ | — | **draw**, minus §4.3 |
 
 Three sheets the build has that the mock draws nowhere, and which the inventory absorbs rather
 than sits beside (spec §2, assumption 3): `ActivityResetHistorySheet` and Cleanup's
-`ResetHistorySheet` (one kind, two hosts), `SkillProvenanceSheet` (`CleanupSheets.swift:175`),
+`ResetHistorySheet` (one kind, two hosts), `SkillProvenanceSheet` (`struct SkillProvenanceSheet: View {`, `CleanupSheets.swift:175` at `706cefb`),
 and `DiscoverDetailSheet`.
 
 ### 3.1 One correction to spec §3.3
@@ -103,10 +103,10 @@ The mock's sheet draws a resolved seven-directory `PATH`, six per-CLI found/not-
 a callout naming `~/.cargo/bin` as the directory the snapshot missed. Every one of those is a
 statement about **the environment the router's children inherit**.
 
-The router computes it — `src/pool.ts:168` calls `augmentPath(env.PATH ?? '', env.HOME)` — and
-**does not publish it.** `ControlAPIClient` (`ControlAPIClient.swift:113-182`) declares nineteen
+The router computes it — "env.PATH = augmentPath(env.PATH ?? '', env.HOME);", `src/pool.ts:168` at `706cefb` calls `augmentPath(env.PATH ?? '', env.HOME)` — and
+**does not publish it.** `ControlAPIClient` (`func servers() async throws(ControlAPIError) -> ServersResponse`, `ControlAPIClient.swift:113-182` at `706cefb`) declares nineteen
 methods; none returns a path, an environment or a resolved search list, and `ControlHandler`
-(`ControlHandler.swift:42-69`) routes `/servers`, `/registry/search` and their siblings and
+(`if path == "/servers", request.method == "GET" {`, `ControlHandler.swift:42-69` at `706cefb`) routes `/servers`, `/registry/search` and their siblings and
 nothing PATH-shaped. `RemoveServerDialog`'s own docstring states the constraint: *"the control API
 does not send them, and the control API is the only channel this app is permitted to use."*
 
@@ -118,7 +118,7 @@ the mock's seven directories is the same lie with less work.
 **But the sheet is still built, as a refusal.** This repo has resolved exactly this situation
 twice and both times it kept the surface and told the truth on it: `SURF-010` records the pair
 sheet as *"a refusal"* and `CASE-0142`/`CASE-0143` **pass** against the honesty requirement
-because of it, and `HeldVersionSheet` (`SkillSheets.swift:85-95`) draws both of its offers dimmed
+because of it, and `HeldVersionSheet` (`DisabledAction(`, `SkillSheets.swift:85-95` at `706cefb`) draws both of its offers dimmed
 in place with `SkillPresentation.writesNotYetAvailable` as the reason, per `DESIGN.md` §3.4's
 *"Disabled dims in place and never disappears."* `path` follows that precedent: the frame, the
 title, what it will show, and one sentence saying the router does not yet report it.
@@ -137,10 +137,10 @@ The gate table's second row asks for *"multi-select, named count, 30-day undo st
 surface"*, and the mock's `confirm-remove` body says *"The configuration is kept for 30 days, so
 this is undoable from Edit."*
 
-`ConfigWriter.backUp` (`ConfigWriter.swift:84-101`) copies the file aside and then keeps
+`ConfigWriter.backUp` (`private static func backUp(path: String, fileSystem: FileSystem, now: Date) throws {`, `ConfigWriter.swift:84-101` at `706cefb`) copies the file aside and then keeps
 `backupsKept` of them. `ConfigWriter.swift:28` — **`backupsKept = 5`**. Five writes, not thirty
 days: six edits in an afternoon and the first backup is gone. The node router
-(`src/index.ts:136-140`) writes one backup at install and prunes nothing. Neither number reaches
+(`if (existsSync(DEFAULT_CONFIG_PATH)) {`, `src/index.ts:136-140` at `706cefb`) writes one backup at install and prunes nothing. Neither number reaches
 the app: there is no control-API method that reports a backup count, an age or a retention
 policy, so even *"the last five writes are kept"* would be the app quoting a router constant it
 cannot read.
@@ -162,7 +162,7 @@ you. That is product copy, not a measurement, and it is drawn verbatim.
 
 Its middle section is not. *"Publishers currently matching, in this catalogue"* draws eight
 publisher cards with per-publisher counts (`Anthropic · 12 servers · 4 skills`), and
-`RegistryEntry` (`RegistryModels.swift:28-62`) **has no publisher field**. What it has is
+`RegistryEntry` (`public struct RegistryEntry: Codable, Hashable, Sendable, Identifiable {`, `RegistryModels.swift:28-62` at `706cefb`) **has no publisher field**. What it has is
 `source: .official | .smithery | .both`, which is which index supplied the row, not who published
 it. Deriving a publisher from `name` does not work either: the fixture's three entries are
 `github`, `deepwiki` and `ai.smithery/Hint-Services-obsidian-github-mcp`, so a namespace parse
@@ -242,13 +242,13 @@ radius resolves to `.none`, which is what a later downgrade would trip.
 Measured across the eight sheets today.
 
 - **`role: .destructive` appears nowhere on the Mac.** Two hits in the whole tree, both on the
-  phone (`PairingFlowView.swift:349`, `PairedMacSettingsView.swift:374`). `RemoveServerDialog`
-  paints its Remove with `.foregroundStyle(ColorToken.fail.color)` (`ServerSheets.swift:274`),
+  phone (`Button(PairingCopy.entry(.unpairConfirm).actionLabel ?? "Unpair", role: .destructive) {`, `PairingFlowView.swift:349` at `706cefb`, "role: .destructive,", `PairedMacSettingsView.swift:374` at `706cefb`). `RemoveServerDialog`
+  paints its Remove with `.foregroundStyle(ColorToken.fail.color)` (`ServerSheets.swift:274` at `706cefb`),
   which the brief names directly: *"a destructive alternative takes `.destructive` rather than a
   red foreground colour, so the platform styles it."*
 - **Filled-primary counts disagree between two sheets doing the same job.**
   `RemoveServerDialog` makes Cancel `ProminentButtonStyle` + `.defaultAction` and Remove quiet —
-  correct. Cleanup's `RemoveServerSheet` (`CleanupSheets.swift:93-105`) makes **neither**
+  correct. Cleanup's `RemoveServerSheet` (`// Cancel leads, and the destructive button is never the default (§9).`, `CleanupSheets.swift:93-105` at `706cefb`) makes **neither**
   prominent, so a destructive sheet ships with no primary and no default action at all. The rule
   applied uniformly: Cancel is the filled primary and takes `.defaultAction`; the destructive
   action is a quiet text button with `role: .destructive`. That is `DESIGN.md` §3.4's *"Destructive
@@ -261,7 +261,7 @@ Measured across the eight sheets today.
   test is a drift guard, and per `SWIFT_PRACTICES.md` §7 it is deliberately broken once, watched
   go red, and restored, with that recorded in the evidence ledger.
 
-**`SheetFrame` is not unified in this item.** It lives in `ServerSheets.swift:283` and only the
+**`SheetFrame` is not unified in this item.** It lives in `ServerSheets.swift:283` at `706cefb` and only the
 Servers sheets use it; Cleanup, Skills, Inbox, Activity and Discover each hand-roll an equivalent
 `VStack`+`padding`+`frame`. Unifying them changes the measured geometry of five surfaces at once,
 which is an M23 fidelity change wearing a refactor's clothes, and it is not what the acceptance
@@ -296,18 +296,18 @@ switch, and updates that board's assignment sites **in the same commit**, so the
 between steps.
 
 B1. **Servers** — `ServersBoardModel.Sheet` → `RouterSheet.Servers`; `ServerSheetHost` switches
-    exhaustively; `ShellModel.swift:341-344`, `ShellCommandRouter.swift:150,235`,
-    `ServerInspector.swift:114`, `ServerInspectorSections.swift:155`, `ServersBoard.swift:85,162`
+    exhaustively; `serversBoard.sheet = nil`, `ShellModel.swift:341-344` at `706cefb`, `ShellCommandRouter.swift:150,235`,
+    `board.sheet = .heldChange(server: server.name)`, `ServerInspector.swift:114` at `706cefb`, `board.sheet = .removeServer(server: server.name)`, `ServerInspectorSections.swift:155` at `706cefb`, `ServersBoard.swift:85,162`
     follow.
-B2. **Skills** — same, plus `ShellCommandRouter.swift:157`, `SkillsBoard.swift:79,141,168`,
-    `SkillInspector.swift:203`.
+B2. **Skills** — same, plus `model?.skillsBoard.sheet = .marketplaces`, `ShellCommandRouter.swift:157` at `706cefb`, `SkillsBoard.swift:79,141,168`,
+    `board.sheet = .heldVersion(skillID: skill.id)`, `SkillInspector.swift:203` at `706cefb`.
 B3. **Cleanup** and **Activity** — same. `resetHistory` is one `Kind` with a case in each group.
 B4. **Inbox** — both presentations at once. `.sheet(isPresented:)` × 2 → one `.sheet(item:)` over
     `RouterSheet.Inbox`, whose `.queuedItem(id:)` case carries the id and whose body keeps
     `board.sheetItem()`. `sheetItemID` becomes derived from `sheet` so there is one source of
     truth; `escape()` and `commitDefaultAction()` follow. `.pairPhone`'s dismissal routes through
     `session.close()` — `PairingSessionModel` is a `let` whose ticker outlives the view
-    (`InboxBoard.swift:47-56`), and a bare `sheet = nil` would leave it running.
+    (`/// The pairing sheet's presentation.`, `InboxBoard.swift:47-56` at `706cefb`), and a bare `sheet = nil` would leave it running.
 B5. **Discover** — `.sheet(isPresented:)` → `.sheet(item:)` over `RouterSheet.Discover`, with
     `.registryDetail(id:)` keeping `board.sheetEntry()`, and `.officialMark` added in the same
     step so the switch is exhaustive from the moment it exists. `OfficialMarkSheet` and
@@ -335,7 +335,7 @@ C4. A guard that no sheet action carries a bare `.foregroundStyle(ColorToken.fai
 D1. `OfficialMarkSheet` body: the definition and the "what it does not tell you" section verbatim
     from the mock; the publisher grid omitted per §4.3. Entry point is the mock's own quiet
     `What is official?` control in Discover's controls row
-    (`design/mcp-router-console.html:2851`) — **not** the Publisher segmented filter beside it,
+    (`<button class="btn quiet" data-act="sheet:official" aria-label="What official means">`, `design/mcp-router-console.html:2851` at `706cefb`) — **not** the Publisher segmented filter beside it,
     which the build does not have and which is Discover scope.
 D2. `ChildPathSheet` body: the refusal, per §4.1. Copy in `MCPRouterKit` so it is assertable
     without a host. It attaches to the **Settings** window, which is the brief's one requirement
@@ -363,13 +363,13 @@ Every behaviour of the collapsed enums, marked keep / port / drop.
 | Behaviour | Where | Disposition |
 |---|---|---|
 | `id` disambiguates one sheet from another so SwiftUI re-presents | all five | **port** — `RouterSheet.id` keeps the same `"kind:subject"` shape |
-| `heldChange(server:)` keyed by name | `ServersBoardModel.swift:29-31` | **keep** |
-| `provenance(skillPath:)` keyed by **path, not name** — clients symlink skills, so a name is neither unique nor stable | `CleanupBoardModel.swift:107-113` | **keep**, with its reason carried onto the new case |
+| `heldChange(server:)` keyed by name | `public enum Sheet: Equatable, Sendable, Identifiable {`, `ServersBoardModel.swift:29-31` at `706cefb` | **keep** |
+| `provenance(skillPath:)` keyed by **path, not name** — clients symlink skills, so a name is neither unique nor stable | "/// What `Read first…` opens.", `CleanupBoardModel.swift:107-113` at `706cefb` | **keep**, with its reason carried onto the new case |
 | `removeServer` exists on two models with two subjects (a declared server, a cleanup candidate) | Servers + Cleanup | **keep both**, as two `RouterSheet` cases under one `Kind` |
 | `resetHistory` on two models | Activity + Cleanup | **keep**, one case, two hosts |
-| `EvalsBoardModel.Sheet.recheckAll` | `EvalsBoardModel.swift:53-57` | **drop** — never assigned, never presented, no `.sheet(` on that board |
+| `EvalsBoardModel.Sheet.recheckAll` | `public enum Sheet: Equatable, Sendable, Identifiable {`, `EvalsBoardModel.swift:53-57` at `706cefb` | **drop** — never assigned, never presented, no `.sheet(` on that board |
 | `sheetItemID` / `sheetEntryID` as the sheet's identity | Inbox, Discover | **port** — becomes the associated value; the fresh-lookup accessor stays |
-| `pairing.isOpen` as a second presentation flag | `InboxBoard.swift:47-56` | **port** — `.pairPhone` case, `close()` on dismiss |
+| `pairing.isOpen` as a second presentation flag | `/// The pairing sheet's presentation.`, `InboxBoard.swift:47-56` at `706cefb` | **port** — `.pairPhone` case, `close()` on dismiss |
 
 ---
 
@@ -559,7 +559,7 @@ is a failed review. Verdict: **AMEND**, seven findings.
   router implementations against each other. The reviewer offered a second option in the same
   row — draw the sheet with an honest status card — and that one is taken.
 - **"Show counts grouped by `source` instead of publisher."** Rejected by the repo's own note:
-  `RegistryPresentation.swift:198` says a figure must come *"never off `sources.official`, which
+  "/// never off `sources.official`, which is a pre-merge, pre-slice count of a different", `RegistryPresentation.swift:198` at `706cefb` says a figure must come *"never off `sources.official`, which
   is a pre-merge, pre-slice count of a different set."* The count exists and does not mean what
   the grid would claim.
 

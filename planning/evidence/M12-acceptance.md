@@ -37,7 +37,7 @@ would have made the dialog read as better disclosed than it is.
 
 **This row used to be stamped `eaf4352`, and those 18 tests are red at that SHA.** `eaf4352` is
 the commit that swept up the live M3 mutation (the section below tells that story and reverts it
-in `3ab6fa7`), so `CleanupProvenance.swift:109` reads `.quiet` there and `aStaleReadingIsMarked`
+in `3ab6fa7`), so `return .marked("\(marker) \(accrual)")`, `CleanupProvenance.swift:109` at `0aded49` reads `.quiet` there and `aStaleReadingIsMarked`
 and `aStaleReadingKeepsItsStamp` both fail. The stamp was left behind by the accident rather than
 being a claim the item did not know was wrong, and the SHA is load-bearing here: this file's own
 opening rule tells a later reader to skip a check when `git diff <that SHA>..HEAD` does not touch
@@ -140,7 +140,7 @@ Recorded for whoever owns the harness.
 a poll fails *after* one has succeeded, and the app's Cleanup board loads once from `.task` and again
 after a write — so producing it in a running build needs a fixture that answers and then refuses.
 `FixtureControlAPIClient` is a stateless `struct` with a scenario-per-response shape
-(`FixtureControlAPIClient.swift:13`), and giving it a call counter is a change to the fixture layer
+(`public struct FixtureControlAPIClient: ControlAPIClient {`, `FixtureControlAPIClient.swift:13` at `3ab6fa7`), and giving it a call counter is a change to the fixture layer
 every board's acceptance script runs against, with a parity row of its own. That is a feature, not a
 line of this item.
 
@@ -224,11 +224,11 @@ which the strict regex cannot see. Population: **22 citations**, of which six we
 
 | Site | Was | Landed on | Now |
 |---|---|---|---|
-| `spec-M12.md` §what is wrong | `CleanupBoard.swift:79` | `case let .stale(_, error):` | `:95`, anchor `StaleReadingBanner(error: staleError)` |
-| `spec-M12.md` §what is wrong | `CleanupBoard.swift:34` | `.task { await board.load() }` | `:35`, anchor `.sheet(item: $board.sheet)` |
-| `spec-M12.md` §out of scope 2 | `CleanupSheets.swift:232` | `.buttonStyle(StandardButtonStyle())` | `:255`, anchor `CheckCopy.ownerChanged(` |
-| `spec-M12.md` §out of scope 1 | `src/control.ts:495` | `records: deps.usage.recent({` | `:496`, anchor `limit: Number(url.searchParams.get('limit') ?? 200)` |
-| brief ×2, progress ×2 | `ORCHESTRATOR.md:522`, `LEDGER.md:110` | a register heading; M32's row | the line numbers are gone — both files are appended to hourly |
+| `spec-M12.md` §what is wrong | "case let .stale(_, error):", `CleanupBoard.swift:79` at `0aded49` | `case let .stale(_, error):` | `:95`, anchor `StaleReadingBanner(error: staleError)` |
+| `spec-M12.md` §what is wrong | `.task { await board.load() }`, `CleanupBoard.swift:34` at `0aded49` | `.task { await board.load() }` | `:35`, anchor `.sheet(item: $board.sheet)` |
+| `spec-M12.md` §out of scope 2 | `.buttonStyle(StandardButtonStyle())`, `CleanupSheets.swift:232` at `0aded49` | `.buttonStyle(StandardButtonStyle())` | `:255`, anchor `CheckCopy.ownerChanged(` |
+| `spec-M12.md` §out of scope 1 | `records: deps.usage.recent({`, `src/control.ts:495` at `0aded49` | `records: deps.usage.recent({` | `:496`, anchor `limit: Number(url.searchParams.get('limit') ?? 200)` |
+| brief ×2, progress ×2 | "Two more arrived from this wave's verifications, and both guard something load-bearing:", `ORCHESTRATOR.md:522` at `0aded49`, "Untriaged — filed 2026-08-23 from M22's app-driving pass. **The Harnesses board rendered", `LEDGER.md:110` at `0aded49` | a register heading; M32's row | the line numbers are gone — both files are appended to hourly |
 
 **The `Was` column above is six pointers that do not resolve, kept on purpose.** A sweep over this
 file will find them; they are the record of what was wrong, each one sitting beside the text it
@@ -248,22 +248,22 @@ keep their numbers, with their anchors and tree added.
 ## Finding 4 — a state the product cannot be in
 
 Both places corrected: `spec-M12.md`'s state-matrix row and the shipped doc comment on
-`CleanupBoardModel+Provenance.resetFigureProvenance` (`876dc20`). `CleanupBoard.swift:179` disables
+`CleanupBoardModel+Provenance.resetFigureProvenance` (`876dc20`). `.disabled(board.state.reading == nil)`, `CleanupBoard.swift:179` at `0aded49` disables
 the only button that opens the sheet while `state.reading` is nil, and `state.reading` is nil in
-exactly `.loading` and `.failed` (`CleanupBoardState.swift:21-26`).
+exactly `.loading` and `.failed` (`public var reading: Reading? {`, `CleanupBoardState.swift:21-26` at `0aded49`).
 
 `grep -rn "\.resetHistory" app/Sources app/Tests --include="*.swift"` returns **13** matches: four
-assign the case — `CleanupBoard.swift:177` (the disabled button), `ActivityBoard.swift:102` (the other
-board's sheet), and `ActivityResetEntryPointTests.swift:115` and `M7ExercisedRequestTests.swift:274`,
+assign the case — `Button(CleanupPresentation.resetLabel) { board.sheet = .resetHistory }`, `CleanupBoard.swift:177` at `0aded49` (the disabled button), `Button(CleanupPresentation.resetLabel) { model.sheet = .resetHistory }`, `ActivityBoard.swift:102` at `0aded49` (the other
+board's sheet), and `subject.sheet = ActivityModel.Sheet.resetHistory`, `ActivityResetEntryPointTests.swift:115` at `0aded49` and `board.sheet = .resetHistory`, `M7ExercisedRequestTests.swift:274` at `0aded49`,
 which set it from a test rather than from a view — four call `resetHistory()`, three are `switch`
 arms, one is a doc comment and one is a string inside a test assertion. The `guard` itself is
 unchanged and still exercised by `aBoardWithNoReadingDatesNothing`.
 
 ## Finding 5 — a route default of 200 written as 500
 
-`src/control.ts:496` reads `limit: Number(url.searchParams.get('limit') ?? 200)` and `src/usage.ts:259`
-slices `-(opts.limit ?? 200)`. The 500 is the board's: `ActivityModel.swift:162` passes
-`limit: ActivityRecords.capacity`, and `ActivityRecords.swift:18` sets `capacity = 500`, matched to
+`src/control.ts:496` reads `limit: Number(url.searchParams.get('limit') ?? 200)` and "return out.slice(-(opts.limit ?? 200)).reverse();", `src/usage.ts:259` at `0aded49`
+slices `-(opts.limit ?? 200)`. The 500 is the board's: "limit: ActivityRecords.capacity,", `ActivityModel.swift:162` at `0aded49` passes
+`limit: ActivityRecords.capacity`, and `public static let capacity = 500`, `ActivityRecords.swift:18` at `0aded49` sets `capacity = 500`, matched to
 `RING_SIZE` at `src/usage.ts:52`. The argument built on it is unchanged, because the ring holds 500
 either way.
 

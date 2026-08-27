@@ -174,7 +174,7 @@ def scenario_served(paths, log):
         c.eq("the bytes are the file's own", base64.b64decode(images[0]["base64"]), fixture.FIGURE_BYTES)
     c.eq("nothing was refused", body.get("refusedImages"), [])
     # M30's own assertion, moved to the wire: the app may not open a file, so a payload carrying a
-    # path is a payload that invites one. `ControlDocumentRouteTests.swift:104` asserts this in
+    # path is a payload that invites one. `expect(!body.contains(package.root.path))`, `ControlDocumentRouteTests.swift:104` at `15d202c` asserts this in
     # process; this asserts it on what the socket delivered.
     root = paths["served_root"]
     c.ok("the package root appears NOWHERE in the body", root not in raw,

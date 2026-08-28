@@ -33,6 +33,11 @@ public enum ControlPaths {
             // trailing slash is there for.
             || pathname == "/extensions"
             || pathname.hasPrefix("/extensions/")
+            // R31's two. Exact matches with no prefix arm, like M22's: `/caches` and
+            // `/caches/invalidate` are the whole family, so `/caches/anything-else` is not a route
+            // this router answers and claiming it would turn a typo into a 405.
+            || pathname == "/caches"
+            || pathname == "/caches/invalidate"
     }
 }
 

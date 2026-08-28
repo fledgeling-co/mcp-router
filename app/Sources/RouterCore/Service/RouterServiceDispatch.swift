@@ -225,7 +225,14 @@ extension RouterService {
             // on the wire while the suite stayed green (`D-p1-a`, and the `control-registry-search`
             // row). `scripts/acceptance/r28-extensions.sh` drives the daemon's own socket rather
             // than the handler, because that is the only oracle that can see this line missing.
-            extensions: DiskExtensionStore(root: home.extensionsPath, clock: clock)
+            extensions: DiskExtensionStore(root: home.extensionsPath, clock: clock),
+            // R31. `MCP_ROUTER_CACHE_HOME` moves both roots together, and it exists so a lane can
+            // point this somewhere that is not the operator's own `~/.npm` — the same reason
+            // `harnesses` is absent from `ControlDiff` above. Unset, it is the real machine, which
+            // is the only place invalidating a cache means anything.
+            caches: DiskCacheProbe(roots: CacheRoots.under(
+                home: environment["MCP_ROUTER_CACHE_HOME"] ?? NSHomeDirectory()
+            ))
         )
     }
 

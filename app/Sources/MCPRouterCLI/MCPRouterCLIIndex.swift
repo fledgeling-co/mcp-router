@@ -12,10 +12,16 @@ extension MCPRouterCLI {
         let log = RouterLog()
         await log.configure(file: loaded.config.logPath, verbose: options.has("verbose"))
 
+        // R31. The content component of the manifest key: what the upstream currently runs, as
+        // opposed to what its config says. `MCP_ROUTER_CACHE_HOME` moves both cache roots together
+        // so a lane never reaches the operator's own 2.0 GB npx cache.
+        let probe = DiskCacheProbe(roots: CacheRoots.under(
+            home: ProcessInfo.processInfo.environment["MCP_ROUTER_CACHE_HOME"] ?? NSHomeDirectory()
+        ))
         let indexer = ManifestIndexer(
             startupTimeoutMs: loaded.config.startupTimeoutMs,
             transporting: RoutingUpstreamTransport(log: log),
-            manifestPath: loaded.config.manifestPath, log: log
+            manifestPath: loaded.config.manifestPath, log: log, contentProbe: probe
         )
         let force = options.has("force")
         let manifest = ManifestIO.load(
@@ -28,15 +34,32 @@ extension MCPRouterCLI {
         // and is the user asking, so it stays available on a disabled upstream.
         let servable = loaded.config.upstreams.filter { $0.disabled != true }
         let off = loaded.config.upstreams.count - servable.count
+        // Two questions rather than one, and they are deliberately not folded together.
+        // `ToolUnion.isStale` asks whether the server's *identity* moved; `ContentStaleness` asks
+        // whether the code behind an identity that stayed put moved. The second is what an
+        // `npx -y pkg@latest` upstream needs — its command, args and env are the same bytes on
+        // every publish — and it is asked HERE and not in `serve`, because a content probe at
+        // start-up would re-derive every row the first time a router met an older manifest, which
+        // means spawning every configured child at once. That is the cost the router exists to
+        // remove; paying it on a deliberate `index` is a different trade from paying it on boot.
+        let moved = servable.filter { upstream in
+            !ToolUnion.isStale(manifest, upstream)
+                && ContentStaleness.verdict(
+                    manifest: manifest, upstream: upstream, probe: probe
+                ).hasMoved
+        }
         let stale = servable.filter { ToolUnion.isStale(manifest, $0) }
         Out.print(
             "\(loaded.config.upstreams.count) upstreams, \(stale.count) need indexing"
+                + (moved.isEmpty ? "" : ", \(moved.count) changed behind an unchanged config")
                 + (force ? " (forced: all)" : "")
                 + (off > 0 ? ", \(off) disabled and not indexed" : "") + "\n"
         )
+        let movedNames = Set(moved.map(\.name))
 
         var report = IndexReport()
-        for upstream in servable where force || ToolUnion.isStale(manifest, upstream) {
+        for upstream in servable
+            where force || ToolUnion.isStale(manifest, upstream) || movedNames.contains(upstream.name) {
             let outcome = await indexer.index(upstream)
             report.add(upstream, outcome)
         }

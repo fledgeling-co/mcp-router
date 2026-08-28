@@ -33,7 +33,7 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 ROOT="app/Sources/RouterCore"
-DIRS=(Control Registry Usage Auth Extensions)
+DIRS=(Control Registry Usage Auth Extensions Caches)
 EXEMPT_MARKER='swift-wire-exempt:'
 
 # Auth/ does not exist yet — it is R5's. A missing directory is not a failure, but a directory that
@@ -44,6 +44,10 @@ EXEMPT_MARKER='swift-wire-exempt:'
 # every file in it serialises: `DiskExtensionStore` reads two JSON descriptors off disk and every
 # value it lifts out of them reaches `GET /extensions` unaltered, so `JSONSerialization` there
 # would decide member order on the wire from inside a type nobody would think of as a wire type.
+# Caches/ joined with R31, and for the same reason one step further out: `DiskCacheProbe` reads
+# npm's and Claude's own `package.json` files off disk, and the package names and versions it lifts
+# out of them reach `GET /caches` as the `refetch` command a person is about to run.
+#
 # A directory that produces wire bytes and is not on this list is outside the rule with nothing
 # saying so — the same silent-scope failure `no-raw-design-values.sh` records for GEOMETRY_DIRS.
 present=()

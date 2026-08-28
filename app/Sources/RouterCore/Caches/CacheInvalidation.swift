@@ -55,7 +55,13 @@ public struct CacheRefusal: Sendable, Hashable {
     public let fallback: String?
     public let fallbackBytes: Int?
 
-    public init(status: Int, reason: String, message: String, fallback: String? = nil, fallbackBytes: Int? = nil) {
+    public init(
+        status: Int,
+        reason: String,
+        message: String,
+        fallback: String? = nil,
+        fallbackBytes: Int? = nil
+    ) {
         self.status = status
         self.reason = reason
         self.message = message
@@ -155,7 +161,8 @@ public enum CacheInvalidation {
         var steps: [CacheStep] = []
         var held: [CacheRow] = []
         if ContentResolution.isNpx(upstream.command ?? ""),
-           let spec = ContentResolution.packageSpec(upstream.args) {
+           let spec = ContentResolution.packageSpec(upstream.args)
+        {
             let package = ContentResolution.packageName(spec)
             for row in npxRows(for: package, inventory: inventory, probe: probe) {
                 if let refetch = row.refetch {

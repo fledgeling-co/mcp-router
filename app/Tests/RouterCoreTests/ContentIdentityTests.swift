@@ -24,9 +24,18 @@ struct StubCacheProbe: CacheProbing {
         }
     }
 
-    func npxEntries() -> [NpxEntry] { entries }
-    func pluginVersions() -> [PluginVersion] { versions }
-    func fileStamp(_ path: String) -> String? { stamps.first { $0.path == path }?.stamp }
+    func npxEntries() -> [NpxEntry] {
+        entries
+    }
+
+    func pluginVersions() -> [PluginVersion] {
+        versions
+    }
+
+    func fileStamp(_ path: String) -> String? {
+        stamps.first { $0.path == path }?.stamp
+    }
+
     func removeDirectory(_ path: String) -> String? {
         removed.record(path)
         return nil
@@ -51,8 +60,9 @@ enum CacheFixture {
         return parsed
     }
 
-    static func entry(_ directory: String, _ name: String, spec: String, version: String?, bytes: Int?)
-        -> NpxEntry {
+    static func entry(
+        _ directory: String, _ name: String, spec: String, version: String?, bytes: Int?
+    ) -> NpxEntry {
         NpxEntry(
             directory: directory,
             requested: [NpxRequest(name: name, spec: spec, installedVersion: version)],

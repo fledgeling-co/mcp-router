@@ -71,7 +71,7 @@ extension ControlHandler {
         ])
     }
 
-    static func refusalValue(_ refusal: CacheRefusal) -> JSONValue {
+    static func cacheRefusalValue(_ refusal: CacheRefusal) -> JSONValue {
         .object([
             JSONMember(key: JSString("error"), value: .string(JSString(refusal.message))),
             JSONMember(key: JSString("reason"), value: .string(JSString(refusal.reason))),
@@ -100,7 +100,7 @@ extension ControlHandler {
             JSONMember(key: JSString("held"), value: .array(plan.held.map(rowValue))),
             JSONMember(
                 key: JSString("refusal"),
-                value: plan.refusal.map(refusalValue) ?? .null
+                value: plan.refusal.map(cacheRefusalValue) ?? .null
             ),
             JSONMember(
                 key: JSString("removed"),

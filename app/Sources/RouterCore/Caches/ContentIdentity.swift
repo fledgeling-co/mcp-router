@@ -54,7 +54,9 @@ public enum ContentResolution {
     ///
     /// `-p`/`--package` take a value, and that value **is** the package — `npx -p pkg cmd` runs
     /// `cmd` out of `pkg`. Treating it as a flag to skip would resolve the wrong argument.
-    private static let valuelessFlags: Set<String> = ["-y", "--yes", "--no", "--no-install", "-q", "--quiet"]
+    private static let valuelessFlags: Set<String> = [
+        "-y", "--yes", "--no", "--no-install", "-q", "--quiet"
+    ]
 
     public static func resolve(_ upstream: UpstreamConfig, probe: any CacheProbing) -> ContentIdentity {
         guard upstream.isStdio, let command = upstream.command, !command.isEmpty else {
@@ -85,13 +87,14 @@ public enum ContentResolution {
         }
         guard !matches.isEmpty else {
             return .unresolved(
-                "no entry under the npx cache was fetched for \"\(name)\"; it has not been run on this machine yet"
+                "no npx cache entry was fetched for \"\(name)\"; it has not been run on this machine yet"
             )
         }
         var material: [String] = []
         for entry in matches.sorted(by: { $0.directory < $1.directory }) {
             for request in entry.requested.sorted(by: { $0.name < $1.name }) where request.name == name {
-                material.append("\(entry.directory)|\(request.name)@\(request.installedVersion ?? "?")")
+                let version = request.installedVersion ?? "?"
+                material.append("\(entry.directory)|\(request.name)@\(version)")
             }
         }
         return ContentIdentity(
@@ -122,7 +125,7 @@ public enum ContentResolution {
             )
         }
         return .unresolved(
-            "\"\(command)\" is not an npx invocation and neither it nor its arguments name a file on this disk"
+            "\"\(command)\" is not npx, and neither it nor its arguments name a file on this disk"
         )
     }
 
@@ -164,5 +167,4 @@ public enum ContentResolution {
         guard let at = spec[searchFrom...].lastIndex(of: "@") else { return spec }
         return String(spec[spec.startIndex ..< at])
     }
-
 }

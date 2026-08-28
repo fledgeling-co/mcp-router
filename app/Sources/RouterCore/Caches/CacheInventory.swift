@@ -30,8 +30,10 @@ public struct CacheRow: Sendable, Hashable {
     /// Why it cannot be named, when `refetch` is `nil`.
     public let problem: String?
 
+    /// `problem` has no default, so every construction states whether there is one. A row whose
+    /// `refetch` is `nil` and whose `problem` is too would be a refusal with no sentence on it.
     public init(
-        cache: CacheName, subject: String, path: String?, bytes: Int?, refetch: String?, problem: String? = nil
+        cache: CacheName, subject: String, path: String?, bytes: Int?, refetch: String?, problem: String?
     ) {
         self.cache = cache
         self.subject = subject
@@ -125,7 +127,7 @@ public struct CacheInventory: Sendable {
                 subject: first.name,
                 path: entry.directory,
                 bytes: entry.bytes,
-                refetch: "npx -y \(packages.joined(separator: " "))"
+                refetch: "npx -y \(packages.joined(separator: " "))", problem: nil
             )
         }
     }
@@ -149,7 +151,8 @@ public struct CacheInventory: Sendable {
             return CacheRow(
                 cache: .plugins, subject: subject, path: version.directory, bytes: version.bytes,
                 refetch: "claude plugin install \(version.plugin)@\(version.version)"
-                    + " --marketplace \(version.marketplace)"
+                    + " --marketplace \(version.marketplace)",
+                problem: nil
             )
         }
     }

@@ -14,7 +14,9 @@ public enum ContentVerdict: Sendable, Hashable {
 
     public var identity: ContentIdentity? {
         switch self {
-        case let .firstSight(identity), let .same(identity), let .moved(_, identity): identity
+        case let .firstSight(identity): identity
+        case let .same(identity): identity
+        case let .moved(_, identity): identity
         case .unresolvable: nil
         }
     }

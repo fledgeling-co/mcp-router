@@ -63,11 +63,15 @@ struct CacheInvalidationTests {
         // which is the difference between invalidating a package and clearing a store.
         #expect(plan.steps.count == 3)
         #expect(plan.bytes == 322_000_000)
-        guard case .removeDirectory = plan.steps.first?.effect else {
+        guard let first = plan.steps.first, let last = plan.steps.last else {
+            Issue.record("a server plan over a cached npx package cannot be empty")
+            return
+        }
+        guard case .removeDirectory = first.effect else {
             Issue.record("the npx tree has to go before the re-index, or the re-index reads the old code")
             return
         }
-        guard case .reindexServer = plan.steps.last?.effect else {
+        guard case .reindexServer = last.effect else {
             Issue.record("a server plan must end by re-deriving the manifest row")
             return
         }

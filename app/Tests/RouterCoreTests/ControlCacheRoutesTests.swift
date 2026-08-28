@@ -40,10 +40,13 @@ struct ControlCacheRoutesTests {
     }
 
     private static func answer(
-        _ path: String, method: String = "GET", body: String? = nil, authorized: Bool = true,
+        _ path: String,
+        method: String = "GET",
+        body: String? = nil,
+        authorized: Bool = true,
         _ deps: inout ControlDeps
     ) async -> (status: Int, body: String) {
-        var headers: [(name: String, value: String)] = [
+        var headers = [
             (name: "content-type", value: "application/json")
         ]
         if authorized { headers.append((name: "x-mcpr-token", value: Support.token)) }

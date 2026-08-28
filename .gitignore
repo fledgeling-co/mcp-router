@@ -59,6 +59,13 @@ node_modules
 # one, and git sees it as an untracked directory — one `git add -A` from the repo root would
 # commit another branch's entire working tree into this branch.
 .worktrees/
+# And the bare name, because on this machine `.worktrees` is a SYMLINK onto an external volume
+# (the G32 path duality: /Users/... and /Volumes/LLMs/... are the same tree). A trailing-slash
+# pattern matches directories only, git classes a symlink as a file, so the rule above missed it
+# and `git status` listed `?? .worktrees` — one `git add -A` from the root would have committed a
+# symlink that resolves on no other machine. Measured 2026-08-28: `git check-ignore .worktrees`
+# said NOT ignored while `.worktrees/` sat four lines above it.
+.worktrees
 
 # Fidelity-loop trajectory data: the per-round score.json and candidate.svg are
 # the evidence and are committed; the residual/edge bitmaps are 21 MB of

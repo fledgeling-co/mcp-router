@@ -111,6 +111,7 @@ LANES=(
     menu-badge-lane.sh
     menu-badge-lane-selftest.sh
     r28-extensions.sh
+    r31-caches.sh
     r32-desktop-entry.sh
     r32-desktop-entry-selftest.sh
 )

@@ -21,6 +21,12 @@ public struct ManifestIndexer: UpstreamIndexerPort {
     /// this type and a one-shot that fails a contended write reports it and exits — where a control
     /// handler that stalls parks a cooperative-pool thread.
     let lockTimeoutMs: Int
+    /// Resolves what code the upstream currently runs, so the entry records a content component
+    /// beside its identity hash — R31. **Optional, and nil by default**, which is what keeps this
+    /// a wiring decision rather than a change to a shared type: with no probe the bytes this
+    /// writes are exactly the bytes it wrote before, so every parity lane and the in-process
+    /// differential oracle see the router they already compared.
+    let contentProbe: (any CacheProbing)?
 
     public init(
         startupTimeoutMs: Int,
@@ -31,7 +37,8 @@ public struct ManifestIndexer: UpstreamIndexerPort {
         log: RouterLog? = nil,
         lockTimeoutMs: Int = ConfigMutationLock.timeoutMilliseconds(
             default: ConfigMutationLock.daemonTimeoutMs
-        )
+        ),
+        contentProbe: (any CacheProbing)? = nil
     ) {
         self.startupTimeoutMs = startupTimeoutMs
         self.transporting = transporting
@@ -40,6 +47,7 @@ public struct ManifestIndexer: UpstreamIndexerPort {
         self.clock = clock
         self.log = log
         self.lockTimeoutMs = lockTimeoutMs
+        self.contentProbe = contentProbe
     }
 
     public func index(_ upstream: UpstreamConfig) async -> IndexOutcome {
@@ -182,7 +190,16 @@ public struct ManifestIndexer: UpstreamIndexerPort {
                     nowMilliseconds: clock.nowMilliseconds
                 )
                 applied = step
-                manifest.setEntry(upstream.name, step.entry)
+                var entry = step.entry
+                // Recorded from the same reading in the same critical section as the row it
+                // belongs to. Taking it outside the lock would let the tools and the content
+                // component describe two different versions of the package.
+                if let contentProbe {
+                    ContentStaleness.record(
+                        ContentResolution.resolve(upstream, probe: contentProbe), on: &entry
+                    )
+                }
+                manifest.setEntry(upstream.name, entry)
                 try ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)
                 return step
             }

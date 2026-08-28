@@ -237,6 +237,11 @@ public struct ControlDeps: Sendable {
     /// rather than an empty inventory, which a router holding nothing would be indistinguishable
     /// from.
     public var extensions: (any ExtensionStoring)?
+    /// Where the `/caches` family reads the three caches and removes from two of them — R31.
+    /// Optional for the reason ``extensions`` is, and with a sharper one: a probe defaults to the
+    /// caller's own `~/.npm` and `~/.claude`, so a differential oracle handed a real one would put
+    /// a developer's 2.0 GB npx cache inside a lane run.
+    public var caches: (any CacheProbing)?
 
     public init(
         config: RouterConfig,
@@ -256,7 +261,8 @@ public struct ControlDeps: Sendable {
         authFlow: (any AuthFlowStarting)? = nil,
         harnesses: (any HarnessInventorySource)? = nil,
         insights: (any InsightsSource)? = nil,
-        extensions: (any ExtensionStoring)? = nil
+        extensions: (any ExtensionStoring)? = nil,
+        caches: (any CacheProbing)? = nil
     ) {
         self.config = config
         self.upstreams = upstreams
@@ -276,6 +282,7 @@ public struct ControlDeps: Sendable {
         self.harnesses = harnesses
         self.insights = insights
         self.extensions = extensions
+        self.caches = caches
     }
 
     /// Lookup by JavaScript string identity — a composed key does not match a decomposed request,

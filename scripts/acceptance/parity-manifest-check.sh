@@ -505,8 +505,13 @@ done <<< "$(grep -oE 'scripts/[a-z/-]+\.sh' "$MANIFEST" | sort -u)"
 # a CLI verb P2 added, and it is deliberately not a row: the capability it implements is
 # install-claude-json, which has a row and is proven by a lane that drives this very verb. A second
 # row for the verb would count one capability twice and inflate the denominator.
+# `mcp-remote` joined with R31: it is an npm package this machine really runs
+# (`npx -y mcp-remote https://…`), named in that item's rows as one of the three upstreams whose
+# spec floats, and it matches the `mcp-` prefix the tokeniser above looks for. A package name is
+# not a row id, and rewording the note to dodge the pattern would cost the row its evidence.
 KNOWN_NON_IDS='mcp-router
-install-entry'
+install-entry
+mcp-remote'
 row_ids="$(awk -F'\t' '!/^#/ && NF == 6 { print $2 }' "$MANIFEST" | sort -u)"
 # Tokenised by splitting on every character an id cannot contain, rather than with \b, which is not
 # portable between BSD and GNU grep.

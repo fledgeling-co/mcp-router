@@ -270,6 +270,13 @@ non-UTC machine as `pid reused` — reporting nobody reachable at the moment eve
 `scripts/e2e-session-push.mjs` plants a session in each spelling and requires the classifier to
 tell them apart.
 
+### Which router this is in
+
+Both mechanisms are in the **TypeScript** router. The two launchd agents currently run the Swift
+one, so on a stock install `mcpr sessions` reports the registry correctly and then says the router
+answered `404` for `/sessions` — that is the port, not a fault. Porting the notification to the
+Swift router is R4's parity surface, not this feature's.
+
 ### What neither reaches
 
 Claude Desktop has no `cc-socks` socket and does not attach to this router, so neither mechanism

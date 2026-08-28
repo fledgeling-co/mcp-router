@@ -465,9 +465,21 @@ async function cmdSessions(): Promise<void> {
           `  their MCP tool list is refreshed automatically when a server changes.\n` +
           `  notifySessions (the skills/plugins ask) is ${b.notifySessions ? 'ON' : 'off'}.\n`
       );
+    } else {
+      /*
+       * Said rather than swallowed. A 404 here is not a broken router: the installed default on
+       * this machine is the SWIFT router, and this route exists only in the TypeScript one. A
+       * silent omission would read as "no sessions are attached", which is the opposite of what
+       * a 404 means and the more alarming of the two.
+       */
+      process.stdout.write(
+        `\n  the router on this port answered ${res.status} for /sessions, so it does not carry\n` +
+          '  the live-reload route. The tool-list notification is in the TypeScript router;\n' +
+          '  the Swift one has not been ported to it yet.\n'
+      );
     }
   } catch {
-    process.stdout.write('\n  (the router is not running, so the attached-stream count is unknown)\n');
+    process.stdout.write('\n  (no router is answering on this port, so the attached-stream count is unknown)\n');
   }
 
   if (!push && !dryRun) return;

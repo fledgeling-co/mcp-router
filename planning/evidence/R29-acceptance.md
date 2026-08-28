@@ -136,6 +136,27 @@ answers for nobody; the regression arm is
 - **Two populations, never merged into one number.** A session attached to the router has a
   stream; a session in the registry is a session on this machine. `mcpr sessions` and
   `GET /sessions` print them separately.
+- **TypeScript only.** Both mechanisms are in the TypeScript router; the two launchd agents run
+  the Swift one, so a stock install gets the registry reading and a `404` for `/sessions`. The
+  CLI says which of the two it is rather than falling silent — a silent omission reads as "no
+  sessions are attached", the opposite of what a 404 means. Porting is R4's parity surface.
 - **Not verified here:** anything against a real Claude Code session on this machine, deliberately
   and by instruction. §1 used a session started for the purpose and torn down; §2 and §3 used
   fixtures. Behaviour against the thirteen live sessions is **unmeasured**, not proven.
+
+---
+
+## 6 · Read-only exercise against the real machine
+
+`mcpr sessions` and `mcpr sessions --dry-run` were run against this machine's actual registry.
+Both are read-only: the dry run resolves every address and emits no bytes, which is exactly the
+instrument needed to look at this before turning it on.
+
+```
+13 session(s) in ~/.claude/sessions
+  13 reachable
+DRY RUN — nothing was sent. 13 of 13 session(s) targeted
+```
+
+Thirteen, which is the figure the brief recorded independently. **No message was sent to any of
+them**, and `notifySessions` is off, so none would be sent by the shipped default either.

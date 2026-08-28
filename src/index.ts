@@ -28,6 +28,7 @@ import { UsageStore } from './usage.js';
 import { controlToken, TOKEN_PATH } from './control.js';
 import { hasTokens, isAuthFailure } from './auth.js';
 import { cmdWatch } from './watch.js';
+import { askSessionsToReload, listSessions, type Reach } from './sessions.js';
 import { configureLogging, log } from './log.js';
 
 function arg(name: string): string | undefined {
@@ -55,6 +56,12 @@ function usage(): void {
   mcp-router usage [--limit N]        Recent tool calls, with the project that made them
   mcp-router watch [--verbose]        One shot: adopt any new server out of
                                       ~/.claude.json (run by launchd on file change)
+  mcp-router sessions [--push] [--dry-run]
+                                      Which live Claude Code sessions a reload can reach,
+                                      and by which mechanism. --push asks them to reload
+                                      skills and plugins; --dry-run says who and sends
+                                      nothing. The MCP tool list needs neither: attached
+                                      sessions are told over the stream they already hold.
 
 Config:   ${DEFAULT_CONFIG_PATH}
 Manifest: ${join(ROUTER_HOME, 'manifest.json')}
@@ -409,6 +416,90 @@ async function cmdUsage(): Promise<void> {
   }
 }
 
+/**
+ * Who a reload reaches, in the two populations that are not the same population.
+ *
+ * A session attached to this router has an open notification stream and gets its tool list
+ * refreshed with nobody in the loop. A session in the registry is a session on this machine,
+ * which may or may not be attached, and is the only address the skills-and-plugins ask has.
+ * Printing them as one number would hide exactly the case somebody needs to see.
+ */
+async function cmdSessions(): Promise<void> {
+  const push = has('push');
+  const dryRun = has('dry-run');
+  const sessions = listSessions();
+
+  const label: Record<Reach, string> = {
+    reachable: 'reachable',
+    unauthenticated: 'no key file',
+    exited: 'exited',
+    recycled: 'pid reused',
+    noSocket: 'no socket',
+  };
+  const counts = sessions.reduce<Partial<Record<Reach, number>>>((acc, s) => {
+    acc[s.reach] = (acc[s.reach] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  process.stdout.write(`${sessions.length} session(s) in ~/.claude/sessions\n\n`);
+  for (const s of sessions.sort((a, b) => a.reach.localeCompare(b.reach) || a.pid - b.pid)) {
+    process.stdout.write(
+      `  ${String(s.pid).padStart(6)}  ${label[s.reach].padEnd(12)} ${(s.name ?? '—').padEnd(22)} ${s.cwd ?? ''}\n`
+    );
+  }
+  process.stdout.write(
+    `\n  ${Object.entries(counts).map(([k, v]) => `${v} ${label[k as Reach]}`).join(', ') || 'none'}\n`
+  );
+
+  /*
+   * Said whether or not --push was given, because it is the half people do not know exists.
+   * The number here is the router's, not this process's: `mcpr sessions` is a separate process
+   * and holds no streams of its own, so it has to ask the running router.
+   */
+  try {
+    const res = await fetch(`http://127.0.0.1:${numArg('port') ?? 8879}/sessions`);
+    if (res.ok) {
+      const b = (await res.json()) as { attachedStreams: number; notifySessions: boolean };
+      process.stdout.write(
+        `\n  ${b.attachedStreams} session(s) attached to this router hold a notification stream;\n` +
+          `  their MCP tool list is refreshed automatically when a server changes.\n` +
+          `  notifySessions (the skills/plugins ask) is ${b.notifySessions ? 'ON' : 'off'}.\n`
+      );
+    } else {
+      /*
+       * Said rather than swallowed. A 404 here is not a broken router: the installed default on
+       * this machine is the SWIFT router, and this route exists only in the TypeScript one. A
+       * silent omission would read as "no sessions are attached", which is the opposite of what
+       * a 404 means and the more alarming of the two.
+       */
+      process.stdout.write(
+        `\n  the router on this port answered ${res.status} for /sessions, so it does not carry\n` +
+          '  the live-reload route. The tool-list notification is in the TypeScript router;\n' +
+          '  the Swift one has not been ported to it yet.\n'
+      );
+    }
+  } catch {
+    process.stdout.write('\n  (no router is answering on this port, so the attached-stream count is unknown)\n');
+  }
+
+  if (!push && !dryRun) return;
+
+  const report = await askSessionsToReload('a manual reload request from `mcpr sessions`', { dryRun });
+  process.stdout.write(
+    `\n${dryRun ? 'DRY RUN — nothing was sent. ' : ''}${report.targeted} of ${report.considered} session(s) targeted\n`
+  );
+  for (const o of report.outcomes) {
+    process.stdout.write(`  ${String(o.pid).padStart(6)}  ${o.outcome}${o.detail ? ` — ${o.detail}` : ''}\n`);
+  }
+  if (!dryRun) {
+    process.stdout.write(
+      '\n  `delivered` means the message reached that session\'s inbox. It does not mean anything\n' +
+        '  reloaded: the message is text, slash commands in it do not execute, and an idle session\n' +
+        '  does not read it until it next does something.\n'
+    );
+  }
+}
+
 const cmd = process.argv[2] ?? 'serve';
 const run = async (): Promise<void> => {
   switch (cmd) {
@@ -427,6 +518,9 @@ const run = async (): Promise<void> => {
       return cmdAuth();
     case 'usage':
       return cmdUsage();
+    case 'sessions':
+      await cmdSessions();
+      break;
     case 'watch':
       return cmdWatch({ verbose: has('verbose') });
     case 'help':

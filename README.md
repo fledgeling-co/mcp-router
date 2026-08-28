@@ -58,7 +58,7 @@ flowchart LR
 
 That fetches the source to `~/.local/share/mcp-router`, builds it, copies your stdio servers out of `~/.claude.json`, indexes them once, writes two launchd agents with this machine's own absolute paths, loads them, and adds a single `mcp-router` entry to `~/.claude.json`. It backs that file up first.
 
-Start a new Claude Code session afterwards; a running session fetches its tool list once at init and won't see the change.
+Start a new Claude Code session afterwards. A session already attached to the router does **not** need restarting for a tool-list change — see [Reaching sessions that are already running](#reaching-sessions-that-are-already-running) — but it was not attached at all until this install finished.
 
 Already have a clone? `./docs/install.sh` from inside it works the same way and skips the fetch, so the agents point at your working copy.
 
@@ -193,6 +193,103 @@ Worth saying that the reason people reach for this has mostly gone. Removing a s
 
 ---
 
+## Reaching sessions that are already running
+
+Two mechanisms, and the difference between them is the whole of what this section is for. One
+**tells** and needs nobody. The other can only **ask**.
+
+| What changed | Mechanism | Who it reaches | When | Needs a person? |
+|---|---|---|---|---|
+| The tool list — a server added, removed, re-indexed, disabled, or re-scoped | `notifications/tools/list_changed` over the stream the session already holds | every session attached to this router | ~100 ms, mid-task | no |
+| Skills, plugins, harness config | a message on the session's own unix socket | every live session on this machine, if you turn it on | at that session's next tool round | **yes** |
+
+### The tool list: the router tells, and nothing is asked of anybody
+
+A Claude Code session opens a standalone `GET /mcp` SSE stream immediately after it initializes
+and holds it for the whole session. That is a channel from server to client, and
+`notifications/tools/list_changed` is what goes down it: the client re-fetches `tools/list` on
+its own, with no model in the loop, no slash command and no person.
+
+The router now keeps a reference to those streams and sends that notification whenever the served
+tool list actually moves. Measured on a real client: **104 ms** from `POST /servers` returning to
+the attached session re-fetching and seeing the new tool. A session inside a long-running tool
+call is not disturbed by it — the re-fetch is the client's own housekeeping.
+
+It is deliberately silent about changes that do **not** move the tool list. Setting `warm` on a
+server changes how it is run, not what it serves, so it announces nothing; a notification is a
+re-fetch every attached session pays for.
+
+Two things it cannot do, which is why the other half exists:
+
+- **It carries no payload.** The protocol gives `list_changed` no field for what changed, so this
+  cannot name the server that moved. It says "re-read"; the client works out the difference.
+- **It only covers the tool list.** Skills, plugins and harness config are not in this protocol.
+
+### Skills and plugins: the router asks, and asking is all it can do
+
+Every Claude Code session registers a unix socket, and the router can write to it:
+
+```
+/tmp/cc-socks/<pid>.sock
+```
+
+What arrives there is **text in the receiving session's turn**. Three measured limits, and they
+are the reason this is off by default:
+
+- **A slash command in the message does not run.** The harness enqueues an inbound peer message
+  with slash commands disabled. So `/reload-skills` in the body is a string the receiving model
+  reads, not a command anything executes. This is a property of the receiver — not a convention.
+- **It drains at that session's next tool round.** A session sitting idle with nobody at the
+  keyboard holds the message until it next does something. There is no wake in this.
+- **The router cannot observe whether anyone complied.** So the outcome it reports is
+  `delivered` — the bytes reached that session's inbox — and never `reloaded`.
+
+It is **off unless you turn it on**, because everything it reaches is somebody's turn:
+
+```bash
+mcpr sessions              # who is reachable, by which mechanism; sends nothing
+mcpr sessions --dry-run    # who the ask WOULD reach; still sends nothing
+mcpr sessions --push       # ask them, now
+```
+
+Turn the automatic version on by adding `"notifySessions": true` at the top level of
+`~/.claude/mcp-router/servers.json`. It is read on each change rather than cached, so turning it
+off takes effect immediately.
+
+### A session that cannot be reached says which kind of "cannot"
+
+`mcpr sessions` and `GET /sessions` classify every registry entry, because "unreachable" collapses
+five different situations into one and only one of them is a problem:
+
+| Class | What it means |
+|---|---|
+| `reachable` | alive, identity verified, socket present, key file found |
+| `no key file` | alive and addressable, but the message would go unauthenticated |
+| `exited` | the process is gone. The registry outlives its sessions; this is the normal case |
+| `pid reused` | something is alive on that pid, but it is not the process that registered |
+| `no socket` | registered and alive, but the socket file is not there |
+
+The identity check compares **instants, not spellings**: the registry writes `procStart` in UTC
+and `ps` prints local time, so comparing the two as strings classifies every live session on a
+non-UTC machine as `pid reused` — reporting nobody reachable at the moment everybody is.
+`scripts/e2e-session-push.mjs` plants a session in each spelling and requires the classifier to
+tell them apart.
+
+### Which router this is in
+
+Both mechanisms are in the **TypeScript** router. The two launchd agents currently run the Swift
+one, so on a stock install `mcpr sessions` reports the registry correctly and then says the router
+answered `404` for `/sessions` — that is the port, not a fault. Porting the notification to the
+Swift router is R4's parity surface, not this feature's.
+
+### What neither reaches
+
+Claude Desktop has no `cc-socks` socket and does not attach to this router, so neither mechanism
+reaches it. A session that has never connected to the router has no stream; it is reported as
+absent rather than as a failure.
+
+---
+
 ## What it deliberately doesn't do
 
 - **It doesn't proxy HTTP/SSE upstreams.** Those are already shared endpoints with their own auth; routing them through here adds a hop and strips their OAuth context.
@@ -219,9 +316,12 @@ A dead or broken upstream returns a JSON-RPC tool error naming the server. It do
 ```bash
 node scripts/e2e.mjs        # against a running router
 node scripts/e2e-idle.mjs   # self-contained; starts its own router
+make node-e2e               # both halves of the live reload, self-contained
 ```
 
 Ten checks against a running router using the SDK's own client, which is the same one Claude Code uses: initialize, `tools/list` served from cache, namespacing, `tools/call`, that the called upstream started, **that no other upstream started**, and that an unknown server errors without crashing the router.
+
+`make node-e2e` runs the two live-reload proofs. `e2e-live-reload.mjs` boots a router in its own `HOME`, attaches the SDK's own client, adds a server over the control API and requires the attached client to have been told and to see the new tool — with two controls: a change that moves no tools must announce nothing, and a push with nobody attached must report **0 delivered** rather than a full delivery. `e2e-session-push.mjs` builds its own session registry, binds its own socket and pushes only at that; it never reads the real registry, because a live session on this machine is somebody else's work.
 
 `e2e-idle.mjs` is a regression check with its own upstream and its own `HOME`, so it touches nothing you have configured. It proves a call that runs longer than the idle window is not cut off by the reaper — before the pool counted in-flight calls, a six-second call against a two-second window came back as `MCP error -32000: Connection closed`, which at the default five-minute window meant every long-running tool call died at five minutes.
 
@@ -232,6 +332,8 @@ Ten checks against a running router using the SDK's own client, which is the sam
 | File | What it covers |
 |---|---|
 | `src/manifest.ts` | The tool cache and its reload semantics; why lazy spawning is possible at all |
+| `src/livereload.ts` | The streams attached sessions already hold, and the one notification worth sending down one |
+| `src/sessions.ts` | The session registry, the five reach classes, and why the socket half can only ask |
 | `src/pool.ts` | Child lifecycle: single-flight spawn, idle reaping |
 | `src/router.ts` | The stateless HTTP layer and how a dead upstream is contained |
 | `src/watch.ts` | The adoption watcher and its refusal behaviour |

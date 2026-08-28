@@ -39,6 +39,8 @@ import {
   isAuthFailure,
   FileOAuthProvider,
 } from './auth.js';
+import { LiveReload } from './livereload.js';
+import { askSessionsToReload, listSessions } from './sessions.js';
 import { log } from './log.js';
 
 export const TOKEN_PATH = join(ROUTER_HOME, 'control.token');
@@ -81,6 +83,8 @@ export interface ControlDeps {
   pool: UpstreamPool;
   manifest: ManifestStore;
   usage: UsageStore;
+  /** The open standalone GET /mcp streams. R29: telling attached sessions the tool list moved. */
+  liveReload: LiveReload;
 }
 
 function json(res: ServerResponse, status: number, body: unknown): void {
@@ -122,6 +126,48 @@ function reload(deps: ControlDeps): void {
   deps.cfg.upstreams.length = 0;
   deps.cfg.upstreams.push(...next.values());
   log.info(`config reloaded: ${next.size} upstreams`);
+}
+
+/**
+ * Tell every attached session that the served tool list moved.
+ *
+ * Fired from the mutations that change what `tools/list` would answer, and from nowhere else: a
+ * notification on a change that did not alter the tool list is a re-fetch every session pays for
+ * and nobody needed. It is deliberately not awaited by the route that triggers it — the client is
+ * downstream of the router and must never be able to hold a control-API response open.
+ *
+ * Whether the config in `servers.json` should ALSO be pushed at the sessions over their unix
+ * sockets is `notifySessions`'s decision, and it is off unless the user turned it on. That
+ * asymmetry is the point: this notification is the protocol's own, addressed to the client and
+ * costing it one re-fetch, while the socket message is text landing in somebody's turn.
+ */
+function announceTools(deps: ControlDeps, reason: string): void {
+  // Record where this change left the manifest, so the poller in `router.ts` does not announce
+  // the same move a second time three seconds later.
+  void deps.liveReload.announceToolsChanged(reason, deps.manifest.fileStamp()).catch((err: Error) => {
+    log.warn(`live-reload: announcing "${reason}" failed: ${err.message}`);
+  });
+  void maybeAskSessions(reason);
+}
+
+/**
+ * The opt-in half. Reads the flag from the config file on each call rather than caching it, so
+ * turning it off takes effect at once rather than at the next restart.
+ */
+function notifySessionsEnabled(): boolean {
+  try {
+    const raw = JSON.parse(readFileSync(DEFAULT_CONFIG_PATH, 'utf8')) as { notifySessions?: unknown };
+    return raw.notifySessions === true;
+  } catch {
+    return false;
+  }
+}
+
+function maybeAskSessions(reason: string): Promise<unknown> {
+  if (!notifySessionsEnabled()) return Promise.resolve(undefined);
+  return askSessionsToReload(reason).catch((err: Error) => {
+    log.warn(`sessions: asking sessions to reload after "${reason}" failed: ${err.message}`);
+  });
 }
 
 /** Build the transport factory `beginAuth` needs for one HTTP upstream. */
@@ -380,6 +426,8 @@ export function isControlPath(pathname: string): boolean {
     pathname.startsWith('/servers/') ||
     pathname === '/usage' ||
     pathname.startsWith('/usage/') ||
+    pathname === '/sessions' ||
+    pathname.startsWith('/sessions/') ||
     pathname.startsWith('/registry/')
   );
 }
@@ -460,6 +508,7 @@ export async function handleControl(
       delete (servers[b.name!] as Record<string, unknown>).name;
     });
     reload(deps);
+    announceTools(deps, `added the server "${b.name}"`);
     log.info(`added upstream "${b.name}" (${tools} tools${error ? `, ${error}` : ''})`);
     json(res, 201, { added: b.name, tools, error, needsAuth: authPending });
     return true;
@@ -485,6 +534,7 @@ export async function handleControl(
         delete servers[name];
       });
       reload(deps);
+      announceTools(deps, `removed the server "${name}"`);
       clearAuth(name);
       if (url.searchParams.get('keepHistory') !== '1') deps.usage.forget(name);
       log.info(`removed upstream "${name}"`);
@@ -494,6 +544,9 @@ export async function handleControl(
 
     if (sub === '/reindex' && req.method === 'POST') {
       const { tools, error } = await indexOne(u, deps.cfg, deps.pool);
+      // Only on success: a re-index that failed left the manifest where it was, and a
+      // notification would send every session to re-fetch a list that did not move.
+      if (!error) announceTools(deps, `re-indexed the server "${name}"`);
       json(res, error ? 422 : 200, { name, tools, error });
       return true;
     }
@@ -636,6 +689,15 @@ export async function handleControl(
         if ('disabled' in b) s.disabled = b.disabled || undefined;
       });
       reload(deps);
+      /*
+       * `disabled` and `projects` are the two fields that change what a session is served —
+       * `visibleTo` reads both. `warm`, `idleMs` and `placard` change how a server is run or
+       * drawn and leave the tool list exactly as it was, so they announce nothing: a re-fetch
+       * every attached session pays for is not free just because it is fast.
+       */
+      if ('disabled' in b || 'projects' in b) {
+        announceTools(deps, `changed what "${name}" serves`);
+      }
       if (b.warm) void deps.pool.warmUp();
       json(res, 200, describe(deps.upstreams.get(name)!, deps));
       return true;
@@ -725,6 +787,50 @@ export async function handleControl(
       clearInterval(beat);
       unsubscribe();
     });
+    return true;
+  }
+
+  // ---------------------------------------------------------------- sessions
+  /*
+   * Who a reload can reach, and by which of the two mechanisms.
+   *
+   * The token is never in this response and never in a log line. The reach classes are the
+   * answer to the brief's requirement that a session which cannot be reloaded says so rather
+   * than appearing to have been: `exited`, `recycled` and `noSocket` are each a distinct reason,
+   * and none of them is an error.
+   */
+  if (p === '/sessions' && req.method === 'GET') {
+    const sessions = listSessions();
+    const byReach = sessions.reduce<Record<string, number>>((acc, s) => {
+      acc[s.reach] = (acc[s.reach] ?? 0) + 1;
+      return acc;
+    }, {});
+    json(res, 200, {
+      // The MCP half. `attachedStreams` is what a tool-list notification would reach right now,
+      // and it is a different population from the registry below: a session attached to this
+      // router has a stream; a session on this machine may have neither, either or both.
+      attachedStreams: deps.liveReload.openStreams,
+      notifySessions: notifySessionsEnabled(),
+      registry: { total: sessions.length, byReach },
+      sessions: sessions.map(({ token: _token, ...rest }) => rest),
+    });
+    return true;
+  }
+
+  /*
+   * Fire both mechanisms by hand. `?dryRun=1` reports who the socket ask would reach and sends
+   * nothing — the only honest way to look at this before turning `notifySessions` on, because
+   * everything it would reach belongs to somebody else's turn.
+   */
+  if (p === '/sessions/notify' && req.method === 'POST') {
+    const b = (body ?? {}) as { reason?: string };
+    const reason = typeof b.reason === 'string' && b.reason.trim() ? b.reason.trim() : 'a manual reload request';
+    const dryRun = url.searchParams.get('dryRun') === '1';
+    const tools = dryRun
+      ? { streams: deps.liveReload.openStreams, delivered: 0, failed: 0, reason: 'dry run: nothing sent' }
+      : await deps.liveReload.announceToolsChanged(reason);
+    const sessions = await askSessionsToReload(reason, { dryRun });
+    json(res, 200, { reason, dryRun, tools, sessions });
     return true;
   }
 

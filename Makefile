@@ -66,6 +66,7 @@ MAC_DEST   ?= platform=macOS
 ## M15-M22 add theirs by writing planning/fidelity/<surface>.layers.json beside this one.
 SURFACE    ?= servers
 
+.PHONY: node-e2e
 .PHONY: build-cli-debug all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation mutation-selftest acceptance acceptance-lanes-selftest mock-fidelity mock-fidelity-selftest role-intersection lint format clean install-default surface-reconcile surface-reconcile-arm
 
 ## G4's two harness gates run inside `lint` rather than as a stage of their own. Both are
@@ -801,6 +802,22 @@ parity-watch-mutations:
 ##
 ## It stays out of `all` for the same reason it always did — it needs a GUI session, an
 ## Accessibility grant and a simulator, and `all` has to run where none of those exist.
+## R29's two node proofs, together, because they are halves of one claim and a green on one
+## alone says nothing about the other. Deliberately NOT in `lint`: that lane is hermetic and
+## needs neither node nor `dist/`, and a member that requires a TypeScript build would take
+## that property away from the other twenty-three.
+##
+## `e2e-session-push` builds its own session registry, binds its own socket and pushes only at
+## that. It never reads the real registry: a live session on this machine is somebody else's
+## work, and a message arriving mid-task is an interruption they pay for.
+node-e2e:
+	@set -eu -o pipefail; \
+	  npm run --silent build; \
+	  echo "== e2e-session-push (the socket ask) =="; \
+	  node scripts/e2e-session-push.mjs; \
+	  echo; echo "== e2e-live-reload (the tool-list tell) =="; \
+	  node scripts/e2e-live-reload.mjs
+
 acceptance: build-mac build-mac-release build-ios build-cli-debug
 	./scripts/acceptance/acceptance-lanes.sh
 

@@ -288,6 +288,18 @@ export class ManifestStore {
     }
   }
 
+  /**
+   * The mtime/size stamp of the file on disk right now, without parsing it.
+   *
+   * Exposed so the live-reload poller can ask "did the manifest move" without paying for a
+   * parse on every tick, and — more to the point — without the answer being a side effect of a
+   * `tools/list` that may never come. `mcpr index` writes this file from another process
+   * entirely, so the router's own request traffic is not a reliable clock for it.
+   */
+  fileStamp(): string {
+    return this.stampOf();
+  }
+
   current(): Manifest {
     const now = Date.now();
     if (now < this.retryAfter) return this.manifest;

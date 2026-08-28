@@ -61,7 +61,7 @@ not the discriminator, and a stateless server is not excluded on that ground.
 `curl -N -H 'Accept: text/event-stream' http://127.0.0.1:8879/mcp` against the live router
 returns `200` with `content-type: text/event-stream` and holds the connection. Every attached
 session already has this stream open — the shutdown comment records the consequence from the
-other side: `An MCP client holds its connection for the whole session`,
+other side: `connection for the whole session, so on a machine with sessions attached`,
 `src/router.ts:471` at `bb3359a`.
 
 The router never sends anything down it, and keeps no reference to it. Each request builds a

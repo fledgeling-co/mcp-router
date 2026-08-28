@@ -11,6 +11,7 @@ import { UpstreamPool } from './pool.js';
 import { splitToolName, unionTools, visibleTo, placardFor, type ManifestStore } from './manifest.js';
 import { ClientResolver, UsageStore, projectOf } from './usage.js';
 import { handleControl, controlToken, isControlPath } from './control.js';
+import { LiveReload } from './livereload.js';
 import { handleAuthServer, isAuthServerPath, instructionsFor } from './oauth.js';
 import { log } from './log.js';
 
@@ -312,7 +313,7 @@ export async function startRouter(
   pool: UpstreamPool,
   upstreams: Map<string, UpstreamConfig>,
   usage: UsageStore
-): Promise<{ close: () => Promise<void> }> {
+): Promise<{ close: () => Promise<void>; liveReload: LiveReload }> {
   /*
    * Binding to loopback is not on its own enough to keep a browser out. A page the
    * user visits can point a hostname it controls at 127.0.0.1; the request is then
@@ -336,7 +337,8 @@ export async function startRouter(
 
   const resolver = new ClientResolver();
   const token = controlToken();
-  const deps = { cfg, upstreams, pool, manifest, usage };
+  const liveReload = new LiveReload();
+  const deps = { cfg, upstreams, pool, manifest, usage, liveReload };
 
   const http = createServer((req, res) => {
     void (async () => {
@@ -415,7 +417,31 @@ export async function startRouter(
       });
       const server = buildMcpServer(cfg, manifest, pool, usage, () => identity);
 
+      /*
+       * A GET on this path is the client asking for the standalone SSE stream — the one channel
+       * in this protocol that runs server to client. Claude Code opens one immediately after
+       * `notifications/initialized` and holds it for the session; measured 2026-08-28, and the
+       * shutdown note below is the same fact seen from the other side.
+       *
+       * Every one of those streams was already being served here and then dropped on the floor:
+       * `res.on('close')` was the only reference the router kept, so there was nothing to send a
+       * notification to. Registering it is the whole of R29's primary path. It does NOT make the
+       * router stateful — this transport is still this request's own, the stream carries no MCP
+       * session state, and a POST still gets a fresh transport that shares nothing with it.
+       */
+      const unregister =
+        req.method === 'GET'
+          ? liveReload.register({
+              send: (message) => transport.send(message),
+              // The response is the truthful liveness signal. The SDK's `send` resolves quietly
+              // over a stream that has gone, so it cannot be the one that answers this.
+              isOpen: () => !res.writableEnded && !res.destroyed,
+              bytesOut: () => (res.socket?.bytesWritten ?? 0) + res.writableLength,
+            })
+          : undefined;
+
       res.on('close', () => {
+        unregister?.();
         void transport.close().catch(() => undefined);
         void server.close().catch(() => undefined);
       });
@@ -460,10 +486,30 @@ export async function startRouter(
     void resolver.identify(socket).catch(() => undefined);
   });
 
+  /*
+   * The manifest changes from outside this process. `mcpr index --force` and the launchd watcher
+   * both write it, and neither goes through the control API, so a poll is the only thing that
+   * sees them. Three seconds and one `stat`; the timer is unref'd, so it is never the reason the
+   * process stays up.
+   *
+   * `announceIfMoved` seeds itself on the first tick rather than announcing, because the
+   * manifest that was on disk when the router booted is not news to anybody — telling every
+   * attached session to re-fetch because the ROUTER restarted would be the router charging its
+   * clients for its own lifecycle.
+   */
+  const manifestPoll = setInterval(() => {
+    void liveReload
+      .announceIfMoved(manifest.fileStamp(), 'the tool manifest was rebuilt outside this process')
+      .catch((err: Error) => log.warn(`live-reload: manifest poll failed: ${err.message}`));
+  }, 3_000);
+  manifestPoll.unref();
+
   log.info(`mcp-router listening on http://${cfg.host}:${cfg.port}${MCP_PATH}`);
 
   return {
+    liveReload,
     close: async () => {
+      clearInterval(manifestPoll);
       usage.flush();
       /*
        * `http.close(cb)` stops the listener accepting immediately and calls back

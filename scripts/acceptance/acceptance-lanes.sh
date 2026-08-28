@@ -111,6 +111,7 @@ LANES=(
     menu-badge-lane.sh
     menu-badge-lane-selftest.sh
     r28-extensions.sh
+    r30-ingest.sh
 )
 
 # Both overrides exist for the selftest, which must be able to plant lanes with known exits. Neither

@@ -253,7 +253,8 @@ pass "AXSize is present and zero on every item — the geometry channel is named
 # --------------------------------------------------------------------------------------- rule 1
 #
 # The invariant is "**this app** never comes to the front", not "the frontmost app never changes" —
-# `mac-shell.sh:207` says so in the same words and for the same measured reason, and this lane was
+# `The invariant is "**this app** never comes to the front", not "the frontmost app never changes".`, `scripts/acceptance/mac-shell.sh:207` at `9addb21`
+# says so in the same words and for the same measured reason, and this lane was
 # written with the stricter reading first and watched give a false alarm for it. Measured
 # 2026-08-29: frontmost went from `Google Chrome for Testing` to `ghostty` mid-run, neither of them
 # this app and neither of them this lane's doing, and the run failed reporting a screen theft that

@@ -73,8 +73,8 @@ check that correctly does not fire look identical from outside.
    event this lane exists to notice **could never fire**. It passed every real run.
 2. The rule-1 check asserted *frontmost is unchanged*. It failed on a run where frontmost went from
    `Google Chrome for Testing` to `ghostty` — neither of them this app, neither of them this lane's
-   doing. `mac-shell.sh:207` had already settled this: the invariant is *this app never comes to
-   the front*, not *the front never moves*. A rule-1 check that cries wolf is worse than none.
+   doing. This was already settled — `The invariant is "**this app** never comes to the front", not "the frontmost app never changes".`, `scripts/acceptance/mac-shell.sh:207` at `9addb21` — and a rule-1 check that cries wolf is worse
+   than none.
 
 The two controls were inline when the lane was first written, so the selftest could arm three
 assertions of five and the other two were taken on trust. They are functions now.

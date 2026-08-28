@@ -251,8 +251,8 @@ ROW_CLASSES = {"tr", "brk", "bandr", "card", "trow", "sf-card", "side-row", "her
 
 # ── THE SECOND SOURCE, AND WHY THERE HAS TO BE ONE ──────────────────────────────────────────────
 #
-# `campaign.json` names `design/mocks/prototype.html` as `designOfRecord` and the eleven surfaces
-# above come from it. Three Mac surfaces are not in it AT ALL, because they were drawn after it:
+# The eleven surfaces above come from `design/mocks/prototype.html`, which is where they were
+# drawn. Three Mac surfaces are not in it AT ALL, because they were drawn after it:
 # M22 added the Harnesses and Insights boards and M30 added the capability-document panel, and the
 # same three are the ones `surface-reconcile.py` was written for after they shipped with no campaign
 # surface. ORCHESTRATOR.md's Contract has already moved on — it names `design/mcp-router-console.html`
@@ -262,8 +262,14 @@ ROW_CLASSES = {"tr", "brk", "bandr", "card", "trow", "sf-card", "side-row", "her
 # Declaring nothing for those three would put three shipped Mac boards outside the denominator,
 # which is precisely the failure this census exists to end. So each surface is sourced from the
 # design that actually draws it, and which file that was is recorded per surface in the output.
-# The disagreement between `campaign.json` and the Contract is real and is not this script's to
-# settle; it is reported rather than papered over.
+#
+# This block used to end by reporting a disagreement between `campaign.json` and the Contract, and
+# the header it wrote named the PROTOTYPE as `designOfRecord` on the strength of it. That
+# disagreement is closed: `campaign.json` has named `design/mcp-router-console.html` since the
+# Contract settled it on 2026-08-22, so the header was left stating the one thing every other
+# record in the repository contradicts. It now names the console, and the prototype is labelled as
+# what it is. No harvested data moves with this — the per-surface `source` fields were already
+# right, and they are what anything downstream reads.
 CONSOLE_SURFACES: list[tuple[str, str, list[tuple[str, str, str]]]] = [
     ("SURF-025", "Mac Harnesses board", [
         ("board:ideal", "BOARDS('ideal')", "#b-harnesses"),
@@ -504,11 +510,14 @@ def main() -> int:
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({
-        "designOfRecord": str(MOCK.relative_to(ROOT)),
-        "secondSource": str(CONSOLE.relative_to(ROOT)),
-        "secondSourceReason": "The prototype predates the Harnesses board, the Insights board and "
-                              "the capability-document panel; ORCHESTRATOR.md's Contract names the "
-                              "console as the design of record settled 2026-08-22.",
+        "designOfRecord": str(CONSOLE.relative_to(ROOT)),
+        "supersededSource": str(MOCK.relative_to(ROOT)),
+        "supersededSourceReason": "ORCHESTRATOR.md's Contract and campaign.json both name the "
+                                  "console as the design of record, settled 2026-08-22. The "
+                                  "prototype is superseded and is still read for the eleven "
+                                  "surfaces it drew that have not been converted; which of the two "
+                                  "each surface's controls came from is recorded per surface in "
+                                  "`source`.",
         "surfaces": result}, indent=2) + "\n")
     total = sum(len(v["controls"]) for v in result.values())
     msg = sum(len(v["messageOnly"]) for v in result.values())

@@ -1,0 +1,38 @@
+{
+ "schema": 1,
+ "repo": "/Users/lukerhodes/Dev/mcp-router",
+ "window": {
+  "since": "2026-08-26T10:00:00Z",
+  "until": "2026-08-29T02:00:00Z",
+  "commits": 322
+ },
+ "uncommitted_paths": 58,
+ "findings": [
+  {
+   "probe": "R2",
+   "title": "a cited path exists nowhere in the repo or its history: SecretResolver.swift",
+   "band": 2,
+   "confidence": "observed",
+   "remedy": "write SecretResolver.swift, or strike the claim that cites it",
+   "path": "SecretResolver.swift",
+   "line": 1950,
+   "quote": "W2 is prepared and merged (`8f57217`), and it turned out much closer to done than its row implied. **The router half was already built.** `SecretResolver.swift` resolves `warden://` and `op://` at ups"
+  },
+  {
+   "probe": "R10",
+   "title": "app/Tests/RouterCoreTests/ClaudeFixtureTree.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep ClaudeFixtureTree \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Tests/RouterCoreTests/ClaudeFixtureTree.swift",
+   "referenced_by": [
+    "app/Tests/RouterCoreTests/ExtensionIngestApplyTests.swift",
+    "app/Tests/RouterCoreTests/ExtensionIngestTests.swift"
+   ]
+  }
+ ],
+ "notes": [
+  "R4: no capture directory found; capture identity unchecked"
+ ],
+ "probes_that_could_not_run": []
+}

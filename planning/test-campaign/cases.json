@@ -3127,10 +3127,10 @@
   "armed": true,
   "evidence": [
    "app/Tests/MCPRouterUITests/ShellDestinationActuationTests.swift",
-   "evidence/runs/arm-suites.0195-0203.log"
+   "evidence/runs/arm-suites.0198-0206.log"
   ],
   "note": "J2. Every sidebar row is selected in turn and the effect is read in the RESTORATION STORE, which is a different channel from the one that struck: `ShellModel.selection`'s `didSet` calls `store.save(destination:)`, so a real selection leaves a value in a scratch `UserDefaults` suite that nothing in the test wrote, and that a relaunch reads. `model.selection == .servers` after `model.select(.servers)` was deliberately NOT used \u2014 it reads the property the call just wrote, which is the actuation side of the vacuous assertion (`references/inert-ui.md`, `detector-defects.md` \u00a711).\n\nEach row is approached from a DIFFERENT destination, because `didSet` guards on `oldValue != selection` and a loop starting where the model boots would have the first row write nothing at all. The destination-collapse relation is asserted as a count rather than as seven separate greens: seven presses, seven DISTINCT persisted values, so a shell whose rows all led to one place fails on the cardinality. A second model built on the same store comes up where the last row left it, which is the read-back a relaunch actually performs.\n\n`Settings` is the eighth control and is not a destination: M15 moved it to a scene of its own, so the effect read is the installed opener firing exactly once AND the console's persisted destination not moving. Both halves, because an implementation that opened the scene and also selected a board would pass the first alone.\n\nLIMIT, stated rather than left implicit: a persisted destination proves the selection took. It does not prove a different board was DRAWN \u2014 SwiftUI's view tree is opaque to a SwiftPM test and `ContentZone`'s switch is unreachable from here. That half is CASE-0001's, on glass, and it is FAILING (DEF-058, DEF-059), so it counts nothing. This is the in-process half and says which half it is.",
-  "armedBy": "ARMED and watched red. `arm-suites.py CASE-0195` replaces `ShellModel.select`'s body with `_ = destination` \u2014 the empty closure verbatim, a row that renders, carries its accessible name, accepts a press and takes you nowhere. See `evidence/runs/arm-suites.0195-0203.log`.",
+  "armedBy": "ARMED and watched red. `arm-suites.py CASE-0195` replaces `ShellModel.select`'s body with `_ = destination` \u2014 the empty closure verbatim, a row that renders, carries its accessible name, accepts a press and takes you nowhere. See `evidence/runs/arm-suites.0198-0206.log`.",
   "actuates": [
    "Activity",
    "Servers",
@@ -3163,7 +3163,7 @@
   "armed": true,
   "evidence": [
    "app/Tests/MCPRouterUITests/BoardFilterActuationTests.swift",
-   "evidence/runs/arm-suites.0195-0203.log"
+   "evidence/runs/arm-suites.0198-0206.log"
   ],
   "note": "J2. The four Servers segments are pressed one at a time and the effect is read on THE ROWS THE TABLE DRAWS, not on the segment. `board.filter == .running` after `board.filter = .running` is the property the assignment just made \u2014 the same tautology as a button whose proof is that it now looks pressed.\n\nBoth directions, on a population chosen so no two segments have the same answer: one plain running server, one plain idle, one running-and-placarded (which `Needs you` claims and `Idle` must not) and one idle-and-placarded (which both claim). The rows that survive are exactly the ones that match and the rows that vanished are exactly the ones that do not \u2014 a one-directional check passes on a filter returning nothing and on one returning everything. The four expected row sets are additionally asserted to be four DISTINCT sets, so a bar whose segments all led to one row set fails on the cardinality however green each individual check looked.",
   "armedBy": "ARMED and watched red. `arm-suites.py CASE-0196` drops the `filter.matches($0)` term from `ServersBoardModel.rows(from:)`, leaving four segments that select, highlight and draw the same four rows.",
@@ -3195,7 +3195,7 @@
   "armed": true,
   "evidence": [
    "app/Tests/MCPRouterUITests/BoardFilterActuationTests.swift",
-   "evidence/runs/arm-suites.0195-0203.log"
+   "evidence/runs/arm-suites.0198-0206.log"
   ],
   "note": "J2. `Held` and `All` are the two filter chips SURF-004 declares, driven off one loaded reading of the fixture. `Held` is asserted in both directions against `Skill.held?.wantsMore` \u2014 every row it draws has an update held, and every row it hid does not \u2014 and `All` is asserted as the RESTORATION, which is the assertion that fails if a segment latches.\n\nSURF-004 reaches 2 of 21 and the remaining four state-changing controls are recorded in `inventory.json` under `controlsUnactuatable` rather than left in the denominator unexplained: the build draws none of them. That is DEF-062, and it is the finding this case produced \u2014 `references/inert-ui.md`'s own stated limit is that no amount of testing the build reveals what the build lacks, and giving the surface a denominator is what made the four visible.",
   "armedBy": "ARMED and watched red. `arm-suites.py CASE-0197` pins `SkillsBoardModel.rows`'s filter argument to `.all`, so `Held` draws the whole board while still reporting itself selected.",
@@ -3225,7 +3225,7 @@
   "armed": true,
   "evidence": [
    "app/Tests/MCPRouterUITests/BoardFilterActuationTests.swift",
-   "evidence/runs/arm-suites.0195-0203.log"
+   "evidence/runs/arm-suites.0198-0206.log"
   ],
   "note": "J2. The four Checks segments, each asserted in both directions against `CheckPresentation.Filter.matches` \u2014 what survives matches and what vanished does not \u2014 plus one control the loop cannot do without: at least one segment must NARROW the board. Without it, four subsets of the whole board are four copies of the whole board and every assertion in the loop holds on a bar that ignores every press. `All` restores the full list afterwards.\n\nSURF-006's fifth control, `Re-check all\u2026`, is message-only and is classed as such in the registry.",
   "armedBy": "ARMED and watched red. `arm-suites.py CASE-0198` pins `EvalsBoardModel.rows`'s filter argument to `.all`.",
@@ -3257,7 +3257,7 @@
   "armed": true,
   "evidence": [
    "app/Tests/MCPRouterUITests/ServersBoardWriteTests.swift",
-   "evidence/runs/arm-suites.0195-0203.log"
+   "evidence/runs/arm-suites.0198-0206.log"
   ],
   "note": "J2. `Keep warm` is driven and the effect is read on the REQUEST THE CLIENT RECORDED \u2014 `{\"warm\":true}` then `{\"warm\":false}`, the encoded bytes rather than the `ServerPatch` value, because a computed property or a `CodingKeys` mapping can put a key on the wire that no stored property shows. Both directions are asserted: `warm: false` clears the policy rather than stopping anything, and a control that only worked one way would pass on the first alone.\n\nThe row redraws from the model either way, so the row is exactly the observable that cannot distinguish a working switch from an empty closure. The recorded request can.",
   "armedBy": "ARMED and watched red. `arm-suites.py CASE-0199` replaces `setWarm`'s body with `_ = (name, warm)` \u2014 the empty closure verbatim. The switch moves, the row redraws from the model it already had, and the router is never told.",
@@ -3286,7 +3286,7 @@
   "armed": true,
   "evidence": [
    "app/Tests/MCPRouterUITests/ServersBoardWriteTests.swift",
-   "evidence/runs/arm-suites.0195-0203.log"
+   "evidence/runs/arm-suites.0198-0206.log"
   ],
   "note": "J2. `Only load in named projects` is driven in both directions and the effect is read on the recorded request body: `{\"projects\":[\"~\\/Dev\\/mcp-router\"]}` then `{\"projects\":[]}`. Clearing is an EMPTY ARRAY and never an omitted key \u2014 omitting leaves the restriction in place, so a toggle that omitted would appear to turn off and change nothing, which is the acknowledgement-only shape one level down in the encoder.",
   "armedBy": "ARMED and watched red. `arm-suites.py CASE-0200` replaces `setProjects`'s body with `_ = (name, projects)`, leaving a directory picker that opens, returns a path and scopes nothing.",
@@ -3315,7 +3315,7 @@
   "armed": true,
   "evidence": [
    "app/Tests/MCPRouterUITests/ServersBoardWriteTests.swift",
-   "evidence/runs/arm-suites.0195-0203.log"
+   "evidence/runs/arm-suites.0198-0206.log"
   ],
   "note": "J2. `Reset` is driven on a server tripped by a failed index and the effect is read as the OPERATION the client recorded: `[\"reindex\"]`, not a patch. The distinction is the whole control \u2014 a patch would clear the mark on screen without re-performing the handshake, which is a row that looks fixed and a server that is not.",
   "armedBy": "ARMED and watched red. `arm-suites.py CASE-0201` empties the reindex limb of `reset`, so the in-flight mark clears and the row settles looking fixed having asked the router nothing.",
@@ -3344,7 +3344,7 @@
   "armed": true,
   "evidence": [
    "app/Tests/MCPRouterUITests/ServersBoardWriteTests.swift",
-   "evidence/runs/arm-suites.0195-0203.log"
+   "evidence/runs/arm-suites.0198-0206.log"
   ],
   "note": "J2. `Remove` is driven with the history checkbox both ways and the effect is read as the operation the client recorded \u2014 `remove(keepHistory)` then `remove`. The sheet closing and the selection dropping are the app's own report that it worked and are deliberately not the observable: `references/inert-ui.md` \u00a73 is exactly a handler that changes a banner and does nothing else.",
   "armedBy": "ARMED and watched red. `arm-suites.py CASE-0202` replaces the `write` call in `remove` with `_ = (name, keepHistory)`. The sheet still closes and the selection still drops \u2014 both assertions a weaker case would have made \u2014 and the recorded operation goes missing.",
@@ -3373,7 +3373,7 @@
   "armed": true,
   "evidence": [
    "app/Tests/MCPRouterUITests/ServersBoardWriteTests.swift",
-   "evidence/runs/arm-suites.0195-0203.log"
+   "evidence/runs/arm-suites.0198-0206.log"
   ],
   "note": "J2. `Accept the new text` is driven and the effect is read as the operation the client recorded: exactly `[\"approve\"]`.\n\nIts twin, `Keep serving the old text`, is deliberately NOT claimed as actuated and is recorded in `inventory.json` under `controlsUnactuatable` with the reason: its whole promised effect is that nothing is sent, so the only available read is an absence, and an absence passes identically on a control that does nothing at all. The test asserts it anyway; the census does not count it.",
   "armedBy": "ARMED and watched red. `arm-suites.py CASE-0203` replaces the `write` call in `approveHeldChange` with `_ = name`. The sheet is still dismissed and the held diff still cleared from the model, so the user sees the change accepted and the router goes on serving the old text.",

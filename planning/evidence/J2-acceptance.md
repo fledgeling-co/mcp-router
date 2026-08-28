@@ -62,7 +62,7 @@ runs and changes nothing is the thing the census is a denominator for.
       ARMED  CASE-0206  approveWritesAndKeepingDoesNot  mutated=red(1 test(s)) restored=green(1)
 
     armed 9 of 9 attempted · refused 0
-    wrote /Volumes/LLMs/Dev/mcp-router/.worktrees/J2/planning/test-campaign/evidence/runs/arm-suites.0195-0203.log
+    wrote /Volumes/LLMs/Dev/mcp-router/.worktrees/J2/planning/test-campaign/evidence/runs/arm-suites.0198-0206.log
 
 Nine of nine bit. Each `mutated=red` is the case failing under an empty closure and each
 `restored=green` is the same test passing again off the bytes held in memory, so the tree is proved

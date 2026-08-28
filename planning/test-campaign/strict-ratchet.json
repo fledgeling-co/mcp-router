@@ -1,7 +1,7 @@
 {
- "checked": 98,
+ "checked": 97,
  "total": 117,
- "at": "2026-08-28T22:30:23+00:00",
- "previous": 93,
- "reason": "M34 and J4 combined, measured on the merged tree rather than computed from either branch. M34 added three cases and checked two of them (91->93, total 114->117); J4 re-rated five existing cases onto rungs that read an effect (91->96, total 114). The two are independent gains and the merge is 98 of 117: 'only proves something rendered' fell 12 -> 7. Neither branch's number was taken; strict-check.py was run on the merged tree and --set-ratchet wrote this."
+ "at": "2026-08-28T22:31:54+00:00",
+ "loweredBecause": "J3 demoted CASE-0185 from raster-visual to structural-visual because its check opens the G17 dump rather than a picture \u2014 the claim was to pixels the case never had. Only effect rungs count, so removing a false pixel claim costs one checked case: 98 to 97. This is the honest direction. The alternative was to keep a raster-visual case whose artifact is a JSON manifest, which is the exact defect J3 was dispatched to fix, and it would have held the bar at 98 by leaving the suite knowing less.",
+ "previous": 98
 }

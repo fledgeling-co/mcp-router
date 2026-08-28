@@ -1,5 +1,31 @@
 {
  "captures": {
+  "crops": {
+   "readme.served.figure-card": {
+    "box": {
+     "bottom": 844,
+     "left": 32,
+     "right": 1504,
+     "top": 582
+    },
+    "derivedFrom": "readme.served.png",
+    "derivedFromSha256": "a54c084a5e62dbc396aabbc614a4b40968d5e3b8c794fa56d99dae50be30cd82",
+    "path": "readme.served.figure-card.png",
+    "sha256": "89d55cf51514329eb341646da3feaff5029791ee55a38b5a74f80a8b360ce0b4"
+   },
+   "readme.served.figure-refusal": {
+    "box": {
+     "bottom": 1029,
+     "left": 56,
+     "right": 764,
+     "top": 1001
+    },
+    "derivedFrom": "readme.served.png",
+    "derivedFromSha256": "a54c084a5e62dbc396aabbc614a4b40968d5e3b8c794fa56d99dae50be30cd82",
+    "path": "readme.served.figure-refusal.png",
+    "sha256": "83d6831e34a6bf4cf0962a6ad42aa4995fc8dcca64f265f710542567e5460834"
+   }
+  },
   "manifest": [
    {
     "bytes": 177879,

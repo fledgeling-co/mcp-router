@@ -470,6 +470,20 @@
       "since": "2026-08-26"
     },
     {
+      "path": "planning/test-campaign/bin/raster-claim-gate.py",
+      "disposition": "control",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-29",
+      "control": [
+        "python3",
+        "planning/test-campaign/bin/raster-claim-gate.py"
+      ],
+      "proves": "Ten arms in a throwaway git repository on every invocation, one per rule plus two that must stay silent. The two silent ones carry the weight: a clean corpus must produce no finding, because every other arm is satisfied by a gate that reddens on everything; and a share declared on BOTH sides must be admitted, because a rule with no honest exit teaches people to delete the second case rather than declare the sharing. The eight that must bite are a pixel claim with no artifact, a manifest path seeded onto one, two cases pointed at one file, a claim with no channel, a channel outside the vocabulary, a channel with no method behind it, a `derivedFrom` that is not a picture, and a capture on disk and in no commit -- the last planted by `git rm --cached`, which is the one state `os.path.exists` cannot see. The arms are checked by RULE ID rather than by finding count, so a fault caught by the wrong rule fails the control. Any arm misbehaving exits 4 and prints no verdict."
+    },
+    {
       "path": "planning/verification/G11-corpus-determinism.py",
       "disposition": "control",
       "markers": [

@@ -1,0 +1,50 @@
+PRESENCE CONTROL — planted briefs, read by the real classifier
+  declares a resolving id                                     expect DECLARED       got DECLARED       fired   the frontmatter channel reckon unions at confidence 1.0
+  the `sources` spelling, bare list                           expect DECLARED       got DECLARED       fired   reckon accepts three keys and so must this
+  declares an id no registry holds                            expect BROKEN_TARGET  got BROKEN_TARGET  fired   a dead link written on purpose
+  one live target does not excuse a dead one                  expect BROKEN_TARGET  got BROKEN_TARGET  fired   BROKEN_TARGET is first in precedence
+  NEGATIVE: a terminal status does not excuse a dead link     expect BROKEN_TARGET  got BROKEN_TARGET  fired   a waived brief with a dead pointer is still a dead pointer
+  a terminal status                                           expect WAIVED         got WAIVED         fired   reckon has already taken it off the total
+  a resolving id in prose                                     expect PROSE_CITED    got PROSE_CITED    fired   reckon makes the same edge from the same text
+  NEGATIVE: the same id inside a fence                        expect UNDECLARED     got UNDECLARED     fired   reckon blanks fences, so counting it would report a join r
+  NEGATIVE: the same id inside an HTML comment                expect UNDECLARED     got UNDECLARED     fired   reckon blanks comments too
+  an explicit no-target declaration, with a reason            expect NO_TARGET      got NO_TARGET      fired   a recorded absence is a different fact from unjoined
+  NEGATIVE: the same declaration with no reason of substance  expect UNDECLARED     got UNDECLARED     fired   the escape hatch has to cost a sentence or it becomes the 
+  every cited id belongs to another project                   expect FOREIGN_ONLY   got FOREIGN_ONLY   fired   target-resolution-gate passes these at severity 0; reckon 
+  NEGATIVE: a foreign id beside a resolving one               expect PROSE_CITED    got PROSE_CITED    fired   FOREIGN_ONLY means every id, not any id
+  an id in no registry and not declared foreign               expect ABSENT_ONLY    got ABSENT_ONLY    fired   target-resolution-gate's ID_ABSENT arm already blocks this
+  a brief that names nothing                                  expect UNDECLARED     got UNDECLARED     fired   the class the item exists for
+  a declared id retired with a reason                         expect DECLARED       got DECLARED       fired   registry-drop-gate's retirements are a resolution, not an 
+  a brief with no floor entry is over its floor               expect risen          got risen          fired   floor 0 for a file the floor does not name
+  NEGATIVE: a file at its floor                               expect silent         got silent         fired   the backlog must not redden while it stands still
+  reckon joins on the field this gate demands                 expect cited edge ≠ unjoined got cited ≠ unjoined fired   the claim the whole item rests on, measured
+  agreement: reckon 1.7.0: declared -> cited edge, bare -> unjoined
+  control: ALL PLANTS FIRED
+
+corpus — brief discovery read 194 items of the git index under planning/features-to-triage; kept 187; dropped 7 (under a dot-directory reckon does not walk 5; a reserved basename reckon excludes 2)
+         brief reading read 187 items of the discovered briefs; kept 187; dropped none
+  registry read as a union: 244 distinct ids, 0 declared retired, 3 declared foreign
+
+HOW EACH BRIEF NAMES ITS TARGET — a partition over 187 brief(s)
+  BROKEN_TARGET      0   BLOCKS at 0
+  WAIVED            68
+  DECLARED           0
+  PROSE_CITED       35
+  NO_TARGET          0
+  FOREIGN_ONLY       2   reported
+  ABSENT_ONLY        0   reported
+  UNDECLARED        82   BLOCKS above its floor
+  (sum)            187
+
+  35 of 187 brief(s) (18.7%) name something the registry holds. reckon withholds
+  retirement claims below 50%, so that figure is what decides whether shipping can
+  move the remaining-work total at all.
+
+FOREIGN_ONLY — 2, reported and not blocked
+  planning/features-to-triage/G9-two-gates-pin-a-worktree-that-no-longer-exists.md
+      every id it cites is another project's: DEF-253 — egress's registry, cited as prior art (G9's brief and the reckoning ledgers)
+  planning/features-to-triage/a-brief-that-names-nothing-cannot-be-retired.md
+      every id it cites is another project's: DEF-253 — egress's registry, cited as prior art (G9's brief and the reckoning ledgers)
+
+floor: 82 undeclared over 82 file(s) against floor 82 — 0 above, 0 below
+exit: 0

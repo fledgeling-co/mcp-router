@@ -1,0 +1,36 @@
+corpus — brief discovery read 194 items of the git index under planning/features-to-triage; kept 187; dropped 7 (under a dot-directory reckon does not walk 5; a reserved basename reckon excludes 2)
+         brief reading read 187 items of the discovered briefs; kept 187; dropped none
+  registry read as a union: 244 distinct ids, 0 declared retired, 3 declared foreign
+
+HOW EACH BRIEF NAMES ITS TARGET — a partition over 187 brief(s)
+  BROKEN_TARGET      0   BLOCKS at 0
+  WAIVED            68
+  DECLARED           0
+  PROSE_CITED       35
+  NO_TARGET          0
+  FOREIGN_ONLY       2   reported
+  ABSENT_ONLY        0   reported
+  UNDECLARED        82   BLOCKS above its floor
+  (sum)            187
+
+  35 of 187 brief(s) (18.7%) name something the registry holds. reckon withholds
+  retirement claims below 50%, so that figure is what decides whether shipping can
+  move the remaining-work total at all.
+
+FOREIGN_ONLY — 2, reported and not blocked
+  planning/features-to-triage/G9-two-gates-pin-a-worktree-that-no-longer-exists.md
+      every id it cites is another project's: DEF-253 — egress's registry, cited as prior art (G9's brief and the reckoning ledgers)
+  planning/features-to-triage/a-brief-that-names-nothing-cannot-be-retired.md
+      every id it cites is another project's: DEF-253 — egress's registry, cited as prior art (G9's brief and the reckoning ledgers)
+
+AGREEMENT WITH reckon 1.7.0 over the real queue — 187 brief(s) in both
+  0 in this gate's population and not reckon's; 0 the other way
+  UNDECLARED     -> unjoined          82
+  WAIVED         -> waived            68
+  PROSE_CITED    -> broken            23
+  PROSE_CITED    -> unmeasured        10
+  FOREIGN_ONLY   -> unbuilt            2
+  PROSE_CITED    -> undecided          2
+
+floor: 82 undeclared over 82 file(s) against floor 82 — 0 above, 0 below
+exit: 0

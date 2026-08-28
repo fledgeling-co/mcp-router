@@ -941,6 +941,7 @@ lint: tools
 	python3 planning/test-campaign/bin/capture-manifest.py || fail=1; \
 	python3 planning/pin-class-gate.py || fail=1; \
 	python3 planning/shipped-brief-gate.py || fail=1; \
+	python3 planning/brief-target-gate.py --quiet || fail=1; \
 	zsh app/Scripts/pool-mutation-gate-selftest.sh || fail=1; \
 	exit $$fail
 

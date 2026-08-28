@@ -52,6 +52,18 @@ every state change, before acting on that change.
   Its five measurement layers, the breadth-before-depth ledger and the third exit state
   (inconclusive) are the contract; a screenshot comparison is not evidence, and the recall
   numbers behind that are in the brief.
+- **Every new brief names what in the registry would settle it, or records that nothing does.**
+  `J1`. One frontmatter line — `reckon-sources: [DEF-043, CASE-0184]` — is the only channel that
+  ties a brief to evidence: every join edge this repository holds is a citation somebody typed, and
+  `planning/brief-target-gate.py --agree` measures that its `UNDECLARED` class and `reckon`'s
+  `unjoined` class are the same 82 files, one for one. A brief that names nothing cannot be
+  retired however much ships, so a brief file the ratchet does not already name has a floor of zero
+  and `make lint` goes red until it declares. Where nothing answers to it yet, `registry-target:
+  none` with a `no-target-reason:` records that, which is a different fact and readable as one.
+  `planning/features-to-triage/BRIEF-TEMPLATE.md` is the copy-paste. **Do not write citations in
+  bulk to raise the number** — a cited id the registry does not hold is read as evidence the thing
+  is absent from the product, so a wrong one manufactures a finding, and the gate refuses a
+  declared id no registry holds at a floor of zero rather than a ratchet.
 
 ### Only test a screen you changed, and only that screen — user instruction, 2026-08-14
 

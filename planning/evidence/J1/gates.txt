@@ -1,0 +1,55 @@
+J1 — gate exits. `make lint` whole, plus every member measured individually.
+Machine state during these runs: five other fleet lints concurrent, load average 300-730.
+
+`make lint` WHOLE, on the pre-fix tree           exit 2   (make collapses the recipe's 1 to 2)
+
+  Two members red, and only one of them was this item's:
+
+  citation-gate            exit 1   blocking 1 — planning/progress/J1.md cited
+                                    planning/reckoning/2026-08-29/ledger.json at :1 where the
+                                    anchor `"edges": [` is at :71. MINE. Corrected to :71 and to a
+                                    quoted anchor for the second citation, then RE-MEASURED WHOLE:
+                                    exit: control 0 · blocking 0 · ratchet 0.
+  sweep-control-gate       exit 1   2 findings, neither this item's:
+                                      scripts/acceptance/acceptance-lanes.sh
+                                      scripts/acceptance/acceptance-lanes-selftest.sh
+                                    "control did not finish in 120s". Both files are byte-identical
+                                    to `main` on this branch (`git diff main -- scripts/acceptance/`
+                                    is empty). An earlier standalone run at lower load also failed
+                                    planning/verification/G11-corpus-determinism.py on a `git clone`
+                                    error and that one passed here, which is what a contention
+                                    failure looks like. This gate's own new row —
+                                    planning/brief-target-gate.py — read `ok ... exited 0`.
+
+Every other member, measured individually on this tree:
+
+  swiftformat --lint                 exit 0   0/719 files require formatting
+  swiftlint --strict                 exit 0   0 violations, 0 serious in 705 files
+  no-raw-design-values.sh            exit 0
+  no-wire-codable.sh                 exit 0
+  no-harness-config-writes.sh        exit 0
+  no-harness-config-writes-selftest  exit 0   (inside the whole run)
+  worktree-preflight-selftest.sh     exit 0
+  warden/selftest.sh                 exit 0
+  reader-accounting.py               exit 0   brief-target-gate's three readers record their drops
+  null-run-gate.py                   exit 0
+  py39-annotation-gate.py            exit 0
+  runnable-path-gate.py              exit 0
+  hooks/install.sh --gate            exit 0
+  registry-drop-gate.py              exit 0
+  evidence-citation-gate.py          exit 0
+  foreign-path-gate.py --quiet       exit 0
+  target-resolution-gate.py --quiet  exit 0   ids 0/0; paths 20 over floor 22, 2 BELOW — and the
+                                              same 2-below reads at `--rev main`, so it is not this
+                                              item's and no floor was rewritten
+  capture-manifest.py                exit 0
+  pin-class-gate.py                  exit 0
+  shipped-brief-gate.py              exit 0
+  brief-target-gate.py --quiet       exit 0   NEW
+  pool-mutation-gate-selftest.sh     exit 0   14 of 14
+
+  brief-target-gate.py --control     exit 0   19 arms, ALL PLANTS FIRED, including the reckon
+                                              agreement arm: declared -> cited edge, bare -> unjoined
+
+`make test` was not run and could not be affected: the commit changes no compiled source. Its
+eleven files are one Makefile line, ORCHESTRATOR.md, and nine files under planning/.

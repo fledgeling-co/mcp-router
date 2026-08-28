@@ -2592,7 +2592,6 @@ browser_markdown
               <span class="c c-120">Marketplace</span>
               <span class="c c-72">Version</span>
               <span class="c c-140">Installed into</span>
-              <span class="c c-60 c-right">Runs</span>
               <span class="c c-88">Auto-update</span>
               <span class="c c-flex"></span>
             </div>
@@ -2602,7 +2601,6 @@ browser_markdown
               <span class="c c-120 c-sub">fledgeling-plugins</span>
               <span class="c c-72 mono">1.4.2</span>
               <span class="c c-140 mono c-sub">CC · CU · GR · CX</span>
-              <span class="c c-60 c-right mono">86</span>
               <span class="c c-88"><span class="pill good">On</span></span>
               <span class="c c-flex"></span>
             </button>
@@ -2611,7 +2609,6 @@ browser_markdown
               <span class="c c-120 c-sub">fledgeling-plugins</span>
               <span class="c c-72 mono">2.3.1</span>
               <span class="c c-140 mono c-sub">CC · CU</span>
-              <span class="c c-60 c-right mono">142</span>
               <span class="c c-88"><span class="pill warn">Held</span></span>
               <span class="c c-flex"></span>
             </button>
@@ -2620,7 +2617,6 @@ browser_markdown
               <span class="c c-120 c-sub">fledgeling-plugins</span>
               <span class="c c-72 mono">1.1.0</span>
               <span class="c c-140 mono c-sub">CC</span>
-              <span class="c c-60 c-right mono">31</span>
               <span class="c c-88"><span class="pill good">On</span></span>
               <span class="c c-flex"></span>
             </button>
@@ -2629,7 +2625,6 @@ browser_markdown
               <span class="c c-120 c-sub">diolog-plugins</span>
               <span class="c c-72 mono">3.0.4</span>
               <span class="c c-140 mono c-sub">CC · CU · GR</span>
-              <span class="c c-60 c-right mono">57</span>
               <span class="c c-88"><span class="pill good">On</span></span>
               <span class="c c-flex"></span>
             </button>
@@ -2638,7 +2633,6 @@ browser_markdown
               <span class="c c-120 c-sub">diolog-plugins</span>
               <span class="c c-72 mono">2.1.0</span>
               <span class="c c-140 mono c-sub">CC</span>
-              <span class="c c-60 c-right mono">12</span>
               <span class="c c-88"><span class="pill">Off</span></span>
               <span class="c c-flex"></span>
             </button>
@@ -2647,7 +2641,6 @@ browser_markdown
               <span class="c c-120 c-sub">fledgeling-plugins</span>
               <span class="c c-72 mono">1.6.0</span>
               <span class="c c-140 mono c-sub">CC · AG</span>
-              <span class="c c-60 c-right mono">4</span>
               <span class="c c-88"><span class="pill good">On</span></span>
               <span class="c c-flex"></span>
             </button>
@@ -2656,12 +2649,12 @@ browser_markdown
               <span class="c c-120 c-sub">local directory</span>
               <span class="c c-72 mono">0.9.0</span>
               <span class="c c-140 mono c-sub">CC</span>
-              <span class="c c-60 c-right mono">0</span>
               <span class="c c-88"><span class="pill">n/a</span></span>
               <span class="c c-flex"></span>
             </button>
           </div>
           <p class="callout mt12">CC Claude Code · CU Cursor · GR Grok · CX Codex · AG Antigravity. A slot is filled when the skill’s directory is actually present under that harness, not when a manifest claims it.</p>
+          <p class="callout mt8">Run counts and evaluation results are not shown. A skill is loaded into an agent’s context by the client and never reaches the router, so the router does not see it run. Checks reports what the router observed for itself, and no model-graded evaluation exists in this product.</p>
         </div>
 
         <!-- marketplaces -->
@@ -2784,11 +2777,8 @@ browser_markdown
           <dl class="kv"><dt>Last updated</dt><dd>17 Aug 2026</dd></dl>
           <dl class="kv"><dt>Owner</dt><dd>fledgeling-co · unchanged since install</dd></dl>
 
-          <div class="section-h">Use, by version</div>
-          <div class="barrow"><span class="bl mono">1.4.2</span><span class="bartrack"><span class="fill" style="width:74%"></span></span><span class="bv mono">64</span></div>
-          <div class="barrow"><span class="bl mono">1.4.0</span><span class="bartrack"><span class="fill" style="width:22%"></span></span><span class="bv mono">19</span></div>
-          <div class="barrow"><span class="bl mono">1.3.6</span><span class="bartrack"><span class="fill" style="width:4%"></span></span><span class="bv mono">3</span></div>
-          <div class="small tert mt8">Every run records the version that was live at the time, so a check result never outlives the thing it tested.</div>
+          <div class="section-h">Why there is no “use, by version”</div>
+          <p class="callout mt8">This pane used to chart a run count per version. The router never sees a skill run — the client loads it into an agent’s context and the router is not on that path — so the bars were counting something nothing here observes. Checks is the honest version of the same question: a check result belongs to the version it ran against, and is dropped when that version moves.</p>
 
           <div class="section-h">Checks</div>
           <div class="row small"><span class="dot on" style="width:8px;height:8px;border-radius:50%"></span>12 of 12 passed on 1.4.2<span class="push"><button class="btn sm" data-act="board:checks">Open</button></span></div>
@@ -3583,7 +3573,7 @@ exit 1 after 4.2 s</div>
     <div class="board-head">
       <div style="min-width:0">
         <h1>Checks</h1>
-        <p>Evidence that a capability still earns its place. A result belongs to the version it ran against and is thrown away when that version moves — a green tick carried forward is worse than no tick.</p>
+        <p>The checks MCP Router runs itself, stamped to the version each was run against. No model-graded evaluation exists in this product. A result belongs to the version it ran against and is thrown away when that version moves — a green tick carried forward is worse than no tick.</p>
       </div>
       <div class="acts">
         <button class="btn" data-act="act:run-checks">Run all</button>
@@ -3668,6 +3658,7 @@ exit 1 after 4.2 s</div>
           <p class="callout mt8">The suite grew from 11 checks to 12 at 1.4.0, so the two columns are not comparable as a percentage. The counts are shown instead.</p>
         </div>
       </div>
+      <p class="callout mt12">A check is something MCP Router performed and can show you the input to. It is not a graded test of whether a capability does its job well. Skills are never executed by the router, so nothing here reports how one behaved when an agent used it.</p>
     </div>
   </div>
 

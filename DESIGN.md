@@ -607,6 +607,41 @@ failures.
   saving anywhere in this app, because the router never runs the world where every server
   is resident and so has nothing to subtract from.
 
+### Where that rule already bit, and what the design of record now says `(specified)`
+
+The rule above was written before the boards were built, and four of them then refused to draw
+something this document's own reference implementation was still drawing. The refusals are the
+guardrail rather than a shortfall, so **the build's own sentence is the design of record for these
+four states**, and where the two disagree about a number, the refusal wins and the drawing is
+stale. Each is a named constant, so a surface cannot re-phrase it:
+
+| State | The design of record draws | Named at |
+|---|---|---|
+| Skills, run counts and evaluation | *Run counts and evaluation results are not shown. A skill is loaded into an agent's context by the client and never reaches the router, so the router does not see it run.* | `public static let observationFooter`, `app/Sources/MCPRouterKit/Skills/SkillPresentation.swift:69` at `34cde4f` |
+| Checks, permanently and while loading | *The checks MCP Router runs itself, stamped to the version each was run against. No model-graded evaluation exists in this product.* | `public static let evalsSubtitle =`, `app/Sources/MCPRouterKit/Checks/CheckCopy.swift:181` at `34cde4f` |
+| Checks, what a check is not | *A check is something MCP Router performed and can show you the input to. It is not a graded test of whether a capability does its job well.* | `public static let evalsFooter =`, `app/Sources/MCPRouterKit/Checks/CheckCopy.swift:185` at `34cde4f` |
+| Discover, trend and velocity | *No trend or velocity figure is shown. Measuring one needs a history of these indexes over time, which the router does not keep yet.* | `static let trendingNote = `, `app/Sources/MCPRouterKit/Registry/RegistryPresentation+Notes.swift:83` at `34cde4f` |
+
+`design/mcp-router-console.html` carries all four. Discover already did, and its heading is the
+idiom the other three now follow. The Skills board's run-count column and the skill inspector's
+per-version run bars were removed under G23 and replaced by the sentence saying why; the Checks
+board's subtitle and foot now carry the denial the pane states permanently in the build. The
+removal is measurable rather than asserted: the board's derived affordance census goes from 20
+uninventoried strings to 13, and the seven that left are the fabricated figures and their labels.
+
+**The superseded prototype is governed by this table rather than re-cut, and that is a decision
+rather than an omission.** `design/mocks/prototype.html` still draws all four, because it predates
+the rule and `DEF-042` was filed against it before the design of record was settled on 2026-08-22.
+Re-cutting it would move two denominators that are keyed to it:
+`planning/test-campaign/evidence/design-controls.json` reads eleven surfaces' control lists out of
+it, and `planning/test-campaign/bin/vocab-differential.py` reads its rendered text as the whole
+in-design half of the vocabulary vector. Its own source records why prose inside it is not the fix
+either — *"the vocabulary differential greps this file for control names"*,
+`design/mocks/prototype.html:901` at `34cde4f` — the sentence finishes, two lines on, "puts it
+straight back into the in-design set". So the ruling lives here, where it is read before
+either file is, and a surface still sourced from the prototype takes this table over what the
+prototype draws.
+
 ---
 
 ## 7 · Motion

@@ -1,7 +1,7 @@
 {
-  "designOfRecord": "design/mocks/prototype.html",
-  "secondSource": "design/mcp-router-console.html",
-  "secondSourceReason": "The prototype predates the Harnesses board, the Insights board and the capability-document panel; ORCHESTRATOR.md's Contract names the console as the design of record settled 2026-08-22.",
+  "designOfRecord": "design/mcp-router-console.html",
+  "supersededSource": "design/mocks/prototype.html",
+  "supersededSourceReason": "ORCHESTRATOR.md's Contract and campaign.json both name the console as the design of record, settled 2026-08-22. The prototype is superseded and is still read for the eleven surfaces it drew that have not been converted; which of the two each surface's controls came from is recorded per surface in `source`.",
   "surfaces": {
     "SURF-001": {
       "title": "Mac shell \u2014 sidebar, title, menus",

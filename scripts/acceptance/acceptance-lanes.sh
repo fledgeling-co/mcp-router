@@ -38,7 +38,7 @@
 #
 # What counts as evidence is the house vocabulary these lanes already speak, unchanged: a line
 # beginning `ok` or `PASS`, which is what `pass()` prints in shells.sh, mac-shell.sh, m22-boards.sh,
-# menu-badge-lane.sh and menu-badge-lane-selftest.sh, what `printf '  ok   …'` prints in
+# menu-badge-lane.sh, menu-badge-lane-selftest.sh and menu-reason-plane.sh, what `printf '  ok   …'` prints in
 # p1-auth-routes.sh and r7-harness-reconciliation.sh, and what control-client.sh echoes directly. A
 # lane that would rather state its own count emits `ACCEPTANCE-ASSERTIONS: <n>`, which wins where it
 # appears — so a lane whose output is not prose is not forced into this vocabulary.
@@ -110,6 +110,8 @@ LANES=(
     m22-boards.sh
     menu-badge-lane.sh
     menu-badge-lane-selftest.sh
+    menu-reason-plane.sh
+    menu-reason-plane-selftest.sh
     r28-extensions.sh
     r31-caches.sh
     r32-desktop-entry.sh

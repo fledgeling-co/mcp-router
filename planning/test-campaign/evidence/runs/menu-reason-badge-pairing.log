@@ -1,0 +1,42 @@
+# M34 — the in-process half of REQ-028, and the red-green that arms it.
+# swift test --filter 'MenuReasonBadgePairingTests|MenuBadgeTrailingAreaTests|MenuCommandRuleTests'
+# Run 2026-08-29 in .worktrees/M34 at branch ai/m34.
+#
+# ARMED BY MUTATION. app/Sources/MCPRouterKit/Shell/MenuCommand.swift sha256
+# 77ef736173856cd10c83766822020898ea1f57435acf2399ef2de973b46d9ddd before and after both arms.
+#   arm 1 — .surfaceAbsent's sentence set to .needsServerSelection's, so two availability
+#           classes share one sentence: 'one reason never appears beside two different
+#           badges' failed with 10 issues (Not in this build vs No selection), and 'the
+#           reasons the model emits are the three shapes' failed with 1.
+#   arm 2 — .needsServerSelection's badge set to nil: 'a badge and a reason are present
+#           together or not at all' failed, and the pairing test failed on the same rows.
+#   arm 1 was run TWICE. The first run left 'the reasons the model emits...' GREEN, because
+#           its expectation was built from the same two properties it measured and both
+#           sides collapsed together. That assertion was replaced with the count before
+#           arm 1 was re-run; the second run is the one recorded above.
+#
+Test Suite 'Selected tests' started at 2026-08-29 00:20:32.269.
+Test Suite 'MCPRouterKitPackageTests.xctest' started at 2026-08-29 00:20:32.271.
+Test Suite 'MCPRouterKitPackageTests.xctest' passed at 2026-08-29 00:20:32.271.
+Test Suite 'Selected tests' passed at 2026-08-29 00:20:32.271.
+􀟈  Suite "Menu bar — a reason determines the badge beside it" started.
+􀟈  Suite "Menu bar — house rules" started.
+􀟈  Suite "Mac shell — a badge and a chord in one trailing area" started.
+􁁛  Test "shortcuts render in Apple's modifier order" passed after 0.001 seconds.
+􁁛  Test "exactly the commands M34 is about carry both a badge and a chord" passed after 0.001 seconds.
+􁁛  Test "each command gates on its own board, not merely on some board" passed after 0.001 seconds.
+􁁛  Test "the ellipsis is on exactly the commands that open a further view" passed after 0.001 seconds.
+􁁛  Test "a command that can never fire claims no shortcut" passed after 0.001 seconds.
+􁁛  Test "the shortcut column carries a short reason exactly where one is owed" passed after 0.001 seconds.
+􁁛  Test "every unavailable command carries a reason, and every available one carries none" passed after 0.001 seconds.
+􁁛  Test "every unbuilt command says what is unbuilt, in words of its own" passed after 0.001 seconds.
+􁁛  Test "no two commands claim the same shortcut" passed after 0.001 seconds.
+􁁛  Test "the View menu carries every digit-bearing destination, in digit order" passed after 0.001 seconds.
+􁁛  Suite "Menu bar — house rules" passed after 0.001 seconds.
+􁁛  Test "one reason never appears beside two different badges" passed after 0.002 seconds.
+􁁛  Test "the reasons the model emits are the three shapes the lane knows how to read" passed after 0.002 seconds.
+􁁛  Test "a badge and a reason are present together or not at all, in every context" passed after 0.002 seconds.
+􁁛  Suite "Menu bar — a reason determines the badge beside it" passed after 0.003 seconds.
+􁁛  Test "a badge and a chord each get room, so neither displaces the other" passed after 0.050 seconds.
+􁁛  Suite "Mac shell — a badge and a chord in one trailing area" passed after 0.050 seconds.
+􁁛  Test run with 14 tests in 3 suites passed after 0.050 seconds.

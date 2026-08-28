@@ -1,0 +1,676 @@
+# M34 — the running app's own menu bar, read off the accessibility plane.
+# Source: scripts/acceptance/menu-reason-plane.sh, MENU_REASON_PLANE_DUMP, 2026-08-29.
+# Debug build app/.derived/Build/Products/Debug/MCPRouter.app, launched 'open -g', never frontmost.
+# Columns: depth<TAB>role<TAB>title<TAB>attribute<TAB>value. Filtered to the four attributes
+# the lane's assertions read; the full dump is 4214 rows and is reproducible from the lane.
+3	AXMenuItem	About This Mac	AXSize	0.0x0.0
+3	AXMenuItem	About This Mac	AXTitle	About This Mac
+3	AXMenuItem	About This Mac	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	System Information	AXSize	0.0x0.0
+3	AXMenuItem	System Information	AXTitle	System Information
+3	AXMenuItem	System Information	AXMenuItemCmdChar	<nil>
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	System Settings…	AXSize	0.0x0.0
+3	AXMenuItem	System Settings…	AXTitle	System Settings…
+3	AXMenuItem	System Settings…	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	App Store…, 29 updates	AXSize	0.0x0.0
+3	AXMenuItem	App Store…, 29 updates	AXTitle	App Store…, 29 updates
+3	AXMenuItem	App Store…, 29 updates	AXMenuItemCmdChar	<nil>
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Recent Items	AXSize	0.0x0.0
+3	AXMenuItem	Recent Items	AXTitle	Recent Items
+3	AXMenuItem	Recent Items	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Applications	AXSize	0.0x0.0
+5	AXMenuItem	Applications	AXTitle	Applications
+5	AXMenuItem	Applications	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Activity Monitor	AXSize	0.0x0.0
+5	AXMenuItem	Activity Monitor	AXTitle	Activity Monitor
+5	AXMenuItem	Activity Monitor	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show “Activity Monitor” in Finder	AXSize	0.0x0.0
+5	AXMenuItem	Show “Activity Monitor” in Finder	AXTitle	Show “Activity Monitor” in Finder
+5	AXMenuItem	Show “Activity Monitor” in Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Finder	AXSize	0.0x0.0
+5	AXMenuItem	Finder	AXTitle	Finder
+5	AXMenuItem	Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show “Finder” in Finder	AXSize	0.0x0.0
+5	AXMenuItem	Show “Finder” in Finder	AXTitle	Show “Finder” in Finder
+5	AXMenuItem	Show “Finder” in Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Google Chrome	AXSize	0.0x0.0
+5	AXMenuItem	Google Chrome	AXTitle	Google Chrome
+5	AXMenuItem	Google Chrome	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show “Google Chrome” in Finder	AXSize	0.0x0.0
+5	AXMenuItem	Show “Google Chrome” in Finder	AXTitle	Show “Google Chrome” in Finder
+5	AXMenuItem	Show “Google Chrome” in Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Graft	AXSize	0.0x0.0
+5	AXMenuItem	Graft	AXTitle	Graft
+5	AXMenuItem	Graft	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show “Graft” in Finder	AXSize	0.0x0.0
+5	AXMenuItem	Show “Graft” in Finder	AXTitle	Show “Graft” in Finder
+5	AXMenuItem	Show “Graft” in Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	GraftVerifyMac	AXSize	0.0x0.0
+5	AXMenuItem	GraftVerifyMac	AXTitle	GraftVerifyMac
+5	AXMenuItem	GraftVerifyMac	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show “GraftVerifyMac” in Finder	AXSize	0.0x0.0
+5	AXMenuItem	Show “GraftVerifyMac” in Finder	AXTitle	Show “GraftVerifyMac” in Finder
+5	AXMenuItem	Show “GraftVerifyMac” in Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Mail	AXSize	0.0x0.0
+5	AXMenuItem	Mail	AXTitle	Mail
+5	AXMenuItem	Mail	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show “Mail” in Finder	AXSize	0.0x0.0
+5	AXMenuItem	Show “Mail” in Finder	AXTitle	Show “Mail” in Finder
+5	AXMenuItem	Show “Mail” in Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	MCPRouter	AXSize	0.0x0.0
+5	AXMenuItem	MCPRouter	AXTitle	MCPRouter
+5	AXMenuItem	MCPRouter	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show “MCPRouter” in Finder	AXSize	0.0x0.0
+5	AXMenuItem	Show “MCPRouter” in Finder	AXTitle	Show “MCPRouter” in Finder
+5	AXMenuItem	Show “MCPRouter” in Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	System Settings	AXSize	0.0x0.0
+5	AXMenuItem	System Settings	AXTitle	System Settings
+5	AXMenuItem	System Settings	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show “System Settings” in Finder	AXSize	0.0x0.0
+5	AXMenuItem	Show “System Settings” in Finder	AXTitle	Show “System Settings” in Finder
+5	AXMenuItem	Show “System Settings” in Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Terminal	AXSize	0.0x0.0
+5	AXMenuItem	Terminal	AXTitle	Terminal
+5	AXMenuItem	Terminal	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show “Terminal” in Finder	AXSize	0.0x0.0
+5	AXMenuItem	Show “Terminal” in Finder	AXTitle	Show “Terminal” in Finder
+5	AXMenuItem	Show “Terminal” in Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	TV	AXSize	0.0x0.0
+5	AXMenuItem	TV	AXTitle	TV
+5	AXMenuItem	TV	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show “TV” in Finder	AXSize	0.0x0.0
+5	AXMenuItem	Show “TV” in Finder	AXTitle	Show “TV” in Finder
+5	AXMenuItem	Show “TV” in Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem		AXSize	0.0x0.0
+5	AXMenuItem		AXTitle	
+5	AXMenuItem		AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Documents	AXSize	0.0x0.0
+5	AXMenuItem	Documents	AXTitle	Documents
+5	AXMenuItem	Documents	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	checks-fail-quietly.html	AXSize	0.0x0.0
+5	AXMenuItem	checks-fail-quietly.html	AXTitle	checks-fail-quietly.html
+5	AXMenuItem	checks-fail-quietly.html	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show “checks-fail-quietly.html” in Finder	AXSize	0.0x0.0
+5	AXMenuItem	Show “checks-fail-quietly.html” in Finder	AXTitle	Show “checks-fail-quietly.html” in Finder
+5	AXMenuItem	Show “checks-fail-quietly.html” in Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	done-to-verified.html	AXSize	0.0x0.0
+5	AXMenuItem	done-to-verified.html	AXTitle	done-to-verified.html
+5	AXMenuItem	done-to-verified.html	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show “done-to-verified.html” in Finder	AXSize	0.0x0.0
+5	AXMenuItem	Show “done-to-verified.html” in Finder	AXTitle	Show “done-to-verified.html” in Finder
+5	AXMenuItem	Show “done-to-verified.html” in Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	four-steps-four-resources.html	AXSize	0.0x0.0
+5	AXMenuItem	four-steps-four-resources.html	AXTitle	four-steps-four-resources.html
+5	AXMenuItem	four-steps-four-resources.html	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show “four-steps-four-resources.html” in Finder	AXSize	0.0x0.0
+5	AXMenuItem	Show “four-steps-four-resources.html” in Finder	AXTitle	Show “four-steps-four-resources.html” in Finder
+5	AXMenuItem	Show “four-steps-four-resources.html” in Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	graft-launch.html	AXSize	0.0x0.0
+5	AXMenuItem	graft-launch.html	AXTitle	graft-launch.html
+5	AXMenuItem	graft-launch.html	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show “graft-launch.html” in Finder	AXSize	0.0x0.0
+5	AXMenuItem	Show “graft-launch.html” in Finder	AXTitle	Show “graft-launch.html” in Finder
+5	AXMenuItem	Show “graft-launch.html” in Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	offload-launch.html	AXSize	0.0x0.0
+5	AXMenuItem	offload-launch.html	AXTitle	offload-launch.html
+5	AXMenuItem	offload-launch.html	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show “offload-launch.html” in Finder	AXSize	0.0x0.0
+5	AXMenuItem	Show “offload-launch.html” in Finder	AXTitle	Show “offload-launch.html” in Finder
+5	AXMenuItem	Show “offload-launch.html” in Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	offload-mac-app.html	AXSize	0.0x0.0
+5	AXMenuItem	offload-mac-app.html	AXTitle	offload-mac-app.html
+5	AXMenuItem	offload-mac-app.html	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show “offload-mac-app.html” in Finder	AXSize	0.0x0.0
+5	AXMenuItem	Show “offload-mac-app.html” in Finder	AXTitle	Show “offload-mac-app.html” in Finder
+5	AXMenuItem	Show “offload-mac-app.html” in Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	offload-pipeline.html	AXSize	0.0x0.0
+5	AXMenuItem	offload-pipeline.html	AXTitle	offload-pipeline.html
+5	AXMenuItem	offload-pipeline.html	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show “offload-pipeline.html” in Finder	AXSize	0.0x0.0
+5	AXMenuItem	Show “offload-pipeline.html” in Finder	AXTitle	Show “offload-pipeline.html” in Finder
+5	AXMenuItem	Show “offload-pipeline.html” in Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	session.command	AXSize	0.0x0.0
+5	AXMenuItem	session.command	AXTitle	session.command
+5	AXMenuItem	session.command	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show “session.command” in Finder	AXSize	0.0x0.0
+5	AXMenuItem	Show “session.command” in Finder	AXTitle	Show “session.command” in Finder
+5	AXMenuItem	Show “session.command” in Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	six-workers-one-scale.html	AXSize	0.0x0.0
+5	AXMenuItem	six-workers-one-scale.html	AXTitle	six-workers-one-scale.html
+5	AXMenuItem	six-workers-one-scale.html	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show “six-workers-one-scale.html” in Finder	AXSize	0.0x0.0
+5	AXMenuItem	Show “six-workers-one-scale.html” in Finder	AXTitle	Show “six-workers-one-scale.html” in Finder
+5	AXMenuItem	Show “six-workers-one-scale.html” in Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	why-done-isnt-trusted.html	AXSize	0.0x0.0
+5	AXMenuItem	why-done-isnt-trusted.html	AXTitle	why-done-isnt-trusted.html
+5	AXMenuItem	why-done-isnt-trusted.html	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show “why-done-isnt-trusted.html” in Finder	AXSize	0.0x0.0
+5	AXMenuItem	Show “why-done-isnt-trusted.html” in Finder	AXTitle	Show “why-done-isnt-trusted.html” in Finder
+5	AXMenuItem	Show “why-done-isnt-trusted.html” in Finder	AXMenuItemCmdChar	<nil>
+5	AXMenuItem		AXSize	0.0x0.0
+5	AXMenuItem		AXTitle	
+5	AXMenuItem		AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Servers	AXSize	0.0x0.0
+5	AXMenuItem	Servers	AXTitle	Servers
+5	AXMenuItem	Servers	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	lukerhodes	AXSize	0.0x0.0
+5	AXMenuItem	lukerhodes	AXTitle	lukerhodes
+5	AXMenuItem	lukerhodes	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Macintosh HD	AXSize	0.0x0.0
+5	AXMenuItem	Macintosh HD	AXTitle	Macintosh HD
+5	AXMenuItem	Macintosh HD	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Macintosh HD	AXSize	0.0x0.0
+5	AXMenuItem	Macintosh HD	AXTitle	Macintosh HD
+5	AXMenuItem	Macintosh HD	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Macintosh HD	AXSize	0.0x0.0
+5	AXMenuItem	Macintosh HD	AXTitle	Macintosh HD
+5	AXMenuItem	Macintosh HD	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	ScrimNAS	AXSize	0.0x0.0
+5	AXMenuItem	ScrimNAS	AXTitle	ScrimNAS
+5	AXMenuItem	ScrimNAS	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	ScrimProbe	AXSize	0.0x0.0
+5	AXMenuItem	ScrimProbe	AXTitle	ScrimProbe
+5	AXMenuItem	ScrimProbe	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	ScrimProbe	AXSize	0.0x0.0
+5	AXMenuItem	ScrimProbe	AXTitle	ScrimProbe
+5	AXMenuItem	ScrimProbe	AXMenuItemCmdChar	<nil>
+5	AXMenuItem		AXSize	0.0x0.0
+5	AXMenuItem		AXTitle	
+5	AXMenuItem		AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Clear Menu	AXSize	0.0x0.0
+5	AXMenuItem	Clear Menu	AXTitle	Clear Menu
+5	AXMenuItem	Clear Menu	AXMenuItemCmdChar	<nil>
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Force Quit…	AXSize	0.0x0.0
+3	AXMenuItem	Force Quit…	AXTitle	Force Quit…
+3	AXMenuItem	Force Quit…	AXMenuItemCmdChar	⎋
+3	AXMenuItem	Force Quit MCP Router	AXSize	0.0x0.0
+3	AXMenuItem	Force Quit MCP Router	AXTitle	Force Quit MCP Router
+3	AXMenuItem	Force Quit MCP Router	AXMenuItemCmdChar	⎋
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Sleep	AXSize	0.0x0.0
+3	AXMenuItem	Sleep	AXTitle	Sleep
+3	AXMenuItem	Sleep	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Restart…	AXSize	0.0x0.0
+3	AXMenuItem	Restart…	AXTitle	Restart…
+3	AXMenuItem	Restart…	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Restart	AXSize	0.0x0.0
+3	AXMenuItem	Restart	AXTitle	Restart
+3	AXMenuItem	Restart	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Shut Down…	AXSize	0.0x0.0
+3	AXMenuItem	Shut Down…	AXTitle	Shut Down…
+3	AXMenuItem	Shut Down…	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Shut Down	AXSize	0.0x0.0
+3	AXMenuItem	Shut Down	AXTitle	Shut Down
+3	AXMenuItem	Shut Down	AXMenuItemCmdChar	<nil>
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Lock Screen	AXSize	0.0x0.0
+3	AXMenuItem	Lock Screen	AXTitle	Lock Screen
+3	AXMenuItem	Lock Screen	AXMenuItemCmdChar	Q
+3	AXMenuItem	Log Out Luke Rhodes…	AXSize	0.0x0.0
+3	AXMenuItem	Log Out Luke Rhodes…	AXTitle	Log Out Luke Rhodes…
+3	AXMenuItem	Log Out Luke Rhodes…	AXMenuItemCmdChar	Q
+3	AXMenuItem	Log Out Luke Rhodes	AXSize	0.0x0.0
+3	AXMenuItem	Log Out Luke Rhodes	AXTitle	Log Out Luke Rhodes
+3	AXMenuItem	Log Out Luke Rhodes	AXMenuItemCmdChar	Q
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	About MCP Router	AXSize	0.0x0.0
+3	AXMenuItem	About MCP Router	AXTitle	About MCP Router
+3	AXMenuItem	About MCP Router	AXMenuItemCmdChar	<nil>
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Settings…	AXSize	0.0x0.0
+3	AXMenuItem	Settings…	AXTitle	Settings…
+3	AXMenuItem	Settings…	AXMenuItemCmdChar	,
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Services	AXSize	0.0x0.0
+3	AXMenuItem	Services	AXTitle	Services
+3	AXMenuItem	Services	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Activity Monitor	AXSize	0.0x0.0
+5	AXMenuItem	Activity Monitor	AXTitle	Activity Monitor
+5	AXMenuItem	Activity Monitor	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Allocations & Leaks	AXSize	0.0x0.0
+5	AXMenuItem	Allocations & Leaks	AXTitle	Allocations & Leaks
+5	AXMenuItem	Allocations & Leaks	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	File Activity	AXSize	0.0x0.0
+5	AXMenuItem	File Activity	AXTitle	File Activity
+5	AXMenuItem	File Activity	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	System Trace	AXSize	0.0x0.0
+5	AXMenuItem	System Trace	AXTitle	System Trace
+5	AXMenuItem	System Trace	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Time Profile Active Application	AXSize	0.0x0.0
+5	AXMenuItem	Time Profile Active Application	AXTitle	Time Profile Active Application
+5	AXMenuItem	Time Profile Active Application	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Time Profile App Under Mouse	AXSize	0.0x0.0
+5	AXMenuItem	Time Profile App Under Mouse	AXTitle	Time Profile App Under Mouse
+5	AXMenuItem	Time Profile App Under Mouse	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Time Profile Entire System	AXSize	0.0x0.0
+5	AXMenuItem	Time Profile Entire System	AXTitle	Time Profile Entire System
+5	AXMenuItem	Time Profile Entire System	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Toggle Instruments Recording	AXSize	0.0x0.0
+5	AXMenuItem	Toggle Instruments Recording	AXTitle	Toggle Instruments Recording
+5	AXMenuItem	Toggle Instruments Recording	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Services Settings…	AXSize	0.0x0.0
+5	AXMenuItem	Services Settings…	AXTitle	Services Settings…
+5	AXMenuItem	Services Settings…	AXMenuItemCmdChar	<nil>
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Hide MCP Router	AXSize	0.0x0.0
+3	AXMenuItem	Hide MCP Router	AXTitle	Hide MCP Router
+3	AXMenuItem	Hide MCP Router	AXMenuItemCmdChar	H
+3	AXMenuItem	Hide Others	AXSize	0.0x0.0
+3	AXMenuItem	Hide Others	AXTitle	Hide Others
+3	AXMenuItem	Hide Others	AXMenuItemCmdChar	H
+3	AXMenuItem	Show All	AXSize	0.0x0.0
+3	AXMenuItem	Show All	AXTitle	Show All
+3	AXMenuItem	Show All	AXMenuItemCmdChar	<nil>
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Quit MCP Router	AXSize	0.0x0.0
+3	AXMenuItem	Quit MCP Router	AXTitle	Quit MCP Router
+3	AXMenuItem	Quit MCP Router	AXMenuItemCmdChar	Q
+3	AXMenuItem	Quit and Keep Windows	AXSize	0.0x0.0
+3	AXMenuItem	Quit and Keep Windows	AXTitle	Quit and Keep Windows
+3	AXMenuItem	Quit and Keep Windows	AXMenuItemCmdChar	Q
+3	AXMenuItem	Add Server…	AXSize	0.0x0.0
+3	AXMenuItem	Add Server…	AXTitle	Add Server…
+3	AXMenuItem	Add Server…	AXMenuItemCmdChar	N
+3	AXMenuItem	Add Marketplace…	AXSize	0.0x0.0
+3	AXMenuItem	Add Marketplace…	AXTitle	Add Marketplace…
+3	AXMenuItem	Add Marketplace…	AXMenuItemCmdChar	N
+3	AXMenuItem	Pair iPhone…	AXSize	0.0x0.0
+3	AXMenuItem	Pair iPhone…	AXTitle	Pair iPhone…
+3	AXMenuItem	Pair iPhone…	AXMenuItemCmdChar	<nil>
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Close	AXSize	0.0x0.0
+3	AXMenuItem	Close	AXTitle	Close
+3	AXMenuItem	Close	AXMenuItemCmdChar	W
+3	AXMenuItem	Close All	AXSize	0.0x0.0
+3	AXMenuItem	Close All	AXTitle	Close All
+3	AXMenuItem	Close All	AXMenuItemCmdChar	W
+3	AXMenuItem	Undo	AXSize	0.0x0.0
+3	AXMenuItem	Undo	AXTitle	Undo
+3	AXMenuItem	Undo	AXMenuItemCmdChar	Z
+3	AXMenuItem	Redo	AXSize	0.0x0.0
+3	AXMenuItem	Redo	AXTitle	Redo
+3	AXMenuItem	Redo	AXMenuItemCmdChar	Z
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Cut	AXSize	0.0x0.0
+3	AXMenuItem	Cut	AXTitle	Cut
+3	AXMenuItem	Cut	AXMenuItemCmdChar	X
+3	AXMenuItem	Copy	AXSize	0.0x0.0
+3	AXMenuItem	Copy	AXTitle	Copy
+3	AXMenuItem	Copy	AXMenuItemCmdChar	C
+3	AXMenuItem	Paste	AXSize	0.0x0.0
+3	AXMenuItem	Paste	AXTitle	Paste
+3	AXMenuItem	Paste	AXMenuItemCmdChar	V
+3	AXMenuItem	Delete	AXSize	0.0x0.0
+3	AXMenuItem	Delete	AXTitle	Delete
+3	AXMenuItem	Delete	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Select All	AXSize	0.0x0.0
+3	AXMenuItem	Select All	AXTitle	Select All
+3	AXMenuItem	Select All	AXMenuItemCmdChar	A
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Find	AXSize	0.0x0.0
+3	AXMenuItem	Find	AXTitle	Find
+3	AXMenuItem	Find	AXMenuItemCmdChar	F
+3	AXMenuItem	Reset Server	AXSize	0.0x0.0
+3	AXMenuItem	Reset Server	AXTitle	Reset Server
+3	AXMenuItem	Reset Server	AXMenuItemCmdChar	R
+3	AXMenuItem	Remove Server	AXSize	0.0x0.0
+3	AXMenuItem	Remove Server	AXTitle	Remove Server
+3	AXMenuItem	Remove Server	AXMenuItemCmdChar	
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Writing Tools	AXSize	0.0x0.0
+3	AXMenuItem	Writing Tools	AXTitle	Writing Tools
+3	AXMenuItem	Writing Tools	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Show Writing Tools	AXSize	0.0x0.0
+5	AXMenuItem	Show Writing Tools	AXTitle	Show Writing Tools
+5	AXMenuItem	Show Writing Tools	AXMenuItemCmdChar	<nil>
+5	AXMenuItem		AXSize	0.0x0.0
+5	AXMenuItem		AXTitle	
+5	AXMenuItem		AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Proofread	AXSize	0.0x0.0
+5	AXMenuItem	Proofread	AXTitle	Proofread
+5	AXMenuItem	Proofread	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Rewrite	AXSize	0.0x0.0
+5	AXMenuItem	Rewrite	AXTitle	Rewrite
+5	AXMenuItem	Rewrite	AXMenuItemCmdChar	<nil>
+5	AXMenuItem		AXSize	0.0x0.0
+5	AXMenuItem		AXTitle	
+5	AXMenuItem		AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Make Friendly	AXSize	0.0x0.0
+5	AXMenuItem	Make Friendly	AXTitle	Make Friendly
+5	AXMenuItem	Make Friendly	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Make Professional	AXSize	0.0x0.0
+5	AXMenuItem	Make Professional	AXTitle	Make Professional
+5	AXMenuItem	Make Professional	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Make Concise	AXSize	0.0x0.0
+5	AXMenuItem	Make Concise	AXTitle	Make Concise
+5	AXMenuItem	Make Concise	AXMenuItemCmdChar	<nil>
+5	AXMenuItem		AXSize	0.0x0.0
+5	AXMenuItem		AXTitle	
+5	AXMenuItem		AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Summarize	AXSize	0.0x0.0
+5	AXMenuItem	Summarize	AXTitle	Summarize
+5	AXMenuItem	Summarize	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Create Key Points	AXSize	0.0x0.0
+5	AXMenuItem	Create Key Points	AXTitle	Create Key Points
+5	AXMenuItem	Create Key Points	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Make List	AXSize	0.0x0.0
+5	AXMenuItem	Make List	AXTitle	Make List
+5	AXMenuItem	Make List	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Make Table	AXSize	0.0x0.0
+5	AXMenuItem	Make Table	AXTitle	Make Table
+5	AXMenuItem	Make Table	AXMenuItemCmdChar	<nil>
+5	AXMenuItem		AXSize	0.0x0.0
+5	AXMenuItem		AXTitle	
+5	AXMenuItem		AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Compose…	AXSize	0.0x0.0
+5	AXMenuItem	Compose…	AXTitle	Compose…
+5	AXMenuItem	Compose…	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	AutoFill	AXSize	0.0x0.0
+3	AXMenuItem	AutoFill	AXTitle	AutoFill
+3	AXMenuItem	AutoFill	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Contact…	AXSize	0.0x0.0
+5	AXMenuItem	Contact…	AXTitle	Contact…
+5	AXMenuItem	Contact…	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Passwords…	AXSize	0.0x0.0
+5	AXMenuItem	Passwords…	AXTitle	Passwords…
+5	AXMenuItem	Passwords…	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Credit Card…	AXSize	0.0x0.0
+5	AXMenuItem	Credit Card…	AXTitle	Credit Card…
+5	AXMenuItem	Credit Card…	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Start Dictation	AXSize	0.0x0.0
+3	AXMenuItem	Start Dictation	AXTitle	Start Dictation
+3	AXMenuItem	Start Dictation	AXMenuItemCmdChar	🎤
+3	AXMenuItem	Emoji & Symbols	AXSize	0.0x0.0
+3	AXMenuItem	Emoji & Symbols	AXTitle	Emoji & Symbols
+3	AXMenuItem	Emoji & Symbols	AXMenuItemCmdChar	E
+3	AXMenuItem	Show Tab Bar	AXSize	0.0x0.0
+3	AXMenuItem	Show Tab Bar	AXTitle	Show Tab Bar
+3	AXMenuItem	Show Tab Bar	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Show All Tabs	AXSize	0.0x0.0
+3	AXMenuItem	Show All Tabs	AXTitle	Show All Tabs
+3	AXMenuItem	Show All Tabs	AXMenuItemCmdChar	\
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Activity	AXSize	0.0x0.0
+3	AXMenuItem	Activity	AXTitle	Activity
+3	AXMenuItem	Activity	AXMenuItemCmdChar	1
+3	AXMenuItem	Servers	AXSize	0.0x0.0
+3	AXMenuItem	Servers	AXTitle	Servers
+3	AXMenuItem	Servers	AXMenuItemCmdChar	2
+3	AXMenuItem	Skills	AXSize	0.0x0.0
+3	AXMenuItem	Skills	AXTitle	Skills
+3	AXMenuItem	Skills	AXMenuItemCmdChar	3
+3	AXMenuItem	Harnesses	AXSize	0.0x0.0
+3	AXMenuItem	Harnesses	AXTitle	Harnesses
+3	AXMenuItem	Harnesses	AXMenuItemCmdChar	4
+3	AXMenuItem	Discover	AXSize	0.0x0.0
+3	AXMenuItem	Discover	AXTitle	Discover
+3	AXMenuItem	Discover	AXMenuItemCmdChar	5
+3	AXMenuItem	Inbox	AXSize	0.0x0.0
+3	AXMenuItem	Inbox	AXTitle	Inbox
+3	AXMenuItem	Inbox	AXMenuItemCmdChar	6
+3	AXMenuItem	Checks	AXSize	0.0x0.0
+3	AXMenuItem	Checks	AXTitle	Checks
+3	AXMenuItem	Checks	AXMenuItemCmdChar	7
+3	AXMenuItem	Cleanup	AXSize	0.0x0.0
+3	AXMenuItem	Cleanup	AXTitle	Cleanup
+3	AXMenuItem	Cleanup	AXMenuItemCmdChar	8
+3	AXMenuItem	Insights	AXSize	0.0x0.0
+3	AXMenuItem	Insights	AXTitle	Insights
+3	AXMenuItem	Insights	AXMenuItemCmdChar	9
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Show Sidebar	AXSize	0.0x0.0
+3	AXMenuItem	Show Sidebar	AXTitle	Show Sidebar
+3	AXMenuItem	Show Sidebar	AXMenuItemCmdChar	S
+3	AXMenuItem	Enter Full Screen	AXSize	0.0x0.0
+3	AXMenuItem	Enter Full Screen	AXTitle	Enter Full Screen
+3	AXMenuItem	Enter Full Screen	AXMenuItemCmdChar	F
+3	AXMenuItem	Re-index Manifest	AXSize	0.0x0.0
+3	AXMenuItem	Re-index Manifest	AXTitle	Re-index Manifest
+3	AXMenuItem	Re-index Manifest	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Re-index Manifest	AXHelp	Re-indexing the whole manifest hasn't been built yet.
+3	AXMenuItem	Restart Router	AXSize	0.0x0.0
+3	AXMenuItem	Restart Router	AXTitle	Restart Router
+3	AXMenuItem	Restart Router	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Restart Router	AXHelp	Restarting the router from here hasn't been built yet.
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Wake Selected Server	AXSize	0.0x0.0
+3	AXMenuItem	Wake Selected Server	AXTitle	Wake Selected Server
+3	AXMenuItem	Wake Selected Server	AXMenuItemCmdChar	W
+3	AXMenuItem	Wake Selected Server	AXHelp	Select a server first.
+3	AXMenuItem	Trip Selected Breaker	AXSize	0.0x0.0
+3	AXMenuItem	Trip Selected Breaker	AXTitle	Trip Selected Breaker
+3	AXMenuItem	Trip Selected Breaker	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Trip Selected Breaker	AXHelp	Tripping a breaker by hand hasn't been built yet.
+3	AXMenuItem	Reap Idle Children	AXSize	0.0x0.0
+3	AXMenuItem	Reap Idle Children	AXTitle	Reap Idle Children
+3	AXMenuItem	Reap Idle Children	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Reap Idle Children	AXHelp	Reaping idle children on demand hasn't been built yet.
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Review Held Changes…	AXSize	0.0x0.0
+3	AXMenuItem	Review Held Changes…	AXTitle	Review Held Changes…
+3	AXMenuItem	Review Held Changes…	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Review Held Changes…	AXHelp	Select a server first.
+3	AXMenuItem	Reveal Router Log in Finder	AXSize	0.0x0.0
+3	AXMenuItem	Reveal Router Log in Finder	AXTitle	Reveal Router Log in Finder
+3	AXMenuItem	Reveal Router Log in Finder	AXMenuItemCmdChar	<nil>
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Stop Router	AXSize	0.0x0.0
+3	AXMenuItem	Stop Router	AXTitle	Stop Router
+3	AXMenuItem	Stop Router	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Stop Router	AXHelp	Stopping the router from here hasn't been built yet.
+3	AXMenuItem	Update All Skills	AXSize	0.0x0.0
+3	AXMenuItem	Update All Skills	AXTitle	Update All Skills
+3	AXMenuItem	Update All Skills	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Update All Skills	AXHelp	Updating every skill at once hasn't been built yet.
+3	AXMenuItem	Run Doctor	AXSize	0.0x0.0
+3	AXMenuItem	Run Doctor	AXTitle	Run Doctor
+3	AXMenuItem	Run Doctor	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Run Doctor	AXHelp	The doctor hasn't been built yet.
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Run All Checks	AXSize	0.0x0.0
+3	AXMenuItem	Run All Checks	AXTitle	Run All Checks
+3	AXMenuItem	Run All Checks	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Run All Checks	AXHelp	Running every check at once hasn't been built yet.
+3	AXMenuItem	Export Library…	AXSize	0.0x0.0
+3	AXMenuItem	Export Library…	AXTitle	Export Library…
+3	AXMenuItem	Export Library…	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Export Library…	AXHelp	Exporting your library hasn't been built yet.
+3	AXMenuItem	Minimize	AXSize	0.0x0.0
+3	AXMenuItem	Minimize	AXTitle	Minimize
+3	AXMenuItem	Minimize	AXMenuItemCmdChar	M
+3	AXMenuItem	Minimize All	AXSize	0.0x0.0
+3	AXMenuItem	Minimize All	AXTitle	Minimize All
+3	AXMenuItem	Minimize All	AXMenuItemCmdChar	M
+3	AXMenuItem	Zoom	AXSize	0.0x0.0
+3	AXMenuItem	Zoom	AXTitle	Zoom
+3	AXMenuItem	Zoom	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Zoom All	AXSize	0.0x0.0
+3	AXMenuItem	Zoom All	AXTitle	Zoom All
+3	AXMenuItem	Zoom All	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Fill	AXSize	0.0x0.0
+3	AXMenuItem	Fill	AXTitle	Fill
+3	AXMenuItem	Fill	AXMenuItemCmdChar	F
+3	AXMenuItem	Center	AXSize	0.0x0.0
+3	AXMenuItem	Center	AXTitle	Center
+3	AXMenuItem	Center	AXMenuItemCmdChar	C
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Move & Resize	AXSize	0.0x0.0
+3	AXMenuItem	Move & Resize	AXTitle	Move & Resize
+3	AXMenuItem	Move & Resize	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Halves	AXSize	0.0x0.0
+5	AXMenuItem	Halves	AXTitle	Halves
+5	AXMenuItem	Halves	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Left	AXSize	0.0x0.0
+5	AXMenuItem	Left	AXTitle	Left
+5	AXMenuItem	Left	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Right	AXSize	0.0x0.0
+5	AXMenuItem	Right	AXTitle	Right
+5	AXMenuItem	Right	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Top	AXSize	0.0x0.0
+5	AXMenuItem	Top	AXTitle	Top
+5	AXMenuItem	Top	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Bottom	AXSize	0.0x0.0
+5	AXMenuItem	Bottom	AXTitle	Bottom
+5	AXMenuItem	Bottom	AXMenuItemCmdChar	<nil>
+5	AXMenuItem		AXSize	0.0x0.0
+5	AXMenuItem		AXTitle	
+5	AXMenuItem		AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Quarters	AXSize	0.0x0.0
+5	AXMenuItem	Quarters	AXTitle	Quarters
+5	AXMenuItem	Quarters	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Top Left	AXSize	0.0x0.0
+5	AXMenuItem	Top Left	AXTitle	Top Left
+5	AXMenuItem	Top Left	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Top Right	AXSize	0.0x0.0
+5	AXMenuItem	Top Right	AXTitle	Top Right
+5	AXMenuItem	Top Right	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Bottom Left	AXSize	0.0x0.0
+5	AXMenuItem	Bottom Left	AXTitle	Bottom Left
+5	AXMenuItem	Bottom Left	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Bottom Right	AXSize	0.0x0.0
+5	AXMenuItem	Bottom Right	AXTitle	Bottom Right
+5	AXMenuItem	Bottom Right	AXMenuItemCmdChar	<nil>
+5	AXMenuItem		AXSize	0.0x0.0
+5	AXMenuItem		AXTitle	
+5	AXMenuItem		AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Arrange	AXSize	0.0x0.0
+5	AXMenuItem	Arrange	AXTitle	Arrange
+5	AXMenuItem	Arrange	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Left & Right	AXSize	0.0x0.0
+5	AXMenuItem	Left & Right	AXTitle	Left & Right
+5	AXMenuItem	Left & Right	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Left & Quarters	AXSize	0.0x0.0
+5	AXMenuItem	Left & Quarters	AXTitle	Left & Quarters
+5	AXMenuItem	Left & Quarters	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Right & Left	AXSize	0.0x0.0
+5	AXMenuItem	Right & Left	AXTitle	Right & Left
+5	AXMenuItem	Right & Left	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Right & Quarters	AXSize	0.0x0.0
+5	AXMenuItem	Right & Quarters	AXTitle	Right & Quarters
+5	AXMenuItem	Right & Quarters	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Top & Bottom	AXSize	0.0x0.0
+5	AXMenuItem	Top & Bottom	AXTitle	Top & Bottom
+5	AXMenuItem	Top & Bottom	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Top & Quarters	AXSize	0.0x0.0
+5	AXMenuItem	Top & Quarters	AXTitle	Top & Quarters
+5	AXMenuItem	Top & Quarters	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Bottom & Top	AXSize	0.0x0.0
+5	AXMenuItem	Bottom & Top	AXTitle	Bottom & Top
+5	AXMenuItem	Bottom & Top	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Bottom & Quarters	AXSize	0.0x0.0
+5	AXMenuItem	Bottom & Quarters	AXTitle	Bottom & Quarters
+5	AXMenuItem	Bottom & Quarters	AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Quarters	AXSize	0.0x0.0
+5	AXMenuItem	Quarters	AXTitle	Quarters
+5	AXMenuItem	Quarters	AXMenuItemCmdChar	<nil>
+5	AXMenuItem		AXSize	0.0x0.0
+5	AXMenuItem		AXTitle	
+5	AXMenuItem		AXMenuItemCmdChar	<nil>
+5	AXMenuItem	Return to Previous Size	AXSize	0.0x0.0
+5	AXMenuItem	Return to Previous Size	AXTitle	Return to Previous Size
+5	AXMenuItem	Return to Previous Size	AXMenuItemCmdChar	R
+3	AXMenuItem	Full Screen Tile	AXSize	0.0x0.0
+3	AXMenuItem	Full Screen Tile	AXTitle	Full Screen Tile
+3	AXMenuItem	Full Screen Tile	AXMenuItemCmdChar	<nil>
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Remove Window from Set	AXSize	0.0x0.0
+3	AXMenuItem	Remove Window from Set	AXTitle	Remove Window from Set
+3	AXMenuItem	Remove Window from Set	AXMenuItemCmdChar	<nil>
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Design system	AXSize	0.0x0.0
+3	AXMenuItem	Design system	AXTitle	Design system
+3	AXMenuItem	Design system	AXMenuItemCmdChar	<nil>
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Bring All to Front	AXSize	0.0x0.0
+3	AXMenuItem	Bring All to Front	AXTitle	Bring All to Front
+3	AXMenuItem	Bring All to Front	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Arrange in Front	AXSize	0.0x0.0
+3	AXMenuItem	Arrange in Front	AXTitle	Arrange in Front
+3	AXMenuItem	Arrange in Front	AXMenuItemCmdChar	<nil>
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Insights	AXSize	0.0x0.0
+3	AXMenuItem	Insights	AXTitle	Insights
+3	AXMenuItem	Insights	AXMenuItemCmdChar	<nil>
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Show Previous Tab	AXSize	0.0x0.0
+3	AXMenuItem	Show Previous Tab	AXTitle	Show Previous Tab
+3	AXMenuItem	Show Previous Tab	AXMenuItemCmdChar	 
+3	AXMenuItem	Show Next Tab	AXSize	0.0x0.0
+3	AXMenuItem	Show Next Tab	AXTitle	Show Next Tab
+3	AXMenuItem	Show Next Tab	AXMenuItemCmdChar	 
+3	AXMenuItem	Move Tab to New Window	AXSize	0.0x0.0
+3	AXMenuItem	Move Tab to New Window	AXTitle	Move Tab to New Window
+3	AXMenuItem	Move Tab to New Window	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Merge All Windows	AXSize	0.0x0.0
+3	AXMenuItem	Merge All Windows	AXTitle	Merge All Windows
+3	AXMenuItem	Merge All Windows	AXMenuItemCmdChar	<nil>
+3	AXMenuItem		AXSize	0.0x0.0
+3	AXMenuItem		AXTitle	
+3	AXMenuItem		AXMenuItemCmdChar	<nil>
+3	AXMenuItem	MCP Router Help	AXSize	0.0x0.0
+3	AXMenuItem	MCP Router Help	AXTitle	MCP Router Help
+3	AXMenuItem	MCP Router Help	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	What the Router Actually Does	AXSize	0.0x0.0
+3	AXMenuItem	What the Router Actually Does	AXTitle	What the Router Actually Does
+3	AXMenuItem	What the Router Actually Does	AXMenuItemCmdChar	<nil>
+3	AXMenuItem	Report an Issue	AXSize	0.0x0.0
+3	AXMenuItem	Report an Issue	AXTitle	Report an Issue
+3	AXMenuItem	Report an Issue	AXMenuItemCmdChar	<nil>

@@ -1,0 +1,11 @@
+  ok   — assert_the_probe_read_this_app is silent on the dump today's platform produces
+  ok   — assert_the_walker_ran is silent on the dump today's platform produces
+  ok   — assert_every_reason_is_the_apps_own is silent on the dump today's platform produces
+  ok   — assert_the_badge_is_not_on_this_plane is silent on the dump today's platform produces
+  ok   — assert_geometry_channel_closed is silent on the dump today's platform produces
+  ok   — a foreign reason is refused
+  ok   — a badge reaching AXTitle is caught
+  ok   — a laid-out menu item is caught
+  ok   — a dump that reached almost nothing is refused
+  ok   — a menu nobody annotated is refused
+menu-reason-plane-selftest: all five assertions fire when they should and stay silent when they should

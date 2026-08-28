@@ -2938,5 +2938,74 @@
   ],
   "note": "Capture lineage over this flow's own wall of pictures. Each of the five rows in evidence/g17-document/captures.json names the campaign surface and the flow step it is of, carries the sha256 of the file on disk, and — for four of the five — names a string the PANEL draws which the assertion pass then reads back out of that frame's own dump. So a picture is tied to the package it is of independently of its filename. The fifth, refusal.toolarge, cannot do this and is NAMED rather than counted as corroborated: G17-L2 fails if that set is ever anything other than exactly it. DEF-060. Checks G17-L1, G17-L2.",
   "armedBy": "ARMED and watched: control G17-P1 re-rendered readme.served against a different server while leaving its filename and its manifest row alone — the wall-of-20-captures failure, reproduced deliberately. Both G17-P1 and the lineage cross-check went red."
+ },
+ {
+  "id": "CASE-0195",
+  "req": "REQ-028",
+  "surface": "SURF-001",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-001",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "n/a",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
+  },
+  "oracle": "outcome",
+  "note": "The half of REQ-028 the app's own menu will answer for. `scripts/acceptance/menu-reason-plane.sh` launches the Debug build with `open -g`, never activates it, and reads its real menu bar off the accessibility plane: 220 menu items, 11 of them carrying a reason ShellMenuReasons wrote, and every sentence one MenuCommandAvailability declares — the vocabulary is derived from the source file at run time rather than copied, so the two cannot drift. WHAT THIS DOES NOT CLAIM: it does not read the badge. SwiftUI does not publish an NSMenuItem's badge to this plane and this app's menu bar is SwiftUI's, which the same lane asserts and `menu-badge-lane.sh` measured first on a fixture. The badge's CONTENT follows from the reason through MenuReasonBadgePairingTests, which proves one reason never appears beside two badges; the badge as DRAWN is CASE-0197 and is unoracled. Armed: `menu-reason-plane-selftest.sh` hands each of the five assertions a doctored dump and requires it to fire, then requires none of them to fire on the dump today's platform produces.",
+  "status": "pass",
+  "evidence": [
+   "evidence/runs/menu-reason-plane.log",
+   "evidence/ax/SURF-001.menu-reasons.tsv",
+   "evidence/runs/menu-reason-plane-selftest.log"
+  ],
+  "armed": true
+ },
+ {
+  "id": "CASE-0196",
+  "req": "REQ-028",
+  "surface": "SURF-001",
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-001",
+   "state": "disabled-with-reason",
+   "viewport": "n/a",
+   "theme": "n/a",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "metamorphic",
+  "note": "REQ-028's `neither displaces the other` half. MenuBadgeTrailingAreaTests lays the same item out four ways through `NSMenu.size` — plain, chord only, badge only, both — and requires `both` to exceed each of the other two, over every command MenuCommand declares badged-and-chorded, with the size of that set asserted so it cannot quietly empty. The relation is what carries it: `wider than the badge alone` and `wider than the chord alone` fail on opposite mistakes and either alone would pass a build in which the other had been displaced. SCOPE: AppKit lays out an NSMenu this test builds, so it is evidence about the platform's layout rule and about the widths this app's own titles and badges produce in it — not about the menu the user opens, which is SwiftUI-built and which this plane cannot lay out (CASE-0197). Armed at M34: dropping the chord when a badge is present produced 6 failures, and filtering the set to empty made the width test pass in 0.001s over nothing, which is why the count assertion exists.",
+  "status": "pass",
+  "evidence": [
+   "evidence/runs/menu-reason-badge-pairing.log"
+  ],
+  "armed": true
+ },
+ {
+  "id": "CASE-0197",
+  "req": "REQ-028",
+  "surface": "SURF-001",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-001",
+   "state": "disabled-with-reason",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
+  },
+  "oracle": "raster-visual",
+  "note": "UNORACLED RATHER THAN N/A, and the distinction is the whole of this row: the check APPLIES — a person opening the Router menu sees the badge drawn or does not — and nothing available can perform it. Marking it n/a would say the check does not apply here, which is false, and would raise the campaign's score by removing a question rather than answering it. THREE CHANNELS, EACH MEASURED CLOSED. (1) The accessibility plane does not carry a SwiftUI-built item's badge; `menu-badge-lane.sh` measures that on both fixtures and `menu-reason-plane.sh` re-measures it on the product. (2) The plane's geometry channel is present by NAME and empty by VALUE: AXSize is exposed on all 220 items of the running app and reads 0.0x0.0 on every one, because a menu that is never opened is never laid out — evidence/ax/SURF-001.menu-reasons.tsv. (3) Photography needs the menu open, and opening it needs the app frontmost, which UI_VERIFICATION.md rule 1 forbids and this campaign refuses. WHAT WOULD MAKE A RUNG REACHABLE, each already wired to a tripwire that fires the day it happens: SwiftUI publishing the badge to AXTitle (menu-reason-plane.sh assert_the_badge_is_not_on_this_plane); AXSize carrying real numbers (assert_geometry_channel_closed), which would let CASE-0196's relation be re-made against the menu the user actually gets; or a capture host that is not the user's own session, which is a machine decision rather than a lane.",
+  "status": "unoracled: the drawn badge on the app's own menu has no channel. SwiftUI does not publish an NSMenuItem's badge to the accessibility plane; AXSize is exposed on all 220 items and reads 0.0x0.0 because a background app's menu is never laid out; and photographing an open menu needs the app frontmost, which UI_VERIFICATION.md rule 1 forbids. The check applies and nothing available performs it — planning/evidence/M34-oracle-lane.md names the three conditions that would open a rung, each already wired to a tripwire.",
+  "evidence": [
+   "evidence/ax/SURF-001.menu-reasons.tsv",
+   "evidence/runs/menu-reason-plane.log"
+  ],
+  "armed": false
  }
 ]

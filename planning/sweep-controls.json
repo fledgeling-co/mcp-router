@@ -1070,6 +1070,30 @@
       ],
       "since": "2026-08-28",
       "reason": "It makes no absence claim about this corpus. Its subject is a `reckon` installation in the plugin cache, which is not in this repository and which `make lint` cannot assume a checkout holds \u2014 the same argument that waives the four lanes needing a built binary. Its arming is internal and fails CLOSED rather than clean: the `[]` arm is a planted transition the tool must refuse whatever else it does, and a run where that arm is allowed too reports INCONCLUSIVE and exit 2 instead of a verdict, which is what the five pre-1.5.0 versions on this machine currently produce. A control registered here would have to install a plugin tree to arm it, which is a heavier instrument than the thing it guards."
+    },
+    {
+      "path": "scripts/acceptance/menu-reason-plane.sh",
+      "disposition": "waived",
+      "markers": [
+        "V1",
+        "V3"
+      ],
+      "since": "2026-08-29",
+      "reason": "An acceptance lane rather than a corpus reader, waived on exactly the argument r28-extensions.sh and r31-caches.sh are: its exit 0 is a verdict about an application it launched, and reaching that verdict needs app/.derived/Build/Products/Debug/MCPRouter.app, an Accessibility grant and a live window server. `make lint` runs in worktrees that have compiled nothing, where this lane exits 2 \u2014 and a control answering 2 on a clean tree is a rotted control rather than a held one. It is the fourth lane waived for being a lane. WHAT ARMS IT INSTEAD, and it is a real control rather than an absence of one: menu-reason-plane-selftest.sh, registered `control` in its own row below, sources this file's five assertions and hands each a doctored dump. That selftest needs no build, no GUI session and no grant, which is why it can hold a row this lane cannot. The two are dispatched together by acceptance-lanes.sh."
+    },
+    {
+      "path": "scripts/acceptance/menu-reason-plane-selftest.sh",
+      "disposition": "control",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-29",
+      "control": [
+        "bash",
+        "scripts/acceptance/menu-reason-plane-selftest.sh"
+      ],
+      "proves": "10 arms over doctored accessibility dumps, sourcing menu-reason-plane.sh's five assertions rather than re-implementing them, so an edit to the lane changes what this tests instead of leaving it checking a dead copy. Five arms require each assertion to FIRE \u2014 a reason MenuCommandAvailability does not declare, a badge folded into AXTitle, a menu item reporting a real AXSize, a dump of one item, a dump carrying no reason at all \u2014 and five require none of them to fire on a dump of the shape today's platform produces. That second half is the two-way control and it is the one that matters: every assertion in this lane asserts an ABSENCE, and a check that CANNOT fire and a check that correctly does not fire are indistinguishable from a green run. It has already earned its place: the badge tripwire used `exit 0` inside an awk rule, awk's `exit` runs END, and `END { exit 1 }` overrode the hit \u2014 so the line watching for the one event the lane exists to notice could never fire, and every real run passed. This caught it. Needs no build, no window server and no Accessibility grant; runs against planted files in about a second, which is why it holds a row the lane itself is waived from."
     }
   ]
 }

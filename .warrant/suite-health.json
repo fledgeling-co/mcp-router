@@ -1,0 +1,16 @@
+{
+ "armed": 78,
+ "armed_ratio": 1.0,
+ "blocked": 0,
+ "campaign_dir": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign",
+ "campaign_gate_clear": true,
+ "cases": 85,
+ "effect_rung_passes": 70,
+ "generated_at": "2026-08-26T23:52:35.524102+00:00",
+ "inconclusive": 0,
+ "mutation_measured": false,
+ "note": "armed_ratio is passes watched to fail over passes; an unarmed pass is not known to bite. `green` is not set here: in warrant it means the mutation score is holding, and this plugin does not measure mutation survival. Run warrant:assay for that number.",
+ "passing": 78,
+ "source": "test-campaign",
+ "unoracled": 0
+}

@@ -179,7 +179,7 @@ NOT_A_FILE_WRITE='FileHandle\.standard(Output|Error)'
 # grow a writer quietly.
 #
 #   ClaudeStagingEntry.swift  `install-entry` and `watch` — pre-existing, parity-locked product
-#                             behaviour reproducing `docs/install.sh:162-188`.
+#                             behaviour; it reproduces the installer's `~/.claude.json` step.
 #   DesktopEntryWriter.swift  R32's `desktop-entry` verb. Dry run by default; the write happens only
 #                             under `--apply`, typed by the owner, and no daemon path reaches it.
 HARNESS_WRITERS=(

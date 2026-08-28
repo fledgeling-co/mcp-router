@@ -3381,5 +3381,187 @@
    "Accept the new text"
   ],
   "actuatesNote": "Read as the operation the recording client received; the sheet dismissal is the product's own report and is not the observable."
+ },
+ {
+  "id": "CASE-0207",
+  "req": "REQ-004",
+  "surface": "SURF-002",
+  "flow": null,
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-002",
+   "state": "populated",
+   "viewport": "980x620",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "live-router",
+   "executionPlane": "on-glass"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/ax/SURF-002.live-running.window.txt",
+   "evidence/forced-state/router.running.json",
+   "evidence/forced-state/observations.json",
+   "evidence/forced-state/forced-state.log"
+  ],
+  "note": "THE FIGURES ARE A REAL ROUTER'S, AND THIS IS THE FIRST MAC CAPTURE THAT CAN SAY SO. CASE-0166 records the reason none before it could: `ShellClientFactory` made a Debug build ALWAYS take a fixture, so every glass capture proved the board renders a JSON file in this repository. J5 gives the Debug branch a live choice \u2014 `MCPROUTER_SCENARIO=live` with `MCP_ROUTER_URL` naming a loopback router \u2014 and `bin/forced-state.sh` uses it. The reference router was started on http://127.0.0.1:8955 under a scratch `MCP_ROUTER_HOME` declaring 3 servers whose names carry this run's nonce, the Debug app was launched against it, and the Servers board was photographed from outside without ever being activated.\n\nThe board drew `3 tools from 3 servers \u00b7 1 running` and the sidebar drew `1 of 3 declared servers running`. Every one of those figures is checked against `curl http://127.0.0.1:8955/servers`, taken by the harness itself at the shutter in a different process from the one that drew the board \u2014 tools 3, servers 3, running 1, each recomputed from the router's own response rather than read from a field the app also reads.\n\nTwo further checks close the direction a matching figure cannot: every server the router declared is drawn, and no name matching this lane's nonce pattern is drawn that the router did not declare. A shell that had fallen back to the shipping endpoint \u2014 because the endpoint variable was refused, or because another router happens to be listening on this machine \u2014 would fail there rather than pass against the wrong world.",
+  "armedBy": "Eight of the control's mutations belong to this case: the header removed, the tools total inflated, the server count inflated, the running count inflated, the sidebar sentence removed, the sidebar disagreeing with the router, a declared server hidden from the board, and an undeclared server drawn. planted-defect arm, built into `bin/forced-state-assert.py --control` and run on every `make lint`. The clean scratch set runs 28 checks and reports none; 28 planted defects are then each required to be seen, and a check with NO mutation behind it fails the control rather than being counted \u2014 so the arm cannot fall behind the assertions it arms. What it does not prove is that the product behaves this way: the control runs over planted text and never over a rendered board, and only `bin/forced-state.sh` arranges a router and photographs the app.",
+  "actuates": [
+   "Servers"
+  ],
+  "actuatesNote": "AXPress on the Servers sidebar row of the running app, with the window title read back before and after each shutter. The launch itself is the other actuation and is the one this case turns on: the app was started with an environment that chose the live client, and the board it drew is a reading of a router this harness had arranged."
+ },
+ {
+  "id": "CASE-0208",
+  "req": "REQ-004",
+  "surface": "SURF-002",
+  "flow": null,
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-002",
+   "state": "populated",
+   "viewport": "980x620",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "live-router",
+   "executionPlane": "on-glass"
+  },
+  "oracle": "raster-visual",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/shots/forced-state/SURF-002.live-running.png"
+  ],
+  "capture": {
+   "channel": "display-server-window",
+   "method": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+   "frameStatus": "complete",
+   "source": [
+    "evidence/ax/SURF-002.live-running.window.txt",
+    "evidence/forced-state/observations.json",
+    "evidence/forced-state/forced-state.log"
+   ],
+   "sourceNote": "Moved out of `evidence` on merge and kept here. All three are real provenance for this capture \u2014 the AX dump is the window read back at the shutter, observations.json is the second reader's record, and the lane log carries the launch and the kill \u2014 and none of them is a picture. J3's raster-claim-gate caught this case on the merge that brought both branches together: the rung was accepting a pixel claim standing on an AX dump, a JSON record and a log, which is the exact class J3 was dispatched to refuse. That the two branches were built in parallel is why the gate met the case rather than the case being written against the gate."
+  },
+  "note": "CASE-0195's board, photographed. sha256 91627b536a8fcef5, window title read back as `Servers` at the shutter and recorded in `evidence/shots/forced-state/captures.json` by the process that opened it, so the picture's subject is corroborated rather than inferred from its filename. What this case adds over CASE-0195 is that the reading was DRAWN: an AX tree carrying the right string over a board that painted nothing would pass there and fail here.",
+  "armedBy": "the capture channel is armed by the manifest rather than by a mutation: `bin/capture-manifest.py` re-derives `evidence/shots/captures.json` from this lane's own capture-time rows on every `make lint` and fails when a recorded digest disagrees with the bytes, which is how a re-run frame that nobody re-stamped is caught. The board's CONTENT is armed by CASE-0195's eight mutations, and the SHUTTER by `bin/paint-check.py`, which refuses a frame whose window had not laid out. It refused the other two states of this very run \u2014 see CASE-0198 \u2014 so the fact that this frame was filed is a measurement rather than the absence of one."
+ },
+ {
+  "id": "CASE-0209",
+  "req": "REQ-005",
+  "surface": "SURF-002",
+  "flow": null,
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-002",
+   "state": "stale",
+   "viewport": "980x620",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "live-router-stopped",
+   "executionPlane": "on-glass"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/ax/SURF-002.live-stale.window.txt",
+   "evidence/ax/SURF-002.live-running.window.txt",
+   "evidence/forced-state/observations.json",
+   "evidence/forced-state/forced-state.log"
+  ],
+  "note": "THE HARD HALF, AND THE ONE NOBODY REACHES BY LAUNCHING THE APP. A board showing a stale figure as current looks exactly like one that is right, so this promise can only be proved by arranging the failing condition on purpose. The router that had been answering was killed while THIS SAME app instance kept running \u2014 a relaunch would reach `.failed`, which is a different state that renders differently \u2014 and the board was photographed again.\n\nIt drew `3 tools from 3 servers \u00b7 last reading, not current`. Four things are checked. The absence was arranged: the harness's own read of http://127.0.0.1:8955 at that shutter got nothing. The header says its reading is no longer current. No present-tense running count appears anywhere in the board \u2014 the check is for the absence of any digit in that position, never for a dash or a placeholder, because a placeholder is a figure of its own. And the sidebar readout withholds its own count too, which is a second absence over the same promise in code that does not share a line with the first: `ServersBoardHeader.subtitle()` draws one and `ReadoutCopy.accessibilityLabel` the other, and a guardrail that held in one place and not the other would pass a single-predicate check.\n\nThe fifth check is the direction people forget: the servers that WERE read are still shown, 3 of them, the same number as while the router answered. A failed refresh is not evidence that the servers went away, and a board that cleared itself would satisfy every absence check above while destroying data no source said was gone.",
+  "armedBy": "Five of the control's mutations belong to this case, and `stale-claims-running` is the one that matters: it puts `\u00b7 1 running` back into the header of a board whose router has stopped, which is the exact defect this requirement forbids. `stale-sidebar-claims-running` does the same to the readout, `stale-not-marked` removes the not-current wording, `stale-router-alive` says the router was still answering, and `stale-drops-servers` empties the board. planted-defect arm, built into `bin/forced-state-assert.py --control` and run on every `make lint`. The clean scratch set runs 28 checks and reports none; 28 planted defects are then each required to be seen, and a check with NO mutation behind it fails the control rather than being counted \u2014 so the arm cannot fall behind the assertions it arms. What it does not prove is that the product behaves this way: the control runs over planted text and never over a rendered board, and only `bin/forced-state.sh` arranges a router and photographs the app.",
+  "actuates": [
+   "kill the router underneath a running app"
+  ],
+  "actuatesNote": "The actuation is on the WORLD rather than on the app: the router process is killed and the harness then confirms, by its own HTTP read, that nothing answers on the endpoint before the shutter opens. The app is not touched between the running capture and this one."
+ },
+ {
+  "id": "CASE-0210",
+  "req": "REQ-005",
+  "surface": "SURF-002",
+  "flow": null,
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-002",
+   "state": "stale",
+   "viewport": "980x620",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "live-router-stopped",
+   "executionPlane": "on-glass"
+  },
+  "oracle": "raster-visual",
+  "status": "n/a: the frame was refused. A live launch that is behind everything never finishes laying out, so screencapture returns an unpainted surface and bin/paint-check.py withholds it",
+  "armed": false,
+  "evidence": [
+   "evidence/ax/SURF-002.live-stale.window.txt",
+   "evidence/forced-state/observations.json",
+   "evidence/forced-state/forced-state.log"
+  ],
+  "capture": {
+   "method": "screencapture -x -l<CGWindowID> window-scoped; MCPRouter never frontmost \u2014 the frame it returned was refused by bin/paint-check.py and deleted",
+   "frameStatus": "refused: the window had not laid out, so the surface was not the board"
+  },
+  "note": "NO PICTURE IS FILED HERE, AND THE REASON IS A MEASUREMENT RATHER THAN A SHRUG. `screencapture -x -l<CGWindowID>` against this window returns whatever surface the window server last composited, and against a LIVE launch that is behind everything that is nothing: window chrome, a title, and not even the sidebar. It exits 0 while doing it.\n\nThe first two runs of this lane filed those frames. The cold and stale pictures came back byte-identical to each other \u2014 sha 84a469099e7c, 267622 bytes both \u2014 while their accessibility trees differed by 26 rows, so the pictures agreed about a state the app was not in and nothing in the capture channel said so. That is the defect `bin/capture-mac-glass.sh` already refuses in its own form, one plane over.\n\nThe cause is measured. A FIXTURE launch photographs correctly, because `FixtureControlAPIClient` has its data at the first render and the first paint therefore carries the board \u2014 which is why nine years of this campaign's glass captures had never met this. A live launch does not, and the window never recovers: watched for 16 seconds at 2-second intervals, the same dump that reports a 980x620 window reports its sidebar at y=-537 with a height of 1964 on every single sample. Hide-then-unhide, a navigate-away-and-back reselect and a resize were each tried and each left the surface byte-identical.\n\nSo `bin/paint-check.py` refuses the frame \u2014 the sidebar's rectangle is not inside the window's, which is an exact invariant of a laid-out window rather than a threshold \u2014 and the harness deletes it and records why. The state itself is not unmeasured: CASE-0197 holds it in the AX plane, over the same run. What is missing is the evidence that it reached the SCREEN, and that is stated rather than substituted.",
+  "armedBy": "not armed, because nothing was measured here. `bin/paint-check.py` is what refused the frame, and it is armed by CASE-0196's `raster/filed-frames-are-distinct` and `raster/something-was-photographed` \u2014 the first plants two states sharing a digest, the second withholds every frame in a run and requires the raster lane to report that it compared nothing rather than passing vacuously."
+ },
+ {
+  "id": "CASE-0211",
+  "req": "REQ-005",
+  "surface": "SURF-002",
+  "flow": null,
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-002",
+   "state": "offline",
+   "viewport": "980x620",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "no-router-ever",
+   "executionPlane": "on-glass"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/ax/SURF-002.live-cold.window.txt",
+   "evidence/forced-state/observations.json",
+   "evidence/forced-state/forced-state.log"
+  ],
+  "note": "THE OTHER HALF OF REQ-005: the router is not running, and it never has been. Arranged by NOT starting it, over a port the harness proved free first \u2014 a cold state cannot be arranged while something is listening, so `bin/forced-state.sh` refuses to run at all if http://127.0.0.1:8955 answers before it begins. Nothing has ever loaded, so `ServerStateTracker` is `.failed` rather than `.stale`, and the board may claim nothing at all.\n\nFive checks, four of them absences: the board draws `The router isn't running` \u2014 `ControlAPIError`'s own wording, not a paraphrase; it states no tools/servers total; it states no running count; the sidebar readout states nothing; and no server name is drawn for a router that has never answered. The last one is the one a fabricated zero would survive: `0 tools from 0 servers` is a figure nobody measured, and the header's three-case `Reading` exists precisely because a boolean once rendered it on every cold start.\n\nTHIS CASE IS IN THE AX PLANE ONLY. The cold frame was refused by `bin/paint-check.py` for the reason CASE-0198 records in full, so there is no photograph of this state and none is claimed.",
+  "armedBy": "Six of the control's mutations belong to this case: `cold-claims-totals` gives the board a total it never had, `cold-claims-running` a running count, `cold-sidebar-claims` a readout, `cold-draws-server` a row, `cold-copy-removed` takes away the router-not-running wording, and `cold-router-alive` says something was listening. planted-defect arm, built into `bin/forced-state-assert.py --control` and run on every `make lint`. The clean scratch set runs 28 checks and reports none; 28 planted defects are then each required to be seen, and a check with NO mutation behind it fails the control rather than being counted \u2014 so the arm cannot fall behind the assertions it arms. What it does not prove is that the product behaves this way: the control runs over planted text and never over a rendered board, and only `bin/forced-state.sh` arranges a router and photographs the app."
+ },
+ {
+  "id": "CASE-0212",
+  "req": "REQ-007",
+  "surface": "SURF-002",
+  "flow": null,
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-002",
+   "state": "populated",
+   "viewport": "980x620",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "live-router",
+   "executionPlane": "on-glass"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/ax/SURF-002.live-running.window.txt",
+   "evidence/ax/SURF-002.live-stale.window.txt",
+   "evidence/ax/SURF-002.live-cold.window.txt",
+   "evidence/forced-state/router.running.json",
+   "evidence/forced-state/observations.json",
+   "evidence/forced-state/forced-state.log"
+  ],
+  "note": "NO NUMBER THE ROUTER DOES NOT OBSERVE, CHECKED ON THREE BOARDS RATHER THAN ONE. CASE-0008 and CASE-0137/0140/0141 hold this requirement over fixtures and over the Cleanup board's provenance sheet; what they cannot reach is a board with a real router behind it, because until J5 no Debug build had one.\n\nTwo claims. First, every figure the Servers board states while the router is answering resolves to that router's own response \u2014 `3 tools from 3 servers \u00b7 1 running` and `1 of 3 declared servers running` against tools 3, servers 3, running 1 read independently over HTTP. Second, and on all three arranged states rather than the flattering one, no memory figure and no saving is displayed anywhere: `DESIGN.md` \u00a76 names the fabricated memory saving by hand, because the router never runs the world it would have to be subtracted from, and a claim of that shape would be the easiest one to add without anybody noticing.\n\nWHAT THIS DOES NOT REACH, stated rather than left to be inferred: the sweep is over the accessibility tree of one board in three states. A figure drawn on a board this run did not visit, or painted without reaching the AX plane, is outside it. The `no-memory-figure` and `no-saving-claim` checks are run per state precisely so a guardrail that held on one board and not another cannot pass on a single instance, but three boards are not nine.",
+  "armedBy": "Six of the control's mutations belong to this case \u2014 a memory figure and a saving claim planted into each of the three states in turn, so a sweep that had drifted onto one dump and stopped reading the other two fails rather than reporting clean. planted-defect arm, built into `bin/forced-state-assert.py --control` and run on every `make lint`. The clean scratch set runs 28 checks and reports none; 28 planted defects are then each required to be seen, and a check with NO mutation behind it fails the control rather than being counted \u2014 so the arm cannot fall behind the assertions it arms. What it does not prove is that the product behaves this way: the control runs over planted text and never over a rendered board, and only `bin/forced-state.sh` arranges a router and photographs the app."
  }
 ]

@@ -246,6 +246,15 @@ def derive() -> list[dict]:
                 "witnessed": False,
             }
 
+    # --- the forced-state lane: `evidence/shots/forced-state/captures.json`, written by
+    # `bin/forced-state.sh` as each shutter opens. It is the one Mac lane whose frames were taken
+    # against a REAL router rather than a fixture, so each row's `conditions` carries the state that
+    # was arranged and whether the router was answering at the shutter — the two facts that decide
+    # what the picture is evidence of.
+    forced = json.loads((SHOTS / "forced-state/captures.json").read_text())
+    for e in forced:
+        rows[e["path"]] = dict(e)
+
     # --- the one frame with no capture-time record anywhere.
     rows["evidence/shots/surf-022-consent-auth-states.png"] = {
         "path": "evidence/shots/surf-022-consent-auth-states.png", "subject": None,

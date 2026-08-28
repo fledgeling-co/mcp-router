@@ -948,6 +948,21 @@ build-router-release:
 ## because a zero from an instrument that cannot see the defect is not a measurement. A run in
 ## which no raster case resolved to `pass` exits 3 rather than reporting clean.
 
+## `forced-state-assert.py --control` (`J5`) is in `lint` for the reason its own lane cannot be.
+##
+## `planning/test-campaign/bin/forced-state.sh` starts a real router, drives the built Debug app
+## against it in three arranged conditions — cold, running, and stale with the router killed
+## underneath a live app — and photographs the Servers board in each. That needs a build, a display
+## server and an Accessibility grant, so it belongs to `acceptance` and never to `lint`.
+##
+## What runs here is the ARM. Almost everything the assertion claims is that a string is NOT in a
+## file: `REQ-005` is a promise that a count goes absent, and an absence check that is pointed at
+## the wrong file, the wrong column or the wrong state passes exactly as loudly as one that is
+## right. So `--control` builds a scratch observation set in a temp directory that is never this
+## campaign, proves the clean set passes, then plants ONE defect per check — 38 of them, one for
+## every check the clean run makes — and requires each to be seen. A check with no mutation behind
+## it fails the control rather than being counted, so the arm cannot fall behind the assertions it
+## arms. It is hermetic, needs no router and no `.app`, and finishes in under a second.
 lint: tools
 	@fail=0; \
 	swiftformat --lint . --config .swiftformat || fail=1; \
@@ -971,6 +986,7 @@ lint: tools
 	python3 planning/target-resolution-gate.py --quiet || fail=1; \
 	python3 planning/test-campaign/bin/capture-manifest.py || fail=1; \
 	python3 planning/test-campaign/bin/raster-claim-gate.py || fail=1; \
+	python3 planning/test-campaign/bin/forced-state-assert.py --control || fail=1; \
 	python3 planning/pin-class-gate.py || fail=1; \
 	python3 planning/shipped-brief-gate.py || fail=1; \
 	python3 planning/brief-target-gate.py --quiet || fail=1; \

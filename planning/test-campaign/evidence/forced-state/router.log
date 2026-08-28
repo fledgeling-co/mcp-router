@@ -1,0 +1,8 @@
+2026-08-28T17:07:48.243Z info  wrote a new control token -> /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/mcprouter-j5.OxWgfUbXx8/control.token
+2026-08-28T17:07:48.251Z info  mcp-router listening on http://127.0.0.1:8955/mcp
+2026-08-28T17:07:48.251Z info  pre-opening 1 warm upstream(s): j5-alpha-20260828T170738Z-5616
+2026-08-28T17:07:48.251Z info  spawning upstream "j5-alpha-20260828T170738Z-5616" (/usr/bin/python3 /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/mcprouter-j5.OxWgfUbXx8/fixture-server.py)
+2026-08-28T17:07:48.462Z info  serving 3 tools from 3 upstreams; 0 open, idle window 300s
+2026-08-28T17:07:48.654Z info  upstream "j5-alpha-20260828T170738Z-5616" ready in 403ms
+2026-08-28T17:07:56.781Z info  SIGTERM received; closing upstreams
+2026-08-28T17:07:56.781Z info  closing idle child "j5-alpha-20260828T170738Z-5616" after 1 call(s), 9s alive

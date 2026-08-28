@@ -116,6 +116,16 @@ public struct ControlEventStream: Sendable {
         self.tokenProvider = tokenProvider
     }
 
+    /// A feed pointed at a router this process started, on an ephemeral session.
+    ///
+    /// Here for the same reason `LiveControlAPIClient.init(scratchAt:)` is: `ShellClientFactory`
+    /// decides the client and the feed together — a Debug build reading one router's servers while
+    /// streaming another's calls is the one input shape `ServerStateTracker`'s precedence rules
+    /// cannot make honest — and that file may not name the session type at all.
+    public init(scratchAt baseURL: URL) {
+        self.init(baseURL: baseURL, session: URLSession(configuration: .ephemeral))
+    }
+
     /// The events, until the consumer stops listening or the policy gives up.
     public func events() -> AsyncStream<StreamEvent> {
         AsyncStream { continuation in

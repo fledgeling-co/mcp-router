@@ -470,20 +470,6 @@
       "since": "2026-08-26"
     },
     {
-      "path": "planning/test-campaign/bin/raster-claim-gate.py",
-      "disposition": "control",
-      "markers": [
-        "V2",
-        "V3"
-      ],
-      "since": "2026-08-29",
-      "control": [
-        "python3",
-        "planning/test-campaign/bin/raster-claim-gate.py"
-      ],
-      "proves": "Ten arms in a throwaway git repository on every invocation, one per rule plus two that must stay silent. The two silent ones carry the weight: a clean corpus must produce no finding, because every other arm is satisfied by a gate that reddens on everything; and a share declared on BOTH sides must be admitted, because a rule with no honest exit teaches people to delete the second case rather than declare the sharing. The eight that must bite are a pixel claim with no artifact, a manifest path seeded onto one, two cases pointed at one file, a claim with no channel, a channel outside the vocabulary, a channel with no method behind it, a `derivedFrom` that is not a picture, and a capture on disk and in no commit -- the last planted by `git rm --cached`, which is the one state `os.path.exists` cannot see. The arms are checked by RULE ID rather than by finding count, so a fault caught by the wrong rule fails the control. Any arm misbehaving exits 4 and prints no verdict."
-    },
-    {
       "path": "planning/verification/G11-corpus-determinism.py",
       "disposition": "control",
       "markers": [
@@ -1076,6 +1062,20 @@
       "reason": "An acceptance lane rather than a corpus reader, waived on exactly the argument r28-extensions.sh is: its exit 0 is a verdict about a daemon it started, so enrolling it as a command this gate runs would bind :8987, take the machine-wide parity lock and require app/.build/debug/MCPRouterCLI from inside `make lint`, which runs in worktrees that have built nothing. Without the binary it exits 2, and a control answering 2 on a clean tree is a rotted control rather than a held one. It is the third lane waived for being a lane, after parity-selftests.sh and r28-extensions.sh. What arms it instead: the zero-assertion class - a lane reaching exit 0 through a dead shell or an empty loop - is caught by the runner, which classes it with the failures (`or exited 0 asserting none`, `scripts/acceptance/acceptance-lanes.sh:64` at `784dde9`), and by acceptance-lanes-selftest.sh, registered `control` here, which plants exactly that lane and requires exit 1 (`a lane declaring 0 assertions exited $CODE, expected 1`, `scripts/acceptance/acceptance-lanes-selftest.sh:240` at `784dde9`); this lane is enrolled in that runner (`r31-caches.sh`, `scripts/acceptance/acceptance-lanes.sh:114` at `c86b9f6`). ITS ABILITY TO GO RED ON ITS OWN SUBJECT WAS MEASURED ON 2026-08-28 RATHER THAN ASSERTED, by two mutations, each restored byte-identically with its sha256 checked back. The lane is 36 ok / 0 failed on a clean tree. (1) Deleting the single `caches:` line from RouterServiceDispatch.controlDeps() (`caches: DiskCacheProbe(roots: CacheRoots.under(`, `app/Sources/RouterCore/Service/RouterServiceDispatch.swift:233` at `c86b9f6`) still compiles and takes the lane to 13 ok / 23 failed, every route answering 503, while `swift test --filter ContentIdentityTests|CacheInvalidationTests|ControlCacheRoutesTests` stays green at 20 of 20. That gap between a green unit suite and a red wire is R28's argument, reproduced here. (2) Making CacheInvalidation.apply append to `removed` WITHOUT calling probe.removeDirectory (`if let problem = probe.removeDirectory(path)`, `app/Sources/RouterCore/Caches/CacheInvalidation.swift:261` at `c86b9f6`) - a plan that reports a removal it did not perform - takes the lane to 32 ok / 4 failed and reddens NO wire assertion, only the four filesystem checks that require a tree to be absent. That is the arm this lane has and the unit suite structurally cannot, because the suite drives a stub probe that deletes nothing. THE PREDICTION THIS CORRECTS, recorded rather than quietly replaced: an earlier version of this row expected mutation 2 to redden twelve on_disk assertions. It reddens four. The other eight assert a tree is PRESENT, and a mutation that deletes nothing leaves every one of them true - so the count was wrong in the direction that would have flattered the lane."
     },
     {
+      "path": "planning/test-campaign/bin/raster-claim-gate.py",
+      "disposition": "control",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-29",
+      "control": [
+        "python3",
+        "planning/test-campaign/bin/raster-claim-gate.py"
+      ],
+      "proves": "Ten arms in a throwaway git repository on every invocation, one per rule plus two that must stay silent. The two silent ones carry the weight: a clean corpus must produce no finding, because every other arm is satisfied by a gate that reddens on everything; and a share declared on BOTH sides must be admitted, because a rule with no honest exit teaches people to delete the second case rather than declare the sharing. The eight that must bite are a pixel claim with no artifact, a manifest path seeded onto one, two cases pointed at one file, a claim with no channel, a channel outside the vocabulary, a channel with no method behind it, a `derivedFrom` that is not a picture, and a capture on disk and in no commit -- the last planted by `git rm --cached`, which is the one state `os.path.exists` cannot see. The arms are checked by RULE ID rather than by finding count, so a fault caught by the wrong rule fails the control. Any arm misbehaving exits 4 and prints no verdict."
+    },
+    {
       "path": "planning/upstream/reckon-relabel-probe.py",
       "disposition": "waived",
       "markers": [
@@ -1125,6 +1125,31 @@
       ],
       "proves": "19 planted briefs read back through the real classifier, one per class the gate can print, plus five NEGATIVE arms that a green run must not swallow: the same id inside a fence and inside an HTML comment must NOT read as a citation (reckon blanks both, so counting them would report a join reckon will not make), a terminal status must not excuse a dead declared link, a foreign id beside a resolving one must not read as FOREIGN_ONLY, and `registry-target: none` with no reason of substance must fall back to UNDECLARED. Two arms drive the ratchet itself in both directions, because a file the floor does not name having a floor of zero is the whole of the catch-a-new-brief mechanism and a ratchet nobody has seen fire is a ratchet nobody knows is wired up. The load-bearing arm is the last: it writes a two-brief fixture queue, runs the REAL reckon 1.7.0 over it against the REAL campaign registry, and fails unless the declared brief carries a `cited` edge and the bare one lands `unjoined` \u2014 the claim the whole item rests on, that the field this gate demands is the field reckon joins on. That arm caught a real defect on its first run: the reader was looking for edges at the ledger's top level and reckon writes them under `join.edges`, so every agreement would have been silently unmeasured. What it does NOT prove is that the corpus is the right one \u2014 the index rather than the working tree is an argument, not a plant \u2014 so the untracked briefs are printed by name.",
       "not_proved": "reckon is a plugin in the machine's cache rather than a vendored dependency. On a checkout with no cache the agreement arm reports NOT RUN by name and the hermetic arms still fire; a green control there is 18 arms, not 19."
+    },
+    {
+      "path": "planning/test-campaign/bin/forced-state-assert.py",
+      "disposition": "control",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-29",
+      "control": [
+        "python3",
+        "planning/test-campaign/bin/forced-state-assert.py",
+        "--control"
+      ],
+      "proves": "Every check this script makes is planted against, one mutation per check, and the control refuses to report at all if any check has no mutation behind it \u2014 so the arm cannot fall behind the assertions it arms. The clean scratch set runs 38 checks and reports none; 38 planted defects are then each required to be seen. The ones that carry the weight are the absences: `stale-claims-running` puts `\u00b7 1 running` back into the header of a board whose router has stopped, `stale-sidebar-claims-running` does the same to the sidebar readout, and `cold-claims-totals` gives a board that has never loaded a count. REQ-005 is a promise that a figure is NOT drawn, and an absence check pointed at the wrong file or the wrong state passes exactly as loudly as one that is right. WHAT IT DOES NOT PROVE: that the product behaves this way. This control runs over planted text, never over a rendered board. Only `bin/forced-state.sh` arranges a real router and photographs the app, and that lane needs a build, a display server and an Accessibility grant, so it cannot run here."
+    },
+    {
+      "path": "planning/test-campaign/bin/forced-state.sh",
+      "disposition": "waived",
+      "markers": [
+        "V1",
+        "V3"
+      ],
+      "since": "2026-08-29",
+      "reason": "An acceptance lane rather than a corpus reader, waived on the argument r31-caches.sh and r28-extensions.sh are: its exit 0 is a verdict about a world it arranged, so enrolling it as a command this gate runs would start a node router on :8955, launch the built Debug app and require an Accessibility grant from inside `make lint`, which runs in worktrees that have compiled nothing. Without the .app it exits 2, and a control answering 2 on a clean tree is a rotted control rather than a held one. Its own two sweeps are `grep -q \"tools cached\"` over the index log \u2014 a PRESENCE check that refuses to continue when the router cached nothing, so a zero there blocks rather than passing \u2014 and the absence vocabulary in its header, which describes REQ-005 rather than sweeping anything. WHAT ARMS IT INSTEAD: `bin/forced-state-assert.py --control`, registered `control` here and run by `make lint`, plants 38 defects into a scratch observation set and requires each to be seen \u2014 including `nothing-photographed`, which withholds every frame in a run and requires the raster lane to report that it compared nothing rather than passing vacuously. And `bin/paint-check.py`, which this script calls before it files any frame, refuses a photograph whose window had not laid out; it refused two of the three frames on the run this row was written from, so it is watched failing rather than merely run."
     }
   ]
 }

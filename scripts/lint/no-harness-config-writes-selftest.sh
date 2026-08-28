@@ -20,6 +20,10 @@
 # Every plant is written into a scratch tree under `mktemp`. Nothing under `app/Sources` is
 # touched, and the gate is pointed at the scratch tree through its own `$1`.
 #
+# **P23-P26 are rule 4's**, added with R32's second harness writer. Two drive the scan; two drive a
+# mutant copy of the gate, because the declarations are read against the repository's own
+# `app/Sources` and a selftest that edited those would be testing by breaking the product.
+#
 # Exit codes: 0 every case held · 1 a case did not hold · 2 the environment could not run one.
 set -uo pipefail
 
@@ -467,6 +471,102 @@ enum Out {
 }
 SWIFT
 expect "P7  writing to standard output is printing, not writing a config" 0
+
+# ---------------------------------------------------------------- rule 4 — declared writers
+#
+# R32 added a second deliberate harness-config writer, so the exception that used to live in the
+# gate's prose became a list. These four cases are what makes the list mean something: two for the
+# scan, two for what happens when the list itself rots. The last two run a **mutant copy** of the
+# gate rather than an env override — a gate that can be softened from outside is not a gate, and
+# the arms below have to be provably reachable all the same.
+
+build_baseline
+mkdir -p "$TREE/RouterCore/Extensions"
+cat > "$TREE/RouterCore/Extensions/DesktopSync.swift" <<'SWIFT'
+enum DesktopSync {
+    static func push(_ text: String, to target: String, client: MCPClient) throws {
+        try fileSystem.writeFile(Data(text.utf8), atPath: target)
+    }
+}
+SWIFT
+expect "P23 an undeclared file that writes and names a client is refused" 1
+
+build_baseline
+mkdir -p "$TREE/RouterCore/Extensions"
+cat > "$TREE/RouterCore/Extensions/BlindSpot.swift" <<'SWIFT'
+enum BlindSpot {
+    static func push(_ text: String, to target: String) throws {
+        try fileSystem.writeFile(Data(text.utf8), atPath: target)
+    }
+}
+SWIFT
+expect "P24 a writer naming no client at all is still rule 4's blind spot, and passes" 0
+
+# A whole scratch REPOSITORY, not just a scratch source tree.
+#
+# The declarations are read against `$REPO_ROOT/app/Sources`, and `$REPO_ROOT` is derived from where
+# the gate file sits — so a mutant dropped in `mktemp` alone has no `app/Sources` at all and exits 2
+# for the wrong reason. The first version of P26 "passed" exactly that way. Planting both declared
+# writers here is what makes the next two cases about their subject.
+mutant_repo() {
+  local root="$1"
+  rm -rf "$root"
+  mkdir -p "$root/scripts/lint" "$root/app/Sources/RouterCore/Watch" \
+    "$root/app/Sources/RouterCore/Desktop"
+  cat > "$root/app/Sources/RouterCore/Watch/ClaudeStagingEntry.swift" <<'SWIFT'
+enum ClaudeStagingEntry {
+    static func apply(_ text: String, atPath path: String, client: MCPClient) throws {
+        try fileSystem.writeFile(Data(text.utf8), atPath: path)
+    }
+}
+SWIFT
+  cat > "$root/app/Sources/RouterCore/Desktop/DesktopEntryWriter.swift" <<'SWIFT'
+enum DesktopEntryWriter {
+    static func apply(_ entry: DesktopEntry, atPath path: String) throws {
+        try fileSystem.copyItem(atPath: path, toPath: path + ".bak")
+    }
+}
+SWIFT
+}
+
+# The rot arm: a declaration naming a file that is not there.
+build_baseline
+mutant_repo "$WORK/mutant-missing"
+sed "s|'RouterCore/Watch/ClaudeStagingEntry.swift'|'RouterCore/Watch/GoneAway.swift'|" \
+  "$GATE" > "$WORK/mutant-missing/scripts/lint/gate.sh"
+chmod +x "$WORK/mutant-missing/scripts/lint/gate.sh"
+"$WORK/mutant-missing/scripts/lint/gate.sh" "$TREE" >/dev/null 2>&1
+if [ "$?" -eq 1 ]; then
+  ok "P25 a declaration naming a file that is not there is a finding (exit 1)"
+else
+  bad "P25 a declaration naming a file that is not there should be a finding"
+fi
+
+# The control arm: a vocabulary that matches nothing must stop the gate, not clear the tree.
+build_baseline
+mutant_repo "$WORK/mutant-blind"
+sed "s|^CLIENT_VOCAB=.*|CLIENT_VOCAB='zzz_no_such_token_zzz'|" \
+  "$GATE" > "$WORK/mutant-blind/scripts/lint/gate.sh"
+chmod +x "$WORK/mutant-blind/scripts/lint/gate.sh"
+"$WORK/mutant-blind/scripts/lint/gate.sh" "$TREE" >/dev/null 2>&1
+if [ "$?" -eq 2 ]; then
+  ok "P26 a client vocabulary that matches nothing is an instrument failure (exit 2)"
+else
+  bad "P26 a blind client vocabulary should stop the gate, not clear the tree"
+fi
+
+# And the same mutant repository with the gate UNCHANGED, so P25 and P26 are known to differ from
+# their own baseline rather than from a sandbox that reddens whatever you put in it.
+build_baseline
+mutant_repo "$WORK/mutant-control"
+cp "$GATE" "$WORK/mutant-control/scripts/lint/gate.sh"
+chmod +x "$WORK/mutant-control/scripts/lint/gate.sh"
+"$WORK/mutant-control/scripts/lint/gate.sh" "$TREE" >/dev/null 2>&1
+if [ "$?" -eq 0 ]; then
+  ok "P27 the same sandbox with an unedited gate passes, so P25 and P26 are about their edits"
+else
+  bad "P27 the mutant sandbox reddens on an unedited gate, so P25 and P26 prove nothing"
+fi
 
 # ---------------------------------------------------------------- vacuity: nothing to examine
 build_baseline

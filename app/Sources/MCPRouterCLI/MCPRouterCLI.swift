@@ -62,6 +62,13 @@ struct MCPRouterCLI {
             try HarnessesVerb.run(arguments)
             return
         }
+        // `desktop-entry` (**R32**) is the third of those, and the only one that refuses to write
+        // by default. `install-entry` points Claude Code at the router; this points Claude Desktop,
+        // whose config takes a command rather than a url and which re-reads nothing while it runs.
+        if arguments.first == "desktop-entry" {
+            try DesktopEntryVerb.run(arguments)
+            return
+        }
         try await dispatchReferenceVerb(arguments)
     }
 

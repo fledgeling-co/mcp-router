@@ -59,14 +59,40 @@
 #     path through a value passed in from somewhere else, and that lives outside the seam, is not a
 #     finding here. Widening them to every write in the tree is the same trade `D-r7-m` names.
 #
-# The claim this gate can carry, and the one `spec-R7.md` §7 and ORCHESTRATOR.md now make: no single
-# file pairs a harness config with a write, and **the seam neither writes nor relinks anything**.
-# That `ReconciliationPlan` has no applier today is established by reading the tree, not by this.
+#   4. **a file that writes AND speaks the client vocabulary must be DECLARED** — the rule R32
+#      added, and the one that keeps the three above honest now that a second harness writer
+#      exists.
 #
-# `~/.claude.json` is written on purpose by `install-entry` and `watch`, which is pre-existing,
-# parity-locked product behaviour (`ClaudeStagingEntry`, `WatchBackup`). Those files carry no
-# harness path literal in code and no reconciliation API, so they are outside all three rules — the
-# gate is about R7's seam, not about revoking a subsystem that shipped before it.
+# ## Rule 4, and why prose was no longer enough
+#
+# Until R32 this file's exception for the writers that are *supposed* to exist lived in the
+# paragraph below, and a paragraph is re-run by nothing. `~/.claude.json` is written on purpose by
+# `install-entry` and `watch` (`ClaudeStagingEntry`, `WatchBackup`); R32 adds a second, deliberate,
+# user-invoked writer for Claude Desktop (`DesktopEntryWriter`). Two intentional writers with their
+# only description in a comment is the shape this repository has already paid for twice: the next
+# reader cannot tell an intended writer from one that arrived, and neither can this gate.
+#
+# So the exception is now a LIST. `HARNESS_WRITERS` names each file permitted to write another
+# application's MCP configuration, and rule 4 checks the list in both directions:
+#
+#   * every declared writer still exists and **still writes** — a row whose file has gone, or whose
+#     write has been refactored out, is a finding rather than a comfortable no-op; and
+#   * every file that writes AND names the client vocabulary is on the list. That is a WIDER
+#     intersection than rule 1's: it drops the requirement for a config-path literal and asks only
+#     whether the file is recognisably about a harness client.
+#
+# **What rule 4 narrows, and what it leaves open.** `D-r7-m` records that an applier split across
+# two neutrally-named files outside the seam — one asking `ClientConfigs.path(for:)` for the target,
+# another taking a bare `String` and writing it — satisfies no intersection and passes. Rule 4 does
+# not close that; it narrows it. The writing half must now also name no client at all, because
+# naming one puts it in front of the allowlist. The residue — a writer that reaches a harness config
+# through a value with no vocabulary anywhere in the file — is still `D-r7-m`, and the closed-world
+# fix it names (census every writing file against a declared allowlist) is still the fix.
+#
+# The claim this gate can carry, and the one `spec-R7.md` §7 and ORCHESTRATOR.md now make: no single
+# file pairs a harness config with a write, **the seam neither writes nor relinks anything**, and
+# every file that writes while speaking the client vocabulary is one somebody declared. That
+# `ReconciliationPlan` has no applier today is established by reading the tree, not by this.
 #
 # The router's OWN config is not a harness config and is not matched: `servers.json` is this
 # product's file and `ConfigWriter`/`ImportConfigWriter` are supposed to write it.
@@ -145,6 +171,30 @@ SEAM_MUTATING='fopen\(|fdopen\(|freopen\(|fputs\(|fputc\(|fwrite\(|fprintf\(|cre
 # config. Excluded so that `Out.print` does not make every verb a finding — which is the kind of
 # noise that gets a gate deleted.
 NOT_A_FILE_WRITE='FileHandle\.standard(Output|Error)'
+
+# ------------------------------------------------------------------ rule 4's declarations
+#
+# The files permitted to write another application's MCP configuration, repo-relative to $SOURCES.
+# Adding one here is the commit that says why it exists; nothing else in this gate is allowed to
+# grow a writer quietly.
+#
+#   ClaudeStagingEntry.swift  `install-entry` and `watch` — pre-existing, parity-locked product
+#                             behaviour; it reproduces the installer's `~/.claude.json` step.
+#   DesktopEntryWriter.swift  R32's `desktop-entry` verb. Dry run by default; the write happens only
+#                             under `--apply`, typed by the owner, and no daemon path reaches it.
+HARNESS_WRITERS=(
+  'RouterCore/Watch/ClaudeStagingEntry.swift'
+  'RouterCore/Desktop/DesktopEntryWriter.swift'
+)
+
+# What "recognisably about a harness client" means, as tokens rather than as judgement.
+#
+# Deliberately the CLIENT's vocabulary rather than the config file's: rule 1 already reads path
+# literals, and repeating it here would only re-find rule 1's own findings. `mcpServers` is
+# excluded on purpose — this product's own importer, config writer and watcher all handle that key
+# legitimately while writing `servers.json`, and a rule that named it would put six of this
+# repository's own files in front of an allowlist they have no business being on.
+CLIENT_VOCAB='claudeDesktop|claudeCode|MCPClient|ClaudeStagingEntry|DesktopEntry|DesktopBridge'
 
 # The seam: R7's own subsystem, plus any file whose NAME says it handles harnesses. The name
 # clause is what catches a `HarnessCoordinator.swift` written next door to the engine rather than
@@ -303,6 +353,8 @@ probe "$HARNESS_HOMES"     'let dir = home.appendingPathComponent(".codex")'
 probe "$R7_API"            'func apply(_ plan: ReconciliationPlan, to target: String) throws {'
 probe "$R7_API"            'let target = ClientConfigs.path(for: client, homeDirectory: home)'
 probe "$NOT_A_FILE_WRITE"  'FileHandle.standardOutput.write(Data(text.utf8))'
+probe "$CLIENT_VOCAB"      'let report = inventory.first { $0.client == .claudeDesktop }'
+probe "$CLIENT_VOCAB"      'public static func apply(_ entry: DesktopEntry, bridge: DesktopBridge) {'
 
 # Rule 2 is matched against the file's code with its NEWLINES collapsed, so the probe for that has
 # to carry a real newline. A single-line subject with a space in it establishes only that the
@@ -444,6 +496,67 @@ for file in ${SEAM_UNIQUE+"${SEAM_UNIQUE[@]}"}; do
   printf '%s\n' "$writes" | sed 's/^/    /'
 done
 
+# ------------------------------------------------------------------ rule 4: declared writers only
+#
+# **The declarations are this repository's, and the scan is whatever tree you point at.** That split
+# is what lets the gate's own selftest drive it against scratch trees that contain none of these
+# files: `HARNESS_WRITERS` is checked against `app/Sources` here, always, while the intersection
+# below reads `$SOURCES`. Reading the list against a scratch tree would have made every selftest
+# case a rule 4 finding and the selftest would have been softened to make it pass — which is how a
+# gate stops meaning anything.
+#
+# The declared writers are also rule 4's **control**. Each of them writes and each names a client,
+# so the reader used below must find both of them; a reader that finds fewer has stopped seeing,
+# and reporting a clean intersection on it would be a zero that measured nothing. That is exit 2,
+# not exit 0.
+REAL_SOURCES="$REPO_ROOT/app/Sources"
+[ -d "$REAL_SOURCES" ] || {
+  echo "no-harness-config-writes: rule 4 cannot find $REAL_SOURCES to check its declarations against."
+  exit 2
+}
+
+# Whether one file both writes and speaks the client vocabulary — rule 4's reader, named once so
+# the control and the scan cannot drift apart.
+is_vocabulary_writer() {
+  [ -n "$(file_writes "$1")" ] || return 1
+  grep -qE "$CLIENT_VOCAB" <<< "$(code_of "$1")"
+}
+
+DECLARED_EXAMINED=0
+for relative in "${HARNESS_WRITERS[@]}"; do
+  DECLARED_EXAMINED=$((DECLARED_EXAMINED + 1))
+  file="$REAL_SOURCES/$relative"
+  if [ ! -f "$file" ]; then
+    report "rule 4: $relative is declared in HARNESS_WRITERS and does not exist."
+    continue
+  fi
+  if [ -z "$(file_writes "$file")" ]; then
+    report "rule 4: $relative is declared as a harness-config writer and writes nothing. Remove"
+    report "        the declaration in the commit that removed the write, or the list is a fiction."
+    continue
+  fi
+  is_vocabulary_writer "$file" && continue
+  echo "no-harness-config-writes: rule 4's reader cannot see its own declared writer $relative."
+  echo "  That file writes and names a client, so the reader finding nothing there means"
+  echo "  CLIENT_VOCAB or the write vocabulary stopped matching — not that the tree got safer."
+  exit 2
+done
+
+# The scan: every file under $SOURCES that writes AND names a client must be on the list.
+VOCAB_WRITERS=0
+while IFS= read -r file; do
+  is_vocabulary_writer "$file" || continue
+  VOCAB_WRITERS=$((VOCAB_WRITERS + 1))
+  relative="${file#"$SOURCES"/}"
+  declared=""
+  for allowed in "${HARNESS_WRITERS[@]}"; do
+    [ "$relative" = "$allowed" ] && { declared="yes"; break; }
+  done
+  [ -n "$declared" ] && continue
+  report "rule 4: $relative writes a file and speaks the harness client vocabulary, and is not declared in HARNESS_WRITERS:"
+  file_writes "$file" | sed 's/^/    /'
+done < <(find "$SOURCES" -name '*.swift' -type f | sort)
+
 # ------------------------------------------------------------------ anti-vacuity
 # The gate must be able to see something, or a renamed directory turns it into a no-op that
 # reports success. It is the same failure this file exists to refuse, one level up.
@@ -462,7 +575,8 @@ fi
 
 if [ "$FAILURES" -eq 0 ]; then
   echo "no-harness-config-writes: $EXAMINED file(s) examined, $NAMING name a harness config," \
-       "$WRITERS write a file, $SEAM_EXAMINED in the seam — none writes one"
+       "$WRITERS write a file, $SEAM_EXAMINED in the seam — none writes one;" \
+       "$VOCAB_WRITERS write while naming a client, all $DECLARED_EXAMINED declared"
   exit 0
 fi
 exit 1

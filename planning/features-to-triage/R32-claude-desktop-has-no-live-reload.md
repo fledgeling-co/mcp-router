@@ -18,8 +18,14 @@ The two clients are not symmetrical and the goal reads as though they are.
 1,441 bytes, and its `mcpServers` block is **empty** — the router is not registered with Desktop at
 all. Writing it there is a small change, and it is the one that makes Desktop share the pool.
 
-**The half that does not exist.** Every Claude Code session owns a socket at
-`/tmp/cc-socks/<pid>.sock` and can be reached while running. Desktop has no such socket. It is a
+**The half that does not exist.** Every Claude Code session owns a socket and can be reached while
+running:
+
+```
+/tmp/cc-socks/<pid>.sock
+```
+
+Desktop has no such socket. It is a
 different application with a different lifecycle, and nothing measured today offers a way to make a
 running Desktop re-read its MCP configuration. R29's mechanism does not reach it.
 

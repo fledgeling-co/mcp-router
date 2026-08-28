@@ -56,16 +56,24 @@ public enum ExtensionNaming {
     /// filesystem limit.
     public static let maximumNameLength = 128
 
-    /// One path segment: ASCII letters, digits, `.`, `_` and `-`, and never `.` or `..` alone.
+    /// One path segment: ASCII letters, digits, `.`, `_`, `-` and `@`, and never `.` or `..` alone.
     ///
     /// `.claude-plugin` is a real segment in two of the three descriptor paths, so a leading dot
     /// has to be allowed here. It is *not* allowed in an entry name — see ``isWellFormedName(_:)``.
+    ///
+    /// `@` was added by R30, and it is the one character here that is in the set for a reason
+    /// outside the filesystem. A plugin's identity in Claude is `<plugin>@<marketplace>` — the
+    /// literal key of `enabledPlugins` and of `installed_plugins.json` — and **13 plugin names on
+    /// this machine exist in two marketplaces at once** (measured 2026-08-28), so a store keyed on
+    /// the bare name cannot hold what one machine already has. It is a path character like any
+    /// other to the filesystem, it is not a separator in any path this store builds, and `.` and
+    /// `..` are still refused, so nothing about the containment argument changes.
     public static func isWellFormedSegment(_ segment: String) -> Bool {
         guard !segment.isEmpty, segment != ".", segment != ".." else { return false }
         return segment.allSatisfy { character in
             character.isASCII
                 && (character.isLetter || character.isNumber || character == "."
-                    || character == "_" || character == "-")
+                    || character == "_" || character == "-" || character == "@")
         }
     }
 

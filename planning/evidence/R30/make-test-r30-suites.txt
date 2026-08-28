@@ -1,0 +1,35 @@
+142:􀟈  Suite "R30 — applying and undoing an ingest" started.
+172:􀟈  Suite "R30 — scanning what Claude acquired" started.
+1169:􀟈  Test "G7 — settings.json loses exactly the keys that left, and keeps everything else" started.
+1174:􀟈  Test "G12 — --link-back leaves a link at Claude's path and keeps the registration" started.
+1183:􀟈  Test "G10 — undo puts the bytes and the keys back, from the router's own disk" started.
+1184:􀟈  Test "G6 — copy, verify, remove: the router holds the bytes and Claude's path is empty" started.
+1198:􀟈  Test "G13 — a run manifest round-trips through its own bytes" started.
+1218:􀟈  Test "G11 — undo refuses a path somebody else has taken back" started.
+1455:􀟈  Test "G5 — the scan writes nothing" started.
+1457:􀟈  Test "G14 — the stamp changes when a byte does, and not when a read repeats" started.
+1464:􀟈  Test "G8 — a settings edit with nothing to remove leaves the file byte-identical" started.
+1466:􀟈  Test "G15 — two keys out of one container come back in their original order" started.
+1468:􀟈  Test "G4 — a name the router already holds is refused rather than merged" started.
+1474:􀟈  Test "G9 — a settings file that is not JSON is not rewritten" started.
+1489:􀟈  Test "G2 — what cannot be identified is reported and is still on disk afterwards" started.
+1490:􀟈  Test "G3 — a tree touched inside the settle window is not a candidate" started.
+1532:􀟈  Test "G1 — the scan finds every identifiable entry and names the identity Claude uses" started.
+3031:􁁛  Test "G7 — settings.json loses exactly the keys that left, and keeps everything else" passed after 3.870 seconds.
+3036:􁁛  Test "G12 — --link-back leaves a link at Claude's path and keeps the registration" passed after 3.870 seconds.
+3038:􁁛  Test "G6 — copy, verify, remove: the router holds the bytes and Claude's path is empty" passed after 3.870 seconds.
+3065:􁁛  Test "G13 — a run manifest round-trips through its own bytes" passed after 3.871 seconds.
+3071:􁁛  Test "G10 — undo puts the bytes and the keys back, from the router's own disk" passed after 3.871 seconds.
+3137:􁁛  Test "G11 — undo refuses a path somebody else has taken back" passed after 3.872 seconds.
+3196:􁁛  Test "G14 — the stamp changes when a byte does, and not when a read repeats" passed after 3.868 seconds.
+3204:􁁛  Test "G8 — a settings edit with nothing to remove leaves the file byte-identical" passed after 3.868 seconds.
+3205:􁁛  Test "G5 — the scan writes nothing" passed after 3.869 seconds.
+3206:􁁛  Test "G15 — two keys out of one container come back in their original order" passed after 3.869 seconds.
+3210:􁁛  Test "G4 — a name the router already holds is refused rather than merged" passed after 3.869 seconds.
+3214:􁁛  Test "G9 — a settings file that is not JSON is not rewritten" passed after 3.869 seconds.
+3218:􁁛  Test "G2 — what cannot be identified is reported and is still on disk afterwards" passed after 3.869 seconds.
+3240:􁁛  Test "G3 — a tree touched inside the settle window is not a candidate" passed after 3.870 seconds.
+3255:􁁛  Test "G1 — the scan finds every identifiable entry and names the identity Claude uses" passed after 3.869 seconds.
+3985:􁁛  Suite "R30 — applying and undoing an ingest" passed after 3.926 seconds.
+4008:􁁛  Suite "R30 — scanning what Claude acquired" passed after 3.926 seconds.
+4830:􀢄  Test run with 2041 tests in 259 suites failed after 25.600 seconds with 3 issues.

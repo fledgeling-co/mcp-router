@@ -69,6 +69,14 @@ struct MCPRouterCLI {
             try DesktopEntryVerb.run(arguments)
             return
         }
+        // `ingest` (**R30**) joins them for the same reason: no arm in the reference, out of
+        // `Copy.usage`, dispatched here so the reference's switch stays one-to-one with
+        // `src/index.ts`. It is the one verb in this binary that moves a file the user did not
+        // name, which is why it does nothing at all without `--apply` and refuses to pick a tree.
+        if arguments.first == "ingest" {
+            try IngestVerb.run(arguments)
+            return
+        }
         try await dispatchReferenceVerb(arguments)
     }
 

@@ -97,6 +97,24 @@
 # The router's OWN config is not a harness config and is not matched: `servers.json` is this
 # product's file and `ConfigWriter`/`ImportConfigWriter` are supposed to write it.
 #
+# ## R30 writes `~/.claude/settings.json` ON PURPOSE, and this gate does not prove that safe
+#
+# `mcp-router ingest --apply` withdraws `enabledPlugins` and `extraKnownMarketplaces` keys for
+# extensions it has moved into the router. That is the item's whole subject, taken with the owner:
+# it is an owner-invoked command, its default invocation prints a plan and writes nothing, and it
+# refuses to pick a tree unless one is named. `planning/specs/spec-R30.md` §4 carries the boundary.
+#
+# **It passes this gate for a reason a reader should not mistake for a verdict.** The two halves
+# live in different files: `RouterCore/Extensions/ClaudeTree.swift` names the harness home and
+# `settings.json` and **writes nothing** — it is path derivation and property reads, and
+# `grep -nE 'write|create|move|remove|Data\(' ` over it returns nothing at all, comments included —
+# while `ClaudeSettingsEditWrites.swift` writes and names no harness path. That is exactly the
+# split `D-r7-m` records as this gate's open-world miss, arrived at honestly rather than to evade
+# it. What actually holds R30 is its own suite: `ExtensionIngestTests.G7`/`G8`/`G9` and
+# `scripts/acceptance/r30-ingest.sh`, which assert the top-level member count is unchanged, that a
+# no-op edit leaves the file byte-identical, that an unparsable file is not rewritten, and that the
+# real `~/.claude/settings.json`'s size and mtime are the same after a lane run as before it.
+#
 # Exit codes: 0 nothing writes one · 1 something does · 2 the gate could not run.
 set -uo pipefail
 

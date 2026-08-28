@@ -22,8 +22,15 @@ same fact stated as a workaround.
 So the goal cannot be met by making Claude notice. It can be met by the router **telling** it.
 
 **There is a live control surface, and it is already in use.** Every Claude Code session owns a unix
-socket at `/tmp/cc-socks/<pid>.sock`, registered in `~/.claude/sessions/<pid>.json`. Twenty sockets
-exist on this machine right now and thirteen sessions are addressable by name. This is the transport
+socket, registered alongside a session file under `~/.claude/sessions/`. The socket path is a value
+in the system rather than an artifact anybody keeps:
+
+```
+/tmp/cc-socks/<pid>.sock
+```
+
+Twenty existed on this machine when this was measured, and thirteen sessions were addressable by
+name. This is the transport
 the cross-session messaging feature runs on, and it reaches a session that is mid-task.
 
 That turns *"without the user running a reload"* from impossible into a delivery problem: the user

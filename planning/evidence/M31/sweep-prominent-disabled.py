@@ -73,7 +73,16 @@ STYLES = {
     },
     "PhoneProminentButtonStyle": {
         "surface": "iPhone",
-        "disabled_tokens": ("t4", "raised", None),
+        # M36 moved this rung onto `ProminentButtonStyle.palette`, so the triple below is the Mac's
+        # by construction rather than by agreement. It was ("t4", "raised", None) when M31 filed it:
+        # read off a render, `--raised` in the light appearance is #FFFFFF and so is `--ground`, so
+        # the control disappeared instead of dimming. `proven` stays False — what M36 measured is
+        # the token, on macOS, and this flag is about whether SwiftUI installs the environment on a
+        # `ButtonStyle` type on the platform this ships to, which nothing has measured on iOS.
+        #
+        # This tuple is a hand-maintained mirror of Swift source that the script does not derive,
+        # which is how it came to state a token the product had stopped drawing. Reported.
+        "disabled_tokens": ("t4", "f3", "line"),
         "reads_environment_from": "@Environment on the ButtonStyle type itself",
         "proven": False,
     },

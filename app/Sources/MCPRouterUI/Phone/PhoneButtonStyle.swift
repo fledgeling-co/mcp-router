@@ -36,16 +36,51 @@ public struct PhoneProminentButtonStyle: ButtonStyle {
         self.fillsWidth = fillsWidth
     }
 
+    /// The three tokens this control resolves to, **read from the Mac ladder rather than restated
+    /// here** — which is what makes the header's "the same tokens" a fact instead of an intention.
+    ///
+    /// It was an intention. This style spelled its own triple inline and got the disabled fill
+    /// wrong: `--raised` where `DESIGN.md` §3 ratifies `--f3`, and no bezel where §3 gives one.
+    /// §3's table is *"What \"dims in place\" means for an accent-filled control"* — label `--t4`,
+    /// fill `--f3`, bezel `--line` — and it is written for the prominent button by name.
+    ///
+    /// **The light appearance is what made this a disappearance rather than a wrong hue.** Read
+    /// off a render of the pre-fix style at `afaad59` — this file byte-identical to `03c34c3`,
+    /// where M31 filed it — the disabled fill painted `#FFFFFF` on an `#FFFFFF` ground, because
+    /// `--raised` and `--ground` are the same white in light. With no bezel either, the control §3
+    /// rule 4 says *"dims in place and never disappears"* had neither an edge nor a fill anybody
+    /// could see; in dark it painted `#2C2C2E` on `#1C1C1E`, wrong but visible. `--f3` alone does
+    /// not rescue the light case — it composites to `#F7F7F7`, eight levels off white — so the
+    /// `--line` bezel travels with the fill. The two are one row of §3's table, and together they
+    /// are what give an unavailable control a boundary at all.
+    /// `PhoneProminentDisabledRenderTests` reads those pixels back off the render rather than
+    /// matching a token name in this file.
+    ///
+    /// Delegating rather than copying is the point: a second copy of the triple is what drifted in
+    /// the first place, and the header above already promises these are the shared tokens.
+    /// `ProminentButtonStyle`'s scale does not reach its palette, so the default is immaterial —
+    /// only the height ladder is phone-local, which is the whole reason this type exists.
+    public func palette(isEnabled: Bool) -> ProminentButtonStyle.Palette {
+        ProminentButtonStyle().palette(isEnabled: isEnabled)
+    }
+
     public func makeBody(configuration: Configuration) -> some View {
-        configuration.label
+        let tokens = palette(isEnabled: isEnabled)
+        return configuration.label
             .typeRole(.body)
-            .foregroundStyle(isEnabled ? ColorToken.onAccent.color : ColorToken.t4.color)
+            .foregroundStyle(tokens.label.color)
             .padding(.horizontal, PhoneMetric.controlPadding)
             .frame(maxWidth: fillsWidth ? .infinity : nil, minHeight: PhoneMetric.minimumTarget)
             .background(
                 RoundedRectangle(cornerRadius: PhoneMetric.controlRadius, style: .continuous)
-                    .fill(isEnabled ? ColorToken.accent.color : ColorToken.raised.color)
+                    .fill(tokens.fill.color)
             )
+            .overlay {
+                if let border = tokens.border {
+                    RoundedRectangle(cornerRadius: PhoneMetric.controlRadius, style: .continuous)
+                        .strokeBorder(border.color, lineWidth: PhoneMetric.hairline)
+                }
+            }
             // Transform only, per `DESIGN.md` §7 — a pressed control must not animate its colour.
             .scaleEffect(configuration.isPressed ? 0.98 : 1)
     }

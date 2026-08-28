@@ -215,7 +215,11 @@ struct ContentIdentityTests {
             "dossier", command: "node", args: ["/repo/dist/index.js"]
         )
         let probe = StubCacheProbe(stamps: [(path: "/repo/dist/index.js", stamp: "1:1.0")])
+        // The identity hash is on the entry, because the second half of this case asserts what
+        // `isStale` does with a moved content component and an entry with no `hash` is stale for a
+        // reason that has nothing to do with this item.
         var entry = CachedServer(members: [])
+        entry.set("hash", .string(JSString(UpstreamHash.hash(upstream))))
         ContentStaleness.record(ContentResolution.resolve(upstream, probe: probe), on: &entry)
         #expect(ContentStaleness.recordedDigest(entry) != nil)
         #expect(ContentStaleness.verdict(recorded: entry, upstream: upstream, probe: probe).hasMoved == false)

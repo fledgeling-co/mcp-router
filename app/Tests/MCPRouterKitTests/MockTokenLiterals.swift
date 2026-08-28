@@ -38,7 +38,7 @@ extension MockTokenParser {
     /// against it compares against a subset while reporting a whole.
     static func strayColorLiterals(in text: String) throws -> [StrayLiteral] {
         let ranges = try tokenBlockRanges(in: text)
-        let lines = text.components(separatedBy: .newlines)
+        let lines = blankingBlockComments(in: text).components(separatedBy: .newlines)
         var out: [StrayLiteral] = []
 
         for (index, line) in lines.enumerated() {
@@ -58,6 +58,66 @@ extension MockTokenParser {
             }
         }
         return out
+    }
+
+    /// The same text with every `/* … */` span blanked to spaces, newlines preserved.
+    ///
+    /// The guard above asks whether a colour is written *into a rule* — its own words, and the
+    /// reason it exists: a colour reachable from a rule means the `:root` family is not the whole
+    /// palette. A block comment is not a rule and paints nothing, so a measurement recorded beside
+    /// the fix it justifies is evidence rather than a stray literal. M31 wrote three such values
+    /// into a comment explaining a white-on-white defect, and the guard read them as the defect.
+    ///
+    /// Blanking spans rather than dropping whole lines is what keeps that narrow: `color: #fff;
+    /// /* was #eee */` still reports the declaration and not the note. Line numbers and columns
+    /// survive because only the comment's own characters become spaces.
+    ///
+    /// This does not reach the `<!-- mac-craft:metrics -->` block, which is an HTML comment read
+    /// deliberately by `metricRows(in:)` and excluded here by `tokenBlockRanges(in:)` already.
+    /// The two channels stay separate: that one is parsed, this one is skipped.
+    static func blankingBlockComments(in text: String) -> String {
+        var out = Array(text)
+        var index = text.startIndex
+        var depth = 0
+        var openedAt: String.Index?
+        while index < text.endIndex {
+            let next = text.index(after: index)
+            if next < text.endIndex, depth == 0, text[index] == "/", text[next] == "*" {
+                depth = 1
+                openedAt = index
+                index = text.index(after: next)
+                continue
+            }
+            if next < text.endIndex, depth == 1, text[index] == "*", text[next] == "/" {
+                let end = text.index(after: next)
+                blank(&out, in: text, from: openedAt ?? index, to: end)
+                depth = 0
+                openedAt = nil
+                index = end
+                continue
+            }
+            index = next
+        }
+        // An unterminated comment blanks to the end rather than throwing: this scanner reports
+        // findings and a malformed mock is the metrics parser's error to raise, not this one's.
+        if depth == 1, let start = openedAt {
+            blank(&out, in: text, from: start, to: text.endIndex)
+        }
+        return String(out)
+    }
+
+    /// Replace one span with spaces, keeping newlines so every line number is unchanged.
+    private static func blank(
+        _ out: inout [Character],
+        in text: String,
+        from start: String.Index,
+        to end: String.Index
+    ) {
+        let offset = text.distance(from: text.startIndex, to: start)
+        let length = text.distance(from: start, to: end)
+        for position in offset ..< (offset + length) where out[position] != "\n" {
+            out[position] = " "
+        }
     }
 
     /// `#RGB`, `#RRGGBB` and `#RRGGBBAA` runs — and nothing else beginning with `#`.

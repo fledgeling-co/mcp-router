@@ -100,4 +100,41 @@ struct MockTokenLiteralTests {
             """
         )
     }
+
+    // ── The comment seam, watched failing ────────────────────────────────────────────────────
+    //
+    // `strayColorLiterals` blanks `/* … */` spans before scanning, so a measurement recorded
+    // beside the fix it justifies is not read as the defect it describes. That is a narrowing of
+    // a guard, and a narrowed guard is worth exactly as much as the proof it still fires. These
+    // three plant what each half must see: a literal in a rule, a literal in a note, and both on
+    // one line.
+
+    @Test("a colour written into a rule is still caught, comments or not")
+    func ruleLiteralsSurviveCommentBlanking() throws {
+        let text = try MockTokenParser.mockText()
+        let planted = "\n/* a note mentioning #ABCDEF */\n.x { color: #0088FF; }"
+        let stray = try MockTokenParser.strayColorLiterals(in: text + planted)
+        #expect(stray.count == 1, "expected only the rule's literal, got \(stray.map(\.text))")
+        #expect(stray.first?.text == "#0088FF", "the guard must still see a colour in a rule")
+    }
+
+    @Test("a colour inside a block comment is evidence, not a stray literal")
+    func commentLiteralsAreSkipped() throws {
+        let text = try MockTokenParser.mockText()
+        let measured = """
+
+        /* Measured before the fix: bg=rgba(0,0,0,0) fg=rgb(0,96,196) — spans
+           two lines, as a real measurement note does, and names #FFFFFF too. */
+        """
+        let stray = try MockTokenParser.strayColorLiterals(in: text + measured)
+        #expect(stray.isEmpty, "a measurement in a comment was read as a defect: \(stray.map(\.text))")
+    }
+
+    @Test("a rule and a note on one line are told apart")
+    func spanBlankingIsNarrowerThanTheLine() throws {
+        let text = try MockTokenParser.mockText()
+        let stray = try MockTokenParser
+            .strayColorLiterals(in: text + "\n.y { color: #123456; /* was #654321 */ }")
+        #expect(stray.map(\.text) == ["#123456"], "expected the declaration only, got \(stray.map(\.text))")
+    }
 }

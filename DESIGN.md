@@ -486,6 +486,35 @@ disabled switch in the page spells the state `class="switch disabled"`, so the r
 to it and the control drew at full accent with nothing marking it unavailable. All five now take
 the row above: `--t4` on `--f3`, with a `--line` bezel on the controls that carry one.
 
+**And the two variants that resolve no fill at all.** The paragraph above is written for the
+accent, which left the design of record's two unfilled buttons drawing their live label while
+disabled for as long as the accent-filled ones did — and with nothing watching, because every
+instrument M31 built takes `var(--accent-ink)` as its search space and neither variant paints it.
+`.btn.destructive` (`--fail-ink`) and `.btn.quiet` (`--accent-text`) are both 0-2-0 and both
+declared after `.btn:disabled`, so both won `color`: a disabled quiet button measured
+`fg=rgb(0,96,196)` against a live one's `fg=rgb(0,96,196)`, byte-identical across fill, label and
+bezel, on the variant this page uses nine times; a disabled destructive kept `rgb(200,16,46)` and
+dimmed only its bezel. **For these the label moves and nothing else does.** There is no fill to
+take off and no bezel to add — a destructive control is deliberately unfilled, on the rule that a
+destructive alternative is a quiet red text button and never a second filled one, and a quiet
+control carries neither. So the disabled state is `--t4` alone, and unlike the prominent case the
+pairing it lands on **is** §2's published column: `--t4` over the surface behind it, 3.37:1 dark
+and 2.79:1 light, claimed under the same `disabled` exemption.
+
+**The dimming rule wins on specificity, never on order.** Every disabled rule in this file is
+spelled as the variant's own selector plus `:disabled` or `.disabled`, which adds a class-level
+component and puts it at 0-3-0 against the variant's 0-2-0. That is what makes the fix durable:
+re-declaring `.btn.quiet` after it changes nothing, measured. The one thing that defeats it is
+`!important` on the variant, which reproduces the defect exactly — so the button variants carry
+none, and the only three `!important` declarations in the design of record are in the
+reduced-motion block and touch no colour.
+
+**A disabled prominent control and a disabled secondary one are identical, and that is the
+point.** They resolve the same triple, so they are not distinguishable from each other while
+disabled. Emphasis is a claim about which action to take; an unavailable control makes no such
+claim, and drawing two tiers of unavailable would say there is a better one of two things you
+cannot do. The distinction that has to survive is live-versus-unavailable, and it does.
+
 **What the refusal above costs, stated as a number.** Declining to tint the accent is only a
 position until the alternative is measured, so: `--t4` on `--accent-ink` is **1.68:1 in light and
 1.02:1 in dark**, computed from the same tokens and the same float compositing that reproduce §2's

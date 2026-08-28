@@ -687,6 +687,20 @@ body{
 .btn.destructive:hover{background:var(--f1);}
 .btn.quiet{background:none;border-color:transparent;box-shadow:none;color:var(--accent-text);}
 .btn.quiet:hover{background:var(--f1);}
+/* The unfilled variants lose the same cascade argument the primary lost. `.btn:disabled` is 0-2-0
+   and so are `.btn.destructive` and `.btn.quiet`, both declared after it, so each wins `color`.
+   Measured in Obscura before this rule: a disabled `.btn.quiet` read bg=rgba(0,0,0,0)
+   fg=rgb(0,96,196) bc=rgba(0,0,0,0) — byte-identical to the live one, which is M31's defect
+   exactly; a disabled `.btn.destructive` kept fg=rgb(200,16,46) and dimmed only its bezel.
+   Only `color` is raised here, because the fill is already right and moving it would be a
+   different decision: `Controls.swift`'s `fill(role:isPressed:)` keeps a disabled destructive
+   unfilled on M18's rule that "a destructive alternative is a quiet red text button, never a
+   second filled one", and a quiet control has no fill or bezel to dim in the first place. So the
+   label tier carries the state alone and nothing moves — DESIGN.md §3 rule 4. This also settles a
+   disagreement rather than only a render: `Controls.swift` already returns `.t4` for any disabled
+   label, and its comment justified that on the mock's cascade "still moving the label from
+   --fail-ink to --t4", which the mock did not do until this line. */
+.btn.destructive:disabled,.btn.destructive.disabled,.btn.quiet:disabled,.btn.quiet.disabled{color:var(--t4);}
 .btn.lg{height:28px;padding:0 14px;}
 .btn.sm{height:20px;padding:0 9px;font-size:12px;}
 

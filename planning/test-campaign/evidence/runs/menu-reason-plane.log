@@ -1,0 +1,7 @@
+  (dump written to /tmp/m34-dump2.tsv)
+  ok — 220 menu items read, and a known chord reads back — the probe works on this app
+  ok — 11 items carry a reason written by the walker — it reached the real menu
+  ok — every reason on the plane is one MenuCommandAvailability declares
+  ok — no badge has reached AXTitle on the app's own menu — the SwiftUI limit holds for the product
+  ok — AXSize is present and zero on every item — the geometry channel is named, not open
+  ok — the app stayed in the background — frontmost is still 'ghostty'

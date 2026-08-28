@@ -6,7 +6,7 @@ import Foundation
 ///
 ///  * **copy** puts the bytes in the router's store through ``DiskExtensionStore/adopt(_:name:from:)``,
 ///    which stages and renames, so a failure leaves no half-entry under a name.
-///  * **verify** re-measures the source and compares it to the fingerprint the scan took, then
+///  * **verify** re-measures the source and compares it to the stamp the scan took, then
 ///    compares the store's copy against the source, then reads the entry back through the store's
 ///    own reader and requires it to have no problem. The first of those three is what makes the
 ///    settle window a guarantee rather than a window: a tree edited *during* the copy is caught
@@ -75,8 +75,8 @@ public struct ExtensionIngest: Sendable {
                 kind: candidate.kind, name: candidate.name, sourcePath: candidate.sourcePath,
                 storedPath: stored, quarantinePath: outcome.quarantinePath,
                 linked: outcome.state == .linked, version: candidate.version,
-                digest: candidate.fingerprint.digest, files: candidate.fingerprint.files,
-                bytes: candidate.fingerprint.bytes
+                digest: candidate.stamp.digest, files: candidate.stamp.files,
+                bytes: candidate.stamp.bytes
             ))
         }
         // Written BEFORE the settings edit as well as after it. A crash between the two leaves a
@@ -146,18 +146,18 @@ public struct ExtensionIngest: Sendable {
 
     /// `nil` when all three checks hold. The sentence, when one does not.
     private func verify(_ candidate: IngestCandidate, storedAt stored: String) -> String? {
-        guard let after = ExtensionFingerprint.measure(candidate.sourcePath) else {
+        guard let after = ExtensionStamp.measure(candidate.sourcePath) else {
             return "\(candidate.sourcePath) could not be re-measured after the copy"
         }
-        guard after == candidate.fingerprint else {
+        guard after == candidate.stamp else {
             return "\(candidate.sourcePath) changed while it was being copied, so nothing was moved"
         }
-        guard let copied = ExtensionFingerprint.measure(stored) else {
+        guard let copied = ExtensionStamp.measure(stored) else {
             return "the router's copy at \(stored) could not be measured"
         }
-        guard copied.digest == candidate.fingerprint.digest else {
+        guard copied.digest == candidate.stamp.digest else {
             return "the router's copy does not match: \(copied.files) files / \(copied.bytes) bytes "
-                + "against \(candidate.fingerprint.files) / \(candidate.fingerprint.bytes)"
+                + "against \(candidate.stamp.files) / \(candidate.stamp.bytes)"
         }
         guard let record = store.read(candidate.kind, name: candidate.name) else {
             return "the router's copy could not be read back through the store"

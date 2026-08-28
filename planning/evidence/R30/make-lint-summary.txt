@@ -1,0 +1,17 @@
+695:Done linting! Found 0 violations, 0 serious in 688 files.
+703:  ok    a tree with no applier passes (exit 0)
+710:  ok    P9  a harness path in a block comment is documentation too (exit 0)
+711:  ok    P10 a split applier outside the seam is NOT caught — the gate's declared blind spot (exit 0)
+719:  ok    P17 prose inside a block comment is documentation, whatever its lines begin with (exit 0)
+722:  ok    P20 a generic config file name with no harness named beside it is not a finding (exit 0)
+725:  ok    P22 a slash-slash inside a string does not suppress the block comment after it (exit 0)
+726:  ok    P6  a harness path discussed in a doc comment is documentation, not a write (exit 0)
+727:  ok    P7  writing to standard output is printing, not writing a config (exit 0)
+1028:          proves: 13 arms on planted lanes with known exit codes, dispatched through ACCEPTANCE_LANES/ACCEPTANCE_LANES_DIR so no real lane runs: an all-green set must exit 0, a red lane must not be aggregated away, a lane that exits 0 having asserted nothing must be classed with the failures rather than the blocked, and a lane that leaves no row must redden the run on the row count alone. Arm 9 is the presence control for arm 8, so a runner that always exits 1 cannot satisfy the set.
+1030:          proves: the aggregator's own arming, named by the file in its own words as `what proves the aggregation can actually go red`. The sweep here is the zero-assertion test — a lane reaching exit 0 through a dead shell or an empty loop — and the selftest plants exactly that lane and requires it classed with the failures. It runs the same 19 seconds as the selftest's own row; that row proves the instrument, this one binds the sweep to it, and neither is the other.
+1042:CLEAN sweep-control: 90 discovered sweep(s), all disposed; 22 declared control(s) run and passing.
+1056:  ok    home_rel.sh        expected CLEAN         read CLEAN
+1057:  ok    system.sh          expected CLEAN         read CLEAN
+1058:  ok    scratch.sh         expected CLEAN         read CLEAN
+1329:  ok    all guards red -> exit 0
+1346:GOVERNOR_RC=0 after 1 attempt(s)

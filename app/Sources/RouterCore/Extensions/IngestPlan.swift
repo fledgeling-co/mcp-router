@@ -21,7 +21,7 @@ public struct IngestCandidate: Sendable, Hashable {
     public let version: String?
     /// The `settings.json` key that records this entry with Claude, or `nil` for a skill.
     public let settingsKey: String?
-    public let fingerprint: TreeFingerprint
+    public let stamp: TreeStamp
     /// Something true about this candidate that a person should read before applying, and that does
     /// not stop it being applied. A descriptor whose `name` differs from its directory is the
     /// measured case: both names are known, so nothing is being guessed.
@@ -34,7 +34,7 @@ public struct IngestCandidate: Sendable, Hashable {
         title: String,
         version: String? = nil,
         settingsKey: String? = nil,
-        fingerprint: TreeFingerprint,
+        stamp: TreeStamp,
         note: String? = nil
     ) {
         self.kind = kind
@@ -43,7 +43,7 @@ public struct IngestCandidate: Sendable, Hashable {
         self.title = title
         self.version = version
         self.settingsKey = settingsKey
-        self.fingerprint = fingerprint
+        self.stamp = stamp
         self.note = note
     }
 }

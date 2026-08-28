@@ -18,22 +18,15 @@ extension ClaudeExtensionScan {
     /// One entry's decision, taken in a fixed order so a candidate refused for two reasons is
     /// always reported under the same one.
     ///
-    /// A `final class` rather than a struct because the two output arrays are `inout` on the caller
-    /// and the settled-ness clock has to be the same for every entry in one scan: re-reading the
-    /// clock per entry would let a long scan judge its first and last candidates against different
-    /// nows, which is exactly the kind of drift the settle window exists to remove.
-    final class Context: @unchecked Sendable {
+    /// It carries `now` rather than reading a clock, and that is the point of it being a value the
+    /// scan constructs once: a long scan that re-read the clock per entry would judge its first and
+    /// its last candidate against different nows, which is the drift the settle window exists to
+    /// remove.
+    struct Context: Sendable {
         let tree: ClaudeTree
         let store: any ExtensionStoring
         let settle: Double
         let now: Double
-
-        init(tree: ClaudeTree, store: any ExtensionStoring, settle: Double, now: Double) {
-            self.tree = tree
-            self.store = store
-            self.settle = settle
-            self.now = now
-        }
 
         func consider(
             _ subject: Subject,
@@ -78,13 +71,13 @@ extension ClaudeExtensionScan {
                             + "so ingesting would have to choose between two copies"
                     )
                 }
-                guard let fingerprint = ExtensionFingerprint.measure(source) else {
+                guard let stamp = ExtensionStamp.measure(source) else {
                     return refuse("unmeasurable", "\(source) could not be walked")
                 }
-                guard ExtensionFingerprint.isSettled(
-                    fingerprint, now: now, settleMilliseconds: settle
+                guard ExtensionStamp.isSettled(
+                    stamp, now: now, settleMilliseconds: settle
                 ) else {
-                    let age = Int((now - fingerprint.newestModifiedMilliseconds) / 1000)
+                    let age = Int((now - stamp.newestModifiedMilliseconds) / 1000)
                     return refuse(
                         "notSettled",
                         "something under \(source) changed \(age)s ago, inside the "
@@ -94,7 +87,7 @@ extension ClaudeExtensionScan {
                 candidates.append(IngestCandidate(
                     kind: kind, name: name, sourcePath: source, title: reading.title,
                     version: subject.version, settingsKey: subject.settingsKey,
-                    fingerprint: fingerprint,
+                    stamp: stamp,
                     note: reading.title == name ? nil
                         : "\(kind.descriptorPath) calls this \"\(reading.title)\"; it is stored "
                         + "under \"\(name)\", which is the name Claude resolves it by"

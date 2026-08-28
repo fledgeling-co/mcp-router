@@ -15,7 +15,7 @@ struct ExtensionIngestApplyTests {
         defer { bench.tearDown() }
         let scan = bench.scan()
         let source = "\(bench.claude.root)/skills/graphify"
-        let sourcePrint = ExtensionFingerprint.measure(source)
+        let sourceStamp = ExtensionStamp.measure(source)
         let run = bench.ingest().apply(scan.candidates)
 
         #expect(run.outcomes.count == 6)
@@ -27,13 +27,13 @@ struct ExtensionIngestApplyTests {
         #expect(stored?.title == "graphify")
         // Byte-faithful, asserted by digest rather than by file count: two files of the right
         // sizes and the wrong contents would satisfy a count.
-        #expect(ExtensionFingerprint.measure("\(bench.store.root)/skills/graphify")?.digest
-            == sourcePrint?.digest)
+        #expect(ExtensionStamp.measure("\(bench.store.root)/skills/graphify")?.digest
+            == sourceStamp?.digest)
 
         // Reversible: Claude's copy is aside, not gone.
         let quarantine = run.outcomes.first { $0.candidate.name == "graphify" }?.quarantinePath
         #expect(quarantine != nil)
-        #expect(ExtensionFingerprint.measure(quarantine ?? "")?.digest == sourcePrint?.digest)
+        #expect(ExtensionStamp.measure(quarantine ?? "")?.digest == sourceStamp?.digest)
         #expect(run.manifestPath != nil)
     }
 
@@ -76,8 +76,8 @@ struct ExtensionIngestApplyTests {
         // comparison: the writer re-serialises it, so its bytes legitimately differ from the
         // fixture's hand-written spacing while every member is restored. Its members are compared
         // as values below, which is the claim that actually matters.
-        let skillsBefore = ExtensionFingerprint.measure("\(bench.claude.root)/skills")
-        let pluginsBefore = ExtensionFingerprint.measure("\(bench.claude.root)/plugins")
+        let skillsBefore = ExtensionStamp.measure("\(bench.claude.root)/skills")
+        let pluginsBefore = ExtensionStamp.measure("\(bench.claude.root)/plugins")
         let enabledBefore = ClaudeFixtureTree.settingsMember("enabledPlugins", at: path)
         let run = bench.ingest().apply(bench.scan().candidates)
         #expect(run.outcomes.allSatisfy { $0.state == .ingested })
@@ -89,9 +89,9 @@ struct ExtensionIngestApplyTests {
         #expect(report.settingsRestored == 3)
         #expect(report.outcomes.allSatisfy { $0.state == .restored })
         #expect(ClaudeFixtureTree.settingsMember("enabledPlugins", at: path) == enabledBefore)
-        #expect(ExtensionFingerprint.measure("\(bench.claude.root)/skills")?.digest
+        #expect(ExtensionStamp.measure("\(bench.claude.root)/skills")?.digest
             == skillsBefore?.digest)
-        #expect(ExtensionFingerprint.measure("\(bench.claude.root)/plugins")?.digest
+        #expect(ExtensionStamp.measure("\(bench.claude.root)/plugins")?.digest
             == pluginsBefore?.digest)
         #expect(bench.store.list(.skills).records.isEmpty)
     }
@@ -132,8 +132,8 @@ struct ExtensionIngestApplyTests {
         #expect(ClaudeFixtureTree.settingsMember("enabledPlugins", at: path) == enabledBefore)
 
         let source = "\(bench.claude.root)/skills/graphify"
-        #expect(try? FileManager.default.destinationOfSymbolicLink(atPath: source)
-            == "\(bench.store.root)/skills/graphify")
+        let target = try? FileManager.default.destinationOfSymbolicLink(atPath: source)
+        #expect(target == "\(bench.store.root)/skills/graphify")
         // The link resolves to the router's copy, which is the only copy of the bytes.
         let text = try? String(
             contentsOf: URL(fileURLWithPath: "\(source)/SKILL.md"), encoding: .utf8

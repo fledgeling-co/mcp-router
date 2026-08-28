@@ -94,7 +94,7 @@ existing one into `JSONMember`s, deletes named keys out of `enabledPlugins` and
    place, so a failure leaves no half-entry under a name a caller asked for. `add` could not be
    reused: its `ExtensionFile.text` is a `String`, and a plugin tree holds bytes that are not UTF-8.
 3. **verify** — three checks, all of which must hold:
-   - the source's fingerprint is **re-measured** and must equal the one the scan took;
+   - the source's stamp is **re-measured** and must equal the one the scan took;
    - the router's copy must have the **same digest** as the source;
    - the store's own reader must return the entry with `problem == nil`.
 4. **remove** — Claude's directory is **moved** into `<store>/.removed/claude/<kind>/<name>/<ms>`.
@@ -112,7 +112,7 @@ no state in which neither exists.
 
 Two mechanisms, because one is only a filter. A candidate whose newest `mtime` is inside the settle
 window (`--settle-seconds`, default 60) is refused before anything is copied; and the source is
-re-fingerprinted **after** the copy, so a tree edited *during* it is caught as well. Nothing on a
+re-stamped **after** the copy, so a tree edited *during* it is caught as well. Nothing on a
 POSIX filesystem can prove an editor does not hold the file open, and the spec says so rather than
 implying the window is a guarantee.
 

@@ -87,9 +87,9 @@ struct ExtensionIngestTests {
     func scanIsReadOnly() {
         let bench = IngestBench("readonly")
         defer { bench.tearDown() }
-        let before = ExtensionFingerprint.measure(bench.claude.root)
+        let before = ExtensionStamp.measure(bench.claude.root)
         _ = bench.scan()
-        #expect(ExtensionFingerprint.measure(bench.claude.root)?.digest == before?.digest)
+        #expect(ExtensionStamp.measure(bench.claude.root)?.digest == before?.digest)
         #expect(!FileManager.default.fileExists(atPath: bench.store.root))
     }
 
@@ -137,24 +137,58 @@ struct ExtensionIngestTests {
             == "{ this is not json")
     }
 
-    // MARK: - The fingerprint, which every verify rests on
+    @Test("G15 — two keys out of one container come back in their original order")
+    func settingsRestoresOrder() throws {
+        let bench = IngestBench("order")
+        defer { bench.tearDown() }
+        let path = bench.claude.settingsPath
+        let before = ClaudeFixtureTree.settingsMember("enabledPlugins", at: path)
 
-    @Test("G14 — the fingerprint changes when a byte does, and not when a read repeats")
-    func fingerprintIsAnOracle() {
+        // Removed in the order the ingest would remove them, which is NOT the order they sit in.
+        // Each index is recorded against an array the previous removal already shortened, so a
+        // forward restore puts the second key back in the first one's place.
+        let result = try ClaudeSettingsEdit.remove(
+            [
+                ClaudeSettingsEdit.KeyRemoval(
+                    container: "enabledPlugins", key: "code-review@claude-code-plugins"
+                ),
+                ClaudeSettingsEdit.KeyRemoval(
+                    container: "enabledPlugins", key: "code-review@fledgeling-plugins"
+                )
+            ],
+            to: bench.settingsDestination(), fileSystem: RealFileSystem()
+        )
+        #expect(result.removed.map(\.index) == [1, 0])
+        #expect(ClaudeFixtureTree.settingsMember("enabledPlugins", at: path)
+            == "{\"swift-lsp@fledgeling-plugins\":true}")
+
+        let restored = try ClaudeSettingsEdit.restore(
+            result.removed, to: bench.settingsDestination(), fileSystem: RealFileSystem()
+        )
+        #expect(restored == 2)
+        // Order, not just membership: `settingsMember` compacts the parsed value, which keeps
+        // member order, so this comparison fails on a reordering that keeps every key.
+        #expect(ClaudeFixtureTree.settingsMember("enabledPlugins", at: path) == before)
+    }
+
+    // MARK: - The stamp, which every verify rests on
+
+    @Test("G14 — the stamp changes when a byte does, and not when a read repeats")
+    func stampIsAnOracle() {
         let root = NSTemporaryDirectory() + "mcprouter-r30-print-" + UUID().uuidString
         defer { try? FileManager.default.removeItem(atPath: root) }
         ClaudeFixtureTree.skill("alpha", at: root, description: "one", extra: "docs/more.md")
         let directory = "\(root)/skills/alpha"
 
-        let first = ExtensionFingerprint.measure(directory)
+        let first = ExtensionStamp.measure(directory)
         #expect(first?.files == 2)
-        #expect(ExtensionFingerprint.measure(directory)?.digest == first?.digest)
+        #expect(ExtensionStamp.measure(directory)?.digest == first?.digest)
 
         // One byte changed with the file's length held constant, so size alone cannot see it.
         ClaudeFixtureTree.write(
             "---\nname: alpha\ndescription: two\n---\n\n# alpha\n", to: "\(directory)/SKILL.md"
         )
-        #expect(ExtensionFingerprint.measure(directory)?.digest != first?.digest)
-        #expect(ExtensionFingerprint.measure("\(root)/skills/nothing-here") == nil)
+        #expect(ExtensionStamp.measure(directory)?.digest != first?.digest)
+        #expect(ExtensionStamp.measure("\(root)/skills/nothing-here") == nil)
     }
 }

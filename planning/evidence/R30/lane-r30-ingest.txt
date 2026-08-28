@@ -1,0 +1,39 @@
+R30 — mcp-router ingest against a fixture tree at /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/mcprouter-r30.Pwc511Pz78/claude
+
+  ok   no tree named: exits 1                                         1
+  ok   no tree named: the message says how to name one                yes
+  ok   no tree named: it says why there is no default                 yes
+  ok   --claude-home and --live together: exits 1                     1
+  ok   dry run: exits 0                                               0
+  ok   dry run: 6 candidates                                          6
+  ok   dry run: 3 left alone                                          3
+  ok   dry run: applied is false                                      false
+  ok   dry run: the tree is byte-identical afterwards                 e632450158c1feda9a530053eb5a60c5a6e258d9b16ac5138838929bbac1b1e7
+  ok   dry run: the router store was not created                      no
+  ok   dry run: both code-review plugins survive the flat store       claude-code-plugins,code-review@claude-code-plugins,code-review@fledgeling-plugins,fledgeling-plugins,graphify,mermaid-diagrams
+  ok   dry run: the three refusals are named                          sourceMissing,unreadableDescriptor,unreadableDescriptor
+  ok   apply: exits 0                                                 0
+  ok   apply: every outcome is ingested                               ingested
+  ok   apply: 3 settings keys withdrawn                               3
+  ok   apply: top-level key count is unchanged                        8
+  ok   apply: Claude no longer holds the skill                        no
+  ok   apply: the router holds it                                     yes
+  ok   apply: the colliding plugins are both stored                   code-review@claude-code-plugins code-review@fledgeling-plugins 
+  ok   apply: the unidentifiable skill is still where it was          yes
+  ok   apply: the descriptor-less plugin is still where it was        yes
+  ok   apply: settings.json keeps all eight members, in order         env,includeCoAuthoredBy,permissions,model,hooks,statusLine,enabledPlugins,extraKnownMarketplaces
+  ok   apply: env is untouched                                        {"CLAUDE_CODE_MAX_RETRIES":"4","DISABLE_AUTOUPDATER":"1"}
+  ok   apply: hooks are untouched                                     {"SessionStart":[{"hooks":[{"command":"echo start","type":"command"}]}]}
+  ok   apply: permissions are untouched                               {"allow":["Bash(git status)"],"ask":[],"defaultMode":"acceptEdits","deny":[]}
+  ok   apply: only the ingested plugin keys left                      {"swift-lsp@fledgeling-plugins":true}
+  ok   apply: the ingested marketplace key left                       {}
+  ok   apply: a run manifest was written                              yes
+  ok   undo: exits 0                                                  0
+  ok   undo: 3 settings keys restored                                 3
+  ok   undo: the extension trees are byte-identical to before the run de9b8c5b118ac00b37a05cf28c96421827ac017c4a218649bf05287db23681e8|73ab93ba6f57ff63c8860cec19a019bd4f7df2dc8c7df99e462fe97484f1dcc6
+  ok   undo: enabledPlugins is back                                   {"code-review@claude-code-plugins":false,"code-review@fledgeling-plugins":true,"swift-lsp@fledgeling-plugins":true}
+  ok   undo: extraKnownMarketplaces is back                           {"fledgeling-plugins":{"source":{"repo":"example/one","source":"github"}}}
+  ok   control: the digest sees a planted file                        sighted
+  ok   the real ~/.claude/settings.json was not touched               12021:1787792504510771383
+
+r30-ingest: 35 ok, 0 failed, 35 assertions (floor 20)

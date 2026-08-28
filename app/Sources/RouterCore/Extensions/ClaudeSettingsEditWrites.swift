@@ -43,9 +43,19 @@ public extension ClaudeSettingsEdit {
 
     /// Put removed keys back, at the index they came from.
     ///
-    /// The undo half. A key whose container has since gone is re-created as a container holding
-    /// just that key, because the alternative — dropping it — would make an undo that reported
-    /// success and left the extension unregistered.
+    /// **In reverse.** `restorations` arrives in the order the keys were removed, and each index was
+    /// recorded against the array as it stood at that moment — so every later removal's index was
+    /// taken from a list already shortened by the earlier ones. Undoing forwards therefore restores
+    /// the values and scrambles their order. Worked through on the fixture: `enabledPlugins`
+    /// `[cr@fledgeling, cr@claude-code, swift-lsp]` loses index 1 then index 0, and re-inserting at
+    /// 1 then 0 yields `[cr@fledgeling, swift-lsp, cr@claude-code]` — every key present, one of
+    /// them moved. Re-inserting at 0 then 1 yields the original. Position is not cosmetic here:
+    /// this file is one a person reads and diffs, and an undo that reorders it is an undo that
+    /// leaves a diff behind.
+    ///
+    /// A key whose container has since gone is re-created as a container holding just that key,
+    /// because the alternative — dropping it — would be an undo reporting success while leaving the
+    /// extension unregistered.
     @discardableResult
     static func restore(
         _ restorations: [RemovedKey],
@@ -57,7 +67,7 @@ public extension ClaudeSettingsEdit {
         let before = try? fileSystem.attributes(atPath: path)
         var root = try parse(path, fileSystem: fileSystem)
         var restored = 0
-        for entry in restorations {
+        for entry in restorations.reversed() {
             guard let value = try? JSONParser.parse(entry.valueJSON) else { continue }
             let name = JSString(entry.container)
             var members = root.first { $0.key == name }?.value.asObjectMembers ?? []

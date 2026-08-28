@@ -18,7 +18,7 @@ enum IngestReport {
         out += "would ingest (\(scan.candidates.count))\n"
         for candidate in scan.candidates {
             out += "  \(Copy.pad(candidate.kind.singular, 12)) \(Copy.pad(candidate.name, 42)) "
-            out += "\(candidate.fingerprint.files) files, \(candidate.fingerprint.bytes) bytes"
+            out += "\(candidate.stamp.files) files, \(candidate.stamp.bytes) bytes"
             out += candidate.version.map { " · \($0)" } ?? ""
             out += "\n      from \(candidate.sourcePath)\n"
             if let note = candidate.note { out += "      note: \(note)\n" }
@@ -153,9 +153,9 @@ enum IngestReport {
                 "settingsKey",
                 candidate.settingsKey.map { JSONValue.string(JSString($0)) } ?? .null
             ),
-            member("files", .number(Double(candidate.fingerprint.files))),
-            member("bytes", .number(Double(candidate.fingerprint.bytes))),
-            member("digest", .string(JSString(candidate.fingerprint.digest))),
+            member("files", .number(Double(candidate.stamp.files))),
+            member("bytes", .number(Double(candidate.stamp.bytes))),
+            member("digest", .string(JSString(candidate.stamp.digest))),
             member("note", candidate.note.map { JSONValue.string(JSString($0)) } ?? .null)
         ])
     }

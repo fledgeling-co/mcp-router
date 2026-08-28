@@ -8,7 +8,7 @@ import Foundation
 /// is expensive. `files` and `bytes` are what a person reads in a plan; `newestModifiedMilliseconds`
 /// is what decides whether anybody is editing the tree right now; `digest` is what makes "the copy
 /// is complete" a comparison rather than an assurance.
-public struct TreeFingerprint: Sendable, Hashable {
+public struct TreeStamp: Sendable, Hashable {
     public let files: Int
     public let bytes: Int
     public let newestModifiedMilliseconds: Double
@@ -28,15 +28,22 @@ public struct TreeFingerprint: Sendable, Hashable {
     }
 }
 
-/// Reading a tree's fingerprint, and nothing else. It opens files and writes none.
-public enum ExtensionFingerprint {
+/// Reading a tree's stamp, and nothing else. It opens files and writes none.
+///
+/// **Named `Stamp` rather than `Fingerprint` because of a gate, and the gate is right.**
+/// `LogParityTests`' A31 rule refuses any line under `app/Sources/RouterCore` containing `print(`,
+/// because a router speaking MCP over stdio must keep that stream clean and a scan for the
+/// `FileHandle` names alone would miss the likeliest regression. `TreeFingerprint(` contains that
+/// substring, so the constructor tripped it. Narrowing the rule to make this type's name fit would
+/// have traded a gate for a noun; `FileStamp` was already the repository's word for the same idea.
+public enum ExtensionStamp {
     /// `nil` when the directory could not be enumerated at all.
     ///
     /// A file inside it that cannot be read is **not** `nil`: it contributes its path and the
     /// marker `unreadable` to the digest instead of its content. That keeps a partially readable
     /// tree comparable with itself — a copy that reproduced the same unreadable file matches — while
     /// making it impossible for an unreadable file to be silently absent from the material.
-    public static func measure(_ directory: String) -> TreeFingerprint? {
+    public static func measure(_ directory: String) -> TreeStamp? {
         let manager = FileManager.default
         var isDirectory: ObjCBool = false
         guard manager.fileExists(atPath: directory, isDirectory: &isDirectory),
@@ -73,7 +80,7 @@ public enum ExtensionFingerprint {
             lines.append("\(relative)\t\(size)\t\(hex(SHA256.hash(data: data)))")
         }
         lines.sort()
-        return TreeFingerprint(
+        return TreeStamp(
             files: files,
             bytes: bytes,
             newestModifiedMilliseconds: newest,
@@ -89,9 +96,9 @@ public enum ExtensionFingerprint {
     /// refuses on any change. The two together are what the promise rests on; this one alone would
     /// be a window, not a guarantee.
     public static func isSettled(
-        _ fingerprint: TreeFingerprint, now: Double, settleMilliseconds: Double
+        _ stamp: TreeStamp, now: Double, settleMilliseconds: Double
     ) -> Bool {
-        now - fingerprint.newestModifiedMilliseconds >= settleMilliseconds
+        now - stamp.newestModifiedMilliseconds >= settleMilliseconds
     }
 
     private static func modified(of path: String, manager: FileManager) -> Double {

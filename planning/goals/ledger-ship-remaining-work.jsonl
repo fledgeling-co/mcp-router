@@ -10,3 +10,21 @@
 | 6 | 11:07:07 | block | branches, worklist | iteration 6/60 · repeat ×1 |
 | 7 | 11:10:18 | block | branches, worklist | iteration 7/60 · repeat ×2 |
 | 8 | 11:13:49 | block | branches, worklist | iteration 8/60 · repeat ×3 |
+| 9 | 11:19:17 | block | citations, branches, worklist | iteration 9/60 · repeat ×1 |
+| 10 | 11:25:13 | block | branches, worklist, liveness | iteration 10/60 · repeat ×1 |
+| 11 | 11:29:30 | block | branches, worklist | iteration 11/60 · repeat ×1 |
+| 12 | 11:32:33 | block | branches, worklist | iteration 12/60 · repeat ×2 |
+| 13 | 11:35:39 | block | branches, worklist | iteration 13/60 · repeat ×3 |
+| 14 | 12:08:48 | block | tests, branches, worklist | iteration 14/60 · repeat ×1 |
+| 15 | 12:21:46 | block | lint, branches, worklist | iteration 15/60 · repeat ×1 |
+| 16 | 12:33:08 | block | lint, branches, worklist | iteration 16/60 · repeat ×1 |
+| 17 | 12:41:49 | block | branches, worklist | iteration 17/60 · repeat ×1 |
+| 18 | 12:51:12 | block | tests, branches, worklist | iteration 18/60 · repeat ×1 |
+| 19 | 12:55:24 | block | branches, worklist | iteration 19/60 · repeat ×1 |
+| 20 | 13:00:21 | block | branches, worklist | iteration 20/60 · repeat ×2 |
+| 21 | 13:04:06 | block | branches, worklist | iteration 21/60 · repeat ×3 |
+| 22 | 13:08:57 | block | branches, worklist, liveness | iteration 22/60 · repeat ×1 |
+| 23 | 13:12:42 | block | branches, worklist | iteration 23/60 · repeat ×1 |
+| 24 | 13:17:23 | block | branches, worklist | iteration 24/60 · repeat ×2 |
+| 25 | 13:22:52 | block | branches, worklist | iteration 25/60 · repeat ×3 |
+| 26 | 13:28:59 | stop | branches, worklist | identical failure ×4 after escalation, stuck, disarmed |

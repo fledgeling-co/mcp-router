@@ -1,0 +1,17 @@
+{
+  "port": 8973,
+  "host": "127.0.0.1",
+  "idleMs": 300000,
+  "mcpServers": {
+    "witness-fixture": {
+      "type": "stdio",
+      "command": "/usr/bin/python3",
+      "args": [
+        "__HOME__/fixture-server.py"
+      ],
+      "env": {
+        "WITNESS_PIDFILE": "__HOME__/child.pid"
+      }
+    }
+  }
+}

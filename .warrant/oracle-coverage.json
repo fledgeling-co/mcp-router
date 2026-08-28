@@ -1,0 +1,146 @@
+{
+ "campaign_dir": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign",
+ "generated_at": "2026-08-26T23:52:35.524411+00:00",
+ "note": "`figures` is cases on that surface and `sourced` is those on an effect rung \u2014 a check that could catch a wrong answer. Run warrant's rollup_classes.py to key this by defect class using the warrant's own globs.",
+ "source": "test-campaign",
+ "surfaces": [
+  {
+   "figures": 2,
+   "file": "app://ios/discover",
+   "sourced": 2,
+   "unsourced": 0
+  },
+  {
+   "figures": 1,
+   "file": "app://ios/library",
+   "sourced": 1,
+   "unsourced": 0
+  },
+  {
+   "figures": 3,
+   "file": "app://ios/pair-mac",
+   "sourced": 3,
+   "unsourced": 0
+  },
+  {
+   "figures": 1,
+   "file": "app://ios/queue",
+   "sourced": 1,
+   "unsourced": 0
+  },
+  {
+   "figures": 5,
+   "file": "app://ios/settings",
+   "sourced": 3,
+   "unsourced": 2
+  },
+  {
+   "figures": 3,
+   "file": "app://ios/triage",
+   "sourced": 3,
+   "unsourced": 0
+  },
+  {
+   "figures": 4,
+   "file": "app://mac/activity",
+   "sourced": 3,
+   "unsourced": 1
+  },
+  {
+   "figures": 2,
+   "file": "app://mac/checks",
+   "sourced": 2,
+   "unsourced": 0
+  },
+  {
+   "figures": 12,
+   "file": "app://mac/cleanup",
+   "sourced": 9,
+   "unsourced": 3
+  },
+  {
+   "figures": 3,
+   "file": "app://mac/discover",
+   "sourced": 3,
+   "unsourced": 0
+  },
+  {
+   "figures": 5,
+   "file": "app://mac/inbox",
+   "sourced": 5,
+   "unsourced": 0
+  },
+  {
+   "figures": 3,
+   "file": "app://mac/menubar-popover",
+   "sourced": 3,
+   "unsourced": 0
+  },
+  {
+   "figures": 4,
+   "file": "app://mac/pairing",
+   "sourced": 4,
+   "unsourced": 0
+  },
+  {
+   "figures": 10,
+   "file": "app://mac/servers",
+   "sourced": 10,
+   "unsourced": 0
+  },
+  {
+   "figures": 3,
+   "file": "app://mac/settings",
+   "sourced": 3,
+   "unsourced": 0
+  },
+  {
+   "figures": 3,
+   "file": "app://mac/skills",
+   "sourced": 2,
+   "unsourced": 1
+  },
+  {
+   "figures": 1,
+   "file": "http://127.0.0.1:8879/",
+   "sourced": 1,
+   "unsourced": 0
+  },
+  {
+   "figures": 2,
+   "file": "http://127.0.0.1:8879/.well-known/oauth-authorization-server",
+   "sourced": 2,
+   "unsourced": 0
+  },
+  {
+   "figures": 1,
+   "file": "http://127.0.0.1:8879/authorize",
+   "sourced": 1,
+   "unsourced": 0
+  },
+  {
+   "figures": 3,
+   "file": "http://127.0.0.1:8879/control",
+   "sourced": 3,
+   "unsourced": 0
+  },
+  {
+   "figures": 1,
+   "file": "http://127.0.0.1:8879/token",
+   "sourced": 1,
+   "unsourced": 0
+  },
+  {
+   "figures": 4,
+   "file": "ipc://router/core",
+   "sourced": 4,
+   "unsourced": 0
+  },
+  {
+   "figures": 1,
+   "file": "test://parity/surface",
+   "sourced": 1,
+   "unsourced": 0
+  }
+ ]
+}

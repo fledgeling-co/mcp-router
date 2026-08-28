@@ -1343,6 +1343,11 @@ does **not** change what any check reads, and must not be described as though it
 | R25 | Profile export with secret redaction | router | — | — | Opus | **To Do** | — | — |
 | R26 | Upstream auth expiry notification | router | — | — | Opus | **To Do** | — | — |
 | R27 | Upstream health check and timeouts | router | — | — | Opus | **To Do** | — | — |
+| R28 | The router owns skills, plugins and marketplaces | router | — | — | Opus | **To Do** | — | — |
+| R29 | Push a reload to live sessions | router | — | — | Opus | **To Do** | — | — |
+| R30 | Ingest what Claude acquires | router | — | — | Opus | **To Do** | — | — |
+| R31 | Invalidate the caches a change outruns | router | — | — | Opus | **To Do** | — | — |
+| R32 | Claude Desktop has no live reload | router | — | — | Opus | **To Do** | — | — |
 | R20 | A staged entry wipes a same-named healthy upstream and blames it for the failure | router | — | — | Opus | **Merged** `b637adf` | `ai/r20` | StagedErrorAttributionTests verifying healthy server preservation and attribution safety. |
 | M27 | The sidebar foot's loopback readout and the child-process label | mac | M1 ✓ | `design/mocks/prototype.html` | Opus | **Merged** `cbe5cc3` | `ai/m27` `26337b8` | **Verified 2026-08-21 at `raster-visual`.** The verifier re-ran `mac-shell.sh` against the live app and, in the same iteration as each AX assertion, took a `screencapture -l<CGWindowID>` of that window — then opened the PNGs and read `127.0.0.1:8971` and `Child processes  1 of 4` off the pixels. Two mutations red (`.combine`→`.ignore`, and deleting the line). codex/gpt-5.6-sol confirmed no runtime defect. Six follow-ups `D-m27-a`…`D-m27-f`, none blocking — but `D-m27-a` is worth reading before the next item touches A35. |
 

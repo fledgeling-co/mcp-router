@@ -26,6 +26,13 @@ public enum ControlPaths {
             // as divergences in `planning/parity/surface.tsv` rather than left to be discovered.
             || pathname == "/harnesses"
             || pathname == "/insights"
+            // R28's family. A prefix arm as well as the exact match, unlike M22's two above:
+            // this one HAS sub-paths — `/extensions/skills` and `/extensions/skills/<name>` —
+            // and without the prefix the collections would fall through to `/mcp`. `/extensionsx`
+            // shares a prefix with an owned path and is not owned, which is the negative the
+            // trailing slash is there for.
+            || pathname == "/extensions"
+            || pathname.hasPrefix("/extensions/")
     }
 }
 

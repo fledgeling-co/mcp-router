@@ -218,7 +218,14 @@ extension RouterService {
             // declared divergences from it. A real inventory there would additionally put whoever
             // is running the gate's own `$HOME` inside a parity run.
             harnesses: DiskHarnessInventory(),
-            insights: PoolInsightsPort(pool: pool)
+            insights: PoolInsightsPort(pool: pool),
+            // R28. Supplied here and nowhere else, which is the whole point of the line: the
+            // registry client and the OAuth starter each existed, were unit-tested, and were nil
+            // in the one process that ships, so every route depending on them answered a refusal
+            // on the wire while the suite stayed green (`D-p1-a`, and the `control-registry-search`
+            // row). `scripts/acceptance/r28-extensions.sh` drives the daemon's own socket rather
+            // than the handler, because that is the only oracle that can see this line missing.
+            extensions: DiskExtensionStore(root: home.extensionsPath, clock: clock)
         )
     }
 

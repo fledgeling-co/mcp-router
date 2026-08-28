@@ -352,19 +352,22 @@ public struct ControlHandler: Sendable {
 /// Split out of the main type so the dispatch table does not count against its body length —
 /// `private` still resolves, because these are same-file extensions.
 extension ControlHandler {
-    /// The read-only reports: the usage family, and M22's two boards.
+    /// The reports and the extension family: the usage routes, M22's two boards, and R28's
+    /// `/extensions`.
     ///
-    /// One arm in `handle` rather than four, and that is a constraint rather than a preference —
+    /// One arm in `handle` rather than seven, and that is a constraint rather than a preference —
     /// `handle` sits at cyclomatic complexity 10 against a cap of 10, which is why the auth family
     /// was split out of `dispatchServer` too. Adding the two routes inline took it to 12.
     ///
     /// Both of M22's are GETs, and any other method falls through to `handle`'s 405 rather than to
     /// a 404: `isControlPath` claims the path, so "the method is wrong" is the true answer and "no
-    /// such route" is not.
+    /// such route" is not. R28's family answers more than GET and reports `nil` for a method it
+    /// does not serve, which lands in the same 405 for the same reason.
     func routeReading(
         _ path: String, _ request: ControlAPIRequest, _ deps: ControlDeps
     ) async -> ControlAPIResponse? {
         if let response = routeUsage(path, request, deps) { return response }
+        if let response = routeExtensions(path, request, deps) { return response }
         switch (path, request.method) {
         case ("/harnesses", "GET"): return harnessesResponse(deps)
         case ("/insights", "GET"): return await insightsResponse(deps)

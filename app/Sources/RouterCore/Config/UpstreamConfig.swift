@@ -146,6 +146,10 @@ public struct RouterHome: Sendable, Hashable {
     public var usagePath: String { path("usage.jsonl") }
     public var statsPath: String { path("usage-stats.json") }
     public var authDir: String { path("auth") }
+    /// Where the router holds skills, plugins and marketplaces — R28. Under the home like every
+    /// other piece of router state, so `MCP_ROUTER_HOME` still moves all of it together, which is
+    /// the invariant this type exists for.
+    public var extensionsPath: String { path("extensions") }
 
     public static let defaultPort = 8879
     public static let defaultHost = "127.0.0.1"

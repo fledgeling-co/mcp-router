@@ -76,8 +76,20 @@
         /// The body of a CSS rule, by a selector the rule's list contains. Returns `nil` rather
         /// than the empty string when no rule matches, so a missing rule and an empty one are
         /// distinguishable.
+        ///
+        /// **Block comments are stripped first, because a comment between two rules lands inside
+        /// the following rule's selector list.** `split(separator: "}")` cuts on the previous
+        /// rule's closing brace, so everything to the next `{` is taken as selectors, comment
+        /// included, and the first selector in the list matches nothing. The design of record has
+        /// carried inter-rule comments since it was written; this helper was only accidentally
+        /// right about them, because no asserted selector had ever followed one.
         static func ruleBody(containingSelector needle: String, in css: String) -> String? {
-            for block in css.split(separator: "}") {
+            let stripped = css.replacingOccurrences(
+                of: #"/\*[\s\S]*?\*/"#,
+                with: "",
+                options: .regularExpression
+            )
+            for block in stripped.split(separator: "}") {
                 guard let brace = block.firstIndex(of: "{") else { continue }
                 let selectors = String(block[block.startIndex ..< brace])
                 guard selectors.split(separator: ",").contains(where: {
@@ -191,6 +203,63 @@
             )
         }
 
+        /// **The two unfilled variants lose the same argument, and nothing was watching them.**
+        /// M31's sweep takes `var(--accent-ink)` as its search space, so `.btn.destructive`
+        /// (`--fail-ink`) and `.btn.quiet` (`--accent-text`) were never in it. Both are 0-2-0 and
+        /// declared after `.btn:disabled`, so both won `color`. Measured in Obscura before the fix:
+        /// a disabled `.btn.quiet` read `bg=rgba(0,0,0,0) fg=rgb(0,96,196) bc=rgba(0,0,0,0)`,
+        /// byte-identical to the live control on a variant this page uses nine times; a disabled
+        /// `.btn.destructive` kept `fg=rgb(200,16,46)` and dimmed only its bezel.
+        ///
+        /// **Only `color` is asserted, which is a decision rather than a gap.** There is no fill to
+        /// take off: `Controls.swift`'s `fill(role:isPressed:)` keeps a disabled destructive
+        /// unfilled on M18's rule that a destructive alternative is never a second filled one, and
+        /// a quiet control carries neither fill nor bezel. So the label tier carries the state
+        /// alone, which is §3 rule 4's dims-in-place, and it puts the mock where the build already
+        /// is — `labelColour(isEnabled:role:)` returns `.t4` for any disabled label, on a comment
+        /// crediting the mock's cascade with a move the mock did not make until this rule landed.
+        @Test("the design of record dims the disabled label of both unfilled button variants")
+        func theMockDimsTheUnfilledVariants() throws {
+            let source = try Self.mock()
+            for selector in [
+                ".btn.destructive:disabled", ".btn.destructive.disabled",
+                ".btn.quiet:disabled", ".btn.quiet.disabled"
+            ] {
+                guard let body = Self.ruleBody(containingSelector: selector, in: source) else {
+                    Issue.record("no rule in the design of record carries the selector \(selector)")
+                    continue
+                }
+                #expect(body.contains("color:var(--t4)"), "\(selector) labels with --t4")
+            }
+
+            // The cascade guard. Adding `:disabled`/`.disabled` to a variant's own selector always
+            // adds a class-level component, so the dimming rule wins at 0-3-0 against 0-2-0 on
+            // specificity rather than order — re-declaring `.btn.quiet` after it changes nothing,
+            // measured as `DISA fg=rgb(154,154,162)`, still dimmed. `!important` is the one thing
+            // that defeats that, and it was a real hole here before the second expectation:
+            // `color:var(--accent-text) !important` on the variant renders `LIVE fg=rgb(0,96,196)
+            // DISA fg=rgb(0,96,196)` — M31's defect — with every other assertion still green. The
+            // mock's only three `!important` declarations are in the reduced-motion block and touch
+            // no colour, so this constrains the two rules it names rather than the file.
+            for variant in [".btn.destructive", ".btn.quiet"] {
+                guard let live = Self.ruleBody(containingSelector: variant, in: source),
+                      let off = Self.ruleBody(containingSelector: "\(variant):disabled", in: source)
+                else {
+                    Issue.record("the design of record is missing \(variant) or its disabled rule")
+                    continue
+                }
+                #expect(
+                    Self.properties(of: live).contains("color") == false
+                        || Self.properties(of: off).contains("color"),
+                    "\(variant) sets a label colour that no disabled rule takes back"
+                )
+                #expect(
+                    live.contains("!important") == false,
+                    "\(variant) escalates past the specificity its disabled rule relies on"
+                )
+            }
+        }
+
         /// The store page reproduced M31 on a shipped surface: its bare `.btn` **is** the
         /// accent-filled control, and `.btn[disabled]` dimmed it with `opacity:.45`, which keeps the
         /// accent under a tint — the treatment §3 refuses — and carried the `cursor:not-allowed`
@@ -220,7 +289,15 @@
         ///
         /// `planning/evidence/M31/arm-sweep.sh` is its presence control: six planted defects, one
         /// per failure verdict, each restored byte-identically by sha256.
-        @Test("no surface in the repository draws a disabled control as though it were enabled")
+        /// **Named for its denominator, because it used to be named for the repository.** This
+        /// wraps `sweep-prominent-disabled.py`, whose search space is every rule painting
+        /// `var(--accent-ink)` — the right denominator for M31's defect, not a repo-wide one. It was
+        /// called *"no surface in the repository draws a disabled control as though it were
+        /// enabled"* while `.btn.quiet` rendered `LIVE fg=rgb(0,96,196)` and `DISA fg=rgb(0,96,196)`
+        /// — byte-identical, nine instances in the page — because a quiet button paints
+        /// `--accent-text` and never enters the sweep. A title naming a population the instrument
+        /// does not cover is how a live defect reads as covered ground.
+        @Test("no accent-filled control in the repository draws its disabled state as though enabled")
         func theSweepFindsNoSurfaceDrawingADisabledAccentFill() throws {
             let root = try SheetShortcutScan.repoRoot()
             let sweep = root.appendingPathComponent("planning/evidence/M31/sweep-prominent-disabled.py")

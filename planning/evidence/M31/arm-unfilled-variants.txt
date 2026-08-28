@@ -1,0 +1,10 @@
+baseline issues=0
+ARM rule-deleted: RED (issue lines=6)
+  restored byte-identical
+ARM quiet-dropped: RED (issue lines=3)
+  restored byte-identical
+ARM wrong-tier: RED (issue lines=4)
+  restored byte-identical
+ARM important-escalation: RED (issue lines=1)
+  restored byte-identical
+arm-unfilled-variants: exit 0

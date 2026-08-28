@@ -97,6 +97,18 @@
       "reason": "Discovery is answering about the wrong thing on both markers. V3 fired on line 9, a sentence about a DIFFERENT file (`The sweep has its own control in arm-sweep.sh`); the sweep it names is sweep-prominent-disabled.py, which is registered `control` here pointing at that very script. V1 fired on `diff \"$BASE\" \"$now\" | grep -q \"^>\"`, which asserts a difference is PRESENT — a new failing test name appearing after a plant. This file is itself a presence control: it plants eight defects and watches one named Swift test redden for each. It claims no absence, so there is nothing here for a presence control to arm. Separately and outside this row: it sets no verdict exit code — it prints `*** NO TEST REDDENED ***` and still exits 0 — and each arm runs `swift test` twice, so it is minutes rather than seconds."
     },
     {
+      "path": "planning/evidence/M31/arm-unfilled-variants.sh",
+      "disposition": "not-a-sweep",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-28",
+      "reason": "A presence control, the same shape as arm-guards.sh beside it: it plants four defects into design/mcp-router-console.html and requires the Swift test `theMockDimsTheUnfilledVariants` to redden for each, restoring byte-identically and checking the sha256 back. It asserts a presence — that issue lines appear — and claims no absence, so there is nothing here for a control to arm. Discovery is reading its header prose, which describes the sweep whose blind spot the guard covers rather than sweeping anything itself. Unlike arm-guards.sh it does carry a verdict exit code: a plant that does not redden, a failed restore and a non-green baseline each set RC=1 and the run exits non-zero.",
+      "note": "Arm 4 is why the file exists in this shape. An earlier arm 4 re-declared `.btn.quiet` after the disabled rule — the mechanism by which M31's original defect arrived — and the guard correctly stayed green, because the fix is specificity (0-3-0 over 0-2-0) rather than order and the renderer agreed. The arm was wrong, not the guard. Replacing it with `!important` on the variant found a real hole: the defect rendered (`LIVE fg=rgb(0,96,196) DISA fg=rgb(0,96,196)`) with the guard still green, and closing it added the assertion that arm now covers."
+    },
+    {
       "path": "planning/evidence/M31/sweep-prominent-disabled.py",
       "disposition": "control",
       "markers": [

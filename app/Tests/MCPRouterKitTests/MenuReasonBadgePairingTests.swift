@@ -59,7 +59,11 @@ struct MenuReasonBadgePairingTests {
                 if let seen = badgeForReason[reason] {
                     #expect(
                         seen == observed,
-                        "'\(reason)' appears beside both '\(seen)' and '\(observed)', so reading the reason off the accessibility plane would not determine the badge"
+                        """
+                        '\(reason)' appears beside both '\(seen)' and '\(observed)', so \
+                        reading the reason off the accessibility plane would not determine \
+                        the badge
+                        """
                     )
                 } else {
                     badgeForReason[reason] = observed
@@ -71,7 +75,10 @@ struct MenuReasonBadgePairingTests {
         #expect(pairs > 0, "no command was unavailable in any context, so the relation was never exercised")
         #expect(
             badgeForReason.count >= 3,
-            "only \(badgeForReason.count) distinct reason(s) were reached; the three availability classes should each contribute at least one"
+            """
+            only \(badgeForReason.count) distinct reason(s) were reached; the three \
+            availability classes should each contribute at least one
+            """
         )
     }
 
@@ -89,7 +96,11 @@ struct MenuReasonBadgePairingTests {
                 let badge = command.availability(in: context).badge
                 #expect(
                     (reason == nil) == (badge == nil),
-                    "\(command.title) in \(context.installedDestinations.count) installed / tripped=\(String(describing: context.selectedServerIsTripped)): reason=\(String(describing: reason)) badge=\(String(describing: badge))"
+                    """
+                    \(command.title) in \(context.installedDestinations.count) installed / \
+                    tripped=\(String(describing: context.selectedServerIsTripped)): \
+                    reason=\(String(describing: reason)) badge=\(String(describing: badge))
+                    """
                 )
                 checked += 1
             }
@@ -111,7 +122,8 @@ struct MenuReasonBadgePairingTests {
         for command in MenuCommand.allCases {
             for context in Self.everyContext {
                 guard let reason = command.reason(in: context) else { continue }
-                if reason.hasSuffix(" hasn't been built yet.") && reason != CommandAvailability.featureUnbuilt.reason {
+                let specialisedShape = reason.hasSuffix(" hasn't been built yet.")
+                if specialisedShape, reason != CommandAvailability.featureUnbuilt.reason {
                     specialised.insert(reason)
                 } else {
                     generic.insert(reason)

@@ -899,6 +899,7 @@
    "evidence/shots/SURF-001.shell.png"
   ],
   "capture": {
+   "channel": "display-server-window",
    "method": "screencapture -x -l<CGWindowID>, cropped to the window chrome (derivedFrom SURF-002.build.png)",
    "frameStatus": "complete"
   },
@@ -926,6 +927,7 @@
    "evidence/shots/SURF-002.build.png"
   ],
   "capture": {
+   "channel": "display-server-window",
    "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
    "frameStatus": "unavailable: screencapture reports no per-frame status"
   },
@@ -953,6 +955,7 @@
    "evidence/shots/SURF-003.build.png"
   ],
   "capture": {
+   "channel": "display-server-window",
    "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
    "frameStatus": "unavailable: screencapture reports no per-frame status"
   },
@@ -980,6 +983,7 @@
    "evidence/shots/SURF-004.build.png"
   ],
   "capture": {
+   "channel": "display-server-window",
    "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
    "frameStatus": "unavailable: screencapture reports no per-frame status"
   },
@@ -1007,6 +1011,7 @@
    "evidence/shots/SURF-005.build.png"
   ],
   "capture": {
+   "channel": "display-server-window",
    "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
    "frameStatus": "unavailable: screencapture reports no per-frame status"
   },
@@ -1035,6 +1040,7 @@
    "evidence/arm-pipeline/mutated.SURF-006.build.png"
   ],
   "capture": {
+   "channel": "display-server-window",
    "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
    "frameStatus": "unavailable: screencapture reports no per-frame status"
   },
@@ -1062,6 +1068,7 @@
    "evidence/shots/SURF-007.build.png"
   ],
   "capture": {
+   "channel": "display-server-window",
    "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
    "frameStatus": "unavailable: screencapture reports no per-frame status"
   },
@@ -1089,6 +1096,7 @@
    "evidence/shots/SURF-008.build.png"
   ],
   "capture": {
+   "channel": "display-server-window",
    "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
    "frameStatus": "unavailable: screencapture reports no per-frame status"
   },
@@ -1138,6 +1146,7 @@
    "evidence/shots/SURF-010.build.png"
   ],
   "capture": {
+   "channel": "display-server-window",
    "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
    "frameStatus": "unavailable: screencapture reports no per-frame status"
   },
@@ -1164,6 +1173,7 @@
    "evidence/shots/SURF-011.build.png"
   ],
   "capture": {
+   "channel": "display-server-window",
    "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
    "frameStatus": "unavailable: screencapture reports no per-frame status"
   },
@@ -1191,6 +1201,7 @@
    "evidence/shots/ios/SURF-012.ios.discover-populated.png"
   ],
   "capture": {
+   "channel": "simulator-render-server",
    "method": "XCUIScreen.main.screenshot() via XCUITest, exported by xcresulttool export attachments",
    "frameStatus": "complete"
   },
@@ -1217,6 +1228,7 @@
    "evidence/shots/ios/SURF-013.ios.triage.png"
   ],
   "capture": {
+   "channel": "simulator-render-server",
    "method": "XCUIScreen.main.screenshot() via XCUITest, exported by xcresulttool export attachments",
    "frameStatus": "complete"
   },
@@ -1243,6 +1255,7 @@
    "evidence/shots/ios/SURF-014.ios.camera-preflight.png"
   ],
   "capture": {
+   "channel": "simulator-render-server",
    "method": "XCUIScreenshot via XCTAttachment, taken inside the test after the surface's own assertion passed",
    "frameStatus": "not reported by this instrument — XCUIScreenshot carries no per-frame status, so attribution stands in its place: the picture is taken in the same test, after 'Why the camera' was found"
   },
@@ -1272,6 +1285,7 @@
   "frameStatus": "complete",
   "note": "1206x2622 off the simulator's display server, attributed to testEachTabRendersItsOwnSurface by xcresulttool rather than by filename. Distinct sha c3f1c31a.",
   "capture": {
+   "channel": "simulator-render-server",
    "method": "XCUIScreen.main.screenshot() via XCUITest, exported by xcresulttool export attachments",
    "frameStatus": "complete"
   }
@@ -1297,6 +1311,7 @@
    "evidence/shots/ios/SURF-019.ios.queue.png"
   ],
   "capture": {
+   "channel": "simulator-render-server",
    "method": "XCUIScreen.main.screenshot() via XCUITest, exported by xcresulttool export attachments",
    "frameStatus": "complete"
   },
@@ -1323,6 +1338,7 @@
    "evidence/shots/ios/SURF-020.ios.library.png"
   ],
   "capture": {
+   "channel": "simulator-render-server",
    "method": "XCUIScreen.main.screenshot() via XCUITest, exported by xcresulttool export attachments",
    "frameStatus": "complete"
   },
@@ -1669,6 +1685,7 @@
    "evidence/shots/SURF-007.cleanup-skills.png"
   ],
   "capture": {
+   "channel": "display-server-window",
    "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
    "frameStatus": "unavailable: screencapture reports no per-frame status"
   },
@@ -1728,6 +1745,7 @@
    "evidence/shots/SURF-007.provenance-sheet.png"
   ],
   "capture": {
+   "channel": "display-server-window",
    "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
    "frameStatus": "unavailable: screencapture reports no per-frame status"
   },
@@ -1783,6 +1801,7 @@
    "evidence/shots/SURF-010.build.png"
   ],
   "capture": {
+   "channel": "display-server-window",
    "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
    "frameStatus": "unavailable: screencapture reports no per-frame status"
   },
@@ -2005,6 +2024,7 @@
    "evidence/shots/surf-022-consent-auth-states.png"
   ],
   "capture": {
+   "channel": "browser-raster",
    "method": "obscura fetch --allow-private-network --screenshot, 1280x720 viewport, live /authorize route",
    "frameStatus": "complete"
   }
@@ -2108,13 +2128,17 @@
   "status": "pass",
   "armed": true,
   "evidence": [
-   "evidence/shots/SURF-025.build.png",
-   "evidence/shots/captures.json",
-   "evidence/runs/mac-glass-capture.log"
+   "evidence/shots/SURF-025.build.png"
   ],
   "capture": {
+   "channel": "display-server-window",
    "method": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-   "frameStatus": "complete"
+   "frameStatus": "complete",
+   "source": [
+    "evidence/shots/captures.json",
+    "evidence/runs/mac-glass-capture.log"
+   ],
+   "sourceNote": "Moved out of `evidence` by J3 and kept here. Both are real provenance for this capture — `captures.json` carries this shot's row (subject, the target read back off the running app at the shutter, sha256) and the run log carries the attach and the select — and neither is a picture. Citing them as raster evidence is what let a rung that means `somebody looked at pixels` be satisfied by JSON."
   },
   "note": "The populated board photographed off the display server, window-scoped to the CGWindowID the attached pid owns. The capture names the surface it is of: its manifest entry carries subject SURF-025 and target app://mac/harnesses, and the target was READ BACK off the running app at the shutter rather than asserted, so the filename is not the only thing binding this picture to this board. MCPRouter was not frontmost at the shutter.",
   "armedBy": "predicate arm. Stated explicitly in bin/glass-assert.py and re-run there. Watched to fail under `--decoy SURF-025`, which strips this surface's own copy from its dump and turns the case RED. `--discriminate` additionally runs this board's predicate against every other board's window dump: it wrongly accepted 0 of 8, so a pass here cannot be a pass on another board. The raster half additionally requires a real PNG over 20 KB whose sha256 is unique across every case in the suite, so one image cannot stand in for two surfaces."
@@ -2162,12 +2186,16 @@
   "status": "pass",
   "armed": true,
   "evidence": [
-   "evidence/shots/SURF-025.empty.png",
-   "evidence/shots/captures.json"
+   "evidence/shots/SURF-025.empty.png"
   ],
   "capture": {
+   "channel": "display-server-window",
    "method": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-   "frameStatus": "complete"
+   "frameStatus": "complete",
+   "source": [
+    "evidence/shots/captures.json"
+   ],
+   "sourceNote": "Moved out of `evidence` by J3 and kept here. `captures.json` is real provenance for this capture — it carries this shot's row: subject, the target read back off the running app at the shutter, and the sha256 — and it is not a picture. Citing it as raster evidence is what let a rung that means `somebody looked at pixels` be satisfied by JSON."
   },
   "note": "The empty state photographed, from its own launch. Manifest subject SURF-025, target app://mac/harnesses read back at the shutter, sha256 unique.",
   "armedBy": "predicate arm. Stated explicitly in bin/glass-assert.py and re-run there. Watched to fail under `--decoy SURF-025/empty`, which strips this surface's own copy from its dump and turns the case RED. `--discriminate` additionally runs this board's predicate against every other board's window dump: it wrongly accepted 0 of 8, so a pass here cannot be a pass on another board."
@@ -2215,12 +2243,16 @@
   "status": "pass",
   "armed": true,
   "evidence": [
-   "evidence/shots/SURF-025.failure.png",
-   "evidence/shots/captures.json"
+   "evidence/shots/SURF-025.failure.png"
   ],
   "capture": {
+   "channel": "display-server-window",
    "method": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-   "frameStatus": "complete"
+   "frameStatus": "complete",
+   "source": [
+    "evidence/shots/captures.json"
+   ],
+   "sourceNote": "Moved out of `evidence` by J3 and kept here. `captures.json` is real provenance for this capture — it carries this shot's row: subject, the target read back off the running app at the shutter, and the sha256 — and it is not a picture. Citing it as raster evidence is what let a rung that means `somebody looked at pixels` be satisfied by JSON."
   },
   "note": "The failure state photographed, from its own launch. Manifest subject SURF-025, target app://mac/harnesses read back at the shutter, sha256 unique.",
   "armedBy": "predicate arm. Stated explicitly in bin/glass-assert.py and re-run there. Watched to fail under `--decoy SURF-025/failure`, which strips this surface's own copy from its dump and turns the case RED. `--discriminate` additionally runs this board's predicate against every other board's window dump: it wrongly accepted 0 of 8, so a pass here cannot be a pass on another board."
@@ -2319,13 +2351,17 @@
   "status": "pass",
   "armed": true,
   "evidence": [
-   "evidence/shots/SURF-026.build.png",
-   "evidence/shots/captures.json",
-   "evidence/runs/mac-glass-capture.log"
+   "evidence/shots/SURF-026.build.png"
   ],
   "capture": {
+   "channel": "display-server-window",
    "method": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-   "frameStatus": "complete"
+   "frameStatus": "complete",
+   "source": [
+    "evidence/shots/captures.json",
+    "evidence/runs/mac-glass-capture.log"
+   ],
+   "sourceNote": "Moved out of `evidence` by J3 and kept here. Both are real provenance for this capture — `captures.json` carries this shot's row (subject, the target read back off the running app at the shutter, sha256) and the run log carries the attach and the select — and neither is a picture. Citing them as raster evidence is what let a rung that means `somebody looked at pixels` be satisfied by JSON."
   },
   "note": "The populated board photographed off the display server, window-scoped to the CGWindowID the attached pid owns, subject SURF-026 and target app://mac/insights both recorded from the shutter readback. This case FAILED on its first run and the failure was real: `Settings` is no longer a sidebar row, so the loop's next select did not take and the same pixels were filed a second time under SURF-011, breaking the uniqueness check. The capture script now refuses to photograph a select that did not take — see DEF-059.",
   "armedBy": "predicate arm. Stated explicitly in bin/glass-assert.py and re-run there. Watched to fail under `--decoy SURF-026`, which strips this surface's own copy from its dump and turns the case RED. The raster half additionally requires a real PNG over 20 KB whose sha256 is unique across every case in the suite."
@@ -2372,12 +2408,16 @@
   "status": "pass",
   "armed": true,
   "evidence": [
-   "evidence/shots/SURF-026.empty.png",
-   "evidence/shots/captures.json"
+   "evidence/shots/SURF-026.empty.png"
   ],
   "capture": {
+   "channel": "display-server-window",
    "method": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-   "frameStatus": "complete"
+   "frameStatus": "complete",
+   "source": [
+    "evidence/shots/captures.json"
+   ],
+   "sourceNote": "Moved out of `evidence` by J3 and kept here. `captures.json` is real provenance for this capture — it carries this shot's row: subject, the target read back off the running app at the shutter, and the sha256 — and it is not a picture. Citing it as raster evidence is what let a rung that means `somebody looked at pixels` be satisfied by JSON."
   },
   "note": "The empty state photographed from its own launch; manifest subject SURF-026, target app://mac/insights read back at the shutter, sha256 unique.",
   "armedBy": "predicate arm. Stated explicitly in bin/glass-assert.py and re-run there. Watched to fail under `--decoy SURF-026/empty`, which strips this surface's own copy from its dump and turns the case RED."
@@ -2424,12 +2464,16 @@
   "status": "pass",
   "armed": true,
   "evidence": [
-   "evidence/shots/SURF-026.failure.png",
-   "evidence/shots/captures.json"
+   "evidence/shots/SURF-026.failure.png"
   ],
   "capture": {
+   "channel": "display-server-window",
    "method": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-   "frameStatus": "complete"
+   "frameStatus": "complete",
+   "source": [
+    "evidence/shots/captures.json"
+   ],
+   "sourceNote": "Moved out of `evidence` by J3 and kept here. `captures.json` is real provenance for this capture — it carries this shot's row: subject, the target read back off the running app at the shutter, and the sha256 — and it is not a picture. Citing it as raster evidence is what let a rung that means `somebody looked at pixels` be satisfied by JSON."
   },
   "note": "The failure state photographed from its own launch; manifest subject SURF-026, target app://mac/insights read back at the shutter, sha256 unique.",
   "armedBy": "predicate arm. Stated explicitly in bin/glass-assert.py and re-run there. Watched to fail under `--decoy SURF-026/failure`, which strips this surface's own copy from its dump and turns the case RED."
@@ -2687,7 +2731,7 @@
    "dataShape": "served-package",
    "executionPlane": "headless"
   },
-  "oracle": "raster-visual",
+  "oracle": "structural-visual",
   "status": "pass",
   "armed": true,
   "evidence": [
@@ -2697,7 +2741,7 @@
    "evidence/g17-document/readme.served.png",
    "evidence/g17-document/readme.served.dump.json"
   ],
-  "note": "FLOW-006.02. The panel drew a document THE ROUTER SERVED, not M19's fixture: the titlebar names g17-capability, the package's own H1 and prose are on screen, all three tab controls are drawn, and 'trawl' — the fixture capability every previous dump and capture of this panel was a picture of, M23's included — appears nowhere in the tree. Checks G17-P1, G17-P2, G17-P3. Picture: evidence/g17-document/readme.served.png. The server is CONSTRUCTED by the harness and labelled so in three places — the harness header, the package's own read me, and every row of evidence/g17-document/captures.json. 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt), so there is no real one to point at. The router, the route, the transport, the parser, the image resolver and the panel are all the product's.",
+  "note": "FLOW-006.02. The panel drew a document THE ROUTER SERVED, not M19's fixture: the titlebar names g17-capability, the package's own H1 and prose are on screen, all three tab controls are drawn, and 'trawl' — the fixture capability every previous dump and capture of this panel was a picture of, M23's included — appears nowhere in the tree. Checks G17-P1, G17-P2, G17-P3. Picture: evidence/g17-document/readme.served.png. The server is CONSTRUCTED by the harness and labelled so in three places — the harness header, the package's own read me, and every row of evidence/g17-document/captures.json. 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt), so there is no real one to point at. The router, the route, the transport, the parser, the image resolver and the panel are all the product's.  ---  RUNG CORRECTED by J3, from `raster-visual`. Its three checks are G17-P1, G17-P2 and G17-P3, and all three read `readme.served.dump.json` — a titlebar's text, a heading and a sentence, the three tab labels, and the absence of the string `trawl` from the tree. Not one of them opens the PNG. The claim is true and it is structural, and it was carrying the strongest rung's badge on a frame it never read. The picture stays cited because it is the frame this dump was taken in the same render as, and it stays on the wall as FLOW-006.02's step shot.",
   "armedBy": "ARMED and watched: control G17-P1 re-rendered this frame against g17-no-package under its own filename; the check went red and the harness recorded it (evidence/g17-document/armed/subject.txt). Restored and re-rendered byte-identically, sha256 recorded in captures.json."
  },
  {
@@ -2720,14 +2764,22 @@
   "status": "pass",
   "armed": true,
   "evidence": [
-   "evidence/g17-document/verdicts.json",
-   "evidence/g17-document/captures.json",
-   "evidence/g17-document/run.txt",
-   "evidence/g17-document/readme.served.png",
-   "evidence/g17-document/armed/figure.txt"
+   "evidence/g17-document/readme.served.figure-card.png"
   ],
-  "note": "FLOW-006.02, and the claim nothing had ever made: an image inside a served document DRAWS. M19's resolver returns bytes precisely so the app never opens a file, and until now the strongest available statement was that four image cards were laid out — `MarkdownBlockView` draws a figure and a refusal placeholder inside the same measured `card`, so the two are one record. This case does not fix that by adding a node: a node would say two views differ, and what needed saying is that bytes arrived and were painted. The pixels answer it. 65.7% of the figure card's own frame in readme.served.png is the constructed band's authored colour, read at the scale derived from the dump's size rather than assumed to be 2, with a 25% floor and a tolerance on the colour because the backing store resolves in the display's space (authored #2F9C9C reads back near #519A9B). Check G17-P4.",
-  "armedBy": "ARMED and watched: control G17-P4 replaced the package's figure.png with bytes NSImage cannot decode — the route still served them as image/png, so the only thing that changed was whether they drew. The check went red (evidence/g17-document/armed/figure.txt). The original bytes were restored and the frame re-rendered BYTE-IDENTICAL, sha256 9d048beb8c7eb6a3bf828fd79da3716294ebbca3156a647ea5cb08313bda9a40."
+  "note": "FLOW-006.02, and the claim nothing had ever made: an image inside a served document DRAWS. M19's resolver returns bytes precisely so the app never opens a file, and until now the strongest available statement was that four image cards were laid out — `MarkdownBlockView` draws a figure and a refusal placeholder inside the same measured `card`, so the two are one record. This case does not fix that by adding a node: a node would say two views differ, and what needed saying is that bytes arrived and were painted. The pixels answer it. 65.7% of the figure card's own frame in readme.served.png is the constructed band's authored colour, read at the scale derived from the dump's size rather than assumed to be 2, with a 25% floor and a tolerance on the colour because the backing store resolves in the display's space (authored #2F9C9C reads back near #519A9B). Check G17-P4.  ---  ARTIFACT CORRECTED by J3. This case reads pixels — G17-P4 counts the band's colour over the figure card's own frame — so the rung is right and the picture was not: it cited the whole 1536x1640 frame, byte for byte the same file CASE-0185 and CASE-0187 cited, and that file does not show which card was measured. It now cites the crop of the card itself, written by the check at the moment it counted those pixels, with the parent frame and its sha256 recorded in `capture.derivedFrom` and in verdicts.json.",
+  "armedBy": "ARMED and watched: control G17-P4 replaced the package's figure.png with bytes NSImage cannot decode — the route still served them as image/png, so the only thing that changed was whether they drew. The check went red (evidence/g17-document/armed/figure.txt). The original bytes were restored and the frame re-rendered BYTE-IDENTICAL, sha256 9d048beb8c7eb6a3bf828fd79da3716294ebbca3156a647ea5cb08313bda9a40.",
+  "capture": {
+   "channel": "offscreen-render",
+   "method": "MeasureDump `cacheDisplay(in:to:)` off the NSHostingView's own backing store at 900x820 — no window ordered in, the process `.prohibited`, so nothing was taken off the screen (UI_VERIFICATION.md rule 1). The cited artifact is the crop of the measured node's own frame, written by `bin/g17_document_assert.py` at the moment it counted those pixels.",
+   "frameStatus": "not reported by this channel — an offscreen render carries no per-frame status. What stands in its place is the dump taken in the same render: the crop's box is that node's frame, scaled by the picture's own width over the dump's, and its parent's sha256 is recorded in verdicts.json beside it.",
+   "derivedFrom": "evidence/g17-document/readme.served.png",
+   "source": [
+    "evidence/g17-document/verdicts.json",
+    "evidence/g17-document/captures.json",
+    "evidence/g17-document/run.txt",
+    "evidence/g17-document/armed/figure.txt"
+   ]
+  }
  },
  {
   "id": "CASE-0187",
@@ -2749,14 +2801,22 @@
   "status": "pass",
   "armed": true,
   "evidence": [
-   "evidence/g17-document/verdicts.json",
-   "evidence/g17-document/captures.json",
-   "evidence/g17-document/run.txt",
-   "evidence/g17-document/readme.served.png",
-   "evidence/g17-document/wire-served.json"
+   "evidence/g17-document/readme.served.figure-refusal.png"
   ],
-  "note": "The 'outside the package' refusal, rendered and distinguishable. A reference climbing out of the package is refused by the router as escapesPackage, and the panel draws its own sentence — 'Not shown — this image points outside the package it came with.' — read back off the `figure-refusal` node G17 added, in a card carrying 0.00% figure colour. Both halves matter: the node says WHICH refusal landed, which no dump could say before, and the pixels say the card really is a placeholder rather than a picture nobody checked. The node costs the readme fidelity census nothing, because it is drawn only when a reference is refused and the M19 fixture's one image resolves. Check G17-P5.",
-  "armedBy": "arm: shares control G17-P4's plant. That fault turns the RESOLVED figure into a refusal, so the same run watches the figure/placeholder discrimination bite from the other side. The sentence itself is pinned to the router's own reason string by G17-W2, which reads escapesPackage off the wire response this frame was rendered from."
+  "note": "The 'outside the package' refusal, rendered and distinguishable. A reference climbing out of the package is refused by the router as escapesPackage, and the panel draws its own sentence — 'Not shown — this image points outside the package it came with.' — read back off the `figure-refusal` node G17 added, in a card carrying 0.00% figure colour. Both halves matter: the node says WHICH refusal landed, which no dump could say before, and the pixels say the card really is a placeholder rather than a picture nobody checked. The node costs the readme fidelity census nothing, because it is drawn only when a reference is refused and the M19 fixture's one image resolves. Check G17-P5.  ---  ARTIFACT CORRECTED by J3, on the same finding as CASE-0186 and from the other side of it. G17-P5 reads the `figure-refusal` node's own frame and requires under 1% figure colour, so the pixels are real and the picture was the whole frame the other two cases also cited. It now cites the crop of the refusal card — 708x28 of drawn sentence and no picture, which is exactly what the check asserts.",
+  "armedBy": "arm: shares control G17-P4's plant. That fault turns the RESOLVED figure into a refusal, so the same run watches the figure/placeholder discrimination bite from the other side. The sentence itself is pinned to the router's own reason string by G17-W2, which reads escapesPackage off the wire response this frame was rendered from.",
+  "capture": {
+   "channel": "offscreen-render",
+   "method": "MeasureDump `cacheDisplay(in:to:)` off the NSHostingView's own backing store at 900x820 — no window ordered in, the process `.prohibited`, so nothing was taken off the screen (UI_VERIFICATION.md rule 1). The cited artifact is the crop of the measured node's own frame, written by `bin/g17_document_assert.py` at the moment it counted those pixels.",
+   "frameStatus": "not reported by this channel — an offscreen render carries no per-frame status. What stands in its place is the dump taken in the same render: the crop's box is that node's frame, scaled by the picture's own width over the dump's, and its parent's sha256 is recorded in verdicts.json beside it.",
+   "derivedFrom": "evidence/g17-document/readme.served.png",
+   "source": [
+    "evidence/g17-document/verdicts.json",
+    "evidence/g17-document/captures.json",
+    "evidence/g17-document/run.txt",
+    "evidence/g17-document/wire-served.json"
+   ]
+  }
  },
  {
   "id": "CASE-0188",
@@ -2879,7 +2939,7 @@
    "dataShape": "no-package-directory",
    "executionPlane": "headless"
   },
-  "oracle": "raster-visual",
+  "oracle": "outcome",
   "status": "pass",
   "armed": true,
   "evidence": [
@@ -2887,9 +2947,10 @@
    "evidence/g17-document/captures.json",
    "evidence/g17-document/run.txt",
    "evidence/g17-document/refusal.nopackage.png",
-   "evidence/g17-document/wire-nopackage.json"
+   "evidence/g17-document/wire-nopackage.json",
+   "evidence/g17-document/refusal.nopackage.dump.json"
   ],
-  "note": "Refusal 1 of 3 — nothing served. A server declaring no cwd is refused noPackageDirectory on the wire, and the panel draws the designed state: 'g17-no-package has no package to read', and no figure. This is the state EVERY ONE of the 21 upstreams on this machine is in today, so the frame is a picture of the product as configured rather than of an edge case. Checks G17-W4, G17-R1. Picture: evidence/g17-document/refusal.nopackage.png.",
+  "note": "Refusal 1 of 3 — nothing served. A server declaring no cwd is refused noPackageDirectory on the wire, and the panel draws the designed state: 'g17-no-package has no package to read', and no figure. This is the state EVERY ONE of the 21 upstreams on this machine is in today, so the frame is a picture of the product as configured rather than of an edge case. Checks G17-W4, G17-R1. Picture: evidence/g17-document/refusal.nopackage.png.  ---  RUNG CORRECTED by J3, from `raster-visual`. Its checks are G17-W4 — `reason == \"noPackageDirectory\"` read off the router's own response — and G17-R1, which reads the state title out of `refusal.nopackage.dump.json` and asserts no `figure` node. The wire read is a real outcome and this case is the only home of it; the drawn half is structural. Neither opens `refusal.nopackage.png`, which stays cited as the frame the dump came from and is claimed as evidence of nothing.",
   "armedBy": "ARMED and watched through control G17-R3 (see CASE-0193): the too-large frame was re-rendered against THIS server so two refusals drew the same words, and the distinguishability check went red."
  },
  {
@@ -2908,7 +2969,7 @@
    "dataShape": "oversize-document",
    "executionPlane": "headless"
   },
-  "oracle": "raster-visual",
+  "oracle": "outcome",
   "status": "pass",
   "armed": true,
   "evidence": [
@@ -2916,9 +2977,10 @@
    "evidence/g17-document/captures.json",
    "evidence/g17-document/run.txt",
    "evidence/g17-document/refusal.toolarge.png",
-   "evidence/g17-document/wire-toolarge.json"
+   "evidence/g17-document/wire-toolarge.json",
+   "evidence/g17-document/refusal.toolarge.dump.json"
   ],
-  "note": "Refusal 2 of 3 — too large. A read me of 600,012 bytes is over the 524,288-byte transport cap for one document; the route refuses `documentTooLarge` naming the file and the limit, and the panel draws 'README.md is too large to show here' with the 512 KB cap in its advice. Note the wire spelling: `documentTooLarge`, not `tooLarge` — the latter is the IMAGE refusal one level in, and a check written against the Swift enum's case name rather than against the wire would have passed on a router that refused nothing. Checks G17-W5, G17-R2. This frame is also DEF-060: it never names the capability it refuses.",
+  "note": "Refusal 2 of 3 — too large. A read me of 600,012 bytes is over the 524,288-byte transport cap for one document; the route refuses `documentTooLarge` naming the file and the limit, and the panel draws 'README.md is too large to show here' with the 512 KB cap in its advice. Note the wire spelling: `documentTooLarge`, not `tooLarge` — the latter is the IMAGE refusal one level in, and a check written against the Swift enum's case name rather than against the wire would have passed on a router that refused nothing. Checks G17-W5, G17-R2. This frame is also DEF-060: it never names the capability it refuses.  ---  RUNG CORRECTED by J3, from `raster-visual`. Its checks are G17-W5 — `reason`, `file` and `limit` read off the router's own response — and G17-R2, which reads the state title and the `512 KB` string out of `refusal.toolarge.dump.json`. The wire read is a real outcome and this case is its only home; the drawn half is structural. Neither opens `refusal.toolarge.png`, which stays cited as the frame the dump came from.",
   "armedBy": "ARMED and watched: control G17-R3 re-rendered this frame against g17-no-package under its own filename, collapsing two refusals onto one wording; the check went red (evidence/g17-document/armed/refusals.txt). Restored and re-rendered byte-identically."
  },
  {

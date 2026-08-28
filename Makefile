@@ -917,6 +917,37 @@ acceptance-r6: build-router-release
 build-router-release:
 	cd $(APP_DIR) && swift build -c release --product MCPRouterCLI
 
+## `raster-claim-gate.py` (`J3`) is the ninth Python gate in `lint`, and it is here rather than
+## behind a campaign target because the rule it holds is the campaign's strongest claim: that
+## somebody looked at pixels.
+##
+## Measured 2026-08-29 over 114 cases, 32 of them on the raster rung: **28 pixel claims cited an
+## artifact that is not a picture** — six mac-glass cases cited `evidence/shots/captures.json`, a
+## manifest, and two of those also cited a run log; five swiftui cases cited a verdicts file, a
+## manifest, a run log and a wire response between them. **Three cases published one PNG byte for
+## byte.** **Five named no capture method at all.** The three findings overlap by case id, which
+## is the tell that they are one cause rather than three: the rung accepted a claim without
+## demanding a distinct image, from a named channel, of the thing being claimed.
+##
+## `campaign.py check` finds two of the three and is how all of it was found. It cannot be the
+## enforcement: `vendor/test-campaign/` pins **0.9.2**, whose `campaign.py` has neither
+## `RASTER_RUNGS` nor `inspect_raster`, and the version that has them is whichever one a shared
+## plugin cache happens to hold. A rule enforced only there leaves with the cache. This runs from
+## the tree, over the tree, on every lint, in under a second with no node and no `dist/`.
+##
+## What it refuses: a pixel claim with no artifact, one whose artifact is not a raster by its own
+## first bytes, two claims standing on one file's bytes without both declaring the share, a claim
+## naming no `capture.channel` or one outside the closed vocabulary, a `capture.derivedFrom` that
+## is not itself a picture, and any cited path the INDEX does not hold. What it deliberately does
+## not do is score a picture — no density or entropy floor can separate a failed capture from a
+## legitimately sparse empty state — and it does not adjudicate whether a picture is OF its
+## subject, which is `capture-manifest.py` and `capture-lineage.py`'s axis.
+##
+## Ten control arms run on every invocation, one per rule plus a clean corpus that must stay green
+## and a declared share that must be admitted; any arm misbehaving exits 4 and prints no verdict,
+## because a zero from an instrument that cannot see the defect is not a measurement. A run in
+## which no raster case resolved to `pass` exits 3 rather than reporting clean.
+
 lint: tools
 	@fail=0; \
 	swiftformat --lint . --config .swiftformat || fail=1; \
@@ -939,6 +970,7 @@ lint: tools
 	python3 planning/foreign-path-gate.py --quiet || fail=1; \
 	python3 planning/target-resolution-gate.py --quiet || fail=1; \
 	python3 planning/test-campaign/bin/capture-manifest.py || fail=1; \
+	python3 planning/test-campaign/bin/raster-claim-gate.py || fail=1; \
 	python3 planning/pin-class-gate.py || fail=1; \
 	python3 planning/shipped-brief-gate.py || fail=1; \
 	python3 planning/brief-target-gate.py --quiet || fail=1; \

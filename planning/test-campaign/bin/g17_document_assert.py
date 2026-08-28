@@ -52,10 +52,15 @@ BODY_FLOOR = 0.01
 class Artifacts(object):
     """The dumps, the pictures and the wire responses one run produced."""
 
-    def __init__(self, root):
+    def __init__(self, root, write_crops=False):
         self.root = root
         self._dumps = {}
         self._images = {}
+        # `--expect-fail` runs render a PLANTED FAULT, so a crop written during one would be a
+        # picture of the fault filed under the good frame's name. Crops are written only on a clean
+        # run, and the flag is set from `expect_fail is None` rather than passed by hand.
+        self.write_crops = write_crops
+        self.crops = {}
 
     def wire(self, name):
         path = os.path.join(self.root, name + ".json")
@@ -141,12 +146,20 @@ class Artifacts(object):
             digest.update(handle.read())
         return digest.hexdigest()
 
-    def figure_fraction(self, name, node):
+    def figure_fraction(self, name, node, crop_as=None):
         """How much of one node's own frame is drawn in the figure's colour.
 
         The frame is in the dump's points and the picture is in pixels; the scale is derived from
         the two rather than assumed to be 2, so a run on a non-retina display measures the same
         thing rather than reading a quarter of the card.
+
+        `crop_as` names a file to write the measured region to. **Two cases read two different
+        regions of this one frame**, and until J3 both cited the whole frame — one PNG, byte for
+        byte, standing as evidence for a figure that drew and a placeholder that did not. Neither
+        picture showed the region its own check read, so the wall could not tell them apart and
+        neither could a reader. What is written here is exactly the pixels the fraction was counted
+        over: a crop, of one node, at the moment it was measured. Its sha256 is recorded so the
+        crop can be shown to be of this parent and no other.
         """
         image = self.image(name)
         width, height = image.size
@@ -159,12 +172,30 @@ class Artifacts(object):
         if right <= left or bottom <= top:
             return 0.0, 0
         crop = image.crop((left, top, right, bottom))
+        if crop_as is not None and self.write_crops:
+            self._write_crop(name, crop, crop_as, (left, top, right, bottom))
         total = crop.size[0] * crop.size[1]
         hits = 0
         for count, colour in crop.getcolors(maxcolors=1 << 20) or []:
             if is_figure_colour(colour):
                 hits += count
         return float(hits) / float(total), total
+
+    def _write_crop(self, parent, crop, label, box):
+        """Write one measured region beside its parent frame and record where it came from."""
+        name = parent + "." + label
+        path = os.path.join(self.root, name + ".png")
+        crop.save(path, format="PNG", optimize=False)
+        digest = hashlib.sha256()
+        with open(path, "rb") as handle:
+            digest.update(handle.read())
+        self.crops[name] = {
+            "path": os.path.basename(path),
+            "derivedFrom": os.path.basename(self.png_path(parent)),
+            "derivedFromSha256": self.sha(parent),
+            "box": {"left": box[0], "top": box[1], "right": box[2], "bottom": box[3]},
+            "sha256": digest.hexdigest(),
+        }
 
 
     def body_difference(self, base_name, base_node, frame_name, frame_node):
@@ -214,8 +245,8 @@ class Report(object):
         return [row["id"] for row in self.rows if not row["pass"]]
 
 
-def run(root, report):
-    art = Artifacts(root)
+def run(root, report, write_crops=False):
+    art = Artifacts(root, write_crops=write_crops)
 
     # ---------------------------------------------------------------- FLOW-006.01, on the wire
     served = art.wire("wire-served")
@@ -288,7 +319,7 @@ def run(root, report):
     if figure is None:
         report.check("G17-P4", False, "no figure card — the read me's own image block is not drawn")
     else:
-        fraction, pixels = art.figure_fraction("readme.served", figure)
+        fraction, pixels = art.figure_fraction("readme.served", figure, crop_as="figure-card")
         report.check(
             "G17-P4",
             fraction >= FIGURE_FLOOR,
@@ -301,7 +332,7 @@ def run(root, report):
     if escaping is None:
         report.check("G17-P5", False, "no `figure-refusal` node — the escaping reference drew nothing")
     else:
-        fraction, _ = art.figure_fraction("readme.served", escaping)
+        fraction, _ = art.figure_fraction("readme.served", escaping, crop_as="figure-refusal")
         report.check(
             "G17-P5",
             "points outside the package" in (escaping.get("text") or "") and fraction < 0.01,
@@ -498,7 +529,8 @@ def run(root, report):
         "counted as corroborated: %s (DEF-060)"
         % (len(unidentifiable), len(manifest), unidentifiable or "none"),
     )
-    return {"sha256": shas, "manifest": manifest, "unidentifiable": unidentifiable}
+    return {"sha256": shas, "manifest": manifest, "unidentifiable": unidentifiable,
+            "crops": art.crops}
 
 
 def main(argv):
@@ -512,7 +544,9 @@ def main(argv):
 
     report = Report()
     try:
-        extra = run(root, report)
+        # Crops are the artifacts two raster cases cite, so they are written only when this run is
+        # measuring the product rather than a planted fault.
+        extra = run(root, report, write_crops=expect_fail is None)
     except Blocked as error:
         print("BLOCKED: %s" % error, file=sys.stderr)
         return 2

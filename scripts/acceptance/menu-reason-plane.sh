@@ -168,8 +168,12 @@ APP="${MENU_REASON_PLANE_APP:-$ROOT/app/.derived/Build/Products/Debug/MCPRouter.
 # build. It breaks a process lookup too, and more quietly: launched through the logical spelling,
 # the app's argv carries the PHYSICAL one, so `pgrep -f "$APP/..."` matches nothing and the lane
 # reports "the app never appeared in the process table" about an app that started perfectly.
-# Measured 2026-08-29: `open -g` on `<home>/Dev/mcp-router/.worktrees/M34/...` produced a process
-# whose argv read `/Volumes/LLMs/Dev/mcp-router/.worktrees/M34/...`.
+# Measured 2026-08-29: launching a worktree's bundle through the `<checkout>/.worktrees/<ID>`
+# spelling produced a process whose argv carried the volume-rooted one instead, and the two share
+# no ancestor below `/`. The spellings are deliberately not written out here — naming this
+# machine's volume in a runnable file is what `runnable-path-gate.py` refuses, and it refused this
+# line first. `worktree-preflight.sh` derives both spellings rather than recording them, which is
+# the same reason.
 APP_PHYS="$(cd "$APP" && pwd -P)" || blocked "could not resolve $APP to a physical path"
 
 WORK="$(mktemp -d)"

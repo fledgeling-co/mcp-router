@@ -1392,13 +1392,17 @@
    "dataShape": "typical",
    "executionPlane": "in-process"
   },
-  "oracle": "structural-visual",
+  "oracle": "source-analysis",
   "status": "pass",
   "armed": true,
   "evidence": [
    "app/Tests/MCPRouterUITests/ActivityResetEntryPointTests.swift"
   ],
-  "note": "DEF-016's affordance half and DEF-012's first rename, at the rung they honestly reach. `theResetActionIsInTheHeader` slices `ActivityBoard.header` from its declaration to `content`'s and asserts the slice carries `CleanupPresentation.resetLabel` and opens `model.sheet = .resetHistory`; `theHeaderLabelIsTheDesigns` asserts that constant is `Reset history…` per `prototype.html:716` and `:930`, not the Settings-Danger wording at `:999` the build had shipped. Recorded as `structural-visual` rather than `outcome` and counted against the strict total on purpose: both read source text, and no assertion here proves a header rendered. It is written that way because the claim is about the header in **all nine** DESIGN.md §5 states — the design puts the control outside the rows conditional precisely so the empty state has it — and a rendered assertion over one state would leave the other eight unchecked while buying effect credit. Watched to fail for real rather than by a staged arm: an earlier script aborted before writing the header change, and this assertion reported `the header draws no reset action` against the tree that was genuinely missing it. Reverting `resetLabel` reads `the header action is called Reset call history…`."
+  "note": "Re-rated from `structural-visual` to `source-analysis`: it reads source text and runs nothing, so it was never one rung below an effect — it is off the product ladder entirely, and `structural-visual` put it on that ladder where it read as movable. The rendered half of this claim is not missing: CASE-0011 (outcome, macos-glass) carries `Reset history…` in the predicate it asserts over the running Activity window, and evidence/ax/SURF-003.window.txt draws it. What is left here is the part no rendered assertion reaches — that the control is declared in `header` and not inside the rows conditional, which is a property of where the source puts it. A render proves the state it was taken in; this is the claim about the other eight, and the campaign has no empty-Activity dump to relate it against.\n\nPREVIOUSLY: DEF-016's affordance half and DEF-012's first rename, at the rung they honestly reach. `theResetActionIsInTheHeader` slices `ActivityBoard.header` from its declaration to `content`'s and asserts the slice carries `CleanupPresentation.resetLabel` and opens `model.sheet = .resetHistory`; `theHeaderLabelIsTheDesigns` asserts that constant is `Reset history…` per `prototype.html:716` and `:930`, not the Settings-Danger wording at `:999` the build had shipped. Recorded as `structural-visual` rather than `outcome` and counted against the strict total on purpose: both read source text, and no assertion here proves a header rendered. It is written that way because the claim is about the header in **all nine** DESIGN.md §5 states — the design puts the control outside the rows conditional precisely so the empty state has it — and a rendered assertion over one state would leave the other eight unchecked while buying effect credit. Watched to fail for real rather than by a staged arm: an earlier script aborted before writing the header change, and this assertion reported `the header draws no reset action` against the tree that was genuinely missing it. Reverting `resetLabel` reads `the header action is called Reset call history…`.",
+  "source": {
+   "analyzer": "swift test --filter ActivityResetEntryPointTests — theResetActionIsInTheHeader slices ActivityBoard.swift between the `header` and `content` declarations and reads the slice; theHeaderLabelIsTheDesigns reads the CleanupPresentation.resetLabel constant",
+   "examined": 2
+  }
  },
  {
   "id": "CASE-0129",
@@ -1414,13 +1418,17 @@
    "dataShape": "typical",
    "executionPlane": "in-process"
   },
-  "oracle": "structural-visual",
+  "oracle": "source-analysis",
   "status": "pass",
   "armed": true,
   "evidence": [
    "app/Tests/MCPRouterUITests/ActivityResetEntryPointTests.swift"
   ],
-  "note": "DEF-012's second rename. `theMarketplacesActionIsNamedOnce` asserts `SkillPresentation.marketplacesAction == \"Add marketplace…\"` per `prototype.html:786`, and then that neither `SkillsBoard.swift` nor `MenuCommand.swift` writes either label as a literal any more. The second half is the assertion that bites: the board had shipped `Manage marketplaces…` while the menu item opening the **same sheet** said `Add marketplace…`, so a match-the-strings check would have passed the day before the fix as easily as the day after. Asserting the literals are absent is what stops them drifting apart again. `structural-visual` for the same reason as CASE-0128 — it reads source. Armed 20 Aug 2026 by restoring the literal in `SkillsBoard`, which reads `still writes the marketplaces label as a literal`."
+  "note": "Re-rated to `source-analysis`, and PERMANENTLY so. Its load-bearing half is that neither SkillsBoard.swift nor MenuCommand.swift writes the marketplaces label as a literal any more, and a literal and a constant RENDER IDENTICALLY — `Text(\"Add marketplace…\")` and `Text(SkillPresentation.marketplacesAction)` produce the same pixels and the same accessibility node. There is no product-side observable, so no rung on the ladder can ever carry this, which is exactly the shape DEF-057 opened the off-axis rung for. The half that IS observable is already covered: CASE-0012 (outcome, macos-glass) asserts `Add marketplace…` on the running Skills window, evidence/ax/SURF-004.window.txt.\n\nPREVIOUSLY: DEF-012's second rename. `theMarketplacesActionIsNamedOnce` asserts `SkillPresentation.marketplacesAction == \"Add marketplace…\"` per `prototype.html:786`, and then that neither `SkillsBoard.swift` nor `MenuCommand.swift` writes either label as a literal any more. The second half is the assertion that bites: the board had shipped `Manage marketplaces…` while the menu item opening the **same sheet** said `Add marketplace…`, so a match-the-strings check would have passed the day before the fix as easily as the day after. Asserting the literals are absent is what stops them drifting apart again. `structural-visual` for the same reason as CASE-0128 — it reads source. Armed 20 Aug 2026 by restoring the literal in `SkillsBoard`, which reads `still writes the marketplaces label as a literal`.",
+  "source": {
+   "analyzer": "swift test --filter ActivityResetEntryPointTests/theMarketplacesActionIsNamedOnce — reads the SkillPresentation.marketplacesAction constant, then searches SkillsBoard.swift and MenuCommand.swift for either label written as a literal",
+   "examined": 3
+  }
  },
  {
   "id": "CASE-0130",
@@ -1448,23 +1456,26 @@
   "id": "CASE-0131",
   "req": "REQ-003",
   "surface": "SURF-007",
-  "lane": "swiftui",
+  "lane": "macos-glass",
   "cell": {
    "surface": "SURF-007",
    "state": "row-actions",
-   "viewport": "1280x800",
+   "viewport": "1024x768",
    "theme": "light",
    "role": "operator",
    "dataShape": "typical",
-   "executionPlane": "in-process"
+   "executionPlane": "on-glass"
   },
-  "oracle": "structural-visual",
+  "oracle": "metamorphic",
   "status": "pass",
   "armed": true,
   "evidence": [
-   "app/Tests/MCPRouterUITests/CleanupRowActionsTests.swift"
+   "evidence/ax/SURF-007.window.txt",
+   "evidence/ax/SURF-007.cleanup-skills.window.txt",
+   "evidence/runs/glass-assert.json"
   ],
-  "note": "DEF-011's affordance half — the column the design draws on every row and the build drew on none. Three assertions: `CleanupBoardRow` declares `Button(\"Inspect\"` and `Button(\"Remove…\"`; the `CleanupBoardRow` declaration carries `accessibilityElement(children: .contain)` and not `.combine`, because combining flattens the buttons into the row's label and leaves nothing for VoiceOver or a UI test to press; and `CleanupBoard` passes `inspect:` and `remove:` rather than leaving them nil, since a row with no closures draws an empty column. The `.combine` assertion is scoped to that one declaration, not to the file. The first version asserted `.combine` appeared nowhere in `CleanupBoardRow.swift` and went red against `CleanupObservationTrack`, where combining is correct — it draws a bar and a number and carries no control. A predicate that fires on a correct use is a detector defect. `structural-visual`, and counted against the strict total, for CASE-0128's reason. Armed 20 Aug 2026 three ways: blanking the Inspect label reads `draws no Inspect`, switching `.contain` to `.combine` reads `combines its children` twice, and deleting the board's `inspect:` argument reads `builds its rows without actions`."
+  "note": "DEF-011's affordance half, re-expressed against the running window rather than against `CleanupBoardRow.swift`. The source read asserted that the row declares `accessibilityElement(children: .contain)` and not `.combine`; what that modifier decides is whether each row's buttons are separately addressable, and relation `SURF-007/row-actions` in bin/glass-assert.py reads THAT off two dumps of a real window. Measured: 3 candidate rows in evidence/ax/SURF-007.window.txt and 5 in evidence/ax/SURF-007.cleanup-skills.window.txt, and all 8 own their own AXButtons one level below their own group — which a combined row cannot do, because combining flattens them into the group's label and publishes none. The action set is a function of the row and not of the board: exactly [Inspect, Remove…] on the 7 rows carrying no provenance note and exactly [Read first…] on the 1 that does. `metamorphic` rather than `structural` because the claim spans two different row populations: a column drawn at a fixed size fails the count and a combined row fails the ownership, and a single-window presence check can see neither. The Swift suite it replaces (app/Tests/MCPRouterUITests/CleanupRowActionsTests.swift) is kept and still runs — it is the faster signal — but it is no longer what this case stands on.",
+  "armedBy": "predicate arm, two of them, stated in bin/glass-assert.py and re-run there. `--relation-decoy SURF-007/combined-rows` drops exactly the buttons a `.combine` row stops publishing: the ownership check reads 0/3 and 0/5 and goes RED. `--relation-decoy SURF-007/fixed-column` reads the skills window out of the servers window so both populations are three unflagged rows: the count half and the flagged-row half go RED. Each arm reddens CASE-0131 and nothing else — the 22 standing failures on this suite are SURF-011's and are identical before and after."
  },
  {
   "id": "CASE-0132",
@@ -1571,13 +1582,17 @@
    "dataShape": "typical",
    "executionPlane": "in-process"
   },
-  "oracle": "structural-visual",
+  "oracle": "source-analysis",
   "status": "pass",
   "armed": true,
   "evidence": [
    "app/Tests/MCPRouterUITests/CleanupRowActionsTests.swift"
   ],
-  "note": "`prototype.html:961` puts `Read first…` **in place of** Inspect and Remove rather than beside them, and the substitution is the requirement rather than a layout preference: a removal left on that row is one click from a fact nobody has read yet. `theRowSwapsItsActions` takes the `CleanupBoardRow` declaration, finds the `if candidate.provenance != nil {` branch, and asserts Inspect and `Remove…` appear nowhere inside it. Source-level for the reason the suite's header already gives — the claim is about every flagged row in every state, and a rendered assertion over one row leaves the rest unchecked. It reads the declaration with every `//` line stripped, because the first `ShellDetailWidthTests` searched raw source for a modifier its own doc comment three lines above also named, and deleting the modifier left the assertion green: a predicate satisfied by the prose explaining it is not a predicate. `structural-visual`, and counted against the strict total, for CASE-0128's reason. Armed 20 Aug 2026 twice: renaming the button reads `draws no Read first…` plus the Inspect predicate firing, and adding `Remove…` back into the flagged branch reads `a flagged row still draws Inspect or Remove`."
+  "note": "Re-rated to `source-analysis`: it reads source text and renders nothing. The behaviour it names is covered at an effect rung by CASE-0138 (outcome, macos-glass), which reads the substitution off a running build, and by CASE-0131's relation, which reads it off two windows and requires the action set to be a function of the row. This case is kept rather than retired because its predicate is the one that fires in seconds on a source change, and it is counted against the strict total rather than disappearing from it — but its rung now says it reads text, so no future reader takes it for a rendered assertion one step from an effect.\n\nPREVIOUSLY: `prototype.html:961` puts `Read first…` **in place of** Inspect and Remove rather than beside them, and the substitution is the requirement rather than a layout preference: a removal left on that row is one click from a fact nobody has read yet. `theRowSwapsItsActions` takes the `CleanupBoardRow` declaration, finds the `if candidate.provenance != nil {` branch, and asserts Inspect and `Remove…` appear nowhere inside it. Source-level for the reason the suite's header already gives — the claim is about every flagged row in every state, and a rendered assertion over one row leaves the rest unchecked. It reads the declaration with every `//` line stripped, because the first `ShellDetailWidthTests` searched raw source for a modifier its own doc comment three lines above also named, and deleting the modifier left the assertion green: a predicate satisfied by the prose explaining it is not a predicate. `structural-visual`, and counted against the strict total, for CASE-0128's reason. Armed 20 Aug 2026 twice: renaming the button reads `draws no Read first…` plus the Inspect predicate firing, and adding `Remove…` back into the flagged branch reads `a flagged row still draws Inspect or Remove`.",
+  "source": {
+   "analyzer": "swift test --filter CleanupRowActionsTests/theRowSwapsItsActions — reads the comment-stripped `CleanupBoardRow` declaration and its `provenance != nil` branch",
+   "examined": 1
+  }
  },
  {
   "id": "CASE-0137",
@@ -1593,13 +1608,17 @@
    "dataShape": "typical",
    "executionPlane": "in-process"
   },
-  "oracle": "structural-visual",
+  "oracle": "source-analysis",
   "status": "pass",
   "armed": true,
   "evidence": [
    "app/Tests/MCPRouterUITests/CleanupRowActionsTests.swift"
   ],
-  "note": "The sheet `Read first…` opens is where REQ-007 was most at risk on this board, because the design's version of it is almost entirely invented. `prototype.html:1249` lists an owner at install (`@jbailey`), a default branch `force-pushed 11d ago`, an installed hash `a3f19c2 — no longer in history`, and `Its evals fail 5 of 8`. The router reports none of them, and one is not computable at all: `SkillProvenance` records in its own doc comment that the client's files carry a commit and never an owner, so `changed since you installed it` cannot be derived — which is why the sheet's date is labelled as the router's own first sighting and why `CleanupPresentation.provenanceLimit` says so on screen rather than leaving the reader to infer it. `theSheetReportsOnlyObservations` asserts the sheet renders all three fields `SkillProvenance` actually carries and states none of the four invented strings. The negative half enumerates them by name rather than being a blanket not-that predicate, so it fires on the specific thing that would regress. Armed 20 Aug 2026 twice: deleting the `firstSeenAt` field reads `never renders firstSeenAt`, and adding `field(\"Owner at install\", \"@jbailey\")` reads `the sheet states 'Owner at install', which the router never reported`."
+  "note": "Re-rated to `source-analysis`: it reads CleanupSheets.swift and no assertion in it proves a sheet was drawn, which its own previous note already said. The rendered claim is covered at an effect rung by CASE-0140 (outcome, macos-glass), which presses `Read first…` on the running build and reads the sheet's three fields and the absence of all four invented strings out of evidence/ax/SURF-007.provenance-sheet.window.txt. Kept and counted rather than retired, at the rung that describes what it actually does.\n\nPREVIOUSLY: The sheet `Read first…` opens is where REQ-007 was most at risk on this board, because the design's version of it is almost entirely invented. `prototype.html:1249` lists an owner at install (`@jbailey`), a default branch `force-pushed 11d ago`, an installed hash `a3f19c2 — no longer in history`, and `Its evals fail 5 of 8`. The router reports none of them, and one is not computable at all: `SkillProvenance` records in its own doc comment that the client's files carry a commit and never an owner, so `changed since you installed it` cannot be derived — which is why the sheet's date is labelled as the router's own first sighting and why `CleanupPresentation.provenanceLimit` says so on screen rather than leaving the reader to infer it. `theSheetReportsOnlyObservations` asserts the sheet renders all three fields `SkillProvenance` actually carries and states none of the four invented strings. The negative half enumerates them by name rather than being a blanket not-that predicate, so it fires on the specific thing that would regress. Armed 20 Aug 2026 twice: deleting the `firstSeenAt` field reads `never renders firstSeenAt`, and adding `field(\"Owner at install\", \"@jbailey\")` reads `the sheet states 'Owner at install', which the router never reported`.",
+  "source": {
+   "analyzer": "swift test --filter CleanupRowActionsTests/theSheetReportsOnlyObservations — reads the comment-stripped `SkillProvenanceSheet` declaration for the three observed fields and the four invented strings",
+   "examined": 1
+  }
  },
  {
   "id": "CASE-0138",
@@ -1883,28 +1902,36 @@
   "req": "REQ-005",
   "surface": "SURF-018",
   "lane": "ios-unit",
-  "oracle": "structural",
+  "oracle": "source-analysis",
   "cell": "surface=iOS Settings · state=all five states carrying a recovery action",
-  "note": "Arms A1, A2, A6 red then restored.",
+  "note": "Re-rated from `structural` to `source-analysis`. The classifier is comment-stripped and its three arms A1, A2 and A6 were each watched red and restored (evidence/runs/def-025-028-arms.json), so it bites — but it reads text and renders nothing, and `structural` implied an accessibility tree it never opened. Its own arms record already names what is owed: that the rendered control sits below the card in pixels, on a device, is NOT proved here and wants a fresh ios-glass capture. That is owed work rather than a permanent limit, and it is the only route by which this case rises. REQ-005 rests on this case and CASE-0150 alone, so it rests entirely on source analysis today; the requirement claims no effect outside the process, which is why the campaign's own guard does not hold the gate on it.\n\nPREVIOUSLY: Arms A1, A2, A6 red then restored.",
   "status": "pass",
   "evidence": [
    "evidence/runs/def-025-028-arms.json"
   ],
-  "armed": true
+  "armed": true,
+  "source": {
+   "analyzer": "swift test --filter PhoneSettingsPlacementTests (theBlockDrawsNoAction, theActionMovedRatherThanVanished, theUnreadableStatePlacesTheAction) — reads the comment-stripped PhoneMessageBlock, PhoneBlockActions and PairedMacSettingsView declarations in PairedMacSettingsView.swift",
+   "examined": 3
+  }
  },
  {
   "id": "CASE-0150",
   "req": "REQ-005",
   "surface": "SURF-018",
   "lane": "ios-unit",
-  "oracle": "structural",
+  "oracle": "source-analysis",
   "cell": "surface=iOS Settings · state=never paired",
-  "note": "Arms A4, A5 red then restored.",
+  "note": "Re-rated from `structural` to `source-analysis`, for CASE-0149's reason. Arms A4 and A5 were watched red and restored (evidence/runs/def-025-028-arms.json), and A5's first attempt reported ARM INVALID because its anchor matched 0 times — recorded there rather than silently re-run. Whether the column READS as centred on a device is not proved by a text search and is owed to ios-glass.\n\nPREVIOUSLY: Arms A4, A5 red then restored.",
   "status": "pass",
   "evidence": [
    "evidence/runs/def-025-028-arms.json"
   ],
-  "armed": true
+  "armed": true,
+  "source": {
+   "analyzer": "swift test --filter PhoneSettingsPlacementTests (theNeverPairedStateIsCentred, centringDidNotLeakIntoTheSharedBlock) — reads the comment-stripped PhoneEmptyState and PhoneMessageBlock declarations in PairedMacSettingsView.swift",
+   "examined": 2
+  }
  },
  {
   "id": "CASE-0155",
@@ -2236,15 +2263,17 @@
    "dataShape": "typical",
    "executionPlane": "on-glass"
   },
-  "oracle": "structural",
+  "oracle": "metamorphic",
   "status": "pass",
   "armed": true,
   "evidence": [
    "evidence/ax/SURF-025.window.txt",
+   "evidence/ax/SURF-025.empty.window.txt",
+   "evidence/ax/SURF-025.failure.window.txt",
    "evidence/runs/glass-assert.json"
   ],
-  "note": "PROVED TO RENDER, NOT PROVED TO WORK, and recorded at `structural` for that reason. The board's two controls exist in the accessibility tree with their labels: Rescan drawn enabled, Reconcile all drawn disabled. Nothing here presses Rescan — the Debug shell reads a fixture, so a second read returns the same bytes and a green 'it refreshed' would be indistinguishable from a button wired to nothing. That is the claim this case declines to make.",
-  "armedBy": "predicate arm. Stated explicitly in bin/glass-assert.py and re-run there. Watched to fail under `--decoy SURF-025`, which strips this surface's own copy from its dump and turns the case RED. `--discriminate` additionally runs this board's predicate against every other board's window dump: it wrongly accepted 0 of 8, so a pass here cannot be a pass on another board."
+  "note": "Raised off `structural` by reading the board ACROSS its readings instead of within one. Nothing here presses `Rescan` and nothing needs to: the Debug shell reads a fixture, so a second read returns the same bytes and a green 'it refreshed' would be indistinguishable from a button wired to nothing — that claim is still declined. What relation `SURF-025/controls-track-reading` asserts instead is that the control set is COMPUTED. Across the populated, empty and failed readings the two header controls are invariant — Rescan drawn enabled and Reconcile all… drawn disabled in all three — while the per-harness controls number 10 where harnesses were returned and 0 in both readings that returned none. A board drawing a fixed column fails that, and so does one whose header controls come and go with the list.",
+  "armedBy": "predicate arm, stated in bin/glass-assert.py and re-run there. `--relation-decoy SURF-025/rows-through-empty` reads the empty window out of the populated file — a board that kept drawing yesterday's harnesses through a reading that returned none — and the per-harness count reads 10 where it must read 0, RED. It reddens CASE-0167 alone. The earlier `--decoy SURF-025` arm on this case's copy predicates still bites, and `--discriminate` still reports this board's predicate wrongly accepting 0 of 8 foreign window dumps."
  },
  {
   "id": "CASE-0170",
@@ -2419,15 +2448,17 @@
    "dataShape": "typical",
    "executionPlane": "on-glass"
   },
-  "oracle": "structural",
+  "oracle": "metamorphic",
   "status": "pass",
   "armed": true,
   "evidence": [
    "evidence/ax/SURF-026.window.txt",
+   "evidence/ax/SURF-026.empty.window.txt",
+   "evidence/ax/SURF-026.failure.window.txt",
    "evidence/runs/glass-assert.json"
   ],
-  "note": "PROVED TO RENDER, NOT PROVED TO WORK, and recorded at `structural` for that reason. `Analyse now` exists in the accessibility tree, drawn disabled. Nothing presses it and nothing could: PRD.md §6 specifies a session analyst and nothing in app/Sources implements one, so there is no run to observe. A case claiming the analyst panel works would be claiming a feature that does not exist.",
-  "armedBy": "predicate arm. Stated explicitly in bin/glass-assert.py and re-run there. Watched to fail under `--decoy SURF-026`, which strips this surface's own copy from its dump and turns the case RED."
+  "note": "Raised off `structural` without claiming a feature that does not exist. PRD.md §6 specifies a session analyst and nothing in app/Sources implements one, so `Analyse now` is drawn disabled, nothing presses it, and no case here says the analyst works. What relation `SURF-026/action-tracks-state` asserts is the thing a disabled control can still be wrong about: the board draws exactly ONE action in each of its three readings, and which one is a function of the reading — `Analyse now` disabled where calls were served, `Watch the live log instead` enabled where the log horizon is nil, `Start the router` enabled where the read failed. The three are pairwise distinct and each appears in neither of the other two windows, so the action is chosen rather than drawn.",
+  "armedBy": "predicate arm, stated in bin/glass-assert.py and re-run there. `--relation-decoy SURF-026/one-fixed-action` reads the empty window out of the populated file, so two readings draw `Analyse now`: the expected-action, pairwise-distinct and no-stray-action checks all go RED, and CASE-0176 is the only case that moves. The earlier `--decoy SURF-026` arm on this case's copy predicates still bites."
  },
  {
   "id": "CASE-0177",
@@ -2743,7 +2774,7 @@
    "dataShape": "served-package",
    "executionPlane": "headless"
   },
-  "oracle": "structural-visual",
+  "oracle": "metamorphic",
   "status": "pass",
   "armed": true,
   "evidence": [
@@ -2751,14 +2782,17 @@
    "evidence/g17-document/captures.json",
    "evidence/g17-document/run.txt",
    "evidence/g17-document/changelog.served.png",
-   "evidence/g17-document/changelog.served.dump.json"
+   "evidence/g17-document/changelog.served.dump.json",
+   "evidence/g17-document/wire-served.json",
+   "evidence/g17-document/armed/tabs-served-changelog.txt",
+   "evidence/g17-document/armed/tabs-raster-changelog.txt"
   ],
-  "note": "FLOW-006.03. Moving to the Changelog tab draws the changelog the router served — its own heading and its 1.0.0 entry. Until G17 the panel's other two tabs had never been drawn carrying a document at all: switching tabs is a press on @State and a headless render performs no presses, so every frame of this panel in the campaign's history was its read me. Check G17-P6. Picture: evidence/g17-document/changelog.served.png.",
-  "armedBy": "ARMED and watched through control G17-P8 (see CASE-0190): the changelog frame was re-rendered on the read me tab under its own filename and the tab check went red. Restored byte-identically.",
+  "note": "FLOW-006.03. Raised from `structural-visual` on two checks that ask what the old one could not. G17-P6 asked whether a heading carrying the tab's own name is in the dump, which is true of a panel that draws a heading — so this case sat one rung below an effect and its own note said it moved no count. G17-P6W ties the drawn body to the wire: the words of six letters or more that `wire-served.json` carries ONLY in the changelog are COMPUTED from the response rather than written into the check, and all 4 of them are in the panel's own body while none of the 20 unique to the read me is. G17-P6R reads the same step in pixels — 22.7% of the body region's 1,572,864 pixels differ from the read me frame's, against a 1% floor, where a tab that repainted nothing reads 0.0%. Each crop is taken from its own frame's dump at its own scale, so the titlebar and the tab bar cannot supply the difference. Both denominators are checked before the result: a wire response whose three documents shared every word gives both word lists empty, and a clean answer from an empty search is the reading this harness exists against. Rated `metamorphic` rather than `raster-visual` for two reasons — the claim is a RELATION (vary the tab, require the drawn body to track the document the router served) rather than a comparison against a reference image, and these frames come off the hosting view's own backing store rather than off a display server, which is what `raster-visual` names. Checks G17-P6, G17-P6W, G17-P6R. Picture: evidence/g17-document/changelog.served.png.",
+  "armedBy": "ARMED and watched — one plant, four named watchers. Control G17-P8 re-renders the changelog and capabilities frames on the read me tab under their own filenames. G17-P6W goes red naming what is missing and what strayed (missing changelog/exists/reader/second, strayed capability/climbing/climbs/declare/dropping/figure) and G17-P6R reads 0.0% against its 1% floor. Recorded at evidence/g17-document/armed/tabs-served-changelog.txt and evidence/g17-document/armed/tabs-raster-changelog.txt — one plant's record filed under each check that was named as its expected failure, which is why the two files agree line for line. Each check is named separately so a tab step that stopped biting is visible as itself rather than only as CASE-0190's relation over all three frames. Restored and re-rendered byte-identically, sha256 5563977a462a643d927596543857c4f9d46546bfb25ca166e3d7780c67d4c069.",
   "actuates": [
    "Changelog"
   ],
-  "actuatesNote": "The tab is pressed and the changelog the router served is drawn. At `structural-visual`, so it moves no count: CASE-0190 is the effect-rung case over the same presses."
+  "actuatesNote": "The tab is pressed and the changelog the router served is drawn. The press now has an observable of its own — the served vocabulary in the body, and 22.7% of the body region repainted — rather than resting on CASE-0190's relation over all three frames."
  },
  {
   "id": "CASE-0189",
@@ -2776,7 +2810,7 @@
    "dataShape": "served-package",
    "executionPlane": "headless"
   },
-  "oracle": "structural-visual",
+  "oracle": "metamorphic",
   "status": "pass",
   "armed": true,
   "evidence": [
@@ -2784,14 +2818,17 @@
    "evidence/g17-document/captures.json",
    "evidence/g17-document/run.txt",
    "evidence/g17-document/capabilities.served.png",
-   "evidence/g17-document/capabilities.served.dump.json"
+   "evidence/g17-document/capabilities.served.dump.json",
+   "evidence/g17-document/wire-served.json",
+   "evidence/g17-document/armed/tabs-served-capabilities.txt",
+   "evidence/g17-document/armed/tabs-raster-capabilities.txt"
   ],
-  "note": "FLOW-006.04. Moving to the Capabilities tab draws the capability list the router served. Check G17-P7. Picture: evidence/g17-document/capabilities.served.png.",
-  "armedBy": "ARMED and watched through control G17-P8 (see CASE-0190). Restored byte-identically.",
+  "note": "FLOW-006.04. Raised from `structural-visual` on two checks that ask what the old one could not. G17-P7 asked whether a heading carrying the tab's own name is in the dump, which is true of a panel that draws a heading — so this case sat one rung below an effect and its own note said it moved no count. G17-P7W ties the drawn body to the wire: the words of six letters or more that `wire-served.json` carries ONLY in the capability list are COMPUTED from the response rather than written into the check, and all 4 of them are in the panel's own body while none of the 20 unique to the read me is. G17-P7R reads the same step in pixels — 21.8% of the body region's 1,572,864 pixels differ from the read me frame's, against a 1% floor, where a tab that repainted nothing reads 0.0%. Each crop is taken from its own frame's dump at its own scale, so the titlebar and the tab bar cannot supply the difference. Both denominators are checked before the result: a wire response whose three documents shared every word gives both word lists empty, and a clean answer from an empty search is the reading this harness exists against. Rated `metamorphic` rather than `raster-visual` for two reasons — the claim is a RELATION (vary the tab, require the drawn body to track the document the router served) rather than a comparison against a reference image, and these frames come off the hosting view's own backing store rather than off a display server, which is what `raster-visual` names. Checks G17-P7, G17-P7W, G17-P7R. Picture: evidence/g17-document/capabilities.served.png.",
+  "armedBy": "ARMED and watched — one plant, four named watchers. Control G17-P8 re-renders the changelog and capabilities frames on the read me tab under their own filenames. G17-P7W goes red naming what is missing and what strayed (missing capabilities/response/returns/serves, strayed capability/climbing/climbs/declare/dropping/figure) and G17-P7R reads 0.0% against its 1% floor. Recorded at evidence/g17-document/armed/tabs-served-capabilities.txt and evidence/g17-document/armed/tabs-raster-capabilities.txt — one plant's record filed under each check that was named as its expected failure, which is why the two files agree line for line. Restored and re-rendered byte-identically, sha256 3c5aa28b93bd06ca8d63369d1cda29c6da5ab2357d181c250fcc8eadf118ba93.",
   "actuates": [
    "Capabilities"
   ],
-  "actuatesNote": "The tab is pressed and the capability list the router served is drawn. At `structural-visual`, so it moves no count; see CASE-0190."
+  "actuatesNote": "The tab is pressed and the capability list the router served is drawn. The press now has an observable of its own — the served vocabulary in the body, and 21.8% of the body region repainted — rather than resting on CASE-0190's relation over all three frames."
  },
  {
   "id": "CASE-0190",
@@ -2936,7 +2973,7 @@
    "evidence/g17-document/captures.json",
    "evidence/g17-document/run.txt"
   ],
-  "note": "Capture lineage over this flow's own wall of pictures. Each of the five rows in evidence/g17-document/captures.json names the campaign surface and the flow step it is of, carries the sha256 of the file on disk, and — for four of the five — names a string the PANEL draws which the assertion pass then reads back out of that frame's own dump. So a picture is tied to the package it is of independently of its filename. The fifth, refusal.toolarge, cannot do this and is NAMED rather than counted as corroborated: G17-L2 fails if that set is ever anything other than exactly it. DEF-060. Checks G17-L1, G17-L2.",
+  "note": "STRUCTURAL AND PERMANENTLY SO, and the reason is not a missing instrument. Its subject is the correspondence between the capture manifest and the artifacts on disk — a property of the EVIDENCE RECORD rather than of the product, so there is no product state a change could move and no rung on the ladder it could climb to. It is counted against the strict total rather than dropped from it, because a campaign that hid its own record-keeping checks from the denominator would be scoring itself on a smaller suite than it runs.\n\nCapture lineage over this flow's own wall of pictures. Each of the five rows in evidence/g17-document/captures.json names the campaign surface and the flow step it is of, carries the sha256 of the file on disk, and — for four of the five — names a string the PANEL draws which the assertion pass then reads back out of that frame's own dump. So a picture is tied to the package it is of independently of its filename. The fifth, refusal.toolarge, cannot do this and is NAMED rather than counted as corroborated: G17-L2 fails if that set is ever anything other than exactly it. DEF-060. Checks G17-L1, G17-L2.",
   "armedBy": "ARMED and watched: control G17-P1 re-rendered readme.served against a different server while leaving its filename and its manifest row alone — the wall-of-20-captures failure, reproduced deliberately. Both G17-P1 and the lineage cross-check went red."
  }
 ]

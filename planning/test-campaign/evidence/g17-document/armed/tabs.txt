@@ -10,6 +10,10 @@
   ok   G17-P5 — the escaping reference drew its own refusal and no picture (0.00% figure colour): 'Not shown — this image points outside the package it came with.'
   FAIL G17-P6 — the changelog tab draws the changelog's own heading: ['g17-capability']
   FAIL G17-P7 — the capabilities tab draws the capability list's own heading: ['g17-capability']
+  FAIL G17-P6W — the changelog tab drew the changelog THE ROUTER SERVED: all 4 word(s) the wire response carries only in that document are in the panel's own body and none of the 20 the read me carries only in its own is — missing ['changelog', 'exists', 'reader', 'second'], strayed ['capability', 'climbing', 'climbs', 'declare', 'dropping', 'figure']
+  FAIL G17-P7W — the capabilities tab drew the capabilities THE ROUTER SERVED: all 4 word(s) the wire response carries only in that document are in the panel's own body and none of the 20 the read me carries only in its own is — missing ['capabilities', 'response', 'returns', 'serves'], strayed ['capability', 'climbing', 'climbs', 'declare', 'dropping', 'figure']
+  FAIL G17-P6R — the changelog tab REPAINTED the body: 0.0% of its 1572864-pixel body region differs from the read me's (floor 1%) — a tab that changed no pixels would read 0
+  FAIL G17-P7R — the capabilities tab REPAINTED the body: 0.0% of its 1572864-pixel body region differs from the read me's (floor 1%) — a tab that changed no pixels would read 0
   FAIL G17-P8 — the three tabs draw three different documents out of one package: distinct bodies=1, all three name g17-capability=True
   ok   G17-R1 — the nothing-served refusal draws its own state and no figure: ['g17-no-package has no package to read']
   ok   G17-R2 — the too-large refusal names the file and the cap it broke: ['README.md is too large to show here']

@@ -35,9 +35,31 @@ no macOS API exposes a cross-process computed style. The 10 comparable pairs are
 queued for a human/judge pass through witness-worklist.json instead, and the 7 that
 have no reference are named there.
 
+WHAT A ONE-WINDOW PREDICATE CANNOT SAY, AND THE RELATIONS THAT CAN
+------------------------------------------------------------------
+Everything above reads one window. That settles copy and it cannot settle a
+control: an `AXButton` with the right label is in the tree whether or not its
+handler does anything, which is why three cases here stood at `structural` and
+said so in their own notes.
+
+`RELATIONS` reads a board ACROSS its readings instead — populated, an answer of
+none, a failed read — and requires the drawn control set to move the way the data
+moved while the header controls do not. A board drawing a fixed column fails it,
+and so does a board that lost its header controls when the list emptied. It needs
+no press, which matters on a Debug shell: a second read of one fixture returns
+the same bytes, so pressing `Rescan` and finding nothing changed would be
+indistinguishable from a button wired to nothing.
+
+Each relation carries named arms rather than one decoy, because a relation with
+two halves needs a fault for each: substituting one reading's window for
+another's reddens the count, and stripping the buttons a combined row no longer
+publishes reddens the ownership half the count never touches.
+
     python3 glass-assert.py                  # assert every case
     python3 glass-assert.py --discriminate   # the arming control
     python3 glass-assert.py --decoy SURF-006 # drop one surface's copy, watch it red
+    python3 glass-assert.py --relation-decoy SURF-007/combined-rows   # plant one
+                                             # relation's fault, watch that relation red
 """
 from __future__ import annotations
 
@@ -454,6 +476,225 @@ STATE_CASES = {
     "CASE-0175": ("SURF-026/failure", "raster"),
 }
 
+# ── RELATIONS: what a board would have to CHANGE for the claim to hold ──────
+#
+# Everything above reads ONE window and asks what is in it. That is the right
+# question for copy and the wrong one for a control, because a control's presence
+# is true of a board wired to nothing — which is why the three cases below stood
+# at `structural` and said so in their own notes.
+#
+# A relation asks the other question: hold the product fixed, vary the data, and
+# require the drawn control set to move the way the data moved. It cannot be
+# satisfied by a static drawing, and it needs no press — which matters here,
+# because the Debug shell reads a fixture and a second read of the same fixture
+# returns the same bytes, so pressing `Rescan` and finding nothing changed would
+# be indistinguishable from a button wired to nothing.
+#
+# Each relation names the dumps it spans and the arm that reddens it. The arm is
+# a SUBSTITUTION rather than a deletion: one state's dump is read from another
+# state's file, which is precisely the regression the relation exists to catch —
+# a board that drew its populated control set under a reading that returned none.
+# `--relation-decoy <id>` performs it.
+
+# The chrome every window carries, which is not a board control. Written as a set
+# of exact labels plus the two badged spellings the sidebar uses, because
+# `Cleanup` and `Cleanup, 3 never used` are one destination and a prefix match on
+# `Reconcile` would have swallowed `Reconcile all…`.
+SIDEBAR = {"Activity", "Servers", "Skills", "Harnesses", "Discover", "Inbox",
+           "Checks", "Cleanup", "Insights", "Settings"}
+CHROME = {"Hide Sidebar"}
+
+
+def ax_rows(text: str) -> list[list[str]]:
+    """Every AX row of a dump, as its tab-separated fields.
+
+    Split with a floor on field count rather than on role, because a dump line
+    that lost a column would otherwise be read as a different element quietly.
+    """
+    return [r for r in (line.split("\t") for line in text.splitlines()) if len(r) > 8]
+
+
+def board_controls(text: str) -> list[tuple[int, str, str]]:
+    """(depth, label, enabled) for every labelled AXButton that is the BOARD's.
+
+    The window's own buttons (close, zoom, minimise) and the scrollbar's arrows
+    carry an empty label and a role in field 2, so they drop out on the label
+    test rather than on a list of names that would need maintaining. The sidebar
+    destinations are named, because they are labelled and they are chrome: they
+    appear in all nine boards' dumps, which is what CASE-0001 asserts and what
+    would otherwise make every relation below pass on every window.
+    """
+    out = []
+    for f in ax_rows(text):
+        if f[1] != "AXButton" or not f[5]:
+            continue
+        name = f[5].split(",")[0]
+        if name in SIDEBAR or f[5] in CHROME:
+            continue
+        out.append((int(f[0]), f[5], f[7]))
+    return out
+
+
+def candidate_rows(text: str) -> list[dict]:
+    """The Cleanup board's rows, each with the controls it owns.
+
+    A row is an `AXGroup` whose accessible name is `<name>, <kind>. <sentence>` —
+    the label SwiftUI composes from a row that CONTAINS its children. Its controls
+    are the buttons nested one level deeper, up to the next element at the row's
+    own depth or shallower.
+
+    **This reader is the whole point of the case.** `accessibilityElement(children:
+    .combine)` flattens a row's buttons into that same label, so a combined row
+    still produces the AXGroup and produces NO buttons under it. The count of
+    controls per row is therefore the property the source assertion was standing
+    in for, read off the running window instead of off `CleanupBoardRow.swift`.
+    """
+    rows, current = [], None
+    for f in ax_rows(text):
+        depth, role, label = int(f[0]), f[1], f[5]
+        if current is not None and depth <= current["depth"]:
+            rows.append(current)
+            current = None
+        if role == "AXGroup" and re.match(r"^[^,]+, (Server|Skill)\. ", label or ""):
+            current = {"name": label.split(",")[0], "depth": depth, "controls": []}
+            continue
+        if current is not None and role == "AXButton" and label:
+            current["controls"].append(label)
+    if current is not None:
+        rows.append(current)
+    return rows
+
+
+RELATIONS = {
+    # CASE-0131 and the half of DEF-011 a source read cannot reach.
+    #
+    # `theRowContainsItsControls` asserts that `CleanupBoardRow` declares
+    # `.contain` and not `.combine`. That is a proxy: what the modifier decides is
+    # whether each row's buttons are separately addressable, and this reads that
+    # directly off two real windows. The two carry DIFFERENT row populations —
+    # three servers, then three servers and two skills — so a fixed control column
+    # fails the count as well as a combined one failing the ownership.
+    "SURF-007/row-actions": {
+        "case": "CASE-0131",
+        "dumps": ["SURF-007.window.txt", "SURF-007.cleanup-skills.window.txt"],
+        "arms": {
+            # The row column drawn at a fixed size: the skills window read from the
+            # servers window, so both populations are three rows and none is flagged.
+            "SURF-007/fixed-column": {
+                "substitute": {"SURF-007.cleanup-skills.window.txt": "SURF-007.window.txt"},
+            },
+            # `accessibilityElement(children: .combine)`, which is the modifier the
+            # source assertion this replaces was reading for. Combining flattens a
+            # row's buttons into the row's own label, so the group survives and its
+            # controls do not — reproduced here by dropping exactly those buttons.
+            "SURF-007/combined-rows": {"strip": "row-buttons"},
+        },
+        "kind": "rows",
+        "asserts": "every Cleanup row owns its own controls in the accessibility tree, the "
+                   "number of control-bearing rows equals the number of rows drawn, the two "
+                   "windows draw different numbers of them, and the action set is a function "
+                   "of the row: exactly Inspect + Remove… where the row carries no provenance "
+                   "note and exactly Read first… where it does",
+    },
+    # CASE-0167. The header controls are the ones that are only proved to render;
+    # the relation is that they are the ONLY ones that do not move.
+    "SURF-025/controls-track-reading": {
+        "case": "CASE-0167",
+        "dumps": ["SURF-025.window.txt", "SURF-025.empty.window.txt",
+                  "SURF-025.failure.window.txt"],
+        "arms": {
+            # A board that kept drawing yesterday's harnesses through a reading that
+            # returned none — the per-harness controls present where there are no
+            # harnesses.
+            "SURF-025/rows-through-empty": {
+                "substitute": {"SURF-025.empty.window.txt": "SURF-025.window.txt"},
+            },
+        },
+        "kind": "population",
+        "invariant": {"Rescan": "1", "Reconcile all…": "0"},
+        "populated": "SURF-025.window.txt",
+        "rowControls": ["Reveal config in Finder", "Reconcile…", "Why a shim?"],
+        "asserts": "the Harnesses board's two header controls are drawn in all three readings "
+                   "with the same enabled state, while every per-harness control it draws is "
+                   "present only in the reading that returned harnesses — so the control column "
+                   "is computed from what was read rather than drawn regardless",
+    },
+    # CASE-0176. Nothing here claims the analyst runs: PRD.md §6 specifies one and
+    # app/Sources implements none, so `Analyse now` is drawn disabled and there is
+    # no run to observe. What CAN be measured is that the board's single action is
+    # chosen by its state, which a board drawing one fixed action would fail.
+    "SURF-026/action-tracks-state": {
+        "case": "CASE-0176",
+        "dumps": ["SURF-026.window.txt", "SURF-026.empty.window.txt",
+                  "SURF-026.failure.window.txt"],
+        "arms": {
+            # One action drawn regardless of state, which is what a board whose
+            # action is a fixture of its layout rather than of its reading looks
+            # like from the outside.
+            "SURF-026/one-fixed-action": {
+                "substitute": {"SURF-026.empty.window.txt": "SURF-026.window.txt"},
+            },
+        },
+        "kind": "distinct-action",
+        "expected": {
+            "SURF-026.window.txt": ("Analyse now", "0"),
+            "SURF-026.empty.window.txt": ("Watch the live log instead", "1"),
+            "SURF-026.failure.window.txt": ("Start the router", "1"),
+        },
+        "asserts": "the Insights board draws exactly one action in each of its three readings, "
+                   "the three are pairwise distinct, and each is absent from the other two "
+                   "windows — so the action is a function of the state rather than a fixture "
+                   "of the board",
+    },
+}
+
+
+# arm id -> the relation it belongs to, so `--relation-decoy` names one fault
+# rather than one relation. A relation with several ways to break wants several
+# arms: the row relation stands on ownership AND on count, and a substitution
+# that reddens the count leaves the ownership half unwatched.
+ARMS = {arm: rid for rid, rel in RELATIONS.items() for arm in rel.get("arms", {})}
+
+# What each `strip` plant actually removed, keyed `<arm>:<dump>`. Printed with the run and written
+# into the verdict file, because an arm is only evidence if what it planted is on the record: an
+# arm whose predicate matched nothing removes nothing and leaves the relation green, which is
+# indistinguishable from a relation that does not bite.
+ARM_DROPS: dict[str, list[str]] = {}
+
+
+def relation_dump(relation: dict, name: str, arm: str | None) -> str:
+    """One dump of a relation, with the named fault planted in it if it has one.
+
+    `substitute` reads one reading's window out of another reading's file, leaving
+    the relation to notice that two readings it should be able to tell apart have
+    become one. `strip` removes the rows a regression would remove — here the
+    buttons a combined row no longer publishes.
+    """
+    plant = relation.get("arms", {}).get(arm or "", {})
+    source = plant.get("substitute", {}).get(name, name)
+    text = (AX / source).read_text()
+    if plant.get("strip") == "row-buttons":
+        depths = {row["depth"] for row in candidate_rows(text)}
+        keep, dropped = [], []
+        for line in text.splitlines():
+            f = line.split("\t")
+            if (len(f) > 8 and f[1] == "AXButton" and f[5]
+                    and int(f[0]) - 1 in depths and f[5] not in CHROME
+                    and f[5].split(",")[0] not in SIDEBAR):
+                # Named rather than skipped. An arm that planted nothing and an arm that planted
+                # the wrong thing both leave the relation green, and the two are told apart only
+                # by what the plant says it removed — so the list escapes into ARM_DROPS and is
+                # printed with the relation's own line.
+                dropped.append(f[5])
+                continue
+            keep.append(line)
+        ARM_DROPS["%s:%s" % (arm, name)] = dropped
+        print("  plant %s: removed %d row control(s) from %s — %s"
+              % (arm, len(dropped), name, ", ".join(sorted(set(dropped))) or "NOTHING, "
+                 "which is an arm that planted no fault rather than a relation that held"))
+        text = "\n".join(keep)
+    return text
+
 
 def carries(phrase, text: str) -> bool:
     """A predicate is a literal or a pattern; both answer the same question."""
@@ -512,6 +753,12 @@ def shot_facts() -> dict:
 
 def main() -> int:
     decoy = sys.argv[sys.argv.index("--decoy") + 1] if "--decoy" in sys.argv else None
+    relation_decoy = (sys.argv[sys.argv.index("--relation-decoy") + 1]
+                      if "--relation-decoy" in sys.argv else None)
+    if relation_decoy is not None and relation_decoy not in ARMS:
+        print(f"--relation-decoy {relation_decoy} names no arm. One of: "
+              f"{', '.join(ARMS)}", file=sys.stderr)
+        return 2
 
     if "--discriminate" in sys.argv:
         print("DISCRIMINATION — each surface's predicate against every other surface's dump")
@@ -675,21 +922,120 @@ def main() -> int:
         if kind == "raster":
             raster_checks(case)
 
+    # ── the relations ───────────────────────────────────────────────────────
+    #
+    # Read across a board's readings rather than within one, so the claim is
+    # about what the board COMPUTES rather than about what it contains. Every
+    # denominator below is checked to be non-zero first: a relation asserted over
+    # no rows and no controls is satisfied by an empty file, which is the shape of
+    # a clean answer from an instrument pointed at nothing.
+    relation_spans = {}
+    for rid, rel in RELATIONS.items():
+        case = rel["case"]
+        arm = relation_decoy if ARMS.get(relation_decoy or "") == rid else None
+        texts = {name: relation_dump(rel, name, arm) for name in rel["dumps"]}
+        relation_spans[rid] = {"case": case, "dumps": rel["dumps"],
+                               "arms": sorted(rel.get("arms", {})), "armed": arm}
+        planted = {k: v for k, v in ARM_DROPS.items() if arm and k.startswith(arm + ":")}
+        if planted:
+            relation_spans[rid]["planted"] = planted
+        for name, text in texts.items():
+            check(case, f"{rid}: {name} is an AXWindow tree",
+                  "AXWindow" in text and len(text) > 500)
+
+        if rel["kind"] == "rows":
+            per_dump = {name: candidate_rows(text) for name, text in texts.items()}
+            counts = {name: len(rows) for name, rows in per_dump.items()}
+            relation_spans[rid]["rowCounts"] = counts
+            check(case, f"{rid}: every window draws rows to read ({counts})",
+                  all(n > 0 for n in counts.values()))
+            # The relation. Two windows, two different populations: a control
+            # column drawn at a fixed size cannot satisfy both.
+            check(case, f"{rid}: the two windows draw different row counts "
+                        f"({sorted(counts.values())})",
+                  len(set(counts.values())) == len(counts))
+            owning = {name: [r for r in rows if r["controls"]]
+                      for name, rows in per_dump.items()}
+            relation_spans[rid]["rowsOwningControls"] = {
+                name: len(rows) for name, rows in owning.items()}
+            check(case, f"{rid}: every row owns its own controls in the tree — "
+                        f"{ {n: f'{len(owning[n])}/{counts[n]}' for n in counts} }",
+                  all(len(owning[name]) == counts[name] for name in counts))
+            # The action set is a function of the row rather than of the board.
+            flagged = [r for rows in per_dump.values() for r in rows
+                       if "Read first…" in r["controls"]]
+            plain = [r for rows in per_dump.values() for r in rows
+                     if "Read first…" not in r["controls"]]
+            relation_spans[rid]["flagged"] = [r["name"] for r in flagged]
+            check(case, f"{rid}: a flagged row is drawn to compare against "
+                        f"({len(flagged)} flagged, {len(plain)} not)",
+                  bool(flagged) and bool(plain))
+            check(case, f"{rid}: a flagged row draws Read first… and NEITHER of the other two",
+                  all(r["controls"] == ["Read first…"] for r in flagged))
+            check(case, f"{rid}: an unflagged row draws Inspect and Remove… and no Read first…",
+                  all(r["controls"] == ["Inspect", "Remove…"] for r in plain))
+
+        elif rel["kind"] == "population":
+            census = {name: board_controls(text) for name, text in texts.items()}
+            relation_spans[rid]["controls"] = {
+                name: [(label, en) for _, label, en in c] for name, c in census.items()}
+            check(case, f"{rid}: every reading draws controls to compare "
+                        f"({ {n: len(c) for n, c in census.items()} })",
+                  all(c for c in census.values()))
+            for label, enabled in rel["invariant"].items():
+                drawn = {name: [en for _, la, en in c if la == label]
+                         for name, c in census.items()}
+                check(case, f"{rid}: {label} is drawn in all {len(census)} readings, "
+                            f"always {'enabled' if enabled == '1' else 'disabled'}",
+                      all(drawn[name] == [enabled] for name in drawn))
+            rowish = {name: [la for _, la, _ in c if la in rel["rowControls"]]
+                      for name, c in census.items()}
+            relation_spans[rid]["perRowControls"] = {n: len(v) for n, v in rowish.items()}
+            populated = rel["populated"]
+            check(case, f"{rid}: the reading that returned harnesses draws per-harness "
+                        f"controls ({len(rowish[populated])})",
+                  len(rowish[populated]) > 0)
+            others = [n for n in rowish if n != populated]
+            check(case, f"{rid}: a reading that returned none draws none of them "
+                        f"({ {n: len(rowish[n]) for n in others} })",
+                  all(not rowish[n] for n in others))
+
+        elif rel["kind"] == "distinct-action":
+            actions = {name: board_controls(text) for name, text in texts.items()}
+            relation_spans[rid]["actions"] = {
+                name: [(la, en) for _, la, en in a] for name, a in actions.items()}
+            check(case, f"{rid}: each reading draws exactly one board action "
+                        f"({ {n: len(a) for n, a in actions.items()} })",
+                  all(len(a) == 1 for a in actions.values()))
+            drawn = {name: (a[0][1], a[0][2]) for name, a in actions.items() if len(a) == 1}
+            check(case, f"{rid}: each reading draws the action its state calls for ({drawn})",
+                  drawn == rel["expected"])
+            labels = [la for la, _ in drawn.values()]
+            check(case, f"{rid}: the {len(labels)} actions are pairwise distinct ({labels})",
+                  len(set(labels)) == len(labels) and len(labels) == len(rel["dumps"]))
+            # The half that bites under the substitution: a label belonging to one
+            # reading must appear in no other reading's window at all.
+            strays = [(la, other) for name, (la, _) in drawn.items()
+                      for other in texts if other != name and la in texts[other]]
+            check(case, f"{rid}: no reading's action appears in another reading's window "
+                        f"({len(strays)} stray)", not strays)
+
     ok = not failures
     print(f"on-glass assertions over {len(CASES) + len(STATE_CASES)} cases / "
-          f"{len(SURFACES)} surfaces / {len(STATES)} states"
-          + (f"   DECOY={decoy}" if decoy else ""))
+          f"{len(SURFACES)} surfaces / {len(STATES)} states / {len(RELATIONS)} relations"
+          + (f"   DECOY={decoy}" if decoy else "")
+          + (f"   RELATION-DECOY={relation_decoy}" if relation_decoy else ""))
     for case in sorted(results):
         r = results[case]
         n = len(r["checks"])
         bad = [c["label"] for c in r["checks"] if not c["pass"]]
-        key, kind = CASES.get(case) or STATE_CASES[case]
+        key, kind = CASES.get(case) or STATE_CASES.get(case) or ("relation-only", "relation")
         print(f"  {'ok  ' if r['pass'] else 'FAIL'} {case} {key:<24} "
               f"{kind:<7} {n - len(bad)}/{n} checks"
               + (f"  <- {bad[0][:70]}" if bad else ""))
     print(f"\nchecked={checks} failures={len(failures)} "
           f"cases={len(CASES) + len(STATE_CASES)} "
-          f"(surfaces {len(SURFACES)}, states {len(STATES)})")
+          f"(surfaces {len(SURFACES)}, states {len(STATES)}, relations {len(RELATIONS)})")
     for f in failures[:12]:
         print(f"  FAILED  {f}")
     if len(failures) > 12:
@@ -699,7 +1045,9 @@ def main() -> int:
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({"checked": checks, "failures": failures,
                                "cases": results, "shots": shots,
-                               "decoy": decoy, "pass": ok}, indent=1) + "\n")
+                               "relations": relation_spans,
+                               "decoy": decoy, "relationDecoy": relation_decoy,
+                               "pass": ok}, indent=1) + "\n")
     return 0 if ok else 1
 
 

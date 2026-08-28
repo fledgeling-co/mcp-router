@@ -353,7 +353,12 @@
         "Review…",
         "Server row → inspector"
       ],
-      "controlsSource": "design/mocks/prototype.html"
+      "controlsSource": "design/mocks/prototype.html",
+      "controlsUnactuatable": {
+        "Context menu → Keep warm": "the build draws no context menu on a Servers row — `grep -c contextMenu` over `app/Sources/MCPRouterUI/Boards/*.swift` is 0. The lever itself is built and driven (CASE-0202); what the design of record puts on a right-click has no counterpart to press. A differential finding, recorded here rather than counted.",
+        "Context menu → Only load in named projects…": "same absence as the row above: no context menu exists on this board. `setProjects` is built and driven from the inspector by CASE-0203.",
+        "Keep serving the old text": "its whole promised effect is that NOTHING is sent — the router is already serving the approved text and the change stays held. The only read available is an absence, and an absence read passes identically on a control that does nothing at all, which is the tautology this census exists to refuse. `ServersBoardWriteTests.approveWritesAndKeepingDoesNot` asserts it and CASE-0206 stands at `outcome` on the accept half alone."
+      }
     },
     {
       "id": "SURF-003",
@@ -420,7 +425,13 @@
         "Skill row → inspector",
         "Version history…"
       ],
-      "controlsSource": "design/mocks/prototype.html"
+      "controlsSource": "design/mocks/prototype.html",
+      "controlsUnactuatable": {
+        "Keep the installed version": "the same sheet, the same absence — the design's capability-delta sheet offers a two-way decision and the build offers a dismissal. DEF-062.",
+        "Never run": "the design's Skills filter bar carries it as a chip; the build's `SkillPresentation.Filter` is `all | held | local | needsAttention` and has no such case. DEF-062.",
+        "Promote the held update": "the build draws no such control. The held-version sheet exists (`SkillSheets.swift`) and its only button is `Done` — measured 2026-08-29, three `Button` declarations in the file, all of them `Button(\"Done\")`. DEF-062.",
+        "Reveal repo in Finder": "no such control in the build — the string appears nowhere under `app/Sources/`. DEF-062."
+      }
     },
     {
       "id": "SURF-005",
@@ -1525,6 +1536,15 @@
       "text": "DETECTOR DEFECT in test-campaign, measured 2026-08-27 (G29) against the vendored 0.9.2 and the machine's 0.15.0, which carry a byte-identical `tie()`.\n\nSURF-028's route is `app://mac/servers/{server}/document` -- a family of addresses, one per server. `bin/g17-document-flow.sh` rendered its frames against three of them and recorded each target honestly. `tie()` normalises scheme, host, port, query and fragment away and then asks for string equality or a suffix match, so `mac/servers/g17-capability/document` against `mac/servers/{server}/document` fails all three tests and the gate reports UNTIED -- 'the recorded target does not resolve to the subject's route'. Nothing was pointed at the wrong thing. `references/capture-lineage.md` says resolution is 'deliberately loose on the parts a harness legitimately varies'; a `{server}` segment is exactly such a part, and it is the one case the looseness does not cover.\n\nTHE FIX BELONGS UPSTREAM, and is not applied here. `vendor/README.md` pins the tree by checksum so the gates can be re-run from a clone, and a `tie()` that behaves one way in this repository and another way everywhere else stops being evidence -- the same reasoning that keeps X7 and X8 open. Referred out of family (gpt-5.6-sol, high effort, 2026-08-27) and it reached the same conclusion independently: patch upstream, cut a release, re-vendor and re-pin, rather than forking the pinned copy. The patch is one function: treat a route segment of the form `{name}`, `:name` or `*` as matching exactly one non-empty target segment, leaving literal segments, the source-file refusal and the normalisation untouched, and leaving the seeded swap red.\n\nWHAT THIS REPOSITORY DID INSTEAD, and why it is not a workaround. The three served frames are published by the FLOW-006 steps that rendered them, each carrying the concrete route its own capture recorded, and SURF-028 publishes none. That is the registry becoming more accurate rather than less: the surface is a template and has no single portrait, while a step is that surface at one address and can name it. Every frame is now filed at the address the channel was pointed at. The detector limit is unchanged and is what this row records.",
       "source": "vendor/test-campaign/skills/test-campaign/scripts/capture-lineage.py:101-112 (`tie`); planning/test-campaign/evidence/g17-document/captures.json; planning/features-to-triage/X8-detectors-misattribute.md",
       "status": "open · detector · upstream"
+    },
+    {
+      "id": "DEF-062",
+      "req": "REQ-003",
+      "surface": "SURF-004",
+      "title": "The Skills board's held-update sheet offers no decision — its only control is Done",
+      "text": "Measured by J2 on 2026-08-29, by trying to actuate SURF-004's declared controls and finding four with nothing to press. The design of record's capability-delta sheet offers a two-way decision — `Promote 2.3.0` and `Keep 2.2.0`, recorded as `Promote the held update` and `Keep the installed version` in `evidence/design-controls.json` under state `sheet:capability-delta`. `app/Sources/MCPRouterUI/Boards/SkillSheets.swift` declares three buttons and all three are `Button(\"Done\") { board.sheet = nil }`, so the sheet a user opens to decide about a held update can only be dismissed. `SkillsBoardModel` carries no write at all: no promote, no keep, no never-run. Two further declared controls have no counterpart either — `Never run` is a filter chip the design draws and `SkillPresentation.Filter` (`all | held | local | needsAttention`) has no case for, and `Reveal repo in Finder` appears nowhere under `app/Sources/`.\n\nThis is the third shape in `references/inert-ui.md` seen from the other side: not a control whose handler does nothing, but a promised control the build never drew, which no amount of testing the build reveals. It surfaced only because the census gave the surface a denominator and J2 tried to fill it — SURF-004 reaches 2 of 21 actuated and the four are recorded in `inventory.json` under `controlsUnactuatable` rather than quietly dropped.",
+      "source": "`Button(\"Done\") { board.sheet = nil }`, app/Sources/MCPRouterUI/Boards/SkillSheets.swift:97,157,238 at `5ceef5d`; `case all` / `case held` / `case local` / `case needsAttention`, app/Sources/MCPRouterKit/Skills/SkillPresentation.swift:78-81 at `5ceef5d`; `\"name\": \"Promote the held update\"`, planning/test-campaign/evidence/design-controls.json:849 at `5ceef5d`",
+      "status": "open · measured"
     }
   ]
 }

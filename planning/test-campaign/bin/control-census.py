@@ -31,6 +31,23 @@ Which controls are message-only is recorded per surface in `inventory.json` unde
 `controlsMessageOnly`, derived by `bin/design-controls.py` from the design of record's own handler
 tables, not asserted here.
 
+THE DISPOSITION PARTITION, ADDED BY J2
+--------------------------------------
+A numerator on its own says how many controls are proven and nothing at all about the rest. So
+every declared control is now placed in exactly one of four classes, and the fourth is the finding:
+
+    actuated        a passing effect-rung case drives it and reads the effect elsewhere
+    message-only    the design's whole promised effect is a sheet, a panel or a notification
+    stated reason   `inventory.json` `controlsUnactuatable` says, per control, why nothing drives
+                    it -- the build draws no such control, or the only available read is an absence
+    UNDISPOSED      none of the above: nobody has said anything about it
+
+`controlsUnactuatable` is prose written by a person, so it is checked rather than believed: a
+reason naming a control the surface never declared is a finding (exit 1), and so is a reason
+attached to a control a passing case actually drives, because the two claims contradict and one of
+them is stale. What it CANNOT check is whether the sentence is true; that limit is why the class is
+printed as its own number beside the actuated count rather than folded into it.
+
 THE RULES, WHICH ARE UPSTREAM'S AND NOT THIS FILE'S
 ---------------------------------------------------
   * A surface's denominator is its `controls` array. Absent means the surface declares none, which
@@ -48,8 +65,10 @@ EXITS
     0  the census ran and is printed. An inert surface is REPORTED and does not hold the gate:
        eleven of fourteen are inert today, and a gate that lands permanently red is a gate somebody
        switches off within a week (`registry-drop-gate.py`'s own finding, same week).
-    1  a case actuates a control its surface never declared — the two halves disagree, and unlike
-       an inert surface that is fixable in the registry right now
+    1  a case actuates a control its surface never declared, OR `controlsUnactuatable` names a
+       control the surface never declared, OR it excuses a control a passing case actually drives —
+       the two halves disagree, and unlike an inert surface that is fixable in the registry right
+       now
     2  no surface declares any controls, so there is no denominator. This is the state G28 was
        written to end, and it is an exit rather than a quiet zero for the reason the campaign
        repeats: a census over an undeclared population reads exactly like a clean one.
@@ -77,11 +96,14 @@ def main() -> int:
 
     declared: dict[str, list[str]] = {}
     message_only: dict[str, set[str]] = {}
+    excused: dict[str, dict[str, str]] = {}
     titles: dict[str, str] = {}
     for s in inventory.get("surface", []):
         if s.get("controls"):
             declared[s["id"]] = [str(x) for x in s["controls"]]
             message_only[s["id"]] = {str(x) for x in (s.get("controlsMessageOnly") or [])}
+            excused[s["id"]] = {str(k): str(v)
+                                for k, v in (s.get("controlsUnactuatable") or {}).items()}
             titles[s["id"]] = s.get("title", "")
 
     if not declared:
@@ -124,6 +146,26 @@ def main() -> int:
     unhit_msg = sum(len(message_only[sid] - actuated[sid]) for sid in declared)
     unhit_state = (total - hit) - unhit_msg
 
+    # The disposition partition. Each control lands in exactly one class, actuated first, so the
+    # four numbers add to the denominator and a control cannot be counted twice by being excused
+    # and driven at once -- that contradiction is a finding below rather than a rounding.
+    undisposed: dict[str, list[str]] = {}
+    for sid in declared:
+        known = set(declared[sid])
+        outside = sorted(set(excused[sid]) - known)
+        for name in outside:
+            strays.append(f"{sid} excuses {name} under controlsUnactuatable — not among its "
+                          f"declared controls")
+        both = sorted((set(excused[sid]) & known) & actuated[sid])
+        for name in both:
+            strays.append(f"{sid} excuses {name} as unactuatable while a passing effect-rung case "
+                          f"drives it — one of the two claims is stale")
+        undisposed[sid] = sorted(
+            known - actuated[sid] - message_only[sid] - set(excused[sid]))
+    excused_total = sum(len((set(excused[sid]) & set(declared[sid])) - actuated[sid])
+                        for sid in declared)
+    undisposed_total = sum(len(v) for v in undisposed.values())
+
     print(f"Cases:      {len(cases) - len(no_actuation)} of {len(cases)} case(s) name a control "
           f"they actuate; {len(no_actuation)} name none and cannot move any number below")
     print(f"Controls:   {hit} of {total} declared control(s) actuated by a passing effect-rung "
@@ -132,6 +174,8 @@ def main() -> int:
           f"effect is a sheet, a panel or a notification appearing.")
     print(f"            Of the {total - hit} not actuated, {unhit_msg} are message-only and "
           f"{unhit_state} promise a state change nothing has driven.")
+    print(f"Disposition: {hit} actuated · {unhit_msg} message-only · {excused_total} with a stated "
+          f"reason · {undisposed_total} UNDISPOSED — nobody has said anything about these.")
     print()
     for sid in sorted(declared):
         n, a = len(declared[sid]), len(actuated[sid])
@@ -139,9 +183,13 @@ def main() -> int:
         near = claimed[sid] - actuated[sid]
         tail = (f" · {len(near)} driven only by a case below `outcome` or not passing"
                 if near else "")
+        u = len(undisposed[sid])
+        tail += f" · {u} undisposed" if u else " · fully disposed"
         print(f"  {sid}  {a:>2} of {n:>2} actuated · {m} message-only{tail}   {titles[sid]}")
         if a:
             print(f"        actuated: {'; '.join(sorted(actuated[sid]))}")
+        if excused[sid]:
+            print(f"        stated reason: {'; '.join(sorted(set(excused[sid]) & set(declared[sid])))}")
 
     inert = [sid for sid in sorted(declared) if not actuated[sid]]
     if inert:

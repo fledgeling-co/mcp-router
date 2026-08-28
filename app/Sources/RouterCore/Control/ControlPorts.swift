@@ -231,6 +231,12 @@ public struct ControlDeps: Sendable {
     /// Where `GET /insights` gets the two figures only the pool holds. Optional for the same
     /// reason, and with a stronger one: `ControlDiff` has no pool at all.
     public var insights: (any InsightsSource)?
+    /// Where the `/extensions` family reads and writes — R28. Optional for the reason the two
+    /// above are: `ControlDiff` compares the routes `src/control.ts` answers, and this whole
+    /// family is a declared divergence from it. Absent, every route in it answers 503 saying so
+    /// rather than an empty inventory, which a router holding nothing would be indistinguishable
+    /// from.
+    public var extensions: (any ExtensionStoring)?
 
     public init(
         config: RouterConfig,
@@ -249,7 +255,8 @@ public struct ControlDeps: Sendable {
         log: RouterLog? = nil,
         authFlow: (any AuthFlowStarting)? = nil,
         harnesses: (any HarnessInventorySource)? = nil,
-        insights: (any InsightsSource)? = nil
+        insights: (any InsightsSource)? = nil,
+        extensions: (any ExtensionStoring)? = nil
     ) {
         self.config = config
         self.upstreams = upstreams
@@ -268,6 +275,7 @@ public struct ControlDeps: Sendable {
         self.authFlow = authFlow
         self.harnesses = harnesses
         self.insights = insights
+        self.extensions = extensions
     }
 
     /// Lookup by JavaScript string identity — a composed key does not match a decomposed request,

@@ -33,12 +33,19 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 ROOT="app/Sources/RouterCore"
-DIRS=(Control Registry Usage Auth)
+DIRS=(Control Registry Usage Auth Extensions)
 EXEMPT_MARKER='swift-wire-exempt:'
 
 # Auth/ does not exist yet — it is R5's. A missing directory is not a failure, but a directory that
 # is silently never scanned is: the gate would report success over code it never read. So each one
 # is reported by name with what it found.
+#
+# Extensions/ joined with R28. It is enrolled for the reason the list exists rather than because
+# every file in it serialises: `DiskExtensionStore` reads two JSON descriptors off disk and every
+# value it lifts out of them reaches `GET /extensions` unaltered, so `JSONSerialization` there
+# would decide member order on the wire from inside a type nobody would think of as a wire type.
+# A directory that produces wire bytes and is not on this list is outside the rule with nothing
+# saying so — the same silent-scope failure `no-raw-design-values.sh` records for GEOMETRY_DIRS.
 present=()
 for d in "${DIRS[@]}"; do
   [ -d "$ROOT/$d" ] && present+=("$ROOT/$d")

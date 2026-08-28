@@ -1094,6 +1094,23 @@
         "scripts/acceptance/menu-reason-plane-selftest.sh"
       ],
       "proves": "10 arms over doctored accessibility dumps, sourcing menu-reason-plane.sh's five assertions rather than re-implementing them, so an edit to the lane changes what this tests instead of leaving it checking a dead copy. Five arms require each assertion to FIRE \u2014 a reason MenuCommandAvailability does not declare, a badge folded into AXTitle, a menu item reporting a real AXSize, a dump of one item, a dump carrying no reason at all \u2014 and five require none of them to fire on a dump of the shape today's platform produces. That second half is the two-way control and it is the one that matters: every assertion in this lane asserts an ABSENCE, and a check that CANNOT fire and a check that correctly does not fire are indistinguishable from a green run. It has already earned its place: the badge tripwire used `exit 0` inside an awk rule, awk's `exit` runs END, and `END { exit 1 }` overrode the hit \u2014 so the line watching for the one event the lane exists to notice could never fire, and every real run passed. This caught it. Needs no build, no window server and no Accessibility grant; runs against planted files in about a second, which is why it holds a row the lane itself is waived from."
+    },
+    {
+      "path": "planning/brief-target-gate.py",
+      "disposition": "control",
+      "markers": [
+        "V2",
+        "V3",
+        "V4"
+      ],
+      "since": "2026-08-29",
+      "control": [
+        "python3",
+        "planning/brief-target-gate.py",
+        "--control"
+      ],
+      "proves": "19 planted briefs read back through the real classifier, one per class the gate can print, plus five NEGATIVE arms that a green run must not swallow: the same id inside a fence and inside an HTML comment must NOT read as a citation (reckon blanks both, so counting them would report a join reckon will not make), a terminal status must not excuse a dead declared link, a foreign id beside a resolving one must not read as FOREIGN_ONLY, and `registry-target: none` with no reason of substance must fall back to UNDECLARED. Two arms drive the ratchet itself in both directions, because a file the floor does not name having a floor of zero is the whole of the catch-a-new-brief mechanism and a ratchet nobody has seen fire is a ratchet nobody knows is wired up. The load-bearing arm is the last: it writes a two-brief fixture queue, runs the REAL reckon 1.7.0 over it against the REAL campaign registry, and fails unless the declared brief carries a `cited` edge and the bare one lands `unjoined` \u2014 the claim the whole item rests on, that the field this gate demands is the field reckon joins on. That arm caught a real defect on its first run: the reader was looking for edges at the ledger's top level and reckon writes them under `join.edges`, so every agreement would have been silently unmeasured. What it does NOT prove is that the corpus is the right one \u2014 the index rather than the working tree is an argument, not a plant \u2014 so the untracked briefs are printed by name.",
+      "not_proved": "reckon is a plugin in the machine's cache rather than a vendored dependency. On a checkout with no cache the agreement arm reports NOT RUN by name and the hermetic arms still fire; a green control there is 18 arms, not 19."
     }
   ]
 }

@@ -1,0 +1,39 @@
+P1 new brief naming nothing -> exit 1
+  BROKEN_TARGET      0   BLOCKS at 0
+  DECLARED           0
+  NO_TARGET          0
+  UNDECLARED        83   BLOCKS above its floor
+floor: 1 brief(s) name nothing and are not in the backlog:
+  planning/features-to-triage/ZZ-control-plant.md  1, floor 0
+floor: 83 undeclared over 83 file(s) against floor 82 — 1 above, 0 below
+
+P2 same brief, declaring DEF-043 -> exit 0
+  BROKEN_TARGET      0   BLOCKS at 0
+  DECLARED           1
+  NO_TARGET          0
+  UNDECLARED        82   BLOCKS above its floor
+floor: 82 undeclared over 82 file(s) against floor 82 — 0 above, 0 below
+
+P3 same brief, declaring an id no registry holds -> exit 1
+  BROKEN_TARGET      1   BLOCKS at 0
+  DECLARED           0
+  NO_TARGET          0
+  UNDECLARED        82   BLOCKS above its floor
+  planning/features-to-triage/ZZ-control-plant.md
+floor: 82 undeclared over 82 file(s) against floor 82 — 0 above, 0 below
+BROKEN_TARGET is held at zero: 1 declared target(s) name no row.
+
+P4 same brief, recording that nothing answers to it -> exit 0
+  BROKEN_TARGET      0   BLOCKS at 0
+  DECLARED           0
+  NO_TARGET          1
+  UNDECLARED        82   BLOCKS above its floor
+floor: 82 undeclared over 82 file(s) against floor 82 — 0 above, 0 below
+
+P5 plant removed -> exit 0
+  BROKEN_TARGET      0   BLOCKS at 0
+  DECLARED           0
+  NO_TARGET          0
+  UNDECLARED        82   BLOCKS above its floor
+floor: 82 undeclared over 82 file(s) against floor 82 — 0 above, 0 below
+

@@ -1,0 +1,14 @@
+BEFORE  join 42/187 (22.5%) weak=True | work=154 | unjoined=82 decision-work=86
+AFTER   join 52/187 (27.8%) weak=True | work=154 | unjoined=72 decision-work=76
+10 briefs given a declared target; 10 left `unjoined`; join +10, remaining work +0
+   BRIEF-BLOCKED-apple-identity                             unjoined -> broken
+   BRIEF-D3-copy-proposals                                  unjoined -> broken
+   BRIEF-F-cross-harness-skill-sync                         unjoined -> broken
+   BRIEF-F-marketplace-auto-update-checker                  unjoined -> broken
+target surface SURF-027 — 7 passing cases at or above `outcome`, none failing
+BEFORE  join 42/187 (22.5%) weak=True | work=154 | {"evidence-work": 22, "decision-work": 86, "product-work": 46}
+AFTER   join 124/187 (66.3%) weak=False | work=154 | {"evidence-work": 22, "decision-work": 3, "product-work": 46, "bookkeeping": 83}
+brief classes after: {"retirable": 83, "waived": 68, "broken": 23, "unbuilt": 2, "unmeasured": 10, "undecided": 1}
+HEADLINE BEFORE: 154 piece(s) of work remain — 46 product, 22 evidence, 86 decision — across 417 ledger rows
+HEADLINE AFTER : 154 piece(s) of work remain — 46 product, 22 evidence, 3 decision — across 417 ledger rows
+a retirable row's remedy: None

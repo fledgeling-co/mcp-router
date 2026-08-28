@@ -1459,5 +1459,185 @@
     "status": "open",
     "armed": false,
     "evidence": []
+  },
+  {
+    "id": "CASE-0195",
+    "req": "REQ-003",
+    "surface": "SURF-001",
+    "flow": null,
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-001",
+      "state": "populated",
+      "viewport": "1280x800",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "typical",
+      "executionPlane": "in-process"
+    },
+    "oracle": "outcome",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0196",
+    "req": "REQ-004",
+    "surface": "SURF-002",
+    "flow": null,
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-002",
+      "state": "populated",
+      "viewport": "1280x800",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "typical",
+      "executionPlane": "in-process"
+    },
+    "oracle": "outcome",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0197",
+    "req": "REQ-003",
+    "surface": "SURF-004",
+    "flow": null,
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-004",
+      "state": "populated",
+      "viewport": "1280x800",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "typical",
+      "executionPlane": "in-process"
+    },
+    "oracle": "outcome",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0198",
+    "req": "REQ-003",
+    "surface": "SURF-006",
+    "flow": null,
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-006",
+      "state": "partial",
+      "viewport": "1280x800",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "typical",
+      "executionPlane": "in-process"
+    },
+    "oracle": "outcome",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0199",
+    "req": "REQ-004",
+    "surface": "SURF-002",
+    "flow": null,
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-002",
+      "state": "inspector",
+      "viewport": "1280x800",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "typical",
+      "executionPlane": "in-process"
+    },
+    "oracle": "outcome",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0200",
+    "req": "REQ-004",
+    "surface": "SURF-002",
+    "flow": null,
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-002",
+      "state": "inspector",
+      "viewport": "1280x800",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "typical",
+      "executionPlane": "in-process"
+    },
+    "oracle": "outcome",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0201",
+    "req": "REQ-004",
+    "surface": "SURF-002",
+    "flow": null,
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-002",
+      "state": "tripped",
+      "viewport": "1280x800",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "typical",
+      "executionPlane": "in-process"
+    },
+    "oracle": "outcome",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0202",
+    "req": "REQ-004",
+    "surface": "SURF-002",
+    "flow": null,
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-002",
+      "state": "remove-dialog",
+      "viewport": "1280x800",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "typical",
+      "executionPlane": "in-process"
+    },
+    "oracle": "outcome",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0203",
+    "req": "REQ-004",
+    "surface": "SURF-002",
+    "flow": null,
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-002",
+      "state": "held-change-sheet",
+      "viewport": "1280x800",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "typical",
+      "executionPlane": "in-process"
+    },
+    "oracle": "outcome",
+    "status": "open",
+    "armed": false,
+    "evidence": []
   }
 ]

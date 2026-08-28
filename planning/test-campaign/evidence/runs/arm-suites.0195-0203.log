@@ -1,0 +1,206 @@
+{
+ "arms": [
+  {
+   "case": "CASE-0195",
+   "filter": "eachSelectionReachesTheStore",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "the sidebar's selection reaching the model at all. Reverting it is the destination-collapse defect in one line: seven rows that render, carry their accessible names, accept a press and take you nowhere. The restoration store goes silent, which is the channel the case reads.",
+   "armed": true,
+   "files": [
+    "Sources/MCPRouterUI/Shell/ShellModel.swift"
+   ]
+  },
+  {
+   "case": "CASE-0196",
+   "filter": "eachServersSegmentFiltersTheTable",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "the Servers filter bar reaching the table. Reverting leaves four segments that select, highlight and draw the same four rows \u2014 a control whose only proof of working would be that it now looks pressed.",
+   "armed": true,
+   "files": [
+    "Sources/MCPRouterUI/Boards/ServersBoardModel.swift"
+   ]
+  },
+  {
+   "case": "CASE-0197",
+   "filter": "eachSkillsSegmentFiltersTheTable",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "the Skills filter bar reaching the list. Reverting makes `Held` draw the whole board while still reporting itself selected.",
+   "armed": true,
+   "files": [
+    "Sources/MCPRouterUI/Boards/SkillsBoardModel.swift"
+   ]
+  },
+  {
+   "case": "CASE-0198",
+   "filter": "eachChecksSegmentFiltersTheTable",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "the Checks filter bar reaching the list, in the same shape as the two above.",
+   "armed": true,
+   "files": [
+    "Sources/MCPRouterUI/Boards/EvalsBoardModel.swift"
+   ]
+  },
+  {
+   "case": "CASE-0199",
+   "filter": "warmSendsOnlyWarm",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "`Keep warm` putting anything on the wire. This is the empty closure verbatim \u2014 the switch moves, the row redraws from the model it already had, and the router is never told. The case reads the request the client recorded, which is the channel that goes quiet.",
+   "armed": true,
+   "files": [
+    "Sources/MCPRouterUI/Boards/ServersBoardWrites.swift"
+   ]
+  },
+  {
+   "case": "CASE-0200",
+   "filter": "projectsSendsAnExplicitArray",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "`Only load in named projects` reaching the router. Reverting leaves a directory picker that opens, returns a path and scopes nothing.",
+   "armed": true,
+   "files": [
+    "Sources/MCPRouterUI/Boards/ServersBoardWrites.swift"
+   ]
+  },
+  {
+   "case": "CASE-0201",
+   "filter": "resetReindexesAnIndexFailure",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "`Reset` re-indexing a server tripped by a failed index. Reverting clears the in-flight mark and the row settles looking fixed, having asked the router nothing.",
+   "armed": true,
+   "files": [
+    "Sources/MCPRouterUI/Boards/ServersBoardWrites.swift"
+   ]
+  },
+  {
+   "case": "CASE-0202",
+   "filter": "removeSendsKeepHistory",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "`Remove` issuing the deletion, and carrying the history checkbox with it. Reverting closes the sheet and drops the selection \u2014 the acknowledgement-only shape exactly, since both of those are the app's own report that it worked.",
+   "armed": true,
+   "files": [
+    "Sources/MCPRouterUI/Boards/ServersBoardWrites.swift"
+   ]
+  },
+  {
+   "case": "CASE-0203",
+   "filter": "approveWritesAndKeepingDoesNot",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "`Accept the new text` approving the held change. Reverting dismisses the sheet and clears the held diff from the model, so the user sees the change accepted and the router goes on serving the old text.",
+   "armed": true,
+   "files": [
+    "Sources/MCPRouterUI/Boards/ServersBoardWrites.swift"
+   ]
+  }
+ ],
+ "armed": [
+  "CASE-0195",
+  "CASE-0196",
+  "CASE-0197",
+  "CASE-0198",
+  "CASE-0199",
+  "CASE-0200",
+  "CASE-0201",
+  "CASE-0202",
+  "CASE-0203"
+ ],
+ "refused": [],
+ "denominator": 9
+}

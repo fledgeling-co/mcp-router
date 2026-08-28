@@ -19,8 +19,8 @@ Restore is unconditional: the original bytes are held in memory and rewritten in
 finally, and the driver re-runs the test after restoring to prove the tree is green
 again before moving to the next arm.
 
-    python3 arm-suites.py            # every arm
-    python3 arm-suites.py CASE-0031  # one arm
+    python3 arm-suites.py            # every arm -> evidence/runs/arm-suites.log
+    python3 arm-suites.py CASE-0031  # one arm   -> evidence/runs/arm-suites.0031.log
 """
 from __future__ import annotations
 
@@ -31,7 +31,27 @@ import sys
 from pathlib import Path
 
 APP = Path(__file__).resolve().parents[3] / "app"
-OUT = Path(__file__).resolve().parent.parent / "evidence" / "runs" / "arm-suites.log"
+RUNS = Path(__file__).resolve().parent.parent / "evidence" / "runs"
+
+
+def out_path(selected: list[str]) -> Path:
+    """Where this invocation's log goes — and why a subset does not write the full run's file.
+
+    Until J2 every invocation wrote `arm-suites.log`, so `arm-suites.py CASE-0031` REPLACED the
+    record of all thirteen arms with a record of one. Measured 2026-08-29: a nine-case run took the
+    file from `denominator: 13, armed: 13` to `denominator: 9, armed: 9`, and CASE-0008's evidence
+    list still cited it. The loss is silent, the file is still well-formed, and every case citing it
+    now points at a run that never examined its arm.
+
+    A subset therefore writes its own file, named for what it selected. The canonical name belongs
+    to the run that attempted every arm, which is the only run whose denominator means what the
+    filename implies.
+    """
+    if not selected:
+        return RUNS / "arm-suites.log"
+    lo, hi = selected[0].removeprefix("CASE-"), selected[-1].removeprefix("CASE-")
+    span = lo if lo == hi else f"{lo}-{hi}"
+    return RUNS / f"arm-suites.{span}.log"
 
 # (case, filter, [(relative source, old, new)], what reverting proves
 ARMS = [
@@ -152,6 +172,119 @@ ARMS = [
         "the callback actually exchanging the authorization code it received. Reverting "
         "serves the success page for a code that was never redeemed.",
     ),
+    # ---------------------------------------------------------------------------------------
+    # J2 · the control census's numerator. Each of these five seeds the inert-UI defect itself —
+    # a handler that runs and changes nothing — behind a control the registry now claims is
+    # actuated, and requires the case that claims it to go red. Without them the census is a count
+    # nobody should believe: `references/inert-ui.md` is one campaign reporting 32 of 32 over an
+    # app whose every button was `Button("…") {}`, and every check it ran passed on that build.
+    #
+    # The mutations are deliberately the EMPTY-CLOSURE shape rather than an inverted comparison.
+    # An inverted filter still draws a different row set, so a case reading "the rows changed"
+    # survives it; a handler that does nothing is the thing the census is a denominator for.
+    (
+        "CASE-0195", "eachSelectionReachesTheStore",
+        [("Sources/MCPRouterUI/Shell/ShellModel.swift",
+          "        public func select(_ destination: Destination) {\n"
+          "            selection = destination\n"
+          "        }",
+          "        public func select(_ destination: Destination) {\n"
+          "            _ = destination\n"
+          "        }")],
+        "the sidebar's selection reaching the model at all. Reverting it is the destination-"
+        "collapse defect in one line: seven rows that render, carry their accessible names, "
+        "accept a press and take you nowhere. The restoration store goes silent, which is the "
+        "channel the case reads.",
+    ),
+    (
+        "CASE-0196", "eachServersSegmentFiltersTheTable",
+        [("Sources/MCPRouterUI/Boards/ServersBoardModel.swift",
+          "                .filter { filter.matches($0) && ServerSearch.matches($0, query: searchQuery) }",
+          "                .filter { ServerSearch.matches($0, query: searchQuery) }")],
+        "the Servers filter bar reaching the table. Reverting leaves four segments that select, "
+        "highlight and draw the same four rows — a control whose only proof of working would be "
+        "that it now looks pressed.",
+    ),
+    (
+        "CASE-0197", "eachSkillsSegmentFiltersTheTable",
+        [("Sources/MCPRouterUI/Boards/SkillsBoardModel.swift",
+          "            return SkillPresentation.rows(response.skills, filter: filter, search: search)",
+          "            return SkillPresentation.rows(response.skills, filter: .all, search: search)")],
+        "the Skills filter bar reaching the list. Reverting makes `Held` draw the whole board "
+        "while still reporting itself selected.",
+    ),
+    (
+        "CASE-0198", "eachChecksSegmentFiltersTheTable",
+        [("Sources/MCPRouterUI/Boards/EvalsBoardModel.swift",
+          "            CheckPresentation.rows(subjects, filter: filter, search: search)",
+          "            CheckPresentation.rows(subjects, filter: .all, search: search)")],
+        "the Checks filter bar reaching the list, in the same shape as the two above.",
+    ),
+    (
+        "CASE-0199", "warmSendsOnlyWarm",
+        [("Sources/MCPRouterUI/Boards/ServersBoardWrites.swift",
+          "        func setWarm(_ name: String, to warm: Bool) async {\n"
+          "            await write(name) { [client, tracker] () async throws(ControlAPIError) in\n"
+          "                let updated = try await client.patch(server: name, ServerPatch(warm: warm))\n"
+          "                await tracker.apply(updated: updated)\n"
+          "            }\n"
+          "        }",
+          "        func setWarm(_ name: String, to warm: Bool) async {\n"
+          "            _ = (name, warm)\n"
+          "        }")],
+        "`Keep warm` putting anything on the wire. This is the empty closure verbatim — the "
+        "switch moves, the row redraws from the model it already had, and the router is never "
+        "told. The case reads the request the client recorded, which is the channel that goes "
+        "quiet.",
+    ),
+    (
+        "CASE-0200", "projectsSendsAnExplicitArray",
+        [("Sources/MCPRouterUI/Boards/ServersBoardWrites.swift",
+          "        func setProjects(_ name: String, to projects: [String]) async {\n"
+          "            await write(name) { [client, tracker] () async throws(ControlAPIError) in\n"
+          "                let updated = try await client.patch(server: name, ServerPatch(projects: projects))\n"
+          "                await tracker.apply(updated: updated)\n"
+          "            }\n"
+          "        }",
+          "        func setProjects(_ name: String, to projects: [String]) async {\n"
+          "            _ = (name, projects)\n"
+          "        }")],
+        "`Only load in named projects` reaching the router. Reverting leaves a directory picker "
+        "that opens, returns a path and scopes nothing.",
+    ),
+    (
+        "CASE-0201", "resetReindexesAnIndexFailure",
+        [("Sources/MCPRouterUI/Boards/ServersBoardWrites.swift",
+          "                    let result = try await client.reindex(server.name)\n"
+          "                    if let error = result.error {\n"
+          "                        throw ControlAPIError.server(status: 422, message: error, hint: nil)\n"
+          "                    }",
+          "                    _ = server")],
+        "`Reset` re-indexing a server tripped by a failed index. Reverting clears the in-flight "
+        "mark and the row settles looking fixed, having asked the router nothing.",
+    ),
+    (
+        "CASE-0202", "removeSendsKeepHistory",
+        [("Sources/MCPRouterUI/Boards/ServersBoardWrites.swift",
+          "            await write(name) { [client] () async throws(ControlAPIError) in\n"
+          "                _ = try await client.remove(name, keepHistory: keepHistory)\n"
+          "            }",
+          "            _ = (name, keepHistory)")],
+        "`Remove` issuing the deletion, and carrying the history checkbox with it. Reverting "
+        "closes the sheet and drops the selection — the acknowledgement-only shape exactly, since "
+        "both of those are the app's own report that it worked.",
+    ),
+    (
+        "CASE-0203", "approveWritesAndKeepingDoesNot",
+        [("Sources/MCPRouterUI/Boards/ServersBoardWrites.swift",
+          "            await write(name) { [client] () async throws(ControlAPIError) in\n"
+          "                _ = try await client.approvePendingChange(server: name)\n"
+          "            }",
+          "            _ = name")],
+        "`Accept the new text` approving the held change. Reverting dismisses the sheet and "
+        "clears the held diff from the model, so the user sees the change accepted and the router "
+        "goes on serving the old text.",
+    ),
 ]
 
 RUN_LINE = re.compile(r"Test run with (\d+) test", re.I)
@@ -179,6 +312,7 @@ def run(test_filter: str) -> dict:
 def main() -> int:
     only = [a for a in sys.argv[1:] if a.startswith("CASE-")]
     arms = [a for a in ARMS if not only or a[0] in only]
+    out = out_path(sorted(only))
     log, armed, refused = [], [], []
 
     print(f"arming {len(arms)} of {len(ARMS)} suite-backed cases\n")
@@ -212,12 +346,12 @@ def main() -> int:
               + (f" restored={back['verdict']}({back['tests']})" if back else "")
               + ("" if ok else f"  <- {r['detail'][:120]}"))
 
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps({"arms": log, "armed": armed, "refused": refused,
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps({"arms": log, "armed": armed, "refused": refused,
                                "denominator": len(arms)}, indent=1) + "\n")
     print(f"\narmed {len(armed)} of {len(arms)} attempted · refused {len(refused)}"
           + (f" ({', '.join(refused)})" if refused else ""))
-    print(f"wrote {OUT}")
+    print(f"wrote {out}")
     return 0 if not refused else 1
 
 

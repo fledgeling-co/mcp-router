@@ -304,6 +304,14 @@ if [ "$ARM" = "yes" ]; then
   render changelog.served    g17-capability readMe 820 SURF-028 FLOW-006.03 g17-capability titlebar
   render capabilities.served g17-capability readMe 820 SURF-028 FLOW-006.04 g17-capability titlebar
   arm tabs G17-P8 "the changelog and capabilities frames both rendered on the read me tab"
+  # The same plant, watched by the four checks FLOW-006.03 and .04 actually stand on. G17-P8 is a
+  # relation over all three frames and would still be the only thing red if the two tab steps
+  # asserted nothing of their own — which is what they did until these were added. Each is named
+  # separately so a tab step that stopped biting is visible as itself rather than as a relation.
+  arm tabs-served-changelog    G17-P6W "the changelog frame rendered on the read me tab"
+  arm tabs-served-capabilities G17-P7W "the capability list frame rendered on the read me tab"
+  arm tabs-raster-changelog    G17-P6R "the changelog frame rendered on the read me tab"
+  arm tabs-raster-capabilities G17-P7R "the capability list frame rendered on the read me tab"
   render changelog.served    g17-capability changelog    820 SURF-028 FLOW-006.03 g17-capability titlebar
   render capabilities.served g17-capability capabilities 820 SURF-028 FLOW-006.04 g17-capability titlebar
   restore changelog.served "$BEFORE_CL" "the changelog"

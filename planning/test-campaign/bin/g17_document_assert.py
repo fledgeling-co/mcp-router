@@ -23,6 +23,7 @@ Exit codes follow the house rule: 0 clean, 1 an assertion failed, 2 it could not
 import hashlib
 import json
 import os
+import re
 import sys
 
 # The figure the constructed package carries is a flat teal band. It is read back with a tolerance
@@ -39,6 +40,13 @@ def is_figure_colour(rgb):
 # full width, so it covers a little over half the card; the floor is set well under that so a
 # resampling change is not a failure, and well over the zero a placeholder produces.
 FIGURE_FLOOR = 0.25
+
+
+# How much of the sheet body has to differ between two tabs. A tab that did not repaint reads
+# 0.0; the three documents here are a few short paragraphs on a tall dark panel, so most of the
+# body is unchanged ground either way and the floor is set where a paragraph's worth of glyphs
+# lands rather than where a full-bleed redraw would.
+BODY_FLOOR = 0.01
 
 
 class Artifacts(object):
@@ -81,6 +89,28 @@ class Artifacts(object):
 
     def blob(self, name):
         return " ".join((n.get("text") or "") for n in self.nodes(name))
+
+    def blob_under(self, name, role):
+        """The drawn text of ONE subtree, which for the tab steps is the only honest scope.
+
+        The titlebar names the package in every frame and the tab bar names all three tabs in
+        every frame, so a whole-frame search for a word the read me alone carries finds
+        `capability` inside `g17-capability` and reports the changelog frame as drawing the read
+        me. That is a detector defect rather than a finding, and it is exactly the shape this
+        harness already recorded once: a predicate satisfied by something other than its subject.
+        """
+        root = self.node(name, role)
+        if root is None:
+            return None
+        out = []
+
+        def walk(node):
+            out.append(node.get("text") or "")
+            for child in node.get("children") or []:
+                walk(child)
+
+        walk(root)
+        return " ".join(out)
 
     def node(self, name, role, contains=None):
         for candidate in self.nodes(name):
@@ -135,6 +165,36 @@ class Artifacts(object):
             if is_figure_colour(colour):
                 hits += count
         return float(hits) / float(total), total
+
+
+    def body_difference(self, base_name, base_node, frame_name, frame_node):
+        """The fraction of one frame's body region whose pixels differ from another's.
+
+        Both crops are taken from each frame's OWN dump, and the scale from each frame's own
+        picture, so a node that moved is compared where it actually is rather than where the
+        other frame put it. Channel tolerance rather than equality, for `figure_fraction`'s
+        reason: two renders of the same ground are not bit-identical after colour management.
+        """
+        def crop(name, node):
+            image = self.image(name)
+            width, height = image.size
+            scale = float(width) / float(self.dump(name)["size"]["width"])
+            f = node["frame"]
+            box = (max(0, int(f["x"] * scale)), max(0, int(f["y"] * scale)),
+                   min(width, int((f["x"] + f["width"]) * scale)),
+                   min(height, int((f["y"] + f["height"]) * scale)))
+            return image.crop(box)
+
+        left, right = crop(base_name, base_node), crop(frame_name, frame_node)
+        size = (min(left.size[0], right.size[0]), min(left.size[1], right.size[1]))
+        if size[0] <= 0 or size[1] <= 0:
+            return 0.0, 0
+        left, right = left.crop((0, 0) + size), right.crop((0, 0) + size)
+        total, differing = size[0] * size[1], 0
+        for a, b in zip(left.getdata(), right.getdata()):
+            if abs(a[0] - b[0]) > 8 or abs(a[1] - b[1]) > 8 or abs(a[2] - b[2]) > 8:
+                differing += 1
+        return float(differing) / float(total), total
 
 
 class Blocked(Exception):
@@ -262,6 +322,85 @@ def run(root, report):
         "the capabilities tab draws the capability list's own heading: %s"
         % art.text_of("capabilities.served", "heading"),
     )
+
+    # ---------------------------------------------------------------- the tabs, tied to the wire
+    #
+    # G17-P6 and G17-P7 above ask whether a heading with the tab's own name is in the dump. That
+    # is true of a panel that draws a heading, and it was the whole of what FLOW-006.03 and .04
+    # stood on — which is why their cases sat at `structural-visual` and said in their notes that
+    # they moved no count.
+    #
+    # These two ask the other question: is what the panel drew the document THE ROUTER SERVED?
+    # The discriminating vocabulary is COMPUTED from `wire-served.json` rather than written here —
+    # the words of six letters or more that one served document carries and the other two do not —
+    # so the check cannot be satisfied by a string this file happens to know. Every one of them has
+    # to appear in the frame that claims to draw that document, and none of the read me's own
+    # must. A panel serving the read me under all three tabs fails on both halves at once.
+    served_docs = served.get("documents", {})
+
+    def only_in(key):
+        mine = set(re.findall(r"[a-z']{6,}", (served_docs.get(key) or "").lower()))
+        for other, text in served_docs.items():
+            if other != key:
+                mine -= set(re.findall(r"[a-z']{6,}", (text or "").lower()))
+        return sorted(mine)
+
+    for ident, frame, key in (("G17-P6W", "changelog.served", "changelog"),
+                              ("G17-P7W", "capabilities.served", "capabilities")):
+        mine, readme_only = only_in(key), only_in("readMe")
+        body = art.blob_under(frame, "detail")
+        if body is None:
+            report.check(ident, False,
+                         "no `detail` node on %s, so there is no document body to read" % frame)
+            continue
+        drawn = body.lower()
+        missing = [w for w in mine if w not in drawn]
+        strays = [w for w in readme_only if w in drawn]
+        # The denominator, checked before the result. A wire response whose three documents
+        # shared every word would give both lists empty and both searches a clean answer, and a
+        # clean answer from an empty search is the reading this whole harness exists against.
+        if not mine or not readme_only:
+            report.check(
+                ident, False,
+                "the served documents carry no distinguishing vocabulary (%d unique to %s, %d "
+                "unique to the read me), so this check measured nothing"
+                % (len(mine), key, len(readme_only)),
+            )
+            continue
+        report.check(
+            ident,
+            not missing and not strays,
+            "the %s tab drew the %s THE ROUTER SERVED: all %d word(s) the wire response carries "
+            "only in that document are in the panel's own body and none of the %d the read me "
+            "carries only in its own is%s"
+            % (key, key, len(mine), len(readme_only),
+               "" if not (missing or strays)
+               else " — missing %s, strayed %s" % (missing[:6], strays[:6])),
+        )
+
+    # The same two steps in pixels, because the dump says what a rendering WOULD use and the
+    # picture says what was painted. `MeasureDump` renders each frame off the hosting view's own
+    # backing store, so a tab that did not repaint produces a body identical to the read me's —
+    # which is precisely what control G17-P8 plants. Scoped to the sheet body's own frame, taken
+    # from each dump rather than assumed, so the titlebar and the tab bar (which SHOULD be nearly
+    # identical across the three) cannot supply the difference.
+    for ident, frame, key in (("G17-P6R", "changelog.served", "changelog"),
+                              ("G17-P7R", "capabilities.served", "capabilities")):
+        body = art.node(frame, "detail")
+        base = art.node("readme.served", "detail")
+        if body is None or base is None:
+            report.check(ident, False,
+                         "no `detail` node on %s or on the read me, so no body region to compare"
+                         % frame)
+            continue
+        fraction, pixels = art.body_difference("readme.served", base, frame, body)
+        report.check(
+            ident,
+            fraction >= BODY_FLOOR and pixels > 0,
+            "the %s tab REPAINTED the body: %.1f%% of its %d-pixel body region differs from the "
+            "read me's (floor %.0f%%) — a tab that changed no pixels would read 0"
+            % (key, fraction * 100.0, pixels, BODY_FLOOR * 100.0),
+        )
     bodies = [art.blob(n) for n in ("readme.served", "changelog.served", "capabilities.served")]
     same_package = [
         "g17-capability" in art.text_of(n, "titlebar")

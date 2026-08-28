@@ -1,7 +1,7 @@
 [
  {
   "bytes": 177879,
-  "capturedAt": "2026-08-27T04:44:19Z",
+  "capturedAt": "2026-08-28T15:43:49Z",
   "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
   "derivedFrom": null,
   "documentServer": "g17-capability",
@@ -19,7 +19,7 @@
  },
  {
   "bytes": 118311,
-  "capturedAt": "2026-08-27T04:44:19Z",
+  "capturedAt": "2026-08-28T15:43:49Z",
   "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
   "derivedFrom": null,
   "documentServer": "g17-capability",
@@ -37,7 +37,7 @@
  },
  {
   "bytes": 118939,
-  "capturedAt": "2026-08-27T04:44:19Z",
+  "capturedAt": "2026-08-28T15:43:49Z",
   "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
   "derivedFrom": null,
   "documentServer": "g17-capability",
@@ -55,7 +55,7 @@
  },
  {
   "bytes": 85588,
-  "capturedAt": "2026-08-27T04:44:19Z",
+  "capturedAt": "2026-08-28T15:43:49Z",
   "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
   "derivedFrom": null,
   "documentServer": "g17-no-package",
@@ -73,7 +73,7 @@
  },
  {
   "bytes": 89571,
-  "capturedAt": "2026-08-27T04:44:19Z",
+  "capturedAt": "2026-08-28T15:43:49Z",
   "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
   "derivedFrom": null,
   "documentServer": "g17-oversize",

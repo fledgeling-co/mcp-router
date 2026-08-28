@@ -3,7 +3,7 @@
   "manifest": [
    {
     "bytes": 177879,
-    "capturedAt": "2026-08-27T04:44:19Z",
+    "capturedAt": "2026-08-28T15:43:49Z",
     "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
     "derivedFrom": null,
     "documentServer": "g17-capability",
@@ -21,7 +21,7 @@
    },
    {
     "bytes": 118311,
-    "capturedAt": "2026-08-27T04:44:19Z",
+    "capturedAt": "2026-08-28T15:43:49Z",
     "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
     "derivedFrom": null,
     "documentServer": "g17-capability",
@@ -39,7 +39,7 @@
    },
    {
     "bytes": 118939,
-    "capturedAt": "2026-08-27T04:44:19Z",
+    "capturedAt": "2026-08-28T15:43:49Z",
     "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
     "derivedFrom": null,
     "documentServer": "g17-capability",
@@ -57,7 +57,7 @@
    },
    {
     "bytes": 85588,
-    "capturedAt": "2026-08-27T04:44:19Z",
+    "capturedAt": "2026-08-28T15:43:49Z",
     "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
     "derivedFrom": null,
     "documentServer": "g17-no-package",
@@ -75,7 +75,7 @@
    },
    {
     "bytes": 89571,
-    "capturedAt": "2026-08-27T04:44:19Z",
+    "capturedAt": "2026-08-28T15:43:49Z",
     "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
     "derivedFrom": null,
     "documentServer": "g17-oversize",
@@ -162,6 +162,26 @@
   {
    "id": "G17-P7",
    "message": "the capabilities tab draws the capability list's own heading: ['Capabilities']",
+   "pass": true
+  },
+  {
+   "id": "G17-P6W",
+   "message": "the changelog tab drew the changelog THE ROUTER SERVED: all 4 word(s) the wire response carries only in that document are in the panel's own body and none of the 20 the read me carries only in its own is",
+   "pass": true
+  },
+  {
+   "id": "G17-P7W",
+   "message": "the capabilities tab drew the capabilities THE ROUTER SERVED: all 4 word(s) the wire response carries only in that document are in the panel's own body and none of the 20 the read me carries only in its own is",
+   "pass": true
+  },
+  {
+   "id": "G17-P6R",
+   "message": "the changelog tab REPAINTED the body: 22.7% of its 1572864-pixel body region differs from the read me's (floor 1%) \u2014 a tab that changed no pixels would read 0",
+   "pass": true
+  },
+  {
+   "id": "G17-P7R",
+   "message": "the capabilities tab REPAINTED the body: 21.8% of its 1572864-pixel body region differs from the read me's (floor 1%) \u2014 a tab that changed no pixels would read 0",
    "pass": true
   },
   {

@@ -10,6 +10,10 @@
   ok   G17-P5 — the escaping reference drew its own refusal and no picture (0.00% figure colour): 'Not shown — this image points outside the package it came with.'
   ok   G17-P6 — the changelog tab draws the changelog's own heading: ['Changelog', '1.0.0']
   ok   G17-P7 — the capabilities tab draws the capability list's own heading: ['Capabilities']
+  ok   G17-P6W — the changelog tab drew the changelog THE ROUTER SERVED: all 4 word(s) the wire response carries only in that document are in the panel's own body and none of the 20 the read me carries only in its own is
+  ok   G17-P7W — the capabilities tab drew the capabilities THE ROUTER SERVED: all 4 word(s) the wire response carries only in that document are in the panel's own body and none of the 20 the read me carries only in its own is
+  ok   G17-P6R — the changelog tab REPAINTED the body: 22.7% of its 1572864-pixel body region differs from the read me's (floor 1%) — a tab that changed no pixels would read 0
+  ok   G17-P7R — the capabilities tab REPAINTED the body: 21.8% of its 1572864-pixel body region differs from the read me's (floor 1%) — a tab that changed no pixels would read 0
   ok   G17-P8 — the three tabs draw three different documents out of one package: distinct bodies=3, all three name g17-capability=True
   ok   G17-R1 — the nothing-served refusal draws its own state and no figure: ['g17-no-package has no package to read']
   FAIL G17-R2 — the too-large refusal names the file and the cap it broke: ['g17-no-package has no package to read']

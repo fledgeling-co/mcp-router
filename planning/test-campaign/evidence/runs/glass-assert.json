@@ -1,5 +1,5 @@
 {
- "checked": 406,
+ "checked": 429,
  "failures": [
   "CASE-0001: window carries: Settings",
   "CASE-0001: shell chrome present in all 11 window dumps",
@@ -388,6 +388,38 @@
     {
      "label": "the Reconcile all control is drawn disabled",
      "pass": true
+    },
+    {
+     "label": "SURF-025/controls-track-reading: SURF-025.window.txt is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "SURF-025/controls-track-reading: SURF-025.empty.window.txt is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "SURF-025/controls-track-reading: SURF-025.failure.window.txt is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "SURF-025/controls-track-reading: every reading draws controls to compare ({'SURF-025.window.txt': 12, 'SURF-025.empty.window.txt': 2, 'SURF-025.failure.window.txt': 3})",
+     "pass": true
+    },
+    {
+     "label": "SURF-025/controls-track-reading: Rescan is drawn in all 3 readings, always enabled",
+     "pass": true
+    },
+    {
+     "label": "SURF-025/controls-track-reading: Reconcile all\u2026 is drawn in all 3 readings, always disabled",
+     "pass": true
+    },
+    {
+     "label": "SURF-025/controls-track-reading: the reading that returned harnesses draws per-harness controls (10)",
+     "pass": true
+    },
+    {
+     "label": "SURF-025/controls-track-reading: a reading that returned none draws none of them ({'SURF-025.empty.window.txt': 0, 'SURF-025.failure.window.txt': 0})",
+     "pass": true
     }
    ],
    "pass": true
@@ -533,6 +565,34 @@
     },
     {
      "label": "the Analyse now control is drawn disabled",
+     "pass": true
+    },
+    {
+     "label": "SURF-026/action-tracks-state: SURF-026.window.txt is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "SURF-026/action-tracks-state: SURF-026.empty.window.txt is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "SURF-026/action-tracks-state: SURF-026.failure.window.txt is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "SURF-026/action-tracks-state: each reading draws exactly one board action ({'SURF-026.window.txt': 1, 'SURF-026.empty.window.txt': 1, 'SURF-026.failure.window.txt': 1})",
+     "pass": true
+    },
+    {
+     "label": "SURF-026/action-tracks-state: each reading draws the action its state calls for ({'SURF-026.window.txt': ('Analyse now', '0'), 'SURF-026.empty.window.txt': ('Watch the live log instead', '1'), 'SURF-026.failure.window.txt': ('Start the router', '1')})",
+     "pass": true
+    },
+    {
+     "label": "SURF-026/action-tracks-state: the 3 actions are pairwise distinct (['Analyse now', 'Watch the live log instead', 'Start the router'])",
+     "pass": true
+    },
+    {
+     "label": "SURF-026/action-tracks-state: no reading's action appears in another reading's window (0 stray)",
      "pass": true
     }
    ],
@@ -1838,6 +1898,43 @@
     }
    ],
    "pass": true
+  },
+  "CASE-0131": {
+   "checks": [
+    {
+     "label": "SURF-007/row-actions: SURF-007.window.txt is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "SURF-007/row-actions: SURF-007.cleanup-skills.window.txt is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "SURF-007/row-actions: every window draws rows to read ({'SURF-007.window.txt': 3, 'SURF-007.cleanup-skills.window.txt': 5})",
+     "pass": true
+    },
+    {
+     "label": "SURF-007/row-actions: the two windows draw different row counts ([3, 5])",
+     "pass": true
+    },
+    {
+     "label": "SURF-007/row-actions: every row owns its own controls in the tree \u2014 {'SURF-007.window.txt': '3/3', 'SURF-007.cleanup-skills.window.txt': '5/5'}",
+     "pass": true
+    },
+    {
+     "label": "SURF-007/row-actions: a flagged row is drawn to compare against (1 flagged, 7 not)",
+     "pass": true
+    },
+    {
+     "label": "SURF-007/row-actions: a flagged row draws Read first\u2026 and NEITHER of the other two",
+     "pass": true
+    },
+    {
+     "label": "SURF-007/row-actions: an unflagged row draws Inspect and Remove\u2026 and no Read first\u2026",
+     "pass": true
+    }
+   ],
+   "pass": true
   }
  },
  "shots": {
@@ -1908,8 +2005,8 @@
   "CASE-0111": {
    "path": "SURF-011.build.png",
    "exists": true,
-   "bytes": 476895,
-   "sha": "195e10068dfd364b",
+   "bytes": 475178,
+   "sha": "3b5a26ef6016a38c",
    "isPNG": true,
    "sharedWith": null
   },
@@ -1986,6 +2083,157 @@
    "sharedWith": null
   }
  },
+ "relations": {
+  "SURF-007/row-actions": {
+   "case": "CASE-0131",
+   "dumps": [
+    "SURF-007.window.txt",
+    "SURF-007.cleanup-skills.window.txt"
+   ],
+   "arms": [
+    "SURF-007/combined-rows",
+    "SURF-007/fixed-column"
+   ],
+   "armed": null,
+   "rowCounts": {
+    "SURF-007.window.txt": 3,
+    "SURF-007.cleanup-skills.window.txt": 5
+   },
+   "rowsOwningControls": {
+    "SURF-007.window.txt": 3,
+    "SURF-007.cleanup-skills.window.txt": 5
+   },
+   "flagged": [
+    "pr-summariser"
+   ]
+  },
+  "SURF-025/controls-track-reading": {
+   "case": "CASE-0167",
+   "dumps": [
+    "SURF-025.window.txt",
+    "SURF-025.empty.window.txt",
+    "SURF-025.failure.window.txt"
+   ],
+   "arms": [
+    "SURF-025/rows-through-empty"
+   ],
+   "armed": null,
+   "controls": {
+    "SURF-025.window.txt": [
+     [
+      "Rescan",
+      "1"
+     ],
+     [
+      "Reconcile all\u2026",
+      "0"
+     ],
+     [
+      "Reconcile\u2026",
+      "0"
+     ],
+     [
+      "Reveal config in Finder",
+      "1"
+     ],
+     [
+      "Reveal config in Finder",
+      "1"
+     ],
+     [
+      "Reveal config in Finder",
+      "1"
+     ],
+     [
+      "Why a shim?",
+      "1"
+     ],
+     [
+      "Reveal config in Finder",
+      "1"
+     ],
+     [
+      "Reconcile\u2026",
+      "0"
+     ],
+     [
+      "Reveal config in Finder",
+      "1"
+     ],
+     [
+      "Reconcile\u2026",
+      "0"
+     ],
+     [
+      "Reveal config in Finder",
+      "1"
+     ]
+    ],
+    "SURF-025.empty.window.txt": [
+     [
+      "Rescan",
+      "1"
+     ],
+     [
+      "Reconcile all\u2026",
+      "0"
+     ]
+    ],
+    "SURF-025.failure.window.txt": [
+     [
+      "Rescan",
+      "1"
+     ],
+     [
+      "Reconcile all\u2026",
+      "0"
+     ],
+     [
+      "Start the router",
+      "1"
+     ]
+    ]
+   },
+   "perRowControls": {
+    "SURF-025.window.txt": 10,
+    "SURF-025.empty.window.txt": 0,
+    "SURF-025.failure.window.txt": 0
+   }
+  },
+  "SURF-026/action-tracks-state": {
+   "case": "CASE-0176",
+   "dumps": [
+    "SURF-026.window.txt",
+    "SURF-026.empty.window.txt",
+    "SURF-026.failure.window.txt"
+   ],
+   "arms": [
+    "SURF-026/one-fixed-action"
+   ],
+   "armed": null,
+   "actions": {
+    "SURF-026.window.txt": [
+     [
+      "Analyse now",
+      "0"
+     ]
+    ],
+    "SURF-026.empty.window.txt": [
+     [
+      "Watch the live log instead",
+      "1"
+     ]
+    ],
+    "SURF-026.failure.window.txt": [
+     [
+      "Start the router",
+      "1"
+     ]
+    ]
+   }
+  }
+ },
  "decoy": null,
+ "relationDecoy": null,
  "pass": false
 }

@@ -1,7 +1,7 @@
 {
- "checked": 93,
+ "checked": 98,
  "total": 117,
- "at": "2026-08-28T14:21:20+00:00",
- "reason": "M34: the app's own menu joined the campaign. CASE-0195 (outcome, the reason on the running app's real menu) and CASE-0196 (metamorphic, the trailing area) are new checked cases; CASE-0197 is unoracled and counts AGAINST the total rather than being marked n/a. The rise is two more things measured.",
- "previous": 91
+ "at": "2026-08-28T22:30:23+00:00",
+ "previous": 93,
+ "reason": "M34 and J4 combined, measured on the merged tree rather than computed from either branch. M34 added three cases and checked two of them (91->93, total 114->117); J4 re-rated five existing cases onto rungs that read an effect (91->96, total 114). The two are independent gains and the merge is 98 of 117: 'only proves something rendered' fell 12 -> 7. Neither branch's number was taken; strict-check.py was run on the merged tree and --set-ratchet wrote this."
 }

@@ -1,0 +1,23 @@
+[
+ {
+  "path": "evidence/shots/forced-state/SURF-002.live-running.png",
+  "subject": "SURF-002",
+  "target": "app://mac/servers",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "91627b536a8fcef513930d0849ca1fd5e8eebc90e2a0f1944de6b6532bc50612",
+  "capturedAt": "2026-08-28T17:07:56Z",
+  "conditions": {
+   "windowTitleReadback": "Servers",
+   "frame": "180,140,980,620",
+   "cgWindowID": "88539",
+   "appearance": "system",
+   "frontmostAtShutter": "Google Chrome",
+   "scenario": "live",
+   "forcedState": "running",
+   "arrangement": "a reference router is up on http://127.0.0.1:8955 under a scratch MCP_ROUTER_HOME, declaring three servers whose names carry this run's nonce",
+   "routerReachable": true
+  },
+  "witnessed": "axkit attached pid=9080 owns CGWindowID 88539, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/J5/app/.derived/Build/Products/Debug/MCPRouter.app"
+ }
+]

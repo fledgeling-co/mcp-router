@@ -1459,5 +1459,131 @@
     "status": "open",
     "armed": false,
     "evidence": []
+  },
+  {
+    "id": "CASE-0195",
+    "req": "REQ-004",
+    "surface": "SURF-002",
+    "flow": null,
+    "step": null,
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-002",
+      "state": "populated",
+      "viewport": "980x620",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "live-router",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "outcome",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0196",
+    "req": "REQ-004",
+    "surface": "SURF-002",
+    "flow": null,
+    "step": null,
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-002",
+      "state": "populated",
+      "viewport": "980x620",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "live-router",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "raster-visual",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0197",
+    "req": "REQ-005",
+    "surface": "SURF-002",
+    "flow": null,
+    "step": null,
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-002",
+      "state": "stale",
+      "viewport": "980x620",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "live-router-stopped",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "outcome",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0198",
+    "req": "REQ-005",
+    "surface": "SURF-002",
+    "flow": null,
+    "step": null,
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-002",
+      "state": "stale",
+      "viewport": "980x620",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "live-router-stopped",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "raster-visual",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0199",
+    "req": "REQ-005",
+    "surface": "SURF-002",
+    "flow": null,
+    "step": null,
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-002",
+      "state": "offline",
+      "viewport": "980x620",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "no-router-ever",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "outcome",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0200",
+    "req": "REQ-007",
+    "surface": "SURF-002",
+    "flow": null,
+    "step": null,
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-002",
+      "state": "populated",
+      "viewport": "980x620",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "live-router",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "outcome",
+    "status": "open",
+    "armed": false,
+    "evidence": []
   }
 ]

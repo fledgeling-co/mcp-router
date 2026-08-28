@@ -33,6 +33,29 @@ public actor LiveControlAPIClient: ControlAPIClient {
         self.log = log
     }
 
+    /// A client pointed at a router this process started, rather than at the user's own.
+    ///
+    /// Three decisions, and they belong here rather than at the call site. The session is
+    /// **ephemeral**, so a throwaway router's responses never enter the shared cache. The token
+    /// store is **in memory**, so the user's Keychain is neither read nor written. And the token
+    /// itself comes from `RouterTokenFile`, which honours `MCP_ROUTER_HOME` — the route
+    /// `ControlProbe` already travels to reach a scratch router, so a lane that sets one variable
+    /// points every tool at the same place.
+    ///
+    /// It is a convenience initialiser rather than three arguments at the call site because the
+    /// call site is `ShellClientFactory`, and `MCPRouterUI`'s A36 guard forbids that file from
+    /// naming `URLSession` at all: the shell reaches the outside world through this client and
+    /// through nothing else. Assembling the session here keeps that true — the rule is about which
+    /// TYPE owns the channel, and this is that type.
+    public init(scratchAt baseURL: URL) {
+        self.init(
+            baseURL: baseURL,
+            session: URLSession(configuration: .ephemeral),
+            store: InMemoryTokenStore(nil),
+            tokenFile: RouterTokenFile()
+        )
+    }
+
     // MARK: - Token handling
 
     /// The token to send, preferring what is stored and falling back to the router's file.

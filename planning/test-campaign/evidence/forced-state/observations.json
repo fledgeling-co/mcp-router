@@ -1,0 +1,72 @@
+{
+ "tool": "planning/test-campaign/bin/forced-state.sh",
+ "capturedAt": "2026-08-28T17:08:06Z",
+ "endpoint": "http://127.0.0.1:8955",
+ "bundle": "/Users/lukerhodes/Dev/mcp-router/.worktrees/J5/app/.derived/Build/Products/Debug/MCPRouter.app",
+ "declared": {
+  "names": [
+   "j5-alpha-20260828T170738Z-5616",
+   "j5-beta-20260828T170738Z-5616",
+   "j5-gamma-20260828T170738Z-5616"
+  ],
+  "count": 3
+ },
+ "nonce": "20260828T170738Z-5616",
+ "oracle": "`curl $ENDPOINT/servers`, taken by this script at each state, independently of the app. Every figure asserted about a board is compared against this reading rather than against the app's own account of what it drew.",
+ "states": [
+  {
+   "state": "cold",
+   "arrangement": "the router was never started; nothing has ever listened on http://127.0.0.1:8955, so no poll has ever succeeded",
+   "settled": true,
+   "endpoint": "http://127.0.0.1:8955",
+   "routerReachable": false,
+   "routerReading": null,
+   "ax": "evidence/ax/SURF-002.live-cold.window.txt",
+   "shot": null,
+   "unphotographedReason": "the window is 980x620 at (180,140) and its sidebar reports 256x1964 at (188,-537), which is outside it. A laid-out window contains its own sidebar, so this frame is a photograph of a window that never finished laying out rather than a photograph of the board.",
+   "sha256": null,
+   "windowTitleReadback": "Servers",
+   "frame": "180,140,980,620",
+   "cgWindowID": "88529",
+   "frontmostAtShutter": "Google Chrome",
+   "capturedAt": "2026-08-28T17:07:46Z",
+   "witnessed": "axkit attached pid=6195 owns CGWindowID 88529, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/J5/app/.derived/Build/Products/Debug/MCPRouter.app"
+  },
+  {
+   "state": "running",
+   "arrangement": "a reference router is up on http://127.0.0.1:8955 under a scratch MCP_ROUTER_HOME, declaring three servers whose names carry this run's nonce",
+   "settled": true,
+   "endpoint": "http://127.0.0.1:8955",
+   "routerReachable": true,
+   "routerReading": "evidence/forced-state/router.running.json",
+   "ax": "evidence/ax/SURF-002.live-running.window.txt",
+   "shot": "evidence/shots/forced-state/SURF-002.live-running.png",
+   "unphotographedReason": null,
+   "sha256": "91627b536a8fcef513930d0849ca1fd5e8eebc90e2a0f1944de6b6532bc50612",
+   "windowTitleReadback": "Servers",
+   "frame": "180,140,980,620",
+   "cgWindowID": "88539",
+   "frontmostAtShutter": "Google Chrome",
+   "capturedAt": "2026-08-28T17:07:56Z",
+   "witnessed": "axkit attached pid=9080 owns CGWindowID 88539, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/J5/app/.derived/Build/Products/Debug/MCPRouter.app"
+  },
+  {
+   "state": "stale",
+   "arrangement": "the router that had been answering was killed while this same app instance kept running, so a poll that used to succeed now fails over servers that are real",
+   "settled": true,
+   "endpoint": "http://127.0.0.1:8955",
+   "routerReachable": false,
+   "routerReading": null,
+   "ax": "evidence/ax/SURF-002.live-stale.window.txt",
+   "shot": null,
+   "unphotographedReason": "the window is 980x620 at (180,140) and its sidebar reports 256x1964 at (188,-554), which is outside it. A laid-out window contains its own sidebar, so this frame is a photograph of a window that never finished laying out rather than a photograph of the board.",
+   "sha256": null,
+   "windowTitleReadback": "Servers",
+   "frame": "180,140,980,620",
+   "cgWindowID": "88539",
+   "frontmostAtShutter": "Google Chrome",
+   "capturedAt": "2026-08-28T17:08:06Z",
+   "witnessed": "axkit attached pid=9080 owns CGWindowID 88539, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/J5/app/.derived/Build/Products/Debug/MCPRouter.app"
+  }
+ ]
+}

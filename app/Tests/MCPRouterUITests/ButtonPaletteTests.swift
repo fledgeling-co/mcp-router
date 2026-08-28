@@ -74,6 +74,28 @@
             )
         }
 
+        // MARK: - The phone rung
+
+        /// M36. The phone's prominent style spelled its own triple and drifted: `--raised` for the
+        /// disabled fill where §3 ratifies `--f3`, and no bezel where §3 gives `--line`. It reads
+        /// this palette now, so the assertion is that the two ladders are one decision rather than
+        /// two lists that happen to agree today — a second list is what drifted.
+        ///
+        /// `PhoneProminentDisabledRenderTests` is the other half, and the halves are not
+        /// interchangeable: this says which token was chosen, that says which colour was painted.
+        @Test("the phone's prominent rung resolves the same triple as the Mac's")
+        func thePhoneRungIsTheSameLadder() {
+            let phone = PhoneProminentButtonStyle()
+            for isEnabled in [true, false] {
+                #expect(
+                    phone.palette(isEnabled: isEnabled) == prominent.palette(isEnabled: isEnabled),
+                    "the phone and Mac prominent ladders disagree at isEnabled=\(isEnabled)"
+                )
+            }
+            #expect(phone.palette(isEnabled: false).fill == .f3)
+            #expect(phone.palette(isEnabled: false).border == .line)
+        }
+
         // MARK: - The standard style
 
         @Test("the standard style's disabled tier wins over the destructive tier")

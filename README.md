@@ -227,9 +227,14 @@ Two things it cannot do, which is why the other half exists:
 
 ### Skills and plugins: the router asks, and asking is all it can do
 
-Every Claude Code session registers a unix socket under `/tmp/cc-socks/<pid>.sock`, and the
-router can write to it. What arrives there is **text in the receiving session's turn**. Three
-measured limits, and they are the reason this is off by default:
+Every Claude Code session registers a unix socket, and the router can write to it:
+
+```
+/tmp/cc-socks/<pid>.sock
+```
+
+What arrives there is **text in the receiving session's turn**. Three measured limits, and they
+are the reason this is off by default:
 
 - **A slash command in the message does not run.** The harness enqueues an inbound peer message
   with slash commands disabled. So `/reload-skills` in the body is a string the receiving model

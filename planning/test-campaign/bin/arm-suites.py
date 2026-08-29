@@ -285,6 +285,70 @@ ARMS = [
         "clears the held diff from the model, so the user sees the change accepted and the router "
         "goes on serving the old text.",
     ),
+    (
+        "CASE-0213", "installDeclaresTheRowThatWasPressed",
+        [("Sources/MCPRouterUI/Boards/DiscoverBoardModel.swift",
+          "            installState = .installing\n"
+          "            do {\n"
+          "                _ = try await client.add(declaration)\n"
+          "                guard !Task.isCancelled else { return }\n"
+          "                installState = .idle\n"
+          "                markInstalled(id: entry.id)\n"
+          "            } catch {\n"
+          "                guard !Task.isCancelled else { return }\n"
+          "                installState = .failed(error)\n"
+          "            }",
+          "            installState = .installing\n"
+          "            _ = declaration\n"
+          "            installState = .idle\n"
+          "            markInstalled(id: entry.id)")],
+        "`Install` putting the row's own declaration on the wire. The whole write is removed and "
+        "everything the board reports is left standing: `installState` still lands on `.idle` and "
+        "`markInstalled` still marks the row, so the row draws as installed, the sheet's action "
+        "goes dead, and nothing was ever declared.",
+    ),
+    (
+        "CASE-0214", "inboxInstallDeclaresTheResolvedEntry",
+        [("Sources/MCPRouterUI/Boards/InboxBoardModel.swift",
+          "            acceptState = .accepting\n"
+          "            do {\n"
+          "                _ = try await client.add(declaration)\n"
+          "                guard !Task.isCancelled else { return }\n"
+          "                acceptState = .idle\n"
+          "                record(.accepted(acceptable.item))\n"
+          "                sheetItemID = nil\n"
+          "            } catch {\n"
+          "                guard !Task.isCancelled else { return }\n"
+          "                acceptState = .failed(error)\n"
+          "            }",
+          "            acceptState = .accepting\n"
+          "            _ = declaration\n"
+          "            acceptState = .idle\n"
+          "            record(.accepted(acceptable.item))\n"
+          "            sheetItemID = nil")],
+        "the Inbox's `Install` declaring the entry the Mac resolved. The write is removed and the "
+        "reporting is left: the sheet closes, the row leaves the queue, the badge falls by one and "
+        "the undo slot reports an accept — the acknowledgement-only shape with four witnesses, "
+        "none of which is the router.",
+    ),
+    (
+        "CASE-0215", "declineRemovesOneRowAndCallsNothing",
+        [("Sources/MCPRouterUI/Boards/InboxBoardModel.swift",
+          "            record(.declined(item))\n"
+          "            if sheetItemID == item.id { sheetItemID = nil }",
+          "            _ = item")],
+        "`Decline` actually dispositioning the row. Reverting is the empty closure verbatim: the "
+        "press lands, the sheet's caller carries on, and the item is still waiting.",
+    ),
+    (
+        "CASE-0216", "rescanRedrawsFromTheSecondReading",
+        [("Sources/MCPRouterUI/Boards/HarnessesBoardModel.swift",
+          "                state = .loaded(response)",
+          "                _ = response")],
+        "`Rescan` drawing the reading it just took. Reverting still ASKS the router — the request "
+        "count moves either way — and throws the answer away, so a case that had asserted only "
+        "that a request went out would stay green over a board frozen on its first reading.",
+    ),
 ]
 
 RUN_LINE = re.compile(r"Test run with (\d+) test", re.I)

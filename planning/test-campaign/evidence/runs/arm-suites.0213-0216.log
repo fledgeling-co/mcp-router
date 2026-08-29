@@ -1,0 +1,96 @@
+{
+ "arms": [
+  {
+   "case": "CASE-0213",
+   "filter": "installDeclaresTheRowThatWasPressed",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "`Install` putting the row's own declaration on the wire. The whole write is removed and everything the board reports is left standing: `installState` still lands on `.idle` and `markInstalled` still marks the row, so the row draws as installed, the sheet's action goes dead, and nothing was ever declared.",
+   "armed": true,
+   "files": [
+    "Sources/MCPRouterUI/Boards/DiscoverBoardModel.swift"
+   ]
+  },
+  {
+   "case": "CASE-0214",
+   "filter": "inboxInstallDeclaresTheResolvedEntry",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "the Inbox's `Install` declaring the entry the Mac resolved. The write is removed and the reporting is left: the sheet closes, the row leaves the queue, the badge falls by one and the undo slot reports an accept \u2014 the acknowledgement-only shape with four witnesses, none of which is the router.",
+   "armed": true,
+   "files": [
+    "Sources/MCPRouterUI/Boards/InboxBoardModel.swift"
+   ]
+  },
+  {
+   "case": "CASE-0215",
+   "filter": "declineRemovesOneRowAndCallsNothing",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "`Decline` actually dispositioning the row. Reverting is the empty closure verbatim: the press lands, the sheet's caller carries on, and the item is still waiting.",
+   "armed": true,
+   "files": [
+    "Sources/MCPRouterUI/Boards/InboxBoardModel.swift"
+   ]
+  },
+  {
+   "case": "CASE-0216",
+   "filter": "rescanRedrawsFromTheSecondReading",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "`Rescan` drawing the reading it just took. Reverting still ASKS the router \u2014 the request count moves either way \u2014 and throws the answer away, so a case that had asserted only that a request went out would stay green over a board frozen on its first reading.",
+   "armed": true,
+   "files": [
+    "Sources/MCPRouterUI/Boards/HarnessesBoardModel.swift"
+   ]
+  }
+ ],
+ "armed": [
+  "CASE-0213",
+  "CASE-0214",
+  "CASE-0215",
+  "CASE-0216"
+ ],
+ "refused": [],
+ "denominator": 4
+}

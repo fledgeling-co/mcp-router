@@ -1765,5 +1765,85 @@
   "status": "open",
   "armed": false,
   "evidence": []
+ },
+ {
+  "id": "CASE-0213",
+  "req": "REQ-019",
+  "surface": "SURF-005",
+  "flow": null,
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-005",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": []
+ },
+ {
+  "id": "CASE-0214",
+  "req": "REQ-006",
+  "surface": "SURF-008",
+  "flow": null,
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-008",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": []
+ },
+ {
+  "id": "CASE-0215",
+  "req": "REQ-018",
+  "surface": "SURF-008",
+  "flow": null,
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-008",
+   "state": "disposition",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": []
+ },
+ {
+  "id": "CASE-0216",
+  "req": "REQ-007",
+  "surface": "SURF-025",
+  "flow": null,
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-025",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": []
  }
 ]

@@ -457,7 +457,14 @@
         "Not now",
         "Registry row → detail sheet"
       ],
-      "controlsSource": "design/mocks/prototype.html"
+      "controlsSource": "design/mocks/prototype.html",
+      "controlsUnactuatable": {
+        "24h": "The build draws no window control at all. `DiscoverBoard`'s one segmented control is `RegistryPresentation.Ordering` — Best match / Most used on Smithery / Recently added to Smithery — and no registry response carries a windowed figure to scope. DEF-063.",
+        "30d": "As `24h`. DEF-063.",
+        "7d": "As `24h`. The mock scopes its Trending table by install velocity over the chosen window; `RegistryEntry` carries `useCount` and no series behind it, so there is nothing to re-scope and nothing to press. DEF-063.",
+        "Servers": "The build draws no kind toggle. The mock filters its registry on `r.kind`; the board searches one merged registry and `RegistryEntry` has no kind, so both halves of the toggle would draw the same list. DEF-063.",
+        "Skills": "As `Servers`. DEF-063."
+      }
     },
     {
       "id": "SURF-006",
@@ -554,7 +561,10 @@
         "Close popover",
         "Open Conduit"
       ],
-      "controlsSource": "design/mocks/prototype.html"
+      "controlsSource": "design/mocks/prototype.html",
+      "controlsUnactuatable": {
+        "Quit": "Built and unreadable from either lane, rather than missing. `MenuBarRouter.quit()` calls the app's own terminate, and the only state it changes is the process ending: there is no seam to observe and nothing survives the act to assert on. In a SwiftPM test the shared application is nil and the call is a silent no-op; on glass this campaign never activates MCPRouter, so the popover cannot be opened at all (SURF-009's `shotNote`, and the three n/a cases already filed against this surface). Not a defect."
+      }
     },
     {
       "id": "SURF-010",
@@ -571,7 +581,10 @@
       "controlsMessageOnly": [
         "Done"
       ],
-      "controlsSource": "design/mocks/prototype.html"
+      "controlsSource": "design/mocks/prototype.html",
+      "controlsUnactuatable": {
+        "Can't scan? Type a code": "The Mac's pairing sheet draws no typed-code fallback. The copy exists — `InboxCopy.Pairing.typeInstead` — and is drawn only by the phone's `PairingFlowView`, so the control the design puts on the Mac is on the other device. The sheet's own controls are `Show a new code` and `Done`. DEF-064."
+      }
     },
     {
       "id": "SURF-011",
@@ -601,7 +614,12 @@
         "Promote any update that passes its evals",
         "Reset call history…"
       ],
-      "controlsSource": "design/mocks/prototype.html"
+      "controlsSource": "design/mocks/prototype.html",
+      "controlsUnactuatable": {
+        "Can't scan? Type a code": "As SURF-010's, in the pair-another sheet. DEF-064.",
+        "Reset history": "The Settings window hosts no reset-history sheet, so its confirm button is not drawn here. The act itself ships and is proven: `ActivityModel.resetHistory()` and `CleanupBoardModel.resetHistory()` reach the same endpoint, and `Reset history` is actuated on SURF-003 by a passing case. What is absent is this surface's entry point. DEF-064.",
+        "Unpair": "The build draws no unpair control, and cannot: the control API has no devices endpoint, so what this Mac knows about a paired phone is the name on the inbox snapshot it is already polling. `SecurityPane` says so in its own words and offers `Manage…` — which routes to the Inbox — and `Forget the stored token` instead. DEF-064."
+      }
     },
     {
       "id": "SURF-012",
@@ -741,7 +759,10 @@
         "Why a shim?",
         "Wire to the router"
       ],
-      "controlsSource": "design/mcp-router-console.html"
+      "controlsSource": "design/mcp-router-console.html",
+      "controlsUnactuatable": {
+        "Scan again": "One control, drawn once. The design labels the rescan `Scan again` in `board:empty` and `Rescan` in `board:ideal`; the build draws a single header action outside the state switch, so it is on screen in the empty state too and reads `Rescan` there. There is no second control to press, and the act is actuated as `Rescan` by CASE-0216. A label divergence rather than a missing control."
+      }
     },
     {
       "id": "SURF-026",
@@ -764,7 +785,14 @@
         "Change the order…",
         "Watch the live log instead"
       ],
-      "controlsSource": "design/mcp-router-console.html"
+      "controlsSource": "design/mcp-router-console.html",
+      "controlsUnactuatable": {
+        "Analyse now": "Drawn, dim, and wired to an empty closure on purpose. There is no analyst in this product: `PRD.md` §6 specifies a session analyst and nothing under `app/Sources` implements one, so the button is `.disabled(true)` with `analyseUnavailable` as its help and its accessibility hint — `DESIGN.md` §3.4's dim-with-a-reason rather than an absence. Pressing it is not refused by the campaign; it is refused by the control. DEF-065.",
+        "Analyst cadence": "The build draws the analyst panel's EMPTY state — a title, a body and the dim action — where the design draws three configuration readouts. There is no cadence to display or change. DEF-065.",
+        "Analyst model": "As `Analyst cadence`. DEF-065.",
+        "Insights window": "Parked deliberately, with the reason in the source rather than in this file: the window is fixed at 24 hours because the call log rotates and what the router can answer for is whatever survived, so a control offering seven days on a machine holding two would lie about its own range (`InsightsBoard`'s own header comment). Not a defect — a refusal.",
+        "Second-opinion model": "As `Analyst cadence`. DEF-065."
+      }
     },
     {
       "id": "SURF-027",

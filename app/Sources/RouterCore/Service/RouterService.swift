@@ -67,6 +67,13 @@ public actor RouterService {
     /// Upstream health — R27. Held for the life of the process because health IS history: a
     /// monitor rebuilt per request would report every server `unprobed` forever.
     let health: UpstreamHealthMonitor
+    /// F5's invocation history, or nil when nothing pointed the router at a transcript corpus.
+    ///
+    /// **Optional at the service, not just at `ControlDeps`.** The reader opens a directory of
+    /// somebody's agent sessions, so it exists only when a person named one — there is no default
+    /// and no discovery. Absent, `GET /invocations` answers 503 saying so, which is a different
+    /// claim from an empty window.
+    let invocations: InvocationHistory?
     let usedCodes = UsedCodeSet()
     let token: String
     let tokenPath: String
@@ -117,6 +124,18 @@ public actor RouterService {
             transporting: RoutingUpstreamTransport(log: log),
             clock: clock,
             log: log
+        )
+        // F5. Built here rather than per request for the reason `health` is: the watermarks and the
+        // ledger are read off disk at construction, and a history rebuilt per request would re-read
+        // 19.5 GB of transcripts on every call to `GET /invocations`.
+        //
+        // **Supplied here and nowhere else**, which is the whole of why this line carries a comment
+        // at all: `registry` and `authFlow` each existed, were unit-tested and were nil in the one
+        // process that ships, so every route depending on them answered a refusal on the wire while
+        // the suite stayed green (`D-p1-a`, and the `control-registry-search` row). This item's own
+        // spec quotes that, so shipping it nil would have reproduced it knowingly.
+        invocations = InvocationSources.history(
+            environment: environment, home: home, fileSystem: fileSystem
         )
         health = UpstreamHealthMonitor(
             upstreams: config.upstreams,
@@ -214,6 +233,30 @@ public actor RouterService {
         // server does by default — a background probe spawns a child, and `REQ-001` is that at
         // rest there are none. `start()` returning without a task is the ordinary case.
         await health.start()
+
+        // F5. Detached and after listen() for `warmUp`'s reason and one of its own: a cold corpus
+        // is 59,476 files and 19.5 GB (measured 2026-08-29), roughly 150 seconds of reading, and a
+        // router that took that before answering would look hung. Every later pass is nearly free —
+        // the watermark skips every file whose size and mtime are unchanged — but the first is not.
+        //
+        // `nil` unless somebody set `MCP_ROUTER_TRANSCRIPTS`, so this task does not exist on a
+        // default install. It runs ONCE per start rather than on a timer, which is a real limit
+        // rather than a plan: a long-lived daemon's window stops advancing until it restarts. A
+        // periodic refresh is `D-f5-e`, and the honest reading in the meantime is that
+        // `GET /invocations` answers for what had been read when the router last started.
+        if let invocations {
+            let register = InvocationSources.registerPath(environment: environment)
+            let fileSystem = fileSystem
+            Task.detached {
+                // The boundaries FIRST, then the scan. Order is load-bearing rather than tidy: a
+                // window folded before any boundary exists reports every run `unestablished`, which
+                // is a correct answer to the wrong question and looks exactly like the honest
+                // refusal this item is built to give.
+                let seeded = InvocationSources.seed(at: register, fileSystem: fileSystem)
+                invocations.observe(seeded.observations)
+                invocations.refresh()
+            }
+        }
     }
 
     /// Graceful stop, in the reference's order: flush what was recorded, stop accepting, close every

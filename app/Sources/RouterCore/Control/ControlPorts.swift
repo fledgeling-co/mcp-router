@@ -248,6 +248,13 @@ public struct ControlDeps: Sendable {
     /// parity run. Absent, both routes answer 503 saying so rather than an empty report, which a
     /// router that had probed nothing would be indistinguishable from.
     public var health: (any UpstreamHealthReporting)?
+    /// Where the `/invocations` family reads its window — F5. Optional for the reason ``extensions``
+    /// is, and with one of its own: this reporter reads a corpus of session transcripts under a root
+    /// somebody named, so a default would be a router reading a person's sessions because it could.
+    /// Absent, both routes answer 503 saying the router was never pointed anywhere — which is a
+    /// different fact from an empty history, and a machine on which nothing ran would be
+    /// indistinguishable from it otherwise.
+    public var invocations: (any InvocationReporting)?
 
     public init(
         config: RouterConfig,
@@ -269,7 +276,8 @@ public struct ControlDeps: Sendable {
         insights: (any InsightsSource)? = nil,
         extensions: (any ExtensionStoring)? = nil,
         caches: (any CacheProbing)? = nil,
-        health: (any UpstreamHealthReporting)? = nil
+        health: (any UpstreamHealthReporting)? = nil,
+        invocations: (any InvocationReporting)? = nil
     ) {
         self.config = config
         self.upstreams = upstreams
@@ -291,6 +299,7 @@ public struct ControlDeps: Sendable {
         self.extensions = extensions
         self.caches = caches
         self.health = health
+        self.invocations = invocations
     }
 
     /// Lookup by JavaScript string identity — a composed key does not match a decomposed request,

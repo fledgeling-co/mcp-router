@@ -1,3 +1,9 @@
+---
+status: in-progress
+found-by: user turn 1 directive, 2026-08-24; triaged and specced 2026-08-29 as F5 on ai/n1
+reckon-sources: [CASE-0262, CASE-0263, CASE-0264, CASE-0265, REQ-007, REQ-012, SURF-016, SURF-026]
+---
+
 # Skill Version Usage History, Visualizations and Telemetry
 
 - origin: user turn 1 directive · 2026-08-24

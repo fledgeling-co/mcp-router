@@ -773,6 +773,19 @@ Two applications that are load-bearing here:
 
 Recorded here rather than in a report, because it is the next design work:
 
+- **The design of record contradicts itself about "use, by version", and F5 picked a side.**
+  `design/mcp-router-console.html:2780` at `08a24ed` retires the idea outright — *"The router never sees a skill
+  run … the bars were counting something nothing here observes"* — while `:3490` draws *Skill and
+  server use, by version* crediting `design-review 2.3.1` with 142 runs. Both are partly right. The
+  router is genuinely not on the path of a skill run; the *harness* writes every skill it ran into
+  its own session transcripts, so a run is observable on this machine by a different mechanism with
+  a different privacy posture. F5 draws the table, from that mechanism, and makes `:3525`'s callout
+  — *"a run against 1.4.0 never counts toward 1.4.2's evidence"* — a rule the code enforces rather
+  than a caption: a run whose version the boundary set cannot establish is reported beside the table
+  and credited to nothing. `planning/specs/spec-F5.md` §1–2 carries the measurements. **The mock's
+  own numbers are not reachable under that rule**, and the honest table will read emptier than the
+  one drawn; whoever converts the surface should expect that rather than treat it as a bug.
+
 - **A second subject-mined element.** The Signal Path is the only one. A board whose other
   surfaces are stock tables has one signature and eight defaults.
 - **Density is inconsistent** — 56px table rows against 120px featured cards holding

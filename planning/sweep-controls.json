@@ -421,8 +421,8 @@
         "planning/test-campaign/bin/vocab-differential.py",
         "--control"
       ],
-      "proves": "14 arms on dictionaries the control builds, each planting the fault its check is for. The four that matter are the registry's own rules, and they run through `findings_for` rather than re-implementing it — an arm that re-implements the predicate proves the arm and not the gate, which is this item's own subject arriving inside its own fix. Both directions are armed: an extra with a disposition and a well-formed registry row must stay quiet. What it does NOT prove is that the accessibility dumps are of the surfaces they are named for; `capture-lineage.py --gate` owns that, and two of the thirteen dispositions rest on its findings. Was `grandfathered` — 'predates this gate; carries no control this gate can run' — until M32 gave the file a control to run.",
-      "note": "The rewrite dropped this file to one marker (V3) and out of discovery, and the gate said so. It was not narrowing: the file had renamed its denominator from `rows` to `compared` while staying the same absence sweep. Restoring the noun restored V4. Recorded because it is a real property of lexical discovery — a rewrite that strengthens a sweep can hide it — and the remedy was to spell the predicate the way it reads, not to widen the reader."
+      "proves": "14 arms on dictionaries the control builds, each planting the fault its check is for. The four that matter are the registry's own rules, and they run through `findings_for` rather than re-implementing it \u2014 an arm that re-implements the predicate proves the arm and not the gate, which is this item's own subject arriving inside its own fix. Both directions are armed: an extra with a disposition and a well-formed registry row must stay quiet. What it does NOT prove is that the accessibility dumps are of the surfaces they are named for; `capture-lineage.py --gate` owns that, and two of the thirteen dispositions rest on its findings. Was `grandfathered` \u2014 'predates this gate; carries no control this gate can run' \u2014 until M32 gave the file a control to run.",
+      "note": "The rewrite dropped this file to one marker (V3) and out of discovery, and the gate said so. It was not narrowing: the file had renamed its denominator from `rows` to `compared` while staying the same absence sweep. Restoring the noun restored V4. Recorded because it is a real property of lexical discovery \u2014 a rewrite that strengthens a sweep can hide it \u2014 and the remedy was to spell the predicate the way it reads, not to widen the reader."
     },
     {
       "path": "planning/test-campaign/bin/witness-arm-denial.sh",
@@ -1277,6 +1277,19 @@
       ],
       "since": "2026-08-29",
       "reason": "R27's acceptance lane. WAIVED for the reason every other lane in `acceptance-lanes.sh` is: it needs `app/.build/debug/MCPRouterCLI`, binds a reserved port and spawns real python children, and it exits 2 rather than 0 when the binary is absent so a missing build cannot read as a pass. Its own arm is ARM 5 of `bin/arm-r27-health.sh`, which sets `ControlDeps.health` to nil in the daemon, rebuilds and re-runs this lane: three assertions fail, which is the shape a nil dependency makes on the wire and the one thing no unit test in this item can see."
+    },
+    {
+      "path": "scripts/lint/no-telemetry-egress.sh",
+      "disposition": "control",
+      "markers": [
+        "F5"
+      ],
+      "since": "2026-08-29",
+      "control": [
+        "bash",
+        "scripts/lint/no-telemetry-egress-selftest.sh"
+      ],
+      "proves": "Three arms, and the third is the one this gate would otherwise die of. Arm 1 requires exit 0 on the unmutated tree. Arm 2 plants a file carrying URLSession into a SCRATCH COPY of the subject directory and requires exit 1 AND that the offending file is named \u2014 a gate that reddened without saying where is a claim rather than a finding. Arm 3 points the gate at a directory holding no Swift and requires exit 2: this gate asserts an ABSENCE, so a gate whose subject directory was renamed keeps exiting 0 forever and every reader downstream reads that as a measurement. It works in a scratch copy throughout, because a gate that mutates the working tree as a side effect of checking is a rule this repository learned the hard way. What it does NOT prove is that the pattern list is complete \u2014 a Swift name for reaching the network that is not in PATTERNS is invisible to both the gate and this control."
     }
   ]
 }

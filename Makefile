@@ -992,6 +992,8 @@ lint: tools
 	./scripts/lint/no-wire-codable.sh || fail=1; \
 	./scripts/lint/no-harness-config-writes.sh || fail=1; \
 	./scripts/lint/no-harness-config-writes-selftest.sh || fail=1; \
+	./scripts/lint/no-telemetry-egress.sh || fail=1; \
+	./scripts/lint/no-telemetry-egress-selftest.sh || fail=1; \
 	./scripts/worktree-preflight-selftest.sh || fail=1; \
 	./scripts/warden/selftest.sh || fail=1; \
 	python3 planning/reader-accounting.py || fail=1; \

@@ -187,6 +187,7 @@ app/Tests/RouterCoreTests/ControlDocumentRouteTests.swift	swift-suite	app/Tests/
 app/Tests/RouterCoreTests/ControlExtensionRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlExtensionRoutesTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ControlFixtureTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlFixtureTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ControlHealthRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlHealthRoutesTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/RouterCoreTests/ControlInvocationRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlInvocationRoutesTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ControlPauseVectorTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlPauseVectorTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ControlReindexDisabledTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlReindexDisabledTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/DesktopEntryTests.swift	swift-suite	app/Tests/RouterCoreTests/DesktopEntryTests.swift	swift	compiled and run by `swift test`	make:test
@@ -204,6 +205,8 @@ app/Tests/RouterCoreTests/ImportConfigWriterLockTests.swift	swift-suite	app/Test
 app/Tests/RouterCoreTests/ImportConfigWriterTests.swift	swift-suite	app/Tests/RouterCoreTests/ImportConfigWriterTests.swift	swift	compiled and run by `swift test`; names argv ["node", …], execution unresolved	make:test
 app/Tests/RouterCoreTests/ImportPathsTests.swift	swift-suite	app/Tests/RouterCoreTests/ImportPathsTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/IndexFailureRecordTests.swift	swift-suite	app/Tests/RouterCoreTests/IndexFailureRecordTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/RouterCoreTests/InvocationScanTests.swift	swift-suite	app/Tests/RouterCoreTests/InvocationScanTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/RouterCoreTests/InvocationVersionTests.swift	swift-suite	app/Tests/RouterCoreTests/InvocationVersionTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/JSCoercionTests.swift	swift-suite	app/Tests/RouterCoreTests/JSCoercionTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/JSONParityTests.swift	swift-suite	app/Tests/RouterCoreTests/JSONParityTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/LogParityTests.swift	swift-suite	app/Tests/RouterCoreTests/LogParityTests.swift	swift	compiled and run by `swift test`	make:test
@@ -235,6 +238,7 @@ app/Tests/RouterCoreTests/SeamTests.swift	swift-suite	app/Tests/RouterCoreTests/
 app/Tests/RouterCoreTests/SecretResolverTests.swift	swift-suite	app/Tests/RouterCoreTests/SecretResolverTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/StagedErrorAttributionTests.swift	swift-suite	app/Tests/RouterCoreTests/StagedErrorAttributionTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/StandingConstraintsTests.swift	swift-suite	app/Tests/RouterCoreTests/StandingConstraintsTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/RouterCoreTests/TranscriptCorpusTests.swift	swift-suite	app/Tests/RouterCoreTests/TranscriptCorpusTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/UpstreamHealthMonitorTests.swift	swift-suite	app/Tests/RouterCoreTests/UpstreamHealthMonitorTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/UpstreamHealthPolicyTests.swift	swift-suite	app/Tests/RouterCoreTests/UpstreamHealthPolicyTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/UpstreamHealthProbeTests.swift	swift-suite	app/Tests/RouterCoreTests/UpstreamHealthProbeTests.swift	swift	compiled and run by `swift test`	make:test
@@ -462,6 +466,8 @@ scripts/fixtures/slow-mcp-server.mjs	gate	scripts/fixtures/slow-mcp-server.mjs	s
 scripts/lint/no-harness-config-writes-selftest.sh	gate	scripts/lint/no-harness-config-writes-selftest.sh	static	no router invocation matched	make:lint
 scripts/lint/no-harness-config-writes.sh	gate	scripts/lint/no-harness-config-writes.sh	static	no router invocation matched	make:lint
 scripts/lint/no-raw-design-values.sh	gate	scripts/lint/no-raw-design-values.sh	static	no router invocation matched	make:lint
+scripts/lint/no-telemetry-egress-selftest.sh	gate	scripts/lint/no-telemetry-egress-selftest.sh	static	no router invocation matched	make:lint
+scripts/lint/no-telemetry-egress.sh	gate	scripts/lint/no-telemetry-egress.sh	static	no router invocation matched	make:lint
 scripts/lint/no-wire-codable.sh	gate	scripts/lint/no-wire-codable.sh	static	no router invocation matched	make:lint
 scripts/m19-red-green.py	gate	scripts/m19-red-green.py	swift	argv ["swift", …]	-
 scripts/parity/generate-auth-vectors.mjs	gate	scripts/parity/generate-auth-vectors.mjs	static	no router invocation matched	-

@@ -33,7 +33,7 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 ROOT="app/Sources/RouterCore"
-DIRS=(Control Registry Usage Auth Extensions Caches)
+DIRS=(Control Registry Usage Auth Extensions Caches Invocations)
 EXEMPT_MARKER='swift-wire-exempt:'
 
 # Auth/ does not exist yet — it is R5's. A missing directory is not a failure, but a directory that

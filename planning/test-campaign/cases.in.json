@@ -1950,5 +1950,89 @@
   "armed": false,
   "evidence": [],
   "note": "M37. The app half and the router half read one pinned file, Vectors/pause-action.json. Changing the pinned bytes must redden both halves; that is what makes the pair a witness rather than two suites agreeing by coincidence."
+ },
+ {
+  "id": "CASE-0262",
+  "req": "REQ-007",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "F5. A run bracketed by two version boundaries carrying different versions is counted toward NEITHER. The oracle is that the version's run total does not move, and the same test removes the later boundary and requires it to move, so the assertion is watched being able to change its answer. Without the second half this passes against an implementation that credits every historical run to the installed version, which is the defect the whole item exists to refuse (spec-F5.md 2.2)."
+ },
+ {
+  "id": "CASE-0263",
+  "req": "REQ-007",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "structural",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "F5. The serialised key set of an InvocationEvent is exactly ts, kind, name, harness. Driven from a fixture transcript line that carries a cwd naming a project and an args carrying prompt text; neither may appear in the output. InvocationEvent.wireKeys is asserted alongside, so a fifth member added later reddens this rather than shipping. The privacy claim in spec-F5.md 3 is worth what fails when it stops being true."
+ },
+ {
+  "id": "CASE-0264",
+  "req": "REQ-007",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "metamorphic",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "F5. The incremental scan. Scanning an unchanged file twice must yield the same events as scanning it once and must not open it the second time; a file that shrank must be re-read from zero and say so in filesReread. The corpus is 59,476 files and 19.5 GB (measured 2026-08-29), so the watermark is what makes the reader answerable inside a request rather than an optimisation."
+ },
+ {
+  "id": "CASE-0265",
+  "req": "REQ-012",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "F5. With no reporter wired, GET /invocations answers 503 naming that the router was never pointed at a transcript corpus, not an empty window. ControlDeps' optional ports have shipped nil in RouterServiceDispatch twice with a green suite (control-registry-search, D-p1-a), which is a 503 on a whole family no unit test could see."
  }
 ]

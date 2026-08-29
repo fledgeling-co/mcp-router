@@ -238,6 +238,7 @@ app/Tests/RouterCoreTests/SeamTests.swift	swift-suite	app/Tests/RouterCoreTests/
 app/Tests/RouterCoreTests/SecretResolverTests.swift	swift-suite	app/Tests/RouterCoreTests/SecretResolverTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/StagedErrorAttributionTests.swift	swift-suite	app/Tests/RouterCoreTests/StagedErrorAttributionTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/StandingConstraintsTests.swift	swift-suite	app/Tests/RouterCoreTests/StandingConstraintsTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/RouterCoreTests/TranscriptCorpusTests.swift	swift-suite	app/Tests/RouterCoreTests/TranscriptCorpusTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/UpstreamHealthMonitorTests.swift	swift-suite	app/Tests/RouterCoreTests/UpstreamHealthMonitorTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/UpstreamHealthPolicyTests.swift	swift-suite	app/Tests/RouterCoreTests/UpstreamHealthPolicyTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/UpstreamHealthProbeTests.swift	swift-suite	app/Tests/RouterCoreTests/UpstreamHealthProbeTests.swift	swift	compiled and run by `swift test`	make:test

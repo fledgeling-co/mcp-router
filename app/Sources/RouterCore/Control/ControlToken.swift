@@ -38,6 +38,11 @@ public enum ControlPaths {
             // this router answers and claiming it would turn a typo into a 405.
             || pathname == "/caches"
             || pathname == "/caches/invalidate"
+            // R27's collection. An exact match with no prefix arm, like M22's and R31's, and NOT
+            // `/health`: that path is the router's own liveness, answered ahead of the control
+            // block and shared with the reference. `/upstreamshealth` shares a prefix with an owned
+            // path and is not owned, which is what the exact match is for.
+            || pathname == "/upstreams/health"
     }
 }
 

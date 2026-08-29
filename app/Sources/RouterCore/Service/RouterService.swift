@@ -64,6 +64,9 @@ public actor RouterService {
     /// serves /mcp perfectly well. The routes then answer nothing and the dispatcher falls through
     /// — degraded honestly rather than refusing to start.
     let authServerSeal: AuthServerSeal?
+    /// Upstream health — R27. Held for the life of the process because health IS history: a
+    /// monitor rebuilt per request would report every server `unprobed` forever.
+    let health: UpstreamHealthMonitor
     let usedCodes = UsedCodeSet()
     let token: String
     let tokenPath: String
@@ -114,6 +117,13 @@ public actor RouterService {
             transporting: RoutingUpstreamTransport(log: log),
             clock: clock,
             log: log
+        )
+        health = UpstreamHealthMonitor(
+            upstreams: config.upstreams,
+            global: config.health,
+            globalRefusals: config.healthRefusals,
+            probing: PoolUpstreamProbe(pool: pool, clock: clock),
+            clock: clock
         )
         // Whether the token already existed is read *before* loading it, because `load()` mints one
         // when it is missing and there is no way to ask afterwards which happened. The reference
@@ -199,6 +209,11 @@ public actor RouterService {
         // After listen(), so a slow warm server delays no client: the router is already answering
         // tools/list from cache while these open in the background.
         await pool.warmUp()
+
+        // R27. Arms nothing unless a server configured a positive `probeIntervalMs`, which no
+        // server does by default — a background probe spawns a child, and `REQ-001` is that at
+        // rest there are none. `start()` returning without a task is the ordinary case.
+        await health.start()
     }
 
     /// Graceful stop, in the reference's order: flush what was recorded, stop accepting, close every
@@ -210,6 +225,7 @@ public actor RouterService {
             await log.record(ServiceLogEvent.signalReceived(signal: signal))
         }
         usage.flush()
+        await health.stop()
         await server.stop()
         await pool.shutdown()
     }

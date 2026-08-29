@@ -232,7 +232,13 @@ extension RouterService {
             // is the only place invalidating a cache means anything.
             caches: DiskCacheProbe(roots: CacheRoots.under(
                 home: environment["MCP_ROUTER_CACHE_HOME"] ?? NSHomeDirectory()
-            ))
+            )),
+            // R27. The service's own monitor rather than one built per request, and that is the
+            // whole of why it is held on the service: a fresh monitor every request would have no
+            // history, so every server would read `unprobed` forever and `consecutiveFailures`
+            // could never reach `tripAfter`. The failure would be invisible to any test that makes
+            // one request.
+            health: health
         )
     }
 

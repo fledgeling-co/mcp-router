@@ -1,3 +1,9 @@
+---
+status: delivered-router-half
+found-by: test-campaign and reckoning ideation, 2026-08-25; delivered as R27, 2026-08-29
+reckon-sources: [REQ-029, CASE-0217, CASE-0218, CASE-0219, CASE-0220, CASE-0221, CASE-0222, DEF-063]
+---
+
 # Upstream Server Health Check and Timeout Configuration
 
 - origin: test-campaign and reckoning ideation · 2026-08-25

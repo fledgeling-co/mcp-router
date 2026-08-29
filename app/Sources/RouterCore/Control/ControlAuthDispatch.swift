@@ -149,3 +149,32 @@ struct ControlAuthSink: AuthRoutes.CompletionSink {
         await log?.log(.authorizationIncomplete(server: server.string, reason: reason))
     }
 }
+
+extension ControlHandler {
+    /// `GET /servers/:name/changes` — the reading half of the quarantine surface.
+    ///
+    /// Here rather than in `ControlHandler.swift` for two reasons that agree. The seam: `/changes`
+    /// reports what a server started advertising and `/approve`, immediately above, promotes it —
+    /// they are one surface read from two sides, and `/approve` already lives here. The
+    /// constraint: `dispatchServer` is capped at cyclomatic complexity 10, this body carried three
+    /// of its branch points, and R27's `/probe` arm took the total to 11; moving a whole route out
+    /// is a seam, while raising the cap to pay for an arm is not.
+    func changesResponse(name: JSString, deps: ControlDeps) -> ControlAPIResponse {
+        // The in-memory snapshot, never a disk read, and observationally read-only (B35).
+        let entry = deps.manifest.entry(named: name.string)
+        let pending = entry?.pending?.isTruthy == true
+        var members: [JSONMember] = [
+            JSONMember(key: "server", value: .string(name)),
+            JSONMember(key: "pending", value: .bool(pending))
+        ]
+        if let seenAt = entry?.pending?.member("seenAt") {
+            members.append(JSONMember(key: "seenAt", value: seenAt))
+        }
+        var changes: [ToolChange] = []
+        if pending, let entry {
+            changes = DiffTools.diff(before: entry.tools, after: entry.pendingTools)
+        }
+        members.append(JSONMember(key: "changes", value: .array(changes.map(\.value))))
+        return .json(200, .object(members))
+    }
+}

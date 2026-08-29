@@ -57,27 +57,69 @@ def ledger():
     return 1
 
 
+def _bash():
+    """Git Bash, explicitly — never the bare name.
+
+    Measured 2026-08-30: `subprocess.run(["bash", script])` on this machine reaches
+    C:\\Windows\\System32\\bash.exe, which is the WSL launcher, and WSL2 cannot start here
+    because virtualisation is off in firmware. It exits non-zero with a UTF-16 message about
+    HCS_E_HYPERV_NOT_INSTALLED whatever the script says, so a lane that exits 0 was reported
+    as exit 1 and would have been unpassable for the whole run.
+
+    `shutil.which("bash")` disagrees with CreateProcess here — it answers Git Bash while the
+    subprocess got WSL — so consulting it is not a fix either."""
+    for c in (r"C:\Program Files\Git\bin\bash.exe",
+              r"C:\Program Files\Git\usr\bin\bash.exe",
+              r"C:\Program Files (x86)\Git\bin\bash.exe"):
+        if Path(c).is_file():
+            return c
+    return "bash"
+
+
 def lane():
     """WIN18's Windows verification lane exists and exits 0.
 
     Until WIN18 lands there is no lane, and that is a red gate rather than a
     skipped one: this run's whole point is that Windows work currently cannot
     be gated at all."""
-    for cand in ("scripts/windows/verify.ps1", "scripts/windows/verify.sh",
-                 "scripts/verify-windows.ps1", "planning/goals/win-lane.ps1"):
+    # Discovered, not hardcoded. The first version of this gate named four paths the
+    # WIN18 runner was never told about, so a correct lane could have landed at a fifth
+    # and left this gate red for the rest of the run — the gate deadlocking the item it
+    # exists to wait for. The canonical path is now stated in WIN18's brief; the globs
+    # below are the fallback so a reasonable choice still resolves.
+    cands = []
+    for pat in ("scripts/windows/verify.*", "scripts/verify-windows.*",
+                "scripts/windows/*lane*", "scripts/verify.win.*", "planning/goals/win-lane.*"):
+        cands += sorted(str(q.relative_to(ROOT)).replace("\\", "/")
+                        for q in ROOT.glob(pat) if q.is_file())
+    for cand in dict.fromkeys(cands):
         p = ROOT / cand
-        if p.exists():
-            cmd = (["pwsh", "-NoProfile", "-File", str(p)] if p.suffix == ".ps1"
-                   else ["bash", str(p)])
-            try:
-                rc = subprocess.run(cmd, cwd=ROOT, timeout=1800).returncode
-            except FileNotFoundError:
-                cmd[0] = "powershell"
-                rc = subprocess.run(cmd, cwd=ROOT, timeout=1800).returncode
-            print("lane: %s exited %d" % (cand, rc))
-            return 0 if rc == 0 else 1
+        ext = p.suffix.lower()
+        if ext == ".ps1":
+            cmd = ["pwsh", "-NoProfile", "-File", str(p)]
+        elif ext == ".sh":
+            cmd = [_bash(), str(p)]
+        elif ext == ".py":
+            cmd = [sys.executable, str(p)]
+        elif ext in (".cmd", ".bat"):
+            cmd = ["cmd", "/c", str(p)]
+        else:
+            continue
+        env = dict(os.environ, PYTHONIOENCODING="utf-8")
+        try:
+            rc = subprocess.run(cmd, cwd=ROOT, timeout=1800, env=env).returncode
+        except FileNotFoundError:
+            if ext != ".ps1":
+                continue
+            cmd[0] = "powershell"
+            rc = subprocess.run(cmd, cwd=ROOT, timeout=1800, env=env).returncode
+        print("lane: %s exited %d" % (cand, rc))
+        return 0 if rc == 0 else 1
+
     print("lane: no Windows verification lane exists yet (WIN18 is the item that builds it).")
-    print("      Looked for scripts/windows/verify.ps1|.sh, scripts/verify-windows.ps1.")
+    print("      Searched: scripts/windows/verify.*, scripts/verify-windows.*,")
+    print("                scripts/windows/*lane*, scripts/verify.win.*, planning/goals/win-lane.*")
+    print("      The canonical path is stated in WIN18's brief under 'Lane contract'.")
     print("      Until it exists, NO Windows item can be gated — `make lint` and `make test`")
     print("      shell to xcodebuild and cannot run on this machine.")
     print("      Next action: land WIN18.")

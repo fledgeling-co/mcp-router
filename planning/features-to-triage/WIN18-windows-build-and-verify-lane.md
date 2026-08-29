@@ -36,6 +36,30 @@ where it is not blocked in principle.
 This is not a request to weaken any gate. The macOS lane keeps everything it has. What is missing is
 a Windows lane that can say something true about Windows work.
 
+## Lane contract — the path and the exit code the fleet gates on
+
+Added 2026-08-30 by the conductor, because the goal harness gates this run on the lane and the
+runner was originally never told which path it checks. A correct lane landing at an unexpected
+path would have left that gate red for the rest of the run — the gate deadlocking the very item
+it exists to wait for.
+
+**Canonical entry point:** `scripts/windows/verify.ps1`
+
+- Exit **0** means: everything this lane can check on Windows passed.
+- Exit **non-zero** means: something it can check failed. Print which.
+- It must run from the repository root and take no required arguments.
+- A gate it cannot run on Windows is printed as **NOT-RUN with the reason** and does **not**
+  contribute to the exit code as a pass. A not-run gate must be visible in the output.
+- It must print, at the end, the list of macOS guarantees it does **not** cover — so a green
+  Windows run is never mistaken for a green repository.
+
+`.sh`, `.py`, `.cmd` and `.bat` at that path are accepted too, and the gate also discovers
+`scripts/verify-windows.*`, `scripts/windows/*lane*`, `scripts/verify.win.*` and
+`planning/goals/win-lane.*`. Prefer the canonical path; the rest are a safety net rather than an
+invitation.
+
+Verify with `python3 planning/goals/win-gates.py lane`, which is the exact check the fleet runs.
+
 ## Acceptance sketch
 
 - A Windows verification entry point exists that a runner can invoke, and it does not require `make`, since `make` is not present on Windows.

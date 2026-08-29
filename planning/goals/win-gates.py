@@ -98,8 +98,42 @@ def branches():
     return 1
 
 
+def _runner_idle_minutes():
+    """Youngest write across any live workflow agent transcript, in minutes.
+
+    Returns None when no transcript exists. A runner mid-build writes its
+    transcript continuously while touching no branch for an hour, so the git tip
+    alone answers a different question from the one this gate asks."""
+    base = Path.home() / ".claude" / "projects"
+    roots = [p for p in base.glob("*mcp-router*") if p.is_dir()]
+    youngest = None
+    for r in roots:
+        # <project>/<session-id>/subagents/workflows/<run>/agent-*.jsonl — the session
+        # segment is load-bearing. Without it this glob matches nothing and the witness
+        # returns None, which reads as "no runners" rather than as "I did not look".
+        for t in r.glob("*/subagents/workflows/*/agent-*.jsonl"):
+            try:
+                age = (time.time() - t.stat().st_mtime) / 60.0
+            except OSError:
+                continue
+            if youngest is None or age < youngest:
+                youngest = age
+    return youngest
+
+
 def liveness():
-    """Whether anything is actually moving. Independent of whether the work is done."""
+    """Whether anything is actually moving. Independent of whether the work is done.
+
+    Two independent witnesses, because either alone gives a wrong answer: the git
+    tip goes cold while runners legitimately build for an hour, and a transcript
+    keeps moving after the work has stopped mattering."""
+    budget = float(os.environ.get("WIN_LIVENESS_MINUTES", "90"))
+
+    idle = _runner_idle_minutes()
+    if idle is not None and idle <= 15:
+        print("liveness: a fleet runner wrote %.0f min ago — the run is moving." % idle)
+        return 0
+
     r = subprocess.run(["git", "log", "-1", "--format=%ct %h %s"], cwd=ROOT,
                        capture_output=True, text=True)
     if r.returncode != 0:
@@ -107,13 +141,18 @@ def liveness():
         return 1
     ts, rest = r.stdout.strip().split(" ", 1)
     age = (time.time() - int(ts)) / 60.0
-    budget = float(os.environ.get("WIN_LIVENESS_MINUTES", "90"))
     if age <= budget:
         print("liveness: tip moved %.0f min ago — %s" % (age, rest))
         return 0
+
     print("liveness: no commit for %.0f min (budget %.0f). Last: %s" % (age, budget, rest))
-    print("        A cold tip is not proof of death — a runner may be mid-build.")
-    print("        Next action: check the workflow's agents returned, then resume or re-dispatch.")
+    if idle is None:
+        print("        No workflow agent transcript found either, so nothing witnesses a runner.")
+    else:
+        print("        Youngest runner transcript is %.0f min old, so the runners are cold too." % idle)
+    print("        A cold tip alone is not proof of death — but cold on both witnesses is.")
+    print("        Next action: derive (started - returned) from the workflow journal, then")
+    print("        resume with workflow-resume rather than relaunching, which cold-starts.")
     return 1
 
 

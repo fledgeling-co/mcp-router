@@ -25,8 +25,9 @@ defect rather than a live vulnerability: nothing is known to be broken, and noth
 if it broke.
 
 **What changed is the exposure.** M30 wired `ControlAPICapabilityDocumentSource` into the shipped
-UI at `app/Sources/MCPRouterUI/Boards/ServerSheets.swift:31`, so router-served third-party
-document text now reaches this renderer in a Release build. At M19's merge there was no entry
+UI — `source: ControlAPICapabilityDocumentSource(client: board.client),`,
+`app/Sources/MCPRouterUI/Boards/ServerSheets.swift:31` at `9128737` — so router-served
+third-party document text now reaches this renderer in a Release build. At M19's merge there was no entry
 point; there is one now.
 
 That distinction decided a split between two out-of-family reviewers. `gpt-5.6-sol` returned

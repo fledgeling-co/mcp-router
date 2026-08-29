@@ -120,6 +120,7 @@ LANES=(
     r32-desktop-entry-selftest.sh
     r30-ingest.sh
     r22-diagnostics.sh
+    r26-auth-expiry.sh
     f6-updates.sh
 )
 

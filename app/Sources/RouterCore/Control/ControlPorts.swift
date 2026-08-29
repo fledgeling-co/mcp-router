@@ -248,6 +248,14 @@ public struct ControlDeps: Sendable {
     /// parity run. Absent, both routes answer 503 saying so rather than an empty report, which a
     /// router that had probed nothing would be indistinguishable from.
     public var health: (any UpstreamHealthReporting)?
+    /// Where `GET /upstreams/auth-expiry` and `POST /upstreams/auth-expiry/notify` read — R26.
+    /// Optional for the reason ``health`` is, and with the opposite reason for being safe: this
+    /// one spawns nothing at all, because an access token's expiry is `authorizedAt + expires_in`
+    /// and both halves are already on disk. What makes it optional is the credential directory —
+    /// a differential oracle handed a real monitor would read whoever is running the gate's own
+    /// `~/.mcp-router/auth`. Absent, both routes answer 503 saying so rather than an empty report,
+    /// which a router holding no credentials would be indistinguishable from.
+    public var authExpiry: (any AuthExpiryReporting)?
     /// Where the `/invocations` family reads its window — F5. Optional for the reason ``extensions``
     /// is, and with one of its own: this reporter reads a corpus of session transcripts under a root
     /// somebody named, so a default would be a router reading a person's sessions because it could.
@@ -292,6 +300,7 @@ public struct ControlDeps: Sendable {
         extensions: (any ExtensionStoring)? = nil,
         caches: (any CacheProbing)? = nil,
         health: (any UpstreamHealthReporting)? = nil,
+        authExpiry: (any AuthExpiryReporting)? = nil,
         invocations: (any InvocationReporting)? = nil,
         analyst: (any AnalystPort)? = nil,
         profiles: (any ProfileStoring)? = nil,
@@ -317,6 +326,7 @@ public struct ControlDeps: Sendable {
         self.extensions = extensions
         self.caches = caches
         self.health = health
+        self.authExpiry = authExpiry
         self.invocations = invocations
         self.analyst = analyst
         self.profiles = profiles

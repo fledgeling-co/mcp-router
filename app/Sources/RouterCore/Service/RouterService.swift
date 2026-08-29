@@ -67,6 +67,12 @@ public actor RouterService {
     /// Upstream health — R27. Held for the life of the process because health IS history: a
     /// monitor rebuilt per request would report every server `unprobed` forever.
     let health: UpstreamHealthMonitor
+    /// Upstream credential expiry — R26. Held for the life of the process because the THROTTLE is
+    /// history: a monitor rebuilt per request would have delivered nothing yet, so every call to
+    /// `POST /upstreams/auth-expiry/notify` would re-issue every notice and
+    /// ``AuthExpiryPolicy/renotifyAfterMs`` could never be reached. That failure is invisible to
+    /// any test that makes one request. It holds no task and no timer — see ``AuthExpiryMonitor``.
+    let authExpiry: AuthExpiryMonitor
     /// F5's invocation history, or nil when nothing pointed the router at a transcript corpus.
     ///
     /// **Optional at the service, not just at `ControlDeps`.** The reader opens a directory of
@@ -148,6 +154,11 @@ public actor RouterService {
             probing: PoolUpstreamProbe(pool: pool, clock: clock),
             clock: clock
         )
+        // R26. `auth` rather than a second store built from the same arguments, for the reason
+        // the `authFlow` line above gives. Built through a factory rather than inline because
+        // this initializer sits at the 60-line body cap — the same pressure that split
+        // `RouterServiceDispatch` off this type when M22 added two dependencies.
+        authExpiry = Self.expiryMonitor(config: config, auth: auth)
         analyst = AnalystEngine(
             reader: SessionCorpusReader(
                 fileSystem: fileSystem,
@@ -173,6 +184,20 @@ public actor RouterService {
         tokenPath = path
         wroteToken = !fileSystem.fileExists(atPath: path)
         token = (try? ControlToken(path: path, fileSystem: fileSystem).load()) ?? ""
+    }
+
+    /// R26's monitor, built from the loaded configuration and the service's own credential store.
+    ///
+    /// A function rather than four lines inside `init`, and the seam is real rather than
+    /// arithmetic: it is the whole of what this feature needs from configuration, so a later
+    /// reader asking what the router does with `authExpiry` has one place to look.
+    private static func expiryMonitor(config: RouterConfig, auth: FileAuthStore) -> AuthExpiryMonitor {
+        AuthExpiryMonitor(
+            upstreams: config.upstreams,
+            policy: config.authExpiry,
+            refusals: config.authExpiryRefusals,
+            auth: auth
+        )
     }
 
     private let wroteToken: Bool

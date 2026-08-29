@@ -1329,6 +1329,27 @@
       ],
       "since": "2026-08-29",
       "reason": "It carries a presence control and runs it on every invocation \u2014 nothing planted, every filter required GREEN over a NON-ZERO test count, so a filter that selected nothing cannot report twelve kills. The waiver is about where that control can run, not whether it exists: every arm compiles and runs the Swift test suite, so this needs a built test binary and a toolchain, which is the `waived` rather than `control` rule. Running it inside `lint` would put twelve builds behind a lint step. Re-run it directly: `python3 planning/test-campaign/bin/arm-f7-analyst.py`, exit 0 with 12 of 12 killed, 3 if the presence control did not go green."
+    },
+    {
+      "path": "planning/test-campaign/bin/arm-r26-auth-expiry.py",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "disposition": "waived",
+      "since": "2026-08-30",
+      "reason": "It carries a presence control and runs it on every invocation \u2014 nothing planted, the three R26 suites required GREEN over a NON-ZERO test count, exiting 3 otherwise, so a filter that selected nothing cannot report eight catches. It also refuses an arm whose search text no longer matches exactly once, which is the specific way this class of driver rots: the source moves, the find string stops matching, and every arm silently applies nothing. Each arm compares the file's sha256 before and after to prove the restore. The waiver is about where that control can run, not whether it exists: every arm compiles and runs the Swift test suite and two of them additionally build the CLI and start a daemon, which is the `waived` rather than `control` rule. Running it inside `lint` would put eight builds behind a lint step. Re-run it directly: `python3 planning/test-campaign/bin/arm-r26-auth-expiry.py`, exit 0 with 8 of 8 arms bitten, 3 if the presence control was not green, 1 if an arm survived. Measured 2026-08-30: 8 of 8, and the run is recorded because one arm found an UNFAILABLE oracle rather than confirming a green \u2014 `clamp` reported E22 surviving, and that test was rewritten to resolve its refusals from configuration instead of injecting them."
+    },
+    {
+      "path": "scripts/acceptance/r26-auth-expiry.sh",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "disposition": "waived",
+      "since": "2026-08-30",
+      "reason": "A lane needing a built binary is waived, not control: it starts the Swift daemon (MCPRouterCLI, `make build-cli-debug`) on a scratch MCP_ROUTER_HOME and drives 30 assertions over its socket, so a control that re-armed it would put a CLI build behind every sweep-gate run. What stands in place of one is that the lane ARMS ITSELF against the only failure its absences are exposed to. Its absence claims are that nothing was spawned and that a particular server is not among the notices, and an absence asserted alone is satisfied by a feature that does nothing. So no absence here is asserted alone: the zero-children readings sit in the same run as an assertion that the reported expiry MOVED when the planted credential record was rewritten, and every 'X is not among the notices' is read off a reply that carries two other servers by name. It also exits 2 rather than 0 when the binary is missing or the daemon never binds, so an environment that could run nothing cannot report a clean 30. Re-arm it directly: `python3 planning/test-campaign/bin/arm-r26-auth-expiry.py --only wiring --only spawn`, whose two lane arms require this lane to go red \u2014 `wiring` by deleting the daemon's own `authExpiry:` line (503s, with the unit suite still green) and `spawn` by warming the stdio fixture (the process-table readings report non-zero). Measured 2026-08-30: both bit."
     }
   ]
 }

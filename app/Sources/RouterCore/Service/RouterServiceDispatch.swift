@@ -239,6 +239,14 @@ extension RouterService {
             // could never reach `tripAfter`. The failure would be invisible to any test that makes
             // one request.
             health: health,
+            // R26. Supplied here and nowhere else, which is the point of the line: this is the
+            // fifth dependency in this list whose absence would answer 503 on the wire with the
+            // whole unit suite green, and two of the first four shipped that way. The throttle
+            // makes it sharper still — the monitor must be the SERVICE's, because a fresh one per
+            // request has delivered nothing yet and would re-issue every notice on every call.
+            // `scripts/acceptance/r26-auth-expiry.sh` drives the daemon's own socket, because that
+            // is the only oracle that can see this line missing.
+            authExpiry: authExpiry,
             // F5. Nil unless `MCP_ROUTER_TRANSCRIPTS` named a corpus — see ``InvocationSources``.
             // Nil is the ordinary state and the routes say so rather than serving an empty window.
             invocations: invocations,

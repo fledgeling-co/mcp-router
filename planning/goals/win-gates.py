@@ -53,8 +53,50 @@ def ledger():
         print("    %-7s %s" % (i, s or "(blank status)"))
     if len(open_rows) > 12:
         print("    ... and %d more" % (len(open_rows) - 12))
+
+    # A progress quantity, deliberately not a clock.
+    #
+    # better-goal disarms a run as `stuck` when the failing gate set AND its output repeat.
+    # This gate's output is otherwise byte-identical every turn while runners legitimately
+    # build for an hour, so a perfectly healthy fleet would be killed as stuck. A clock would
+    # fix that by never repeating - and would then never let a genuinely dead fleet trip it
+    # either, which is worse, because `stuck` is the only thing that stops an empty run.
+    #
+    # Transcript volume is monotonic while an agent is working and frozen the moment it stops,
+    # so it moves exactly when the run deserves another turn.
+    if any(s.startswith("running") for _, s in open_rows):
+        vol, n = _runner_volume()
+        if n:
+            print("        %d runner transcript(s), %d lines total." % (n, vol))
+        else:
+            print("        No runner transcript found for a row marked running — check the")
+            print("        workflow journal for (started - returned) before waiting further.")
     print("        Next action: advance the earliest ready row, or park it with a written reason.")
     return 1
+
+
+def _agent_transcripts():
+    base = Path.home() / ".claude" / "projects"
+    out = []
+    for r in base.glob("*mcp-router*"):
+        if r.is_dir():
+            out += list(r.glob("*/subagents/workflows/*/agent-*.jsonl"))
+    return out
+
+
+def _runner_volume():
+    """(total lines across live agent transcripts, transcript count).
+
+    Monotonic while any agent is working, frozen the instant they all stop."""
+    total = 0
+    files = _agent_transcripts()
+    for t in files:
+        try:
+            with open(t, "rb") as fh:
+                total += sum(1 for _ in fh)
+        except OSError:
+            continue
+    return total, len(files)
 
 
 def _bash():
@@ -146,20 +188,17 @@ def _runner_idle_minutes():
     Returns None when no transcript exists. A runner mid-build writes its
     transcript continuously while touching no branch for an hour, so the git tip
     alone answers a different question from the one this gate asks."""
-    base = Path.home() / ".claude" / "projects"
-    roots = [p for p in base.glob("*mcp-router*") if p.is_dir()]
+    # <project>/<session-id>/subagents/workflows/<run>/agent-*.jsonl — the session segment
+    # is load-bearing. An earlier version omitted it, matched nothing, and returned None,
+    # which reads as "no runners" rather than as "I did not look".
     youngest = None
-    for r in roots:
-        # <project>/<session-id>/subagents/workflows/<run>/agent-*.jsonl — the session
-        # segment is load-bearing. Without it this glob matches nothing and the witness
-        # returns None, which reads as "no runners" rather than as "I did not look".
-        for t in r.glob("*/subagents/workflows/*/agent-*.jsonl"):
-            try:
-                age = (time.time() - t.stat().st_mtime) / 60.0
-            except OSError:
-                continue
-            if youngest is None or age < youngest:
-                youngest = age
+    for t in _agent_transcripts():
+        try:
+            age = (time.time() - t.stat().st_mtime) / 60.0
+        except OSError:
+            continue
+        if youngest is None or age < youngest:
+            youngest = age
     return youngest
 
 

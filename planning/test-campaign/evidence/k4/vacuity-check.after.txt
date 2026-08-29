@@ -1,4 +1,4 @@
-# vacuity-check.py --gate (test-campaign 0.14.1)  ·  2026-08-29T04:20:14Z  ·  83e5380
+# vacuity-check.py --gate (0.14.1) · 2026-08-29T05:04:19Z · a0b9922
 unclassed:  examined=28 findings=0
 uncensused: examined=9 findings=1
   · REQ-016 declares a outbound-socket effect and records no `provider` — nothing in production source is named as able to perform it

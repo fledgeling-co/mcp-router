@@ -1,4 +1,4 @@
-# campaign.py check (test-campaign 0.14.1)  ·  2026-08-29T04:20:15Z  ·  83e5380
+# campaign.py check (0.14.1) · 2026-08-29T05:04:19Z · a0b9922
 mcp-router · lanes: macos-glass, ios-glass, swiftui, router-daemon, parity-wire
 Requirements: 28 inventoried, 0 with no case
 Surfaces:   28 enumerated, 0 with no case

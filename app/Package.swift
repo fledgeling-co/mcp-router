@@ -87,10 +87,16 @@ let package = Package(
             path: "Tests/RouterCoreTests",
             // `Vectors` is the PARITY corpus and `planning/pin-class-gate.py` holds every file in
             // it to a generator region that imports a production export of the TypeScript
-            // reference. `Pins` is deliberately a different directory, for a pin with no reference
-            // to derive from: M37's is a request the *app* composes, so there is no export to
-            // import and no second implementation for a parity vector to catch diverging. Same
-            // bundle, different claim.
+            // reference. `Pins` is deliberately a different directory, for a pin that has no
+            // reference to be derived out of — M37's is a request the *app* composes, so there is
+            // no export to import and no second implementation for a parity vector to catch
+            // diverging. Same bundle, different claim.
+            //
+            // Keep prose in this file clear of the four range spellings the SDK-pin guard scans
+            // for. `StandingConstraintsTests.theSDKPinIsExact` greps the whole manifest as text,
+            // comments included, so an ordinary English sentence can redden it — this comment's
+            // first draft did, on the preposition in "derived out of". The guard is right about
+            // the constraint and blunt about where it looks.
             resources: [.copy("Vectors"), .copy("Pins")],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),

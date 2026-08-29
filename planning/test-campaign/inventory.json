@@ -276,7 +276,7 @@
    "text": "A named profile selects over the extensions this router holds and the upstreams it serves, and its projection says what each harness would have to hold without changing any of them. A symlink in a harness skills directory whose target has gone is reported as dangling and projected as a repair naming that target, never as an absent entry; a harness with no skills directory at all is named rather than omitted, and a directory that could not be opened is carried apart from an empty one. Every projected step states its reach: durable where the bytes would land and nothing makes a live session re-read them, tell-elsewhere where the protocol's own announcement exists in the TypeScript router and not in this one, and refused where the step would need another program's MCP configuration rewritten. Nothing applies a projection.",
    "source": "planning/features-to-triage/F-cross-harness-skill-sync.md; planning/specs/spec-F8.md",
    "evidence": "observed",
-   "effect": "filesystem",
+   "effect": "filesystem-write",
    "provider": "app/Sources/RouterCore/Profiles/SkillRootInventory.swift app/Sources/RouterCore/Profiles/ProfileProjector.swift app/Sources/RouterCore/Profiles/ProfileStore.swift — the reading is FileManager over another program's directory and the write is FileManager over <router home>/profiles. The refusal to write a harness tree is held by scripts/lint/no-harness-skill-writes.sh rather than by prose, and scripts/acceptance/f8-profiles.sh asserts on the filesystem afterwards that a scratch Cursor root holding one live link and one broken one is byte-for-byte what it was."
   }
  ],

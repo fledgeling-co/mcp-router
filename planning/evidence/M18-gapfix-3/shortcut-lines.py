@@ -8,8 +8,16 @@ This is the instrument that produces the corrected table, so the next reader can
 rather than trust it.
 
 Normaliser, stated once.
-  * A **sheet view** is a line matching `^\\s*struct <Name>(Sheet|Dialog): View \\{` anywhere under
+  * A **sheet view** is a line declaring `struct <Name>(Sheet|Dialog): View {` anywhere under
     `app/Sources` — the whole source tree, not the `MCPRouterUI` subtree the shipped scanner reads.
+    An access modifier (`public`, `package`, `internal`, `fileprivate`, `private`) and `final` may
+    precede `struct`. **Gap-fix 4 widened this and it was a silent miss, not a narrowing**: the
+    pattern was anchored at `struct`, so `public struct CapabilityDocumentSheet: View {`
+    (`app/Sources/MCPRouterUI/Document/CapabilityDocumentSheet.swift:22`) was invisible and this
+    reader reported **17** sheets where `SheetShortcutScan` reports **18** — two instruments
+    disagreeing by one with neither saying so. The self-test could not catch it because its only
+    fixture was a bare `struct`, which is the shape the reader could already see; it now plants one
+    of each and requires the population to move by two.
   * Its **block** runs to the line where brace depth counted from the declaration returns to zero.
   * `//` comments are removed before matching, so a shortcut named in prose is not counted as one
     written in code. String literals are kept, because a Cancel label is a literal.
@@ -25,10 +33,18 @@ import pathlib
 import re
 import sys
 
-DECL = re.compile(r"^\s*struct ([A-Za-z0-9]+)(?:<[^>]*>)?: View \{")
+DECL = re.compile(
+    r"^\s*(?:(?:public|package|internal|fileprivate|private)\s+)?"
+    r"(?:final\s+)?struct ([A-Za-z0-9]+)(?:<[^>]*>)?: View \{"
+)
 SHORTCUT = re.compile(r"\.keyboardShortcut\(\s*\.?([A-Za-z0-9_\"]+)")
 STYLE = re.compile(r"\.buttonStyle\(\s*\.?([A-Za-z0-9_]+)")
 BUTTON_LABEL = re.compile(r'Button\(\s*"([^"]*)"')
+
+#: Sheets whose Escape path is a modifier on the panel they host, in a file this reader does not
+#: follow. Mirrors `SheetShortcutGuardTests.escapeFromHostedPanel`; kept as a literal so a name that
+#: stops matching a scanned sheet shows up as an excuse granted to nothing.
+HOSTED_ESCAPE = {"ServerDocumentSheet": "hosts CapabilityDocumentSheet, whose onExitCommand takes Escape"}
 
 
 def without_comment(line: str) -> str:
@@ -117,6 +133,12 @@ def main() -> int:
                 // .keyboardShortcut(.defaultAction) — prose, not code
             }
         }
+        public struct ZZProbePublicSheet: View {
+            var body: some View {
+                Button("Cancel") { }
+                    .keyboardShortcut(.cancelAction)
+            }
+        }
         struct ZZProbeHost: View {
             var body: some View { Button("Cancel") { }.keyboardShortcut(.cancelAction) }
         }
@@ -129,10 +151,13 @@ def main() -> int:
             probe.unlink()
         found = {s["name"]: s for s in armed}
         assert "ZZProbeSheet" in found, "the reader missed a planted sheet"
+        # The access-modifier arm. `CapabilityDocumentSheet` is declared `public struct` and was
+        # missed for exactly this reason, so the fixture carries the shape that broke it.
+        assert "ZZProbePublicSheet" in found, "the reader missed a sheet declared `public struct`"
         assert "ZZProbeHost" not in found, "the reader counted a non-sheet view as a sheet"
         assert found["ZZProbeSheet"]["shortcuts"] == {"cancelAction": [6]}, found["ZZProbeSheet"]
         assert cancel_style(found["ZZProbeSheet"]) == [(4, "ProminentButtonStyle", 5)]
-        assert len(armed) == len(sheets) + 1, "the population did not move by exactly one"
+        assert len(armed) == len(sheets) + 2, "the population did not move by exactly two"
         print(f"self-test: armed both ways over {files_read} files; population {len(sheets)} -> {len(armed)}")
         return 0
 
@@ -156,6 +181,18 @@ def main() -> int:
     filled = [(s["name"], line, token) for s in sheets for _, token, line in cancel_style(s)
               if token == "ProminentButtonStyle"]
     print(f"ACCENT-FILLED CANCEL: {len(filled)} -> {filled or '(none)'}")
+
+    # The two figures above are this reader's, and they are NOT the guard's. `SheetShortcutGuardTests`
+    # reads the same population and excuses `ServerDocumentSheet` separately, because its Escape path
+    # is `.onExitCommand` on the `CapabilityDocumentSheet` it hosts — a modifier in another file, and
+    # a `.keyboardShortcut(` grep cannot follow a wrapper into the view it renders. Printed rather
+    # than left to be reconciled by hand, because "N of M have an Escape path" reads like one claim
+    # and is two.
+    hosted = [s["name"] for s in sheets
+              if s["name"] not in with_escape and s["name"] in HOSTED_ESCAPE]
+    print(f"OF THE {len(sheets) - len(with_escape)} WITHOUT: {len(hosted)} dismiss via a hosted panel "
+          f"-> {', '.join(sorted(hosted)) or '(none)'}; "
+          f"{len(sheets) - len(with_escape) - len(hosted)} are the open defects on record")
     return 0
 
 

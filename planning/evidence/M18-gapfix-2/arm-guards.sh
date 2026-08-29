@@ -9,8 +9,15 @@
 # Committed rather than run from /tmp, for `G6`'s reason: this is what makes "the guards were seen
 # to fail" a claim someone can re-run.
 #
+# **An arm bites when it produces a recorded issue the unmutated tree does not.** It does NOT bite
+# merely by exiting nonzero, and gap-fix 4 exists because this script used to say it did. The M18
+# gap-fix 3 verdict measured the difference: run on the merged tree, where the baseline was already
+# red, it printed *all arms bit* while nine of twelve had measured nothing at all. A compile error
+# exits nonzero too, and so does a harness that never ran a test — so every arm here is classified
+# by what came out rather than by `$?`, and every filter is measured unmutated first.
+#
 # Usage: `planning/evidence/M18-gapfix-2/arm-guards.sh` from the repository root. Exits nonzero if
-# any arm stayed green, or if the tree is not clean at the end.
+# any arm stayed green, if any arm could not be measured, or if the tree is not clean at the end.
 set -uo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/../../.." || exit 2
@@ -22,6 +29,35 @@ if ! git diff --quiet; then
 fi
 
 failures=0
+
+baseline_dir=$(mktemp -d "${TMPDIR:-/tmp}/arm-guards-baseline.XXXXXX") || exit 2
+trap 'rm -rf "$baseline_dir"' EXIT
+
+# issues <output> — how many issues the test harness recorded. This is the measurement; the exit
+# code is not. A build failure and a suite of failing assertions both exit nonzero, and only one of
+# them has looked at the guard.
+issues() { printf '%s\n' "$1" | grep -c 'recorded an issue'; }
+
+# baseline <filter> — the unmutated tree under one filter, measured once and cached.
+#
+# Echoes the recorded-issue count, or `unmeasurable` when the filter does not come back green. An
+# arm on a red baseline proves nothing: the run it is compared against was already failing, so the
+# arm's own nonzero exit carries no information about the guard.
+baseline() {
+    local filter="$1" key file out code
+    key=$(printf '%s' "$filter" | tr -c 'A-Za-z0-9' '_')
+    file="$baseline_dir/$key"
+    if [ ! -f "$file" ]; then
+        out=$(swift test --package-path app --filter "$filter" 2>&1)
+        code=$?
+        if [ "$code" -ne 0 ]; then
+            printf 'unmeasurable' > "$file"
+        else
+            issues "$out" > "$file"
+        fi
+    fi
+    cat "$file"
+}
 
 # mutate <file> <python-replacement-expression-safe-old> <new> — a literal string replace.
 mutate() {
@@ -39,14 +75,24 @@ PY
 arm() {
     local label="$1" file="$2" old="$3" new="$4" filter="$5"
     printf '%-58s ' "$label"
+
+    local before
+    before=$(baseline "$filter")
+    if [ "$before" = "unmeasurable" ]; then
+        echo "NO BASELINE — '$filter' is not green unmutated, so this arm can measure nothing"
+        failures=$((failures + 1))
+        return
+    fi
+
     if ! mutate "$file" "$old" "$new"; then
         echo "ANCHOR MISSING — arm could not be applied"
         failures=$((failures + 1))
         return
     fi
-    local out exit_code
+    local out exit_code after
     out=$(swift test --package-path app --filter "$filter" 2>&1)
     exit_code=$?
+    after=$(issues "$out")
     git checkout -- "$file"
     if ! git diff --quiet; then
         echo "RESTORE FAILED — the tree is dirty after this arm"
@@ -56,8 +102,14 @@ arm() {
     if [ "$exit_code" -eq 0 ]; then
         echo "STILL GREEN — the guard does not bite"
         failures=$((failures + 1))
+    elif [ "$after" -le "$before" ]; then
+        # Nonzero and no new issue: the package did not build, or the harness fell over before it
+        # reached an assertion. Either way nothing looked at the guard, and calling this a bitten
+        # arm is the defect gap-fix 4 removed.
+        echo "DID NOT MEASURE — exit $exit_code, $after issue line(s) against a baseline of $before"
+        failures=$((failures + 1))
     else
-        echo "red: $(printf '%s\n' "$out" | grep -c 'recorded an issue') issue line(s)"
+        echo "red: $after issue line(s) (baseline $before)"
     fi
 }
 
@@ -185,6 +237,22 @@ arm "the style reader made to read nothing" \
     app/Tests/MCPRouterUITests/SheetShortcutScan.swift \
     '                    guard var style = firstArgument(of: "buttonStyle(", in: modifier) else { return nil }' \
     '                    guard var style = firstArgument(of: "ZZNeverMatches(", in: modifier) else { return nil }' \
+    'SheetShortcutGuardTests'
+
+# --- gap-fix 4: the branch that excuses the eighth Cancel ---------------------------------------
+
+# 13 — the `role: .cancel` half of the accent-fill sweep, which had no arm.
+#
+# `accentFilledCancels` offends on `label == "Cancel" || isCancelRole`. Twelve arms stood on the
+# label half and none on the other, so the branch that covers the one control in this tree whose
+# label is an expression — `Button(…secondaryActionLabel ?? "Cancel", role: .cancel)` in
+# `PairingFlowView` — was never seen to fire. The gap-fix 3 verdict armed it by hand and it bit;
+# this is that arm, committed, so the next reader re-runs it rather than trusting the report.
+arm "the role: .cancel Cancel filled again" \
+    app/Sources/MCPRouterUI/Phone/PairingFlowView.swift \
+    '                Button(PairingCopy.entry(.unpairConfirm).secondaryActionLabel ?? "Cancel", role: .cancel) {}' \
+    '                Button(PairingCopy.entry(.unpairConfirm).secondaryActionLabel ?? "Cancel", role: .cancel) {}
+                    .buttonStyle(ProminentButtonStyle())' \
     'SheetShortcutGuardTests'
 
 echo

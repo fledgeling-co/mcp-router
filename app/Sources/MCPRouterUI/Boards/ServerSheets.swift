@@ -319,8 +319,14 @@
                 // Escape had no path on this dialog before — one of the sheets the M18 verdict
                 // lists as having none — and Return dismissed it. Now Escape dismisses and nothing
                 // is the default, which is the reasoning `Boards/CleanupSheets.swift` carries in
-                // full. (That verdict's list is nine of fifteen rather than the eight of fourteen
-                // it states; `SheetShortcutGuardTests` carries the correction and the population.)
+                // full.
+                //
+                // **No count is written here, and that is the correction.** This comment used to
+                // quote the verdict's tally against a corrected one; the population grew when M22's
+                // sheets arrived at the merge, so both halves of that sentence went stale in a
+                // commit that never touched this file. A figure derived from a population belongs
+                // where the population is asserted: `SheetShortcutGuardTests.sheetViews` names it
+                // and `planning/evidence/M18-gapfix-3/shortcut-lines.py` re-derives the split.
                 //
                 // Cancel is drawn plain for the same reason, and that half predates M18: `589ab2e`
                 // filled it in M3. §3.4 puts the accent fill on a *trailing* affirmative and Cancel

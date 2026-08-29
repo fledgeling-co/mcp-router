@@ -125,6 +125,15 @@ struct TranscriptCorpusTests {
         #expect(window.supersededRuns == 1)
         #expect(window.totalRuns == 3)
 
+        // The accounting on the window is the SCAN's, not the log's. An earlier version filled it
+        // from `invocations.jsonl`'s own line count, so `linesRead` on the wire counted invocations
+        // while wearing the name of a transcript-line count — G4's subject, and invisible to any
+        // test that only checked it was non-zero. `builtInTool` is the discriminator: the log
+        // cannot produce it, so a window reporting 1 here can only be carrying the scan's figures.
+        #expect(window.accounting.builtInTool == 1)
+        #expect(window.accounting.withoutTimestamp == 1)
+        #expect(window.accounting.linesRead == accounting.linesRead)
+
         // A second pass opens nothing and adds nothing — the watermark, over real stat data rather
         // than a seeded stamp.
         let again = history.refresh()

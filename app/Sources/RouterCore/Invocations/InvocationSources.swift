@@ -85,8 +85,8 @@ public enum InvocationSources {
     /// `ControlDeps` draws: a router nobody pointed anywhere and a machine on which nothing ran
     /// produce the same empty table, and only one of them is a measurement.
     public static func history(
-        // swift-wire-exempt: the process environment, read for one key and never serialised. It is
-        // Foundation's own type at the boundary; nothing here reaches the wire.
+        // Foundation's own type at the process boundary; read for one key and never serialised.
+        // swift-wire-exempt: the process environment reaches no wire — one key is read out of it.
         environment: [String: String],
         home: RouterHome,
         fileSystem: any FileSystem,

@@ -13,6 +13,19 @@ public final class InvocationHistory: InvocationReporting, @unchecked Sendable {
     private let lock = NSLock()
     private var ledger = VersionLedger(observations: [])
     private var watermarks = TranscriptWatermarks()
+    /// What the last ``refresh()`` reported, or nil when none has run in this process.
+    ///
+    /// Held rather than recomputed, because the accounting is a property of **reading the corpus**
+    /// and ``window(nowMilliseconds:days:)`` does not read the corpus — it folds a log. An earlier
+    /// version of that function filled a `TranscriptAccounting` from the invocation log's own line
+    /// count and served it under the same member names, so `linesRead` on the wire was a count of
+    /// invocations rather than a count of transcript lines. That is `G4`'s subject exactly: a
+    /// figure named for one quantity that reads a different one, whose right answer and whose
+    /// wrong answer look identical.
+    private var lastScan: TranscriptAccounting?
+    /// Lines of `invocations.jsonl` that could not be read back. Kept apart from the scan's
+    /// `unparseable`, which counts transcript lines — two corpora, two numbers.
+    private var unreadableLogLines = 0
 
     private let sources: [TranscriptSource]
     private let invocationsPath: String
@@ -136,6 +149,9 @@ public final class InvocationHistory: InvocationReporting, @unchecked Sendable {
         let snapshot = watermarks.value
         lock.unlock()
         try? fileSystem.writeFile(Data(JSStringify.compact(snapshot).utf8), atPath: watermarkPath)
+        lock.lock()
+        lastScan = total
+        lock.unlock()
         return total
     }
 
@@ -161,23 +177,41 @@ public final class InvocationHistory: InvocationReporting, @unchecked Sendable {
 
     // MARK: - Reading
 
+    /// Fold the log into a window. **It reads no transcript**, which is why the accounting it
+    /// carries is the last scan's rather than one taken here: this function reads
+    /// `invocations.jsonl`, and a figure describing that read would answer a question nobody asked
+    /// while wearing the name of the one they did.
+    ///
+    /// Before any scan has run in this process the accounting is all zeros, and that is honest
+    /// rather than empty — nothing has been read, so there is nothing to report about what was
+    /// dropped. ``unreadableEventLines`` is the separate figure for this log's own damage.
     public func window(nowMilliseconds: Double, days: Int) -> CapabilityUseWindow {
         let (events, unparseable) = readEvents()
-        var accounting = TranscriptAccounting()
-        accounting.unparseable = unparseable
-        accounting.linesRead = events.count + unparseable
         lock.lock()
         let snapshot = ledger
+        let reading = lastScan ?? TranscriptAccounting()
+        unreadableLogLines = unparseable
         lock.unlock()
         return InvocationInsights.fold(
             events: events,
             ledger: snapshot,
             reading: InvocationReading(
-                harnesses: harnessCounts(events), accounting: accounting
+                harnesses: harnessCounts(events), accounting: reading
             ),
             nowMilliseconds: nowMilliseconds,
             days: days
         )
+    }
+
+    /// Lines of `invocations.jsonl` the last ``window(nowMilliseconds:days:)`` could not parse.
+    ///
+    /// A torn last line is ordinary after a hard kill. Exposed so a caller can tell a quiet window
+    /// from a damaged log — the distinction `UsageInsights.unreadableLines` exists for one
+    /// directory over — and kept apart from the scan's `unparseable` because they count lines in
+    /// two different files.
+    public var unreadableEventLines: Int {
+        lock.lock(); defer { lock.unlock() }
+        return unreadableLogLines
     }
 
     /// One row per harness that has a root here, whether or not anything was observed in it.

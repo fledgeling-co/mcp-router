@@ -1,0 +1,10 @@
+# blind-vocabulary-arm.py --instrument vendor  ·  2026-08-29T04:20:08Z  ·  83e5380
+instrument: explicit vendor/test-campaign/skills/test-campaign/scripts/vacuity-check.py · corpus /Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app · vocabulary 19 mutator(s) 34 reader(s) (only=True)
+recall:     defaults find 3 mutating call site(s) in 2277 test bodies; the declared vocabulary finds 480.
+            defaults blind=3 · declared examined=2277 mutating=480 re-read=369 blind=111
+isolated:   blind plant    examined=1 mutating=1 blind=1 — ok
+isolated:   reading plant  examined=1 mutating=1 blind=0 — ok
+corpus:     blind plant    examined +1 mutating +1 blind +1 — ok
+corpus:     reading plant  examined +1 mutating +1 blind +0 — ok
+blind arm:  6 of 6 checks as expected — the pass finds a planted blind test, does not flag a planted reading one, and the declared vocabulary sees 160x the mutating call sites the defaults do.
+EXIT=0

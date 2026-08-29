@@ -1,0 +1,12 @@
+# strict-check.py (0.14.1) · 2026-08-29T05:04:20Z · a0b9922
+CHECKED   111 of 132 cases (84%)
+UNCHECKED 21  — and unchecked is failed
+
+     8  only proves something rendered
+     7  status is fail
+     5  status is n/a
+     1  status is unoracled
+
+ratchet: 111
+held.
+EXIT=0

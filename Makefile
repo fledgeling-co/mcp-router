@@ -1009,6 +1009,9 @@ lint: tools
 	python3 planning/test-campaign/bin/capture-manifest.py || fail=1; \
 	python3 planning/test-campaign/bin/raster-claim-gate.py || fail=1; \
 	python3 planning/test-campaign/bin/forced-state-assert.py --control || fail=1; \
+	python3 planning/test-campaign/bin/effect-class-census.py --control || fail=1; \
+	python3 planning/test-campaign/bin/effect-class-census.py || fail=1; \
+	python3 planning/test-campaign/bin/blind-vocabulary-arm.py || fail=1; \
 	python3 planning/pin-class-gate.py || fail=1; \
 	python3 planning/shipped-brief-gate.py || fail=1; \
 	python3 planning/brief-target-gate.py --quiet || fail=1; \

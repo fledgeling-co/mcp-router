@@ -1,0 +1,46 @@
+# produced by: ./scripts/acceptance/f8-profiles.sh
+# tree: 08a24ed + the F8 working tree; taken 2026-08-29
+# verdict lines only — the lane prints one per assertion and no raw capture
+
+F8 — /profiles on the daemon's own socket
+  scratch HOME   /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/mcprouter-f8.ANQcfhuC8j
+  router home    /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/mcprouter-f8.ANQcfhuC8j/router
+
+the family is routed at all — this is the whole of the missing-wiring class
+  ok   GET /profiles is answered, not 404 or 503                  200
+
+the round trip
+  ok   POST a profile                                             200
+  ok   it is listed                                               200
+  ok   it reads back                                              200
+  ok   and it is on the router's own disk                         present
+
+the projection — and the reach split it exists to state
+  ok   a skill the store lacks is missing-from-store              200
+  ok   and the body says it applies nothing                       200
+  ok   the server step reaches the other binary                   200
+  ok   add the skill to the router's store                        201
+  ok   the dangling link is a repair, not an add                  200
+  ok   and the repair names what the link claims                  200
+  ok   the harnesses with no skill root are named                 200
+
+nothing was applied — the whole of the boundary, measured on disk rather than in the reply
+  ok   the dangling link is still dangling                        absent
+  ok   the live link is untouched                                 present
+  ok   the router repaired nothing                                still a broken link
+  ok   the harness root still holds exactly what it held          2
+
+the gates in front of the family
+  ok   an untokened POST is 401, before the store is consulted    401
+  ok   PUT is not served — it is outside the token gate's set   405
+  ok   a name that escapes the store is refused                   400
+  ok   a member of the wrong shape is refused                     400
+  ok   an unknown profile is 404                                  404
+
+the removal is reversible
+  ok   DELETE reports where the bytes went                        200
+  ok   and they are there                                         present
+  ok   and the profile is gone                                    absent
+
+f8-profiles: 24 passed, 0 failed
+# lane exit: 0

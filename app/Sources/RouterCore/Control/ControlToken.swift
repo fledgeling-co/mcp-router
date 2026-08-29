@@ -61,6 +61,12 @@ public enum ControlPaths {
             // owned. Both diverge from `src/control.ts`, which claims neither and answers 404.
             || pathname == "/diagnostics"
             || pathname == "/diagnostics/bundle"
+            // F8's family. A prefix arm as well as the exact match, like R28's and unlike M22's:
+            // this one has sub-paths — `/profiles/<name>` and `/profiles/<name>/projection` — and
+            // without the prefix they would fall through to `/mcp`. `/profilesx` shares a prefix
+            // with an owned path and is not owned, which is what the trailing slash is for.
+            || pathname == "/profiles"
+            || pathname.hasPrefix("/profiles/")
     }
 }
 

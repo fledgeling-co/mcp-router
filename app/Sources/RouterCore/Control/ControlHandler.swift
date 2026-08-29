@@ -359,6 +359,7 @@ extension ControlHandler {
         if let response = routeExtensions(path, request, deps) { return response }
         if let response = routeInvocations(path, request, deps) { return response }
         if let response = routeCaches(path, request, deps) { return response }
+        if let response = routeProfiles(path, request, deps) { return response }
         if let response = await routeHealth(path, request, deps) { return response }
         if let response = routeDiagnostics(path, request, deps) { return response }
         if let response = await routeAnalyst(path, request, deps) { return response }

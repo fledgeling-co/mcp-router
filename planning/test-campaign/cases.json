@@ -4016,5 +4016,53 @@
   ],
   "note": "F7. What the analyst read and what it refused to say. The corpus reports a positive `linesRead`, a named discard count and every store it did not open with the reason \u2014 including Cursor's, which is enumerated and deliberately unread. A recommendation naming an entry outside the candidate list, or a signal the run never counted, is rejected and COUNTED rather than dropped, so an engine that discarded everything is distinguishable from one that was handed nothing.",
   "armedBy": "ARMED and watched red. Seven arms: `F7-A1` drops the discard counter, `F7-A2` drops Cursor from the store table, `F7-A3` lowers the recurrence floor, `F7-A4` and `F7-A5` drop the two candidate checks, `F7-A6` drops the thirty-day suppression, `F7-A7` drops the persistence. `F7-A2` first read MISS and was right to: the store-count assertion compared the reader's output against the same table the mutation edited, so it could never have failed. Corrected to a literal."
+ },
+ {
+  "id": "CASE-0262",
+  "req": "REQ-030",
+  "lane": "router-daemon",
+  "oracle": "effect-witness",
+  "plane": "live-external",
+  "cell": "execution-plane=daemon \u00b7 data-shape=a scratch Cursor skills root holding one live symlink and one whose target this lane deletes",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/runs/f8-profiles-lane.log",
+   "evidence/arming/f8-profiles.arming.log"
+  ],
+  "note": "A dangling link is REPAIRED, not added, because it occupies its name. The lane builds ~/.cursor/skills under its own scratch HOME with `alive` resolving and `design-craft` pointing at a directory it then removes \u2014 which is exactly how the 27 dangling links of the 87 in the real ~/.cursor/skills came to be, every one of them into ~/.claude/plugins/cache, which an upgrade replaces. The projection then reports `action: repair` with the target the link still claims. Reporting it as absent would offer an install where a repair is owed.",
+  "armedBy": "ARMED and watched red. `skillRoots: DiskSkillRoots()` dropped from RouterServiceDispatch.controlDeps(): the daemon answers 503 and six assertions redden, including this one, while the whole unit suite stays green \u2014 which is the missing-wiring class this lane exists for and the reason it is not decoration. Restored and re-verified at 24 passed, 0 failed."
+ },
+ {
+  "id": "CASE-0263",
+  "req": "REQ-030",
+  "lane": "router-daemon",
+  "oracle": "effect-witness",
+  "plane": "live-external",
+  "cell": "execution-plane=daemon \u00b7 data-shape=a projection asked for over a harness tree the router must not touch",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/runs/f8-profiles-lane.log",
+   "evidence/arming/f8-profiles.arming.log"
+  ],
+  "note": "NOTHING IS APPLIED, and it is measured on the filesystem rather than read off the reply. After the projection is requested the lane asserts that the deleted target is still absent, the live link is still present, `design-craft` is still a broken symlink, and the root still holds exactly two entries. A body carrying `applies: false` proves only what the router said about itself; these four assertions are what the harness tree says. The refusal is held mechanically as well: scripts/lint/no-harness-skill-writes.sh refuses a mutating call anywhere in the read-only seam, whatever the path was.",
+  "armedBy": "ARMED. The gate behind this case has its own selftest \u2014 eleven planted appliers, each with its expected exit, two instrument failures, and a mechanical check that every alternative in the mutating vocabulary fires on a probe. That check itself was watched failing: eleven alternatives silently matched no probe because an unquoted [^A-Za-z] in the harness was read as a glob class and emptied them, which is a selftest reporting a pass for a set it had not exercised."
+ },
+ {
+  "id": "CASE-0264",
+  "req": "REQ-030",
+  "lane": "parity-wire",
+  "oracle": "outcome",
+  "plane": "live-external",
+  "cell": "execution-plane=daemon \u00b7 data-shape=a request on a method the ported token gate does not cover",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/runs/f8-profiles-lane.log",
+   "evidence/arming/f8-profiles.arming.log"
+  ],
+  "note": "ControlAPIRequest.isMutating is POST || DELETE || PATCH, ported from src/control.ts, and PUT is not in it. No route served PUT before this family, so nothing was ever exposed \u2014 but this family's write was written as a PUT, and an untokened PUT /profiles/x measured 200 while the rest of the suite was green. The write is a POST instead, because widening a ported gate that parity-manifest-check.sh derives from the reference in both directions is not a thing to do for a verb. The lane asserts the 405 on the wire and ControlProfileRoutesTests C6 holds the invariant over PUT, HEAD, OPTIONS and TRACE for whoever adds the next route here.",
+  "armedBy": "ARMED and watched red twice. Once by discovery \u2014 C5 recorded `(untokened.status \u2192 200) == 401` against the PUT route, which is how the defect was found rather than reasoned about. Once deliberately, by restoring `case \"POST\", \"PUT\"` after the fix: C6 records the issue on the PUT argument alone and passes on HEAD, OPTIONS and TRACE, so the assertion is about the gate's set and not about the handler refusing everything."
  }
 ]

@@ -273,11 +273,11 @@
   {
    "id": "REQ-030",
    "class": "behaviour",
-   "text": "The router has a session analyst. It reads the harness session stores on this machine and reports what it read AND what it discarded, per store, naming every store it did not open. Signals that recur at or above a floor are counted and passed to a model running through a CLI the user is already signed into, primary then fallback, and the run records which rung judged. A recommendation must name an entry from a candidate list the router computed and a signal the run counted; anything else is rejected and counted. A finding already delivered stays quiet for thirty days unless its evidence gains a new signal. The cadence is a stored setting and the wire says it is not a schedule.",
-   "source": "planning/features-to-triage/F-session-analyzer-skill-recommender.md; planning/specs/spec-F7.md; PRD.md \u00a76",
+   "text": "A named profile selects over the extensions this router holds and the upstreams it serves, and its projection says what each harness would have to hold without changing any of them. A symlink in a harness skills directory whose target has gone is reported as dangling and projected as a repair naming that target, never as an absent entry; a harness with no skills directory at all is named rather than omitted, and a directory that could not be opened is carried apart from an empty one. Every projected step states its reach: durable where the bytes would land and nothing makes a live session re-read them, tell-elsewhere where the protocol's own announcement exists in the TypeScript router and not in this one, and refused where the step would need another program's MCP configuration rewritten. Nothing applies a projection.",
+   "source": "planning/features-to-triage/F-cross-harness-skill-sync.md; planning/specs/spec-F8.md",
    "evidence": "observed",
-   "effect": "subprocess",
-   "providerNote": "app/Sources/RouterCore/Analyst/ \u2014 SessionCorpusReader reads through FileSystem, CLIAnalystJudge spawns the configured CLI through AnalystProcessRunner, RegistryCandidateSource resolves candidates through the same registry /registry/search uses. Served on GET /insights and driven by POST /insights/analyse. The subprocess effect is the CLI the judge runs; NO test in this item spawns one \u2014 every engine test drives AnalystJudging directly, and that is a declared limit rather than a covered one."
+   "effect": "filesystem-write",
+   "provider": "app/Sources/RouterCore/Profiles/SkillRootInventory.swift app/Sources/RouterCore/Profiles/ProfileProjector.swift app/Sources/RouterCore/Profiles/ProfileStore.swift \u2014 the reading is FileManager over another program's directory and the write is FileManager over <router home>/profiles. The refusal to write a harness tree is held by scripts/lint/no-harness-skill-writes.sh rather than by prose, and scripts/acceptance/f8-profiles.sh asserts on the filesystem afterwards that a scratch Cursor root holding one live link and one broken one is byte-for-byte what it was."
   }
  ],
  "surface": [

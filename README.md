@@ -290,6 +290,71 @@ absent rather than as a failure.
 
 ---
 
+## Profiles, and the sync that already happened
+
+A **profile** is a name over the extensions this router holds and the upstreams it serves —
+`{"skills": [...], "plugins": [...], "marketplaces": [...], "servers": [...]}` — stored at
+`<router home>/profiles/<name>.json`. Its **projection** says what each harness on this machine
+would have to hold for that profile to be satisfied there.
+
+```
+POST   /profiles/<name>              # write or replace one; a selected name that escapes is refused
+GET    /profiles                     # every profile, read off the directory on the call
+GET    /profiles/<name>
+GET    /profiles/<name>/projection   # what it would require, harness by harness
+DELETE /profiles/<name>              # moved to <root>/.removed/<name>/<millis>.json, never deleted
+```
+
+### The projection reads and never writes
+
+Nothing applies it. The body carries `"applies": false` as a member rather than as a footnote, and
+`scripts/lint/no-harness-skill-writes.sh` fails the build if an applier appears anywhere under
+`app/Sources` — the same refusal `no-harness-config-writes.sh` holds for a harness's MCP
+configuration, extended to the second kind of tree this router now reads.
+
+### Why detection is the product
+
+Measured on the author's machine on 2026-08-29, read-only, listing each root and calling
+`islink`/`exists` on every entry:
+
+| root | entries | symlinks | dangling |
+|---|---|---|---|
+| `~/.claude/skills` | 23 | 21 | 1 |
+| `~/.cursor/skills` | 87 | 87 | **27** |
+| `~/.cursor/skills-cursor` | 22 | 0 | 0 |
+| `~/.codex/skills` (Codex and ChatGPT share it) | 1 | 1 | 0 |
+| `~/.gemini/skills` | 1 | 1 | 0 |
+| `~/.config/opencode/skills` | 1 | 1 | 0 |
+| Claude Desktop, grok | — | — | no skills directory at all |
+
+The propagation a profile manager is usually asked to perform had already been done here, by hand,
+with symlinks — and **31% of Cursor's had rotted**, every one of them pointing into
+`~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`, which an upgrade replaces. The
+harness that loses the skill is not the harness the upgrade happened in, and nothing said so.
+`~/.claude/skills` and `~/.cursor/skills` share exactly **one** name.
+
+So a dangling link is projected as a **repair** naming the target it still claims, never as an
+absent entry, and a harness with no skills directory is named rather than omitted.
+
+### Each step says how far the router could get
+
+Three reaches, and all three occur here:
+
+- **`durable`** — the bytes would land and stay, and nothing makes a live session re-read them.
+  Skills and plugins have no `notifications/tools/list_changed` equivalent, and the socket half
+  above enqueues a slash command as text.
+- **`tell-elsewhere`** — the router's served tool set is the one thing a profile touches that the
+  protocol can announce, and that announcement is in `src/livereload.ts`. The profile store is in
+  the Swift router, which has no counterpart, so the mechanism is reported and not claimed.
+- **`refused`** — a step needing another program's MCP configuration rewritten. This router does
+  not do that; see `planning/specs/spec-R7.md` §7.
+
+**There is no single-click sync**, and there are two independent reasons rather than one: the
+router does not write another program's configuration, and even where it wrote the bytes nothing
+would make a running session read them.
+
+---
+
 ## What it deliberately doesn't do
 
 - **It doesn't proxy HTTP/SSE upstreams.** Those are already shared endpoints with their own auth; routing them through here adds a hop and strips their OAuth context.

@@ -1209,6 +1209,21 @@
         "scripts/acceptance/green-streak-selftest.sh"
       ],
       "proves": "Ten arms against fixture ledgers through GREEN_STREAK_LEDGER, the tracked ledger diffed afterwards. Each of the four pass clauses is planted as the NEWEST run and must end the streak: a DIVERGED row, an exit 2, a blocked count above the standing exclusions, and a proven count short of PARITY_CUTOVER_TARGET - which is read from parity-gate.sh rather than pinned here, so a fixture cannot arm a target the gate no longer holds. Two arms carry the weight the others cannot: an older failure BELOW the newest pass must NOT end the streak, which a reader scanning the whole file for any red would fail; and an empty ledger must exit 2 saying the streak is unmeasured rather than reporting a streak of zero. Two more drive the recorder against parity-gate.sh's own summary shape, requiring the four figures back from a measured run and `?` rather than a helpful zero from a run that withheld coverage. What it does NOT prove is that a real parity-gate.sh run produces that shape; the fixtures are built from the gate's own format strings, and no whole-gate run has been taken."
+    },
+    {
+      "path": "planning/instrument-census.py",
+      "disposition": "control",
+      "markers": [
+        "V2",
+        "V4"
+      ],
+      "since": "2026-08-29",
+      "control": [
+        "python3",
+        "planning/instrument-census.py",
+        "--control"
+      ],
+      "proves": "17 arms against a scratch git repository built to break each reader, because a census that classified everything `static` and found no containment would print a clean run and satisfy this gate. Eight arms require a class to FIRE \u2014 a planted swift suite discovered and contained both by an unfiltered `swift test` recipe and by a `--filter` naming its type, a planted lane invoking dist/index.js classed `node` and contained by parity-gate.sh's LANES list, a lane that invokes another lane containing it, reach closing over containment so a recipe running a `swift test` gate reaches swift and says which child carried it, a python gate that subprocess-runs node classed `node`, and the drift comparison going unequal when one row is missing. Five require a class NOT to fire, and they are the ones that matter: a gate that only writes ABOUT dist/index.js, a lane whose only node invocation is a header comment and an echoed repair instruction, a python gate holding a node invocation as a string literal, and a lane that NAMES another instrument without running it must each stay `static` or edgeless. Every one of those was a real over-claim in this reader's first cut, and each would have inflated the very set the census exists to bound."
     }
   ]
 }

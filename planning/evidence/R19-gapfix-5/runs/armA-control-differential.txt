@@ -1,0 +1,91 @@
+Differential: the Swift handler against the running reference on :8973
+
+acceptance criteria
+  ok   B13 GET /servers envelope                      200
+  ok   B1  describe a stdio server                    200
+  ok   B1  describe an http server                    200
+  ok   B1  describe an oauth server                   200
+  ok   B1  describe a warm/placarded row              200
+  ok   B47 GET /usage/summary                         200
+  ok   B45 GET /usage                                 200
+  ok   B26 GET /servers/:name/changes                 200
+  ok   B24 unknown server is 404                      404
+  ok   M30 GET /servers/:name/document                200
+  ok   M30 a server with no cwd                       404
+  ok   M30 document on an unknown server              404
+
+R4 — routes the 32-row matrix did not reach
+  ok   POST /servers with no name                     400
+  ok   POST /servers with an empty name               400
+  ok   POST /servers with no command                  400
+  ok   DELETE /servers/:name/auth                     200
+  ok   DELETE auth on an http server                  200
+  ok   DELETE auth on an unknown server               404
+  ok   POST reindex on an unknown server              404
+  ok   changes on an unknown server                   404
+
+6b — fault injection
+  ok   malformed JSON body                            200
+  ok   body is an array                               200
+  ok   body is null                                   200
+  ok   lowercase method is not mutating               200
+
+6e — data-shape stress
+  ok   N4 ?limit= is empty                            200
+  ok   N4 ?limit=0                                    200
+  ok   N4 ?limit=abc is NaN                           200
+  ok   N4 ?limit=-5 counts from the front             200
+  ok   ?limit=1e300 does not trap                     200
+  ok   repeated ?limit takes the first                200
+  ok   a very long server name                        404
+
+6f — security surface
+  ok   B15 encoded slash is not a route               both disclaim it
+  ok   path traversal stays a name                    404
+  ok   unknown control path                           405
+
+6f — env-value canary
+  ok   no env value appears in any compared response
+
+6f — the token gate on the live router
+  ok   untokened POST /servers                        401
+  ok   untokened DELETE /servers/diff-stdio           401
+  ok   untokened PATCH /servers/diff-stdio            401
+  ok   untokened POST /servers/diff-stdio/approve     401
+  ok   untokened POST /servers/diff-stdio/auth        401
+
+expected divergences — the reference dies here, and this port does not
+  ok   PATCH body 42 kills the reference            reference DIED (TypeError) · swift 400
+  ok   PATCH body "hi" kills the reference          reference DIED (TypeError) · swift 400
+  ok   PATCH body true kills the reference          reference DIED (TypeError) · swift 400
+  ok   GET %ZZ kills the reference                  reference DIED (URIError) · swift 400
+  ok   GET a truncated escape kills it              reference DIED (URIError) · swift 400
+
+P1 — the two auth routes, reachable at last
+  ok   POST /servers/:name/approve                    409
+  ok   POST /servers/:name/auth                       400
+  ok   approve on an unknown server                   404
+  ok   POST auth on an unknown server                 404
+
+R4 — mutating routes, each side against the same pre-mutation snapshot
+  ok   PATCH sets a placard                           200 (config identical)
+  ok   PATCH rejects a command edit                   200 (config identical)
+  ok   PATCH rejects an env edit                      200 (config identical)
+  ok   PATCH disables a server                        200 (config identical)
+  ok   PATCH clears disabled                          200 (config identical)
+  ok   PATCH disabled truthy string                   200 (config identical)
+  ok   POST refuses a duplicate                       409 (config identical)
+  ok   DELETE removes a server                        200 (config identical)
+  ok   DELETE an unknown server                       404 (config identical)
+  ok   POST /usage/reset                              200 (config identical)
+
+R4 — branches a stub owns: masked field named, everything else still compared
+  --   PATCH sets warm (triggers warm-up)             200 · identical outside the pool-reported state
+  --   POST adds a server (indexes first)             422 · identical outside the indexer error text
+
+not comparable — recorded as blocked in the manifest, shown so the gap is visible
+  --   GET /usage/stream (SSE, body is a stream)      ts=200held-open swift=200
+  --   GET /registry/search (live network on the reference) swift={"error":"registry search is unavailable: no HTTP client is configured"}
+
+compared 59 rows: 59 ok, 0 failed
+The Swift handler answers what the reference answers on every compared row.

@@ -963,6 +963,27 @@ build-router-release:
 ## every check the clean run makes — and requires each to be seen. A check with no mutation behind
 ## it fails the control rather than being counted, so the arm cannot fall behind the assertions it
 ## arms. It is hermetic, needs no router and no `.app`, and finishes in under a second.
+## `instrument-census.py` (`R19`) runs here because the claim it retires is one no reviewer can
+## check by reading. R19's resolution paragraph made a statement about instrument coverage four
+## times and was wrong four times, each time about a different instrument, and each refuting
+## instrument was one no record had ever named — `IndexFailureRecordTests`, then `parity-cli.sh`,
+## then `parity-overlap.sh`, then `WatchAdoptionTests`. Between the third and fourth passes `main`
+## brought `parity-divergence.sh` in underneath the paragraph, so the set grows from the trunk as
+## well as from a verifier's arm.
+##
+## What it refuses is a tree whose instrument set has moved while `planning/instrument-census.tsv`
+## has not. It runs nothing and claims nothing about what any instrument catches: it derives the
+## population from `git ls-files`, the reach of each row from an INVOCATION SHAPE in that row's own
+## source with the matched token carried in the row, and containment from recipes and dispatch
+## lists. The one edge that pays for the file is `make test`'s — an unfiltered `swift test` contains
+## every suite in the package, which is why `make test catches none of these arms and structurally
+## cannot` was refutable from two other sentences in the same paragraph.
+##
+## Its control is 15 arms, and nine of them require a class NOT to fire. That direction is the
+## whole difficulty: prose about `dist/index.js`, an echoed repair instruction and a path named in
+## a comment each read as reach or containment in this reader's first cut, and a census that
+## over-claims is the same defect as the paragraph it exists to bound.
+
 lint: tools
 	@fail=0; \
 	swiftformat --lint . --config .swiftformat || fail=1; \
@@ -978,6 +999,7 @@ lint: tools
 	python3 planning/py39-annotation-gate.py || fail=1; \
 	python3 planning/citation-gate.py || fail=1; \
 	python3 planning/sweep-control-gate.py || fail=1; \
+	python3 planning/instrument-census.py || fail=1; \
 	python3 planning/runnable-path-gate.py || fail=1; \
 	bash planning/hooks/install.sh --gate || fail=1; \
 	python3 planning/registry-drop-gate.py || fail=1; \

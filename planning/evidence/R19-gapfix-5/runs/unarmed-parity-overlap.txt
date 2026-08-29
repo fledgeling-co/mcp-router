@@ -1,0 +1,14 @@
+overlapping a watch fire with a second writer, on both binaries
+
+  ok   overlap-watch-index      a row written 2s into a watch fire survives it on both binaries (rows=lifeline,slowfail); neither rewrote servers.json
+
+holding the sidecar from a third process, on both binaries
+
+  ok   overlap-lock-shared      neither binary wrote a row while a third process held manifest.json.lock, and both wrote one after it was released
+
+overlap: 2 agreed, 0 did not
+     Both rows are simultaneous, not sequential: the first runs a second writer INSIDE a live
+     watch fire, and the second holds the lock object from a third process while each binary
+     writes. No other lane in this harness has two writers live at once.
+     Streams are deliberately not diffed here — under a refused write the two routers report
+     differently for R10/DEF-049's reasons, which predate this item and are owned elsewhere.

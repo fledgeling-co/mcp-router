@@ -1,0 +1,25 @@
+D1 — an unrecognisable mcpServers
+  ok   the reference serves an empty list; Swift refuses the config
+
+D3 — an unknown top-level key survives a control-API write, on both sides
+  ok   both writers preserved the unknown key
+
+R2 D7 — a lost restart on an unparseable ~/.claude.json
+  reference: yes,yes,no
+  swift:     yes,yes,yes
+  (servers.json written, re-read failed, restart issued)
+  ok   the reference loses the restart on this path; the Swift watcher issues it
+
+div-r1-d3 — the import writer preserves a top-level key the reference drops
+  reference kept the key: no
+  swift kept the key:     yes
+  swift actually wrote:   yes
+  ok   the reference drops the unknown key on import; Swift preserves it
+
+M22 — /harnesses and /insights are answered here and 404 at the reference
+  reference: /harnesses 404  /insights 404
+  swift:     /harnesses 200  /insights 200
+  ok   the reference 404s /harnesses; this router serves the envelope
+  ok   the reference 404s /insights; this router serves the counted board
+
+divergences: 6 as declared, 0 stale

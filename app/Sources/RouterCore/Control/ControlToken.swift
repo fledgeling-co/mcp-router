@@ -43,6 +43,12 @@ public enum ControlPaths {
             // block and shared with the reference. `/upstreamshealth` shares a prefix with an owned
             // path and is not owned, which is what the exact match is for.
             || pathname == "/upstreams/health"
+            // F5's two. Exact matches with no prefix arm, like M22's and R31's: `/invocations` and
+            // `/invocations/export` are the whole family, so `/invocations/anything-else` is not a
+            // route this router answers. `/invocationsx` shares a prefix with an owned path and is
+            // not owned, which is what the exact match is for.
+            || pathname == "/invocations"
+            || pathname == "/invocations/export"
     }
 }
 

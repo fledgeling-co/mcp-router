@@ -12,9 +12,9 @@ Normaliser, stated once.
     `app/Sources` — the whole source tree, not the `MCPRouterUI` subtree the shipped scanner reads.
     An access modifier (`public`, `package`, `internal`, `fileprivate`, `private`) and `final` may
     precede `struct`. **Gap-fix 4 widened this and it was a silent miss, not a narrowing**: the
-    pattern was anchored at `struct`, so `public struct CapabilityDocumentSheet: View {`
-    (`app/Sources/MCPRouterUI/Document/CapabilityDocumentSheet.swift:22`) was invisible and this
-    reader reported **17** sheets where `SheetShortcutScan` reports **18** — two instruments
+    pattern was anchored at `struct`, so the declaration `public struct CapabilityDocumentSheet:
+    View {`, `app/Sources/MCPRouterUI/Document/CapabilityDocumentSheet.swift:22` at `a92e6f8` was
+    invisible and this reader reported **17** sheets where `SheetShortcutScan` reports **18** — two instruments
     disagreeing by one with neither saying so. The self-test could not catch it because its only
     fixture was a bare `struct`, which is the shape the reader could already see; it now plants one
     of each and requires the population to move by two.

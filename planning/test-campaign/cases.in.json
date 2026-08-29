@@ -2385,5 +2385,131 @@
   "armed": false,
   "evidence": [],
   "note": "M38. The negative control for CASE-0265: an approve that promoted nothing (409) announces nothing \u2014 no notification and no new live-reload log line. Without it the arm above is satisfied by a route that announces on every approve, which would send every attached session to re-fetch a list that did not move."
+ },
+ {
+  "id": "CASE-0286",
+  "req": "REQ-015",
+  "surface": "SURF-010",
+  "flow": null,
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-010",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M39. The fraction the expiry ring draws, read at three points of one window and once past its end: full at issue, half at the midpoint, nil once the code has gone. Three readings rather than one because a fraction hard-wired to 1 satisfies any single-instant assertion, and a full ring that never depletes is the indeterminate spinner this item replaced. Driven through PairingSessionModel with an injected clock, so no wall-clock wait is involved. In-process against compiled views and pure functions; nothing is drawn on glass and nothing crosses a process boundary."
+ },
+ {
+  "id": "CASE-0287",
+  "req": "REQ-015",
+  "surface": "SURF-010",
+  "flow": null,
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-010",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "metamorphic",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M39. The denominator is the window the code was ISSUED for, not MacPairing.lifetime. One code minted with a fifty-second lifetime must still read 1 at issue, half at its own midpoint and nil at its own end -- the same three readings as CASE-0262 over a different window, which is what tells a window-denominated fraction from a constant-denominated one. PairingSessionModel.issue takes its lifetime from the service precisely so a shorter-lived code is described accurately, and a fraction read off the constant would draw a ring that starts one-sixth full and never empties."
+ },
+ {
+  "id": "CASE-0288",
+  "req": "REQ-015",
+  "surface": "SURF-010",
+  "flow": null,
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-010",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "structural",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M39. The sheet's countdown draws PairingExpiryRing from session.fractionRemaining rather than a constant, the arc trims to that fraction, its track is --line-strong and its head is --t2 -- the countdown's own colour rather than the prototype's --attn, which InboxConformanceTests' A15 colour census refused and DESIGN.md section 2 agreed with, since --attn means 'wants a human decision' and nothing needs deciding while a code runs down, and it is accessibilityHidden because the label beside it already carries the fact in words. Source-binding through ShellTestSupport.declarationBody, which strips comments so a paragraph discussing a modifier cannot satisfy an assertion about it -- the weaker rung is stated rather than dressed up, because this host has no accessor for a SwiftUI Shape's trim value. The scanned names are pinned to the declarations they came from by a second assertion, since a scan for a spelling that cannot appear passes on its own absence."
+ },
+ {
+  "id": "CASE-0289",
+  "req": "REQ-015",
+  "surface": "SURF-010",
+  "flow": null,
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-010",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "structural",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M39, and DEF-064's Mac half. The live state states the typed-code fallback as a sentence and NO control arrived with it: the action bar is asserted not to have gained a fourth button. The Mac already draws the eight characters under the QR and the device that types them is the phone, so a button here would change no state and reveal nothing -- which is the defect DEF-064 recorded, not a fix for it. The copy is asserted distinct from the phone's own typeInstead button string."
+ },
+ {
+  "id": "CASE-0290",
+  "req": "REQ-015",
+  "surface": "SURF-010",
+  "flow": null,
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-010",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
+  },
+  "oracle": "raster-visual",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M39, OWED TO VERIFY AND DELIBERATELY NOT CLAIMED HERE. The ring photographed on a running Mac app at two different readings of one window. Raster is the only rung that can see it: PairingExpiryRing is accessibilityHidden by construction, so an accessibility-tree sweep cannot reach it at all. Two readings rather than one because a single capture of a full ring is satisfied by a ring that never depletes. Reaching the state needs a Debug build with MCPROUTER_PAIRING set -- ShellPairingFactory returns NoTransportInboxService for any Release build and ignores the environment. SURF-010's existing capture was taken 2026-08-20 and predates both of M39's additions, so it is not evidence for either. Not run in M39: machine load ran 114-700 across 16 cores with eight runners live, and the run's stop rule is before verify."
+ },
+ {
+  "id": "CASE-0291",
+  "req": "REQ-016",
+  "surface": "SURF-010",
+  "flow": null,
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-010",
+   "state": "pairing-unavailable",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "unpaired",
+   "executionPlane": "in-process"
+  },
+  "oracle": "structural",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M39's honesty control, and the reason it is filed against REQ-016 rather than REQ-015. REQ-016 is vacuous: no symbol in production source opens a connection to a paired device (DEF-001), so a guarantee about what happens after contact cannot be violated by a build that never contacts anything. M39 adds presentation on top of that and must not be readable as progress against it. What this case asserts is the frame: ShellPairingFactory.choice returns .noTransport for every scenario name in a Release build, so Phase.live -- the only phase drawing a ring or a fallback line -- is unreachable outside a Debug build with MCPROUTER_PAIRING set. No effect-witness case exists in this item because the item claims no effect: no recorder, no effect class, no count."
  }
 ]

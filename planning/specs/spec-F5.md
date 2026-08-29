@@ -143,17 +143,43 @@ this item, and §6 is the gate that keeps it that way.
 | | |
 |---|---|
 | **Read** | Session transcript files under a root the operator names. From each line: the `timestamp`, and — only for an assistant `tool_use` block — the tool's `name` and, for `Skill`, the `skill` input. |
-| **Not read** | Everything else on the line, and it is the majority: prompts, assistant prose, tool arguments other than `skill`, tool results, file contents, `cwd`, `gitBranch`, `sessionId`, `requestId`. The reader never holds them — it does not decode a line into a general structure and then select, it names the four members it wants. What it discards it **counts**, per §5. |
-| **Written** | `<router home>/invocations.jsonl` — one line per observed invocation: `ts`, `kind`, `name`, `harness`, and nothing else. `<router home>/versions.jsonl` — the version ledger of §4.2. `<router home>/invocation-watermarks.json` — per file, its size, mtime and the offset reached. |
+| **Not read** | Everything else on the line, and it is the majority: prompts, assistant prose, tool arguments other than `skill`, tool results, file contents, `cwd`, `gitBranch`, `sessionId`, `requestId`. What it discards it **counts**, per §5. |
+| **Written** | `<router home>/invocations.jsonl` — one line per observed invocation: `ts`, `kind`, `name`, `harness`, plus `tool` for a server call, and nothing else. `<router home>/versions.jsonl` — the version ledger of §4.2. `<router home>/invocation-watermarks.json` — per file, its size, mtime and the offset reached. |
 | **Sent** | Nothing. |
+
+**Where the claim actually rests, stated precisely, because the loose version of it was written
+here first and was false.** An earlier draft of this row said the reader "does not decode a line
+into a general structure and then select". It does — a JSONL line has to be parsed to be read at
+all, and `JSONParser.parse` builds a whole `JSONValue`. What is true is narrower and stronger: that
+value is a **local that goes out of scope at the end of the loop**, and the only thing that survives
+`TranscriptScan` is an ``InvocationEvent``, which has **no member** for a prompt, an argument, a
+result, a working directory, a branch or a session id. So the guarantee is structural rather than a
+matter of the reader being disciplined, and `InvocationEvent.wireKeys` (asserted by CASE-0263) is
+what reddens if a fifth member is ever added.
 
 `<router home>` is the directory that already holds `usage.jsonl` and `usage-stats.json`
 (`UpstreamConfig.path`), at the same permissions.
 
-**The scan is off until it is pointed somewhere.** The transcript root defaults to absent, and with
-it absent every route in this family answers the way `/extensions` answers with no store: it names
-the missing capability rather than serving an empty history, because a router that has read nothing
-and a machine that has run nothing are not the same claim.
+**The scan is off until it is pointed somewhere.** `MCP_ROUTER_TRANSCRIPTS` is the whole of the
+configuration and unset is the shipped state — a colon-separated list of `<harness>=<root>` pairs,
+the shape `PATH` already teaches. The router could find `~/.claude/projects` on nearly every machine
+it runs on and deliberately does not, because a default there would mean an upgrade silently began
+opening 59,476 files of somebody's agent history, and no release note makes that the same act as
+being asked to.
+
+With it unset every route in this family answers the way `/extensions` answers with no store: it
+names the missing capability rather than serving an empty history, because a router that has read
+nothing and a machine that has run nothing are not the same claim. **`RouterService` supplies the
+reporter**, which is the line that matters rather than the type existing: `registry` and `authFlow`
+each existed, were unit-tested and shipped `nil` in `RouterServiceDispatch`, so every route
+depending on them answered a refusal on the wire while the suite stayed green
+(`control-registry-search`, `D-p1-a`).
+
+**The first scan is armed once, at `start()`, detached after `listen()`.** A cold corpus is roughly
+150 seconds; every later pass is nearly free because the watermark skips every unchanged file.
+Once per start rather than on a timer is a real limit and not a plan — a long-lived daemon's window
+stops advancing until it restarts — and it is registered as `D-f5-e` rather than defaulted, because
+how often to re-read somebody's session directory is a decision to be asked for.
 
 ---
 

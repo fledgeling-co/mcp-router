@@ -26,6 +26,14 @@ script tested by hand can be one the guard, a hook or a `make` recipe cannot run
 PRESENCE CONTROL, run on every invocation: a planted union must be found, and a planted file
 carrying the future import must not be. If either arm fails the gate exits 2 and prints no count,
 because a count from an instrument that cannot see the defect is not evidence.
+
+WHY THE ENUMERATION IS ANCHORED (`G8`). `git ls-files` with no `-C` enumerates the CALLER's
+directory downwards, not the repository. Measured 2026-08-29 before this line existed: run from the
+repository root this printed `swept 77 tracked .py files`, and run from `scripts/` it printed
+`swept 9` — both with `0 file(s) carry a PEP 604 union`, and both with `control: HELD`. The presence
+control below proves this sweep is not blind; it cannot prove it was pointed at the right set, and
+those two failures are indistinguishable from outside. `planning/scope-invariance-gate.py` is what
+holds the anchor in place, by running this file from two directories and requiring one answer.
 """
 from __future__ import annotations
 import ast, sys, os, subprocess
@@ -52,10 +60,12 @@ def unions(path):
                     hits.append(getattr(n, 'lineno', '?')); break
     return ('BREAKS-3.9' if hits else 'OK', sorted(set(hits)))
 
-files = subprocess.run(['git','ls-files','*.py'], capture_output=True, text=True).stdout.split()
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+files = subprocess.run(['git', '-C', ROOT, 'ls-files', '*.py'],
+                       capture_output=True, text=True).stdout.split()
 bad = []
 for f in files:
-    st, hits = unions(f)
+    st, hits = unions(os.path.join(ROOT, f))
     if st == 'BREAKS-3.9': bad.append((f, hits))
 print(f'swept {len(files)} tracked .py files by ACTUALLY PARSING ANNOTATIONS, not by compiling')
 for f, h in bad: print(f'  BREAKS on 3.9: {f}  lines {h[:6]}')

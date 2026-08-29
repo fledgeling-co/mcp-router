@@ -34,9 +34,17 @@ scanned.
 """
 
 import fnmatch
+import os
 import re
 import subprocess
 import sys
+
+# The repository, derived from this file rather than inherited from the caller (`G8`). `git ls-files`
+# with no `-C` enumerates the CALLER's directory downwards: measured 2026-08-29 before this line
+# existed, this sweep reported 11 blocking hits and exit 1 from the root, and **0 hits and exit 0**
+# from `scripts/` — a clean answer, from the file whose own docstring is the rule about reading the
+# whole corpus. Every path below is opened under ROOT for the same reason.
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Files whose job is to record a withdrawn claim rather than assert one. Not scanned; see above.
 RECORDS = (
@@ -123,7 +131,7 @@ def normalise(raw):
 
 def main():
     tracked = subprocess.run(
-        ["git", "ls-files", "-z"], capture_output=True, check=True
+        ["git", "-C", ROOT, "ls-files", "-z"], capture_output=True, check=True
     ).stdout.decode().split("\0")
     tracked = [f for f in tracked if f]
 
@@ -136,7 +144,7 @@ def main():
 
     for f in files:
         try:
-            with open(f, encoding="utf-8") as fh:
+            with open(os.path.join(ROOT, f), encoding="utf-8") as fh:
                 raw = fh.read()
         except (UnicodeDecodeError, IsADirectoryError, FileNotFoundError):
             skipped += 1
@@ -148,6 +156,22 @@ def main():
                 line = raw.count("\n", 0, offsets[m.start()]) + 1
                 hits[name].append((f, line, re.sub(r"\s+", " ", m.group(0))))
 
+    # The normaliser's identity beside the count, which is what `G8` owes this file. M16's sizing
+    # note is the requirement: "the useful output is the normaliser's identity AND the sites, not
+    # just the count — because a bare count is what let two parties report *verified* over disjoint
+    # subsets. Two runs that both say `2` and disagree about WHICH 2 is the failure we actually
+    # hit, and a count alone cannot show it." The sites were already printed under each class; the
+    # reader that produced them was not named, and neither was the set it read.
+    print("corpus: git ls-files under %s" % ROOT)
+    print("normaliser: whole-file read, every run of whitespace collapsed to one space (newlines "
+          "included),")
+    print("            an opening blockquote marker collapsed with its line; hit offsets mapped "
+          "back to")
+    print("            line numbers in the original. List markers and table pipes are NOT handled "
+          "— see")
+    print("            quote_marker_offsets. Five sweeps over one phrase once returned four "
+          "answers, and")
+    print("            only the widest normaliser was complete.")
     print("scanned %d tracked files (%d skipped as non-text)" % (scanned, skipped))
     print("excluded %d as records of a withdrawn claim, listed by name and not scanned:" % len(excluded))
     for f in excluded:

@@ -46,10 +46,18 @@ with no denominator beside it.
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import sys
 from dataclasses import dataclass
+
+# The repository, derived from this file rather than inherited from the caller (`G8`). This sweep
+# asks `git log ... -- app/MCPRouter/`, and a pathspec is resolved against the process's working
+# directory: run from anywhere below the root, the pathspec matches nothing, every unit reports
+# `touched` false, and the census prints a clean `affected=0` — the exact number this file's own
+# header says it must never print without a denominator behind it.
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 INT = "main"
 DIRECTORY = "app/MCPRouter/"
@@ -62,12 +70,13 @@ ARMED = re.compile(r'path:\s*"MCPRouter"')
 
 
 def git(*args: str) -> str:
-    return subprocess.run(["git", *args], capture_output=True, text=True,
-                          cwd=None, check=False).stdout.strip()
+    return subprocess.run(["git", "-C", ROOT, *args], capture_output=True, text=True,
+                          check=False).stdout.strip()
 
 
 def git_ok(*args: str) -> bool:
-    return subprocess.run(["git", *args], capture_output=True, text=True).returncode == 0
+    return subprocess.run(["git", "-C", ROOT, *args],
+                          capture_output=True, text=True).returncode == 0
 
 
 @dataclass

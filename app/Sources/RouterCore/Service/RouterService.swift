@@ -233,6 +233,20 @@ public actor RouterService {
         // server does by default — a background probe spawns a child, and `REQ-001` is that at
         // rest there are none. `start()` returning without a task is the ordinary case.
         await health.start()
+
+        // F5. Detached and after listen() for `warmUp`'s reason and one of its own: a cold corpus
+        // is 59,476 files and 19.5 GB (measured 2026-08-29), roughly 150 seconds of reading, and a
+        // router that took that before answering would look hung. Every later pass is nearly free —
+        // the watermark skips every file whose size and mtime are unchanged — but the first is not.
+        //
+        // `nil` unless somebody set `MCP_ROUTER_TRANSCRIPTS`, so this task does not exist on a
+        // default install. It runs ONCE per start rather than on a timer, which is a real limit
+        // rather than a plan: a long-lived daemon's window stops advancing until it restarts. A
+        // periodic refresh is `D-f5-e`, and the honest reading in the meantime is that
+        // `GET /invocations` answers for what had been read when the router last started.
+        if let invocations {
+            Task.detached { invocations.refresh() }
+        }
     }
 
     /// Graceful stop, in the reference's order: flush what was recorded, stop accepting, close every

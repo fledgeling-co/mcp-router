@@ -606,6 +606,24 @@ export async function handleControl(
         log.info(
           `approved "${name}"'s new tool surface (${(outcome.body as { approved: number }).approved} tools)`
         );
+        /*
+         * M38. Promotion moves `entry.tools`, which is the member `unionTools` reads — so this is a
+         * mutation that changes what `tools/list` answers, and `announceTools` above says those are
+         * announced "and from nowhere else". This was the one that was not.
+         *
+         * The three-second manifest poller in `router.ts` did reach an attached session eventually,
+         * which is why the absence read as working. It arrived late, and it arrived carrying `the
+         * tool manifest was rebuilt outside this process` — false about a route this process had
+         * just answered, and the sentence somebody reads when they ask why a model's tools changed
+         * mid-session. Measured by `scripts/e2e-live-reload.mjs`: 11ms here against the poller's
+         * next tick. Announcing here also records the post-write stamp, so the poller does not
+         * announce the same move a second time.
+         *
+         * Only on the 200. A 409 promoted nothing and a 500 wrote nothing; announcing either would
+         * send every attached session to re-fetch a list that did not move, and the lane carries
+         * that as its own control.
+         */
+        announceTools(deps, `approved "${name}"'s new tool surface`);
       }
       json(res, outcome.status, outcome.body);
       return true;

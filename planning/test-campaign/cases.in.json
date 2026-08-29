@@ -2280,5 +2280,110 @@
    "planning/evidence/F6/red-green.txt"
   ],
   "note": "F6. The brief's assumption is that update checks are read-only until the user approves, and it is held by there being no verb to call rather than by a flag: GET /extensions/updates has no sibling. POST, PUT, PATCH and DELETE are 405 and the store's file count is identical across all four, asserted on the filesystem rather than on the reply. ARMED: red-green M5 removes the one line teaching routeExtensions to decline /updates, the :kind match reclaims the path, a DELETE answers 404 no extension kind named \"updates\" \u2014 a denial that a served path exists \u2014 and U4 goes red."
+ },
+ {
+  "id": "CASE-0281",
+  "req": "REQ-001",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M38. A held tool surface is not served, and approving it is what starts serving it. The strike is POST /servers/:name/approve through the real ControlHandler; the read-back is MCPEndpoint.listTools() over a ManifestStore built before the strike and never handed to the handler \u2014 the two lines a client's tools/list runs. Never the approve response, which is the writer's account of its own write. An untouched sibling server in the same manifest is the control: every assertion about the promoted server is also passed by a route that promoted the whole file."
+ },
+ {
+  "id": "CASE-0282",
+  "req": "REQ-019",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M38. A refused manifest write leaves the served catalog exactly where it was AND leaves the change pending, so the decision is still available to be taken. R21 fixed the status code; this reads the same refusal at the catalog, which is where the user's question actually lives. The failure is injected on the FileSystem method names (writeFile, moveItem) \u2014 a key naming an operation nothing performs would let the case pass by writing successfully."
+ },
+ {
+  "id": "CASE-0283",
+  "req": "REQ-012",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M38. A second approve answers 409 and the served catalog does not move again; GET /servers/:name/changes, re-read from disk rather than from the striking call's snapshot, reports nothing pending."
+ },
+ {
+  "id": "CASE-0284",
+  "req": "REQ-001",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M38. Over a real router and the MCP SDK's own client: approving a held surface announces notifications/tools/list_changed, the announcement is ATTRIBUTED to the approval in the router's log rather than to the three-second poller's 'rebuilt outside this process', and the client's re-fetch carries the text the user accepted. The notification COUNT is not the oracle \u2014 the poller supplies one either way \u2014 so the log line is what the case stands on. scripts/e2e-live-reload.mjs."
+ },
+ {
+  "id": "CASE-0285",
+  "req": "REQ-019",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M38. The negative control for CASE-0265: an approve that promoted nothing (409) announces nothing \u2014 no notification and no new live-reload log line. Without it the arm above is satisfied by a route that announces on every approve, which would send every attached session to re-fetch a list that did not move."
  }
 ]

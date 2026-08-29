@@ -1,3 +1,9 @@
+---
+status: in-progress
+found-by: test-campaign and reckoning ideation, 2026-08-25
+reckon-sources: [CASE-0281, CASE-0282, CASE-0283, CASE-0284, CASE-0285, REQ-001, REQ-019]
+---
+
 # Visual Diff Review and Approval for Staged Upstream Tool Changes
 
 - origin: test-campaign and reckoning ideation · 2026-08-25

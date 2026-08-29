@@ -65,7 +65,7 @@
                         .typeRole(.title3)
                         .foregroundStyle(ColorToken.t1.color)
                         .fixedSize(horizontal: false, vertical: true)
-                    Text("\(server.transport.rawValue) · \(server.tools) tools")
+                    Text(Self.headerDetail(server))
                         .typeRole(.callout, monospaced: true)
                         .foregroundStyle(ColorToken.t3.color)
                 }

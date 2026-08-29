@@ -47,6 +47,25 @@
 
         var behaviour: some View {
             section("Behaviour") {
+                // First in the section, and the position is the argument: it decides whether the
+                // two below it mean anything, and `projectScopeHelp` only reads correctly to
+                // somebody who has already met it.
+                //
+                // Bound to `server.disabled` rather than to its inverse. A `Serve to your
+                // sessions` switch reads more naturally on its own and puts a polarity flip
+                // between what this shows and what the PATCH carries, which is one more place to
+                // get backwards. `disabledReason` is the section's existing one — writing, or the
+                // router not answering — and deliberately does not include *already disabled*: a
+                // switch that cannot be switched back is not a switch.
+                ToggleRow(
+                    title: ServerInspector.disableToggleTitle,
+                    help: ServerInspector.disableToggleHelp(disabled: server.disabled),
+                    isOn: server.disabled,
+                    disabledReason: disabledReason
+                ) { off in
+                    Task { await board.setDisabled(server.name, to: off) }
+                }
+
                 ToggleRow(
                     title: "Keep warm",
                     help: "Skip the reaper. Costs resident memory to save a cold start.",
@@ -58,9 +77,7 @@
 
                 ToggleRow(
                     title: "Only load in named projects",
-                    help: server.projects.isEmpty
-                        ? "Every session sees its \(server.tools) tools."
-                        : "Sessions outside these directories do not see its tools.",
+                    help: ServerInspector.projectScopeHelp(server),
                     isOn: !server.projects.isEmpty,
                     disabledReason: disabledReason
                 ) { on in
@@ -145,6 +162,16 @@
                             .typeRole(.callout, monospaced: true)
                             .foregroundStyle(ColorToken.t4.color)
                     }
+                }
+                // The list is a claim too. It stays populated on a disabled server — it is the
+                // one place to read what a server declares before switching it back on — and
+                // says, once, that none of it is reaching anyone. Outside the branch above, so a
+                // server with no indexed names still carries it.
+                if let note = ServerInspector.toolsNotServedNote(server) {
+                    Text(note)
+                        .typeRole(.callout)
+                        .foregroundStyle(ColorToken.t3.color)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }

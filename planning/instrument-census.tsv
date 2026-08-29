@@ -134,6 +134,7 @@ app/Tests/MCPRouterUITests/ServersBoardOutcomeTests.swift	swift-suite	app/Tests/
 app/Tests/MCPRouterUITests/ServersBoardSurfaceTests.swift	swift-suite	app/Tests/MCPRouterUITests/ServersBoardSurfaceTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/ServersBoardWriteTests.swift	swift-suite	app/Tests/MCPRouterUITests/ServersBoardWriteTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/ServersDisabledCopyTests.swift	swift-suite	app/Tests/MCPRouterUITests/ServersDisabledCopyTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterUITests/ServersPauseAffordanceTests.swift	swift-suite	app/Tests/MCPRouterUITests/ServersPauseAffordanceTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/SettingsAndMenuBarTests.swift	swift-suite	app/Tests/MCPRouterUITests/SettingsAndMenuBarTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/SettingsWindowTests.swift	swift-suite	app/Tests/MCPRouterUITests/SettingsWindowTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/SheetGateRoutingTests.swift	swift-suite	app/Tests/MCPRouterUITests/SheetGateRoutingTests.swift	swift	compiled and run by `swift test`	make:test
@@ -185,6 +186,7 @@ app/Tests/RouterCoreTests/ControlDisableWriteTests.swift	swift-suite	app/Tests/R
 app/Tests/RouterCoreTests/ControlDocumentRouteTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlDocumentRouteTests.swift	swift	compiled and run by `swift test`; names argv ["node", …], execution unresolved	make:test
 app/Tests/RouterCoreTests/ControlExtensionRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlExtensionRoutesTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ControlFixtureTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlFixtureTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/RouterCoreTests/ControlPauseVectorTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlPauseVectorTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ControlReindexDisabledTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlReindexDisabledTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/DesktopEntryTests.swift	swift-suite	app/Tests/RouterCoreTests/DesktopEntryTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/DisabledSweepTests.swift	swift-suite	app/Tests/RouterCoreTests/DisabledSweepTests.swift	swift	compiled and run by `swift test`	make:test

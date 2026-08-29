@@ -354,20 +354,32 @@ extension ControlHandler {
     func routeReading(
         _ path: String, _ request: ControlAPIRequest, _ deps: ControlDeps
     ) async -> ControlAPIResponse? {
-        if let response = routeUsage(path, request, deps) { return response }
-        if let response = routeUpdates(path, request, deps) { return response }
-        if let response = routeExtensions(path, request, deps) { return response }
-        if let response = routeInvocations(path, request, deps) { return response }
-        if let response = routeCaches(path, request, deps) { return response }
-        if let response = routeProfiles(path, request, deps) { return response }
+        if let response = routeReadingSynchronous(path, request, deps) { return response }
         if let response = await routeHealth(path, request, deps) { return response }
-        if let response = routeDiagnostics(path, request, deps) { return response }
         if let response = await routeAnalyst(path, request, deps) { return response }
         switch (path, request.method) {
         case ("/harnesses", "GET"): return harnessesResponse(deps)
         case ("/insights", "GET"): return await insightsResponse(deps)
         default: return nil
         }
+    }
+
+    /// The reading routes that need no `await`, split out so `routeReading` stays inside the
+    /// complexity cap. F7 and F8 each added an arm and took the flat chain to 12 against a cap of
+    /// 10; grouping is the change that does not alter which route answers.
+    ///
+    /// Each sub-router matches a disjoint path family, so their order relative to one another does
+    /// not decide any response — `ControlHandlerRoutingTests` covers every path this reaches.
+    private func routeReadingSynchronous(
+        _ path: String, _ request: ControlAPIRequest, _ deps: ControlDeps
+    ) -> ControlAPIResponse? {
+        if let response = routeUsage(path, request, deps) { return response }
+        if let response = routeUpdates(path, request, deps) { return response }
+        if let response = routeExtensions(path, request, deps) { return response }
+        if let response = routeInvocations(path, request, deps) { return response }
+        if let response = routeCaches(path, request, deps) { return response }
+        if let response = routeProfiles(path, request, deps) { return response }
+        return routeDiagnostics(path, request, deps)
     }
 
     private func routeUsage(

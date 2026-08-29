@@ -253,9 +253,11 @@ reconcile instead of quietly disagreeing.
 Ordered JSON members, like `UsageRecord`, for the same reason: it is written with a compact
 stringifier and read back, so key order and the omission of an absent member are on the wire.
 
-`ts` · `kind` (`skill` | `plugin` | `server`) · `name` · `harness`. **There is no field for prompt
-text, arguments, project, cwd or session id**, so there is no path by which one is written even by
-mistake — the absence is structural, not a matter of the reader being careful.
+`ts` · `kind` (`skill` | `plugin` | `server`) · `name` · `harness`, plus `tool` for a server call and
+omitted for anything else. **There is no field for prompt text, arguments, project, cwd or session
+id**, so there is no path by which one is written even by mistake — the absence is structural, not a
+matter of the reader being careful. `InvocationEvent.wireKeys` enumerates all five, and CASE-0263
+asserts the serialised set exactly, so a sixth member reddens rather than ships.
 
 ---
 
@@ -266,13 +268,13 @@ class rather than returning a count of what it managed to keep:
 
 | counted | meaning |
 |---|---|
-| `linesRead` | lines taken off disk |
-| `unparseable` | not JSON. 0 in a 20,268-line sample, and the last line of a live session is routinely torn |
-| `withoutTimestamp` | parsed, but carries no `timestamp` — **936 of 20,268 in the sample**, so this is a real class and not a theoretical one |
+| `linesRead` | whole lines taken off disk |
+| `unparseable` | not JSON |
+| `withoutTimestamp` | parsed, and carries no orderable `timestamp` — **936 of 20,268 in the sample**, so this is a real class and not a theoretical one |
 | `notAnInvocation` | parsed and timestamped and carries no `tool_use` block — the bulk of every transcript |
 | `unnamedTool` | a `tool_use` block with no usable `name` |
-| `filesSkipped` | unchanged since the watermark, so not opened at all |
-| `filesReread` | shrank since the watermark, so re-read from zero rather than resumed |
+| `builtInTool` | a real tool call that is one of the harness's own — `Bash`, `Read`, `Edit`. **2,429 of 3,320 sampled blocks**, so folding it into `notAnInvocation` would hide the ratio the reader's yield depends on |
+| `filesRead` · `filesSkipped` · `filesReread` · `filesUnreadable` | opened · unchanged since the watermark so never opened · shrank so re-read from zero · could not be read, which also carries the directories the walk could not list |
 
 `totalCalls` is meaningless without these, which is `UsageInsights.unreadableLines`' argument one
 directory over: a count of what parsed is not a count of what was there.
@@ -300,7 +302,7 @@ A gate that examined no files exits non-zero rather than reporting clean.
 | A1 | A `Skill` block in a transcript becomes one `InvocationEvent` naming the skill | drive `TranscriptScan` over a fixture and read the events |
 | A2 | An `mcp__<server>__<tool>` block becomes one event of kind `server` naming the server | fixture |
 | A3 | A line with no timestamp is **counted** as `withoutTimestamp` and produces no event | fixture, asserting both the count and the absence |
-| A4 | A torn last line is counted as `unparseable` and costs nothing else in the file | fixture whose last line is truncated mid-object |
+| A4 | A trailing fragment with no newline after it is **left unconsumed**, so a later append completes it | fixture whose last line is truncated mid-object, asserting `unparseable` is 0 **and** that the watermark offset stops before the fragment. *This clause was written the other way round — "counted as `unparseable`" — and the implementation is the better answer: a live session is being appended to as the scan runs, so counting its half-written last line as damage would lose that line permanently.* |
 | A5 | No event carries prompt text, arguments, cwd or session id | the type has no member for them; a test asserts the serialised keys are exactly the four |
 | A6 | A run **after** the newest boundary is `attributed` to the installed version | ledger fixture |
 | A7 | A run **before** a boundary is `superseded` and counts toward no version | ledger fixture — the assertion is that the version's total does **not** move |
@@ -311,6 +313,9 @@ A gate that examined no files exits non-zero rather than reporting clean.
 | A12 | The export carries the same rows as the window fold, in both formats | one fold, two encoders, compared |
 | A13 | A harness with no observable transcript reports `null` and a reason, never `0` | fold test |
 | A14 | The egress gate fails on a planted symbol and passes when it is removed | the selftest, run in `make lint` |
+| A15 | `RouterService` **supplies** the reporter, and seeds the ledger before it scans | `InvocationSources` tests plus the seeded/unseeded pair — the oracle is a **difference**: the same corpus and events credit nothing without boundaries and attribute `1.4.2` with them. A test of the seeded case alone passes against a build that never seeds |
+| A16 | The accounting a window reports is the **scan's**, not the invocation log's | end-to-end test on real files. `builtInTool` is the discriminator: the log cannot produce one, so a window reporting it can only be carrying the scan's figures |
+| A17 | The walk descends more than one level, sorts, and counts a root it could not list | real temporary directories — `MemoryFileSystem` lists only immediate children, so a recursion proven against it is proven against something that is not a directory tree |
 
 ## 8 · Deferred children
 

@@ -245,7 +245,17 @@ public actor RouterService {
         // periodic refresh is `D-f5-e`, and the honest reading in the meantime is that
         // `GET /invocations` answers for what had been read when the router last started.
         if let invocations {
-            Task.detached { invocations.refresh() }
+            let register = InvocationSources.registerPath(environment: environment)
+            let fileSystem = fileSystem
+            Task.detached {
+                // The boundaries FIRST, then the scan. Order is load-bearing rather than tidy: a
+                // window folded before any boundary exists reports every run `unestablished`, which
+                // is a correct answer to the wrong question and looks exactly like the honest
+                // refusal this item is built to give.
+                let seeded = InvocationSources.seed(at: register, fileSystem: fileSystem)
+                invocations.observe(seeded.observations)
+                invocations.refresh()
+            }
         }
     }
 

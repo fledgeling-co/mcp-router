@@ -79,6 +79,41 @@ public enum InvocationSources {
         return (out, discarded)
     }
 
+    /// Where the plugin register is read from, when one is named.
+    ///
+    /// `MCP_ROUTER_PLUGIN_REGISTER` overrides it; unset, it is Claude's own
+    /// `~/.claude/plugins/installed_plugins.json`, the file R30 already reads. **This one IS read
+    /// by default once a corpus has been named**, and the two are a different question rather than
+    /// an inconsistency: a session transcript is a record of what a person said and did, and this
+    /// file is a version manifest — 127 records of `{version, installedAt, lastUpdated,
+    /// gitCommitSha}` and no user content of any kind. It is also the only statement about the past
+    /// that exists anywhere on the machine, so an operator who asked for use-by-version and did not
+    /// get it read would be given a table crediting nothing at all.
+    public static func registerPath(
+        // swift-wire-exempt: the process environment, read for one key and never serialised.
+        environment: [String: String],
+        homeDirectory: String = RouterHome.resolvedHomeDirectory()
+    ) -> String {
+        environment["MCP_ROUTER_PLUGIN_REGISTER"].flatMap { $0.isEmpty ? nil : $0 }
+            ?? ClaudeTree(homeDirectory: homeDirectory).installedPluginsPath
+    }
+
+    /// The boundaries the register yields, and how many of its records could not supply one.
+    ///
+    /// Separated from ``history(environment:home:fileSystem:isDirectory:)`` so a caller can see the
+    /// second number: 127 records producing 100 boundaries is a different corpus from 100 producing
+    /// 100, and a seeding step that reported only what it managed to read would be the reader
+    /// defect this whole item is written against.
+    public static func seed(
+        at path: String, fileSystem: any FileSystem
+    ) -> (observations: [VersionObservation], skipped: Int) {
+        guard fileSystem.fileExists(atPath: path),
+              let data = try? fileSystem.readFile(atPath: path),
+              let parsed = try? JSONParser.parse(data)
+        else { return ([], 0) }
+        return InstalledPluginsLedgerSeed.observations(in: parsed)
+    }
+
     /// The history the daemon holds, or nil when nothing named a corpus.
     ///
     /// Nil rather than an empty history, and the distinction is the one every optional port in

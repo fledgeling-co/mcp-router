@@ -150,3 +150,101 @@ struct TranscriptCorpusTests {
         #expect(!written.contains("input"))
     }
 }
+
+/// Seeding the ledger from Claude's plugin register — the step without which every run reads
+/// `unestablished` and the table credits nothing at all.
+///
+/// It has its own suite because it is the piece most likely to be built, tested and then never
+/// called: `registry` and `authFlow` each existed, were unit-tested and shipped `nil` in
+/// `RouterServiceDispatch` (`control-registry-search`, `D-p1-a`), and this item reproduced the same
+/// shape once already with `ControlDeps.invocations`.
+@Suite("Seeding the boundary set")
+struct LedgerSeedTests {
+    private static let register = #"""
+    {"version":2,"plugins":{
+      "trawl@fledgeling":[{"version":"1.4.2","installedAt":"2025-12-03T05:30:52.695Z",
+        "lastUpdated":"2026-08-25T00:00:00.000Z","gitCommitSha":"423563c"}],
+      "half@fledgeling":[{"version":"2.0.0","installedAt":"2025-12-03T05:30:52.695Z"}]
+    }}
+    """#
+
+    @Test("The register becomes one boundary per usable record, and the rest are counted")
+    func registerSeedsBoundaries() {
+        let fileSystem = MemoryFileSystem()
+        fileSystem.seed(Self.register, atPath: "/claude/installed_plugins.json")
+        let seeded = InvocationSources.seed(
+            at: "/claude/installed_plugins.json", fileSystem: fileSystem
+        )
+        #expect(seeded.observations.count == 1)
+        #expect(seeded.observations.first?.name == "trawl@fledgeling")
+        #expect(seeded.skipped == 1)
+    }
+
+    @Test("A register that is not there yields nothing and is not an error")
+    func absentRegisterIsNotAFailure() {
+        let seeded = InvocationSources.seed(at: "/nowhere.json", fileSystem: MemoryFileSystem())
+        #expect(seeded.observations.isEmpty)
+        #expect(seeded.skipped == 0)
+    }
+
+    @Test("The register path defaults to Claude's own and is overridable")
+    func registerPathIsOverridable() {
+        #expect(InvocationSources.registerPath(environment: [:], homeDirectory: "/h")
+            == "/h/.claude/plugins/installed_plugins.json")
+        #expect(InvocationSources.registerPath(
+            environment: ["MCP_ROUTER_PLUGIN_REGISTER": "/elsewhere.json"], homeDirectory: "/h"
+        ) == "/elsewhere.json")
+        // Empty is not a path. Nullish rather than a presence test, so an exported-but-empty
+        // variable falls back instead of naming the empty string — `RegistryDeps` records the
+        // opposite convention for the reference's own `??`, and the difference is deliberate here
+        // because there is no reference behaviour to match.
+        #expect(InvocationSources.registerPath(
+            environment: ["MCP_ROUTER_PLUGIN_REGISTER": ""], homeDirectory: "/h"
+        ) == "/h/.claude/plugins/installed_plugins.json")
+    }
+
+    /// The whole point of seeding, asserted as a difference rather than as a state: the same events
+    /// and the same corpus credit nothing without boundaries and credit a version with them.
+    @Test("Without the seed every run is unestablished; with it they attribute")
+    func seedingIsWhatMakesAttributionPossible() {
+        let home = NSTemporaryDirectory() + "mcprouter-f5-seed-" + UUID().uuidString
+        let corpus = NSTemporaryDirectory() + "mcprouter-f5-seedcorpus-" + UUID().uuidString
+        try? FileManager.default.createDirectory(atPath: corpus, withIntermediateDirectories: true)
+        defer {
+            try? FileManager.default.removeItem(atPath: home)
+            try? FileManager.default.removeItem(atPath: corpus)
+        }
+        let line = #"{"type":"assistant","timestamp":"2026-08-26T09:00:00.000Z","message":"#
+            + #"{"content":[{"type":"tool_use","name":"Skill","input":{"skill":"trawl:trawl"}}]}}"#
+        try? Data((line + "\n").utf8).write(to: URL(fileURLWithPath: "\(corpus)/s.jsonl"))
+
+        func history(_ suffix: String) -> InvocationHistory {
+            InvocationHistory(
+                sources: [TranscriptSource(harness: "claude-code", root: corpus)],
+                invocationsPath: "\(home)/\(suffix)-invocations.jsonl",
+                ledgerPath: "\(home)/\(suffix)-versions.jsonl",
+                watermarkPath: "\(home)/\(suffix)-watermarks.json"
+            )
+        }
+
+        let bare = history("bare")
+        bare.refresh()
+        let without = bare.window(nowMilliseconds: 1_787_832_000_000, days: 7)
+        #expect(without.rows.isEmpty)
+        #expect(without.unestablishedRuns == 1)
+
+        let fileSystem = MemoryFileSystem()
+        fileSystem.seed(Self.register, atPath: "/claude/installed_plugins.json")
+        let seeded = history("seeded")
+        seeded.observe(
+            InvocationSources.seed(
+                at: "/claude/installed_plugins.json", fileSystem: fileSystem
+            ).observations
+        )
+        seeded.refresh()
+        let with = seeded.window(nowMilliseconds: 1_787_832_000_000, days: 7)
+        #expect(with.rows.count == 1)
+        #expect(with.rows.first?.version == "1.4.2")
+        #expect(with.unestablishedRuns == 0)
+    }
+}

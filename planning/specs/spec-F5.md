@@ -209,17 +209,38 @@ history disk holds — and gains a real one every time a version moves under a r
 window that can be attributed therefore **widens with use**, and how far back it reaches is a
 readable figure rather than an assumption.
 
+**`RouterService.start()` seeds before it scans, and the order is load-bearing rather than tidy.**
+A window folded with an empty ledger reports every run `unestablished`, which is a correct answer to
+the wrong question and is *indistinguishable from the honest refusal this whole item exists to
+give*. So the register is read first and the corpus second.
+
+The register is `~/.claude/plugins/installed_plugins.json` by default, overridable with
+`MCP_ROUTER_PLUGIN_REGISTER`. **It is read by default once a corpus has been named, and the
+transcript root is not**, which is a distinction rather than an inconsistency: a session transcript
+records what a person said and did, and this file is a version manifest — 127 records of `{version,
+installedAt, lastUpdated, gitCommitSha}` with no user content of any kind. It is also the only
+statement about the past on the machine, so an operator who asked for use-by-version and did not get
+it read would be handed a table crediting nothing at all.
+
 ### 4.3 · `VersionAtRun` — the join, and where it refuses
 
 For an invocation of capability `C` at time `T`:
 
 ```
-case attributed(CapabilityVersion, since: String)  // T >= the newest boundary at or before T,
-                                                   // and no boundary lies between T and now
-case superseded(movedAt: String)                   // C's version moved after T; what was live at
-                                                   // T is not on disk. Counted toward NOTHING.
-case unestablished(reason: String)                 // no boundary, or the line carried no timestamp
+case attributed(String, since: String)   // the newest boundary at or before T says this, AND no
+                                         // later boundary disagrees
+case superseded(movedAt: String)         // a later boundary carries a different version, so the
+                                         // change sits on an unknown side of T. Counted toward
+                                         // NOTHING.
+case unestablished(reason: String)       // no boundary reaches T, or its timestamp is not orderable
 ```
+
+**"No later boundary disagrees" is the whole rule, and it is not "T is after the newest boundary".**
+A boundary asserts *at `ts`, this was at `v`* and nothing wider, so two consecutive boundaries with
+different versions bracket a change whose **moment is unknown** — the router saw `U` at `ts_p` and
+`V` at `ts_b`, and the swap happened somewhere between. A run inside that interval could have been
+on either side. A later boundary carrying the **same** version is confirming evidence and does not
+supersede anything.
 
 `superseded` is the case the item exists for. It is not an error and it is not a gap in the data —
 it is the correct answer, and it is the mock's own callout made mechanical: *a run against 1.4.0

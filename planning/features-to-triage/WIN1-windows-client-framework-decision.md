@@ -47,6 +47,33 @@ are drawn here.
 - A trivial window built with the chosen framework opens, draws, and is photographed on this machine — so the lane is proved before thirteen surfaces are committed to it.
 - Whether the router daemon ships inside the client or beside it is answered, since two of the three candidates change that calculus.
 
+## Decided — 2026-08-30
+
+**WinUI 3 / Windows App SDK**, by the owner, after the three candidates were probed on this
+machine. The probes, so nobody re-derives them:
+
+| Candidate | Result on this machine, 2026-08-30 |
+|---|---|
+| WinUI 3 (`Microsoft.WindowsAppSDK` 1.6) | `dotnet restore` succeeds. `dotnet build` **fails**: `MSB4062`, the `ExpandPriContent` task cannot be loaded from `Microsoft.Build.Packaging.Pri.Tasks.dll` under the .NET SDK's `Microsoft/VisualStudio/v17.0/AppxPackage/`. Retried unpackaged with `WindowsPackageType=None`, `EnableMsixTooling=false`, `DisableMrtCore=true` — **same error**, so the PRI step is unconditional and not a packaging-mode artefact. |
+| Avalonia 11 + Fluent theme | Builds clean on the bare .NET 8.0.424 SDK in 7.3 s, no workload, no install. |
+| WebView2-hosted | Not probed. Edge WebView2 is an OS component on this build, so it needs no runtime install. |
+
+What the losing options would have been better at, recorded rather than dropped: **Avalonia** starts
+today with nothing installed, and **WebView2** is the only candidate that could render the existing
+4,814-line design of record more or less directly. Both were set aside for the same two reasons —
+neither publishes the native Windows 11 control vocabulary the directive asks for, and neither gets
+a UI Automation tree for free, which WIN20 shows is what decides whether the campaign can measure a
+Windows surface at all or has to file thirteen of them as never-measured.
+
+The cost is accepted deliberately: WinUI 3 needs Visual Studio Build Tools 2022 installed
+(`Microsoft.VisualStudio.2022.BuildTools`, with the managed-desktop and UWP build-tool workloads and
+the Windows 11 SDK). The owner authorised that install on 2026-08-30.
+
+**One consequence for WIN18.** The missing task assembly was looked for *under the .NET SDK*, which
+is where `dotnet build` resolves `MSBuildExtensionsPath`. So the Windows lane may have to invoke
+Visual Studio's own `MSBuild.exe` rather than `dotnet build`. Which of the two actually works is a
+measurement WIN18 owes, not an assumption.
+
 ## Assumptions made writing this
 
 - Assuming the Windows client is a separate application rather than a port of the Swift sources, since no Swift toolchain targets Windows and the shared contract is the loopback control API.

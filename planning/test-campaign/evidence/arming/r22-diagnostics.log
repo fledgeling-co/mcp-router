@@ -1,0 +1,63 @@
+== R22 arming pass — every armed case, watched red then restored ==
+recorded at: 2026-08-29T11:11:44Z
+tree:        6e48a59f3798ddeed479c8d16f4042d06b32c34b
+command:     swift test --filter ControlDiagnosticsTests --package-path app
+
+-- ARM 1 (CASE-0270): LAYER 1 removed — the env value is emitted instead of its shape ----
+  a configured token now reaches the bundle:
+      􀢄  Test run with 12 tests in 1 suite failed after 0.039 seconds with 2 issues.
+      cases red: CASE-0270 CASE-0272 
+      held: the arm went red over 12 tests.
+
+-- ARM 2 (CASE-0271): LAYER 2 removed — the value scrub never runs -----------------------
+  a token quoted back in a log line now survives:
+      􀢄  Test run with 12 tests in 1 suite failed after 0.031 seconds with 6 issues.
+      cases red: CASE-0271 CASE-0273 R22-f 
+      held: the arm went red over 12 tests.
+
+-- ARM 3 (CASE-0272): the needle floor removed — a 3-character value becomes a needle ----
+  scrubbing 'dev' now corrupts every log line that contains it:
+      􀢄  Test run with 12 tests in 1 suite failed after 0.026 seconds with 6 issues.
+      cases red: CASE-0272 CASE-0274 R22-f 
+      held: the arm went red over 12 tests.
+
+-- ARM 4 (CASE-0273): the encoded forms removed — only the literal is a needle -----------
+  a percent-encoded or base64 token now survives:
+      􀢄  Test run with 12 tests in 1 suite failed after 0.008 seconds with 2 issues.
+      cases red: CASE-0273 
+      held: the arm went red over 12 tests.
+
+-- ARM 5 (CASE-0274): the ungated preview now carries the log tail ----------------------
+  an untokened GET now serves log content:
+      􀢄  Test run with 12 tests in 1 suite failed after 0.018 seconds with 2 issues.
+      cases red: CASE-0274 
+      held: the arm went red over 12 tests.
+
+-- ARM 6 (CASE-0275): the bundle answers GET, so the token gate never runs ---------------
+  the bundle is reachable without the token:
+      􀢄  Test run with 12 tests in 1 suite failed after 0.061 seconds with 28 issues.
+      cases red: CASE-0270 CASE-0271 CASE-0272 CASE-0273 CASE-0275 R22-a R22-b R22-f 
+      held: the arm went red over 12 tests.
+
+-- ARM 7 (R22-d): longest-first ordering removed — a short needle truncates a long one ---
+  the remainder of a longer secret is left beside a redaction marker:
+      􀢄  Test run with 12 tests in 1 suite failed after 0.053 seconds with 2 issues.
+      cases red: R22-d 
+      held: the arm went red over 12 tests.
+
+-- ARM 8 (R22-f): the redaction block appended unscrubbed ----------------------------
+  a credential written into an env KEY escapes through unscrubbable:
+      􀢄  Test run with 12 tests in 1 suite failed after 0.014 seconds with 1 issue.
+      cases red: R22-f 
+      held: the arm went red over 12 tests.
+
+-- BASELINE: unmutated ------------------------------------------------------------------
+  the suite is green with every layer in place:
+      􁁛  Test run with 12 tests in 1 suite passed after 0.012 seconds.
+      cases red: none
+      green: 12 tests, unmutated.
+
+-- RESTORE: every source file byte-identical to the tree ---------------------------------
+  held: all five files this pass mutated are byte-identical to the copies taken at the top.
+
+arms: 10 of 10 held

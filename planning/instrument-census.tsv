@@ -306,6 +306,7 @@ planning/registry-drop-gate.py	gate	planning/registry-drop-gate.py	static	no rou
 planning/role-intersection-gate.py	gate	planning/role-intersection-gate.py	static	no router invocation matched	make:role-intersection
 planning/run-gate.sh	gate	planning/run-gate.sh	static	no router invocation matched	-
 planning/runnable-path-gate.py	gate	planning/runnable-path-gate.py	static	no router invocation matched	make:lint
+planning/scope-invariance-gate.py	gate	planning/scope-invariance-gate.py	static	no router invocation matched	make:lint
 planning/set-status.py	gate	planning/set-status.py	static	no router invocation matched	-
 planning/shipped-brief-gate.py	gate	planning/shipped-brief-gate.py	static	no router invocation matched	make:lint
 planning/sweep-control-gate.py	gate	planning/sweep-control-gate.py	static	no router invocation matched	make:lint

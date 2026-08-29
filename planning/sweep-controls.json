@@ -1224,6 +1224,21 @@
         "--control"
       ],
       "proves": "17 arms against a scratch git repository built to break each reader, because a census that classified everything `static` and found no containment would print a clean run and satisfy this gate. Eight arms require a class to FIRE \u2014 a planted swift suite discovered and contained both by an unfiltered `swift test` recipe and by a `--filter` naming its type, a planted lane invoking dist/index.js classed `node` and contained by parity-gate.sh's LANES list, a lane that invokes another lane containing it, reach closing over containment so a recipe running a `swift test` gate reaches swift and says which child carried it, a python gate that subprocess-runs node classed `node`, and the drift comparison going unequal when one row is missing. Five require a class NOT to fire, and they are the ones that matter: a gate that only writes ABOUT dist/index.js, a lane whose only node invocation is a header comment and an echoed repair instruction, a python gate holding a node invocation as a string literal, and a lane that NAMES another instrument without running it must each stay `static` or edgeless. Every one of those was a real over-claim in this reader's first cut, and each would have inflated the very set the census exists to bound."
+    },
+    {
+      "path": "planning/scope-invariance-gate.py",
+      "disposition": "control",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-29",
+      "control": [
+        "python3",
+        "planning/scope-invariance-gate.py",
+        "--selftest"
+      ],
+      "proves": "Eight arms, and the two halves are armed by different mechanisms because the gate has two. Five static arms hand the analyser one planted call each and require the verdict to differ across them: an unanchored `git ls-files` reported, `-C <root>` and `cwd=root` not reported, `cwd=\".\"` REPORTED because a literal relative cwd is the caller's directory under another name, and an unanchored `git rev-parse HEAD` not reported because it enumerates nothing. So a rule that flagged everything and a rule that flagged nothing both fail. Two dynamic arms run a planted script from two directories inside a scratch repository built under mktemp: a cwd-sensitive enumerator must be caught by the comparison and its `-C`-anchored twin must pass it, which is what stops the dynamic half rotting into a comparison that can only agree. The eighth is the null arm \u2014 a corpus of zero files must be a refusal rather than a clean report. Nothing in this corpus is read or written by any arm."
     }
   ]
 }

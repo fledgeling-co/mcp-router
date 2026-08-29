@@ -33,7 +33,7 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 ROOT="app/Sources/RouterCore"
-DIRS=(Control Registry Usage Auth Extensions Caches)
+DIRS=(Control Registry Usage Auth Extensions Caches Profiles)
 EXEMPT_MARKER='swift-wire-exempt:'
 
 # Auth/ does not exist yet — it is R5's. A missing directory is not a failure, but a directory that
@@ -47,6 +47,12 @@ EXEMPT_MARKER='swift-wire-exempt:'
 # Caches/ joined with R31, and for the same reason one step further out: `DiskCacheProbe` reads
 # npm's and Claude's own `package.json` files off disk, and the package names and versions it lifts
 # out of them reach `GET /caches` as the `refetch` command a person is about to run.
+#
+# Profiles/ joined with F8, and it is the clearest case on the list: `ProfileDocument.value` builds
+# the object that is BOTH the file on disk and the body of `GET /profiles/<name>`, so an encoder
+# there would decide member order in two places at once and a byte comparison of either would stop
+# meaning anything. `ProfileProjector` is on the same list because the reach and action labels it
+# chooses are string members a caller branches on.
 #
 # A directory that produces wire bytes and is not on this list is outside the rule with nothing
 # saying so — the same silent-scope failure `no-raw-design-values.sh` records for GEOMETRY_DIRS.

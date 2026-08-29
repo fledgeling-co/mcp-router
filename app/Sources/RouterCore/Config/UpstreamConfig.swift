@@ -164,6 +164,10 @@ public struct RouterHome: Sendable, Hashable {
     /// other piece of router state, so `MCP_ROUTER_HOME` still moves all of it together, which is
     /// the invariant this type exists for.
     public var extensionsPath: String { path("extensions") }
+    /// F8's profile store. A sibling of `extensions` rather than a directory inside it: a profile
+    /// selects over the store and is not one of the things stored, and nesting it would put a name
+    /// that is not an extension kind inside a directory whose every child is one.
+    public var profilesPath: String { path("profiles") }
 
     public static let defaultPort = 8879
     public static let defaultHost = "127.0.0.1"

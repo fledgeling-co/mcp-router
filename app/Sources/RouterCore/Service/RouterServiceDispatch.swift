@@ -238,7 +238,16 @@ extension RouterService {
             // history, so every server would read `unprobed` forever and `consecutiveFailures`
             // could never reach `tripAfter`. The failure would be invisible to any test that makes
             // one request.
-            health: health
+            health: health,
+            // F8. Supplied here and nowhere else, for the reason `extensions` is: a capability that
+            // exists, is unit-tested and is nil in the one process that ships answers a refusal on
+            // the wire with the suite green. `scripts/acceptance/f8-profiles.sh` drives the
+            // daemon's own socket, because that is the only oracle that can see these two missing.
+            profiles: DiskProfileStore(root: home.profilesPath, clock: clock),
+            // The home the daemon was started under, never `NSHomeDirectory()`. A lane can then
+            // point this at a scratch tree rather than at the operator's own harness directories,
+            // which is the discipline `div-m22-harnesses` records for `GET /harnesses`.
+            skillRoots: DiskSkillRoots()
         )
     }
 

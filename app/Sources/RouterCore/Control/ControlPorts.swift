@@ -248,6 +248,15 @@ public struct ControlDeps: Sendable {
     /// parity run. Absent, both routes answer 503 saying so rather than an empty report, which a
     /// router that had probed nothing would be indistinguishable from.
     public var health: (any UpstreamHealthReporting)?
+    /// Where the `/profiles` family reads and writes — F8. Optional for the reason ``extensions``
+    /// is: `ControlDiff` compares the routes `src/control.ts` answers and this whole family is a
+    /// declared divergence from it. Absent, every route in it answers 503 saying so rather than an
+    /// empty list, which a router holding no profiles would be indistinguishable from.
+    public var profiles: (any ProfileStoring)?
+    /// Where `GET /profiles/:name/projection` reads another harness's skills directory — F8.
+    /// Optional for the reason ``harnesses`` is, and with the same consequence: a real reader in a
+    /// differential oracle would put whoever is running the gate's own `$HOME` inside a parity run.
+    public var skillRoots: (any SkillRootReading)?
 
     public init(
         config: RouterConfig,
@@ -269,7 +278,9 @@ public struct ControlDeps: Sendable {
         insights: (any InsightsSource)? = nil,
         extensions: (any ExtensionStoring)? = nil,
         caches: (any CacheProbing)? = nil,
-        health: (any UpstreamHealthReporting)? = nil
+        health: (any UpstreamHealthReporting)? = nil,
+        profiles: (any ProfileStoring)? = nil,
+        skillRoots: (any SkillRootReading)? = nil
     ) {
         self.config = config
         self.upstreams = upstreams
@@ -291,6 +302,8 @@ public struct ControlDeps: Sendable {
         self.extensions = extensions
         self.caches = caches
         self.health = health
+        self.profiles = profiles
+        self.skillRoots = skillRoots
     }
 
     /// Lookup by JavaScript string identity — a composed key does not match a decomposed request,

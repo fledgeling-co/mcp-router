@@ -115,6 +115,7 @@ LANES=(
     r27-health.sh
     r28-extensions.sh
     r31-caches.sh
+    f8-profiles.sh
     r32-desktop-entry.sh
     r32-desktop-entry-selftest.sh
     r30-ingest.sh

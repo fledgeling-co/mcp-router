@@ -166,6 +166,19 @@ public protocol ControlAPIClient: Sendable {
     /// the Harnesses board exists only if this operation does.
     func harnesses() async throws(ControlAPIError) -> HarnessesResponse
 
+    /// Run the session analyst now — F7.
+    ///
+    /// On the protocol beside ``insights()`` rather than beside the writes, because it belongs to
+    /// the same family and takes the same default: a conformer with no opinion about it is a router
+    /// that does not have it, which is the state the board's dim button is designed around.
+    func runAnalyst() async throws(ControlAPIError) -> InsightsResponse
+
+    /// Change which model judges and how often — F7. Any argument left nil is left alone, which is
+    /// what makes this a patch rather than a replacement of the settings the user did not touch.
+    func setAnalyst(
+        primary: String?, fallback: String?, cadence: String?
+    ) async throws(ControlAPIError) -> InsightsResponse
+
     /// Everything the Insights board draws, counted from what the router served and opened.
     func insights() async throws(ControlAPIError) -> InsightsResponse
 
@@ -231,6 +244,16 @@ public extension ControlAPIClient {
 
     func insights() async throws(ControlAPIError) -> InsightsResponse {
         throw ControlAPIError.malformedResponse(detail: "this router has no /insights endpoint")
+    }
+
+    func runAnalyst() async throws(ControlAPIError) -> InsightsResponse {
+        throw ControlAPIError.malformedResponse(detail: "this router has no session analyst")
+    }
+
+    func setAnalyst(
+        primary _: String?, fallback _: String?, cadence _: String?
+    ) async throws(ControlAPIError) -> InsightsResponse {
+        throw ControlAPIError.malformedResponse(detail: "this router has no session analyst")
     }
 
     /// A client that cannot ask for a document answers the state that says so.

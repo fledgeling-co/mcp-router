@@ -361,6 +361,7 @@ extension ControlHandler {
         if let response = routeCaches(path, request, deps) { return response }
         if let response = await routeHealth(path, request, deps) { return response }
         if let response = routeDiagnostics(path, request, deps) { return response }
+        if let response = await routeAnalyst(path, request, deps) { return response }
         switch (path, request.method) {
         case ("/harnesses", "GET"): return harnessesResponse(deps)
         case ("/insights", "GET"): return await insightsResponse(deps)

@@ -26,6 +26,11 @@ public enum ControlPaths {
             // as divergences in `planning/parity/surface.tsv` rather than left to be discovered.
             || pathname == "/harnesses"
             || pathname == "/insights"
+            // F7's two. Exact matches beside `/insights`, for the reason M22's own comment gives:
+            // the family has exactly these sub-paths, so `/insights/anything-else` is not a route
+            // this router answers and claiming it would turn a typo into a 405.
+            || pathname == "/insights/analyse"
+            || pathname == "/insights/analyst"
             // R28's family. A prefix arm as well as the exact match, unlike M22's two above:
             // this one HAS sub-paths — `/extensions/skills` and `/extensions/skills/<name>` —
             // and without the prefix the collections would fall through to `/mcp`. `/extensionsx`

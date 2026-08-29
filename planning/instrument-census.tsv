@@ -112,6 +112,7 @@ app/Tests/MCPRouterUITests/InboxBoardTests.swift	swift-suite	app/Tests/MCPRouter
 app/Tests/MCPRouterUITests/InboxBoundaryTests.swift	swift-suite	app/Tests/MCPRouterUITests/InboxBoundaryTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/InboxConformanceTests.swift	swift-suite	app/Tests/MCPRouterUITests/InboxConformanceTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/InboxWithdrawalTests.swift	swift-suite	app/Tests/MCPRouterUITests/InboxWithdrawalTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterUITests/InsightsAnalystBoardTests.swift	swift-suite	app/Tests/MCPRouterUITests/InsightsAnalystBoardTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/M22BoardTests.swift	swift-suite	app/Tests/MCPRouterUITests/M22BoardTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/M7BoardHonestyTests.swift	swift-suite	app/Tests/MCPRouterUITests/M7BoardHonestyTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/M7ExercisedRequestTests.swift	swift-suite	app/Tests/MCPRouterUITests/M7ExercisedRequestTests.swift	swift	compiled and run by `swift test`; names command: "node", execution unresolved	make:test
@@ -156,6 +157,8 @@ app/Tests/MCPRouterUITests/SkillsMenuTests.swift	swift-suite	app/Tests/MCPRouter
 app/Tests/MCPRouterUITests/TriageFailureTests.swift	swift-suite	app/Tests/MCPRouterUITests/TriageFailureTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/TriageModelTests.swift	swift-suite	app/Tests/MCPRouterUITests/TriageModelTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/TriageSourceGuardTests.swift	swift-suite	app/Tests/MCPRouterUITests/TriageSourceGuardTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/RouterCoreTests/AnalystCorpusTests.swift	swift-suite	app/Tests/RouterCoreTests/AnalystCorpusTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/RouterCoreTests/AnalystEngineTests.swift	swift-suite	app/Tests/RouterCoreTests/AnalystEngineTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/AttributionTests.swift	swift-suite	app/Tests/RouterCoreTests/AttributionTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/AuthCleanupRaceTests.swift	swift-suite	app/Tests/RouterCoreTests/AuthCleanupRaceTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/AuthFlowTests.swift	swift-suite	app/Tests/RouterCoreTests/AuthFlowTests.swift	swift	compiled and run by `swift test`	make:test
@@ -179,6 +182,7 @@ app/Tests/RouterCoreTests/ConfigMutationLockTests.swift	swift-suite	app/Tests/Ro
 app/Tests/RouterCoreTests/ConfigParityTests.swift	swift-suite	app/Tests/RouterCoreTests/ConfigParityTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ConfigTrapTests.swift	swift-suite	app/Tests/RouterCoreTests/ConfigTrapTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ContentIdentityTests.swift	swift-suite	app/Tests/RouterCoreTests/ContentIdentityTests.swift	swift	compiled and run by `swift test`; names command: "node", execution unresolved	make:test
+app/Tests/RouterCoreTests/ControlAnalystRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlAnalystRoutesTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ControlApproveDispatchTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlApproveDispatchTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ControlAuthStartDispatchTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlAuthStartDispatchTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ControlBoardRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlBoardRoutesTests.swift	swift	compiled and run by `swift test`	make:test
@@ -323,6 +327,7 @@ planning/set-status.py	gate	planning/set-status.py	static	no router invocation m
 planning/shipped-brief-gate.py	gate	planning/shipped-brief-gate.py	static	no router invocation matched	make:lint
 planning/sweep-control-gate.py	gate	planning/sweep-control-gate.py	static	no router invocation matched	make:lint
 planning/target-resolution-gate.py	gate	planning/target-resolution-gate.py	static	no router invocation matched	make:lint
+planning/test-campaign/bin/arm-f7-analyst.py	gate	planning/test-campaign/bin/arm-f7-analyst.py	static	no router invocation matched	-
 planning/test-campaign/bin/arm-headless.py	gate	planning/test-campaign/bin/arm-headless.py	swift	argv ["swift", …]	-
 planning/test-campaign/bin/arm-pipeline.py	gate	planning/test-campaign/bin/arm-pipeline.py	static	no router invocation matched	-
 planning/test-campaign/bin/arm-r22-diagnostics.sh	gate	planning/test-campaign/bin/arm-r22-diagnostics.sh	swift	swift test	-

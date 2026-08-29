@@ -1,0 +1,98 @@
+[
+ {
+  "id": "F7-A1",
+  "verdict": "KILLED",
+  "red": [
+   "a line it cannot use is counted as discarded rather than dropped in silence",
+   "a store the reader reached and could use nothing from is read, with a reason"
+  ]
+ },
+ {
+  "id": "F7-A2",
+  "verdict": "KILLED",
+  "red": [
+   "every store appears, and an absent one says why",
+   "the SQLite store is enumerated, unread, and carries the reason it was not opened"
+  ]
+ },
+ {
+  "id": "F7-A3",
+  "verdict": "KILLED",
+  "red": [
+   "a signal under the floor does not reach the judge"
+  ]
+ },
+ {
+  "id": "F7-A4",
+  "verdict": "KILLED",
+  "red": [
+   "an id outside the candidate list is rejected and counted"
+  ]
+ },
+ {
+  "id": "F7-A5",
+  "verdict": "KILLED",
+  "red": [
+   "a signal the run never counted is rejected, so the evidence figure cannot be invented"
+  ]
+ },
+ {
+  "id": "F7-A6",
+  "verdict": "KILLED",
+  "red": [
+   "the same finding inside thirty days is suppressed, and after them it fires again"
+  ]
+ },
+ {
+  "id": "F7-A7",
+  "verdict": "KILLED",
+  "red": [
+   "a run records what it read, what it found, and which rung judged"
+  ]
+ },
+ {
+  "id": "F7-A8",
+  "verdict": "KILLED",
+  "red": [
+   "the primary refusing runs the fallback, and the run says so"
+  ]
+ },
+ {
+  "id": "F7-A9",
+  "verdict": "KILLED",
+  "red": [
+   "A3 \u2014 the cadence is reported as a preference, never as a schedule"
+  ]
+ },
+ {
+  "id": "F7-A10",
+  "verdict": "KILLED",
+  "red": [
+   "A1 \u2014 with no analyst the member is null and both routes name the missing capability",
+   "A4 \u2014 pressing the button changes what a LATER GET reports",
+   "A6 \u2014 a run already in flight is refused rather than doubled",
+   "A7 \u2014 every rung refusing is a 502 that names which model was unreachable",
+   "A8 \u2014 a PATCH takes, and an unknown lane is refused by member name"
+  ]
+ },
+ {
+  "id": "F7-A11",
+  "verdict": "KILLED",
+  "red": [
+   "A2 \u2014 an analyst that has never run reports its settings with every reading absent",
+   "A3 \u2014 the cadence is reported as a preference, never as a schedule",
+   "A4 \u2014 pressing the button changes what a LATER GET reports",
+   "A5 \u2014 the store the analyst could not open is on the wire with its reason",
+   "A8 \u2014 a PATCH takes, and an unknown lane is refused by member name"
+  ]
+ },
+ {
+  "id": "F7-A12",
+  "verdict": "KILLED",
+  "red": [
+   "a run that fails leaves the previous reading on screen and says what refused",
+   "pressing Analyse now posts once and redraws from a SECOND read",
+   "the card names every store the run could not open"
+  ]
+ }
+]

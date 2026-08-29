@@ -1320,6 +1320,15 @@
       ],
       "since": "2026-08-29",
       "reason": "A lane needing a built binary is waived, not control: this driver runs `swift test` once per mutation plus a baseline, eleven full builds of RouterCore and its test bundle, and took 24 minutes on the run recorded in planning/evidence/F6/red-green.txt. A control that re-armed it would double that on every sweep-gate run. What stands in place of one is that the driver ARMS ITSELF in both directions and cannot report a clean zero. It refuses to run at all unless the unmutated tree is green, printing BASELINE NOT GREEN and exiting 1 - so a run whose tests were all already failing cannot report ten catches. It classifies three outcomes rather than two: RED (every named test failed), PARTIAL (some did) and SURVIVED (none did), and PARTIAL and SURVIVED both exit non-zero, so a mutation that stopped biting is a failure rather than a quieter pass. And a mutation whose search text no longer exists in the source reports NOT APPLICABLE and exits non-zero, which is the specific way this class of driver rots: the code moves, the find string stops matching, and every arm silently applies nothing. The recorded run is 10 of 10 RED. What it does NOT prove, stated rather than implied: that the ten mutations are the ten that matter. It proves each named test can fail for the reason its name gives, not that the suite would catch a defect nobody thought of."
+    },
+    {
+      "path": "planning/test-campaign/bin/arm-f7-analyst.py",
+      "disposition": "waived",
+      "markers": [
+        "V2"
+      ],
+      "since": "2026-08-29",
+      "reason": "It carries a presence control and runs it on every invocation \u2014 nothing planted, every filter required GREEN over a NON-ZERO test count, so a filter that selected nothing cannot report twelve kills. The waiver is about where that control can run, not whether it exists: every arm compiles and runs the Swift test suite, so this needs a built test binary and a toolchain, which is the `waived` rather than `control` rule. Running it inside `lint` would put twelve builds behind a lint step. Re-run it directly: `python3 planning/test-campaign/bin/arm-f7-analyst.py`, exit 0 with 12 of 12 killed, 3 if the presence control did not go green."
     }
   ]
 }

@@ -116,6 +116,79 @@ public enum InsightsFixtures {
         return String(format: "2026-08-%02dT%02d:00:00.000Z", hour < 24 ? 21 : 22, hour % 24)
     }
 
+    /// The analyst's own frame: a run that used its **fallback**, because that is the state a
+    /// populated fixture would otherwise never show and the one the design's caption is about — a
+    /// finding always says which model judged it. Two stores are unread and both say why, which is
+    /// the difference between a coverage figure and a fraction with no visible denominator.
+    public static var analystRun: AnalystRun {
+        AnalystRun(
+            primary: AnalystLaneChoice(
+                lane: "claude", model: "claude-haiku-4-5", label: "Claude CLI · haiku"
+            ),
+            fallback: AnalystLaneChoice(
+                lane: "grok", model: "grok-4.6", label: "Grok CLI · grok-4.6 medium"
+            ),
+            cadence: "sixHourly",
+            cadenceLabel: "Every 6 hours",
+            scheduled: false,
+            nextRunAt: "2026-08-22T17:49:00.000Z",
+            lane: AnalystLaneChoice(
+                lane: "grok", model: "grok-4.6", label: "Grok CLI · grok-4.6 medium"
+            ),
+            ranAt: "2026-08-22T11:49:00.000Z",
+            linesRead: 12400,
+            discarded: 318,
+            findings: 2,
+            usedFallback: true,
+            rejectedFindings: 1,
+            candidatesUnavailable: false,
+            stores: [
+                AnalystStoreReport(
+                    harness: "claudeCode", path: "~/.claude/history.jsonl", read: true,
+                    lines: 9140, discarded: 212
+                ),
+                AnalystStoreReport(
+                    harness: "codexCLI", path: "~/.codex/history.jsonl", read: true,
+                    lines: 3260, discarded: 106
+                ),
+                AnalystStoreReport(
+                    harness: "grokCLI", path: "~/.grok/sessions", read: false, lines: 0,
+                    discarded: 0, reason: "no .jsonl file in this directory"
+                ),
+                AnalystStoreReport(
+                    harness: "cursor", path: "~/.cursor/chats", read: false, lines: 0,
+                    discarded: 0,
+                    reason: "this store is SQLite; the analyst reads JSON Lines only"
+                )
+            ],
+            recent: [
+                AnalystFindingCard(
+                    id: "analyst-4f2a10bd", entryID: "docker-mcp", subject: "Docker MCP",
+                    sentence: "You ran docker logs by hand 31 times this week; this server lets "
+                        + "the agent read them itself.",
+                    evidenceCount: 31, judgedBy: "Grok CLI · grok-4.6 medium",
+                    signals: ["docker logs"]
+                ),
+                AnalystFindingCard(
+                    id: "analyst-91c73e02", entryID: "pgcli", subject: "pgcli",
+                    sentence: "Your shell reported pgcli missing 4 times.",
+                    evidenceCount: 4, judgedBy: "Grok CLI · grok-4.6 medium",
+                    signals: ["pgcli"]
+                )
+            ]
+        )
+    }
+
+    /// The analyst as a router that has one and has never run it reports it: the settings are
+    /// there, every reading is absent. Not the same as `analyst: nil`, which is a router with no
+    /// analyst at all.
+    public static var analystIdle: AnalystRun {
+        AnalystRun(
+            primary: analystRun.primary, fallback: analystRun.fallback,
+            cadence: "sixHourly", cadenceLabel: "Every 6 hours", scheduled: false
+        )
+    }
+
     public static var populated: InsightsResponse {
         InsightsResponse(
             generatedAt: generatedAt,
@@ -153,7 +226,7 @@ public enum InsightsFixtures {
                 DutyCycleServer(server: "docker-mcp", aliveSeconds: 0)
             ]),
             callsPerHour: hours,
-            analyst: nil
+            analyst: analystRun
         )
     }
 
@@ -175,7 +248,7 @@ public enum InsightsFixtures {
             otherCalls: 0,
             dutyCycle: DutyCycle(uptimeSeconds: 214, servers: []),
             callsPerHour: hours.map { HourlyCalls(hourStart: $0.hourStart, calls: 0) },
-            analyst: nil
+            analyst: analystIdle
         )
     }
 }

@@ -255,6 +255,12 @@ public struct ControlDeps: Sendable {
     /// different fact from an empty history, and a machine on which nothing ran would be
     /// indistinguishable from it otherwise.
     public var invocations: (any InvocationReporting)?
+    /// The session analyst — F7. Optional for the reason ``health`` is, and with the same sharpest
+    /// version of it: a run SPAWNS a CLI and reads the caller's own session stores, so a
+    /// differential oracle handed a real one would put a developer's history and a live child
+    /// process behind every parity run. Absent, `GET /insights` reports `analyst: null` and the two
+    /// routes answer 503 naming the missing capability.
+    public var analyst: (any AnalystPort)?
 
     public init(
         config: RouterConfig,
@@ -277,7 +283,8 @@ public struct ControlDeps: Sendable {
         extensions: (any ExtensionStoring)? = nil,
         caches: (any CacheProbing)? = nil,
         health: (any UpstreamHealthReporting)? = nil,
-        invocations: (any InvocationReporting)? = nil
+        invocations: (any InvocationReporting)? = nil,
+        analyst: (any AnalystPort)? = nil
     ) {
         self.config = config
         self.upstreams = upstreams
@@ -300,6 +307,7 @@ public struct ControlDeps: Sendable {
         self.caches = caches
         self.health = health
         self.invocations = invocations
+        self.analyst = analyst
     }
 
     /// Lookup by JavaScript string identity — a composed key does not match a decomposed request,

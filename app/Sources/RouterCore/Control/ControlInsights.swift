@@ -108,10 +108,11 @@ extension ControlHandler {
                 ])
             }
         )))
-        // The session analyst `PRD.md` §6 specifies does not exist in `app/Sources` in any form.
-        // The member is present and null rather than absent, so a board renders its empty state
-        // from a fact the router stated instead of from a key it failed to find.
-        members.append(JSONMember(key: JSString("analyst"), value: .null))
+        // F7 built the analyst `PRD.md` §6 specifies. The member is still present and still null
+        // before the first run — a board renders its empty state from a fact the router stated
+        // rather than from a key it failed to find — but it is now null because nothing has been
+        // analysed yet rather than because nothing can be.
+        await members.append(JSONMember(key: JSString("analyst"), value: analystValue(deps)))
 
         return .json(200, .object(members))
     }

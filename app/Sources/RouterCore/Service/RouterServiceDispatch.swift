@@ -241,7 +241,12 @@ extension RouterService {
             health: health,
             // F5. Nil unless `MCP_ROUTER_TRANSCRIPTS` named a corpus — see ``InvocationSources``.
             // Nil is the ordinary state and the routes say so rather than serving an empty window.
-            invocations: invocations
+            invocations: invocations,
+            // F7. Built here and nowhere else, for the reason the R28 line above states about
+            // itself: an engine that is unit-tested and nil in the process that ships answers 503
+            // on the wire while the suite stays green. Its candidate source is the same registry
+            // `/registry/search` uses, so a recommendation always names an entry that resolves.
+            analyst: analyst
         )
     }
 

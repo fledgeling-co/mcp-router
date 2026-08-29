@@ -105,23 +105,152 @@ public struct DutyCycle: Codable, Hashable, Sendable {
     }
 }
 
+/// One rung of the analyst's ladder, as the router names it.
+public struct AnalystLaneChoice: Codable, Hashable, Sendable {
+    public var lane: String
+    public var model: String
+    public var label: String
+
+    public init(lane: String, model: String, label: String) {
+        self.lane = lane
+        self.model = model
+        self.label = label
+    }
+}
+
+/// One session store, read or not.
+///
+/// **Present for every store the router knows about, including the ones it did not open.** A store
+/// omitted because it was absent or of a format the reader does not handle is indistinguishable on
+/// this surface from one that held nothing, and only one of those is the user's to act on.
+public struct AnalystStoreReport: Codable, Hashable, Sendable, Identifiable {
+    public var harness: String
+    public var path: String
+    public var read: Bool
+    public var lines: Int
+    public var discarded: Int
+    public var reason: String?
+
+    public var id: String { harness }
+
+    public init(
+        harness: String,
+        path: String,
+        read: Bool,
+        lines: Int,
+        discarded: Int,
+        reason: String? = nil
+    ) {
+        self.harness = harness
+        self.path = path
+        self.read = read
+        self.lines = lines
+        self.discarded = discarded
+        self.reason = reason
+    }
+}
+
+/// One recommendation, as the board draws it.
+public struct AnalystFindingCard: Codable, Hashable, Sendable, Identifiable {
+    public var id: String
+    public var entryID: String
+    public var subject: String
+    public var sentence: String
+    public var evidenceCount: Int
+    /// Which model judged, spelled the way the settings readout spells it, so a fallback run never
+    /// reads as though the primary produced it.
+    public var judgedBy: String
+    public var signals: [String]
+
+    public init(
+        id: String,
+        entryID: String,
+        subject: String,
+        sentence: String,
+        evidenceCount: Int,
+        judgedBy: String,
+        signals: [String]
+    ) {
+        self.id = id
+        self.entryID = entryID
+        self.subject = subject
+        self.sentence = sentence
+        self.evidenceCount = evidenceCount
+        self.judgedBy = judgedBy
+        self.signals = signals
+    }
+}
+
 /// The session analyst's own configuration and last run.
 ///
-/// Modelled and always `nil` today: `PRD.md` §6 specifies the analyst and nothing in `app/Sources`
-/// implements one. The board draws its empty state, which is what the brief asks for — *its own
-/// configuration and its last run* — rather than absorbing §6.
+/// **Present means the router has an analyst; `ranAt == nil` means it has one that has not run.**
+/// The board needs both facts and they are different: the first decides whether `Analyse now` is
+/// live, the second decides whether there is a reading to draw. `InsightsResponse.analyst` being
+/// nil is the third state — a router with no analyst at all, which is every build before F7 and
+/// every router the reference implementation serves.
 public struct AnalystRun: Codable, Hashable, Sendable {
-    public var model: String
-    public var ranAt: String
-    public var linesRead: Int
-    public var findings: Int
+    public var primary: AnalystLaneChoice
+    public var fallback: AnalystLaneChoice?
+    public var cadence: String
+    public var cadenceLabel: String
+    /// **False in this build, and on the wire rather than assumed.** The cadence is a stored
+    /// setting and nothing fires it; a surface drawing "Every 6 hours" without this would be
+    /// drawing a promise the router does not keep.
+    public var scheduled: Bool
+    public var nextRunAt: String?
 
-    public init(model: String, ranAt: String, linesRead: Int, findings: Int) {
-        self.model = model
+    public var lane: AnalystLaneChoice?
+    public var ranAt: String?
+    public var linesRead: Int?
+    public var discarded: Int?
+    public var findings: Int?
+    public var usedFallback: Bool?
+    public var rejectedFindings: Int?
+    public var candidatesUnavailable: Bool?
+    public var stores: [AnalystStoreReport]
+    public var recent: [AnalystFindingCard]
+
+    public init(
+        primary: AnalystLaneChoice,
+        fallback: AnalystLaneChoice? = nil,
+        cadence: String,
+        cadenceLabel: String,
+        scheduled: Bool = false,
+        nextRunAt: String? = nil,
+        lane: AnalystLaneChoice? = nil,
+        ranAt: String? = nil,
+        linesRead: Int? = nil,
+        discarded: Int? = nil,
+        findings: Int? = nil,
+        usedFallback: Bool? = nil,
+        rejectedFindings: Int? = nil,
+        candidatesUnavailable: Bool? = nil,
+        stores: [AnalystStoreReport] = [],
+        recent: [AnalystFindingCard] = []
+    ) {
+        self.primary = primary
+        self.fallback = fallback
+        self.cadence = cadence
+        self.cadenceLabel = cadenceLabel
+        self.scheduled = scheduled
+        self.nextRunAt = nextRunAt
+        self.lane = lane
         self.ranAt = ranAt
         self.linesRead = linesRead
+        self.discarded = discarded
         self.findings = findings
+        self.usedFallback = usedFallback
+        self.rejectedFindings = rejectedFindings
+        self.candidatesUnavailable = candidatesUnavailable
+        self.stores = stores
+        self.recent = recent
     }
+
+    /// Whether there is a reading to draw, as opposed to an analyst that exists and has not run.
+    public var hasRun: Bool { ranAt != nil }
+
+    /// Every store the run could not open, with the reason it gave.
+    public var unreadStores: [AnalystStoreReport] { stores.filter { !$0.read } }
 }
 
 /// Everything the Insights board draws, and nothing it does not.

@@ -29,6 +29,8 @@ if ! git diff --quiet; then
 fi
 
 failures=0
+bit=0
+attempted=0
 
 baseline_dir=$(mktemp -d "${TMPDIR:-/tmp}/arm-guards-baseline.XXXXXX") || exit 2
 trap 'rm -rf "$baseline_dir"' EXIT
@@ -74,6 +76,7 @@ PY
 
 arm() {
     local label="$1" file="$2" old="$3" new="$4" filter="$5"
+    attempted=$((attempted + 1))
     printf '%-58s ' "$label"
 
     local before
@@ -110,17 +113,27 @@ arm() {
         failures=$((failures + 1))
     else
         echo "red: $after issue line(s) (baseline $before)"
+        bit=$((bit + 1))
     fi
 }
 
 # 1 — the blocker itself, put back.
+#
+# The anchor was `.buttonStyle(…)` followed by `.disabled(candidate == nil)` and it went stale when
+# that condition became `refusal != nil` and gained a comment above it — silently, between passes,
+# in a commit that had no reason to think about this file. It is now the destructive control's own
+# declaration and its first modifier, which is the thing the arm is actually about.
 arm "cancelAction back onto the destructive Remove" \
     app/Sources/MCPRouterUI/Boards/CleanupSheets.swift \
-    '                    .buttonStyle(StandardButtonStyle())
-                    .disabled(candidate == nil)' \
-    '                    .buttonStyle(StandardButtonStyle())
-                    .keyboardShortcut(.cancelAction)
-                    .disabled(candidate == nil)' \
+    '                    Button("Remove", role: .destructive) {
+                        Task { await board.remove(name, keepHistory: keepHistory) }
+                    }
+                    .buttonStyle(StandardButtonStyle())' \
+    '                    Button("Remove", role: .destructive) {
+                        Task { await board.remove(name, keepHistory: keepHistory) }
+                    }
+                    .buttonStyle(StandardButtonStyle())
+                    .keyboardShortcut(.cancelAction)' \
     'SheetShortcutGuardTests'
 
 # 2 — the pair SwiftUI silently reduces to one.
@@ -262,5 +275,6 @@ if ! git diff --quiet || [ -n "$(git status --porcelain --untracked-files=no)" ]
     exit 1
 fi
 echo "tree clean after every arm (git diff --quiet, git status clean of tracked changes)"
-[ "$failures" -eq 0 ] && echo "all arms bit" || echo "$failures arm(s) did not bite"
+echo "$bit of $attempted arm(s) bit; $failures did not"
+[ "$failures" -eq 0 ] || echo "an arm that did not bite measured nothing — read its line above for which"
 exit "$failures"

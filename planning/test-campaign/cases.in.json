@@ -1865,7 +1865,7 @@
   "status": "open",
   "armed": false,
   "evidence": [],
-  "note": "M37. The Behaviour section offers a Disable-this-server switch for all five server conditions — healthy, tripped, holding a change, unauthorised, already disabled — and takes no confirmation, because it is reversible in one press. The four occupied row-action states are the point: the row slot could not have been the home."
+  "note": "M37. The Behaviour section offers a Disable-this-server switch for all five server conditions \u2014 healthy, tripped, holding a change, unauthorised, already disabled \u2014 and takes no confirmation, because it is reversible in one press. The four occupied row-action states are the point: the row slot could not have been the home."
  },
  {
   "id": "CASE-0258",
@@ -1886,7 +1886,7 @@
   "status": "open",
   "armed": false,
   "evidence": [],
-  "note": "M37. The inspector stops claiming a served tool count on a disabled server, in the three places on the pane the switch sits on: the header detail line, the project-scope toggle's help, and the tool list's footnote. Withheld rather than zeroed — the router still knows the count."
+  "note": "M37. The inspector stops claiming a served tool count on a disabled server, in the three places on the pane the switch sits on: the header detail line, the project-scope toggle's help, and the tool list's footnote. Withheld rather than zeroed \u2014 the router still knows the count."
  },
  {
   "id": "CASE-0259",
@@ -1907,7 +1907,7 @@
   "status": "open",
   "armed": false,
   "evidence": [],
-  "note": "M37. The switch is bound to server.disabled rather than its inverse, reads its title and help from the named copy functions rather than literals, sits unconditionally and first in the section, and is not dimmed merely because the server is already disabled. Source-binding, because this host has no accessor for a SwiftUI toggle's label or binding — the weaker rung is stated rather than dressed up."
+  "note": "M37. The switch is bound to server.disabled rather than its inverse, reads its title and help from the named copy functions rather than literals, sits unconditionally and first in the section, and is not dimmed merely because the server is already disabled. Source-binding, because this host has no accessor for a SwiftUI toggle's label or binding \u2014 the weaker rung is stated rather than dressed up."
  },
  {
   "id": "CASE-0260",
@@ -1928,7 +1928,7 @@
   "status": "open",
   "armed": false,
   "evidence": [],
-  "note": "M37. The request the app's switch sends, driven through the real ControlHandler against a real servers.json, then read back off the filesystem through ServerParser and ToolUnion.isServed — never the response body, which is the handler confirming its own write. An untouched sibling server in the same config is the control."
+  "note": "M37. The request the app's switch sends, driven through the real ControlHandler against a real servers.json, then read back off the filesystem through ServerParser and ToolUnion.isServed \u2014 never the response body, which is the handler confirming its own write. An untouched sibling server in the same config is the control."
  },
  {
   "id": "CASE-0261",
@@ -1970,7 +1970,7 @@
   "status": "open",
   "armed": false,
   "evidence": [],
-  "note": "R22. Every CONFIGURED credential is absent from the bundle, and the document that omits it is a real one. The absence alone is the easiest unfailable assertion in this repository: it holds over an empty document, over a 404, and over a gatherer that never read the config. So it is asserted beside three things that must be PRESENT — a public canary planted in the same log line, the env key name, and the header key name — and beside `\"value\":\"present\"`, which proves a decision was taken about the value rather than the whole server having been skipped."
+  "note": "R22. Every CONFIGURED credential is absent from the bundle, and the document that omits it is a real one. The absence alone is the easiest unfailable assertion in this repository: it holds over an empty document, over a 404, and over a gatherer that never read the config. So it is asserted beside three things that must be PRESENT \u2014 a public canary planted in the same log line, the env key name, and the header key name \u2014 and beside `\"value\":\"present\"`, which proves a decision was taken about the value rather than the whole server having been skipped."
  },
  {
   "id": "CASE-0271",
@@ -2012,7 +2012,7 @@
   "status": "open",
   "armed": false,
   "evidence": [],
-  "note": "R22. The needle floor, which is a correctness rule rather than a performance one. An env value of `1`, `true` or `dev` used as a scrub needle deletes every occurrence of that text from every log line in the bundle — the timestamps, the ports, the word `device`. The result READS as thorough redaction and is a corrupted document, and nobody looking at it can tell which."
+  "note": "R22. The needle floor, which is a correctness rule rather than a performance one. An env value of `1`, `true` or `dev` used as a scrub needle deletes every occurrence of that text from every log line in the bundle \u2014 the timestamps, the ports, the word `device`. The result READS as thorough redaction and is a corrupted document, and nobody looking at it can tell which."
  },
  {
   "id": "CASE-0273",
@@ -2054,7 +2054,7 @@
   "status": "open",
   "armed": false,
   "evidence": [],
-  "note": "R22. The preview is a GET and GET is UNGATED in this router — `ControlHandler.gate` reads the token only for POST/DELETE/PATCH, matching the reference, recorded there as a ported defect rather than quietly fixed. So the preview is written to one rule: it discloses nothing `GET /servers` does not already disclose. Category names, counts, key names, and the redaction plan."
+  "note": "R22. The preview is a GET and GET is UNGATED in this router \u2014 `ControlHandler.gate` reads the token only for POST/DELETE/PATCH, matching the reference, recorded there as a ported defect rather than quietly fixed. So the preview is written to one rule: it discloses nothing `GET /servers` does not already disclose. Category names, counts, key names, and the redaction plan."
  },
  {
   "id": "CASE-0275",
@@ -2075,6 +2075,6 @@
   "status": "open",
   "armed": false,
   "evidence": [],
-  "note": "R22. The verb IS the gate, and it is not describing a mutation. The bundle changes nothing. It is a POST because stage 2 of `ControlHandler.handle` gates the token on POST/DELETE/PATCH only, so the verb is the only thing deciding whether this router hands its whole diagnostic corpus — log lines included — to any unauthenticated caller that can open the loopback port, which per `ControlToken` includes a web page the user merely visits."
+  "note": "R22. The verb IS the gate, and it is not describing a mutation. The bundle changes nothing. It is a POST because stage 2 of `ControlHandler.handle` gates the token on POST/DELETE/PATCH only, so the verb is the only thing deciding whether this router hands its whole diagnostic corpus \u2014 log lines included \u2014 to any unauthenticated caller that can open the loopback port, which per `ControlToken` includes a web page the user merely visits."
  }
 ]

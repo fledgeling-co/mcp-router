@@ -20,7 +20,7 @@
  {
   "id": "REQ-003",
   "class": "affordance",
-  "text": "The Mac shell navigates eight destinations — Activity, Servers, Skills, Discover, Inbox, Checks, Cleanup, Settings — via the sidebar and ⌘1–7 / ⌘,.",
+  "text": "The Mac shell navigates eight destinations \u2014 Activity, Servers, Skills, Discover, Inbox, Checks, Cleanup, Settings \u2014 via the sidebar and \u23181\u20137 / \u2318,.",
   "source": "DESIGN.md:322-334; Destination.swift:43-113",
   "evidence": "observed",
   "effect": "none",
@@ -147,7 +147,7 @@
  {
   "id": "REQ-017",
   "class": "affordance",
-  "text": "Every data surface ships the nine DESIGN.md §5 states with real copy on the unhappy paths.",
+  "text": "Every data surface ships the nine DESIGN.md \u00a75 states with real copy on the unhappy paths.",
   "source": "DESIGN.md:250-271",
   "evidence": "unknown",
   "effect": "none",
@@ -183,11 +183,11 @@
  {
   "id": "REQ-035",
   "class": "honesty-guardrail",
-  "text": "One action exports the router's recent log, every declared upstream with its live state and cached tool surface, and the recent tool calls — and no credential value leaves in it. A secret-bearing field is never placed in the document; every known secret value is removed from every string that does survive, in its literal, percent-encoded and base64 forms; a value too short to be scrubbed from free text is named rather than used; and the untokened preview carries counts and no content.",
+  "text": "One action exports the router's recent log, every declared upstream with its live state and cached tool surface, and the recent tool calls \u2014 and no credential value leaves in it. A secret-bearing field is never placed in the document; every known secret value is removed from every string that does survive, in its literal, percent-encoded and base64 forms; a value too short to be scrubbed from free text is named rather than used; and the untokened preview carries counts and no content.",
   "source": "planning/features-to-triage/daemon-diagnostics-bundle-export.md; planning/specs/spec-R22.md",
   "evidence": "observed",
   "effect": "inbound-socket",
-  "provider": "app/Sources/RouterCore/Control/ControlDiagnostics.swift routeDiagnostics and app/Sources/RouterCore/Control/ControlDiagnosticsJSON.swift bundleValue — the document is served on the loopback control listener bound by RouterService, which is the inbound socket this row names; app/Sources/RouterCore/Diagnostics/SecretRedactor.swift is the pass that decides what those bytes may contain. Witnessed by scripts/acceptance/r22-diagnostics.sh, which plants a credential literal in a real servers.json and a real router.log, drives the route over the daemon's own socket, and requires the plant to be provably present on disk before any absence in the reply counts.",
-  "note": "R22. The requirement is written as an honesty guardrail rather than a behaviour because the load-bearing half is a promise about what is NOT in the output, and this campaign's own history is that such a promise is satisfied trivially by producing nothing. Every case under it therefore pairs its absence with a presence: a public canary in the same log line, the key names, and a non-zero `occurrencesRemoved`.\n\nR25 (server configuration profile export with safe secret redaction) is the sibling and had NOT landed when this was built — checked at LEDGER.md, status To Do — so the redactor is new here rather than a second one. It is deliberately a general component under RouterCore/Diagnostics rather than private to the bundle, so R25 reuses it instead of writing a third."
+  "provider": "app/Sources/RouterCore/Control/ControlDiagnostics.swift routeDiagnostics and app/Sources/RouterCore/Control/ControlDiagnosticsJSON.swift bundleValue \u2014 the document is served on the loopback control listener bound by RouterService, which is the inbound socket this row names; app/Sources/RouterCore/Diagnostics/SecretRedactor.swift is the pass that decides what those bytes may contain. Witnessed by scripts/acceptance/r22-diagnostics.sh, which plants a credential literal in a real servers.json and a real router.log, drives the route over the daemon's own socket, and requires the plant to be provably present on disk before any absence in the reply counts.",
+  "note": "R22. The requirement is written as an honesty guardrail rather than a behaviour because the load-bearing half is a promise about what is NOT in the output, and this campaign's own history is that such a promise is satisfied trivially by producing nothing. Every case under it therefore pairs its absence with a presence: a public canary in the same log line, the key names, and a non-zero `occurrencesRemoved`.\n\nR25 (server configuration profile export with safe secret redaction) is the sibling and had NOT landed when this was built \u2014 checked at LEDGER.md, status To Do \u2014 so the redactor is new here rather than a second one. It is deliberately a general component under RouterCore/Diagnostics rather than private to the bundle, so R25 reuses it instead of writing a third."
  }
 ]

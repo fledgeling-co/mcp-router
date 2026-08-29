@@ -69,10 +69,24 @@ The cost is accepted deliberately: WinUI 3 needs Visual Studio Build Tools 2022 
 (`Microsoft.VisualStudio.2022.BuildTools`, with the managed-desktop and UWP build-tool workloads and
 the Windows 11 SDK). The owner authorised that install on 2026-08-30.
 
-**One consequence for WIN18.** The missing task assembly was looked for *under the .NET SDK*, which
-is where `dotnet build` resolves `MSBuildExtensionsPath`. So the Windows lane may have to invoke
-Visual Studio's own `MSBuild.exe` rather than `dotnet build`. Which of the two actually works is a
-measurement WIN18 owes, not an assumption.
+**The lane is proved, and it is not `dotnet build`.** Measured after the install, same probe project:
+
+| Invocation | Result |
+|---|---|
+| `dotnet build` | **fails** — `MSB4062`, still looking under `C:\Program Files\dotnet\sdk\9.0.316\Microsoft\VisualStudio17.0\AppxPackage\`, which does not exist |
+| `MSBuild.exe` from `…2\BuildTools\MSBuild\Current\Bin` with `-t:Restore,Build` | **Build succeeded, 0 errors, exit 0** |
+
+So the Windows lane invokes Visual Studio's `MSBuild.exe`, and WIN18 inherits that as a measurement
+rather than a preference. `dotnet build` resolves `MSBuildExtensionsPath` to the .NET SDK, which
+carries no `AppxPackage` tasks however complete the Visual Studio install is; the two do not
+converge by installing more.
+
+**Two false greens on the way in, recorded because the next person will hit them.** `winget install`
+reported exit 0 while printing `Installer failed with exit code: 1`, and `setup.exe modify` run
+without elevation reported exit 0 while logging `Exit Code: 87` and leaving the component absent. In
+both cases the wrapper's status said nothing about whether the work happened. The install only took
+effect run elevated, and the check that settled it was the presence of
+`Microsoft.Build.Packaging.Pri.Tasks.dll` on disk, not any exit code.
 
 ## Assumptions made writing this
 

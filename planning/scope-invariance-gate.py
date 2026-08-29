@@ -15,7 +15,8 @@ directory the caller happened to be standing in. Measured in this tree on 2026-0
     git ls-files | wc -l          from planning/                 955
     git ls-files | wc -l          from scripts/                  109
 
-Two tracked instruments were reading their corpus that way, and both were measured going quiet:
+Three tracked instruments were reading their corpus that way, and all three were measured going
+quiet:
 
   * `planning/claim-sweep.py` — 11 blocking hits and exit 1 from the root; **0 hits and exit 0**
     from `scripts/`. A clean answer, from the instrument whose own docstring is the rule about
@@ -23,8 +24,13 @@ Two tracked instruments were reading their corpus that way, and both were measur
   * `planning/py39-annotation-gate.py` — `swept 77 tracked .py files` from the root, `swept 9` from
     `scripts/`. Both runs print `0 file(s) carry a PEP 604 union`, **and both print
     `control: HELD`**.
+  * `planning/m33-branch-sweep.py` — `examined=233 affected=7 covered=0 n/a=226` from the root;
+    `examined=233 affected=0 covered=0 n/a=233` from `scripts/`. It exists to find the branches
+    whose green `swift test` covered nothing under `app/MCPRouter/`, and from a subdirectory it
+    reports that there are none — with a full denominator beside the zero, which is the one guard
+    its own header names.
 
-That second one is the whole reason this gate exists beside `sweep-control-gate.py` rather than
+The second one is the whole reason this gate exists beside `sweep-control-gate.py` rather than
 inside it. A presence control plants an instance and confirms the instrument can see it — which it
 can, in the nine files it was looking at. **A presence control proves the instrument is not blind.
 It does not prove it was pointed at the right set.** The two failures look identical from outside
@@ -40,8 +46,10 @@ and one of them is invisible to the gate written for the other.
   2. **Dynamically**, over the instruments named in `INVARIANT_RUNS`: the same instrument run from
      the repository root and from a tracked subdirectory must produce the identical exit code and
      the identical stdout. This is the arm that runs the artifact instead of a model of it — the
-     static rule is a claim about the source, and this repository has already paid twice for a
-     control that modelled an instrument rather than executing it.
+     static rule is a claim about source text and the failure above is a claim about behaviour.
+     This repository has already paid for a control that modelled an instrument rather than
+     executing it: the lint-gate control that compared the old rule against the new one in
+     isolation, and passed, while both defects sat in the script underneath it.
 
 ## Its own controls, run on every invocation
 
@@ -63,8 +71,9 @@ never this corpus, and a run whose controls did not all hold exits 4 and prints 
   * **Shell.** The population is Python, because an anchor in shell is a `cd` three lines earlier
     and a text scan cannot tell that from its absence. The gate measures how much it is declining
     rather than declaring the class empty: it counts tracked `.sh` files invoking an enumerating
-    git subcommand and prints them by name. Zero of them do today; the day one does, that line
-    changes and nobody has to remember this paragraph.
+    git subcommand and prints them by name. One does today — `scripts/acceptance/carrier-census.sh`,
+    which `cd`s to a root it derives, the form a text scan cannot distinguish from its absence. The
+    day a second appears, that line changes and nobody has to remember this paragraph.
   * **An argv this reader cannot resolve.** A `subprocess` call whose command is built from a
     variable is counted and named as unresolved, never assumed clean.
   * **Enumerations that are not git.** `os.walk`, `rglob` and `glob` on a root the instrument
@@ -89,7 +98,6 @@ from __future__ import annotations  # `X | None` is evaluated at def time on 3.9
 
 import argparse
 import ast
-import os
 import subprocess
 import sys
 import tempfile

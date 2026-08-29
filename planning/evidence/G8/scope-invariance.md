@@ -31,14 +31,27 @@ python3 planning/claim-sweep.py                     # cwd = repository root
 cd scripts && python3 ../planning/claim-sweep.py    # cwd = scripts/
 ```
 
-| | before, from the root | before, from `scripts/` | after, from the root | after, from `scripts/` |
+"Before" is `49eae13`. "After" is this branch at `a32a417`, which adds five tracked files, so
+the scanned count moves — a corpus anchored to the repository is supposed to move with it.
+
+| | before, root | before, `scripts/` | after, root | after, `scripts/` |
 |---|---|---|---|---|
-| `scanned N tracked files` | 1898 | — | 1898 | 1898 |
+| `scanned N tracked files` | 1898 | **109** | 1903 | 1903 |
+| `excluded N as records of a withdrawn claim` | 6 | **0** | 6 | 6 |
 | `blocking classes A1+A2+A3 total` | 11 | **0** | 11 | 11 |
 | exit | 1 | **0** | 1 | 1 |
 
-The after-columns are byte-identical files, checked with `diff -q`, and the after-root output is
-byte-identical to the before-root output — the anchor changed where it looked and nothing else.
+The two after-columns are byte-identical files, checked with `diff -q`. The before-root and
+after-root outputs differ in exactly two places, checked with `diff`: the six new lines naming the
+corpus root and the normaliser, and `1898` becoming `1903`. The excluded list, every pattern's hit
+count, every site and the exit code are unchanged — the anchor changed where it looked and nothing
+else.
+
+**This instrument's denominator did collapse**, from 1898 to 109, and the run still exited 0. A
+reader who looked at the first line could have caught it; nothing in the exit code, the blocking
+total or the per-class counts said anything was wrong. That is the whole difficulty of the class —
+the evidence was on the screen and it read as a smaller corpus rather than as a wrong answer.
+`m33-branch-sweep.py` in §4 is the harder case, where the denominator does not move at all.
 
 Unanchored call site: `planning/claim-sweep.py:125` at `49eae13`.
 
@@ -77,6 +90,12 @@ cd scripts && python3 ../planning/m33-branch-sweep.py      # cwd = scripts/
 The sweep exists to find the branches whose green `swift test` covered nothing under
 `app/MCPRouter/`. From a subdirectory it reports that there are none — with a full denominator
 beside the zero, which is the one guard its own header names.
+
+**This is the hard case, and the reason the gate runs instruments rather than reading them.**
+`examined=233` is identical in both columns, because the population is branches and the narrowing
+is in the pathspec each branch is asked about. `claim-sweep.py` at least printed a smaller corpus
+before it printed its clean answer; here nothing on the screen moves except the number the sweep
+exists to produce.
 
 Unanchored call site: `planning/m33-branch-sweep.py:65` at `49eae13`, a wrapper passing `cwd=None`
 explicitly.

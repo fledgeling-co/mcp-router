@@ -581,7 +581,7 @@
       "route": "app://mac/pairing",
       "lane": "macos-glass",
       "status": "ready",
-      "shotNote": "CORRECTED 20 Aug 2026. This note used to read 'no picture is filed under this surface ... the sheet was never opened and never photographed', which was true when written and false by the time it was read: DEF-036 closed and the sheet was opened and photographed at 2026-08-20T11:33:01Z. The capture's windowTitleReadback is 'Inbox' because the sheet is a modal over the Inbox window, so the window keeps its title while the sheet is up - a readback that looks like the mis-file DEF-006 records and is not one. Judged 20 Aug 2026: fail, DEF-001 on glass.",
+      "shotNote": "CORRECTED 20 Aug 2026. This note used to read 'no picture is filed under this surface ... the sheet was never opened and never photographed', which was true when written and false by the time it was read: DEF-036 closed and the sheet was opened and photographed at 2026-08-20T11:33:01Z. The capture's windowTitleReadback is 'Inbox' because the sheet is a modal over the Inbox window, so the window keeps its title while the sheet is up - a readback that looks like the mis-file DEF-006 records and is not one. Judged 20 Aug 2026: fail, DEF-001 on glass. SUPERSEDED FOR CONTENT BY M39, 2026-08-29: the capture predates the expiry ring and the typed-code fallback sentence, so it is not evidence for either. CASE-0266 is the re-photograph, open and owed to verify.",
       "shot": "evidence/shots/SURF-010.build.png",
       "controls": [
         "Can't scan? Type a code",
@@ -592,7 +592,7 @@
       ],
       "controlsSource": "design/mocks/prototype.html",
       "controlsUnactuatable": {
-        "Can't scan? Type a code": "The Mac's pairing sheet draws no typed-code fallback. The copy exists \u2014 `InboxCopy.Pairing.typeInstead` \u2014 and is drawn only by the phone's `PairingFlowView`, so the control the design puts on the Mac is on the other device. The sheet's own controls are `Show a new code` and `Done`. DEF-064."
+        "Can't scan? Type a code": "Still no control, and M39 decided that deliberately rather than leaving it open. The copy `InboxCopy.Pairing.typeInstead` is the PHONE's button: it switches `PairingFlowView` from the camera to a keypad, a screen the phone has and the Mac does not. The Mac already draws the eight characters in full under the QR, and the device that types them is the other one, so a button here would change no state and reveal nothing -- which is DEF-064's finding, not a fix for it. What M39 shipped instead is the instruction the brief asks for, `InboxCopy.Pairing.typeInsteadDetail`, rendered by `PairingSheet.typedFallback` in the live state, in the design of record's own words for it. CASE-0265 asserts the sentence is drawn AND that the action bar did not gain a fourth control. The sheet's controls remain `Show a new code` and `Done`. DEF-064."
       }
     },
     {

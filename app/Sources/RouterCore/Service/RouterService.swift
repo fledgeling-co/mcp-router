@@ -67,6 +67,10 @@ public actor RouterService {
     /// Upstream health — R27. Held for the life of the process because health IS history: a
     /// monitor rebuilt per request would report every server `unprobed` forever.
     let health: UpstreamHealthMonitor
+    /// The session analyst — F7. Held for the life of the process for the reason ``health`` is, and
+    /// for a second one: the thirty-day suppression window is state, and an engine rebuilt per
+    /// request would re-read its file on every call and hold a `running` flag nothing could see.
+    let analyst: AnalystEngine
     let usedCodes = UsedCodeSet()
     let token: String
     let tokenPath: String
@@ -124,6 +128,23 @@ public actor RouterService {
             globalRefusals: config.healthRefusals,
             probing: PoolUpstreamProbe(pool: pool, clock: clock),
             clock: clock
+        )
+        analyst = AnalystEngine(
+            reader: SessionCorpusReader(
+                fileSystem: fileSystem,
+                homeDirectory: RouterHome.resolvedHomeDirectory(environment: environment)
+            ),
+            judge: CLIAnalystJudge(runner: AnalystProcessRunner(environment: environment)),
+            candidateSource: RegistryCandidateSource(deps: RegistryDeps(
+                http: RegistryHTTPClient(), fileSystem: fileSystem, routerHome: home.root,
+                officialBase: environment["MCP_ROUTER_REGISTRY"],
+                smitheryBase: environment["MCP_ROUTER_SMITHERY"],
+                githubToken: environment["GITHUB_TOKEN"] ?? environment["GH_TOKEN"],
+                nowMs: clock.nowMilliseconds
+            )),
+            fileSystem: fileSystem,
+            clock: clock,
+            statePath: (home.root as NSString).appendingPathComponent("analyst.json")
         )
         // Whether the token already existed is read *before* loading it, because `load()` mints one
         // when it is missing and there is no way to ask afterwards which happened. The reference

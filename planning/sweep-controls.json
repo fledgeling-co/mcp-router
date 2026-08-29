@@ -1277,6 +1277,16 @@
       ],
       "since": "2026-08-29",
       "reason": "R27's acceptance lane. WAIVED for the reason every other lane in `acceptance-lanes.sh` is: it needs `app/.build/debug/MCPRouterCLI`, binds a reserved port and spawns real python children, and it exits 2 rather than 0 when the binary is absent so a missing build cannot read as a pass. Its own arm is ARM 5 of `bin/arm-r27-health.sh`, which sets `ControlDeps.health` to nil in the daemon, rebuilds and re-runs this lane: three assertions fail, which is the shape a nil dependency makes on the wire and the one thing no unit test in this item can see."
+    },
+    {
+      "path": "planning/test-campaign/bin/arm-f7-analyst.py",
+      "disposition": "waived",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-29",
+      "reason": "It carries a presence control and runs it on every invocation \u2014 nothing planted, every filter required GREEN over a NON-ZERO test count, so a filter that selected nothing cannot report twelve kills. The waiver is about where that control can run, not whether it exists: every arm compiles and runs the Swift test suite, so this needs a built test binary and a toolchain, which is the `waived` rather than `control` rule. Running it inside `lint` would put twelve builds behind a lint step. Re-run it directly: `python3 planning/test-campaign/bin/arm-f7-analyst.py`, exit 0 with 12 of 12 killed, 3 if the presence control did not go green."
     }
   ]
 }

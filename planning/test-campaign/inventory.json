@@ -269,6 +269,15 @@
       "evidence": "observed",
       "effect": "subprocess",
       "provider": "app/Sources/RouterCore/Health/UpstreamProbing.swift app/Sources/RouterCore/Pool/StdioUpstreamTransport.swift PoolUpstreamProbe \u2014 the probe leases the upstream from UpstreamPool and sends tools/list down it, which for a stdio upstream is the Process() in StdioUpstreamTransport. Witnessed by planning/test-campaign/bin/witness-health-probe.sh, whose sabotage arm denies the effect and requires the reading to flip."
+    },
+    {
+      "id": "REQ-030",
+      "class": "behaviour",
+      "text": "The router has a session analyst. It reads the harness session stores on this machine and reports what it read AND what it discarded, per store, naming every store it did not open. Signals that recur at or above a floor are counted and passed to a model running through a CLI the user is already signed into, primary then fallback, and the run records which rung judged. A recommendation must name an entry from a candidate list the router computed and a signal the run counted; anything else is rejected and counted. A finding already delivered stays quiet for thirty days unless its evidence gains a new signal. The cadence is a stored setting and the wire says it is not a schedule.",
+      "source": "planning/features-to-triage/F-session-analyzer-skill-recommender.md; planning/specs/spec-F7.md; PRD.md \u00a76",
+      "evidence": "observed",
+      "effect": "subprocess",
+      "providerNote": "app/Sources/RouterCore/Analyst/ \u2014 SessionCorpusReader reads through FileSystem, CLIAnalystJudge spawns the configured CLI through AnalystProcessRunner, RegistryCandidateSource resolves candidates through the same registry /registry/search uses. Served on GET /insights and driven by POST /insights/analyse. The subprocess effect is the CLI the judge runs; NO test in this item spawns one \u2014 every engine test drives AnalystJudging directly, and that is a declared limit rather than a covered one."
     }
   ],
   "surface": [
@@ -780,7 +789,7 @@
       "lane": "macos-glass",
       "status": "ready",
       "shot": "evidence/shots/SURF-026.build.png",
-      "enumeratedNote": "Enumerated 2026-08-27 by G16. Absent from this list since M22 shipped it, so no completeness gate could report it uncovered. It is the board of COUNTS AND MEASUREMENTS, which is why it is enumerated separately from Harnesses: DESIGN.md \u00a76 forbids drawing a figure the router does not observe, and a plausible number reads as a real one. Its cases therefore owe a trace per figure, not only a render.",
+      "enumeratedNote": "Enumerated 2026-08-27 by G16. Absent from this list since M22 shipped it, so no completeness gate could report it uncovered. It is the board of COUNTS AND MEASUREMENTS, which is why it is enumerated separately from Harnesses: DESIGN.md \u00a76 forbids drawing a figure the router does not observe, and a plausible number reads as a real one. Its cases therefore owe a trace per figure, not only a render. F7 built the analyst PRD.md \u00a76 specifies, so four of this surface's five undisposed controls move off DEF-065: Analyse now, Analyst model, Second-opinion model and Analyst cadence are actuated by CASE-0223..0225. `Insights window` stays a refusal for the reason already recorded.",
       "controls": [
         "Analyse now",
         "Analyst cadence",
@@ -796,11 +805,7 @@
       ],
       "controlsSource": "design/mcp-router-console.html",
       "controlsUnactuatable": {
-        "Analyse now": "Drawn, dim, and wired to an empty closure on purpose. There is no analyst in this product: `PRD.md` \u00a76 specifies a session analyst and nothing under `app/Sources` implements one, so the button is `.disabled(true)` with `analyseUnavailable` as its help and its accessibility hint \u2014 `DESIGN.md` \u00a73.4's dim-with-a-reason rather than an absence. Pressing it is not refused by the campaign; it is refused by the control. DEF-065.",
-        "Analyst cadence": "The build draws the analyst panel's EMPTY state \u2014 a title, a body and the dim action \u2014 where the design draws three configuration readouts. There is no cadence to display or change. DEF-065.",
-        "Analyst model": "As `Analyst cadence`. DEF-065.",
-        "Insights window": "Parked deliberately, with the reason in the source rather than in this file: the window is fixed at 24 hours because the call log rotates and what the router can answer for is whatever survived, so a control offering seven days on a machine holding two would lie about its own range (`InsightsBoard`'s own header comment). Not a defect \u2014 a refusal.",
-        "Second-opinion model": "As `Analyst cadence`. DEF-065."
+        "Insights window": "Parked deliberately, with the reason in the source rather than in this file: the window is fixed at 24 hours because the call log rotates and what the router can answer for is whatever survived, so a control offering seven days on a machine holding two would lie about its own range (`InsightsBoard`'s own header comment). Not a defect \u2014 a refusal."
       }
     },
     {

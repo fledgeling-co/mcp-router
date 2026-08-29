@@ -238,7 +238,12 @@ extension RouterService {
             // history, so every server would read `unprobed` forever and `consecutiveFailures`
             // could never reach `tripAfter`. The failure would be invisible to any test that makes
             // one request.
-            health: health
+            health: health,
+            // F7. Built here and nowhere else, for the reason the R28 line above states about
+            // itself: an engine that is unit-tested and nil in the process that ships answers 503
+            // on the wire while the suite stays green. Its candidate source is the same registry
+            // `/registry/search` uses, so a recommendation always names an entry that resolves.
+            analyst: analyst
         )
     }
 

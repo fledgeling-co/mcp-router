@@ -106,7 +106,7 @@
                 callsByHarness(response)
                 perHour(response)
                 dutyCycle(response)
-                analyst
+                InsightsAnalystPanel(board: board)
             }
             .measured("insights-populated", role: "board-body", kind: .vstack)
         }
@@ -221,43 +221,6 @@
 
         /// The analyst's own configuration and its last run — its empty state, because there is no
         /// analyst in this product yet and the brief asks for the panel rather than the analyst.
-        private var analyst: some View {
-            section(InsightsBoardCopy.analyst, id: "section-analyst") {
-                VStack(alignment: .leading, spacing: M22BoardMetrics.labelGap) {
-                    Text(InsightsBoardCopy.analystAbsentTitle)
-                        .typeRole(.title3)
-                        .foregroundStyle(ColorToken.t1.color)
-                        .measured(
-                            "analyst-title", role: "analyst-title", kind: .text,
-                            tokens: ["foreground": .t1], type: .title3,
-                            text: InsightsBoardCopy.analystAbsentTitle
-                        )
-                    Text(InsightsBoardCopy.analystAbsentBody)
-                        .typeRole(.body)
-                        .foregroundStyle(ColorToken.t2.color)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .measured(
-                            "analyst-body", role: "analyst-body", kind: .text,
-                            tokens: ["foreground": .t2], type: .body,
-                            text: InsightsBoardCopy.analystAbsentBody
-                        )
-                    // Dim rather than absent (§3.4), and `featureUnbuilt` rather than a surface
-                    // missing from this build: `PRD.md` §6 specifies a session analyst and nothing
-                    // in app/Sources implements one, so there is nothing to run anywhere.
-                    Button(InsightsBoardCopy.analyseNow) {}
-                        .buttonStyle(StandardButtonStyle())
-                        .disabled(true)
-                        .help(InsightsBoardCopy.analyseUnavailable)
-                        .accessibilityHint(InsightsBoardCopy.analyseUnavailable)
-                        .measured(
-                            "analyse-now", role: "board-action", type: .body,
-                            text: InsightsBoardCopy.analyseNow
-                        )
-                }
-                .measured("analyst-empty", role: "analyst-panel", kind: .vstack)
-            }
-        }
-
         private func section(
             _ title: String, id: String, @ViewBuilder _ content: () -> some View
         ) -> some View {

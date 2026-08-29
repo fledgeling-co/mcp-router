@@ -3778,5 +3778,121 @@
     ],
     "note": "A configured value the router will not take is REFUSED and reported, never clamped in silence. The lane's `r27-refused` server writes `tripAfter: 1` and `probeIntervalMs: 10`; the report carries both refusals with the value as written, the floor that rejected it, and a `scope` saying which block to fix, while `policy` reports the value actually in force.\n\nThe `tripAfter` floor of 2 is this item's own version of the vacuity rule: with a threshold of 1 the first failure trips, `degraded` is unreachable, and the guarantee that an upstream is flagged degraded before it is tripped would hold only because nothing can enter the state it names. Refusing rather than clamping is the other half \u2014 a clamp reports 2 over a file that says 1, and the operator's next reading of their own file disagrees with the router for a reason neither can see.",
     "armedBy": "ARMED and watched red. `bin/arm-r27-health.sh` ARM 3 drops the refusals when seeding a record: 21 tests across two suites run and 4 issues are recorded, so the wire stops saying which settings were ignored. Restored byte-identical."
+  },
+  {
+    "id": "CASE-0223",
+    "req": "REQ-030",
+    "surface": "SURF-026",
+    "flow": null,
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-026",
+      "state": "populated",
+      "viewport": "1280x800",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "typical",
+      "executionPlane": "in-process"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "app/Tests/MCPRouterUITests/InsightsAnalystBoardTests.swift",
+      "planning/evidence/F7/arms.json"
+    ],
+    "note": "F7. `Analyse now` actuated, and the outcome read on a channel the press did not write. The board posts once and then draws what a SECOND `GET /insights` returned; the staging client answers that read differently before and after, so \u201cthe board redrew from the router\u201d and \u201cthe board did nothing\u201d are not the same picture.\n\nThe same-channel reads declined are the button's own callback returning and `analysing` falling back to false. Both survive an empty body \u2014 which is exactly the control this item replaced.",
+    "armedBy": "ARMED and watched red. `arm-f7-analyst.py --only F7-A12` empties `analyseNow()` to the body DEF-065 recorded: `Button(analyseNow) {}` one layer down. Three tests redden, including the press case and the store-report case.",
+    "actuates": [
+      "Analyse now"
+    ],
+    "actuatesNote": "Driven at the model; the effect is read as the run record returned by a second `insights()` call the client counted, plus the finding rows that read carried. The router-side half of the same actuation is CASE-0224."
+  },
+  {
+    "id": "CASE-0224",
+    "req": "REQ-030",
+    "surface": "SURF-026",
+    "flow": null,
+    "lane": "router-daemon",
+    "cell": {
+      "surface": "SURF-026",
+      "state": "populated",
+      "viewport": "1280x800",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "typical",
+      "executionPlane": "daemon"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "app/Tests/RouterCoreTests/ControlAnalystRoutesTests.swift",
+      "planning/evidence/F7/arms.json"
+    ],
+    "note": "F7. The same control from the router's side, and the strongest reading of it: `POST /insights/analyse` through `ControlHandler.handle`, then a separate `GET /insights` that reports the run. The POST's own 200 is not the oracle \u2014 the later GET is, and it is a different request through a different arm of the dispatch table.",
+    "armedBy": "ARMED and watched red. `arm-f7-analyst.py --only F7-A10` deletes the dispatch arm and the route falls to 405; `F7-A11` makes `analystValue` answer null and the later GET reports nothing. A9's reachability case is deliberately NOT in either arm's expectation: claiming a path and routing it are different properties, and A9 holds with the dispatch arm gone.",
+    "actuates": [
+      "Analyse now"
+    ],
+    "actuatesNote": "Read as the body of a second GET. The declined same-channel read is the POST's own reply, which carries the same envelope and would be the control reporting its own success."
+  },
+  {
+    "id": "CASE-0225",
+    "req": "REQ-030",
+    "surface": "SURF-026",
+    "flow": null,
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-026",
+      "state": "populated",
+      "viewport": "1280x800",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "typical",
+      "executionPlane": "in-process"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "app/Tests/MCPRouterUITests/InsightsAnalystBoardTests.swift",
+      "app/Tests/RouterCoreTests/ControlAnalystRoutesTests.swift",
+      "planning/evidence/F7/arms.json"
+    ],
+    "note": "F7. The three configuration menus the design draws and the build replaced with an empty state \u2014 `Analyst model`, `Second-opinion model` and `Analyst cadence`. Each patches exactly one member and leaves the other two nil, which is what stops a press on the cadence menu from re-asserting a model the user did not touch. Asserted as the three patch payloads the client received, in order.",
+    "armedBy": "ARMED and watched red. `arm-f7-analyst.py --only F7-A9` makes the wire report `scheduled: true`; the cadence readout then claims a schedule the router does not keep and A3 reddens. The settings round-trip and the unknown-lane refusal are armed at the engine by the same run.",
+    "actuates": [
+      "Analyst model",
+      "Second-opinion model",
+      "Analyst cadence"
+    ],
+    "actuatesNote": "Driven at the model; read as the arguments the recording client received and, on the router side, as the model name a later GET reports. The declined same-channel read is the menu's own title, which changes from the response the write returned."
+  },
+  {
+    "id": "CASE-0226",
+    "req": "REQ-030",
+    "surface": "SURF-026",
+    "flow": null,
+    "lane": "router-daemon",
+    "cell": {
+      "surface": "SURF-026",
+      "state": "populated",
+      "viewport": "1280x800",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "typical",
+      "executionPlane": "daemon"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "app/Tests/RouterCoreTests/AnalystCorpusTests.swift",
+      "app/Tests/RouterCoreTests/AnalystEngineTests.swift",
+      "planning/evidence/F7/arms.json"
+    ],
+    "note": "F7. What the analyst read and what it refused to say. The corpus reports a positive `linesRead`, a named discard count and every store it did not open with the reason \u2014 including Cursor's, which is enumerated and deliberately unread. A recommendation naming an entry outside the candidate list, or a signal the run never counted, is rejected and COUNTED rather than dropped, so an engine that discarded everything is distinguishable from one that was handed nothing.",
+    "armedBy": "ARMED and watched red. Seven arms: `F7-A1` drops the discard counter, `F7-A2` drops Cursor from the store table, `F7-A3` lowers the recurrence floor, `F7-A4` and `F7-A5` drop the two candidate checks, `F7-A6` drops the thirty-day suppression, `F7-A7` drops the persistence. `F7-A2` first read MISS and was right to: the store-count assertion compared the reader's output against the same table the mutation edited, so it could never have failed. Corrected to a literal."
   }
 ]

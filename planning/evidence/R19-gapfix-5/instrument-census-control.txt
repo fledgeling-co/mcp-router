@@ -1,0 +1,19 @@
+instrument-census control:
+  ok   a planted swift suite is discovered and reaches swift
+  ok   an unfiltered `swift test` recipe contains it
+  ok   a `--filter` recipe contains it too, because the filter names its type
+  ok   a planted lane invoking dist/index.js reaches node
+  ok   `parity-gate.sh`'s LANES list contains it
+  ok   a gate that executes no router is `static`, which is a finding rather than a gap
+  ok   a lane that only NAMES another instrument does not contain it
+  ok   the mention is dropped with a reason rather than dropped silently
+  ok   a lane that INVOKES another instrument contains it
+  ok   reach closes over containment: a recipe that runs a `swift test` gate reaches swift
+  ok   and it says which child carried the reach
+  ok   a gate that only writes ABOUT dist/index.js does not reach node
+  ok   a python gate holding a node invocation as a STRING LITERAL stays static
+  ok   a python gate that subprocess-runs node reaches node
+  ok   a lane that only COMMENTS and ECHOES a node invocation does not reach node
+  ok   the reader accounts for what it refused
+  ok   a census missing a row is not equal to the derived one
+  17 of 17 arms fired

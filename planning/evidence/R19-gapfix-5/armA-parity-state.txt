@@ -1,0 +1,12 @@
+phase 1 — the reference writes the state, for real
+  the reference left servers.json (312 bytes)
+  the reference left manifest.json (828 bytes)
+  the reference left usage.jsonl (379 bytes)
+  the reference left usage-stats.json (312 bytes)
+
+phase 2 — the Swift router is started on exactly those files, having written none of them
+
+  ok   the Swift router served the same tool corpus and the same call history from the
+       reference's own files, having written none of them
+
+state: one-directional by design — TypeScript writes, Swift reads.

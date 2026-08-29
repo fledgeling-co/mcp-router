@@ -1,0 +1,31 @@
+comparing both binaries verb by verb
+
+  FAIL cli-help                     help prints the usage block — stdout:[12,17d11 <   mcp-router sessions [--push] [--dry-run] <                                       Which live Claud]
+  FAIL cli-help                     --help is the same arm — stdout:[12,17d11 <   mcp-router sessions [--push] [--dry-run] <                                       Which live Claud]
+  FAIL cli-help                     -h is the same arm — stdout:[12,17d11 <   mcp-router sessions [--push] [--dry-run] <                                       Which live Claud]
+  FAIL cli-help                     an unknown verb falls to help — stdout:[12,17d11 <   mcp-router sessions [--push] [--dry-run] <                                       Which live Claud]
+  ok   cli-tools                    tools lists the cached surface (exit 0, stdout and stderr identical)
+  ok   cli-tools                    tools lists a populated surface (exit 0, stdout and stderr identical)
+  ok   cli-index                    index builds the manifest (exit 0, stdout and stderr identical)
+  ok   cli-refresh                  refresh is the same arm as index (exit 0, stdout and stderr identical)
+  ok   cli-usage                    usage with nothing listening (exit 1, stdout and stderr identical)
+  ok   cli-status                   status with nothing listening (exit 1, stdout and stderr identical)
+  ok   cli-import                   import adopts the same servers and writes the same servers.json
+  ok   cli-serve                    both bound, answered /health, logged [<ts> info  wrote a new control token -> <home>/control.token,<ts> info  mcp-router listening on http://127.0.0.1:8994/mcp,<ts> info  serving 2 tools from 1 upstreams; 0 open, idle window 300s,<ts> info  SIGTERM received; closing upstreams,] and exited 0 on SIGTERM
+  ok   cli-auth                     auth against a stdio upstream, router listening (both routers answered; exit 1, stdout and stderr identical)
+  ok   cli-auth                     auth against an unknown server, router listening (both routers answered; exit 1, stdout and stderr identical)
+  ok   cli-watch                    nothing staged takes the fast path (exit 0; streams, servers.json, ~/.claude.json and manifest shape identical)
+  ok   cli-watch                    a staged server is indexed, adopted and unstaged (exit 0; streams, servers.json, ~/.claude.json and manifest shape identical)
+  ok   cli-watch                    an unparseable ~/.claude.json writes nothing (exit 0; streams, servers.json, ~/.claude.json and manifest shape identical)
+  ok   cli-watch                    two upstreams failing at different points each leave a row (exit 0; streams, servers.json, ~/.claude.json and manifest shape identical)
+
+cli: 14 verbs agreed, 4 did not
+     Every row is a simultaneous comparison of two binaries over identical inputs, with
+     stdout, stderr and the exit code compared separately.
+     cli-auth IS claimed here now (D-p1-d, closed by P5): the verb is run against a router
+     this lane started, and a run in which either router failed to answer /health is a
+     failure rather than a pass — without that guard the two binaries agree on the
+     no-router sentence and the row passes having reached none of its own code.
+     Its non-stdio path is NOT compared here and is not counted twice: the reference
+     answers 200 with an authorizationUrl where this router answers 405, which is D-p1-a
+     and is carried by the control-auth-post-http row.

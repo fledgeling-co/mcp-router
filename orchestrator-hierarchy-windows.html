@@ -1,0 +1,111 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>MCP Router — Windows fleet</title>
+<style>
+  :root { --bg:#0d1117; --ink:#e6edf3; --dim:#8b949e; --edge:rgba(230,237,243,.22);
+           --done:rgba(76,163,255,.20); --ready:rgba(230,237,243,.07); --blocked:rgba(230,237,243,.03);
+           --red:#FF4245; --line:rgba(230,237,243,.14); }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--bg); color:var(--ink);
+          font:14px/1.5 "Segoe UI Variable Text","Segoe UI",system-ui,sans-serif; }
+  .wrap { max-width:1280px; margin:0 auto; padding:32px 24px 64px }
+  h1 { font-size:20px; font-weight:600; margin:0 0 4px }
+  .sub { color:var(--dim); margin:0 0 20px; max-width:80ch }
+  .legend { display:flex; flex-wrap:wrap; gap:18px; padding:12px 0 20px;
+             border-top:1px solid var(--line); border-bottom:1px solid var(--line); margin-bottom:24px }
+  .lg { display:flex; align-items:center; gap:7px; color:var(--dim); font-size:12.5px }
+  .sw { width:11px; height:11px; border-radius:3px; border:1.5px solid }
+  .scroll { overflow-x:auto }
+  svg { display:block; min-width:1240px }
+  .nid { font:600 12px "Segoe UI Variable Small","Segoe UI",sans-serif; fill:var(--ink) }
+  .ntt { font:11px "Segoe UI Variable Small","Segoe UI",sans-serif; fill:var(--dim) }
+  .wl { font:600 11.5px "Segoe UI Variable Small","Segoe UI",sans-serif;
+         fill:var(--dim); letter-spacing:.06em; text-transform:uppercase }
+  .note { color:var(--dim); font-size:13px; max-width:80ch; margin-top:28px;
+           border-left:2px solid var(--line); padding-left:14px }
+  code { font:12px ui-monospace,"Cascadia Mono",Consolas,monospace; color:var(--ink) }
+</style>
+<div class="wrap">
+  <h1>MCP Router — Windows fleet</h1>
+  <p class="sub">Feature and UI parity with the macOS client: the mock HTML decides what is on a
+  surface, Windows 11 decides how it is drawn. Twenty-three items, five waves. A dot marked
+  <strong>·</strong> is proposed rather than asked for — delete its brief to veto it.</p>
+
+  <div class="legend">
+    <span class="lg"><span class="sw" style="border-color:#4CA3FF"></span>windows client</span>
+    <span class="lg"><span class="sw" style="border-color:#FF9230"></span>router</span>
+    <span class="lg"><span class="sw" style="border-color:#C77DFF"></span>harness</span>
+    <span class="lg"><span class="sw" style="background:var(--ink);border-color:var(--ink);border-radius:50%"></span>merged</span>
+    <span class="lg"><span class="sw" style="border-color:var(--ink);border-radius:50%"></span>ready</span>
+    <span class="lg"><span class="sw" style="background:var(--red);border-color:var(--red);border-radius:50%"></span>blocked on a dependency</span>
+  </div>
+
+  <div class="scroll"><svg width="1240" height="754" viewBox="0 0 1240 754" role="img"
+       aria-label="Dependency graph of the twenty-three Windows parity items across five waves">
+        <path d="M232,113.0 C252.0,113.0 252.0,113.0 272,113.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M232,113.0 C252.0,113.0 252.0,205.0 272,205.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M232,113.0 C368.0,113.0 368.0,113.0 504,113.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M464,113.0 C484.0,113.0 484.0,113.0 504,113.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M464,205.0 C484.0,205.0 484.0,113.0 504,113.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M232,113.0 C368.0,113.0 368.0,159.0 504,159.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M696,113.0 C716.0,113.0 716.0,113.0 736,113.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M696,113.0 C716.0,113.0 716.0,159.0 736,159.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M696,113.0 C716.0,113.0 716.0,205.0 736,205.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M696,113.0 C716.0,113.0 716.0,251.0 736,251.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M696,113.0 C716.0,113.0 716.0,297.0 736,297.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M696,113.0 C716.0,113.0 716.0,343.0 736,343.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M696,113.0 C716.0,113.0 716.0,389.0 736,389.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M696,113.0 C716.0,113.0 716.0,435.0 736,435.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M928,389.0 C832.0,389.0 832.0,481.0 736,481.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M464,159.0 C600.0,159.0 600.0,481.0 736,481.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M696,113.0 C716.0,113.0 716.0,527.0 736,527.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M464,113.0 C600.0,113.0 600.0,527.0 736,527.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M696,113.0 C716.0,113.0 716.0,573.0 736,573.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M696,113.0 C716.0,113.0 716.0,619.0 736,619.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M928,205.0 C832.0,205.0 832.0,665.0 736,665.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M928,251.0 C832.0,251.0 832.0,665.0 736,665.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M928,389.0 C832.0,389.0 832.0,665.0 736,665.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M696,113.0 C832.0,113.0 832.0,113.0 968,113.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M696,113.0 C832.0,113.0 832.0,159.0 968,159.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M696,159.0 C832.0,159.0 832.0,159.0 968,159.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M928,389.0 C948.0,389.0 948.0,205.0 968,205.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M928,435.0 C948.0,435.0 948.0,205.0 968,205.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <path d="M464,159.0 C716.0,159.0 716.0,251.0 968,251.0" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+    <g><rect x="40" y="96" width="192" height="34" rx="7" fill="var(--done)" stroke="#4CA3FF" stroke-width="1.5"/><circle cx="54" cy="113.0" r="4.5" fill="var(--ink)" stroke="var(--ink)"/><text x="67" y="110" class="nid">WIN1</text><text x="67" y="122" class="ntt">Framework: WinUI 3</text></g>
+    <g><rect x="272" y="96" width="192" height="34" rx="7" fill="var(--ready)" stroke="#4CA3FF" stroke-width="1.5"/><circle cx="286" cy="113.0" r="4.5" fill="none" stroke="var(--ink)" stroke-width="2"/><text x="299" y="110" class="nid">WIN2</text><text x="299" y="122" class="ntt">Windows native floor</text></g>
+    <g><rect x="272" y="142" width="192" height="34" rx="7" fill="var(--ready)" stroke="#FF9230" stroke-width="1.5"/><circle cx="286" cy="159.0" r="4.5" fill="none" stroke="var(--ink)" stroke-width="2"/><text x="299" y="156" class="nid">WIN17</text><text x="299" y="168" class="ntt">Router macOS assumptions</text></g>
+    <g><rect x="272" y="188" width="192" height="34" rx="7" fill="var(--ready)" stroke="#C77DFF" stroke-width="1.5"/><circle cx="286" cy="205.0" r="4.5" fill="none" stroke="var(--ink)" stroke-width="2"/><text x="299" y="202" class="nid">WIN18</text><text x="299" y="214" class="ntt">Build &amp; verify lane</text></g>
+    <g><rect x="504" y="96" width="192" height="34" rx="7" fill="var(--blocked)" stroke="#4CA3FF" stroke-width="1.5"/><circle cx="518" cy="113.0" r="4.5" fill="var(--red)" stroke="var(--red)"/><text x="531" y="110" class="nid">WIN3</text><text x="531" y="122" class="ntt">App shell</text></g>
+    <g><rect x="504" y="142" width="192" height="34" rx="7" fill="var(--blocked)" stroke="#4CA3FF" stroke-width="1.5"/><circle cx="518" cy="159.0" r="4.5" fill="var(--red)" stroke="var(--red)"/><text x="531" y="156" class="nid">WIN20  ·</text><text x="531" y="168" class="ntt">Automation plane</text></g>
+    <g><rect x="736" y="96" width="192" height="34" rx="7" fill="var(--blocked)" stroke="#4CA3FF" stroke-width="1.5"/><circle cx="750" cy="113.0" r="4.5" fill="var(--red)" stroke="var(--red)"/><text x="763" y="110" class="nid">WIN4</text><text x="763" y="122" class="ntt">Servers + Signal Path</text></g>
+    <g><rect x="736" y="142" width="192" height="34" rx="7" fill="var(--blocked)" stroke="#4CA3FF" stroke-width="1.5"/><circle cx="750" cy="159.0" r="4.5" fill="var(--red)" stroke="var(--red)"/><text x="763" y="156" class="nid">WIN5</text><text x="763" y="168" class="ntt">Activity</text></g>
+    <g><rect x="736" y="188" width="192" height="34" rx="7" fill="var(--blocked)" stroke="#4CA3FF" stroke-width="1.5"/><circle cx="750" cy="205.0" r="4.5" fill="var(--red)" stroke="var(--red)"/><text x="763" y="202" class="nid">WIN6</text><text x="763" y="214" class="ntt">Skills</text></g>
+    <g><rect x="736" y="234" width="192" height="34" rx="7" fill="var(--blocked)" stroke="#4CA3FF" stroke-width="1.5"/><circle cx="750" cy="251.0" r="4.5" fill="var(--red)" stroke="var(--red)"/><text x="763" y="248" class="nid">WIN7</text><text x="763" y="260" class="ntt">Discover</text></g>
+    <g><rect x="736" y="280" width="192" height="34" rx="7" fill="var(--blocked)" stroke="#4CA3FF" stroke-width="1.5"/><circle cx="750" cy="297.0" r="4.5" fill="var(--red)" stroke="var(--red)"/><text x="763" y="294" class="nid">WIN8</text><text x="763" y="306" class="ntt">Checks</text></g>
+    <g><rect x="736" y="326" width="192" height="34" rx="7" fill="var(--blocked)" stroke="#4CA3FF" stroke-width="1.5"/><circle cx="750" cy="343.0" r="4.5" fill="var(--red)" stroke="var(--red)"/><text x="763" y="340" class="nid">WIN9</text><text x="763" y="352" class="ntt">Cleanup</text></g>
+    <g><rect x="736" y="372" width="192" height="34" rx="7" fill="var(--blocked)" stroke="#4CA3FF" stroke-width="1.5"/><circle cx="750" cy="389.0" r="4.5" fill="var(--red)" stroke="var(--red)"/><text x="763" y="386" class="nid">WIN10</text><text x="763" y="398" class="ntt">Inbox + review sheet</text></g>
+    <g><rect x="736" y="418" width="192" height="34" rx="7" fill="var(--blocked)" stroke="#4CA3FF" stroke-width="1.5"/><circle cx="750" cy="435.0" r="4.5" fill="var(--red)" stroke="var(--red)"/><text x="763" y="432" class="nid">WIN11</text><text x="763" y="444" class="ntt">Ambient surface</text></g>
+    <g><rect x="736" y="464" width="192" height="34" rx="7" fill="var(--blocked)" stroke="#4CA3FF" stroke-width="1.5"/><circle cx="750" cy="481.0" r="4.5" fill="var(--red)" stroke="var(--red)"/><text x="763" y="478" class="nid">WIN12</text><text x="763" y="490" class="ntt">Pairing</text></g>
+    <g><rect x="736" y="510" width="192" height="34" rx="7" fill="var(--blocked)" stroke="#4CA3FF" stroke-width="1.5"/><circle cx="750" cy="527.0" r="4.5" fill="var(--red)" stroke="var(--red)"/><text x="763" y="524" class="nid">WIN13</text><text x="763" y="536" class="ntt">Settings</text></g>
+    <g><rect x="736" y="556" width="192" height="34" rx="7" fill="var(--blocked)" stroke="#4CA3FF" stroke-width="1.5"/><circle cx="750" cy="573.0" r="4.5" fill="var(--red)" stroke="var(--red)"/><text x="763" y="570" class="nid">WIN14</text><text x="763" y="582" class="ntt">Harnesses</text></g>
+    <g><rect x="736" y="602" width="192" height="34" rx="7" fill="var(--blocked)" stroke="#4CA3FF" stroke-width="1.5"/><circle cx="750" cy="619.0" r="4.5" fill="var(--red)" stroke="var(--red)"/><text x="763" y="616" class="nid">WIN15</text><text x="763" y="628" class="ntt">Insights</text></g>
+    <g><rect x="736" y="648" width="192" height="34" rx="7" fill="var(--blocked)" stroke="#4CA3FF" stroke-width="1.5"/><circle cx="750" cy="665.0" r="4.5" fill="var(--red)" stroke="var(--red)"/><text x="763" y="662" class="nid">WIN16</text><text x="763" y="674" class="ntt">Capability document</text></g>
+    <g><rect x="968" y="96" width="192" height="34" rx="7" fill="var(--blocked)" stroke="#4CA3FF" stroke-width="1.5"/><circle cx="982" cy="113.0" r="4.5" fill="var(--red)" stroke="var(--red)"/><text x="995" y="110" class="nid">WIN19  ·</text><text x="995" y="122" class="ntt">Packaging</text></g>
+    <g><rect x="968" y="142" width="192" height="34" rx="7" fill="var(--blocked)" stroke="#4CA3FF" stroke-width="1.5"/><circle cx="982" cy="159.0" r="4.5" fill="var(--red)" stroke="var(--red)"/><text x="995" y="156" class="nid">WIN21  ·</text><text x="995" y="168" class="ntt">Keyboard model</text></g>
+    <g><rect x="968" y="188" width="192" height="34" rx="7" fill="var(--blocked)" stroke="#4CA3FF" stroke-width="1.5"/><circle cx="982" cy="205.0" r="4.5" fill="var(--red)" stroke="var(--red)"/><text x="995" y="202" class="nid">WIN22  ·</text><text x="995" y="214" class="ntt">Toasts</text></g>
+    <g><rect x="968" y="234" width="192" height="34" rx="7" fill="var(--blocked)" stroke="#FF9230" stroke-width="1.5"/><circle cx="982" cy="251.0" r="4.5" fill="var(--red)" stroke="var(--red)"/><text x="995" y="248" class="nid">WIN23  ·</text><text x="995" y="260" class="ntt">Router lifecycle</text></g>
+    <text x="40" y="74" class="wl">W0 · done</text>
+    <text x="272" y="74" class="wl">W1 · unblocks</text>
+    <text x="504" y="74" class="wl">W2 · shell</text>
+    <text x="736" y="74" class="wl">W3 · surfaces</text>
+    <text x="968" y="74" class="wl">W4 · cross-cutting</text>
+  </svg></div>
+
+  <p class="note">Nothing in W1 is blocked by anything. <code>WIN18</code> is the item that gates
+  the rest: every verification target in this repository's Makefile shells out to
+  <code>xcodebuild</code>, so <code>make lint</code> and <code>make test</code> cannot run on this
+  machine and are not available as an item gate until it lands. <code>WIN2</code> is what lets a
+  Windows surface be judged at all — DESIGN.md's native floor is macOS-only, so today a Windows
+  board can neither pass nor fail. Cross-family verify is unavailable here and is recorded per
+  item as not-run, never as a pass.</p>
+</div>

@@ -75,7 +75,26 @@ for pattern in "${PATTERNS[@]}"; do
   fi
 done
 
+# The zero this gate reports is the finding, so it is COUNTED rather than asserted. An earlier
+# version printed the words "0 outbound-network symbols" without computing anything, which is the
+# defect the whole repository's gate family is about: a sentence about a measurement, in the place a
+# measurement belongs. `grep -c` over the same file set answers it, and the count is printed beside
+# the population it was taken over so the number carries its own denominator.
+matched=0
+for pattern in "${PATTERNS[@]}"; do
+  for file in "${FILES[@]}"; do
+    hits=$(grep -cE "$pattern" "$file" 2>/dev/null || true)
+    matched=$((matched + hits))
+  done
+done
+
 if [[ $fail -eq 0 ]]; then
-  echo "no-telemetry-egress: ${#FILES[@]} files under $ROOT, 0 outbound-network symbols"
+  if [[ $matched -ne 0 ]]; then
+    echo "no-telemetry-egress: internal disagreement — the scan reported clean while the count" >&2
+    echo "                    found $matched matching line(s). Neither figure can be trusted." >&2
+    exit 2
+  fi
+  lines=$(cat "${FILES[@]}" | wc -l | tr -d ' ')
+  echo "no-telemetry-egress: ${#FILES[@]} files, $lines lines under $ROOT; $matched matched any of ${#PATTERNS[@]} refused patterns"
 fi
 exit $fail

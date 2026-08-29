@@ -107,7 +107,8 @@ where its subject lives; `R4-C1` pointed the installer at Swift and deliberately
 TypeScript tree as the harness's reference; `REQ-020` reserves the retirement. What was missing was
 never the porting — it was that nobody had to say the split existed.
 
-29 one-sided landings sit before the pin. They are printed as a stated backlog on every run, with a
+30 one-sided landings sit before the pin, the oldest of them the root commit that introduced the
+TypeScript router at all. They are printed as a stated backlog on every run, with a
 count, and never as a pass.
 
 ## 5. What this item did not do

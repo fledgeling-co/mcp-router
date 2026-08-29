@@ -78,34 +78,61 @@ if [ "$probe_swift" -eq 0 ] || [ "$probe_ts" -eq 0 ]; then
 fi
 
 # ---------------------------------------------------------------------------------------------
-# The walk. One `git diff --name-only` per first-parent commit against its first parent: for a
-# merge that is the whole branch, for an ordinary commit it is the commit. The root commit has no
-# first parent and is skipped by name rather than by an error.
+# The walk. ONE `git log` pass and ONE `awk` over it, rather than a `git diff` and two `grep`s per
+# commit. Measured on this repository over 472 landings: 0.9s here against 16s for the per-commit
+# form the first version used. That is not tidiness — `carrier-parity-selftest.sh` runs the gate
+# eight times, and at 16s a pass the gate is not armable within a sensible run.
+#
+# `--first-parent -m --name-only` emits each landing's files against its first parent, which for a
+# merge is the whole branch and for an ordinary commit is the commit. `-z` is deliberately NOT
+# passed: it would NUL-terminate every PATH as well, and the record separator would stop separating
+# records. `core.quotePath=false` keeps a path with unusual bytes readable as itself rather than as
+# a C-escaped string the path patterns would then miss.
+#
+# The ROOT commit is included. It has no first parent, so a per-commit `git diff "$sha^1"` form
+# cannot take it and the first version of this file skipped it by name — which dropped the very
+# landing that introduced the TypeScript router, `dc63c60`, 7 files under `src/`. `git log`
+# reports a root commit against the empty tree, so this form takes it and the census is one row
+# larger and one row more honest.
+#
+# `\001` introduces a header line and separates the sha from the subject. A path could in principle
+# contain that byte; none in this repository does, and the sha is length-checked below, so a header
+# line that is really a path is dropped rather than mistaken for a landing.
+census="$(git -c core.quotePath=false log --first-parent -m --name-only \
+            --format="%x01%H%x01%s" "$REV" \
+  | awk -v swift_re="$SWIFT_RE" -v ts_re="$TS_RE" '
+      function flush() {
+        if (sha == "" || (swift == 0 && ts == 0)) return
+        carrier = (swift > 0 && ts > 0) ? "both" : (swift > 0 ? "swift-only" : "typescript-only")
+        printf "%s\t%s\t%s\t%s\t%s\n", sha, subject, carrier, swift, ts
+      }
+      /^\001/ {
+        flush()
+        rest = substr($0, 2)
+        p = index(rest, "\001")
+        sha = (p ? substr(rest, 1, p - 1) : rest)
+        subject = (p ? substr(rest, p + 1) : "")
+        if (length(sha) != 40) { sha = "" }
+        swift = 0; ts = 0
+        next
+      }
+      $0 == "" { next }
+      { if ($0 ~ swift_re) swift++; else if ($0 ~ ts_re) ts++ }
+      END { flush() }
+    ')"
+
 rows=0
-root="$(git rev-list --max-parents=0 "$REV" | tail -1)"
-
-while read -r sha; do
-  [ "$sha" = "$root" ] && continue
-  files="$(git diff --name-only "$sha^1" "$sha" 2>/dev/null)"
-  swift="$(printf '%s\n' "$files" | grep -cE "$SWIFT_RE")"
-  ts="$(printf '%s\n' "$files" | grep -cE "$TS_RE")"
-  [ "$swift" -eq 0 ] && [ "$ts" -eq 0 ] && continue
-
-  if   [ "$swift" -ne 0 ] && [ "$ts" -ne 0 ]; then carrier=both
-  elif [ "$swift" -ne 0 ];                    then carrier=swift-only
-  else                                             carrier=typescript-only
-  fi
-
+while IFS=$'\t' read -r sha subject carrier swift ts; do
+  [ -z "${sha:-}" ] && continue
   # The label is the branch or item name the landing announced itself under, which is what a
   # reader recognises. It is a convenience: the sha is the key, and the gate joins on the sha.
-  label="$(git log -1 --format='%s' "$sha" \
+  label="$(printf '%s\n' "$subject" \
     | sed -E "s/:.*\$//; s/^Merge +//; s/^branch +'([^']*)'/\\1/; s|^ai/||" \
     | cut -c1-48)"
   [ -z "$label" ] && label='-'
-
   printf 'landing\t%s\t%s\t%s\t%s\t%s\n' "$sha" "$label" "$carrier" "$swift" "$ts"
   rows=$((rows + 1))
-done < <(git rev-list --first-parent "$REV")
+done <<< "$census"
 
 if [ "$rows" -eq 0 ]; then
   echo "environment: $REV yielded no landing that touched either router. This repository has held" >&2

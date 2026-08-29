@@ -63,17 +63,19 @@ Recorded in `planning/progress/M18.md` §Gates with each command and its exit.
 
 ## Gate results — gap-fix 4, 2026-08-29
 
-Tree `d56b3aa`, worktree `.worktrees/K1`. Each command with its own exit code, captured
+Tree `b70be0a`, worktree `.worktrees/K1`. Each command with its own exit code, captured
 separately rather than through a pipe.
 
 | Gate | Exit | What it measured |
 |---|---|---|
 | `swift build` | 0 | at `83e5380`, the base |
-| `swift test` | 0 | 2100 tests / 267 suites. Three full runs; one red on `CallbackLifecycleTests.aListenerBindsOnce`, the R5 loopback flake, green in three isolated runs and in both full runs either side |
+| `make test` | 0 | 2100 tests / 267 suites, at `648c925` and again at `b70be0a` |
+| `swift test` | 0 | the same suite direct; **six full runs across the pass, one red** on `CallbackLifecycleTests.aListenerBindsOnce`, the R5 loopback flake, green in three isolated runs of that suite and in the four full runs after it |
 | `make lint` | 0 | the whole target, 26 members, in this worktree — it carries `node_modules` symlinked to the main checkout and a `dist/` built here, and the target needs both |
-| `planning/evidence/M18-gapfix-2/arm-guards.sh` | 0 | **13 of 13 arms bit**, tree clean after every arm |
+| `planning/evidence/M18-gapfix-2/arm-guards.sh` | 0 | **13 of 13 arms bit**, tree clean after every arm; 11 of 13 before the two arm repairs |
 | `planning/evidence/M18-gapfix-3/shortcut-lines.py` | 0 | 439 files; 18 sheet views, agreeing with `SheetShortcutScan` for the first time |
 | `… --self-test` | 0 | armed both ways, population moves by two |
+| `planning/evidence/M18-gapfix-2/count-btn-primary.py` | 0 | 35 / 33 / 29, agreeing with `MockButtonFidelityTests` |
 | `python3 planning/citation-gate.py` | 0 | control 0 · blocking 0 · ratchet 0 |
 
 Findings, repairs and what stayed open are in `planning/progress/M18.md` §Gates — gap-fix 4.

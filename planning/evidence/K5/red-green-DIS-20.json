@@ -1,0 +1,17 @@
+[
+  {
+    "id": "DIS-20",
+    "clause": "M29",
+    "guard": "a PATCH that does not carry the key does not write the switch away",
+    "file": "ControlHandlerPatchFields.swift",
+    "outcome": "KILLED",
+    "expected": [
+      "a PATCH that does not name the switch leaves it exactly as it was"
+    ],
+    "reds": [
+      "a PATCH that does not name the switch leaves it exactly as it was",
+      "a listener binds once \u2014 reuse is refused rather than quietly racing"
+    ],
+    "seconds": 46.9
+  }
+]

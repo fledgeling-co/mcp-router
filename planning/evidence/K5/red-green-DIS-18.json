@@ -1,0 +1,18 @@
+[
+  {
+    "id": "DIS-18",
+    "clause": "M29",
+    "guard": "the switch is written to the user's config at all",
+    "file": "ControlHandlerPatchFields.swift",
+    "outcome": "KILLED",
+    "expected": [
+      "disabling a server writes the switch to the config and stops it being served",
+      "enabling a server removes the member rather than writing false"
+    ],
+    "reds": [
+      "disabling a server writes the switch to the config and stops it being served",
+      "enabling a server removes the member rather than writing false"
+    ],
+    "seconds": 56.8
+  }
+]

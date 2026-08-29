@@ -18,8 +18,16 @@ Both were found by differential, one board at a time, against a mock that had to
 accessibility dump that had to be on disk. A declared control list answers the same question by
 census, for every board at once, and keeps answering it after the dumps go stale.
 
-So the list comes from `design/mocks/prototype.html` — the file `campaign.json` names as
-`designOfRecord`, and the file `vocab-differential.py` already reads for its design half.
+So the eleven surfaces below come from `design/mocks/prototype.html` and the three after them from
+`design/mcp-router-console.html`, each from the design that actually draws it, recorded per surface
+in `source`.
+
+THE DIRECTION HAS SINCE REVERSED, and this header used to state it the other way round: the design
+half of `vocab-differential.py` was a live render of the prototype, and this file cited that as its
+reason for reading the same file. M32 turned that around — the differential now reads THIS file's
+output as its design half, which is what took it from eight surfaces to fourteen and put the two
+newest boards inside the one pass that can see a build-side addition. So a surface missing here is
+a surface missing from both.
 
 A BOARD IS ITS STATES, NOT ITS FIRST RENDER
 -------------------------------------------
@@ -77,8 +85,9 @@ WHY OBSCURA AND NOT A PARSE
 ---------------------------
 The prototype renders its panes from JavaScript template functions; no board-attributable label is
 in the static HTML. `getBoundingClientRect()` is documented correct on this engine and
-`offsetParent` is not — measured 20 Aug 2026 and recorded in `vocab-differential.py`'s own comment
-for the same probe — so visibility is taken from the box.
+`offsetParent` is not — measured 20 Aug 2026 for the same probe, when `vocab-differential.py` still
+rendered the mock itself — so visibility is taken from the box. This file is now the only one of the
+two that runs a browser.
 
 EXITS
 -----

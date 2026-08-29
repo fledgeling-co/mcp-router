@@ -410,13 +410,19 @@
     },
     {
       "path": "planning/test-campaign/bin/vocab-differential.py",
-      "disposition": "grandfathered",
+      "disposition": "control",
       "markers": [
         "V3",
         "V4"
       ],
-      "reason": "predates this gate; carries no control this gate can run",
-      "since": "2026-08-26"
+      "since": "2026-08-29",
+      "control": [
+        "python3",
+        "planning/test-campaign/bin/vocab-differential.py",
+        "--control"
+      ],
+      "proves": "14 arms on dictionaries the control builds, each planting the fault its check is for. The four that matter are the registry's own rules, and they run through `findings_for` rather than re-implementing it — an arm that re-implements the predicate proves the arm and not the gate, which is this item's own subject arriving inside its own fix. Both directions are armed: an extra with a disposition and a well-formed registry row must stay quiet. What it does NOT prove is that the accessibility dumps are of the surfaces they are named for; `capture-lineage.py --gate` owns that, and two of the thirteen dispositions rest on its findings. Was `grandfathered` — 'predates this gate; carries no control this gate can run' — until M32 gave the file a control to run.",
+      "note": "The rewrite dropped this file to one marker (V3) and out of discovery, and the gate said so. It was not narrowing: the file had renamed its denominator from `rows` to `compared` while staying the same absence sweep. Restoring the noun restored V4. Recorded because it is a real property of lexical discovery — a rewrite that strengthens a sweep can hide it — and the remedy was to spell the predicate the way it reads, not to widen the reader."
     },
     {
       "path": "planning/test-campaign/bin/witness-arm-denial.sh",

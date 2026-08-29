@@ -3,110 +3,350 @@
     "evals": "the mock's board is named Evals and the app's is named Checks \u2014 DEF-007, raised by the capture tie pass; the rename went one way only",
     "conduit": "the prototype carries the product's former name; the app ships as MCP Router"
   },
-  "boards": {
-    "SURF-002": {
-      "pane": "servers",
-      "buildControls": 5,
-      "designControls": 10,
-      "inDesignNotBuild": [
-        "dossierdormant stdio m passed",
-        "lifelinedormant stdio m passed",
-        "mobbindormant stdio m passed",
-        "reset",
-        "review"
+  "surfaces": {
+    "SURF-001": {
+      "source": "design/mocks/prototype.html",
+      "dumps": [
+        "SURF-001.window.txt"
       ],
-      "inBuildNotDesign": []
+      "windows": [
+        "Servers"
+      ],
+      "reader": "seen=31 kept=2 \u00b7 dropped: not-a-control-role=0 inside-a-data-collection=17 label-carries-a-figure=11 not-a-control-name=1",
+      "buildControls": 2,
+      "designControls": 21,
+      "inBuildNotDesign": [
+        "add server",
+        "hide sidebar"
+      ],
+      "inDesignNotBuild": [
+        "activity",
+        "add marketplace",
+        "add marketplace n",
+        "add mcp server",
+        "add mcp server n",
+        "checks",
+        "cleanup",
+        "discover",
+        "edit",
+        "file",
+        "help",
+        "inbox",
+        "menu bar status item",
+        "pair iphone",
+        "servers",
+        "settings",
+        "show menu bar popover",
+        "skills",
+        "view",
+        "window"
+      ],
+      "rowLevelNotJudged": [
+        "fixture http",
+        "fixture oauth",
+        "fixture stdio",
+        "fixture tools",
+        "harnesses",
+        "insights"
+      ],
+      "undisposed": []
+    },
+    "SURF-002": {
+      "source": "design/mocks/prototype.html",
+      "dumps": [
+        "SURF-002.addserver.window.txt",
+        "SURF-002.empty.window.txt",
+        "SURF-002.live-cold.window.txt",
+        "SURF-002.live-running.window.txt",
+        "SURF-002.live-stale.window.txt",
+        "SURF-002.offline.window.txt",
+        "SURF-002.window.txt"
+      ],
+      "windows": [
+        "Servers"
+      ],
+      "reader": "seen=159 kept=21 \u00b7 dropped: not-a-control-role=0 inside-a-data-collection=86 label-carries-a-figure=45 not-a-control-name=7",
+      "buildControls": 6,
+      "designControls": 21,
+      "inBuildNotDesign": [
+        "start the router"
+      ],
+      "inDesignNotBuild": [
+        "accept the new text",
+        "all",
+        "close inspector",
+        "context menu keep warm",
+        "context menu remove",
+        "keep warm",
+        "open in inspector",
+        "remove",
+        "remove fetch pro",
+        "remove the server",
+        "remove this server",
+        "reset",
+        "review",
+        "review the change",
+        "server row inspector",
+        "stop keeping warm"
+      ],
+      "rowLevelNotJudged": [],
+      "undisposed": []
     },
     "SURF-003": {
-      "pane": "activity",
-      "buildControls": 0,
-      "designControls": 1,
-      "inDesignNotBuild": [
-        "reset history"
+      "source": "design/mocks/prototype.html",
+      "dumps": [
+        "SURF-003.window.txt"
       ],
-      "inBuildNotDesign": []
+      "windows": [
+        "Activity"
+      ],
+      "reader": "seen=26 kept=2 \u00b7 dropped: not-a-control-role=0 inside-a-data-collection=21 label-carries-a-figure=2 not-a-control-name=1",
+      "buildControls": 1,
+      "designControls": 2,
+      "inBuildNotDesign": [],
+      "inDesignNotBuild": [
+        "cancel"
+      ],
+      "rowLevelNotJudged": [],
+      "undisposed": []
     },
     "SURF-004": {
-      "pane": "skills",
-      "buildControls": 5,
-      "designControls": 5,
-      "inDesignNotBuild": [
-        "add marketplace",
-        "never run",
-        "review"
+      "source": "design/mocks/prototype.html",
+      "dumps": [
+        "SURF-004.window.txt"
       ],
-      "inBuildNotDesign": [
-        "local",
-        "manage marketplaces",
-        "needs attention"
-      ]
+      "windows": [
+        "Skills"
+      ],
+      "reader": "seen=24 kept=2 \u00b7 dropped: not-a-control-role=0 inside-a-data-collection=10 label-carries-a-figure=11 not-a-control-name=1",
+      "buildControls": 0,
+      "designControls": 18,
+      "inBuildNotDesign": [],
+      "inDesignNotBuild": [
+        "all",
+        "cancel",
+        "close inspector",
+        "context menu remove",
+        "context menu version history",
+        "done",
+        "held",
+        "keep the installed version",
+        "never run",
+        "open in inspector",
+        "promote the held update",
+        "remove",
+        "reveal repo in finder",
+        "review",
+        "review the held update",
+        "show full diff",
+        "skill row inspector",
+        "version history"
+      ],
+      "rowLevelNotJudged": [],
+      "undisposed": []
     },
     "SURF-005": {
-      "pane": "discover",
-      "buildControls": 3,
-      "designControls": 2,
-      "inDesignNotBuild": [
-        "discipline fledgeling co mit",
-        "sql explain planetscale apache"
+      "source": "design/mocks/prototype.html",
+      "dumps": [
+        "SURF-005.window.txt"
       ],
+      "windows": [
+        "Discover"
+      ],
+      "reader": "seen=25 kept=5 \u00b7 dropped: not-a-control-role=0 inside-a-data-collection=12 label-carries-a-figure=7 not-a-control-name=1",
+      "buildControls": 4,
+      "designControls": 4,
       "inBuildNotDesign": [
         "best match",
         "most used on smithery",
-        "recently added to smithery"
-      ]
+        "recently added to smithery",
+        "what is official"
+      ],
+      "inDesignNotBuild": [
+        "cancel",
+        "install",
+        "not now",
+        "registry row detail sheet"
+      ],
+      "rowLevelNotJudged": [],
+      "undisposed": []
     },
     "SURF-006": {
-      "pane": "evals",
-      "buildControls": 5,
-      "designControls": 2,
-      "inDesignNotBuild": [
-        "edit cases",
-        "run again"
+      "source": "design/mocks/prototype.html",
+      "dumps": [
+        "SURF-006.window.txt"
       ],
-      "inBuildNotDesign": [
+      "windows": [
+        "Checks"
+      ],
+      "reader": "seen=23 kept=2 \u00b7 dropped: not-a-control-role=0 inside-a-data-collection=9 label-carries-a-figure=11 not-a-control-name=1",
+      "buildControls": 1,
+      "designControls": 5,
+      "inBuildNotDesign": [],
+      "inDesignNotBuild": [
         "all",
         "not met",
         "not observed",
-        "re check all",
         "unstamped"
-      ]
+      ],
+      "rowLevelNotJudged": [],
+      "undisposed": []
     },
     "SURF-007": {
-      "pane": "cleanup",
-      "buildControls": 3,
-      "designControls": 4,
-      "inDesignNotBuild": [
-        "inspect",
-        "read first",
-        "remove",
-        "reset history"
+      "source": "design/mocks/prototype.html",
+      "dumps": [
+        "SURF-007.cleanup-skills.window.txt",
+        "SURF-007.provenance-sheet.window.txt",
+        "SURF-007.window.txt"
       ],
+      "windows": [
+        "Cleanup"
+      ],
+      "reader": "seen=92 kept=10 \u00b7 dropped: not-a-control-role=0 inside-a-data-collection=50 label-carries-a-figure=30 not-a-control-name=2",
+      "buildControls": 4,
+      "designControls": 8,
       "inBuildNotDesign": [
-        "all",
-        "reset call history",
-        "servers"
-      ]
+        "reveal in finder"
+      ],
+      "inDesignNotBuild": [
+        "cancel",
+        "inspect",
+        "open the repo",
+        "read first",
+        "remove it"
+      ],
+      "rowLevelNotJudged": [],
+      "undisposed": []
     },
     "SURF-008": {
-      "pane": "inbox",
+      "source": "design/mocks/prototype.html",
+      "dumps": [
+        "SURF-008.window.txt"
+      ],
+      "windows": [
+        "Inbox"
+      ],
+      "reader": "seen=19 kept=3 \u00b7 dropped: not-a-control-role=0 inside-a-data-collection=9 label-carries-a-figure=6 not-a-control-name=1",
       "buildControls": 1,
+      "designControls": 6,
+      "inBuildNotDesign": [],
+      "inDesignNotBuild": [
+        "cancel",
+        "decline",
+        "install",
+        "not now",
+        "review"
+      ],
+      "rowLevelNotJudged": [],
+      "undisposed": []
+    },
+    "SURF-009": {
+      "verdict": "inconclusive \u2014 no accessibility dump on disk",
+      "designControls": 6
+    },
+    "SURF-010": {
+      "source": "design/mocks/prototype.html",
+      "dumps": [
+        "SURF-010.window.txt"
+      ],
+      "windows": [
+        "Inbox"
+      ],
+      "reader": "seen=20 kept=4 \u00b7 dropped: not-a-control-role=0 inside-a-data-collection=9 label-carries-a-figure=7 not-a-control-name=0",
+      "buildControls": 2,
       "designControls": 1,
+      "inBuildNotDesign": [
+        "pairing"
+      ],
       "inDesignNotBuild": [],
-      "inBuildNotDesign": []
+      "rowLevelNotJudged": [],
+      "undisposed": []
     },
     "SURF-011": {
-      "pane": "settings",
-      "buildControls": 2,
-      "designControls": 3,
+      "source": "design/mocks/prototype.html",
+      "dumps": [
+        "SURF-011.window.txt"
+      ],
+      "windows": [
+        "Insights"
+      ],
+      "reader": "seen=18 kept=2 \u00b7 dropped: not-a-control-role=0 inside-a-data-collection=9 label-carries-a-figure=6 not-a-control-name=1",
+      "buildControls": 1,
+      "designControls": 7,
+      "inBuildNotDesign": [
+        "analyse now"
+      ],
       "inDesignNotBuild": [
+        "cancel",
+        "check for updates automatically",
+        "done",
         "pair another device",
         "reset call history",
+        "reset history",
         "unpair"
       ],
+      "rowLevelNotJudged": [],
+      "undisposed": []
+    },
+    "SURF-025": {
+      "source": "design/mcp-router-console.html",
+      "dumps": [
+        "SURF-025.empty.window.txt",
+        "SURF-025.failure.window.txt",
+        "SURF-025.window.txt"
+      ],
+      "windows": [
+        "Harnesses"
+      ],
+      "reader": "seen=60 kept=20 \u00b7 dropped: not-a-control-role=0 inside-a-data-collection=27 label-carries-a-figure=10 not-a-control-name=3",
+      "buildControls": 6,
+      "designControls": 11,
       "inBuildNotDesign": [
-        "forget the stored token",
-        "show in servers"
-      ]
+        "reveal config in finder",
+        "start the router"
+      ],
+      "inDesignNotBuild": [
+        "choose a config file",
+        "open config",
+        "open in editor",
+        "scan again",
+        "show the diff",
+        "verify now",
+        "wire to the router"
+      ],
+      "rowLevelNotJudged": [],
+      "undisposed": []
+    },
+    "SURF-026": {
+      "source": "design/mcp-router-console.html",
+      "dumps": [
+        "SURF-026.empty.window.txt",
+        "SURF-026.failure.window.txt",
+        "SURF-026.window.txt"
+      ],
+      "windows": [
+        "Insights"
+      ],
+      "reader": "seen=46 kept=5 \u00b7 dropped: not-a-control-role=0 inside-a-data-collection=27 label-carries-a-figure=10 not-a-control-name=4",
+      "buildControls": 2,
+      "designControls": 7,
+      "inBuildNotDesign": [
+        "start the router"
+      ],
+      "inDesignNotBuild": [
+        "analyst cadence",
+        "analyst model",
+        "change the order",
+        "claude cli haiku",
+        "insights window",
+        "second opinion model"
+      ],
+      "rowLevelNotJudged": [],
+      "undisposed": []
+    },
+    "SURF-028": {
+      "verdict": "inconclusive \u2014 no accessibility dump on disk",
+      "designControls": 7
     }
   }
 }

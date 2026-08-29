@@ -53,11 +53,15 @@ Verdict lines only, with the command that produced each. Raw gate output is deli
 committed: it quotes `path:line` out of the gates' own findings text, and committing that turns a
 green `citation-gate` red on the act of recording it.
 
+Both run on the committed tree at `2e1ae0b`, with nothing else of this fleet's building on the
+machine, and the working tree clean afterwards.
+
 | Command | Verdict |
 |---|---|
-| `make test` | **exit 0** · `Test run with 2119 tests in 271 suites passed` · baseline on `main` was 2107 in 269 |
+| `make test` | **exit 0** · `Test run with 2120 tests in 271 suites passed` · 0 issues recorded · baseline on `main` was 2107 in 269, so this branch adds 13 tests in 2 suites |
+| `make lint` | **exit 0** · `Done linting! Found 0 violations, 0 serious in 714 files` · `citation-gate` `exit: control 0 · blocking 0 · ratchet 0` · `CLEAN sweep-control: 105 discovered sweep(s), all disposed; 31 declared control(s) run and passing` · `registry-drop-gate` `no id dropped — registry holds 254` · `pin-class-gate` `every vector declares a pin class; 0 carried, 28 compliant` |
 | `zsh app/Scripts/pool-mutation-gate-selftest.sh` | **exit 0** · `cases: 14 passed, 0 failed, of 14` · run alone, tree clean afterwards |
-| `make lint` | see the row below — and read the note about what a concurrent run of it does to the tree |
+| `swift test --filter` per mutation arm | ten arms, each red by assertion against a green baseline; see the mutation lane below |
 
 ## A finding about the gates, not about this branch
 

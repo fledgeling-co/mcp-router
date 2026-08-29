@@ -10,7 +10,7 @@
 | Brief | `planning/features-to-triage/phone-pairing-qr-render-and-countdown.md` |
 | Source mock | `design/mocks/prototype.html` — **the superseded prototype, and deliberately.** §3 |
 | Plan | `planning/plans/plan-M39.md` |
-| Tree everything below is measured at | `f0b6e0f` |
+| Tree everything below is measured at | `d04dc74` |
 
 ---
 
@@ -38,9 +38,9 @@
 
 `ShellPairingFactory.choice` returns `.noTransport` for any Release build and ignores the
 environment while doing it — `return .noTransport`,
-`app/Sources/MCPRouterUI/Shell/ShellPairingFactory.swift:43` at `f0b6e0f`. `PairingSessionModel`'s
+`app/Sources/MCPRouterUI/Shell/ShellPairingFactory.swift:43` at `d04dc74`. `PairingSessionModel`'s
 own enum says the consequence: `case noEndpoint`,
-`app/Sources/MCPRouterUI/Boards/PairingSessionModel.swift:18` at `f0b6e0f`, documented there as the
+`app/Sources/MCPRouterUI/Boards/PairingSessionModel.swift:18` at `d04dc74`, documented there as the
 only phase a Release build reaches.
 
 So `Phase.live` — the one phase that draws a QR, a code, a countdown, and now a ring and a fallback
@@ -126,7 +126,7 @@ into a phase nothing can enter. This is the same rule a third time.
 
 | Sketch line | Where it lives | This item |
 |---|---|---|
-| QR beside the alphanumeric code | `PairingQRView` and `issued.code.formatted`, drawn in `live(issued:encoded:)`, `app/Sources/MCPRouterUI/Boards/PairingSheet.swift:209` at `f0b6e0f` | nothing — M6 shipped it |
+| QR beside the alphanumeric code | `PairingQRView(encoded: encoded, side: InboxBoardMetrics.qrSize)`, `app/Sources/MCPRouterUI/Boards/PairingSheet.swift:195` at `f0b6e0f`, inside `private func live(issued: IssuedPairingCode, encoded: String) -> some View`, `app/Sources/MCPRouterUI/Boards/PairingSheet.swift:188` at `f0b6e0f` | nothing — M6 shipped it |
 | Expired codes refresh on request | `Button("Show a new code") { session.reissue() }` in the action bar, offered only in `.expired` | nothing — M6 shipped it |
 | **A visual ring for remaining validity** | **nowhere** | **§4.1** |
 | **Fallback instructions for typed entry** | **nowhere on the Mac** — DEF-064 | **§4.2** |
@@ -134,16 +134,16 @@ into a phase nothing can enter. This is the same rule a third time.
 ### 4.1 · The ring
 
 - `public func fractionRemaining(at now: Date) -> Double?`,
-  `app/Sources/MCPRouterKit/Pairing/MacPairing.swift:90` at `f0b6e0f` — on `IssuedPairingCode`.
+  `app/Sources/MCPRouterKit/Pairing/MacPairing.swift:90` at `d04dc74` — on `IssuedPairingCode`.
 - `public var fractionRemaining: Double?`,
-  `app/Sources/MCPRouterUI/Boards/PairingSessionModel.swift:205` at `f0b6e0f` — read off the model's
+  `app/Sources/MCPRouterUI/Boards/PairingSessionModel.swift:205` at `d04dc74` — read off the model's
   own `now`, so the ring and the text are two renderings of one reading and cannot disagree by a tick.
 - `struct PairingExpiryRing: View`,
-  `app/Sources/MCPRouterUI/Boards/PairingSheet.swift:99` at `f0b6e0f` — a `--line-strong` track and a
-  `--attn` head, trimmed by `.trim(from: 0, to: fraction)`,
-  `app/Sources/MCPRouterUI/Boards/PairingSheet.swift:111` at `f0b6e0f`.
+  `app/Sources/MCPRouterUI/Boards/PairingSheet.swift:109` at `d04dc74` — a `--line-strong` track and a
+  `--t2` head (§4.3), trimmed by `.trim(from: 0, to: fraction)`,
+  `app/Sources/MCPRouterUI/Boards/PairingSheet.swift:121` at `d04dc74`.
 - `static var expiryRing: Double { MetricToken.controlMini.leadingScalar }`,
-  `app/Sources/MCPRouterUI/Boards/InboxBoardMetrics.swift:60` at `f0b6e0f` — size and stroke from
+  `app/Sources/MCPRouterUI/Boards/InboxBoardMetrics.swift:60` at `d04dc74` — size and stroke from
   documented tokens. `no-raw-design-values.sh` cannot see this on its own: its rule forbids
   `lineWidth: <digit>`, and a `lineWidth:` naming a property passes whatever the property holds. The
   suite asserts the two tokens by identity instead.
@@ -169,12 +169,30 @@ redraw and not motion, so Reduce Motion has nothing here to switch off.
 ### 4.2 · The fallback
 
 - `public static let typeInsteadDetail`,
-  `app/Sources/MCPRouterKit/Inbox/InboxCopy.swift:250` at `f0b6e0f` — *"Can't scan? Type those eight
+  `app/Sources/MCPRouterKit/Inbox/InboxCopy.swift:250` at `d04dc74` — *"Can't scan? Type those eight
   characters into your phone instead — it is the same pairing."*
 - `private var typedFallback: some View`,
-  `app/Sources/MCPRouterUI/Boards/PairingSheet.swift:254` at `f0b6e0f`, rendered in the live state.
+  `app/Sources/MCPRouterUI/Boards/PairingSheet.swift:264` at `d04dc74`, rendered in the live state.
 - The suite asserts the action bar did **not** gain a fourth control, because the failure this
   closes is a declared control with nothing behind it and adding one would be that failure again.
+
+### 4.3 · The arc's colour, and the census that settled it
+
+The prototype's ring head is `--attn`. That is not what shipped, and the decision was not taken by
+taste: `InboxConformanceTests`'s A15 census pins which files spend an indicator colour and how many
+times, and it went red on a third `ColorToken.attention` in `PairingSheet.swift`.
+
+It was right to. §2 gives `--attn` the meaning *wants a human decision*, which on this sheet is the
+warning about who can queue into your inbox — nothing needs deciding while a code simply runs down.
+The countdown's own label is `--t2`, *secondary text, metadata*, so an arc drawn louder than the
+words it duplicates would claim an urgency the product never acts on. §2 additionally gives `--attn`
+the `pairedWithAWord` role at 2.31:1 on the light ground, and an arc carrying no word of its own does
+not meet that on its own terms.
+
+So the head is `--t2` and the track stays `--line-strong`. **The census changed the product rather
+than the census changing** — a test that finds a real inconsistency is the one case where that
+distinction matters most. Armed both ways: putting `--attn` back reddens the census *and* the ring's
+own assertion; `--t3` reddens the ring's.
 
 ---
 

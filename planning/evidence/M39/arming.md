@@ -13,7 +13,8 @@ swift test --filter 'PairingSheetTests|MacPairingTests|PairingExpiryTests'
 from `app/`, recorded the exit code and the names Swift Testing reported an issue against, and
 rewrote the original bytes in a `finally` — so a red run cannot leave a mutation behind.
 
-Product tree: `f0b6e0f`. Suite at that tree: 38 tests in 4 suites, exit 0.
+Product tree: `d04dc74`. Suite at that tree: 49 tests in 5 suites, exit 0 (the filter carries
+`InboxConformanceTests` from A8 onward, because its colour census is one of the assertions armed).
 
 ## The arms
 
@@ -26,7 +27,8 @@ Product tree: `f0b6e0f`. Suite at that tree: 38 tests in 4 suites, exit 0.
 | A5 | the countdown stops drawing the ring | `app/Sources/MCPRouterUI/Boards/PairingSheet.swift` | RED exit 1 | the countdown draws the ring from the session's own fraction |
 | A6 | the arc is drawn full rather than trimmed to the fraction | `app/Sources/MCPRouterUI/Boards/PairingSheet.swift` | RED exit 1 | the ring trims to the fraction it is handed and is hidden from VoiceOver |
 | A7 | the ring is exposed to VoiceOver a second time | `app/Sources/MCPRouterUI/Boards/PairingSheet.swift` | RED exit 1 | the ring trims to the fraction it is handed and is hidden from VoiceOver |
-| A8 | the arc's head loses the attention token | `app/Sources/MCPRouterUI/Boards/PairingSheet.swift` | RED exit 1 | the ring trims to the fraction it is handed and is hidden from VoiceOver |
+| A8 | the arc's head becomes `--attn`, the colour the census refuses | `app/Sources/MCPRouterUI/Boards/PairingSheet.swift` | RED exit 1 | M6 spends indicator colours only on their own meaning · the ring trims to the fraction it is handed and is hidden from VoiceOver |
+| A8b | the arc's head becomes `--t3`, which is not the countdown's colour | `app/Sources/MCPRouterUI/Boards/PairingSheet.swift` | RED exit 1 | the ring trims to the fraction it is handed and is hidden from VoiceOver |
 | A9 | the model's fraction is renamed on both sides | `app/Sources/MCPRouterUI/Boards/PairingSessionModel.swift`, `app/Sources/MCPRouterUI/Boards/PairingSheet.swift` | RED exit 1 | **build refused** — see A9b |
 | A9b | the model's fraction declaration is reformatted; compiles, behaviour identical | `app/Sources/MCPRouterUI/Boards/PairingSessionModel.swift` | RED exit 1 | the ring's scanned names are the ones the product declares |
 | A10 | the ring's size stops being the mini-control token | `app/Sources/MCPRouterUI/Boards/InboxBoardMetrics.swift` | RED exit 1 | the ring's size and weight are tokens rather than picked numbers |
@@ -34,7 +36,7 @@ Product tree: `f0b6e0f`. Suite at that tree: 38 tests in 4 suites, exit 0.
 | A12 | the Mac's fallback copy becomes the phone's button | `app/Sources/MCPRouterKit/Inbox/InboxCopy.swift` | RED exit 1 | the Mac's fallback copy points at the phone and is not the phone's own button |
 | A13 | the ring's type declaration is reformatted; compiles, behaviour identical | `app/Sources/MCPRouterUI/Boards/PairingSheet.swift` | RED exit 1 | the ring trims to the fraction it is handed and is hidden from VoiceOver · the ring's scanned names are the ones the product declares |
 
-Fourteen arms, fourteen red. Nothing here was accepted on a first reading.
+Sixteen arms, sixteen red. Nothing here was accepted on a first reading.
 
 ## The two the first pass got wrong, and what changed
 
@@ -55,6 +57,20 @@ a line break inside the declaration — and the named scan fires on its own. A13
 correction applied to the ring's type declaration. The residual weakness is stated: these two scans
 read declaration text, so a reformat reddens them. That is the safe direction — they fail loudly
 rather than going quiet — and it is why `theRingSymbolsAreReal` exists at all.
+
+## The third thing the first pass got wrong, and it was not an arm
+
+**A8 was originally `--attn` to `--t3`, and it was arming the wrong product.** The whole-suite run
+that followed reddened `InboxConformanceTests`' A15 census — *"M6 spends indicator colours only on
+their own meaning"* — on a third `ColorToken.attention` in `PairingSheet.swift`, which was the ring's
+head, taken from the prototype. The census was right and `DESIGN.md` §2 agreed with it: `--attn`
+means *wants a human decision*, which on this sheet is the queueing warning, and the countdown's own
+label is `--t2`. The head moved to `--t2`, the census went green, and A8 was rewritten to push it
+back the way it came so the census is armed rather than merely satisfied. A8b covers the other
+direction.
+
+This is the case rule 10 is about from the other side: a suite found a real inconsistency in work
+that had already been reviewed twice, and what changed was the product.
 
 ## What this pass does not establish
 

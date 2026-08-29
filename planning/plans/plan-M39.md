@@ -4,7 +4,7 @@
 |---|---|
 | Spec | `planning/specs/spec-M39.md` |
 | Branch | `ai/n6` · worktree `.worktrees/N6` |
-| Tree | `f0b6e0f` |
+| Tree | `d04dc74` |
 | Scope | the Mac pairing sheet's live state, and the two things in the brief's sketch that were not already built |
 
 ---
@@ -17,11 +17,11 @@
 | 2 | An observed fraction on `IssuedPairingCode`, denominated by the issued window | `MacPairing.swift` | `fractionSpansTheWindow`, `theDenominatorIsTheIssuedWindow`, `theFractionIsBounded`, `theFractionAgreesWithTheCountdown` |
 | 3 | The same reading published on the session model, off its own clock | `PairingSessionModel.swift` | `theFractionFalls` |
 | 4 | Ring geometry from `MetricToken`, not from picked numbers | `InboxBoardMetrics.swift` | `theRingGeometryIsTokenised` |
-| 5 | `PairingExpiryRing` — determinate arc, `--line-strong` track, `--attn` head, hidden from VoiceOver | `PairingSheet.swift` | `theRingDrawsTheFraction`, `theRingSymbolsAreReal` |
+| 5 | `PairingExpiryRing` — determinate arc, `--line-strong` track, `--t2` head, hidden from VoiceOver | `PairingSheet.swift` | `theRingDrawsTheFraction`, `theRingSymbolsAreReal`, and `InboxConformanceTests`' A15 census |
 | 6 | The countdown carries the ring beside its words | `PairingSheet.swift` | `theCountdownBindsTheRing` |
 | 7 | The typed fallback as copy, and as a line in the live state, with no control | `InboxCopy.swift`, `PairingSheet.swift` | `theTypedFallbackIsStated`, `theFallbackCopyIsTheMacs` |
 | 8 | `.populated`'s state-matrix cell restated | `InboxBoardMetrics.swift` | compiles exhaustively; read in spec §5 |
-| 9 | Fourteen arms, each watched red | `planning/evidence/M39/arming.md` | the arming pass itself |
+| 9 | Sixteen arms, each watched red | `planning/evidence/M39/arming.md` | the arming pass itself |
 
 ## The forks, and how each was settled
 
@@ -34,6 +34,11 @@ with the design of record's own treatment beside it, so M23 inherits the fork st
 **A button or a sentence for the typed fallback.** Settled by what the control would do: nothing.
 The Mac already draws the code and the phone does the typing. DEF-064 is the same finding reached
 from the registry side. Spec §3.2.
+
+**The arc's colour.** Not settled by preference: `InboxConformanceTests`' A15 census reddened on a
+third `--attn` in this file, and `DESIGN.md` §2 agreed with it — `--attn` means *wants a human
+decision*, which on this sheet is the queueing warning, and the countdown's own label is `--t2`. The
+product changed rather than the census. Spec §4.3.
 
 **Whether to build at all, given DEF-001.** Not this item's to reopen — the ledger row allocating
 M39 says the transport is not in it. What the item owes instead is saying so everywhere it could be

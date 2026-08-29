@@ -5,9 +5,9 @@ before testing anything (`ORCHESTRATOR.md`, *Only test a screen you changed*).
 
 | Screen | How | Commit | Result |
 |---|---|---|---|
-| Mac pairing sheet — `Phase.live` | in-process: `swift test --filter 'PairingSheetTests\|MacPairingTests\|PairingExpiryTests'` from `app/`, 38 tests in 4 suites, exit 0; 14 mutation arms each watched red (`planning/evidence/M39/arming.md`) | `f0b6e0f` | pass, at the `structural` rung |
+| Mac pairing sheet — `Phase.live` | in-process: `swift test --filter 'PairingSheetTests\|MacPairingTests\|PairingExpiryTests\|InboxConformanceTests'` from `app/`, 49 tests in 5 suites, exit 0; 16 mutation arms each watched red (`planning/evidence/M39/arming.md`) | `d04dc74` | pass, at the `structural` rung |
 | Mac pairing sheet — `Phase.live` **on glass** | **not run.** Machine load ran 114–700 across 16 cores with eight runners live, and this run's stop rule is before verify | — | skipped, and reported as a skip |
-| Mac pairing sheet — `.noEndpoint`, `.preparing`, `.expired`, `.failed` | not tested: neither addition renders outside `.live`, and no file behind those branches changed | `f0b6e0f` | not tested, cited rather than re-run |
+| Mac pairing sheet — `.noEndpoint`, `.preparing`, `.expired`, `.failed` | not tested: neither addition renders outside `.live`, and no file behind those branches changed | `d04dc74` | not tested, cited rather than re-run |
 
 ## What a glass pass would have to do that this one did not
 

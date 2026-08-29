@@ -340,7 +340,7 @@ planning/test-campaign/bin/record-glass-arms.py	gate	planning/test-campaign/bin/
 planning/test-campaign/bin/req017-honesty.py	gate	planning/test-campaign/bin/req017-honesty.py	static	no router invocation matched	-
 planning/test-campaign/bin/surface-oracle.swift	gate	planning/test-campaign/bin/surface-oracle.swift	static	no router invocation matched	-
 planning/test-campaign/bin/surface-reconcile.py	gate	planning/test-campaign/bin/surface-reconcile.py	static	no router invocation matched	make:surface-reconcile
-planning/test-campaign/bin/vocab-differential.py	gate	planning/test-campaign/bin/vocab-differential.py	static	no router invocation matched	-
+planning/test-campaign/bin/vocab-differential.py	gate	planning/test-campaign/bin/vocab-differential.py	static	no router invocation matched	make:lint
 planning/test-campaign/bin/wire-document-arm.py	gate	planning/test-campaign/bin/wire-document-arm.py	static	no router invocation matched	-
 planning/test-campaign/bin/wire-document-fixture/seed.py	gate	planning/test-campaign/bin/wire-document-fixture/seed.py	static	no router invocation matched	-
 planning/test-campaign/bin/wire-document.py	gate	planning/test-campaign/bin/wire-document.py	static	no router invocation matched	-

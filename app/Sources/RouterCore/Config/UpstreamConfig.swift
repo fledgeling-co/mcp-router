@@ -164,6 +164,15 @@ public struct RouterHome: Sendable, Hashable {
     /// other piece of router state, so `MCP_ROUTER_HOME` still moves all of it together, which is
     /// the invariant this type exists for.
     public var extensionsPath: String { path("extensions") }
+    /// Where F5 writes what it observed. Three files, under the home for ``extensionsPath``'s
+    /// reason — `MCP_ROUTER_HOME` moves all of the router's state together, which is the invariant
+    /// this type exists for, and telemetry that escaped it would be the one kind of state a person
+    /// most needs to be able to move or delete in one gesture.
+    public var invocationsPath: String { path("invocations.jsonl") }
+    /// The version boundary set — `spec-F5.md` §4.2.
+    public var versionLedgerPath: String { path("versions.jsonl") }
+    /// How far into each transcript file the last scan reached.
+    public var invocationWatermarkPath: String { path("invocation-watermarks.json") }
 
     public static let defaultPort = 8879
     public static let defaultHost = "127.0.0.1"

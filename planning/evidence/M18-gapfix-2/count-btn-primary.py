@@ -75,8 +75,22 @@ def main() -> int:
     print(f"Carrying `disabled`, as an attribute or as a class: **{len(disabled)}** of {len(all_sites)}.")
     print(f"A `:disabled` rule that reaches `.primary` anywhere in the file: "
           f"**{'yes — ' + rule.group(0) if rule else 'none'}**.")
-    print("\nSo the claim the count supports — *the design of record never draws a disabled primary,")
-    print("and its CSS could not dim one* — holds at the widest of the three readings.\n")
+    # **Derived from the two figures above, not printed over them.** This used to close with the
+    # fixed sentence *"the design of record never draws a disabled primary, and its CSS could not
+    # dim one"* whatever the run found — and by the time `M31` landed the line above it was already
+    # printing `yes — .btn.primary:disabled`, so the output contradicted itself in consecutive
+    # lines. Only the first half was ever this reader's to claim; the second is a question about the
+    # cascade, which `MockButtonFidelityTests.theMockDimsTheDisabledPrimary` holds to the triple
+    # `DESIGN.md` §3 states.
+    drawn = (f"**{len(disabled)} of {len(all_sites)}** drawn controls carry `disabled`"
+             if disabled else
+             f"the design of record draws **no** disabled primary — 0 of {len(all_sites)}")
+    dims = ("its CSS **does** carry a rule that reaches one"
+            if rule else "and its CSS carries **no** rule that reaches one")
+    print(f"\nSo, at the widest of the three readings: {drawn}, and {dims}.")
+    print("The second half is measured here and asserted in "
+          "`MockButtonFidelityTests.theMockDimsTheDisabledPrimary`, which reads the rule's body "
+          "rather than its selector.\n")
     print("## Every site\n")
     print("| Line | Tag | `class` | In the 33 | In the 29 | `disabled` |")
     print("|---|---|---|---|---|---|")

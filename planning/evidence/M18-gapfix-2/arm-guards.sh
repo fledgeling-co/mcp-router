@@ -9,8 +9,15 @@
 # Committed rather than run from /tmp, for `G6`'s reason: this is what makes "the guards were seen
 # to fail" a claim someone can re-run.
 #
+# **An arm bites when it produces a recorded issue the unmutated tree does not.** It does NOT bite
+# merely by exiting nonzero, and gap-fix 4 exists because this script used to say it did. The M18
+# gap-fix 3 verdict measured the difference: run on the merged tree, where the baseline was already
+# red, it printed *all arms bit* while nine of twelve had measured nothing at all. A compile error
+# exits nonzero too, and so does a harness that never ran a test — so every arm here is classified
+# by what came out rather than by `$?`, and every filter is measured unmutated first.
+#
 # Usage: `planning/evidence/M18-gapfix-2/arm-guards.sh` from the repository root. Exits nonzero if
-# any arm stayed green, or if the tree is not clean at the end.
+# any arm stayed green, if any arm could not be measured, or if the tree is not clean at the end.
 set -uo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/../../.." || exit 2
@@ -22,6 +29,37 @@ if ! git diff --quiet; then
 fi
 
 failures=0
+bit=0
+attempted=0
+
+baseline_dir=$(mktemp -d "${TMPDIR:-/tmp}/arm-guards-baseline.XXXXXX") || exit 2
+trap 'rm -rf "$baseline_dir"' EXIT
+
+# issues <output> — how many issues the test harness recorded. This is the measurement; the exit
+# code is not. A build failure and a suite of failing assertions both exit nonzero, and only one of
+# them has looked at the guard.
+issues() { printf '%s\n' "$1" | grep -c 'recorded an issue'; }
+
+# baseline <filter> — the unmutated tree under one filter, measured once and cached.
+#
+# Echoes the recorded-issue count, or `unmeasurable` when the filter does not come back green. An
+# arm on a red baseline proves nothing: the run it is compared against was already failing, so the
+# arm's own nonzero exit carries no information about the guard.
+baseline() {
+    local filter="$1" key file out code
+    key=$(printf '%s' "$filter" | tr -c 'A-Za-z0-9' '_')
+    file="$baseline_dir/$key"
+    if [ ! -f "$file" ]; then
+        out=$(swift test --package-path app --filter "$filter" 2>&1)
+        code=$?
+        if [ "$code" -ne 0 ]; then
+            printf 'unmeasurable' > "$file"
+        else
+            issues "$out" > "$file"
+        fi
+    fi
+    cat "$file"
+}
 
 # mutate <file> <python-replacement-expression-safe-old> <new> — a literal string replace.
 mutate() {
@@ -38,15 +76,26 @@ PY
 
 arm() {
     local label="$1" file="$2" old="$3" new="$4" filter="$5"
+    attempted=$((attempted + 1))
     printf '%-58s ' "$label"
+
+    local before
+    before=$(baseline "$filter")
+    if [ "$before" = "unmeasurable" ]; then
+        echo "NO BASELINE — '$filter' is not green unmutated, so this arm can measure nothing"
+        failures=$((failures + 1))
+        return
+    fi
+
     if ! mutate "$file" "$old" "$new"; then
         echo "ANCHOR MISSING — arm could not be applied"
         failures=$((failures + 1))
         return
     fi
-    local out exit_code
+    local out exit_code after
     out=$(swift test --package-path app --filter "$filter" 2>&1)
     exit_code=$?
+    after=$(issues "$out")
     git checkout -- "$file"
     if ! git diff --quiet; then
         echo "RESTORE FAILED — the tree is dirty after this arm"
@@ -56,19 +105,35 @@ arm() {
     if [ "$exit_code" -eq 0 ]; then
         echo "STILL GREEN — the guard does not bite"
         failures=$((failures + 1))
+    elif [ "$after" -le "$before" ]; then
+        # Nonzero and no new issue: the package did not build, or the harness fell over before it
+        # reached an assertion. Either way nothing looked at the guard, and calling this a bitten
+        # arm is the defect gap-fix 4 removed.
+        echo "DID NOT MEASURE — exit $exit_code, $after issue line(s) against a baseline of $before"
+        failures=$((failures + 1))
     else
-        echo "red: $(printf '%s\n' "$out" | grep -c 'recorded an issue') issue line(s)"
+        echo "red: $after issue line(s) (baseline $before)"
+        bit=$((bit + 1))
     fi
 }
 
 # 1 — the blocker itself, put back.
+#
+# The anchor was `.buttonStyle(…)` followed by `.disabled(candidate == nil)` and it went stale when
+# that condition became `refusal != nil` and gained a comment above it — silently, between passes,
+# in a commit that had no reason to think about this file. It is now the destructive control's own
+# declaration and its first modifier, which is the thing the arm is actually about.
 arm "cancelAction back onto the destructive Remove" \
     app/Sources/MCPRouterUI/Boards/CleanupSheets.swift \
-    '                    .buttonStyle(StandardButtonStyle())
-                    .disabled(candidate == nil)' \
-    '                    .buttonStyle(StandardButtonStyle())
-                    .keyboardShortcut(.cancelAction)
-                    .disabled(candidate == nil)' \
+    '                    Button("Remove", role: .destructive) {
+                        Task { await board.remove(name, keepHistory: keepHistory) }
+                    }
+                    .buttonStyle(StandardButtonStyle())' \
+    '                    Button("Remove", role: .destructive) {
+                        Task { await board.remove(name, keepHistory: keepHistory) }
+                    }
+                    .buttonStyle(StandardButtonStyle())
+                    .keyboardShortcut(.cancelAction)' \
     'SheetShortcutGuardTests'
 
 # 2 — the pair SwiftUI silently reduces to one.
@@ -124,11 +189,20 @@ arm "the destructive button filled again" \
     '        if role == .destructive { return isPressed ? .f1 : .raised }' \
     'ButtonPaletteTests|MockButtonFidelityTests'
 
-# 7 — the design of record made to draw a disabled primary, which is the input rather than the code.
-arm "a disabled primary planted in the mock" \
+# 7 — the design of record's disabled-primary treatment removed, which is the input rather than the
+# code.
+#
+# **This arm used to plant `class="btn primary disabled"` on a control, and it stopped biting.**
+# Not because a guard went blind: `M31` landed in the meantime and gave the mock a
+# `.btn.primary:disabled,.btn.primary.disabled` rule that dims it, so a planted disabled primary
+# became a *conforming* shape and there was nothing left for the arm to prove. The old arm was
+# still counted as bitten by the harness's own exit-code reading, which is why gap-fix 4 replaced
+# that reading before finding this. The live property is the rule M31 added, and this arm takes one
+# of its two spellings away — `theMockDimsTheDisabledPrimary` reads both.
+arm "the mock's disabled-primary rule loses a spelling" \
     design/mcp-router-console.html \
-    'class="btn primary"' \
-    'class="btn primary disabled"' \
+    '.btn:disabled,.btn.disabled,.btn.primary:disabled,.btn.primary.disabled{' \
+    '.btn:disabled,.btn.disabled,.btn.primary:disabled{' \
     'MockButtonFidelityTests'
 
 # 8 — the mock's destructive rule given a fill, so the claim the style rests on stops holding.
@@ -187,6 +261,22 @@ arm "the style reader made to read nothing" \
     '                    guard var style = firstArgument(of: "ZZNeverMatches(", in: modifier) else { return nil }' \
     'SheetShortcutGuardTests'
 
+# --- gap-fix 4: the branch that excuses the eighth Cancel ---------------------------------------
+
+# 13 — the `role: .cancel` half of the accent-fill sweep, which had no arm.
+#
+# `accentFilledCancels` offends on `label == "Cancel" || isCancelRole`. Twelve arms stood on the
+# label half and none on the other, so the branch that covers the one control in this tree whose
+# label is an expression — `Button(…secondaryActionLabel ?? "Cancel", role: .cancel)` in
+# `PairingFlowView` — was never seen to fire. The gap-fix 3 verdict armed it by hand and it bit;
+# this is that arm, committed, so the next reader re-runs it rather than trusting the report.
+arm "the role: .cancel Cancel filled again" \
+    app/Sources/MCPRouterUI/Phone/PairingFlowView.swift \
+    '                Button(PairingCopy.entry(.unpairConfirm).secondaryActionLabel ?? "Cancel", role: .cancel) {}' \
+    '                Button(PairingCopy.entry(.unpairConfirm).secondaryActionLabel ?? "Cancel", role: .cancel) {}
+                    .buttonStyle(ProminentButtonStyle())' \
+    'SheetShortcutGuardTests'
+
 echo
 if ! git diff --quiet || [ -n "$(git status --porcelain --untracked-files=no)" ]; then
     echo "the tree is NOT clean after arming — see git status"
@@ -194,5 +284,6 @@ if ! git diff --quiet || [ -n "$(git status --porcelain --untracked-files=no)" ]
     exit 1
 fi
 echo "tree clean after every arm (git diff --quiet, git status clean of tracked changes)"
-[ "$failures" -eq 0 ] && echo "all arms bit" || echo "$failures arm(s) did not bite"
+echo "$bit of $attempted arm(s) bit; $failures did not"
+[ "$failures" -eq 0 ] || echo "an arm that did not bite measured nothing — read its line above for which"
 exit "$failures"

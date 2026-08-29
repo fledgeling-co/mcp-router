@@ -75,6 +75,13 @@ is the subject — a non-zero removal count.
 
 ## What arming found that reading did not
 
+**The redaction block was appended after the scrub**, so a credential written into an `env` key
+name — or into a server's name — travelled out through the key path in `unscrubbable`. That is
+precisely the leak vector one of the reviewers named, arriving at the last line of the function
+written to close it, and reading the code did not catch it: the append looks obviously correct.
+`R22-f` plants a secret as a value on one server and as an env KEY on another, and `ARM 8` reverts
+the fix and watches it go red alone.
+
 The socket lane's first draft carried **two assertions that could not fail**, and neither was
 visible on the page:
 
@@ -103,8 +110,8 @@ did. It now compares against copies taken at the top.
 
 | gate | result |
 |---|---|
-| `swift test --filter ControlDiagnosticsTests` | 11 tests, 1 suite, passed |
-| `bash planning/test-campaign/bin/arm-r22-diagnostics.sh` | 9 of 9 held — 7 arms red with the cases named, baseline green, restore byte-identical |
+| `swift test --filter ControlDiagnosticsTests` | 12 tests, 1 suite, passed |
+| `bash planning/test-campaign/bin/arm-r22-diagnostics.sh` | 10 of 10 held — 8 arms red with the cases named, baseline green, restore byte-identical |
 | `bash scripts/acceptance/r22-diagnostics.sh` | 23 ok, 0 failed |
 | `python3 planning/registry-drop-gate.py` | exit 0, control held, no id dropped, 270 ids |
 | `python3 planning/test-campaign/bin/effect-class-census.py` | exit 0, 30 requirements, 0 findings |

@@ -166,9 +166,9 @@ otherwise, and only one of them means what the reader will take it to mean.
 
 | | |
 |---|---|
-| `ControlDiagnosticsTests` | 11 tests through `ControlHandler.handle` — the six cases plus URL sanitisation, the absent log, home elision, needle ordering and the control token |
+| `ControlDiagnosticsTests` | 12 tests through `ControlHandler.handle` — the six cases plus URL sanitisation, the absent log, home elision, needle ordering, the control token, and the redaction block itself |
 | `scripts/acceptance/r22-diagnostics.sh` | 23 assertions over the daemon's own socket against a credential literal planted in a real `servers.json` and a real `router.log`; enrolled in `acceptance-lanes.sh` |
-| `planning/test-campaign/bin/arm-r22-diagnostics.sh` | seven arms, each watched red with the reddened cases named, plus a green baseline and a byte-identical restore |
+| `planning/test-campaign/bin/arm-r22-diagnostics.sh` | eight arms, each watched red with the reddened cases named, plus a green baseline and a byte-identical restore |
 | `planning/test-campaign/evidence/runs/r22-diagnostics-lane.log` | the lane's verdict lines with the producing command in the header |
 | `planning/test-campaign/evidence/arming/r22-diagnostics.log` | the arming pass's own record |
 
@@ -189,6 +189,12 @@ non-zero.
 
 ## 6. What this does not close, stated rather than implied
 
+- **A credential written into an env KEY, or into a server's name, is covered — but only
+  because the redaction block is scrubbed too.** It was not, in the first draft: the block is built
+  after the document has been scrubbed, so a key path in `unscrubbable` carried the literal
+  straight out, reopening at the last line of `bundleValue` the hole the pass exists to close. That
+  is Gemini's vector D arriving by a route neither of us was looking at. `R22-f` fails when the
+  block is appended raw, and `ARM 8` is what found it.
 - **A token minted after the config was written has no needle.** `AuthStore` exposes `hasTokens`
   and `authorizedAt` and no way to read a value, so an OAuth access token the router obtained this
   morning is not in the needle set. Layer 1 still covers it — the bundle never reads the auth

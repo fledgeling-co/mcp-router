@@ -29,7 +29,9 @@ struct ControlUpdateRoutesTests {
     /// real store cannot satisfy it: R30 stores a plugin under `<plugin>@<marketplace>` while the
     /// `plugin.json` Claude wrote says `<plugin>`, which is why R30 uses `adopt` and not `add`. A
     /// fixture built through `add` would be a shape the product never holds.
-    private static func write(_ store: DiskExtensionStore, _ kind: ExtensionKind, _ name: String, _ text: String) {
+    private static func write(
+        _ store: DiskExtensionStore, _ kind: ExtensionKind, _ name: String, _ text: String
+    ) {
         let entry = ((store.root as NSString).appendingPathComponent(kind.rawValue) as NSString)
             .appendingPathComponent(name)
         let descriptor = (entry as NSString).appendingPathComponent(kind.descriptorPath)

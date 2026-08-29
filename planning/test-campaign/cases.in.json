@@ -2537,5 +2537,187 @@
   ],
   "note": "N8. The inertness guard on the untrusted-input boundary, made capable of failing. M19 shipped `MarkdownSecurityTests.htmlIsInert` with four spellings that named `javascript:`, no scheme, or nothing, and two assertions -- no link, no `imageURL` -- that `MarkdownInline.sanitized` makes true of every input it touches. It could not go red. M30 wired `ControlAPICapabilityDocumentSource` into the shipped UI, so router-served third-party text now reaches this renderer in a Release build, and the guard on it measured nothing. MEASURED, not assumed: the platform parser does keep inline HTML inert -- under `MarkdownInline`'s own options it hands each tag back as characters and marks it `.inlineHTML`, an intent naming no destination, and it does so under all four combinations of `allowsExtendedAttributes` and `interpretedSyntax`. Swift 6.2, macOS 26.6.2 (25G83), Debug, `swift test`. So this was an evidence defect and not a live vulnerability, and the fix is the assertion rather than new sanitisation. Two `https` spellings were added, because `https` is the one scheme the allowlist keeps and therefore the only one that can carry an interpreted `<a>` through to the assertion; a presence control runs the same reader over the markdown twin of the same destination first; and two clauses were added that the old body did not have -- handed back verbatim, and no attribute beyond the `.inlineHTML` marker. That last clause also corrects the test's own claim: the parser DOES attach one attribute to inline HTML and `sanitized` carries it, so the old name -- `inline HTML acquires no attribute of any kind` -- was false as written as well as unfailable, which is why nobody found out.",
   "armedBy": "Arm A10 of `scripts/m19-red-green.py`. The mutation makes `MarkdownInline.init(markdown:)` rewrite `<a href=\"...\">...</a>` into a markdown link before parsing -- the toolchain change the guard exists to catch, injected at the seam where this code hands the source over, because the platform is what keeps HTML inert and a mutation pass cannot mutate the platform. The harness runs the named test alone, asserts `1 test in 1 suite`, requires a green unmutated baseline, matches the recorded issue against the test's own display name, and restores the file. RED: evidence/runs/m19-red-green.a10.log -- all ten arms bit, exit 0. The counter-measurement is what makes this an arm rather than a decoration: the SAME mutation run against M19's four spellings SURVIVED -- evidence/runs/m19-a10-unfailable-control.log. Re-witnessed independently on 2026-08-29 in three `--only` chunks on a tree whose `MarkdownInline.swift` was hashed identical before and after every run: all ten arms bit, A10 red (exit 0) and SURVIVED against M19's body (exit 1). evidence/runs/m19-red-green.a10.rerun.log."
+ },
+ {
+  "id": "CASE-0314",
+  "req": "REQ-034",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "dataShape": "a credential record with no expires_in",
+   "executionPlane": "headless",
+   "role": "daemon",
+   "state": "populated",
+   "surface": "SURF-016",
+   "theme": "n/a",
+   "viewport": "n/a"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "planning/evidence/R26/verdicts.md",
+   "scripts/acceptance/r26-auth-expiry.sh",
+   "planning/test-campaign/bin/arm-r26-auth-expiry.py"
+  ],
+  "note": "R26. THE VACUITY CASE, and the reason this item exists in the shape it does. A token whose stored record declares no lifetime has no derivable expiry, and the tempting reading -- it has not expired, therefore it is fine -- is the class this campaign keeps finding: a state that reads healthy because nothing measured it. `AuthExpiryRecord.state` has NO path from a missing number to `valid`; it returns `unknown` and the wire carries `unknownReason` saying which half is missing (`no-lifetime-declared` when `expires_in` is absent, `unreadable-authorized-at` when the stamp is). Asserted at both planes: E5/E6/E17/E21 in the suites, and the lane reads `state`, `unknownReason` and the ABSENCE of any invented `expiresAt` off a record it planted itself. Not `expiresAt: null` -- absent, so there is nothing there for a careless reader to round to fine.",
+  "armedBy": "Arm `vacuity` of planning/test-campaign/bin/arm-r26-auth-expiry.py: `guard let expiresAtMs else { return .unknown }` becomes `return .valid`. RED -- E5, E6, E17 and E21 all fail. The harness requires a green presence control over a NON-ZERO test count first, so a filter that selected nothing cannot report a catch, and it compares the file's sha256 before and after to prove the restore."
+ },
+ {
+  "id": "CASE-0315",
+  "req": "REQ-034",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "dataShape": "an authExpiry block below the floor",
+   "executionPlane": "headless",
+   "role": "daemon",
+   "state": "populated",
+   "surface": "SURF-016",
+   "theme": "n/a",
+   "viewport": "n/a"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "planning/evidence/R26/verdicts.md",
+   "scripts/acceptance/r26-auth-expiry.sh",
+   "planning/test-campaign/bin/arm-r26-auth-expiry.py"
+  ],
+  "note": "R26. A configured value the router will not take is REFUSED and reported with its key, its value as written, the floor that rejected it and its scope -- never clamped. A clamp invents a number nobody wrote, so the file says 500 and the behaviour is 60000 with nothing anywhere saying which is real. `warnWithinMs`'s floor is this item's own vacuity rule and ZERO IS NOT ACCEPTED: at zero a token passes straight from valid to expired and `expiring` is unreachable, which is R27's `tripAfter >= 2` one item earlier. E2 asserts that in both directions -- under a zero window a token one millisecond from death reads `valid`, and under the resolved policy the same token reads `expiring`.",
+  "armedBy": "Arm `clamp` of planning/test-campaign/bin/arm-r26-auth-expiry.py: the refusal branch in `AuthExpiryPolicy.readGlobal` becomes `field = max(value, floor)`. RED -- E1, E2 and E22 fail. THE ARM CHANGED THE WORK: on its first run E22 SURVIVED, because that test injected its refusals as a literal and so asserted the JSON shape of a refusal rather than the behaviour that produces one. It now resolves from configuration text and the arm bites."
+ },
+ {
+  "id": "CASE-0316",
+  "req": "REQ-034",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "dataShape": "two claims inside one renotify window",
+   "executionPlane": "headless",
+   "role": "daemon",
+   "state": "populated",
+   "surface": "SURF-016",
+   "theme": "n/a",
+   "viewport": "n/a"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "planning/evidence/R26/verdicts.md",
+   "scripts/acceptance/r26-auth-expiry.sh",
+   "planning/test-campaign/bin/arm-r26-auth-expiry.py"
+  ],
+  "note": "R26. The throttle withholds a REPEAT and never an ESCALATION. The brief asks that a recurring error not generate alert spam, and the naive reading -- one alert per server per window -- swallows the one transition that matters. Four things make a notice due: nothing has been said yet, the KIND changed, the EXPIRY moved, or the window elapsed. E13 runs with `renotifyAfterMs` set to a year so nothing can go out on elapsed time, watches `expiring` become `expired` one millisecond past the boundary, and then asserts the repeat after it IS withheld -- so the arm is the escalation rather than the throttle being broken.",
+  "armedBy": "Arms `escalation` and `moved-expiry` of planning/test-campaign/bin/arm-r26-auth-expiry.py, each deleting one `return true` term from `AuthExpiryMonitor.isDue`. RED -- E13 and E14 respectively."
+ },
+ {
+  "id": "CASE-0317",
+  "req": "REQ-034",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "dataShape": "a credential re-authorised between two claims",
+   "executionPlane": "headless",
+   "role": "daemon",
+   "state": "populated",
+   "surface": "SURF-016",
+   "theme": "n/a",
+   "viewport": "n/a"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "planning/evidence/R26/verdicts.md",
+   "scripts/acceptance/r26-auth-expiry.sh",
+   "planning/test-campaign/bin/arm-r26-auth-expiry.py"
+  ],
+  "note": "R26. *Resolving authentication immediately clears the warning status* -- the brief's third bullet, and it is a CLEAR rather than an age-out. A server that stops deserving a notice has its delivery record DROPPED, so the next thing that goes wrong is reported at once instead of waiting out a six-hour window. The lane proves it against a wall clock: it re-authorises the record from outside, claims, breaks it again, claims again, and the notice arrives seconds later under the default six-hour renotify. A throttle that merely aged out could not produce that. The absence half is paired -- a SECOND server is broken in the same step, so 'the re-authorised one is gone' is read off a reply that carries another server rather than off an empty one.",
+  "armedBy": "Arm `recovery` of planning/test-campaign/bin/arm-r26-auth-expiry.py: `delivered[record.server] = nil` is dropped from the non-notifiable branch. RED -- E15."
+ },
+ {
+  "id": "CASE-0318",
+  "req": "REQ-034",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "dataShape": "three reads then a claim",
+   "executionPlane": "headless",
+   "role": "daemon",
+   "state": "populated",
+   "surface": "SURF-016",
+   "theme": "n/a",
+   "viewport": "n/a"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "planning/evidence/R26/verdicts.md",
+   "scripts/acceptance/r26-auth-expiry.sh",
+   "planning/test-campaign/bin/arm-r26-auth-expiry.py"
+  ],
+  "note": "R26. Reading the report does not consume the notice; claiming it does. That is why there are two routes rather than one: folding them together would make `GET /upstreams/auth-expiry` spend the notification a caller was about to be shown, so opening a settings pane would silence the next alert. It is the same rule this repository enforces on its own gates -- a check that mutates the tree as a side effect of checking is not a check. E16 asserts it on the monitor and E24 through the routes; the lane asserts it as `count:2` after two GETs.",
+  "armedBy": "Arm `reading-consumes` of planning/test-campaign/bin/arm-r26-auth-expiry.py: the GET handler calls `claim` before `report`. RED -- E24."
+ },
+ {
+  "id": "CASE-0319",
+  "req": "REQ-034",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "dataShape": "no monitor, and the wrong verb, token and content type",
+   "executionPlane": "headless",
+   "role": "daemon",
+   "state": "populated",
+   "surface": "SURF-016",
+   "theme": "n/a",
+   "viewport": "n/a"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "planning/evidence/R26/verdicts.md",
+   "scripts/acceptance/r26-auth-expiry.sh",
+   "planning/test-campaign/bin/arm-r26-auth-expiry.py"
+  ],
+  "note": "R26. With no monitor both routes answer 503 NAMING the missing capability, the shape `/harnesses`, `/extensions`, `/caches` and `/upstreams/health` use -- an empty report would be indistinguishable from a router holding no credentials at all. Beside it the wire refusals: 405 on the wrong verb for each path, 401 untokened, 415 with no content type, and a 404 rather than a 405 on `/upstreams/auth-expiryx`, because claiming a prefix collision would turn a typo into an answer that reads as 'the method is wrong'.",
+  "armedBy": "Arm `wiring` of planning/test-campaign/bin/arm-r26-auth-expiry.py: the one `authExpiry:` line is deleted from `RouterServiceDispatch`. RED at the LANE -- every route 503s -- while the unit suite stays GREEN, which is the contrast the arm exists to show. Two dependencies have shipped nil in that file with a green suite (`registry`, `authFlow`), so this is a measured class rather than a hypothetical one."
+ },
+ {
+  "id": "CASE-0320",
+  "req": "REQ-034",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "dataShape": "five upstreams, four planted records, one stdio server",
+   "executionPlane": "headless",
+   "role": "daemon",
+   "state": "populated",
+   "surface": "SURF-016",
+   "theme": "n/a",
+   "viewport": "n/a"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "planning/evidence/R26/verdicts.md",
+   "scripts/acceptance/r26-auth-expiry.sh",
+   "planning/test-campaign/bin/arm-r26-auth-expiry.py"
+  ],
+  "note": "R26. THE PAIRED ABSENCE, and the load-bearing case. The claim is that the expiry is DERIVED from files the router already wrote rather than asked of the upstream, and half of that claim is an absence: nothing was spawned. An absence asserted alone is satisfied by a feature that does nothing, which is REQ-035's recorded lesson. So the lane never asserts it alone. It reads the daemon's child count off the process table -- zero, and zero running the stdio fixture's own script -- in the same run in which it REWRITES a planted credential record between two requests and requires the reported `expiresAt` and `state` to move with it. Zero children beside a report that follows the file is the claim; zero children alone is not.",
+  "armedBy": "Arm `spawn` of planning/test-campaign/bin/arm-r26-auth-expiry.py: the lane's own stdio fixture is marked `warm`, so the daemon starts it. RED -- both process-table readings report a non-zero count, which is what shows the zero is a measurement rather than a constant. The lane is restored and its sha256 compared. The PRESENCE half needs no arm: it is the `expiry moved with the planted record` assertion, which fails by construction if the report is not read from disk."
  }
 ]

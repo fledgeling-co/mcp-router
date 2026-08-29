@@ -1,6 +1,8 @@
 ---
 status: to-triage
 found-by: Wave L, after four runners were dispatched at shipped work, 2026-08-29
+registry-target: none
+no-target-reason: the subject is the ledger files and their gate, which the campaign registry does not model — no case, requirement or defect covers a row whose status word disagrees with git
 ---
 
 # The ledger gate nothing runs, and which checks the files against each other rather than git

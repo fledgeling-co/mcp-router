@@ -1,3 +1,7 @@
+---
+reckon-sources: [REQ-015, REQ-016, DEF-001, DEF-064, CASE-0286, CASE-0287, CASE-0288, CASE-0289, CASE-0290, CASE-0291]
+---
+
 # Mobile Companion Pairing QR Code Presentation and Expiry Countdown
 
 - origin: test-campaign visual differential and reckoning broken findings · 2026-08-25

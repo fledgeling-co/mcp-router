@@ -94,10 +94,51 @@ ARMS = [
      "app/Sources/MCPRouterKit/Markdown/MarkdownParser.swift",
      "blocks.append(.plainText(trimmed))",
      "blocks.append(.paragraph(MarkdownInline(markdown: trimmed)))"),
+
+    # The inertness guard. What keeps inline HTML inert is the PLATFORM parser, and a red-green pass
+    # cannot mutate the platform — so this arm injects the toolchain change the guard exists to
+    # catch, at the seam where our code hands the source over: the implementation starts
+    # interpreting `<a href="...">...</a>` before it parses. The `https` spelling in the test's
+    # inputs is what carries that through `sanitized` to the assertion; measured 2026-08-29, this
+    # same mutation left M19's four spellings green, which is the defect this arm closes.
+    ("A10", "MarkdownSecurityTests", "htmlIsInert",
+     "inline HTML is handed back verbatim and acquires no attribute naming a destination",
+     "app/Sources/MCPRouterKit/Markdown/MarkdownInline.swift",
+     '            attributed = try Self.sanitized(AttributedString(markdown: source, options: options))',
+     '            let interpreted = source.replacingOccurrences(\n                of: #"<a href="([^"]+)">([^<]*)</a>"#, with: "[$2]($1)",\n                options: .regularExpression\n            )\n            attributed = try Self.sanitized(\n                AttributedString(markdown: interpreted, options: options)\n            )'),
 ]
 
 RUN_LINE = re.compile(r"Test run with (\d+) tests? in (\d+) suites? (passed|failed)")
 TRAP = re.compile(r"Fatal error|Crashed by signal|Trace/BPT trap|Segmentation fault")
+
+# `--only A10[,A3]` runs a subset. Added because a full pass is ~20 `swift test` invocations, which
+# on a loaded machine outlives the window a runner has to watch it in — and an arm nobody can afford
+# to watch is an arm nobody watches. The subset is REPORTED in the summary line rather than
+# formatted to look like a full pass, so a partial log cannot be filed as a whole one.
+#
+# A filter naming no arm exits 2. A run that compared nothing is not a green run, and the failure
+# mode this closes is a typo'd id selecting the empty set and exiting 0 — the same shape as the
+# `swift test` filter that selects no test, which clause 1 below already refuses.
+def selected_arms(argv: list[str]) -> tuple[list, str]:
+    if "--only" not in argv:
+        return ARMS, ""
+    index = argv.index("--only")
+    if index + 1 >= len(argv):
+        print("m19-redgreen: --only needs a comma-separated list of arm ids", file=sys.stderr)
+        sys.exit(2)
+    wanted = [piece.strip() for piece in argv[index + 1].split(",") if piece.strip()]
+    unknown = [w for w in wanted if w not in {arm[0] for arm in ARMS}]
+    if unknown:
+        print(f"m19-redgreen: --only names no such arm: {', '.join(unknown)}", file=sys.stderr)
+        sys.exit(2)
+    chosen = [arm for arm in ARMS if arm[0] in wanted]
+    if not chosen:
+        print("m19-redgreen: --only selected no arm, so nothing was compared", file=sys.stderr)
+        sys.exit(2)
+    return chosen, f" (--only {','.join(arm[0] for arm in chosen)} of {len(ARMS)})"
+
+
+SELECTED, SUBSET = selected_arms(sys.argv[1:])
 
 
 def run(filt: str) -> tuple[int, str]:
@@ -121,7 +162,7 @@ def outcome(output: str) -> str | None:
 baseline_cache: dict[str, tuple[bool, str]] = {}
 unproven: list[str] = []
 
-for aid, suite, func, display, rel, find, repl in ARMS:
+for aid, suite, func, display, rel, find, repl in SELECTED:
     filt = f"{suite}/{func}"
     path = ROOT / rel
 
@@ -180,4 +221,4 @@ print()
 if unproven:
     print(f"m19-redgreen: {len(unproven)} arm(s) proved nothing: {', '.join(unproven)}")
     sys.exit(1)
-print(f"m19-redgreen: all {len(ARMS)} arms bit, each through the test it names, and every file was restored")
+print(f"m19-redgreen: all {len(SELECTED)} arms bit{SUBSET}, each through the test it names, and every file was restored")

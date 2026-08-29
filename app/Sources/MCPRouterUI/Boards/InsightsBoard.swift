@@ -13,9 +13,15 @@
     /// **What it does not show, and why.** The mock draws a *Last 7 days* window pop-up and a
     /// capability-use table keyed on the version live when a call ran. The window is fixed at 24
     /// hours because the call log rotates and what a router can answer for is whatever survived —
-    /// a control offering seven days on a machine holding two would lie about its own range. The
-    /// version table has no data behind it at all: `UsageRecord` carries the server, the tool and
-    /// the caller, and no version anywhere. Both are parked with those reasons.
+    /// a control offering seven days on a machine holding two would lie about its own range.
+    ///
+    /// **The version table now has data behind it, and this board does not draw it yet.** When this
+    /// comment was written it was true that `UsageRecord` carried no version anywhere. F5 built the
+    /// other half — `GET /invocations` folds a version-stamped window out of the harness's own
+    /// session transcripts, and refuses to credit any run whose version its boundary set cannot
+    /// establish (`planning/specs/spec-F5.md`). The table is `D-f5-a`, deferred rather than absent:
+    /// rule A36 in `scripts/lint/no-raw-design-values.sh` forbids a board reading a file, so it
+    /// ships behind that route the way the Harnesses board shipped behind `GET /harnesses`.
     public struct InsightsBoard: View {
         @Bindable private var board: InsightsBoardModel
         private let showActivity: @MainActor () -> Void

@@ -355,9 +355,12 @@ extension ControlHandler {
         _ path: String, _ request: ControlAPIRequest, _ deps: ControlDeps
     ) async -> ControlAPIResponse? {
         if let response = routeUsage(path, request, deps) { return response }
+        if let response = routeUpdates(path, request, deps) { return response }
         if let response = routeExtensions(path, request, deps) { return response }
+        if let response = routeInvocations(path, request, deps) { return response }
         if let response = routeCaches(path, request, deps) { return response }
         if let response = await routeHealth(path, request, deps) { return response }
+        if let response = routeDiagnostics(path, request, deps) { return response }
         switch (path, request.method) {
         case ("/harnesses", "GET"): return harnessesResponse(deps)
         case ("/insights", "GET"): return await insightsResponse(deps)

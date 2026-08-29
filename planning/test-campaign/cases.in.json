@@ -1950,5 +1950,592 @@
   "armed": false,
   "evidence": [],
   "note": "M37. The app half and the router half read one pinned file, Vectors/pause-action.json. Changing the pinned bytes must redden both halves; that is what makes the pair a witness rather than two suites agreeing by coincidence."
+ },
+ {
+  "id": "CASE-0262",
+  "req": "REQ-007",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "F5. A run bracketed by two version boundaries carrying different versions is counted toward NEITHER. The oracle is that the version's run total does not move, and the same test removes the later boundary and requires it to move, so the assertion is watched being able to change its answer. Without the second half this passes against an implementation that credits every historical run to the installed version, which is the defect the whole item exists to refuse (spec-F5.md 2.2)."
+ },
+ {
+  "id": "CASE-0263",
+  "req": "REQ-007",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "structural",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "F5. The serialised key set of an InvocationEvent is exactly ts, kind, name, harness. Driven from a fixture transcript line that carries a cwd naming a project and an args carrying prompt text; neither may appear in the output. InvocationEvent.wireKeys is asserted alongside, so a fifth member added later reddens this rather than shipping. The privacy claim in spec-F5.md 3 is worth what fails when it stops being true."
+ },
+ {
+  "id": "CASE-0264",
+  "req": "REQ-007",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "metamorphic",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "F5. The incremental scan. Scanning an unchanged file twice must yield the same events as scanning it once and must not open it the second time; a file that shrank must be re-read from zero and say so in filesReread. The corpus is 59,476 files and 19.5 GB (measured 2026-08-29), so the watermark is what makes the reader answerable inside a request rather than an optimisation."
+ },
+ {
+  "id": "CASE-0265",
+  "req": "REQ-012",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "F5. With no reporter wired, GET /invocations answers 503 naming that the router was never pointed at a transcript corpus, not an empty window. ControlDeps' optional ports have shipped nil in RouterServiceDispatch twice with a green suite (control-registry-search, D-p1-a), which is a 503 on a whole family no unit test could see."
+ },
+ {
+  "id": "CASE-0270",
+  "req": "REQ-035",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "R22. Every CONFIGURED credential is absent from the bundle, and the document that omits it is a real one. The absence alone is the easiest unfailable assertion in this repository: it holds over an empty document, over a 404, and over a gatherer that never read the config. So it is asserted beside three things that must be PRESENT \u2014 a public canary planted in the same log line, the env key name, and the header key name \u2014 and beside `\"value\":\"present\"`, which proves a decision was taken about the value rather than the whole server having been skipped."
+ },
+ {
+  "id": "CASE-0271",
+  "req": "REQ-035",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "R22. Layer 2, and the channel layer 1 structurally cannot reach. A credential arrives in a diagnostics export by more routes than the field it was configured in: an upstream that rejects a call and quotes the token back in its error text, a command line carrying `--token=`, a log line somebody wrote by hand. Those are strings the bundle has every reason to carry, and the only thing distinguishing the secret inside one is its VALUE."
+ },
+ {
+  "id": "CASE-0272",
+  "req": "REQ-035",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "R22. The needle floor, which is a correctness rule rather than a performance one. An env value of `1`, `true` or `dev` used as a scrub needle deletes every occurrence of that text from every log line in the bundle \u2014 the timestamps, the ports, the word `device`. The result READS as thorough redaction and is a corrupted document, and nobody looking at it can tell which."
+ },
+ {
+  "id": "CASE-0273",
+  "req": "REQ-035",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "R22. A secret does not always reach a log line as itself. It reaches it percent-encoded when it travelled in a URL and base64-encoded when it travelled in a `Basic` credential, and a scrubber that knows only the literal reports a clean bundle over both. Both out-of-family lanes raised this independently and it is the one addition of theirs taken wholesale."
+ },
+ {
+  "id": "CASE-0274",
+  "req": "REQ-035",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "R22. The preview is a GET and GET is UNGATED in this router \u2014 `ControlHandler.gate` reads the token only for POST/DELETE/PATCH, matching the reference, recorded there as a ported defect rather than quietly fixed. So the preview is written to one rule: it discloses nothing `GET /servers` does not already disclose. Category names, counts, key names, and the redaction plan."
+ },
+ {
+  "id": "CASE-0275",
+  "req": "REQ-035",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "R22. The verb IS the gate, and it is not describing a mutation. The bundle changes nothing. It is a POST because stage 2 of `ControlHandler.handle` gates the token on POST/DELETE/PATCH only, so the verb is the only thing deciding whether this router hands its whole diagnostic corpus \u2014 log lines included \u2014 to any unauthenticated caller that can open the loopback port, which per `ControlToken` includes a web page the user merely visits."
+ },
+ {
+  "id": "CASE-0276",
+  "req": "REQ-007",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "n/a",
+   "theme": "n/a",
+   "role": "operator",
+   "dataShape": "a catalogue offering a strictly newer version",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "planning/evidence/F6/lane-f6-updates.txt",
+   "planning/evidence/F6/red-green.txt"
+  ],
+  "note": "F6. `update-available` is the ONE verdict of eight that means an install, and it is the one the real machine cannot produce: measured 2026-08-29 over all 127 installed plugins by planning/evidence/F6/measure-update-surface.py, it fires ZERO times. So this case is fixture-driven by necessity and its arm is what makes it evidence. ARMED: red-green M2 inverts the direction in ExtensionFreshness and F1, F3 and G1 all go red; M1 makes an unorderable pair compare ascending and S3 and F4 go red."
+ },
+ {
+  "id": "CASE-0277",
+  "req": "REQ-007",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "degraded",
+   "viewport": "n/a",
+   "theme": "n/a",
+   "role": "operator",
+   "dataShape": "a catalogue OLDER than what is installed",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "planning/evidence/F6/lane-f6-updates.txt",
+   "planning/evidence/F6/red-green.txt"
+  ],
+  "note": "F6. The state actually measured on this machine: security-guidance@claude-code-plugins holds 2.0.0 while its catalogue offers 1.0.0. `installed != offered` reads that as an update and would offer a DOWNGRADE described as an update, with nothing in the reply able to say which it was. It is its own verdict, `catalogue-behind`, and hasUpdate is false for it. ARMED: red-green M3 makes hasUpdate true for catalogueBehind and F3 and F12 go red."
+ },
+ {
+  "id": "CASE-0278",
+  "req": "REQ-007",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "empty",
+   "viewport": "n/a",
+   "theme": "n/a",
+   "role": "operator",
+   "dataShape": "a catalogue that declares no versions",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "planning/evidence/F6/lane-f6-updates.txt",
+   "planning/evidence/F6/red-green.txt"
+  ],
+  "note": "F6. `0 updates` over 127 plugins is produced identically by a healthy machine and by a checker that read nothing, and on this machine 557 of the 763 offers across ten catalogues declare no version at all. The summary therefore carries `compared` and `uncomparable` beside `updatesAvailable`, and they sum to `total`. ARMED: red-green M7 makes isComparison true for every verdict and F12 and G2 go red; M4 runs the equality check first so two ABSENT versions read as two equal ones and F9 goes red."
+ },
+ {
+  "id": "CASE-0279",
+  "req": "REQ-007",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "error",
+   "viewport": "n/a",
+   "theme": "n/a",
+   "role": "operator",
+   "dataShape": "a catalogue whose age cannot be taken",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "planning/evidence/F6/lane-f6-updates.txt",
+   "planning/evidence/F6/red-green.txt"
+  ],
+  "note": "F6. Nothing in this item refreshes a catalogue, so every verdict travels with the age of what it was compared against. An age that could not be measured is null and never 0 \u2014 a zero reads as just-refreshed \u2014 and a catalogue whose newest file is stamped AHEAD of the router's clock is null too, because reported as a negative number it would exceed no window and read fresh forever. ARMED: red-green M6 reports the negative age as a number and G10 and U7 go red; M10 folds the age problem into the read problem, which suppressed every comparison against a catalogue that parsed fine, and the same two go red."
+ },
+ {
+  "id": "CASE-0280",
+  "req": "REQ-012",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "n/a",
+   "theme": "n/a",
+   "role": "operator",
+   "dataShape": "four mutating verbs against a read-only route",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "planning/evidence/F6/lane-f6-updates.txt",
+   "planning/evidence/F6/red-green.txt"
+  ],
+  "note": "F6. The brief's assumption is that update checks are read-only until the user approves, and it is held by there being no verb to call rather than by a flag: GET /extensions/updates has no sibling. POST, PUT, PATCH and DELETE are 405 and the store's file count is identical across all four, asserted on the filesystem rather than on the reply. ARMED: red-green M5 removes the one line teaching routeExtensions to decline /updates, the :kind match reclaims the path, a DELETE answers 404 no extension kind named \"updates\" \u2014 a denial that a served path exists \u2014 and U4 goes red."
+ },
+ {
+  "id": "CASE-0281",
+  "req": "REQ-001",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M38. A held tool surface is not served, and approving it is what starts serving it. The strike is POST /servers/:name/approve through the real ControlHandler; the read-back is MCPEndpoint.listTools() over a ManifestStore built before the strike and never handed to the handler \u2014 the two lines a client's tools/list runs. Never the approve response, which is the writer's account of its own write. An untouched sibling server in the same manifest is the control: every assertion about the promoted server is also passed by a route that promoted the whole file."
+ },
+ {
+  "id": "CASE-0282",
+  "req": "REQ-019",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M38. A refused manifest write leaves the served catalog exactly where it was AND leaves the change pending, so the decision is still available to be taken. R21 fixed the status code; this reads the same refusal at the catalog, which is where the user's question actually lives. The failure is injected on the FileSystem method names (writeFile, moveItem) \u2014 a key naming an operation nothing performs would let the case pass by writing successfully."
+ },
+ {
+  "id": "CASE-0283",
+  "req": "REQ-012",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M38. A second approve answers 409 and the served catalog does not move again; GET /servers/:name/changes, re-read from disk rather than from the striking call's snapshot, reports nothing pending."
+ },
+ {
+  "id": "CASE-0284",
+  "req": "REQ-001",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M38. Over a real router and the MCP SDK's own client: approving a held surface announces notifications/tools/list_changed, the announcement is ATTRIBUTED to the approval in the router's log rather than to the three-second poller's 'rebuilt outside this process', and the client's re-fetch carries the text the user accepted. The notification COUNT is not the oracle \u2014 the poller supplies one either way \u2014 so the log line is what the case stands on. scripts/e2e-live-reload.mjs."
+ },
+ {
+  "id": "CASE-0285",
+  "req": "REQ-019",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M38. The negative control for CASE-0265: an approve that promoted nothing (409) announces nothing \u2014 no notification and no new live-reload log line. Without it the arm above is satisfied by a route that announces on every approve, which would send every attached session to re-fetch a list that did not move."
+ },
+ {
+  "id": "CASE-0286",
+  "req": "REQ-015",
+  "surface": "SURF-010",
+  "flow": null,
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-010",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M39. The fraction the expiry ring draws, read at three points of one window and once past its end: full at issue, half at the midpoint, nil once the code has gone. Three readings rather than one because a fraction hard-wired to 1 satisfies any single-instant assertion, and a full ring that never depletes is the indeterminate spinner this item replaced. Driven through PairingSessionModel with an injected clock, so no wall-clock wait is involved. In-process against compiled views and pure functions; nothing is drawn on glass and nothing crosses a process boundary."
+ },
+ {
+  "id": "CASE-0287",
+  "req": "REQ-015",
+  "surface": "SURF-010",
+  "flow": null,
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-010",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "metamorphic",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M39. The denominator is the window the code was ISSUED for, not MacPairing.lifetime. One code minted with a fifty-second lifetime must still read 1 at issue, half at its own midpoint and nil at its own end -- the same three readings as CASE-0262 over a different window, which is what tells a window-denominated fraction from a constant-denominated one. PairingSessionModel.issue takes its lifetime from the service precisely so a shorter-lived code is described accurately, and a fraction read off the constant would draw a ring that starts one-sixth full and never empties."
+ },
+ {
+  "id": "CASE-0288",
+  "req": "REQ-015",
+  "surface": "SURF-010",
+  "flow": null,
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-010",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "structural",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M39. The sheet's countdown draws PairingExpiryRing from session.fractionRemaining rather than a constant, the arc trims to that fraction, its track is --line-strong and its head is --t2 -- the countdown's own colour rather than the prototype's --attn, which InboxConformanceTests' A15 colour census refused and DESIGN.md section 2 agreed with, since --attn means 'wants a human decision' and nothing needs deciding while a code runs down, and it is accessibilityHidden because the label beside it already carries the fact in words. Source-binding through ShellTestSupport.declarationBody, which strips comments so a paragraph discussing a modifier cannot satisfy an assertion about it -- the weaker rung is stated rather than dressed up, because this host has no accessor for a SwiftUI Shape's trim value. The scanned names are pinned to the declarations they came from by a second assertion, since a scan for a spelling that cannot appear passes on its own absence."
+ },
+ {
+  "id": "CASE-0289",
+  "req": "REQ-015",
+  "surface": "SURF-010",
+  "flow": null,
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-010",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "structural",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M39, and DEF-064's Mac half. The live state states the typed-code fallback as a sentence and NO control arrived with it: the action bar is asserted not to have gained a fourth button. The Mac already draws the eight characters under the QR and the device that types them is the phone, so a button here would change no state and reveal nothing -- which is the defect DEF-064 recorded, not a fix for it. The copy is asserted distinct from the phone's own typeInstead button string."
+ },
+ {
+  "id": "CASE-0290",
+  "req": "REQ-015",
+  "surface": "SURF-010",
+  "flow": null,
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-010",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
+  },
+  "oracle": "raster-visual",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M39, OWED TO VERIFY AND DELIBERATELY NOT CLAIMED HERE. The ring photographed on a running Mac app at two different readings of one window. Raster is the only rung that can see it: PairingExpiryRing is accessibilityHidden by construction, so an accessibility-tree sweep cannot reach it at all. Two readings rather than one because a single capture of a full ring is satisfied by a ring that never depletes. Reaching the state needs a Debug build with MCPROUTER_PAIRING set -- ShellPairingFactory returns NoTransportInboxService for any Release build and ignores the environment. SURF-010's existing capture was taken 2026-08-20 and predates both of M39's additions, so it is not evidence for either. Not run in M39: machine load ran 114-700 across 16 cores with eight runners live, and the run's stop rule is before verify."
+ },
+ {
+  "id": "CASE-0291",
+  "req": "REQ-016",
+  "surface": "SURF-010",
+  "flow": null,
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-010",
+   "state": "pairing-unavailable",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "unpaired",
+   "executionPlane": "in-process"
+  },
+  "oracle": "structural",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "M39's honesty control, and the reason it is filed against REQ-016 rather than REQ-015. REQ-016 is vacuous: no symbol in production source opens a connection to a paired device (DEF-001), so a guarantee about what happens after contact cannot be violated by a build that never contacts anything. M39 adds presentation on top of that and must not be readable as progress against it. What this case asserts is the frame: ShellPairingFactory.choice returns .noTransport for every scenario name in a Release build, so Phase.live -- the only phase drawing a ring or a fallback line -- is unreachable outside a Debug build with MCPROUTER_PAIRING set. No effect-witness case exists in this item because the item claims no effect: no recorder, no effect class, no count."
+ },
+ {
+  "id": "CASE-0292",
+  "req": "REQ-027",
+  "surface": "SURF-028",
+  "flow": null,
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-028",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "hostile",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/runs/m19-red-green.a10.log",
+   "evidence/runs/m19-a10-unfailable-control.log",
+   "evidence/runs/m19-red-green.a10.rerun.log"
+  ],
+  "note": "N8. The inertness guard on the untrusted-input boundary, made capable of failing. M19 shipped `MarkdownSecurityTests.htmlIsInert` with four spellings that named `javascript:`, no scheme, or nothing, and two assertions -- no link, no `imageURL` -- that `MarkdownInline.sanitized` makes true of every input it touches. It could not go red. M30 wired `ControlAPICapabilityDocumentSource` into the shipped UI, so router-served third-party text now reaches this renderer in a Release build, and the guard on it measured nothing. MEASURED, not assumed: the platform parser does keep inline HTML inert -- under `MarkdownInline`'s own options it hands each tag back as characters and marks it `.inlineHTML`, an intent naming no destination, and it does so under all four combinations of `allowsExtendedAttributes` and `interpretedSyntax`. Swift 6.2, macOS 26.6.2 (25G83), Debug, `swift test`. So this was an evidence defect and not a live vulnerability, and the fix is the assertion rather than new sanitisation. Two `https` spellings were added, because `https` is the one scheme the allowlist keeps and therefore the only one that can carry an interpreted `<a>` through to the assertion; a presence control runs the same reader over the markdown twin of the same destination first; and two clauses were added that the old body did not have -- handed back verbatim, and no attribute beyond the `.inlineHTML` marker. That last clause also corrects the test's own claim: the parser DOES attach one attribute to inline HTML and `sanitized` carries it, so the old name -- `inline HTML acquires no attribute of any kind` -- was false as written as well as unfailable, which is why nobody found out.",
+  "armedBy": "Arm A10 of `scripts/m19-red-green.py`. The mutation makes `MarkdownInline.init(markdown:)` rewrite `<a href=\"...\">...</a>` into a markdown link before parsing -- the toolchain change the guard exists to catch, injected at the seam where this code hands the source over, because the platform is what keeps HTML inert and a mutation pass cannot mutate the platform. The harness runs the named test alone, asserts `1 test in 1 suite`, requires a green unmutated baseline, matches the recorded issue against the test's own display name, and restores the file. RED: evidence/runs/m19-red-green.a10.log -- all ten arms bit, exit 0. The counter-measurement is what makes this an arm rather than a decoration: the SAME mutation run against M19's four spellings SURVIVED -- evidence/runs/m19-a10-unfailable-control.log. Re-witnessed independently on 2026-08-29 in three `--only` chunks on a tree whose `MarkdownInline.swift` was hashed identical before and after every run: all ten arms bit, A10 red (exit 0) and SURVIVED against M19's body (exit 1). evidence/runs/m19-red-green.a10.rerun.log."
  }
 ]

@@ -45,19 +45,49 @@ struct MarkdownSecurityTests {
         #expect(inline.attributed.runs.allSatisfy { $0.imageURL == nil })
     }
 
-    /// Pinned rather than assumed. If a toolchain change starts interpreting inline HTML, this goes
-    /// red here instead of a `<script>` quietly acquiring meaning somewhere downstream.
-    @Test("inline HTML acquires no attribute of any kind")
+    /// Pinned rather than assumed, and pinned to something that can be false.
+    ///
+    /// **The version M19 shipped could not fail.** Its four spellings named `javascript:`, no
+    /// scheme at all, or nothing — every one of them a scheme `sanitized` strips regardless — so
+    /// "no link" was true of every input, and "no `imageURL`" is true of every input the allowlist
+    /// touches. Two spellings below now carry an `https` URL, the one scheme the allowlist keeps,
+    /// so an interpreted `<a>` reaches the assertion instead of being filtered out before it.
+    ///
+    /// **The property is the platform's, so it is measured rather than asserted about our code.**
+    /// Measured 2026-08-29 on Swift 6.2 / macOS 26.6.2 (build 25G83), Debug, via `swift test`:
+    /// `AttributedString(markdown:)` under `MarkdownInline`'s own options hands each tag back as
+    /// characters and marks it `.inlineHTML` — an intent naming no destination and carrying nothing
+    /// to fetch. It behaves the same under all four combinations of `allowsExtendedAttributes` and
+    /// `interpretedSyntax`, so no parsing-option choice of ours is what makes it hold.
+    ///
+    /// Arm A10 of `scripts/m19-red-green.py` makes the implementation interpret an HTML anchor and
+    /// watches this test go red through all three of its clauses.
+    @Test("inline HTML is handed back verbatim and acquires no attribute naming a destination")
     func htmlIsInert() {
+        // The presence control. An absence check needs an oracle known to be alive, so the same
+        // reader runs first over the markdown spelling of the destination the HTML spellings write.
+        let twin = MarkdownInline(markdown: "[press](https://evil.example/x)")
+        #expect(links(in: twin).map(\.absoluteString) == ["https://evil.example/x"])
+
+        var htmlMarker = AttributeContainer()
+        htmlMarker.inlinePresentationIntent = .inlineHTML
+        let bare = AttributeContainer()
+
         for spelling in [
             "<script>alert(1)</script>",
             "<img src=x onerror=alert(1)>",
             "<a href=\"javascript:alert(1)\">press</a>",
+            "<a href=\"https://evil.example/x\">press</a>",
+            "<img src=\"https://tracker.example/p.gif\">",
             "<span class=\"pill\">available</span>"
         ] {
             let inline = MarkdownInline(markdown: spelling)
             #expect(links(in: inline).isEmpty, "\(spelling) produced a link")
-            #expect(inline.attributed.runs.allSatisfy { $0.imageURL == nil }, "\(spelling) produced an image")
+            #expect(inline.text == spelling, "\(spelling) was not handed back verbatim")
+            #expect(
+                inline.attributed.runs.allSatisfy { $0.attributes == bare || $0.attributes == htmlMarker },
+                "\(spelling) acquired an attribute the inline-HTML marker does not account for"
+            )
         }
     }
 

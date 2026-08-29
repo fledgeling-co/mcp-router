@@ -238,7 +238,10 @@ extension RouterService {
             // history, so every server would read `unprobed` forever and `consecutiveFailures`
             // could never reach `tripAfter`. The failure would be invisible to any test that makes
             // one request.
-            health: health
+            health: health,
+            // F5. Nil unless `MCP_ROUTER_TRANSCRIPTS` named a corpus — see ``InvocationSources``.
+            // Nil is the ordinary state and the routes say so rather than serving an empty window.
+            invocations: invocations
         )
     }
 

@@ -3778,5 +3778,127 @@
     ],
     "note": "A configured value the router will not take is REFUSED and reported, never clamped in silence. The lane's `r27-refused` server writes `tripAfter: 1` and `probeIntervalMs: 10`; the report carries both refusals with the value as written, the floor that rejected it, and a `scope` saying which block to fix, while `policy` reports the value actually in force.\n\nThe `tripAfter` floor of 2 is this item's own version of the vacuity rule: with a threshold of 1 the first failure trips, `degraded` is unreachable, and the guarantee that an upstream is flagged degraded before it is tripped would hold only because nothing can enter the state it names. Refusing rather than clamping is the other half \u2014 a clamp reports 2 over a file that says 1, and the operator's next reading of their own file disagrees with the router for a reason neither can see.",
     "armedBy": "ARMED and watched red. `bin/arm-r27-health.sh` ARM 3 drops the refusals when seeding a record: 21 tests across two suites run and 4 issues are recorded, so the wire stops saying which settings were ignored. Restored byte-identical."
+  },
+  {
+    "id": "CASE-0270",
+    "req": "REQ-035",
+    "lane": "router-daemon",
+    "oracle": "outcome",
+    "plane": "live-external",
+    "cell": "execution-plane=daemon \u00b7 data-shape=a credential literal in an env value, a header value, a URL userinfo and a URL query",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/runs/r22-diagnostics-lane.log",
+      "evidence/arming/r22-diagnostics.log"
+    ],
+    "note": "Every CONFIGURED credential is absent from the bundle, and the document that omits it is a real one. The absence alone is the easiest unfailable assertion in this repository: it holds over an empty document, over a 404, and over a gatherer that never read the config. So it is asserted beside three things that must be PRESENT \u2014 a public canary planted in the same log line, the env key name, and the header key name \u2014 and beside `\"value\":\"present\"`, which proves a decision was taken about the value rather than the whole server having been skipped.\n\nLayer 1 is what this case pins: an env value, a header value and a URL's userinfo are never PLACED in the document, so no key name a config invents can smuggle one through. It follows Describe's own construction, which maps the pair arrays to their keys before anything else touches them (B10).",
+    "armedBy": "ARMED and watched red. `bin/arm-r22-diagnostics.sh` ARM 1 emits `pair.value` where the shape goes: 11 tests run, 2 issues recorded, and CASE-0270 and CASE-0272 go red while CASE-0271 stays GREEN \u2014 which is the measurement that separates the two layers rather than an assertion about them. Sources restored byte-identically, checked against copies rather than `git status`, because three of these files are new on this branch and git reports an untracked file modified whatever the pass did."
+  },
+  {
+    "id": "CASE-0271",
+    "req": "REQ-035",
+    "lane": "router-daemon",
+    "oracle": "outcome",
+    "plane": "live-external",
+    "cell": "execution-plane=daemon \u00b7 data-shape=the same credential quoted back inside a router log line",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/runs/r22-diagnostics-lane.log",
+      "evidence/arming/r22-diagnostics.log"
+    ],
+    "note": "Layer 2, and the channel layer 1 structurally cannot reach. A credential arrives in a diagnostics export by more routes than the field it was configured in: an upstream that rejects a call and quotes the token back in its error text, a command line carrying `--token=`, a log line somebody wrote by hand. Those are strings the bundle has every reason to carry, and the only thing distinguishing the secret inside one is its VALUE.\n\nThe scrub runs over the value tree ONCE, as the last step, so every string goes through it by construction rather than because each site remembered to call it \u2014 the property that survives the next person adding a section. Object keys are scrubbed as well as values.\n\n`occurrencesRemoved` is asserted non-zero, because a scrubber that ran and a scrubber that had something to do read as the same clean bundle and only one of them is evidence.",
+    "armedBy": "ARMED and watched red. ARM 2 replaces the scrub with the identity: 11 tests run, 5 issues recorded, CASE-0271 and CASE-0273 red and CASE-0270 GREEN. The socket lane was armed the same way against a rebuilt CLI and went 19 ok / 4 failed, the headline `the literal secret` among them."
+  },
+  {
+    "id": "CASE-0272",
+    "req": "REQ-035",
+    "lane": "router-daemon",
+    "oracle": "outcome",
+    "plane": "live-external",
+    "cell": "execution-plane=daemon \u00b7 data-shape=an env value of three characters beside a log line containing it",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/runs/r22-diagnostics-lane.log",
+      "evidence/arming/r22-diagnostics.log"
+    ],
+    "note": "The needle floor, which is a correctness rule rather than a performance one. An env value of `1`, `true` or `dev` used as a scrub needle deletes every occurrence of that text from every log line in the bundle \u2014 the timestamps, the ports, the word `device`. The result READS as thorough redaction and is a corrupted document, and nobody looking at it can tell which.\n\nSo a value below 8 characters is not used as a needle, is named in `unscrubbable` with the reason, and is still withheld by layer 1. The assertion that bites is the positive one: `dev-server on port 3000` must survive intact.\n\nBOTH out-of-family reviewers proposed an entropy filter on top of the floor, to stop a value like `production` scrubbing that word out of the logs. Declined, and the reason is the direction of the error: an over-redaction announces itself in place as `<redacted:MODE>` and a reader can see exactly what happened; an under-redaction is silent. A second exclusion tuned by entropy moves values from the first class to the second on a judgement nobody can audit from the bundle.",
+    "armedBy": "ARMED and watched red. ARM 3 lowers the floor to 1: 11 tests run, 5 issues, CASE-0272 and CASE-0274 red, and the log line comes back as `<redacted:r22-stdio.env.MODE>-server on port 3000` \u2014 the corruption the floor exists to prevent, produced on demand."
+  },
+  {
+    "id": "CASE-0273",
+    "req": "REQ-035",
+    "lane": "router-daemon",
+    "oracle": "outcome",
+    "plane": "live-external",
+    "cell": "execution-plane=daemon \u00b7 data-shape=the same credential percent-encoded and base64-encoded in log lines",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/runs/r22-diagnostics-lane.log",
+      "evidence/arming/r22-diagnostics.log"
+    ],
+    "note": "A secret does not always reach a log line as itself. It reaches it percent-encoded when it travelled in a URL and base64-encoded when it travelled in a `Basic` credential, and a scrubber that knows only the literal reports a clean bundle over both. Both out-of-family lanes raised this independently and it is the one addition of theirs taken wholesale.\n\nJSON escaping is DELIBERATELY NOT a third variant, and that is where this departs from both reviews. They are right that a token containing a quote appears in the SERIALISED document as `\\\"` and would survive a needle search over the finished bytes. The scrub does not search the finished bytes: it walks the value tree before serialisation, where every string is still unescaped. Scrubbing earlier removes the whole class rather than enumerating its members.",
+    "armedBy": "ARMED and watched red twice. ARM 4 returns only the literal from `variants`: 11 tests, 2 issues, CASE-0273 alone red. The socket lane was armed identically against a rebuilt CLI and went 21 ok / 2 failed on exactly the two encoded assertions.\n\nTHE LANE'S FIRST DRAFT COULD NOT HAVE CAUGHT THIS and the miss is recorded rather than quietly fixed: it derived the percent form with `urllib.parse.quote(s, safe=\"\")`, which never encodes an RFC 3986 unreserved character whatever `safe` is set to, so for a secret of alphanumerics and hyphens it returned the input \u2014 the percent assertion was a second copy of the literal one \u2014 and neither encoded form was ever written to disk, so both absences held over a router doing no encoding-aware scrubbing at all. Two assertions that could not fail, found by arming rather than by reading."
+  },
+  {
+    "id": "CASE-0274",
+    "req": "REQ-035",
+    "lane": "router-daemon",
+    "oracle": "outcome",
+    "plane": "live-external",
+    "cell": "execution-plane=daemon \u00b7 data-shape=an untokened GET against a router holding a planted secret",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/runs/r22-diagnostics-lane.log",
+      "evidence/arming/r22-diagnostics.log"
+    ],
+    "note": "The preview is a GET and GET is UNGATED in this router \u2014 `ControlHandler.gate` reads the token only for POST/DELETE/PATCH, matching the reference, recorded there as a ported defect rather than quietly fixed. So the preview is written to one rule: it discloses nothing `GET /servers` does not already disclose. Category names, counts, key names, and the redaction plan.\n\nThe assertion that makes this a real constraint rather than a restatement of `no secret leaked` is the canary one: the preview must NOT contain the public log canary either. A preview carrying no secret is satisfied by a preview that carries the whole log with the secret scrubbed out; a preview carrying no log LINE is not.",
+    "armedBy": "ARMED and watched red. ARM 5 makes the preview carry the log tail: 11 tests, 2 issues, CASE-0274 alone red on the canary assertion \u2014 so the case fails on exactly the change a later contributor would make to render the preview more useful."
+  },
+  {
+    "id": "CASE-0275",
+    "req": "REQ-035",
+    "lane": "router-daemon",
+    "oracle": "outcome",
+    "plane": "live-external",
+    "cell": "execution-plane=daemon \u00b7 data-shape=the bundle path asked three ways: untokened POST, GET, tokened POST",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/runs/r22-diagnostics-lane.log",
+      "evidence/arming/r22-diagnostics.log"
+    ],
+    "note": "The verb IS the gate, and it is not describing a mutation. The bundle changes nothing. It is a POST because stage 2 of `ControlHandler.handle` gates the token on POST/DELETE/PATCH only, so the verb is the only thing deciding whether this router hands its whole diagnostic corpus \u2014 log lines included \u2014 to any unauthenticated caller that can open the loopback port, which per `ControlToken` includes a web page the user merely visits.\n\nAll three answers are pinned \u2014 401 untokened, 405 on GET, 200 on a tokened POST \u2014 so a later tidy-up that makes the verb 'correct' goes red rather than silently opening the route. The 200 is asserted beside the other two so they read as refusals rather than as an absent route.",
+    "armedBy": "ARMED and watched red. ARM 6 answers the bundle on GET: 11 tests, 24 issues, seven cases red including CASE-0275 \u2014 the widest blast radius of any arm, because an ungated bundle fails every case that asserts a refusal carries no content."
+  },
+  {
+    "id": "CASE-0292",
+    "req": "REQ-027",
+    "surface": "SURF-028",
+    "flow": null,
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "1024x768",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "hostile",
+      "executionPlane": "headless"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/runs/m19-red-green.a10.log",
+      "evidence/runs/m19-a10-unfailable-control.log",
+      "evidence/runs/m19-red-green.a10.rerun.log"
+    ],
+    "note": "N8. The inertness guard on the untrusted-input boundary, made capable of failing. M19 shipped `MarkdownSecurityTests.htmlIsInert` with four spellings that named `javascript:`, no scheme, or nothing, and two assertions -- no link, no `imageURL` -- that `MarkdownInline.sanitized` makes true of every input it touches. It could not go red. M30 wired `ControlAPICapabilityDocumentSource` into the shipped UI, so router-served third-party text now reaches this renderer in a Release build, and the guard on it measured nothing. MEASURED, not assumed: the platform parser does keep inline HTML inert -- under `MarkdownInline`'s own options it hands each tag back as characters and marks it `.inlineHTML`, an intent naming no destination, and it does so under all four combinations of `allowsExtendedAttributes` and `interpretedSyntax`. Swift 6.2, macOS 26.6.2 (25G83), Debug, `swift test`. So this was an evidence defect and not a live vulnerability, and the fix is the assertion rather than new sanitisation. Two `https` spellings were added, because `https` is the one scheme the allowlist keeps and therefore the only one that can carry an interpreted `<a>` through to the assertion; a presence control runs the same reader over the markdown twin of the same destination first; and two clauses were added that the old body did not have -- handed back verbatim, and no attribute beyond the `.inlineHTML` marker. That last clause also corrects the test's own claim: the parser DOES attach one attribute to inline HTML and `sanitized` carries it, so the old name -- `inline HTML acquires no attribute of any kind` -- was false as written as well as unfailable, which is why nobody found out.",
+    "armedBy": "Arm A10 of `scripts/m19-red-green.py`. The mutation makes `MarkdownInline.init(markdown:)` rewrite `<a href=\"...\">...</a>` into a markdown link before parsing -- the toolchain change the guard exists to catch, injected at the seam where this code hands the source over, because the platform is what keeps HTML inert and a mutation pass cannot mutate the platform. The harness runs the named test alone, asserts `1 test in 1 suite`, requires a green unmutated baseline, matches the recorded issue against the test's own display name, and restores the file. RED: evidence/runs/m19-red-green.a10.log -- all ten arms bit, exit 0. The counter-measurement is what makes this an arm rather than a decoration: the SAME mutation run against M19's four spellings SURVIVED -- evidence/runs/m19-a10-unfailable-control.log. Re-witnessed independently on 2026-08-29 in three `--only` chunks on a tree whose `MarkdownInline.swift` was hashed identical before and after every run: all ten arms bit, A10 red (exit 0) and SURVIVED against M19's body (exit 1). evidence/runs/m19-red-green.a10.rerun.log."
   }
 ]

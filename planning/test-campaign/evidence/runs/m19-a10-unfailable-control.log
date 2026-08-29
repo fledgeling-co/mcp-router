@@ -1,0 +1,28 @@
+# The counter-measurement: arm A10's mutation against M19's shipped body of `htmlIsInert`.
+#
+# produced by:  python3 scripts/m19-red-green.py
+# run from:     repository root, worktree .worktrees/N8, branch ai/n8
+# condition:    the body of MarkdownSecurityTests.htmlIsInert temporarily replaced with the four
+#               spellings and two assertions M19 merged — `<script>alert(1)</script>`,
+#               `<img src=x onerror=alert(1)>`, `<a href="javascript:alert(1)">press</a>`,
+#               `<span class="pill">available</span>`, asserting only `links.isEmpty` and
+#               `imageURL == nil`. The @Test display name was left at the new one so the arm's
+#               name-match clause still resolved. Restored immediately after; this state was
+#               never committed.
+# toolchain:    Swift 6.2, macOS 26.6.2 (build 25G83), Debug, swift test
+# date:         2026-08-29
+# exit code:    1
+#
+# This is the defect, measured rather than argued. The mutation makes the implementation interpret
+# `<a href="…">…</a>`. Under M19's four spellings the only anchor names `javascript:`, which
+# `sanitized` strips whether it was interpreted or not, so `links.isEmpty` stayed true; and no
+# input the allowlist touches can ever carry an `imageURL`, so that clause was true of everything.
+# The guard therefore watched the parser start obeying HTML and stayed green.
+#
+# The shipped body adds `<a href="https://evil.example/x">press</a>` — the one scheme the allowlist
+# keeps — and two clauses the old body did not have (handed back verbatim; no attribute beyond the
+# `.inlineHTML` marker). Against that body the same mutation reddens all three clauses; see
+# m19-red-green.a10.log.
+A10  SURVIVED  — inline HTML is handed back verbatim and acquires no attribute naming a destination
+
+m19-redgreen: 1 arm(s) proved nothing: A10

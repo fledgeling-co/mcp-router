@@ -44,7 +44,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 mkdirSync(join(HOME, '.claude', 'mcp-router'), { recursive: true });
 
-const upstream = (name, tool) => {
+const upstream = (name, tool, description = 'x') => {
   const path = join(HOME, `${name}.mjs`);
   writeFileSync(
     path,
@@ -52,7 +52,7 @@ const upstream = (name, tool) => {
 import { StdioServerTransport } from '${REPO}/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '${REPO}/node_modules/@modelcontextprotocol/sdk/dist/esm/types.js';
 const s = new Server({ name: '${name}', version: '1.0.0' }, { capabilities: { tools: {} } });
-s.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: [{ name: '${tool}', description: 'x',
+s.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: [{ name: '${tool}', description: '${description}',
   inputSchema: { type: 'object', properties: {} } }] }));
 s.setRequestHandler(CallToolRequestSchema, async () => ({ content: [{ type: 'text', text: 'ok' }] }));
 await s.connect(new StdioServerTransport());
@@ -71,6 +71,29 @@ writeFileSync(
 const run = (args) =>
   spawn('node', [join(REPO, 'dist', 'index.js'), ...args], { env: { ...process.env, HOME }, stdio: 'ignore' });
 
+/**
+ * Everything the serving process wrote to stderr, which is where `log.info` goes.
+ *
+ * The approve arm below needs it, and a notification count cannot replace it: the three-second
+ * manifest poller delivers one either way, so `NOTICES.length >= 1` passes whether or not the
+ * route announced anything. The log line is what says WHICH mechanism fired — `approved "x"'s new
+ * tool surface` against `the tool manifest was rebuilt outside this process`.
+ */
+const SERVE_LOG = [];
+const serveLog = () => SERVE_LOG.join('');
+const countIn = (needle) => serveLog().split(needle).length - 1;
+
+const runServing = (args) => {
+  const p = spawn('node', [join(REPO, 'dist', 'index.js'), ...args], {
+    env: { ...process.env, HOME },
+    // stderr is PIPED and drained. An undrained pipe fills its buffer and stops the router.
+    stdio: ['ignore', 'ignore', 'pipe'],
+  });
+  p.stderr.setEncoding('utf8');
+  p.stderr.on('data', (chunk) => SERVE_LOG.push(chunk));
+  return p;
+};
+
 let serve;
 /** Every list_changed notification the attached client received, in order. */
 const NOTICES = [];
@@ -81,7 +104,7 @@ try {
     p.on('exit', (c) => (c === 0 ? resolve() : reject(new Error(`index exited ${c}`))));
   });
 
-  serve = run(['serve', '--port', String(PORT)]);
+  serve = runServing(['serve', '--port', String(PORT)]);
   serve.unref();
   for (let i = 0; i < 40; i++) {
     try {
@@ -178,6 +201,111 @@ try {
   check('a warm-only PATCH succeeds', patched.ok, `HTTP ${patched.status}`);
   await wait(600);
   check('CONTROL: a change that does not move the tool list announces nothing', NOTICES.length === 0, `${NOTICES.length}`);
+
+  // ------------------------------------------------------------------ M38: the reviewed decision
+  /*
+   * The staged tool diff, end to end: a server rewrites a tool description, the router holds the
+   * change rather than serving it, the user accepts it, and the sessions are told.
+   *
+   * `/approve` was the ONE mutation in `control.ts` that moved `entry.tools` — the member
+   * `unionTools` reads — and did not call `announceTools`, whose own comment says those are
+   * announced "and from nowhere else". The three-second poller did eventually carry it, which is
+   * why the absence read as working, so THE NOTIFICATION COUNT IS NOT THE ORACLE HERE: it is one
+   * either way. The log line is, because only it says which mechanism fired.
+   */
+  const REWRITTEN = 'a description the server rewrote after it was approved';
+  // `upstream` writes over the same path, so this is the server changing its own advertised
+  // surface between two index runs — which is the condition the quarantine exists for.
+  upstream('first', 'alpha', REWRITTEN);
+
+  await new Promise((resolve, reject) => {
+    const p = run(['index', '--force']);
+    p.on('exit', (c) => (c === 0 ? resolve() : reject(new Error(`index --force exited ${c}`))));
+  });
+
+  const held = await (await fetch(`${BASE}/servers/first/changes`, {
+    headers: { authorization: `Bearer ${token}` },
+  })).json();
+  check(
+    'a rewritten description is HELD rather than served',
+    held.pending === true && held.changes.length === 1 && held.changes[0].kind === 'changed',
+    `pending=${held.pending}, ${held.changes.length} change(s)`
+  );
+  const stillOld = await client.listTools();
+  check(
+    'and the session is still being served the approved text',
+    stillOld.tools.every((t) => !(t.description ?? '').includes(REWRITTEN)),
+    stillOld.tools.map((t) => t.description).join(' | ')
+  );
+
+  /*
+   * WAIT OUT THE POLLER before striking, because approving inside its window would leave the two
+   * mechanisms indistinguishable. Quiescence rather than a fixed window, and the difference is not
+   * pedantry: `index --force` commits per server, so a two-upstream re-index moves the manifest
+   * stamp TWICE and the poller announces on two consecutive ticks — measured here, three seconds
+   * apart. A fixed 4.5s window caught the second one and failed a control that was right about the
+   * router and wrong about the arithmetic.
+   */
+  NOTICES.length = 0;
+  let quietSince = Date.now();
+  for (let i = 0; i < 60; i++) {
+    await wait(500);
+    if (NOTICES.length) {
+      NOTICES.length = 0;
+      quietSince = Date.now();
+    } else if (Date.now() - quietSince >= 4_000) break;
+  }
+  check(
+    'CONTROL: the poller has settled before the approval is measured',
+    NOTICES.length === 0 && Date.now() - quietSince >= 4_000,
+    `${NOTICES.length} still arriving after ${Date.now() - quietSince}ms of quiet`
+  );
+
+  const approvedBefore = countIn('live-reload: approved');
+  NOTICES.length = 0;
+  const tApprove = Date.now();
+  const approved = await post('/servers/first/approve', {});
+  const approvedBody = await approved.json();
+  check('approving the held surface succeeds', approved.status === 200, `HTTP ${approved.status}`);
+  check('and it reports what it promoted', approvedBody.approved === 1, `approved=${approvedBody.approved}`);
+
+  for (let i = 0; i < 30 && NOTICES.length === 0; i++) await wait(50);
+  check(
+    'the attached session is told the approved surface is live',
+    NOTICES.length >= 1,
+    `${NOTICES.length} notification(s)`
+  );
+  if (NOTICES.length) process.stdout.write(`        (it arrived ${NOTICES[0] - tApprove}ms after the approval)\n`);
+
+  // THE ARM THAT FAILS WITHOUT THE FIX. Everything above passes on the poller's back.
+  check(
+    'and the announcement is the APPROVAL, not the poller reporting an outside rebuild',
+    countIn('live-reload: approved "first"\'s new tool surface') === approvedBefore + 1,
+    serveLog().split('\n').filter((l) => l.includes('live-reload:')).slice(-3).join(' // ') || 'no live-reload line at all'
+  );
+
+  const promoted = await client.listTools();
+  check(
+    'and the re-fetch carries the text the user accepted',
+    promoted.tools.some((t) => (t.description ?? '').includes(REWRITTEN)),
+    promoted.tools.map((t) => t.description).join(' | ')
+  );
+
+  /*
+   * The control that keeps the arm above from being "announce on every approve". A second approve
+   * promotes nothing and must announce nothing — and the poller cannot supply a notification here
+   * either, because the refused route wrote no byte and the manifest's stamp did not move.
+   */
+  const announcedAfterFirst = countIn('live-reload:');
+  NOTICES.length = 0;
+  const again = await post('/servers/first/approve', {});
+  check('a second approve is refused', again.status === 409, `HTTP ${again.status}`);
+  await wait(1_200);
+  check(
+    'CONTROL: an approve that promoted nothing announces nothing',
+    NOTICES.length === 0 && countIn('live-reload:') === announcedAfterFirst,
+    `${NOTICES.length} notification(s), ${countIn('live-reload:') - announcedAfterFirst} new log line(s)`
+  );
 
   // ------------------------------------------------------------------ control 2: nobody
   /*

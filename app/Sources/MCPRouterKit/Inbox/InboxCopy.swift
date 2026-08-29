@@ -230,6 +230,27 @@ public enum InboxCopy {
         """
 
         public static let typeInstead = "Can't scan? Type a code"
+
+        /// The Mac's half of the same fallback, and **prose rather than a control on purpose.**
+        ///
+        /// `typeInstead` above is the PHONE's button: it switches `PairingFlowView` from the camera
+        /// to a keypad, which is a screen the phone has. The prototype draws the same words as a
+        /// button on the Mac sheet too — `Can't scan? Type a code</button>`,
+        /// `design/mocks/prototype.html:1312` at `08a24ed` — and there it would be a
+        /// control with nothing behind it — the Mac issues the code and already draws it in full
+        /// underneath the QR, so there is no second screen for it to reveal and no state for it to
+        /// change. DEF-064 measured that gap from the other side, as a declared control nothing
+        /// drives.
+        ///
+        /// So the fallback ships as the sentence the design of record uses for it:
+        /// `If the camera will not focus, type the code instead`,
+        /// `design/mcp-router-console.html:3857` at `08a24ed`, pointed at the device that types. A button
+        /// here would be the dishonest affordance `accepted(_:)` above already argues against, one
+        /// surface along.
+        public static let typeInsteadDetail = """
+        Can't scan? Type those eight characters into your phone instead — it is the same pairing.
+        """
+
         public static let doneAction = "Done"
 
         public static func expiresIn(_ remaining: TimeInterval) -> String {

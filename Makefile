@@ -999,6 +999,7 @@ lint: tools
 	python3 planning/py39-annotation-gate.py || fail=1; \
 	python3 planning/citation-gate.py || fail=1; \
 	python3 planning/sweep-control-gate.py || fail=1; \
+	python3 planning/scope-invariance-gate.py --quiet || fail=1; \
 	python3 planning/instrument-census.py || fail=1; \
 	python3 planning/runnable-path-gate.py || fail=1; \
 	bash planning/hooks/install.sh --gate || fail=1; \

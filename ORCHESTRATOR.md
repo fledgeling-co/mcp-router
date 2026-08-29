@@ -1237,9 +1237,9 @@ does **not** change what any check reads, and must not be described as though it
 | ID | Title | Category | Deps | Mock (deep link) | Lane | Status | Branch | Outcome |
 |---|---|---|---|---|---|---|---|---|
 | **WIN1** | Windows client framework - decided: WinUI 3 | windows | - | - | Opus | Done | decide/win1-framework | WinUI 3 chosen; dotnet build fails MSB4062, VS MSBuild.exe succeeds. Probes recorded in the brief |
-| **WIN2** | A Windows native floor in DESIGN.md | windows | - | design/mcp-router-console.html | Opus | Ready | - | DESIGN.md s3 is macOS-only, so a Windows surface can today neither pass nor fail. Must not weaken the macOS floor |
-| **WIN17** | The router's five macOS assumptions | router | - | - | Opus | Ready | - | No process.platform anywhere in src/. /usr/bin/open, launchd in four files, flock measured on darwin, /tmp sockets. TypeScript, buildable now |
-| **WIN18** | Windows build and verify lane | harness | WIN1 | - | Opus | Ready | - | No gate spine on Windows: every make target shells to xcodebuild. Gates every other WIN item |
+| **WIN2** | A Windows native floor in DESIGN.md | windows | - | design/mcp-router-console.html | Opus | Running | ai/win2 | DESIGN.md s3 is macOS-only, so a Windows surface can today neither pass nor fail. Must not weaken the macOS floor · dispatched wf_1205eab8-d83, W1 |
+| **WIN17** | The router's five macOS assumptions | router | - | - | Opus | Running | ai/win17 | No process.platform anywhere in src/. /usr/bin/open, launchd in four files, flock measured on darwin, /tmp sockets. TypeScript, buildable now · dispatched wf_1205eab8-d83, W1 |
+| **WIN18** | Windows build and verify lane | harness | WIN1 | - | Opus | Running | ai/win18 | No gate spine on Windows: every make target shells to xcodebuild. Gates every other WIN item · dispatched wf_1205eab8-d83, W1 |
 | **WIN3** | Windows app shell | windows | WIN1, WIN2, WIN18 | design/mcp-router-console.html | Opus | Blocked | - | Nine boards plus Settings. Rule 9's menu bar has no Windows equivalent, so the command surface is the open question |
 | **WIN20** | Windows automation plane for the campaign | windows | WIN1 | - | Opus | Blocked | - | Without a UIA tree all thirteen surfaces land permanently in never-measured |
 | **WIN4** | Servers board and the Signal Path | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | The signature element; drawn rather than a stock control. Geometry must be restated in effective pixels |

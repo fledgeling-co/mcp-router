@@ -22,7 +22,7 @@ green cell below has an unarmed control run beside it on the same tree in the sa
 | file | what it is |
 |---|---|
 | `armB-indexfailure.log` | `swift test --filter IndexFailureRecordTests` under arm B — 2 tests in 1 suite failed, 11 issues |
-| `armB-make-test.log` | `make test` under arm B — 2100 in 267 failed, **14 issues**, make exit 2. Two suites of the 226 go red: `A failed index leaves a record` (11) and `Config watcher` (3, `WatchAdoptionTests.swift:152-154`) |
+| `armB-make-test.log` | `make test` under arm B — 2100 in 267 failed, **14 issues**, make exit 2. Two suites of the 226 go red: `A failed index leaves a record` (11) and `Config watcher` (3, at `#expect(brokenEntry != nil, "a failed index must leave a manifest row, not nothing")`, `app/Tests/RouterCoreTests/WatchAdoptionTests.swift:152` at `95865f4`) |
 | `armAB-make-test.log` | `make test` under arms A and B at once — the same 14, measured rather than inferred |
 | `unarmed-parity-*.log`, `unarmed-control-differential.log` | the five node-reaching instruments with nothing armed |
 | `armA-parity-*.log`, `armA-control-differential.log` | the same five under arm A |

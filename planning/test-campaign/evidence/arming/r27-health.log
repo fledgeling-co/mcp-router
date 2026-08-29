@@ -1,5 +1,5 @@
 == R27 arming pass — every armed case, watched red then restored ==
-recorded at: 2026-08-29T06:16:24Z
+recorded at: 2026-08-29T07:14:02Z
 command:     swift test --filter <TypeName> --package-path app
 
 THE FILTER IS A TYPE NAME, not a suite display name. A first version of this pass filtered on
@@ -19,12 +19,12 @@ a NON-ZERO failure count, and this script exits 1 if one does not.
 
 -- ARM 3 (CASE-0222): refusals dropped instead of carried ----------------
   the wire stops saying which settings were ignored:
-      􀢄  Test run with 21 tests in 2 suites failed after 0.004 seconds with 4 issues.
+      􀢄  Test run with 21 tests in 2 suites failed after 0.006 seconds with 4 issues.
       held: the arm went red over 21 tests.
 
 -- ARM 4 (CASE-0221): the disabled term removed --------------------------
   a disabled server is probed like any other:
-      􀢄  Test run with 11 tests in 1 suite failed after 0.002 seconds with 2 issues.
+      􀢄  Test run with 11 tests in 1 suite failed after 0.001 seconds with 2 issues.
       held: the arm went red over 11 tests.
 
 -- ARM 5 (CASE-0218): the health dependency unwired in the daemon --------
@@ -41,7 +41,7 @@ a NON-ZERO failure count, and this script exits 1 if one does not.
 
 -- the green baseline ----------------------------------------------------
   unmutated:
-      􁁛  Test run with 40 tests in 4 suites passed after 0.063 seconds.
+      􁁛  Test run with 40 tests in 4 suites passed after 0.083 seconds.
       green: 40 tests, unmutated.
 
 arms: 7 of 7 held

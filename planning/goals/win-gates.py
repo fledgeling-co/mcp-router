@@ -75,6 +75,47 @@ def ledger():
     return 1
 
 
+CACHE = Path(__file__).resolve().parent / ".lane-verdict.json"
+
+
+def _digest(p):
+    import hashlib
+    h = hashlib.sha256()
+    try:
+        h.update(p.read_bytes())
+    except OSError:
+        return "unreadable"
+    return h.hexdigest()[:16]
+
+
+def _head():
+    r = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 else "unknown"
+
+
+def _lane_cache_get(key):
+    """A cached verdict, or None. Only a PASS is ever cached.
+
+    A red lane is re-run every turn on purpose: a failing gate is the thing the run is
+    working to change, and serving a stale red would hide the fix that just landed."""
+    try:
+        import json
+        d = json.loads(CACHE.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    return 0 if d.get("key") == key and d.get("rc") == 0 else None
+
+
+def _lane_cache_put(key, rc):
+    if rc != 0:
+        return
+    try:
+        import json
+        CACHE.write_text(json.dumps({"key": key, "rc": rc}), encoding="utf-8")
+    except OSError:
+        pass
+
+
 def _agent_transcripts():
     base = Path.home() / ".claude" / "projects"
     out = []
@@ -147,6 +188,23 @@ def lane():
             cmd = ["cmd", "/c", str(p)]
         else:
             continue
+        # Cheap proxy, then the real thing.
+        #
+        # This gate fires on every turn. Running a full Windows verification suite each
+        # time would tax every turn of the run for a verdict that cannot have changed
+        # while nothing moved, which is what gate-craft means by putting a slow suite
+        # behind a cheap proxy. The verdict is cached against the commit and the lane's
+        # own mtime, so it re-runs exactly when something it measures could differ.
+        # Keyed on the lane's CONTENT, not its mtime. An earlier version used
+        # int(st_mtime), whose one-second resolution made same-second edits invisible:
+        # a lane rewritten to exit 2 was served the previous run's exit 0. A cache that
+        # can report a red gate green is worse than no cache.
+        key = "%s|%s|%s" % (cand, _head(), _digest(p))
+        cached = _lane_cache_get(key)
+        if cached is not None:
+            print("lane: %s exited %d (cached — HEAD and lane unchanged)" % (cand, cached))
+            return 0 if cached == 0 else 1
+
         env = dict(os.environ, PYTHONIOENCODING="utf-8")
         try:
             rc = subprocess.run(cmd, cwd=ROOT, timeout=1800, env=env).returncode
@@ -155,6 +213,11 @@ def lane():
                 continue
             cmd[0] = "powershell"
             rc = subprocess.run(cmd, cwd=ROOT, timeout=1800, env=env).returncode
+        except subprocess.TimeoutExpired:
+            print("lane: %s did not finish within 1800s — recorded as NOT-RUN, not as a pass."
+                  % cand)
+            return 1
+        _lane_cache_put(key, rc)
         print("lane: %s exited %d" % (cand, rc))
         return 0 if rc == 0 else 1
 

@@ -127,3 +127,6 @@ planning/fidelity/dumps/
 # better-goal
 .claude/goals/
 .claude/settings.local.json.bak.*
+
+# better-goal: machine-local cached lane verdict, never evidence
+planning/goals/.lane-verdict.json

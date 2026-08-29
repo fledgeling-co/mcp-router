@@ -17,7 +17,7 @@ in 267 suites passed, exit 0** — indistinguishable from a fix holding. It is t
 fourth verification found in this record's arm-A instruction, one layer up, and it is why every
 green cell below has an unarmed control run beside it on the same tree in the same session.
 
-## Why these are `.txt`
+## Why these are `runs/*.txt`
 
 `.gitignore:24` ignores `*.log` at every depth and `:39` negates exactly one directory —
 `planning/test-campaign/evidence/` — with the reasoning written out beside it: `*.log` is right
@@ -26,7 +26,16 @@ everywhere else, and a repository that tracks every `.log` acquires them by acci
 Renamed rather than negated, because the negation carries a decision this item has no business
 widening.
 
-## Files
+**And they sit in `runs/` rather than beside this file, which is the second half.** `swift test`
+prints each failed expectation as a suite file name, a line, a column and a message, and a lane
+prints the mutation string it diffed, so a captured transcript carries bare `file:line` tokens by the dozen — three of
+these carry 24 between them, and the citation ratchet counted every one against a writer who typed
+none of them. `citation-gate.py` already excludes the campaign's run logs for exactly that reason;
+`planning/evidence/*/runs/*` extends it to a gap-fix's captures by the same definition. **Scoped to
+the subdirectory on purpose**: this README, and every acceptance note beside it, is authored and
+still owes anchor and tree. A transcript nobody typed goes in `runs/`; everything else does not.
+
+## Files (all under `runs/`)
 
 | file | what it is |
 |---|---|

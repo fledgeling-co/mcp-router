@@ -1,0 +1,135 @@
+# make lint — per-member verdict lines, K4.
+#
+# Produced by: `make lint` at the branch tip, filtered to verdict lines.
+# The RAW capture is deliberately not committed. It carries 32 bare `path:line` strings
+# quoted out of the gates' own findings text, and `citation-gate.py` holds a new file to a
+# baseline of 0 — so committing the raw log turns a green lint red on the act of recording
+# it. R33 hit the same wall in this wave and committed verdict lines for the same reason;
+# this follows that shape rather than raising a baseline to admit an artifact.
+#
+# 1457 raw lines -> 124 verdict lines.
+
+Done linting! Found 0 violations, 0 serious in 708 files.
+no-raw-design-values: clean
+  ok    a tree with no applier passes (exit 0)
+  ok    P1  a harness path literal beside a write, one line, is refused (exit 1)
+  ok    P2  a reconciliation plan beside a write, one line, is refused (exit 1)
+  ok    P3  a realistic applier, path and write on different lines, is refused (exit 1)
+  ok    P4  a bare-String applier inside the seam is refused by the seam rule (exit 1)
+  ok    P5  forWritingTo: is the only write token in the file, and counts (exit 1)
+  ok    P8  forUpdatingTo: is the only write token in the file, and counts (exit 1)
+  ok    P9  a harness path in a block comment is documentation too (exit 0)
+  ok    P10 a split applier outside the seam is NOT caught — the gate's declared blind spot (exit 0)
+  ok    P11 a wrapped ClientConfigs.path( call is still the R7 API (exit 1)
+  ok    P12 a harness path assembled from components is still a harness path (exit 1)
+  ok    P13 an fopen/fputs applier inside the seam is refused (exit 1)
+  ok    P14 a /bin/sh redirect inside the seam is refused (exit 1)
+  ok    P15 a write sharing a line with a block comment is still a write (exit 1)
+  ok    P16 replacing a harness config with a symlink is a mutation, not an exemption (exit 1)
+  ok    P16b changing a harness config's mode inside the seam is refused too (exit 1)
+  ok    P17 prose inside a block comment is documentation, whatever its lines begin with (exit 0)
+  ok    P18 a /* inside a line comment does not blank the file after it (exit 1)
+  ok    P19 a slash-star inside a string does not blank the applier under it (exit 1)
+  ok    P20 a generic config file name with no harness named beside it is not a finding (exit 0)
+  ok    P20b the same generic name beside a harness home is a harness config again (exit 1)
+  ok    P21 a POSIX symlink over a harness config is refused like the Foundation one (exit 1)
+  ok    P22 a slash-slash inside a string does not suppress the block comment after it (exit 0)
+  ok    P6  a harness path discussed in a doc comment is documentation, not a write (exit 0)
+  ok    P7  writing to standard output is printing, not writing a config (exit 0)
+  ok    P23 an undeclared file that writes and names a client is refused (exit 1)
+  ok    P24 a writer naming no client at all is still rule 4's blind spot, and passes (exit 0)
+  ok    P25 a declaration naming a file that is not there is a finding (exit 1)
+  ok    P26 a client vocabulary that matches nothing is an instrument failure (exit 2)
+  ok    P27 the same sandbox with an unedited gate passes, so P25 and P26 are about their edits
+  ok    a tree naming no harness config at all is an environment failure, not a pass (exit 2)
+  ok    a tree with an empty seam is an environment failure, not a pass (exit 2)
+no-harness-config-writes-selftest: 32 case(s) held
+  ok   P1 red before: node_modules -> ../../node_modules does not resolve (this is the ~60-error state)
+  ok   P1 green after: the guard repointed it at the main checkout, absolutely
+  ok   P1b the repair explained itself, and no line of it leaked its own 'echo'
+  ok   P2 refused with no node_modules anywhere, and named the checkout to install in
+  ok   P3 refused an unstamped populated cache, and named the symlink rather than the segfault
+  ok   P3b the refusal printed both spellings of the one directory, not one of them twice
+  ok   P4 refused a cache stamped with the other spelling, and printed both spellings
+  ok   P5 passed the same populated cache under the spelling that filled it
+  ok   P6 an empty cache passed and was stamped with the spelling about to fill it
+  ok   P7 the main checkout passed silently — no link made, nothing said
+  ok   P8 a real node_modules directory was left exactly as it was
+  ok    a credential with no vault URI refuses, and writes nothing
+  ok    a filled plan writes a copy carrying the URI and not the value
+  ok    the source config was not modified by a copy run
+  ok    a configuration entry passed through untouched
+  ok    the written copy is mode 0600
+  ok    a URI the router's own predicate rejects refuses, and writes nothing
+  ok    --in-place without --backup refuses and leaves the config alone
+where the unfalsifiable ones are — top 10 of 210 files, so the ratchet is lowerable rather than merely held
+  ok    kept + discarded accounts for every path `git ls-files` returned (2 + 3 = 5 against 5 counted independently)
+  sees  a control that exits 1 is reported failing — it said: control exited 1 — it said: (no output)
+  ok    a control that exits 0 is reported passing, so the runner is not simply always red
+  ok    app/Scripts/pool-mutation-gate-selftest.sh exited 0
+  ok    planning/brief-target-gate.py          exited 0
+  ok    planning/citation-gate.py              exited 0
+  ok    planning/evidence-citation-gate.py     exited 0
+  ok    planning/evidence/M31/sweep-prominent-disabled.py exited 0
+  ok    planning/goals/tests-reader-control.sh exited 0
+  ok    planning/hooks/install.sh              exited 0
+  ok    planning/hooks/prove-pre-commit.sh     exited 0
+  ok    planning/m33-branch-sweep.py           exited 0
+  ok    planning/pin-class-gate.py             exited 0
+  ok    planning/role-intersection-gate.py     exited 0
+  ok    planning/runnable-path-gate.py         exited 0
+  ok    planning/shipped-brief-gate.py         exited 0
+  ok    planning/sweep-control-gate.py         exited 0
+  ok    planning/target-resolution-gate.py     exited 0
+  ok    planning/test-campaign/bin/forced-state-assert.py exited 0
+  ok    planning/test-campaign/bin/raster-claim-gate.py exited 0
+  ok    planning/verification/G11-corpus-determinism.py exited 0
+          proves: four arms including a planted fault: a pristine checkout and a dirty working tree must evaluate HEAD identically, the /tmp-file presence/absence partition must not move the verdict, and a regression that makes the gate read from disk must FAIL the 2-way control (exit 2) — so the control is watched failing on every invocation, not merely run. The mutated gate is restored and its hash compared.
+  ok    scripts/acceptance/acceptance-lanes-selftest.sh exited 0
+          proves: 13 arms on planted lanes with known exit codes, dispatched through ACCEPTANCE_LANES/ACCEPTANCE_LANES_DIR so no real lane runs: an all-green set must exit 0, a red lane must not be aggregated away, a lane that exits 0 having asserted nothing must be classed with the failures rather than the blocked, and a lane that leaves no row must redden the run on the row count alone. Arm 9 is the presence control for arm 8, so a runner that always exits 1 cannot satisfy the set.
+  ok    scripts/acceptance/acceptance-lanes.sh exited 0
+          proves: the aggregator's own arming, named by the file in its own words as `what proves the aggregation can actually go red`. The sweep here is the zero-assertion test — a lane reaching exit 0 through a dead shell or an empty loop — and the selftest plants exactly that lane and requires it classed with the failures. It runs the same 19 seconds as the selftest's own row; that row proves the instrument, this one binds the sweep to it, and neither is the other.
+  ok    scripts/acceptance/menu-reason-plane-selftest.sh exited 0
+          proves: 10 arms over doctored accessibility dumps, sourcing menu-reason-plane.sh's five assertions rather than re-implementing them, so an edit to the lane changes what this tests instead of leaving it checking a dead copy. Five arms require each assertion to FIRE — a reason MenuCommandAvailability does not declare, a badge folded into AXTitle, a menu item reporting a real AXSize, a dump of one item, a dump carrying no reason at all — and five require none of them to fire on a dump of the shape today's platform produces. That second half is the two-way control and it is the one that matters: every assertion in this lane asserts an ABSENCE, and a check that CANNOT fire and a check that correctly does not fire are indistinguishable from a green run. It has already earned its place: the badge tripwire used `exit 0` inside an awk rule, awk's `exit` runs END, and `END { exit 1 }` overrode the hit — so the line watching for the one event the lane exists to notice could never fire, and every real run passed. This caught it. Needs no build, no window server and no Accessibility grant; runs against planted files in about a second, which is why it holds a row the lane itself is waived from.
+  ok    scripts/build-description-report.py    exited 0
+          proves: 10 poison arms bit: the report line cannot go missing while the target passes, a project.yml source path compiled by no lane reads COVERED BY NOTHING at exit 1, and the `make all` excuse for the three MCPRouterIOS* paths is checked against the real Makefile rather than asserted
+  ok    scripts/parity/mutation-gate-selftest.sh exited 0
+  ok    scripts/warden/selftest.sh             exited 0
+  ok    scripts/worktree-preflight-selftest.sh exited 0
+  ok    scripts/worktree-preflight.sh          exited 0
+  ok    block_sh           expected BLOCK         read BLOCK
+  ok    block_py           expected BLOCK         read BLOCK
+  ok    waived.sh          expected WAIVED        read WAIVED
+  ok    quoted_marker.sh   expected BLOCK         read BLOCK
+  ok    bare_marker.sh     expected BLOCK         read BLOCK
+  ok    home_rel.sh        expected CLEAN         read CLEAN
+  ok    system.sh          expected CLEAN         read CLEAN
+  ok    scratch.sh         expected CLEAN         read CLEAN
+  ok    notrunnable.md     expected NOT_RUNNABLE  read NOT_RUNNABLE
+  ok    extensionless      expected BLOCK         read BLOCK
+  ok    sync          expected OK/0        read OK/0
+  ok    drift         expected DRIFT/1     read DRIFT/1
+  ok    absent_solo   expected EXEMPT/0    read EXEMPT/0
+  ok    absent_fleet  expected ABSENT/1    read ABSENT/1
+  ok    notexec       expected NOTEXEC/1   read NOTEXEC/1
+  (driver) reader choice, end to end       expect exit 1 · blocks dead.md only got exit 1 · blocks dead.md only fired   the driver's own reader is the one the plants describe
+exit: 0
+            defaults blind=3 · declared examined=2282 mutating=481 re-read=370 blind=111
+isolated:   blind plant    examined=1 mutating=1 blind=1 — ok
+isolated:   reading plant  examined=1 mutating=1 blind=0 — ok
+exit: 0
+  ok    all guards red -> exit 0
+  ok    the pass names 13 of 13, not a literal
+  ok    every declared check produced a verdict
+  ok    a test that passes without its guard -> non-zero
+  ok    the hole is named HOLE on its own line
+  ok    the verdict says how many checks proved no guard
+  ok    a run full of holes never prints PASSED
+  ok    zero tests executed -> non-zero
+  ok    zero tests executed is reported as NORUN
+  ok    a mutation that no longer applies -> non-zero
+  ok    a stale mutation is labelled STALE, not OK
+  ok    the stale line says nothing was measured
+  ok    the stale check is excluded from the proved count (12/13)
+  ok    the four mutated sources are restored byte-identically
+LINT EXIT=0

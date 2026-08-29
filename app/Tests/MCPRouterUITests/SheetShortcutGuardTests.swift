@@ -16,14 +16,20 @@
     /// with a planted probe rather than inferred from a quiet grep.
     @Suite("Sheet keyboard shortcut bindings")
     struct SheetShortcutGuardTests {
-        /// The fifteen sheet views, named so that a sixteenth is a deliberate classification rather
-        /// than something that quietly joins the population.
+        /// Every sheet view in the app, named so that one more is a deliberate classification
+        /// rather than something that quietly joins the population.
         ///
-        /// M18's verdict enumerated **fourteen** and this is fifteen: `MissingSubjectSheet`
-        /// (`Boards/SkillSheets.swift`) is a real sheet, presented at `SkillSheets.swift:18`, and it
-        /// was outside that table. So the figure that verdict reports as *8 of 14 sheets have no
-        /// Escape path* was 9 of 15 — the conclusion it drew is unchanged and its population was one
-        /// short, which is why this list is asserted rather than described.
+        /// **The size is this literal's `count` and is written nowhere else, including in the name
+        /// of the test that asserts it.** `thePopulationIsTheFifteenNamed` was accurate when it was
+        /// written and is not now: M22's `ShimExplanationSheet`, M19's `ServerDocumentSheet` and
+        /// M30's `CapabilityDocumentSheet` joined at the merge, and the repair moved the set while
+        /// leaving the symbol alone — deliberately, because two records cite that symbol by name and
+        /// renaming it would strand both. Read the name as a date stamp, not a count.
+        ///
+        /// The reason the set is asserted at all: M18's verdict enumerated the sheets by hand and
+        /// `MissingSubjectSheet` (`Boards/SkillSheets.swift:18`) was outside its table, so a figure
+        /// derived from that list was one short. A described population loses a member silently; an
+        /// asserted one fails.
         static let sheetViews: Set<String> = [
             "ActivityResetHistorySheet", "AddServerSheet", "CapabilityDocumentSheet",
             "ChildPathSheet", "DiscoverDetailSheet", "HeldChangeSheet", "HeldVersionSheet",
@@ -163,7 +169,11 @@
 
         // MARK: - Which control takes the accent fill
 
-        /// The seven sheet views carrying a control written `Button("Cancel")`.
+        /// Every view carrying a control written literally `Button("Cancel")`.
+        ///
+        /// Named rather than sized, for the reason ``sheetViews`` carries: a count written into a
+        /// doc comment or a test's display name goes stale in a merge that never opens this file.
+        /// The size is this literal's `count`.
         ///
         /// Named rather than counted, because the guard below reads the **literal-label**
         /// population and a control whose label is an expression is invisible to it —
@@ -267,7 +277,7 @@
             )
         }
 
-        @Test("the literal-Cancel population is the seven views named here")
+        @Test("the literal-Cancel population is exactly the views named here")
         func theCancelPopulationIsTheSevenNamed() throws {
             let found = try Set(
                 SheetShortcutScan.allViews()
@@ -284,7 +294,7 @@
 
         // MARK: - The population, and the gap that is left in it
 
-        @Test("the sheet population is the eighteen named here")
+        @Test("the sheet population is exactly the set named here")
         func thePopulationIsTheFifteenNamed() throws {
             let found = try Set(SheetShortcutScan.allSheetViews().map(\.name))
             let added = found.subtracting(Self.sheetViews).sorted()

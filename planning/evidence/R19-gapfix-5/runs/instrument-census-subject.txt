@@ -1,0 +1,29 @@
+instrument-census --subject 'ManifestIO|saveManifest|withExclusiveLock|WatchIndexing|manifest\\.json': 24 of 444 instruments name it
+  both (4):
+    scripts/acceptance/control-differential.sh
+    scripts/acceptance/parity-cli.sh
+    scripts/acceptance/parity-overlap.sh
+    scripts/acceptance/parity-state.sh
+  node (1):
+    scripts/acceptance/parity-regen-selftest.sh
+  static (1):
+    scripts/parity/generate-vectors.mjs
+  swift (18):
+    app/Tests/RouterCoreTests/CLIIndexWriteDeniedTests.swift
+    app/Tests/RouterCoreTests/CacheFidelityTests.swift
+    app/Tests/RouterCoreTests/ConfigMutationLockTests.swift
+    app/Tests/RouterCoreTests/ConfigTrapTests.swift
+    app/Tests/RouterCoreTests/ControlApproveDispatchTests.swift
+    app/Tests/RouterCoreTests/IndexFailureRecordTests.swift
+    app/Tests/RouterCoreTests/LogParityTests.swift
+    app/Tests/RouterCoreTests/MCPEndpointDisabledCallTests.swift
+    app/Tests/RouterCoreTests/ManifestIOParityTests.swift
+    app/Tests/RouterCoreTests/ManifestIndexerWriteFailureTests.swift
+    app/Tests/RouterCoreTests/ManifestMutationLockTests.swift
+    app/Tests/RouterCoreTests/VectorRegistry.swift
+    app/Tests/RouterCoreTests/WatchAdoptionTests.swift
+    app/Tests/RouterCoreTests/WatchCrossProcessTests.swift
+    planning/test-campaign/bin/witness-arm-denial.sh
+    planning/test-campaign/bin/witness-arm.sh
+    planning/test-campaign/bin/witness-effects.sh
+    scripts/acceptance/p1-auth-routes.sh

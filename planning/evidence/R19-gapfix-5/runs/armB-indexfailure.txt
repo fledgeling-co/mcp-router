@@ -1,0 +1,88 @@
+warning: 'app': Invalid Exclude '/Volumes/LLMs/Dev/mcp-router/.worktrees/K2/app/MCPRouter/Info.plist': File not found.
+[0/1] Planning build
+Building for debugging...
+[0/13] Write sources
+[1/13] Write swift-version--58304C5D6DBC2206.txt
+[3/9] Compiling RouterCore WatchIndexing.swift
+[4/9] Emitting module RouterCore
+[4/12] Write Objects.LinkFileList
+[7/12] Linking ControlDiff
+[8/12] Linking MCPRouterCLI
+[9/12] Applying ControlDiff
+[10/12] Applying MCPRouterCLI
+[11/12] Linking MCPRouterKitPackageTests
+Build complete! (5.81s)
+Test Suite 'Selected tests' started at 2026-08-29 14:23:22.251.
+Test Suite 'MCPRouterKitPackageTests.xctest' started at 2026-08-29 14:23:22.254.
+Test Suite 'MCPRouterKitPackageTests.xctest' passed at 2026-08-29 14:23:22.254.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-08-29 14:23:22.254.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.004) seconds
+􀟈  Test run started.
+􀄵  Testing Library Version: 1902
+􀄵  Target Platform: arm64e-apple-macos14.0
+􀟈  Suite "A failed index leaves a record" started.
+􀟈  Test "two upstreams failing at different points each leave a manifest row" started.
+2026-08-29T04:23:22.363Z info  spawning upstream "deadcommand" (/nonexistent/definitely-not-a-server )
+2026-08-29T04:23:22.364Z error failed to index "deadcommand": spawn /nonexistent/definitely-not-a-server ENOENT
+2026-08-29T04:23:22.364Z info  spawning upstream "dieslisting" (python3 /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/mcp-router-watch-0B28904F-A71C-4530-9B73-82BCDEFF152B/watch-child.py /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0
+2026-08-29T04:23:22.413Z info  upstream "dieslisting" ready in 49ms
+2026-08-29T04:23:22.417Z warn  upstream "dieslisting" closed on its own; evicting so the next call reopens it
+2026-08-29T04:23:22.419Z error failed to index "dieslisting": [-32603] Internal error: Client disconnected
+􀢄  Test "two upstreams failing at different points each leave a manifest row" recorded an issue at IndexFailureRecordTests.swift:70:13: Expectation failed: (entry → nil) != nil
+􀄵  deadcommand left no manifest row at all
+􀢄  Test "two upstreams failing at different points each leave a manifest row" recorded an issue at IndexFailureRecordTests.swift:71:13: Expectation failed: (entry?.error?.string.isEmpty → nil) == false
+􀄵  deadcommand's row carries no reason, so a reader still cannot tell it was attempted
+􀢄  Test "two upstreams failing at different points each leave a manifest row" recorded an issue at IndexFailureRecordTests.swift:75:13: Expectation failed: (entry?.tools.isEmpty → nil) == true
+􀄵  deadcommand must serve nothing while it is broken
+􀢄  Test "two upstreams failing at different points each leave a manifest row" recorded an issue at IndexFailureRecordTests.swift:70:13: Expectation failed: (entry → nil) != nil
+􀄵  dieslisting left no manifest row at all
+􀢄  Test "two upstreams failing at different points each leave a manifest row" recorded an issue at IndexFailureRecordTests.swift:71:13: Expectation failed: (entry?.error?.string.isEmpty → nil) == false
+􀄵  dieslisting's row carries no reason, so a reader still cannot tell it was attempted
+􀢄  Test "two upstreams failing at different points each leave a manifest row" recorded an issue at IndexFailureRecordTests.swift:75:13: Expectation failed: (entry?.tools.isEmpty → nil) == true
+􀄵  dieslisting must serve nothing while it is broken
+􀢄  Test "two upstreams failing at different points each leave a manifest row" recorded an issue at IndexFailureRecordTests.swift:84:9: Expectation failed: (manifest.entry(named: "deadcommand")?.error → nil) != (manifest
+                .entry(named: "dieslisting")?.error → nil)
+􀄵  two failure points reporting one identical string would make this fixture prove nothing
+􀢄  Test "two upstreams failing at different points each leave a manifest row" failed after 0.066 seconds with 7 issues.
+􀟈  Test "the four-state report shows the reason for an upstream that failed to index" started.
+2026-08-29T04:23:22.427Z info  spawning upstream "deadcommand" (/nonexistent/definitely-not-a-server )
+2026-08-29T04:23:22.427Z error failed to index "deadcommand": spawn /nonexistent/definitely-not-a-server ENOENT
+2026-08-29T04:23:22.427Z info  spawning upstream "dieslisting" (python3 /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/mcp-router-watch-1EFA6953-1A7D-4E20-AFC5-62E76C67BEC1/watch-child.py /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0
+2026-08-29T04:23:22.475Z info  upstream "dieslisting" ready in 48ms
+2026-08-29T04:23:22.485Z warn  upstream "dieslisting" closed on its own; evicting so the next call reopens it
+2026-08-29T04:23:22.486Z error failed to index "dieslisting": [-32603] Internal error: Client disconnected
+􀢄  Test "the four-state report shows the reason for an upstream that failed to index" recorded an issue at IndexFailureRecordTests.swift:129:13: Expectation failed: (row.detail?.isEmpty → nil) == false
+􀄵  deadcommand reached the report with no reason, which is the R17 defect
+􀢄  Test "the four-state report shows the reason for an upstream that failed to index" recorded an issue at IndexFailureRecordTests.swift:133:13: Expectation failed: (row.remedy → "Authorising will not help. Re-index it and see what it reports.").contains("Fix the error below")
+􀄵  deadcommand was told to re-index and see, with the answer already in hand
+􀢄  Test "the four-state report shows the reason for an upstream that failed to index" recorded an issue at IndexFailureRecordTests.swift:129:13: Expectation failed: (row.detail?.isEmpty → nil) == false
+􀄵  dieslisting reached the report with no reason, which is the R17 defect
+􀢄  Test "the four-state report shows the reason for an upstream that failed to index" recorded an issue at IndexFailureRecordTests.swift:133:13: Expectation failed: (row.remedy → "Authorising will not help. Re-index it and see what it reports.").contains("Fix the error below")
+􀄵  dieslisting was told to re-index and see, with the answer already in hand
+􀢄  Test "the four-state report shows the reason for an upstream that failed to index" failed after 0.066 seconds with 4 issues.
+􀄵  /// R17 acceptance 4 — R14's report reads the row and shows the reason.
+􀄵  ///
+􀄵  /// Without a row, `indexError` is nil and the row reads "Re-index it and see what it reports",
+􀄵  /// which is the report filing a server whose reason the router already had as a blameless
+􀄵  /// not-an-auth-problem. The reason is what turns that into an actionable line.
+􀢄  Suite "A failed index leaves a record" failed after 0.133 seconds with 11 issues.
+􀄵  /// R17 — an upstream whose index fails leaves a record of that failure, whatever route it came in
+􀄵  /// by and whichever point of the index it died at.
+􀄵  ///
+􀄵  /// THE MEASUREMENT THIS IS WRITTEN AGAINST, taken from the owner's machine on 2026-08-21: 14
+􀄵  /// upstreams configured, 13 manifest rows, 12 serving. `lifeline` and `namecheap` fail identically
+􀄵  /// — `MCP error -32000: Connection closed` — and only `lifeline` had a row. `namecheap` reported
+􀄵  /// `error: None, tools: 0, state: idle`, so nothing anywhere said it had ever been attempted.
+􀄵  ///
+􀄵  /// The divergence was never in the failure. Both took the same branch of `buildManifest`. It was in
+􀄵  /// the ROUTE: `namecheap` is declared in `~/.claude.json` as well as in the router's own list, so
+􀄵  /// the watcher ran over it every five minutes, and the watcher deleted the row that
+􀄵  /// `buildManifest` had just written. `lifeline` is not staged, so nothing ran that deletion over it
+􀄵  /// and the row `index --force` wrote survived. `watch-state.json` held `namecheap`'s reason the
+􀄵  /// whole time, in a file no surface reads.
+􀄵  ///
+􀄵  /// The fixture below is therefore two servers failing at two DIFFERENT points, adopted by the route
+􀄵  /// that used to discard the record — which is what makes this a property of the indexer rather than
+􀄵  /// a patch aimed at one server's name.
+􀢄  Test run with 2 tests in 1 suite failed after 0.133 seconds with 11 issues.

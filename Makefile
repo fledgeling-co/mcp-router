@@ -67,7 +67,7 @@ MAC_DEST   ?= platform=macOS
 SURFACE    ?= servers
 
 .PHONY: node-e2e
-.PHONY: build-cli-debug all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation mutation-selftest acceptance acceptance-lanes-selftest mock-fidelity mock-fidelity-selftest role-intersection lint format clean install-default surface-reconcile surface-reconcile-arm
+.PHONY: build-cli-debug all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation mutation-selftest acceptance acceptance-lanes-selftest mock-fidelity mock-fidelity-selftest role-intersection green-streak lint format clean install-default surface-reconcile surface-reconcile-arm
 
 ## G4's two harness gates run inside `lint` rather than as a stage of their own. Both are
 ## hermetic and finish in under ten seconds, and `lint` is where the other four script gates
@@ -963,6 +963,27 @@ build-router-release:
 ## every check the clean run makes — and requires each to be seen. A check with no mutation behind
 ## it fails the control rather than being counted, so the arm cannot fall behind the assertions it
 ## arms. It is hermetic, needs no router and no `.app`, and finishes in under a second.
+## `instrument-census.py` (`R19`) runs here because the claim it retires is one no reviewer can
+## check by reading. R19's resolution paragraph made a statement about instrument coverage four
+## times and was wrong four times, each time about a different instrument, and each refuting
+## instrument was one no record had ever named — `IndexFailureRecordTests`, then `parity-cli.sh`,
+## then `parity-overlap.sh`, then `WatchAdoptionTests`. Between the third and fourth passes `main`
+## brought `parity-divergence.sh` in underneath the paragraph, so the set grows from the trunk as
+## well as from a verifier's arm.
+##
+## What it refuses is a tree whose instrument set has moved while `planning/instrument-census.tsv`
+## has not. It runs nothing and claims nothing about what any instrument catches: it derives the
+## population from `git ls-files`, the reach of each row from an INVOCATION SHAPE in that row's own
+## source with the matched token carried in the row, and containment from recipes and dispatch
+## lists. The one edge that pays for the file is `make test`'s — an unfiltered `swift test` contains
+## every suite in the package, which is why `make test catches none of these arms and structurally
+## cannot` was refutable from two other sentences in the same paragraph.
+##
+## Its control is 15 arms, and nine of them require a class NOT to fire. That direction is the
+## whole difficulty: prose about `dist/index.js`, an echoed repair instruction and a path named in
+## a comment each read as reach or containment in this reader's first cut, and a census that
+## over-claims is the same defect as the paragraph it exists to bound.
+
 lint: tools
 	@fail=0; \
 	swiftformat --lint . --config .swiftformat || fail=1; \
@@ -978,6 +999,7 @@ lint: tools
 	python3 planning/py39-annotation-gate.py || fail=1; \
 	python3 planning/citation-gate.py || fail=1; \
 	python3 planning/sweep-control-gate.py || fail=1; \
+	python3 planning/instrument-census.py || fail=1; \
 	python3 planning/runnable-path-gate.py || fail=1; \
 	bash planning/hooks/install.sh --gate || fail=1; \
 	python3 planning/registry-drop-gate.py || fail=1; \
@@ -987,9 +1009,13 @@ lint: tools
 	python3 planning/test-campaign/bin/capture-manifest.py || fail=1; \
 	python3 planning/test-campaign/bin/raster-claim-gate.py || fail=1; \
 	python3 planning/test-campaign/bin/forced-state-assert.py --control || fail=1; \
+	python3 planning/test-campaign/bin/effect-class-census.py --control || fail=1; \
+	python3 planning/test-campaign/bin/effect-class-census.py || fail=1; \
+	python3 planning/test-campaign/bin/blind-vocabulary-arm.py || fail=1; \
 	python3 planning/pin-class-gate.py || fail=1; \
 	python3 planning/shipped-brief-gate.py || fail=1; \
 	python3 planning/brief-target-gate.py --quiet || fail=1; \
+	python3 planning/carrier-parity-gate.py || fail=1; \
 	zsh app/Scripts/pool-mutation-gate-selftest.sh || fail=1; \
 	exit $$fail
 
@@ -1001,6 +1027,18 @@ role-intersection:
 	echo "role-intersection: exit $$ec  (0 clean · 1 findings · 3 inconclusive · 4 control failed · 2 usage)"; \
 	echo "  make collapses ANY failing recipe to its own exit 2, which collides with this"; \
 	echo "  gate's usage code. The line above is the verdict; make's status is not."; \
+	exit $$ec
+
+## R33 — the green streak, measured. NOT in `all` and NOT in `lint`, because it exits 2 today and
+## that 2 is the correct answer: no whole-gate run has ever been recorded, so the streak is
+## unmeasured rather than zero. Putting it in `lint` would make the honest state a red build, and
+## the pressure would then be on the instrument rather than on the runs.
+##
+## `planning/parity/green-streak.md` defines a whole-gate pass and the cold port-reuse path.
+## `planning/carrier-parity-gate.py` is the half of R33 that DOES block, and it is in `lint`.
+green-streak:
+	@bash scripts/acceptance/green-streak.sh; ec=$$?; \
+	echo "green-streak: exit $$ec  (0 measured · 1 the ledger contradicts itself · 2 nothing recorded yet)"; \
 	exit $$ec
 
 ## Writes formatting changes in place. Not part of `all` — a gate that edits your files is a gate

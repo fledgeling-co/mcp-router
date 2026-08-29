@@ -1,0 +1,12 @@
+  ok    empty                  exit 2, streak is not zero
+  ok    two-passes             exit 0, current streak: 2 consecutive whole-gate pass(es), 1 of them cold port-reuse
+  ok    diverged               exit 0, current streak: 0
+  ok    exit-2                 exit 0, current streak: 0
+  ok    extra-blocked          exit 0, the rest is not a pass
+  ok    short-of-target        exit 0, short of the target 82
+  ok    older-failure          exit 0, current streak: 2
+  ok    malformed              exit 1, not ten fields
+  ok    record-measured        proven=104/105 blocked=1 excluded=1 diverged=0
+  ok    record-withheld        proven=?/? blocked=? excluded=0 diverged=0
+
+green-streak-selftest: 10 arms, all as declared, and the tracked ledger is byte-identical.

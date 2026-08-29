@@ -23,9 +23,20 @@ about instrument coverage rather than anything about the resolution itself. All 
 sentences and how each was disproved are in the closing sections of this note.)*
 
 **`parity-cli.sh` pins the node side.** Its fourth `cli-watch` scenario compares the manifest's
-*shape* between the two binaries, `reason=yes` included. Put `delete next.servers[name]` back into
-`src/watch.ts` alone and the scenario reddens with the mutation string `surface.tsv` records
-verbatim, while the other three stay green. `IndexFailureRecordTests` stays **green** through that
+*shape* between the two binaries, `reason=yes` included. Restore the pre-R17 delete's **effect
+inside the locked span** — the failed row dropped from `current` after `apply(current)` and before
+`saveManifest(manifestPath, current);`, `src/watch.ts:269` at `95865f4` — and the scenario
+reddens with the mutation string `surface.tsv` records verbatim, while the other three stay green.
+
+**Not** `delete next.servers[name]` in the `failed` loop, which is where the statement used to sit
+and is what three earlier readings of this paragraph said to arm. R19 removed the run-level save, so
+`next` no longer reaches disk: armed there the mutation compiles, changes nothing observable, and
+leaves both lanes green. The fourth verification found that and this pass reproduced the class on
+itself — a first cut of the Swift arm below filtered `manifest.servers` by the elements of
+`step.failed`, which are `"<name>: <message>"` rather than bare names, so it matched nothing and
+`make test` reported **2100 tests in 267 suites passed, exit 0**. An arm that no longer bites reports
+exactly like a fix that holds, which is this fleet's own standing lesson one layer up, and it is why
+every arm below carries its blob hash and a green control run beside it. `IndexFailureRecordTests` stays **green** through that
 same arm, and it could not do otherwise: it is a Swift test — `@testable import RouterCore`,
 driving `WatchWorld.runner` and `ManifestIO` — and no path through it executes `src/watch.ts` at
 all.
@@ -52,16 +63,25 @@ instrument catches:
   `swift:` clause and **no `disagree:` clause** — the two binaries agree there and it fails them
   both anyway. Its own comment at `:187-188` says so: *asserting it here means a watcher that went
   back to deleting it reddens this row too.*
-- **`make test` (the `app/` test suite) executes no node code**, so the node arm leaves it at
-  **1728 tests in 216 suites, exit 0**; on the Swift arm and the both-sides arm, `IndexFailureRecordTests`
-  is run as part of the suite and reports the same 11 issues.
+- **`make test` is an unfiltered `swift test` in `app/`, so it contains every suite in the
+  package** — `  swift test --xunit-output "$$dir/report.xml"; \`, `Makefile:401` at `95865f4`, run with no `--filter`, and `RouterCoreTests` is a
+  `.testTarget` — `            name: "RouterCoreTests",`, `app/Package.swift:85` at `95865f4`. It is therefore a **strict superset** of
+  `IndexFailureRecordTests` and cannot be green on an arm that suite reddens. Measured on this tree:
+  unarmed **2100 tests in 267 suites passed, exit 0**; the node arm leaves it there, because the
+  suite executes no node code; the Swift arm and the both-sides arm each fail with **14 issues**,
+  `make` exit 2. **The 14 are 11 plus 3**, and the three are a second Swift guard —
+  `WatchAdoptionTests.swift:152-154`, *W3 — a failure backs off for five minutes, and an edit retries
+  at once*, which no R19 record named until this pass.
 
 That is the argument for carrying `parity-cli.sh` and `IndexFailureRecordTests` together: between
-them every armed row below is red on at least one, the both-sides row included. It is not an argument
-that either is the only instrument holding any cell, and this note makes no such claim. Three times
-it did, and all three were false — each disproved by an instrument the record had not named, which is
-exactly why the claim is unavailable here. Nobody has enumerated the instruments on this tree, and
-each of the three passes turned up one more.
+them every armed row below is red on at least one, the both-sides row included.
+
+**The set they are drawn from is now enumerated, so the sentences above are bounded rather than
+open.** Four passes each wrote a claim quantified over the instruments on this tree, and each was
+refuted by a member no record had named. The set is `planning/instrument-census.tsv` — **444
+instruments**, derived from `git ls-files` by `planning/instrument-census.py` and held there by a
+gate in `make lint`. What the arms below cover, against that denominator, is in *The instrument set,
+and what the arms reach of it* near the end of this note.
 
 **The matrix, every cell measured** — three instruments against five arms. Arms restored from R19's
 own code at `a27fd52`, each removed afterwards and each removal confirmed by blob hash rather than by
@@ -730,6 +750,15 @@ absolute on Swift, blind to node, red at 11 issues on two arms; `parity-overlap.
 armed rows; `make test` red on none of them and structurally unable to be. **Four instruments named
 where the graded text named two**, and no claim anywhere that any of them is the only one.
 
+**The last clause of that list is withdrawn, and it is what failed the fourth verification.** *`make
+test` red on none of them and structurally unable to be* is false in both halves: it contains
+`IndexFailureRecordTests`, so it is red on two of the three arms and structurally **obliged** to be.
+The stated ground — *executes no node code* — rules out the node arm and was generalised to three.
+The register rule was right and it was not sufficient on its own: *only X catches this* and *X
+catches none of this* are the same claim shape, and the pass that retired the first wrote the second
+four bullets later. Gap-fix 4 corrected the bullet at `79d40ee`; the figure it carried, *the same 11
+issues*, was still the filtered suite's rather than the whole run's, and this pass measures **14**.
+
 ### The verdict's ready-to-paste text was declined again, and this is the second pass running to do it
 
 Its option (b) reads *the both-sides-at-once case is `IndexFailureRecordTests`'* and closes *it is
@@ -781,10 +810,14 @@ objects between the verifier's merged `8836525`, the graded `2793574` and this b
 `2c80e33` — `7520bdc1…`, `f12da552…`, `9f1bc1a9…`, `99efe9ff…`. **There is no code-path delta at all
 this time**, not even the `Makefile` one the last two passes carried, because `2793574` already had
 main's `50f3e8f`. Presence control on that reader: the same command form against `main`, which lacks
-R19's code, reports all three directories differing. `main` moved **22 commits** past the merge base
-and **11 past the verifier's**, and the nine files this merge brings are `ORCHESTRATOR.md`,
-`LEDGER.md`, four new triage briefs and two reckoning artifacts — no `src/`, `app/`, `scripts/` or
-`Makefile` among them.
+R19's code, reports all three directories differing. `main` moved **21 commits** past the merge base
+and **10 past the verifier's** — `git rev-list --count 01b6ef9..9d4da76` is 21 and
+`f4fe03a..9d4da76` is 10; the figures written here were each one high, and both are corrected rather
+than removed because the merge base and the two paperwork commits they name are right. The **nine**
+files this merge brings are `ORCHESTRATOR.md`, `LEDGER.md`, four new triage briefs (`G9`, `G10`,
+`M33`, `M34`), a **modified** `M32` brief and two reckoning artifacts — the earlier enumeration named
+eight against its own total of nine, having left the modified brief out. No `src/`, `app/`,
+`scripts/` or `Makefile` among them.
 
 Per the brief: **`parity-gate.sh` was not run**, and no rate is stated for arm 4. That cell has
 contradicted its own published rate four times; the cost of the trade is the same one gap-fix 2
@@ -896,3 +929,124 @@ zero-code-delta note. What each bought is a measurement the tree did not have: t
 `parity-cli.sh`, the both-sides arm against all three lanes, and `parity-overlap.sh`'s three
 assertions read out of the script rather than inferred from its name. What none of them bought is an
 enumeration of the instruments on this tree — so the paragraph no longer spends a claim on one.
+
+---
+
+## Gap-fix 5 — the instrument set, enumerated, because prose was never going to fix this
+
+The fourth verification did not ask for better wording. Its finding was that the register rule,
+right as it is, cannot carry the weight on its own: the pass that retired *only X catches this* wrote
+*X catches none of this* four bullets later, and both are unfalsifiable without the set. Four passes
+had each discovered one member by accident — `IndexFailureRecordTests`, `parity-cli.sh`,
+`parity-overlap.sh`, `WatchAdoptionTests` — and between the third and the fourth, `main` brought
+`parity-divergence.sh` in underneath the paragraph, so the set grows from the trunk as well.
+
+### The instrument set, and what the arms reach of it
+
+`planning/instrument-census.tsv`, written by `planning/instrument-census.py` and held by a gate in
+`make lint`, is **444 instruments** derived from `git ls-files`:
+
+| kind | count |
+|---|---|
+| `swift-suite` — a file under `app/Tests/<target>/` declaring `@Suite`, `@Test` or `XCTestCase` | 226 |
+| `lane` — a runnable file under `scripts/acceptance/` | 76 |
+| `gate` — a runnable check under `scripts/`, `scripts/lint/`, `app/Scripts/` or `planning/` | 119 |
+| `make-target` — a Makefile target whose recipe runs one of the above, or `swift test` | 23 |
+
+Reach is derived from an **invocation shape** in each row's own source, with the matched token
+carried in the row so a disagreement is settled by looking: **278 swift, 12 node, 20 both, 134
+static**. Containment comes from recipes and dispatch lists, and the edge that pays for the whole
+file is `make:test`'s — an unfiltered `swift test`, so **all 226 swift suites are inside it**.
+
+The part of that set this item's arms could possibly move is bounded the same way:
+
+```
+python3 planning/instrument-census.py --subject 'ManifestIO|saveManifest|withExclusiveLock|WatchIndexing|manifest\.json'
+  24 of 444 instruments name it   ·   both 4 · node 1 · swift 18 · static 1
+```
+
+**The Swift half is enumerated exhaustively rather than sampled**, because `make test` runs all 226
+suites at once: whatever catches the Swift arm shows up in one run. Armed ahead of
+`try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`,
+`app/Sources/RouterCore/Watch/WatchIndexing.swift:209` at `95865f4` (blob `a57946b1…` → `14596ee6…`,
+reverted and compared back to `a57946b1…`), **exactly two suites of the 226 go red** and no others:
+
+```
+make test          Test run with 2100 tests in 267 suites failed ... with 14 issues   ### make exit 2
+  Suite "A failed index leaves a record" failed ... with 11 issues     IndexFailureRecordTests
+  Suite "Config watcher"                failed ... with  3 issues     WatchAdoptionTests.swift:152-154
+```
+
+**The node half is enumerated over the 5 node-reaching instruments in the subject set**, armed at
+`saveManifest(manifestPath, current);`, `src/watch.ts:269` at `95865f4` (blob `9c2012b3…` →
+`f8f46525…`, reverted and compared back), each with its own
+unarmed control on the same tree in the same session:
+
+| instrument | unarmed | arm A |
+|---|---|---|
+| `scripts/acceptance/parity-cli.sh` | 14 agreed, 4 did not — exit 1 | **13 agreed, 5 did not** — exit 1 |
+| `scripts/acceptance/parity-overlap.sh` | 2 agreed, 0 did not — exit 0 | **RED** — 1 agreed, 1 did not, exit 1 |
+| `scripts/acceptance/parity-state.sh` | exit 0 | exit 0 |
+| `scripts/acceptance/control-differential.sh` | 59 rows, 59 ok — exit 0 | 59 rows, 59 ok — exit 0 |
+| `scripts/acceptance/parity-divergence.sh` (outside the subject set; F4) | 6 as declared, 0 stale — exit 0 | 6 as declared, 0 stale — exit 0 |
+
+Two of those five reds are new information rather than a re-run. **`parity-state.sh` and
+`control-differential.sh` name the manifest write path and do not catch this arm** — which is the
+kind of sentence the previous four passes could not write, because a negative about an instrument is
+only worth anything once the instrument has been run against the arm. And **`parity-divergence.sh` is
+answered without a guess**: the census does not place it in the subject set, and the measurement
+agrees — it drives `serve` and reads control-API routes, not the watcher's manifest write.
+
+### The rule this pass is held to, and the one it adds
+
+From the fourth verdict, and it is mechanical rather than stylistic: **an instrument may not be
+described as green on an arm nobody ran it against.** Every green cell above is a run, in this
+session, on this tree, with its unarmed control beside it.
+
+The half that needed adding is the denominator. A statement of the form *N of the M instruments that
+reach this side catch this arm* is checkable by re-deriving both numbers; *only X catches it* and *X
+catches none of it* are not, at any wording. So the census carries the M, `--subject` carries the
+bounded M, and the gate reds when either moves.
+
+### A standing red this pass found and does not own
+
+**`parity-cli.sh` is red on `main` at `83e5380` before anything is armed**, at 14 agreed / 4 did not,
+exit 1. All four are the same `cli-help` row in four spellings: the reference's usage block lists a
+`sessions` verb this router's does not, `stdout:[12,17d11 < mcp-router sessions [--push] [--dry-run]`.
+It is not R19's and it predates this branch, but it changes how this lane may be read here — **the
+arm-A discriminator is the `cli-watch` row and the verb count moving 14 → 13, not the lane's exit
+code**, which is 1 either way. A pass that read exit codes alone would have called this arm caught
+and been right by accident. Filed for the orchestrator rather than fixed: it is a CLI surface
+divergence and this item carries no code.
+
+### Gates after this gap-fix
+
+| gate | result |
+|---|---|
+| `make lint` | see the report; run whole |
+| `make test` | **2100 tests in 267 suites passed**, exit 0 |
+| `python3 planning/instrument-census.py` | census matches the tree — 444 instruments, exit 0 |
+| `python3 planning/instrument-census.py --control` | 17 of 17 arms fired, exit 0 |
+| `scripts/acceptance/parity-overlap.sh` | 2 agreed, 0 did not — exit 0 |
+| `scripts/acceptance/parity-state.sh` | exit 0 |
+| `scripts/acceptance/control-differential.sh` | 59 rows, 59 ok — exit 0 |
+| `scripts/acceptance/parity-divergence.sh` | 6 as declared, 0 stale — exit 0 |
+| `scripts/acceptance/parity-cli.sh` | **exit 1**, 14 / 4 — the standing `cli-help` red above, unarmed |
+
+Every arm reverted and confirmed by blob rather than by eye: `src/watch.ts` back to `9c2012b3…`,
+`WatchIndexing.swift` back to `a57946b1…`, and `git diff --stat HEAD -- src app scripts Makefile`
+prints nothing.
+
+### What this pass did not do
+
+- **`parity-gate.sh` was not run**, on the standing trade this item has taken four times: it is the
+  instrument that would produce a fifth published rate for the oauth cell, and four have each been
+  contradicted by the next measurement. The cost is the same one — no whole-parity figure of this
+  pass's own.
+- **The both-sides arm was run against `make test` and not against the node lanes.** `make test`'s
+  A+B cell is measured here (**14 issues**, identical to arm B, which is a measurement rather than
+  the inference that a Swift suite cannot see a node change); the lanes' A+B cells stand on the
+  fourth verification's runs and are cited to it rather than re-armed.
+- **The census reaches four kinds of instrument and says so.** A check that lives somewhere else —
+  a CI workflow, a hook, a command a person types — is outside its population, which is why the
+  denominator is `444 instruments this repository can run as a check` rather than `every check`.

@@ -3411,7 +3411,8 @@
   "actuates": [
    "Servers"
   ],
-  "actuatesNote": "AXPress on the Servers sidebar row of the running app, with the window title read back before and after each shutter. The launch itself is the other actuation and is the one this case turns on: the app was started with an environment that chose the live client, and the board it drew is a reading of a router this harness had arranged."
+  "actuatesNote": "AXPress on the Servers sidebar row of the running app, with the window title read back before and after each shutter. The launch itself is the other actuation and is the one this case turns on: the app was started with an environment that chose the live client, and the board it drew is a reading of a router this harness had arranged. The press is SURF-001's sidebar row and the claim is SURF-002's board, so the control is recorded against the surface that declares it (`actuatesSurface`).",
+  "actuatesSurface": "SURF-001"
  },
  {
   "id": "CASE-0208",
@@ -3474,10 +3475,7 @@
   ],
   "note": "THE HARD HALF, AND THE ONE NOBODY REACHES BY LAUNCHING THE APP. A board showing a stale figure as current looks exactly like one that is right, so this promise can only be proved by arranging the failing condition on purpose. The router that had been answering was killed while THIS SAME app instance kept running \u2014 a relaunch would reach `.failed`, which is a different state that renders differently \u2014 and the board was photographed again.\n\nIt drew `3 tools from 3 servers \u00b7 last reading, not current`. Four things are checked. The absence was arranged: the harness's own read of http://127.0.0.1:8955 at that shutter got nothing. The header says its reading is no longer current. No present-tense running count appears anywhere in the board \u2014 the check is for the absence of any digit in that position, never for a dash or a placeholder, because a placeholder is a figure of its own. And the sidebar readout withholds its own count too, which is a second absence over the same promise in code that does not share a line with the first: `ServersBoardHeader.subtitle()` draws one and `ReadoutCopy.accessibilityLabel` the other, and a guardrail that held in one place and not the other would pass a single-predicate check.\n\nThe fifth check is the direction people forget: the servers that WERE read are still shown, 3 of them, the same number as while the router answered. A failed refresh is not evidence that the servers went away, and a board that cleared itself would satisfy every absence check above while destroying data no source said was gone.",
   "armedBy": "Five of the control's mutations belong to this case, and `stale-claims-running` is the one that matters: it puts `\u00b7 1 running` back into the header of a board whose router has stopped, which is the exact defect this requirement forbids. `stale-sidebar-claims-running` does the same to the readout, `stale-not-marked` removes the not-current wording, `stale-router-alive` says the router was still answering, and `stale-drops-servers` empties the board. planted-defect arm, built into `bin/forced-state-assert.py --control` and run on every `make lint`. The clean scratch set runs 28 checks and reports none; 28 planted defects are then each required to be seen, and a check with NO mutation behind it fails the control rather than being counted \u2014 so the arm cannot fall behind the assertions it arms. What it does not prove is that the product behaves this way: the control runs over planted text and never over a rendered board, and only `bin/forced-state.sh` arranges a router and photographs the app.",
-  "actuates": [
-   "kill the router underneath a running app"
-  ],
-  "actuatesNote": "The actuation is on the WORLD rather than on the app: the router process is killed and the harness then confirms, by its own HTTP read, that nothing answers on the endpoint before the shutter opens. The app is not touched between the running capture and this one."
+  "actuatesNote": "NO CONTROL IS ACTUATED, and the field was removed by K3 rather than kept as a stray. The actuation is on the WORLD rather than on the app: the router process is killed and the harness then confirms, by its own HTTP read, that nothing answers on the endpoint before the shutter opens. The app is not touched between the running capture and this one. A control the app draws is not what was struck, so there is nothing for the census to count and naming one made the registry and the case disagree about what SURF-002 carries."
  },
  {
   "id": "CASE-0210",
@@ -3563,5 +3561,121 @@
   ],
   "note": "NO NUMBER THE ROUTER DOES NOT OBSERVE, CHECKED ON THREE BOARDS RATHER THAN ONE. CASE-0008 and CASE-0137/0140/0141 hold this requirement over fixtures and over the Cleanup board's provenance sheet; what they cannot reach is a board with a real router behind it, because until J5 no Debug build had one.\n\nTwo claims. First, every figure the Servers board states while the router is answering resolves to that router's own response \u2014 `3 tools from 3 servers \u00b7 1 running` and `1 of 3 declared servers running` against tools 3, servers 3, running 1 read independently over HTTP. Second, and on all three arranged states rather than the flattering one, no memory figure and no saving is displayed anywhere: `DESIGN.md` \u00a76 names the fabricated memory saving by hand, because the router never runs the world it would have to be subtracted from, and a claim of that shape would be the easiest one to add without anybody noticing.\n\nWHAT THIS DOES NOT REACH, stated rather than left to be inferred: the sweep is over the accessibility tree of one board in three states. A figure drawn on a board this run did not visit, or painted without reaching the AX plane, is outside it. The `no-memory-figure` and `no-saving-claim` checks are run per state precisely so a guardrail that held on one board and not another cannot pass on a single instance, but three boards are not nine.",
   "armedBy": "Six of the control's mutations belong to this case \u2014 a memory figure and a saving claim planted into each of the three states in turn, so a sweep that had drifted onto one dump and stopped reading the other two fails rather than reporting clean. planted-defect arm, built into `bin/forced-state-assert.py --control` and run on every `make lint`. The clean scratch set runs 28 checks and reports none; 28 planted defects are then each required to be seen, and a check with NO mutation behind it fails the control rather than being counted \u2014 so the arm cannot fall behind the assertions it arms. What it does not prove is that the product behaves this way: the control runs over planted text and never over a rendered board, and only `bin/forced-state.sh` arranges a router and photographs the app."
+ },
+ {
+  "id": "CASE-0213",
+  "req": "REQ-019",
+  "surface": "SURF-005",
+  "flow": null,
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-005",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "app/Tests/MCPRouterUITests/BoardWriteActuationTests.swift",
+   "evidence/runs/arm-suites.0213-0216.log"
+  ],
+  "note": "K3. `Install` is driven at `DiscoverBoardModel.install` and the effect is read as the DECLARATION THE CLIENT RECORDED \u2014 name, command and args, checked against the row that was pressed rather than against the function that built them. Two entries are staged with different install blocks and both are pressed, so a handler that declares a fixed payload, or the row it happened to have selected, fails on the second press; one press and one assertion cannot tell those apart.\n\nThe read refused is `board.rows[0].installed == true`. `markInstalled` writes that from the board's own copy of the response, so it is true whether or not anything reached the router \u2014 the app's report that it worked, which is what the arm leaves standing.",
+  "armedBy": "ARMED and watched red. `arm-suites.py CASE-0213` removes the whole write from `install(_:values:)` and leaves the reporting: `installState` still lands on `.idle` and `markInstalled` still marks the row. The row draws as installed, the sheet's action goes dead, and nothing was ever declared.",
+  "actuates": [
+   "Install"
+  ],
+  "actuatesNote": "Driven at the model; the effect is read as the declaration the recording client received, which is a channel the control does not touch. The same-channel read declined is the row's own `installed` flag, which the board writes itself."
+ },
+ {
+  "id": "CASE-0214",
+  "req": "REQ-006",
+  "surface": "SURF-008",
+  "flow": null,
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-008",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "app/Tests/MCPRouterUITests/BoardWriteActuationTests.swift",
+   "evidence/runs/arm-suites.0213-0216.log"
+  ],
+  "note": "K3. The accept path is the only route in the product by which something a remote device asked for becomes something that runs, so the reading that matters is the declaration itself: the name and command the MAC resolved, and `force == false`, which is what stops an item that arrived from a phone replacing the command line of a server the user already trusts.\n\nFour same-channel reads are refused, and the arm is why. With the write removed, `acceptState` still clears, `sheetItemID` still goes nil, the row still leaves `rows` and the badge still falls by one \u2014 because all four come from `record(.accepted(\u2026))` after the call. A case asserting any of them would have stayed green over a control that told the router nothing.",
+  "armedBy": "ARMED and watched red. `arm-suites.py CASE-0214` removes the write from `accept(_:)` and leaves the reporting. The sheet closes, the row leaves the queue, the badge falls and the undo slot reports an accept: the acknowledgement-only shape with four witnesses, none of which is the router.",
+  "actuates": [
+   "Install"
+  ],
+  "actuatesNote": "Driven at the model; the effect is read as the declaration the recording client received and the flag it carried. The same-channel reads declined are the sheet closing, `acceptState` clearing and the row leaving the queue \u2014 all three survive the arm."
+ },
+ {
+  "id": "CASE-0215",
+  "req": "REQ-018",
+  "surface": "SURF-008",
+  "flow": null,
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-008",
+   "state": "disposition",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "app/Tests/MCPRouterUITests/BoardWriteActuationTests.swift",
+   "evidence/runs/arm-suites.0213-0216.log"
+  ],
+  "note": "K3. `Decline` is the one disposition that is entirely local, so it is read in two places at once. The rows the board draws lose exactly one row \u2014 asserted as an ordered identity against the survivors rather than as a count, and again through `waitingCount`, which is computed off the same array so the sidebar and the list cannot disagree. And the router is told nothing: no declaration and no removal reaches the recording client, which is a channel the press does not touch at all.\n\nThat second half is the substance. A decline that quietly removed a server would satisfy every list assertion here and would be the destructive act `DESIGN.md` \u00a78 reserves for the Servers board.\n\nThe read refused is `board.dispositioned[item.id] != nil` \u2014 the dictionary the call just wrote, the same tautology as a segment reporting itself selected.",
+  "armedBy": "ARMED and watched red. `arm-suites.py CASE-0215` replaces `decline(_:)`'s body with `_ = item` \u2014 the empty closure verbatim. The press lands, the caller carries on, and the item is still waiting.",
+  "actuates": [
+   "Decline"
+  ],
+  "actuatesNote": "Driven at the model; the effect is read as the row set the board draws and as the silence on the control API, neither of which the press touches."
+ },
+ {
+  "id": "CASE-0216",
+  "req": "REQ-007",
+  "surface": "SURF-025",
+  "flow": null,
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-025",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "app/Tests/MCPRouterUITests/BoardWriteActuationTests.swift",
+   "evidence/runs/arm-suites.0213-0216.log"
+  ],
+  "note": "K3. `Rescan` promises a FRESH READING, and a board that redrew the answer it already had is indistinguishable from one that re-read and got the same thing. So the client stages a second answer that DIFFERS \u2014 a Mac whose harnesses were unwired between the two reads \u2014 and the row set is the observable rather than the round trip.\n\nThe request count is asserted too, and is deliberately not sufficient on its own: the arm leaves the request going out and throws the answer away, so a case built on the count alone would stay green over a board frozen on its first reading. The empty second answer is also checked to be a READING rather than a failure, because a board that went stale on a router that answered perfectly well would satisfy the row assertion by accident.",
+  "armedBy": "ARMED and watched red. `arm-suites.py CASE-0216` replaces `state = .loaded(response)` in `HarnessesBoardModel.load()` with `_ = response`. The router is still asked \u2014 the request count moves either way \u2014 and the board never redraws.",
+  "actuates": [
+   "Rescan"
+  ],
+  "actuatesNote": "Driven at the model method the button's closure calls; the effect is read as the row set a second, different answer produced, and as the client's own count of reads. The same-channel read declined is `board.state` still being `.loaded`, which it was before the press."
  }
 ]

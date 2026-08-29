@@ -51,6 +51,10 @@ for shape in "${shapes[@]}"; do
         default-only) held='`.defaultAction`'; removed='—' ;;
         exit-command) held='`.defaultAction`, sheet has `.onExitCommand`'; removed='—' ;;
         hidden-cancel) held='`.defaultAction`, plus a hidden twin holding `.cancelAction`'; removed='—' ;;
+        # An eighth shape added to `shapes` and not described here would inherit the previous
+        # iteration's `held` and `removed`, so the matrix would carry a row of plausible wrong text
+        # rather than an obvious gap. Refuse instead.
+        *) echo "shape '$shape' has no row description — add one to this case" >&2; exit 2 ;;
     esac
     printf '| `%s` | %s | %s | **%s** | **%s** |\n' \
         "$shape" "$held" "$removed" \

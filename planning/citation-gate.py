@@ -216,6 +216,20 @@ GENERATED = (
     # generator, never by a writer carrying an anchor and a tree.
     "planning/test-campaign/evidence/*.log",
     "planning/test-campaign/evidence/*/*.log",
+    # A gap-fix's captured runs, under `runs/` inside its evidence directory. The same artifact as
+    # the campaign's logs one line up, produced by the same kind of thing: `swift test` prints
+    # `IndexFailureRecordTests.swift:70:13: Expectation failed`, and a lane prints the mutation
+    # string it diffed. Measured 2026-08-29 on `planning/evidence/R19-gapfix-5/runs/`: three
+    # captures carry 24 such tokens between them, every one BARE and every one the test runner's
+    # own formatting. They belong here by this tuple's own definition — a stale one is fixed by
+    # re-running the arm, never by a writer carrying an anchor and a tree, and editing one to
+    # satisfy a counter would be editing evidence to match a claim.
+    #
+    # Scoped to `runs/` rather than to the evidence directory, and that is the load-bearing half: a
+    # gap-fix's README, acceptance note and matrix are AUTHORED and must carry frames, so excluding
+    # `planning/evidence/*/*` would retire the rule exactly where it does the most work. The
+    # convention is the subdirectory: a transcript nobody typed goes in `runs/`.
+    "planning/evidence/*/runs/*",
     "planning/reader-accounting.tsv",
     "planning/parity/*.tsv",
     "planning/status/*.json",

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "DIS-19",
+    "clause": "M29",
+    "guard": "a falsy switch removes the member rather than writing false",
+    "file": "ControlHandlerPatchFields.swift",
+    "outcome": "KILLED",
+    "expected": [
+      "enabling a server removes the member rather than writing false"
+    ],
+    "reds": [
+      "enabling a server removes the member rather than writing false"
+    ],
+    "seconds": 57.2
+  }
+]

@@ -111,10 +111,15 @@
 
             /// Sheets are named for what they are, and hosts and frames are not among them.
             ///
-            /// Suffix rather than a named list, so a fifteenth sheet is in the population the day it
-            /// is written. This is how `MissingSubjectSheet` turned up: M18's verdict enumerated
-            /// fourteen sheet views and it is the fifteenth, so the no-Escape-path figure that
-            /// verdict reports as 8 of 14 is 9 of 15.
+            /// Suffix rather than a named list, so a newly written sheet is in the population the
+            /// day it is written. This is how `MissingSubjectSheet` turned up — M18's verdict
+            /// enumerated the sheets by hand and that one was outside the table, which is the whole
+            /// argument for deriving the population rather than describing it.
+            ///
+            /// **No size is quoted here.** An earlier version of this comment carried the count and
+            /// the corrected no-Escape-path figure, and both went stale at the M22 merge without
+            /// this file being touched. ``SheetShortcutGuardTests/sheetViews`` is the population of
+            /// record and the only place a name is written down.
             var isSheet: Bool { name.hasSuffix("Sheet") || name.hasSuffix("Dialog") }
         }
 

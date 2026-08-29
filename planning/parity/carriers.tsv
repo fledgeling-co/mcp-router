@@ -1,0 +1,47 @@
+# planning/parity/carriers.tsv — one row per landing that touched ONE router and not the other.
+#
+# THE CARRIER IS NOT WRITTEN DOWN HERE AS A CLAIM. It is measured from the landing's own diff by
+# scripts/acceptance/carrier-census.sh and this file records what was DECIDED about it. The gate,
+# planning/carrier-parity-gate.py, re-measures on every run and reports a row whose recorded
+# carrier disagrees with the tree. Editing a carrier cell here changes nothing except whether the
+# gate goes red.
+#
+# WHY THIS FILE EXISTS. `src/*.ts` and `app/Sources/RouterCore` + `app/Sources/MCPRouterCLI` are two
+# implementations of one router, and the differential harness compares BEHAVIOUR on rows that exist
+# on both. A capability that exists on one side has no row to compare, so the absence and the
+# agreement are indistinguishable to every gate in this tree. R33 was filed after a deploy measured
+# `GET /caches` answering 404 on the running router while `GET /sessions` answered 200: R28, R30,
+# R31 and R32 are Swift-only, R29 is TypeScript-only, all five merged green.
+#
+# One-sidedness is NOT a defect and this file never says it is. R4-C1 pointed the installer at
+# Swift and held the TypeScript deletion; REQ-020 reserves the retirement to the owner. Building
+# where the subject lives is correct. What was missing is that nobody had to say so.
+#
+# THE OBLIGATION BEGINS AT THE PIN AND NOT BEFORE. `since` below is the commit from which every
+# one-sided landing needs a row. Earlier one-sided landings are counted and printed by the gate as
+# a stated backlog, never as a pass and never as an amnesty — the same shape sweep-control-gate.py
+# gives its grandfathered set. The pin is the goal that produced the five items R33 measured, so
+# the window opens exactly where the divergence it is about begins.
+#
+# since: afaad591fcfd6783b2aa706281b390dcabeafe33
+#
+# Columns, tab-separated:
+#   sha          the full 40-character landing sha. The key. The gate joins on this and nothing else
+#   label        the branch or item name, for a reader. Convenience only; the gate ignores it
+#   carrier      swift-only | typescript-only — re-measured every run, and a disagreement is a red
+#   disposition  divergent-recorded | ported | reference-only | not-a-feature
+#   note         why, and what would close it. A row with an empty note is a red
+#
+# divergent-recorded  one-sided on purpose; the other implementation does not carry it and nobody
+#                     is claiming it does. The note says what the consequence is on a default install
+# ported              one-sided landing whose counterpart landed separately; the note names the sha
+# reference-only      TypeScript-side work on the harness reference itself, which by definition has
+#                     no Swift counterpart
+# not-a-feature       a one-sided touch carrying no capability — a rename, a lint fix, a comment
+#
+# ---------------------------------------------------------------------------------------------
+784dde98c33dd463496d25bfa3f63d21ae02883d	r28	swift-only	divergent-recorded	The extension store. 12 files under RouterCore/MCPRouterCLI, no TypeScript counterpart. Reachable only on an install that selected the Swift binary; `MCPR_ROUTER="${MCPR_ROUTER:-swift}"`, `docs/install.sh:39` at `83e5380`, has defaulted to swift since R4-C1, so a FRESH install carries it and an install predating R4-C1 does not. Closed by REQ-020's cutover, which is the owner's, or by a port nobody has proposed.
+b80c63851aee63e1843827d17dbd78fd61439b8b	r29	typescript-only	divergent-recorded	Session push and live tool-list reload. 6 files under src/, no Swift counterpart. This is the inverse case and the one that made the gap visible: on a default install (swift) it is the four Swift items that answer and R29 that does not, and the deploy R33 was filed from measured the opposite because those launchd agents still ran node. Which router answers is a property of the INSTALL, not of this repository, and this file does not pretend to know it.
+516be6160269b3f83c19904b1e1350622ab60e42	r30	swift-only	divergent-recorded	Ingest — copy-verify-remove of what Claude acquires, reversibly. 16 files under RouterCore/Extensions and MCPRouterCLI. Landed as a SINGLE-PARENT commit whose subject reads `Merge ai/r30`, which is why the census walks first-parent rather than `--merges`: a merge-only walk does not select it and would have missed a quarter of R33's own subject.
+567b5a190ede5094191b5c3ea4778cb94a305ec3	r31	swift-only	divergent-recorded	Cache invalidation — the content component beside the identity key. 14 files under RouterCore. `GET /caches` is the route the deploy measured answering 404 on the running node router; the 404 is correct for that binary, because the route exists only in Swift.
+034251b5b50962976b73f46678cc0628fa079e1a	r32	swift-only	divergent-recorded	The Desktop entry and its person-driven reload. 6 files under RouterCore. Same shape as R28 and R31: reachable on a Swift install, absent on a node one, and no claim is made that the reference carries it.

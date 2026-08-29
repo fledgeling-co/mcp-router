@@ -1198,6 +1198,35 @@ reason this fleet is scheduled differently:
 - **`brief-target-gate.py` reads the git index, not the working tree.** Twenty-three new briefs
   were invisible to it until staged. Stage a new file before trusting a gate's verdict on it.
 
+### DISPATCH HAZARD — W1 RUNS THREE AGENTS IN ONE WORKING TREE, AND THAT WAS A MISTAKE
+
+W1's three runners were told: *"Work in the main checkout on your own branch. Do not create a git
+worktree: every worktree registration in this clone pointed at the Mac's filesystem and they have
+been pruned."*
+
+The premise is true and the conclusion does not follow. Those 72 registrations were stale because
+they named `/Users/lukerhodes` and `/Volumes/LLMs`, which do not exist here. Pruning a stale
+registration says nothing about whether a **new** one can be created. Measured 2026-08-30, after
+the dispatch had already gone out: `git worktree add .worktrees/PROBE -b ai/probe-worktree main`
+exits 0 and checks out all 2,348 files. Worktrees work on this clone.
+
+So three agents are concurrently writing one working tree and sharing one index, and the conductor
+has been switching `HEAD` under them with its own branch-and-merge cycle. Two ways that corrupts:
+a runner's `git commit` can land on whatever branch the conductor checked out, and one runner's
+staged file can be swept into another's commit.
+
+**It has not happened.** Audited at iteration 6: every conductor commit contains only its own named
+paths, and `src/platform.ts` — 26 KB written by the WIN17 runner — is still untracked rather than
+captured by any of them. What held is the one rule inlined verbatim into every brief and obeyed by
+the conductor: **never `git add -A`, add named paths only.** A rule carried as text in the prompt
+did the work a worktree should have done.
+
+**W2, W3 and W4 use `git worktree add .worktrees/<ID> -b ai/<id> main`.** W3 is thirteen concurrent
+items; thirteen agents in one tree would not survive on the named-path rule alone.
+
+W1 is not being relocated mid-flight — the work is on disk and moving it would cost more than it
+protects. Its commits are reconciled by named path, serially, by the conductor.
+
 ### Wave plan
 
 | Wave | Items | Why they are together |

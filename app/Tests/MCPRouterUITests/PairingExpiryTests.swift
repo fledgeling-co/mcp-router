@@ -100,7 +100,14 @@
             )
             #expect(body.contains(".trim(from: 0, to: fraction)"), "the arc is the fraction")
             #expect(body.contains("ColorToken.lineStrong.color"), "the track")
-            #expect(body.contains("ColorToken.attention.color"), "the head")
+            #expect(
+                body.contains("ColorToken.t2.color"),
+                "the head is the countdown's own colour, not the ask-a-human one"
+            )
+            #expect(
+                !body.contains("ColorToken.attention.color"),
+                "InboxConformanceTests' A15 census is the gate that settled this"
+            )
             #expect(body.contains(".accessibilityHidden(true)"))
             #expect(
                 !body.contains(".repeatForever"),
@@ -124,7 +131,7 @@
                 "PairingSessionModel no longer publishes a fraction — the ring scan reads nothing"
             )
             #expect(ColorToken.lineStrong.rawValue == "--line-strong")
-            #expect(ColorToken.attention.rawValue == "--attn")
+            #expect(ColorToken.t2.rawValue == "--t2")
         }
 
         /// The ring's geometry comes from documented tokens, which is what keeps `DESIGN.md`

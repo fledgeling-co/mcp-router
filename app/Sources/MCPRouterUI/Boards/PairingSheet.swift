@@ -96,6 +96,16 @@
     /// Hidden from the accessibility tree because the label beside it carries the same fact in
     /// words. VoiceOver reading one countdown twice is noise, and the ring is never the only place
     /// the remaining time appears.
+    ///
+    /// **The head is `--t2`, not the mock's `--attn`, and `InboxConformanceTests` is what settled
+    /// that.** Its A15 census pins which files spend an indicator colour and how many times, and it
+    /// went red on a third `attention` in this file. It was right to: §2 gives `--attn` the meaning
+    /// *wants a human decision*, and on this sheet that is the warning about who can queue into
+    /// your inbox — nothing needs deciding while a code is simply running down. The countdown's own
+    /// label is `--t2`, *secondary text, metadata*, so an arc drawn in a louder colour than the
+    /// words it duplicates would be claiming an urgency the product never acts on. §2 also gives
+    /// `--attn` the `pairedWithAWord` role at 2.31:1 on the light ground, which an arc carrying no
+    /// word of its own does not satisfy on its own terms.
     struct PairingExpiryRing: View {
         let fraction: Double
 
@@ -110,7 +120,7 @@
                     .inset(by: InboxBoardMetrics.expiryRingStroke / 2)
                     .trim(from: 0, to: fraction)
                     .stroke(
-                        ColorToken.attention.color,
+                        ColorToken.t2.color,
                         style: StrokeStyle(
                             lineWidth: InboxBoardMetrics.expiryRingStroke,
                             lineCap: .round

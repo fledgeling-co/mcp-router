@@ -30,10 +30,13 @@ answer, and its own doc comment says *"from nowhere else"*. There are four call 
 `:511` add, `:537` remove, `:549` re-index, `:699` the PATCH that changes what a server serves.
 
 `POST /servers/:name/approve` promotes `entry.pending.tools` into `entry.tools`, which is the exact
-member `unionTools` reads (`src/manifest.ts:464`). It moves the served list by construction, and it
+member `unionTools` reads — `export function unionTools(`, `src/manifest.ts:464` at `08a24ed`. It
+moves the served list by construction, and it
 is **not** a call site.
 
-What happens instead is the three-second manifest poller in `src/router.ts:501`. It notices the
+What happens instead is the three-second manifest poller —
+`.announceIfMoved(manifest.fileStamp(), 'the tool manifest was rebuilt outside this process')`,
+`src/router.ts:502` at `08a24ed`. It notices the
 file's stamp moved and announces — so the catalog does eventually reach an attached session, which
 is why this reads as working. Two things are wrong with that:
 
@@ -48,8 +51,9 @@ is why this reads as working. Two things are wrong with that:
 
 `ControlApproveDispatchTests` A2 does read the manifest bytes back off disk — this spec does not
 claim approve is unwitnessed. What no test asks is the question the user actually has, which is
-**whether a session is now served the tools they approved**. `planning/parity/surface.tsv:48` says
-the same thing from the parity side, in the repo's own words: *"the 200 PROMOTION path is NOT
+**whether a session is now served the tools they approved**. The parity census says
+the same thing in the repo's own words — the row `control-approve-post`,
+`planning/parity/surface.tsv:48` at `08a24ed`, whose note reads *"the 200 PROMOTION path is NOT
 two-router compared … a manifest-snapshotting differential helper is the missing piece"*.
 
 That is the shape K5 named on M29's disable write and it is the same shape here: every existing
@@ -80,7 +84,9 @@ never seen. `listTools()` becomes `internal` rather than `private` to make it as
 accessibility its sibling `callTool` already has for the same reason.
 
 **D4 — the status code does not move.** R21's own instruction, and
-`ControlApproveDispatchTests.swift:114-118` pins it. Nothing here touches it.
+`#expect(status == 500, "the route reports 500 when the write fails")`,
+`app/Tests/RouterCoreTests/ControlApproveDispatchTests.swift:117` at `08a24ed` pins the pair it
+stands beside. Nothing here touches the status code.
 
 ---
 

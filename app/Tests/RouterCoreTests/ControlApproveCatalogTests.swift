@@ -12,7 +12,8 @@ import Testing
 /// **What nothing asked was whether a session is served them.** That is the question the user
 /// actually has, and it is a different one: `ToolUnion.unionTools` skips an entry that is absent,
 /// disabled, scoped out, or carrying no approved tools, so a promotion whose bytes are on disk can
-/// still reach nobody. `planning/parity/surface.tsv:48` says the same from the parity side — *"the
+/// still reach nobody. The parity census says the same from the parity side —
+/// the row `control-approve-post`, `planning/parity/surface.tsv:48` at `08a24ed`, whose note reads *"the
 /// 200 PROMOTION path is NOT two-router compared … a manifest-snapshotting differential helper is
 /// the missing piece"* — so the wire lane cannot answer it either.
 ///

@@ -14,10 +14,32 @@ red — the same reason `planning/evidence/R33-acceptance.md` gives.
 | live-reload lane | `node scripts/e2e-live-reload.mjs` | **0** | **26/26** checks (baseline 24/24; this branch adds 2 arms and 2 controls, and the earlier fixed-window control became quiescence-based) |
 | TypeScript build | `npm run build` | **0** | — |
 | registry drop | `python3 planning/registry-drop-gate.py` | **0** | 4 registry views against `08a24ed0b`; no id dropped, 262 held |
-| brief targets | `python3 planning/brief-target-gate.py` | **1 — INHERITED** | see below |
-| whole lint | `make lint` | **1**, on the gate above | — |
+| brief targets | `python3 planning/brief-target-gate.py --quiet` | **1 — INHERITED** | see below |
+| shipped briefs | `python3 planning/shipped-brief-gate.py` | **0** | every terminal brief witnessed by a commit on `main` |
+| carrier parity | `python3 planning/carrier-parity-gate.py` | **0** | 6 one-sided landings, 6 dispositioned, 0 findings |
+| pool mutation, armed | `zsh app/Scripts/pool-mutation-gate-selftest.sh` | **0** | 14 of 14 cases |
+| whole lint | `make lint` | **killed twice by SIGTERM**, see below | swiftlint 0 violations in 725 files |
 
-### `make lint` is red for three briefs this branch does not touch
+### `make lint` whole did not finish, and the reason is the machine rather than the tree
+
+Two runs, both killed. The first refused at the `tools` stage on a **module-cache provenance
+guard** this item tripped itself: `.worktrees` is a symlink, `swift build` run directly from
+`app/` fills the cache under the physical `/Volumes/LLMs/…` spelling while `make` pins `PWD` to
+`CURDIR`, and the preflight refuses a cache whose spelling it cannot establish. Recorded rather
+than glossed — the fleet's own rule is *build via `scripts/worktree-preflight.sh`*, and running
+`swift build` from `app/` for a fast filtered run is what put it there. `rm -rf app/.build` and a
+re-preflight cleared it, which is what the refusal itself says to do.
+
+The second run got through swiftlint (**0 violations, 0 serious in 725 files**) and 33 of the 37
+members, and was then **`Terminated: 15`** at 50 minutes inside `shipped-brief-gate.py`, with three
+other runners' `make lint` alive on the same machine and one of them 30 minutes into a single
+selftest. A SIGTERM is not a verdict, so **the four members it had not reached were run
+individually** and all four reported: `shipped-brief-gate` 0, `carrier-parity-gate` 0,
+`pool-mutation-gate-selftest` 0 (14/14), `brief-target-gate` 1.
+
+**So every member has a verdict and exactly one is red**, and that one is inherited.
+
+### The red member is three briefs this branch does not touch
 
 `brief-target-gate.py` blocks on:
 

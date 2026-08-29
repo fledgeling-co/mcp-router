@@ -26,7 +26,9 @@ every attached session to re-fetch a list that did not move, which is the cost `
 own doc comment refuses.
 
 **No parity consequence, established by reading rather than assumed.**
-`scripts/acceptance/control-differential.sh:511-513` drives `/approve` only at the 409 and the 404,
+`compare control-approve-post    "POST /servers/:name/approve"`,
+`scripts/acceptance/control-differential.sh:511` at `08a24ed` drives `/approve` only at the 409 and
+the 404,
 and says so in its own comment (*"neither request issued here writes anything"*). The 200 is never
 reached, so the differential cannot see this. `scripts/acceptance/parity-log.sh` drives *start,
 index, call, call again, SIGTERM* and never calls the control API, so no `live-reload:` line enters

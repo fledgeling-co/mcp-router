@@ -832,6 +832,69 @@ mut(
 )
 
 
+# ---------------------------------------------------------------- M29: the strike itself
+#
+# DIS-1..7 proved the READERS of the switch, DIS-8..17 the assertions added after the verdict. All
+# seventeen leave the one write the feature performs untouched: `PATCH /servers/:name {"disabled":…}`.
+#
+# Measured on this branch before these arms existed: deleting the whole `disabled` arm from
+# `applyPatchFields` left ALL 688 RouterCore tests in 106 suites passing. No test in the repository
+# sent a PATCH body carrying `disabled` to the handler; the three router-side suites that mention
+# the field each start from a fixture that is already switched off, so every reader of the switch
+# was witnessed and no writer of it was.
+#
+# `scripts/acceptance/control-differential.sh` does drive this PATCH and diffs `servers.json`
+# against the running reference, so the write was not wholly uncovered. That lane is an
+# EQUIVALENCE, needs a built binary and a live reference, and is not in `make all` — two ports that
+# both stopped writing the member agree with each other and it stays green. These arms are run
+# against `swift test`, which is where the clause had no witness at all.
+#
+# Three arms rather than one, because `applyPatchFields` decides the switch with three separate
+# mechanisms and a single deletion only reaches the first.
+
+CONTROL = ROUTER_CORE / "Control"
+
+mut(
+    "DIS-18", "M29", "the switch is written to the user's config at all",
+    CONTROL / "ControlHandlerPatchFields.swift",
+    '        if let disabled = supplied("disabled") {\n'
+    "            // Shaped like `warm` rather than like `idleMs`: a falsy value removes the\n"
+    "            // member instead of writing `false`, so turning a server back on leaves the\n"
+    "            // config as it found it.\n"
+    '            set("disabled", (disabled?.isTruthy ?? false) ? disabled : nil)\n'
+    "        }\n",
+    "",
+    # The exact deletion that left 688 tests green. Both directions redden: the switch never
+    # arrives, and a server already switched off can never be switched back on.
+    [
+        "disabling a server writes the switch to the config and stops it being served",
+        "enabling a server removes the member rather than writing false",
+    ],
+)
+
+mut(
+    "DIS-19", "M29", "a falsy switch removes the member rather than writing false",
+    CONTROL / "ControlHandlerPatchFields.swift",
+    '            set("disabled", (disabled?.isTruthy ?? false) ? disabled : nil)',
+    '            set("disabled", disabled)',
+    # Assigned as given — the way `idleMs` is assigned eight lines above, which is the tidy-up this
+    # arm is exposed to. The server IS served again, so `isServed` alone stays green and only the
+    # byte-level assertion bites; the reference is diffed against this file byte for byte.
+    "enabling a server removes the member rather than writing false",
+)
+
+mut(
+    "DIS-20", "M29", "a PATCH that does not carry the key does not write the switch away",
+    CONTROL / "ControlHandlerPatchFields.swift",
+    '        if let disabled = supplied("disabled") {',
+    '        do {\n            let disabled = supplied("disabled") ?? nil',
+    # The key-presence gate, which is a third mechanism: without it every PATCH reads an absent
+    # `disabled` as falsy and removes the member, so the row's *Keep warm* toggle silently switches
+    # a disabled server back on.
+    "a PATCH that does not name the switch leaves it exactly as it was",
+)
+
+
 RESULTS = []
 
 

@@ -67,7 +67,7 @@ MAC_DEST   ?= platform=macOS
 SURFACE    ?= servers
 
 .PHONY: node-e2e
-.PHONY: build-cli-debug all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation mutation-selftest acceptance acceptance-lanes-selftest mock-fidelity mock-fidelity-selftest role-intersection lint format clean install-default surface-reconcile surface-reconcile-arm
+.PHONY: build-cli-debug all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation mutation-selftest acceptance acceptance-lanes-selftest mock-fidelity mock-fidelity-selftest role-intersection green-streak lint format clean install-default surface-reconcile surface-reconcile-arm
 
 ## G4's two harness gates run inside `lint` rather than as a stage of their own. Both are
 ## hermetic and finish in under ten seconds, and `lint` is where the other four script gates
@@ -990,6 +990,7 @@ lint: tools
 	python3 planning/pin-class-gate.py || fail=1; \
 	python3 planning/shipped-brief-gate.py || fail=1; \
 	python3 planning/brief-target-gate.py --quiet || fail=1; \
+	python3 planning/carrier-parity-gate.py || fail=1; \
 	zsh app/Scripts/pool-mutation-gate-selftest.sh || fail=1; \
 	exit $$fail
 
@@ -1001,6 +1002,18 @@ role-intersection:
 	echo "role-intersection: exit $$ec  (0 clean · 1 findings · 3 inconclusive · 4 control failed · 2 usage)"; \
 	echo "  make collapses ANY failing recipe to its own exit 2, which collides with this"; \
 	echo "  gate's usage code. The line above is the verdict; make's status is not."; \
+	exit $$ec
+
+## R33 — the green streak, measured. NOT in `all` and NOT in `lint`, because it exits 2 today and
+## that 2 is the correct answer: no whole-gate run has ever been recorded, so the streak is
+## unmeasured rather than zero. Putting it in `lint` would make the honest state a red build, and
+## the pressure would then be on the instrument rather than on the runs.
+##
+## `planning/parity/green-streak.md` defines a whole-gate pass and the cold port-reuse path.
+## `planning/carrier-parity-gate.py` is the half of R33 that DOES block, and it is in `lint`.
+green-streak:
+	@bash scripts/acceptance/green-streak.sh; ec=$$?; \
+	echo "green-streak: exit $$ec  (0 measured · 1 the ledger contradicts itself · 2 nothing recorded yet)"; \
 	exit $$ec
 
 ## Writes formatting changes in place. Not part of `all` — a gate that edits your files is a gate

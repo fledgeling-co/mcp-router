@@ -1,0 +1,34 @@
+# planning/parity/green-streak.tsv — every whole-gate run, pass or not.
+#
+# `R4-C2` is held because the repository is "not on a green streak". Until this file existed there
+# was no sequence to count a streak over: parity-gate.sh printed a report to a terminal and nothing
+# kept it, so "consecutive" was a word with no referent.
+#
+# EVERY RUN GOES IN, NOT EVERY PASS. `install-launchd-watch` is why: a term that agreed 1 in 6 with
+# the losing side alternating, which R4-C1 cites as this repository having already paid once for
+# reading agreement as evidence. A ledger holding only the green runs cannot tell a streak from a
+# re-roll.
+#
+# Rows are APPENDED and never edited. `scripts/acceptance/green-streak.sh --record <log>` writes one
+# from a captured parity-gate.sh run, parsing the four figures out of the gate's own output rather
+# than taking them on report. Editing a row here to make a streak longer is editing evidence of a
+# run that never happened.
+#
+# What a pass is, what the cold port-reuse path is, and why the bound below is unset:
+# planning/parity/green-streak.md.
+#
+# bound: unset
+#
+# Columns, tab-separated:
+#   started   ISO 8601 UTC, when the run began
+#   tree      the 40-character sha the run was taken at
+#   kind      whole-gate | cold-port-reuse
+#   exit      the gate's exit code. 2 is never a pass — a skipped lane is not a pass
+#   proven    rows proven, as the gate reported them
+#   total     rows enumerated
+#   blocked   rows blocked
+#   excluded  of those, standing exclusions
+#   diverged  rows that DIVERGED
+#   log       repo-relative path to the captured run, or `-` when it was not kept
+#
+# ---------------------------------------------------------------------------------------------

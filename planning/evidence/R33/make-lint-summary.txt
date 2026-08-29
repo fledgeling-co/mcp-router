@@ -1,0 +1,36 @@
+# make lint — the per-member verdict lines, on ai/r33 at 9e49397.
+#
+# THE FULL LOG IS NOT COMMITTED AND THIS IS NOT A TRIM TO MAKE IT LOOK BETTER. `make lint` prints
+# 1467 lines carrying 32 bare `path:line` strings out of the gates' own findings text, and
+# `citation-gate.py` blocks a newly tracked file that holds bare citations above a baseline of zero.
+# Committing the raw capture therefore turns a green lint red on the act of recording it. The same
+# reason produced `planning/evidence/R30/make-lint-summary.txt` at R30's merge.
+#
+# Produced by, and reproducible with:
+#   make lint > /tmp/r33-lint3.log 2>&1
+#   grep -E '^(Done linting|CLEAN|FINDINGS|accounted|reconciled|carrier parity:|cases:|exit:|[a-z-]+: (exit|[0-9]))' /tmp/r33-lint3.log
+#
+# The exit code is the run's own, recorded at capture, not inferred from the lines below.
+
+Done linting! Found 0 violations, 0 serious in 708 files.
+no-raw-design-values: 106 files under the geometry and boundary rules
+no-wire-codable: 2 exemption(s) recorded
+no-harness-config-writes: 439 file(s) examined, 10 name a harness config, 29 write a file, 16 in the seam — none writes one; 2 write while naming a client, all 2 declared
+no-harness-config-writes-selftest: 32 case(s) held
+worktree-preflight-selftest: 11 held, 0 did not
+accounted — 19 readers record their drops, 39 declare them, 2 are recorded gaps.
+control: 12 planted citation(s) over 7 classes, in a throwaway repo at /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/tmpsldk_uwa
+exit: control 0 · blocking 0 · ratchet 0
+CLEAN sweep-control: 104 discovered sweep(s), all disposed; 30 declared control(s) run and passing.
+control: 5 citation(s) planted, one per class of 5, plus one stale carry
+exit: 0
+corpus: 14 tracked generator(s) under scripts/, 28 annotated region(s), 28 committed vector file(s)
+classes: 24 src-export, 4 platform-builtin
+corpus: 187 brief(s), 161 LEDGER row(s), 166 of 200 cited commit(s) placed on `main`
+floor: 82 undeclared over 82 file(s) against floor 82 — 0 above, 0 below
+exit: 0
+carrier parity: 5 one-sided landing(s) in the window, 5 dispositioned, 0 findings.
+pool-mutation-gate-selftest: 13 checks declared in the gate
+cases: 14 passed, 0 failed, of 14
+
+LINT EXIT=0

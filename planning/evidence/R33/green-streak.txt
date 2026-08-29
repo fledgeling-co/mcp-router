@@ -1,0 +1,16 @@
+green streak — R4-C2's hold, measured rather than asserted
+
+  ledger        planning/parity/green-streak.tsv
+  bound         unset
+  target        82 (PARITY_CUTOVER_TARGET, a decision — see green-streak.md)
+  runs recorded 0
+
+  No whole-gate run has been recorded, so there is no sequence to count over and the
+  streak is not zero — it is unmeasured. Those are different claims and only one of them
+  is true today.
+
+  To record one:
+    bash scripts/acceptance/parity-gate.sh > /tmp/parity.log 2>&1; ec=$?
+    GREEN_STREAK_EXIT=$ec bash scripts/acceptance/green-streak.sh --record /tmp/parity.log
+
+  R4-C2 stays held. Nothing here moves it. Exit 2.

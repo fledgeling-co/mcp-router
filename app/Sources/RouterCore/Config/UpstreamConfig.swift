@@ -64,6 +64,12 @@ public struct UpstreamConfig: Sendable, Hashable {
     /// Absent from `UpstreamHash` for the reason `projects`, `warm` and `placard` are: none of them
     /// changes what the upstream advertises.
     public var disabled: Bool?
+    /// This server's `health` block, if it wrote one — R27.
+    ///
+    /// Absent from ``UpstreamHash`` for the reason `idleMs`, `projects`, `warm` and `placard` are:
+    /// how often the router asks a server for its tools does not change which tools it advertises,
+    /// so changing it must not cost a re-index.
+    public var health: HealthOverride?
 
     // stdio.
     public var command: String?
@@ -88,6 +94,14 @@ public struct RouterConfig: Sendable, Hashable {
     public var host: String
     public var idleMs: Int
     public var startupTimeoutMs: Int
+    /// The health defaults every upstream inherits unless it overrides them — R27. Defaulted here
+    /// rather than required, so the twenty-six construction sites that predate health checking
+    /// build a router with background probing off, which is what they described before this
+    /// existed.
+    public var health: HealthPolicy = .standard
+    /// Top-level `health` values the loader would not take, carried so every server's report can
+    /// say so. Empty for a file that configured nothing or configured it within range.
+    public var healthRefusals: [HealthPolicyRefusal] = []
     public var upstreams: [UpstreamConfig]
     public var manifestPath: String
     public var logPath: String

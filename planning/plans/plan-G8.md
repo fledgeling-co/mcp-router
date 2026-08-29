@@ -87,3 +87,54 @@ so the proof is repeatable rather than a one-off recorded in a note.
 No Swift and no UI, so no XCTest and no e2e surface. The oracle is the controls, which run on every
 invocation and print above the table, plus the red-green plant record. `make` targets wire both
 gates so they run unattended.
+
+---
+
+# Second pass — `ai/l4`, 2026-08-29
+
+Everything above landed on `main` at `49eae13`: the header comment in `mock_fidelity.py`,
+`planning/role-intersection-gate.py` behind `make role-intersection`, and
+`planning/sweep-control-gate.py` in `make lint`. This pass takes the half none of them reaches —
+the first clause of the item's own sentence, *establish the set before answering about members of
+it* — and is planned against `planning/specs/spec-G8.md`.
+
+**Tier: Small.** One new gate, three anchors, three registry updates. No UI, so the `design` stage
+is skipped for the same recorded reason as above.
+
+## Slices
+
+| # | Slice | Files | Done when |
+|---|---|---|---|
+| 1 | Measure the defect before writing anything | — | The three instruments in spec §2 are run from the root and from `scripts/` at `49eae13`, and the two columns differ |
+| 2 | The instrument | `planning/scope-invariance-gate.py` | Static and dynamic arms, eight controls, exit codes 0/1/2/3/4; red on the tree as it stands, naming three offenders |
+| 3 | The anchors | `planning/claim-sweep.py`, `planning/py39-annotation-gate.py`, `planning/m33-branch-sweep.py` | Each enumerates under a root derived from `__file__`; root output unchanged; subdirectory output now equal to it |
+| 4 | Wiring and registries | `Makefile`, `planning/sweep-controls.json`, `planning/instrument-census.tsv` | Gate in `make lint`; a `control` disposition whose command is the gate's own `--selftest`; census refreshed with `--write` |
+| 5 | Evidence and record | `planning/evidence/G8/scope-invariance.md`, `planning/progress/G8.md` | Verdict lines with the producing command in the header, before and after, for all three instruments |
+
+Slice 1 precedes slice 2 deliberately. A gate written first and measured afterwards is a gate whose
+population was chosen to match what it found.
+
+## Test strategy for this pass
+
+The section above's rule stands — plant, watch it redden, restore, report the sha — and this pass
+adds the discrimination the plant alone does not give.
+
+- **Static, five arms.** One planted call each: unanchored `ls-files` reported; `-C <root>` not
+  reported; `cwd=root` not reported; `cwd="."` **reported**, because a literal relative cwd is the
+  caller's directory under another name; unanchored `git rev-parse HEAD` not reported. A rule that
+  flags everything fails three and a rule that flags nothing fails two, so neither degenerate rule
+  passes.
+- **Dynamic, two arms**, in a scratch git repository under `mktemp`: a planted cwd-sensitive
+  enumerator must be caught by the two-directory comparison, and its `-C`-anchored twin must pass
+  it. Without the second, the comparison could rot into one that only ever agrees.
+- **Null, one arm.** A corpus of zero files is a refusal, never a clean report.
+- **On the real tree**: red at `49eae13` naming three offenders, green after the anchors, both
+  captured with their commands in the evidence bundle.
+
+## What this pass deliberately does not do
+
+Shell anchoring (a `cd` and its absence are indistinguishable to a text scan), root correctness (a
+gate rooted at the wrong repository is anchored and wrong), and putting `claim-sweep.py` in the
+per-run dynamic set (~12s CPU per run). Each is measured on every gate run rather than declared
+once — the counts are printed, so the day the shell class stops being one file, the line changes
+by itself.

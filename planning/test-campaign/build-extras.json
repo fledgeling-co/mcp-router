@@ -1,0 +1,91 @@
+{
+  "note": "M32. Controls the BUILD draws that the design of record does not specify, one row each, with the reason it is not a defect or the id of the defect it is. `planning/test-campaign/bin/vocab-differential.py` reddens on any extra with no row here, and on any row here naming a control the build has stopped drawing.\n\nThe registry exists because `mock-fidelity`-shaped gates measure the build AGAINST the design, so they can only fail on what the design draws. On a build-side addition there is no other side, the gate has no opinion, and no opinion reads exactly like agreement. This file is where the opinion goes.\n\nThree dispositions, and the two that are not `intended` both need a `ref` a reader can chase:\n  defect        the addition is wrong, and the DEF id says where it is filed\n  misattributed the control belongs to a different surface, because the accessibility dump does. `capture-lineage.py --gate` owns capture provenance; this field records which extras rest on it rather than re-deriving it here\n  intended      the build says something the design does not, on purpose, and the reason and citation say what makes it right",
+  "designOfRecord": "design/mcp-router-console.html",
+  "tree": "49eae13",
+  "dispositions": [
+    {
+      "surface": "SURF-001",
+      "control": "add server",
+      "disposition": "misattributed",
+      "ref": "planning/features-to-triage/three-captures-name-a-route-they-were-not-pointed-at.md",
+      "reason": "The shell has no window of its own: `SURF-001.window.txt` names the window `Servers`, and the shell is the sidebar cropped out of that capture. `Add Server…` is the Servers board's toolbar control, and SURF-002 declares it — which is why it is an extra here and not there. The filed item calls this a surface-definition disagreement rather than a misaimed camera, and it is recorded on that basis. `case .addServer: \"Add Server…\"`, app/Sources/MCPRouterKit/Shell/MenuCommand.swift:196 at `49eae13`"
+    },
+    {
+      "surface": "SURF-001",
+      "control": "hide sidebar",
+      "disposition": "intended",
+      "reason": "Drawn by AppKit rather than by this product. `Hide Sidebar` appears in no file under `app/Sources`; what the app authors is the command that drives it, `case .toggleSidebar: model?.isSidebarVisible.toggle()`, app/Sources/MCPRouterUI/Shell/ShellCommandRouter.swift:168 at `49eae13`. A design of record that draws a sidebar is not obliged to draw the platform's own control for collapsing it, and specifying it would be the design describing AppKit."
+    },
+    {
+      "surface": "SURF-002",
+      "control": "start the router",
+      "disposition": "intended",
+      "reason": "The offline state's one action. `DESIGN.md` §5 requires router-not-running to be its own state rather than a generic error banner, and the design of record draws each board's ideal state only — so every board that can be read while the daemon is down draws an action the design never had a state to put it in. `actionLabel: \"Start the router\"`, app/Sources/MCPRouterUI/StateContainer.swift:82 at `49eae13`"
+    },
+    {
+      "surface": "SURF-005",
+      "control": "best match",
+      "disposition": "defect",
+      "ref": "DEF-063",
+      "reason": "One segment of `RegistryPresentation.Ordering`, the third segmented control on Discover. The design draws a kind toggle and a window and the build draws neither; this is the other half of that divergence, and it is the control this instrument had on disk at `63a4cda` and exited 0 over."
+    },
+    {
+      "surface": "SURF-005",
+      "control": "most used on smithery",
+      "disposition": "defect",
+      "ref": "DEF-063",
+      "reason": "As `best match` — the second segment of the same undesigned ordering control."
+    },
+    {
+      "surface": "SURF-005",
+      "control": "recently added to smithery",
+      "disposition": "defect",
+      "ref": "DEF-063",
+      "reason": "As `best match` — the third segment of the same undesigned ordering control."
+    },
+    {
+      "surface": "SURF-005",
+      "control": "what is official",
+      "disposition": "intended",
+      "reason": "Opens a sheet saying what the Official mark asserts. The design draws the mark as a badge and offers no explainer, so this is the build answering a question the design raises and does not answer. `Button(DiscoverCopy.officialMarkAction) { board.sheet = .officialMark }`, app/Sources/MCPRouterUI/Boards/DiscoverBoard.swift:212 at `49eae13`"
+    },
+    {
+      "surface": "SURF-007",
+      "control": "reveal in finder",
+      "disposition": "intended",
+      "reason": "The skill-provenance sheet names two URLs and cannot show the skill itself, so the one thing it can offer is the file. Its own comment says why, and §6's one-wording-per-action rule is why it shares the Skills inspector's label. `Button(\"Reveal in Finder\") {`, app/Sources/MCPRouterUI/Boards/CleanupSheets.swift:250 at `49eae13`"
+    },
+    {
+      "surface": "SURF-010",
+      "control": "pairing",
+      "disposition": "misattributed",
+      "ref": "SURF-008",
+      "reason": "The pairing sheet is presented over the Inbox, so the host window's own controls enter the sheet's dump: `SURF-010.window.txt` names the window `Inbox`. `Pairing…` is the Inbox's control, the one that opens this sheet. `public static let pairingButton = \"Pairing…\"`, app/Sources/MCPRouterKit/Inbox/InboxCopy.swift:25 at `49eae13`"
+    },
+    {
+      "surface": "SURF-011",
+      "control": "analyse now",
+      "disposition": "misattributed",
+      "ref": "planning/features-to-triage/three-captures-name-a-route-they-were-not-pointed-at.md",
+      "reason": "`SURF-011.window.txt` names the window `Insights`. The filed item calls this the serious one of its three — a picture of the Insights board published as Settings — so this surface's build half is the wrong board's, and `Analyse now` is SURF-026's control, already filed there as DEF-065. Nothing about the Settings board is established by this row, and the surface's other figures rest on the same dump."
+    },
+    {
+      "surface": "SURF-025",
+      "control": "reveal config in finder",
+      "disposition": "intended",
+      "reason": "A harness row's one action. The board is forbidden from reading a harness config itself — `no-raw-design-values.sh`'s A36 rule keeps `FileManager` and every socket type out of `MCPRouterUI/Boards` — so handing the file to Finder is the whole of what a row can offer, and the console mock draws the row without it. `public static let openConfig = \"Reveal config in Finder\"`, app/Sources/MCPRouterKit/Boards/BoardCopy.swift:20 at `49eae13`"
+    },
+    {
+      "surface": "SURF-025",
+      "control": "start the router",
+      "disposition": "intended",
+      "reason": "As SURF-002 — the offline state's one action, drawn on every board that can be read while the daemon is down."
+    },
+    {
+      "surface": "SURF-026",
+      "control": "start the router",
+      "disposition": "intended",
+      "reason": "As SURF-002 — the offline state's one action, drawn on every board that can be read while the daemon is down."
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "recordedAt": "2026-08-29T07:13:57Z",
+  "binary": "/Users/lukerhodes/Dev/mcp-router/.worktrees/L6/app/.build/debug/MCPRouterCLI",
+  "binarySha256": "6095c2de156e55bc8a3c031a61de85e5841ec3857f1bb842e257c0046310b21a",
+  "routerHome": "/tmp/mcp-witness-health",
+  "port": 8978,
+  "entryPoint": "POST /servers/:name/probe over the daemon's own socket",
+  "lane": "portable floor: a real spawned process writing a sentinel the witness reads. No bpf, no eslogger, no root.",
+  "restAtStart": { "reportState": "unprobed", "fixtureChildren": 0, "held": "yes" },
+  "witnesses": [
+    {
+      "req": "REQ-029",
+      "effect": "subprocess",
+      "recorder": "the shell's $! for the daemon and the child's own getppid(); ps(1) sampled alongside",
+      "count": 1,
+      "daemonPid": 54907,
+      "childReported": "54953 54907",
+      "psRow": "54953 54907 /Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python /tmp/mcp-witness-health/fixture-server.py",
+      "routeState": "healthy"
+    }
+  ],
+  "sabotage": {
+    "server": "witness-broken",
+    "command": "a path that does not exist",
+    "childrenBefore": 1,
+    "childrenAfter": 1,
+    "pidfile": "absent",
+    "routeState": "degraded",
+    "held": "yes"
+  }
+}

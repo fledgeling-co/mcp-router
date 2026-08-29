@@ -242,6 +242,12 @@ public struct ControlDeps: Sendable {
     /// caller's own `~/.npm` and `~/.claude`, so a differential oracle handed a real one would put
     /// a developer's 2.0 GB npx cache inside a lane run.
     public var caches: (any CacheProbing)?
+    /// Where `GET /upstreams/health` and `POST /servers/:name/probe` read and write — R27.
+    /// Optional for the reason ``caches`` is, and with the sharpest version of it: a probe SPAWNS,
+    /// so a differential oracle handed a real monitor would put a live child process behind every
+    /// parity run. Absent, both routes answer 503 saying so rather than an empty report, which a
+    /// router that had probed nothing would be indistinguishable from.
+    public var health: (any UpstreamHealthReporting)?
 
     public init(
         config: RouterConfig,
@@ -262,7 +268,8 @@ public struct ControlDeps: Sendable {
         harnesses: (any HarnessInventorySource)? = nil,
         insights: (any InsightsSource)? = nil,
         extensions: (any ExtensionStoring)? = nil,
-        caches: (any CacheProbing)? = nil
+        caches: (any CacheProbing)? = nil,
+        health: (any UpstreamHealthReporting)? = nil
     ) {
         self.config = config
         self.upstreams = upstreams
@@ -283,6 +290,7 @@ public struct ControlDeps: Sendable {
         self.insights = insights
         self.extensions = extensions
         self.caches = caches
+        self.health = health
     }
 
     /// Lookup by JavaScript string identity — a composed key does not match a decomposed request,

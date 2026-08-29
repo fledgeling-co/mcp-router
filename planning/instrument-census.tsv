@@ -134,6 +134,7 @@ app/Tests/MCPRouterUITests/ServersBoardOutcomeTests.swift	swift-suite	app/Tests/
 app/Tests/MCPRouterUITests/ServersBoardSurfaceTests.swift	swift-suite	app/Tests/MCPRouterUITests/ServersBoardSurfaceTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/ServersBoardWriteTests.swift	swift-suite	app/Tests/MCPRouterUITests/ServersBoardWriteTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/ServersDisabledCopyTests.swift	swift-suite	app/Tests/MCPRouterUITests/ServersDisabledCopyTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterUITests/ServersPauseAffordanceTests.swift	swift-suite	app/Tests/MCPRouterUITests/ServersPauseAffordanceTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/SettingsAndMenuBarTests.swift	swift-suite	app/Tests/MCPRouterUITests/SettingsAndMenuBarTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/SettingsWindowTests.swift	swift-suite	app/Tests/MCPRouterUITests/SettingsWindowTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/SheetGateRoutingTests.swift	swift-suite	app/Tests/MCPRouterUITests/SheetGateRoutingTests.swift	swift	compiled and run by `swift test`	make:test
@@ -185,6 +186,8 @@ app/Tests/RouterCoreTests/ControlDisableWriteTests.swift	swift-suite	app/Tests/R
 app/Tests/RouterCoreTests/ControlDocumentRouteTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlDocumentRouteTests.swift	swift	compiled and run by `swift test`; names argv ["node", …], execution unresolved	make:test
 app/Tests/RouterCoreTests/ControlExtensionRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlExtensionRoutesTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ControlFixtureTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlFixtureTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/RouterCoreTests/ControlHealthRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlHealthRoutesTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/RouterCoreTests/ControlPauseVectorTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlPauseVectorTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ControlReindexDisabledTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlReindexDisabledTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/DesktopEntryTests.swift	swift-suite	app/Tests/RouterCoreTests/DesktopEntryTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/DisabledSweepTests.swift	swift-suite	app/Tests/RouterCoreTests/DisabledSweepTests.swift	swift	compiled and run by `swift test`	make:test
@@ -232,6 +235,9 @@ app/Tests/RouterCoreTests/SeamTests.swift	swift-suite	app/Tests/RouterCoreTests/
 app/Tests/RouterCoreTests/SecretResolverTests.swift	swift-suite	app/Tests/RouterCoreTests/SecretResolverTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/StagedErrorAttributionTests.swift	swift-suite	app/Tests/RouterCoreTests/StagedErrorAttributionTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/StandingConstraintsTests.swift	swift-suite	app/Tests/RouterCoreTests/StandingConstraintsTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/RouterCoreTests/UpstreamHealthMonitorTests.swift	swift-suite	app/Tests/RouterCoreTests/UpstreamHealthMonitorTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/RouterCoreTests/UpstreamHealthPolicyTests.swift	swift-suite	app/Tests/RouterCoreTests/UpstreamHealthPolicyTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/RouterCoreTests/UpstreamHealthProbeTests.swift	swift-suite	app/Tests/RouterCoreTests/UpstreamHealthProbeTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/UpstreamRPCErrorTests.swift	swift-suite	app/Tests/RouterCoreTests/UpstreamRPCErrorTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/UsageInsightsTests.swift	swift-suite	app/Tests/RouterCoreTests/UsageInsightsTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/UsageLogTests.swift	swift-suite	app/Tests/RouterCoreTests/UsageLogTests.swift	swift	compiled and run by `swift test`	make:test
@@ -306,12 +312,14 @@ planning/registry-drop-gate.py	gate	planning/registry-drop-gate.py	static	no rou
 planning/role-intersection-gate.py	gate	planning/role-intersection-gate.py	static	no router invocation matched	make:role-intersection
 planning/run-gate.sh	gate	planning/run-gate.sh	static	no router invocation matched	-
 planning/runnable-path-gate.py	gate	planning/runnable-path-gate.py	static	no router invocation matched	make:lint
+planning/scope-invariance-gate.py	gate	planning/scope-invariance-gate.py	static	no router invocation matched	make:lint
 planning/set-status.py	gate	planning/set-status.py	static	no router invocation matched	-
 planning/shipped-brief-gate.py	gate	planning/shipped-brief-gate.py	static	no router invocation matched	make:lint
 planning/sweep-control-gate.py	gate	planning/sweep-control-gate.py	static	no router invocation matched	make:lint
 planning/target-resolution-gate.py	gate	planning/target-resolution-gate.py	static	no router invocation matched	make:lint
 planning/test-campaign/bin/arm-headless.py	gate	planning/test-campaign/bin/arm-headless.py	swift	argv ["swift", …]	-
 planning/test-campaign/bin/arm-pipeline.py	gate	planning/test-campaign/bin/arm-pipeline.py	static	no router invocation matched	-
+planning/test-campaign/bin/arm-r27-health.sh	gate	planning/test-campaign/bin/arm-r27-health.sh	swift	swift test	-
 planning/test-campaign/bin/arm-suites.py	gate	planning/test-campaign/bin/arm-suites.py	swift	argv ["swift", …]	-
 planning/test-campaign/bin/arm-surface-reconcile.py	gate	planning/test-campaign/bin/arm-surface-reconcile.py	static	no router invocation matched	make:surface-reconcile-arm
 planning/test-campaign/bin/blind-vocabulary-arm.py	gate	planning/test-campaign/bin/blind-vocabulary-arm.py	static	no router invocation matched	make:lint
@@ -340,7 +348,7 @@ planning/test-campaign/bin/record-glass-arms.py	gate	planning/test-campaign/bin/
 planning/test-campaign/bin/req017-honesty.py	gate	planning/test-campaign/bin/req017-honesty.py	static	no router invocation matched	-
 planning/test-campaign/bin/surface-oracle.swift	gate	planning/test-campaign/bin/surface-oracle.swift	static	no router invocation matched	-
 planning/test-campaign/bin/surface-reconcile.py	gate	planning/test-campaign/bin/surface-reconcile.py	static	no router invocation matched	make:surface-reconcile
-planning/test-campaign/bin/vocab-differential.py	gate	planning/test-campaign/bin/vocab-differential.py	static	no router invocation matched	-
+planning/test-campaign/bin/vocab-differential.py	gate	planning/test-campaign/bin/vocab-differential.py	static	no router invocation matched	make:lint
 planning/test-campaign/bin/wire-document-arm.py	gate	planning/test-campaign/bin/wire-document-arm.py	static	no router invocation matched	-
 planning/test-campaign/bin/wire-document-fixture/seed.py	gate	planning/test-campaign/bin/wire-document-fixture/seed.py	static	no router invocation matched	-
 planning/test-campaign/bin/wire-document.py	gate	planning/test-campaign/bin/wire-document.py	static	no router invocation matched	-
@@ -351,6 +359,7 @@ planning/test-campaign/bin/witness-document-socket.sh	gate	planning/test-campaig
 planning/test-campaign/bin/witness-effects.sh	gate	planning/test-campaign/bin/witness-effects.sh	swift	swift router binary	-
 planning/test-campaign/bin/witness-fixture/fixture-server.py	gate	planning/test-campaign/bin/witness-fixture/fixture-server.py	static	no router invocation matched	-
 planning/test-campaign/bin/witness-fixture/seed.sh	gate	planning/test-campaign/bin/witness-fixture/seed.sh	static	no router invocation matched	-
+planning/test-campaign/bin/witness-health-probe.sh	gate	planning/test-campaign/bin/witness-health-probe.sh	swift	swift router binary	-
 planning/test-campaign/evidence/runs/capture-mocks.py	gate	planning/test-campaign/evidence/runs/capture-mocks.py	static	no router invocation matched	-
 planning/upstream/reckon-relabel-probe.py	gate	planning/upstream/reckon-relabel-probe.py	static	no router invocation matched	-
 planning/verification/G11-corpus-determinism.py	gate	planning/verification/G11-corpus-determinism.py	static	no router invocation matched	-
@@ -426,6 +435,7 @@ scripts/acceptance/parity-selftests.sh	lane	scripts/acceptance/parity-selftests.
 scripts/acceptance/parity-state.sh	lane	scripts/acceptance/parity-state.sh	both	node <path> + swift router binary	scripts/acceptance/parity-gate.sh
 scripts/acceptance/parity-stream.sh	lane	scripts/acceptance/parity-stream.sh	both	node <path> + swift router binary	scripts/acceptance/parity-gate.sh
 scripts/acceptance/parity-suite.sh	lane	scripts/acceptance/parity-suite.sh	swift	swift test	scripts/acceptance/parity-gate.sh
+scripts/acceptance/r27-health.sh	lane	scripts/acceptance/r27-health.sh	swift	swift router binary	planning/test-campaign/bin/arm-r27-health.sh
 scripts/acceptance/r28-extensions.sh	lane	scripts/acceptance/r28-extensions.sh	swift	swift router binary	-
 scripts/acceptance/r30-ingest.sh	lane	scripts/acceptance/r30-ingest.sh	swift	swift router binary	-
 scripts/acceptance/r31-caches.sh	lane	scripts/acceptance/r31-caches.sh	swift	swift router binary	-

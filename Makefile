@@ -999,6 +999,7 @@ lint: tools
 	python3 planning/py39-annotation-gate.py || fail=1; \
 	python3 planning/citation-gate.py || fail=1; \
 	python3 planning/sweep-control-gate.py || fail=1; \
+	python3 planning/scope-invariance-gate.py --quiet || fail=1; \
 	python3 planning/instrument-census.py || fail=1; \
 	python3 planning/runnable-path-gate.py || fail=1; \
 	bash planning/hooks/install.sh --gate || fail=1; \
@@ -1012,6 +1013,8 @@ lint: tools
 	python3 planning/test-campaign/bin/effect-class-census.py --control || fail=1; \
 	python3 planning/test-campaign/bin/effect-class-census.py || fail=1; \
 	python3 planning/test-campaign/bin/blind-vocabulary-arm.py || fail=1; \
+	python3 planning/test-campaign/bin/vocab-differential.py --control || fail=1; \
+	python3 planning/test-campaign/bin/vocab-differential.py || fail=1; \
 	python3 planning/pin-class-gate.py || fail=1; \
 	python3 planning/shipped-brief-gate.py || fail=1; \
 	python3 planning/brief-target-gate.py --quiet || fail=1; \

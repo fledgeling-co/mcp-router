@@ -1,0 +1,27 @@
+{
+  "note": "M37. The wire request the Mac inspector's 'Disable this server' toggle sends, pinned once so the app half and the router half of the witness cannot drift apart. MCPRouterUI and RouterCore share no target by design, so nothing in this package can watch the request arrive in one process; what the two halves can share is the request. app/Tests/MCPRouterUITests/ServersPauseAffordanceTests.swift asserts the control produces these bytes. ControlPauseVectorTests drives them through the real ControlHandler and reads the outcome back off the filesystem.",
+  "cases": [
+    {
+      "id": "disable",
+      "method": "PATCH",
+      "path": "/servers/{name}",
+      "body": "{\"disabled\":true}",
+      "config": "bothLive",
+      "status": 200,
+      "servedAfter": false,
+      "memberAfter": "present",
+      "why": "The switch reaches the config, and the serving predicate follows it."
+    },
+    {
+      "id": "enable",
+      "method": "PATCH",
+      "path": "/servers/{name}",
+      "body": "{\"disabled\":false}",
+      "config": "offAlreadyDisabled",
+      "status": 200,
+      "servedAfter": true,
+      "memberAfter": "absent",
+      "why": "Shaped like warm: a falsy value removes the member rather than writing false, so switching a server back on leaves the config as it found it. A port that assigned the value as given would leave \"disabled\": false behind, which isServed alone cannot see."
+    }
+  ]
+}

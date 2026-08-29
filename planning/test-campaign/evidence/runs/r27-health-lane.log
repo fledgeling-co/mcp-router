@@ -1,0 +1,37 @@
+r27-health — the routes are wired in the process that ships
+  ok   GET /upstreams/health answers                                  200
+  ok   nothing is probed until something asks                         200
+  ok   a probe of a real upstream is healthy                          200
+  ok   the probe counted the tools it was told                        200
+
+the record is the process's, not the request's
+  ok   the report carries what the probe found                        200
+  ok   and it counted both probes                                     200
+
+degraded precedes tripped, and one success recovers
+  ok   the first failure is degraded                                  200
+  ok   the second reaches this server's own limit                     200
+  ok   one success recovers a tripped upstream                        200
+
+a refused setting is reported rather than clamped in silence
+  ok   the refusal names the key                                      200
+  ok   and its scope                                                  200
+  ok   the policy in force is the global one                          200
+
+a disabled server is declined rather than spawned
+  ok   the probe route declines it                                    200
+  ok   and it stays unprobed                                          200
+
+the refusals
+  ok   an unknown server is 404                                       404
+  ok   an untokened probe is 401                                      401
+  ok   a probe with no content-type is 415                            415
+  ok   GET on the probe path is 405                                   405
+  ok   an uppercase sub-path is not a probe                           405
+  ok   the collection is GET-only                                     405
+  ok   a prefix collision is not claimed                              404
+
+the disabled server was never spawned by any of it
+  ok   children running the disabled server's own script              0
+
+r27-health: 22 ok, 0 failed

@@ -85,6 +85,7 @@ public enum ServerParser {
             warm: raw.member("warm")?.asBool,
             placard: placard(from: raw.member("placard")),
             disabled: raw.member("disabled")?.asBool,
+            health: HealthOverride.read(raw.member("health")),
             command: nil,
             args: [],
             env: [],

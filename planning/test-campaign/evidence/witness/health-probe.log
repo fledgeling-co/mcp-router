@@ -1,0 +1,36 @@
+== R27 health-probe effect witness ==
+recorded at: 2026-08-29T07:13:56Z
+binary:      /Users/lukerhodes/Dev/mcp-router/.worktrees/L6/app/.build/debug/MCPRouterCLI
+sha256:      6095c2de156e55bc8a3c031a61de85e5841ec3857f1bb842e257c0046310b21a
+router home: /tmp/mcp-witness-health   (the user's own home is untouched)
+port:        127.0.0.1:8978
+
+-- at rest, before any probe ------------------------------------------
+recorder: ps(1), rows whose ppid is the daemon's own pid 54907
+  report:   {"count":2,"upstreams":[{"server":"witness-fixture","state":"unprobed","probesRun":0,"consecutiveFailures":0,"policy":{"probeIntervalMs":0,"probeTimeoutMs":5000
+  children: 0
+VERDICT:  at rest the report is unprobed and the process table holds no child.
+
+-- REQ-029 subprocess, driven by POST /servers/witness-fixture/probe ---
+recorder: two records, neither written by the router. The SHELL records the daemon's pid
+          through $!. The CHILD records its own getppid() into a path passed in the
+          environment and never read back by the product. ps(1) is the third reading.
+before:   child.pid absent
+route said: {"server":"witness-fixture","state":"healthy","probesRun":1,"consecutiveFailures":0,"lastProbe":{"outcome":"ok","at":"2026-08-29T07:13:57.018Z","latencyMs":62,"tools":1},"lastOkAt":"2026-08-29T07:13:5
+ps row:     54953 54907 /Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python /tmp/mcp-witness-health/fixture-server.py
+child says: 54953 54907
+VERDICT:  witnessed — count=1. The child names pid 54907 as its parent and the shell
+          launched the daemon as pid 54907. Two records that cannot have
+          coordinated name the same parent, so the probe spawned this child.
+          and the route reported the upstream healthy.
+
+-- sabotage: the same route against an upstream whose command does not exist -
+recorder: the same three. Denying the effect must flip every one of them.
+route said: {"server":"witness-broken","state":"degraded","probesRun":1,"consecutiveFailures":1,"lastProbe":{"outcome":"error","at":"2026-08-29T07:13:57.257Z","reason":"upstream \"witness-broken\" could not be st
+children before/after: 1 / 1
+child.pid: absent
+VERDICT:  the arm held — no child appeared, the pidfile stayed absent, and the route
+          reported degraded rather than healthy. The witness discriminates.
+
+wrote /Users/lukerhodes/Dev/mcp-router/.worktrees/L6/planning/test-campaign/evidence/witness/health-probe.json
+exit: 0

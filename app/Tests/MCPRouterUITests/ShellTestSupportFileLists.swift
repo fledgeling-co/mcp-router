@@ -88,6 +88,11 @@
             "app/Sources/MCPRouterUI/Boards/ServerInspector.swift",
             "app/Sources/MCPRouterUI/Boards/ServerInspectorSections.swift",
             "app/Sources/MCPRouterUI/Boards/ServerInspectorControls.swift",
+            // M37. Enrolled in the commit that created it, which is what this list is
+            // for: the sentences the inspector says about whether a server is being
+            // served live here, and a file nobody listed is a file the one-channel grep,
+            // the raw-design-value scan and the indicator-hue declaration cannot see.
+            "app/Sources/MCPRouterUI/Boards/ServerInspectorCopy.swift",
             "app/Sources/MCPRouterUI/Boards/ServerSheets.swift",
             "app/Sources/MCPRouterUI/Boards/SkillsBoard.swift",
             "app/Sources/MCPRouterUI/Boards/SkillsBoardRow.swift",

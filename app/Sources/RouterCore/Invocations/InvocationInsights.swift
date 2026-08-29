@@ -1,7 +1,7 @@
 import Foundation
 
 /// One row of *Skill and server use, by version* — the table the design of record draws at
-/// `design/mcp-router-console.html:3490`.
+/// `design/mcp-router-console.html:3490` at `08a24ed`.
 ///
 /// A row exists **only for a run whose version the ledger could establish**. The mock's own callout
 /// under that table — *"a run against 1.4.0 never counts toward 1.4.2's evidence"* — is this rule,

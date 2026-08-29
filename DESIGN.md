@@ -774,7 +774,7 @@ Two applications that are load-bearing here:
 Recorded here rather than in a report, because it is the next design work:
 
 - **The design of record contradicts itself about "use, by version", and F5 picked a side.**
-  `design/mcp-router-console.html:2780` retires the idea outright — *"The router never sees a skill
+  `design/mcp-router-console.html:2780` at `08a24ed` retires the idea outright — *"The router never sees a skill
   run … the bars were counting something nothing here observes"* — while `:3490` draws *Skill and
   server use, by version* crediting `design-review 2.3.1` with 142 runs. Both are partly right. The
   router is genuinely not on the path of a skill run; the *harness* writes every skill it ran into

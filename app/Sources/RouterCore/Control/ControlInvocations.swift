@@ -26,7 +26,8 @@ public protocol InvocationReporting: Sendable {
 /// batch. `scripts/lint/no-telemetry-egress.sh` is what holds that true as the code changes.
 extension ControlHandler {
     /// The default window. Seven days, matching the design of record's *Runs 7 d* column
-    /// (`design/mcp-router-console.html:3494`) — and answerable here, where the mock's *Last 7 days*
+    /// (`design/mcp-router-console.html:3494` at `08a24ed`) — and answerable here, where the mock's
+    /// *Last 7 days*
     /// pop-up on the calls chart was not, because the invocation log does not rotate at 8 MiB the
     /// way `usage.jsonl` does. What it can actually reach is reported as `horizon` either way.
     static let invocationWindowDays = 7

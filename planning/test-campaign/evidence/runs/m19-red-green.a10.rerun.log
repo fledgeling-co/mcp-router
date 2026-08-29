@@ -1,0 +1,44 @@
+# scripts/m19-red-green.py — the ten arms re-witnessed, in three chunks, plus A10 both ways
+#
+# produced by:  python3 scripts/m19-red-green.py --only A10
+#               python3 scripts/m19-red-green.py --only A1,A2,A3,A4,A5
+#               python3 scripts/m19-red-green.py --only A6,A7,A8,A9
+#               and the counter-measurement below
+# run from:     repository root, worktree .worktrees/N8, branch ai/n8
+# tree:         08a24ed plus this branch's working changes; app/Sources/MCPRouterKit/Markdown/
+#               MarkdownInline.swift verified md5 50cfcc2690690f399ecb6685c97f2691 before AND
+#               after every run below
+# toolchain:    Swift 6.2, macOS 26.6.2 (build 25G83), Debug, swift test
+# date:         2026-08-29
+# load:         16 cores, load average 836-916 with eight other runners live
+#
+# Why chunked rather than one pass: a full pass is ~20 `swift test` invocations and outlived the
+# window available to watch it on this machine. `--only` was added to the harness for that, and it
+# refuses a filter naming no arm (exit 2) so a subset that compared nothing cannot exit 0. The
+# summary line names the subset, so a chunk log cannot be filed as a full pass.
+
+A10 EXIT: 0
+A10  red       — "inline HTML is handed back verbatim and acquires no attribute naming a destination" recorded an issue
+m19-redgreen: all 1 arms bit (--only A10 of 10), each through the test it names, and every file was restored
+
+CHUNK1 EXIT: 0
+A1  red       — "the read me carries every block kind the mock draws" recorded an issue
+A2  red       — "no block in any tab falls back to raw text" recorded an issue
+A3  red       — "every other scheme is stripped, and the words stay" recorded an issue
+A4  red       — "every route out of the package is refused, each with its own reason" recorded an issue
+A5  red       — "a parsed shield carries no colour from the badge" recorded an issue
+m19-redgreen: all 5 arms bit (--only A1,A2,A3,A4,A5 of 10), each through the test it names, and every file was restored
+
+CHUNK2 EXIT: 0
+A6  red       — "a shield's fill is one of the app's own two text-safe fills, never the badge's" recorded an issue
+A7  red       — "the panel fabricates no action, and the seam a caller uses is the only way in" recorded an issue
+A8  red       — "a ragged table is padded and truncated to its header's width" recorded an issue
+A9  red       — "a fourth heading level falls back to plain text rather than being drawn or dropped" recorded an issue
+m19-redgreen: all 4 arms bit (--only A6,A7,A8,A9 of 10), each through the test it names, and every file was restored
+
+# The counter-measurement, re-taken on the same verified tree: arm A10's mutation against the body
+# of `htmlIsInert` M19 merged, reconstructed byte-for-byte from `git show HEAD:` and restored
+# immediately. It SURVIVES, which is the defect this item closes.
+CONTROL EXIT: 1
+A10  SURVIVED  — inline HTML is handed back verbatim and acquires no attribute naming a destination
+m19-redgreen: 1 arm(s) proved nothing: A10

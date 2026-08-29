@@ -1,6 +1,7 @@
 ---
 status: to-triage
 found-by: M19 re-verification, 2026-08-29
+reckon-sources: [CASE-0262]
 ---
 
 # A security guard that cannot fail now guards a live entry point

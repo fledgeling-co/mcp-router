@@ -3778,5 +3778,31 @@
     ],
     "note": "A configured value the router will not take is REFUSED and reported, never clamped in silence. The lane's `r27-refused` server writes `tripAfter: 1` and `probeIntervalMs: 10`; the report carries both refusals with the value as written, the floor that rejected it, and a `scope` saying which block to fix, while `policy` reports the value actually in force.\n\nThe `tripAfter` floor of 2 is this item's own version of the vacuity rule: with a threshold of 1 the first failure trips, `degraded` is unreachable, and the guarantee that an upstream is flagged degraded before it is tripped would hold only because nothing can enter the state it names. Refusing rather than clamping is the other half \u2014 a clamp reports 2 over a file that says 1, and the operator's next reading of their own file disagrees with the router for a reason neither can see.",
     "armedBy": "ARMED and watched red. `bin/arm-r27-health.sh` ARM 3 drops the refusals when seeding a record: 21 tests across two suites run and 4 issues are recorded, so the wire stops saying which settings were ignored. Restored byte-identical."
+  },
+  {
+    "id": "CASE-0262",
+    "req": "REQ-027",
+    "surface": "SURF-028",
+    "flow": null,
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "1024x768",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "hostile",
+      "executionPlane": "headless"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/runs/m19-red-green.a10.log",
+      "evidence/runs/m19-a10-unfailable-control.log",
+      "evidence/runs/m19-red-green.a10.rerun.log"
+    ],
+    "note": "N8. The inertness guard on the untrusted-input boundary, made capable of failing. M19 shipped `MarkdownSecurityTests.htmlIsInert` with four spellings that named `javascript:`, no scheme, or nothing, and two assertions -- no link, no `imageURL` -- that `MarkdownInline.sanitized` makes true of every input it touches. It could not go red. M30 wired `ControlAPICapabilityDocumentSource` into the shipped UI, so router-served third-party text now reaches this renderer in a Release build, and the guard on it measured nothing. MEASURED, not assumed: the platform parser does keep inline HTML inert -- under `MarkdownInline`'s own options it hands each tag back as characters and marks it `.inlineHTML`, an intent naming no destination, and it does so under all four combinations of `allowsExtendedAttributes` and `interpretedSyntax`. Swift 6.2, macOS 26.6.2 (25G83), Debug, `swift test`. So this was an evidence defect and not a live vulnerability, and the fix is the assertion rather than new sanitisation. Two `https` spellings were added, because `https` is the one scheme the allowlist keeps and therefore the only one that can carry an interpreted `<a>` through to the assertion; a presence control runs the same reader over the markdown twin of the same destination first; and two clauses were added that the old body did not have -- handed back verbatim, and no attribute beyond the `.inlineHTML` marker. That last clause also corrects the test's own claim: the parser DOES attach one attribute to inline HTML and `sanitized` carries it, so the old name -- `inline HTML acquires no attribute of any kind` -- was false as written as well as unfailable, which is why nobody found out.",
+    "armedBy": "Arm A10 of `scripts/m19-red-green.py`. The mutation makes `MarkdownInline.init(markdown:)` rewrite `<a href=\"...\">...</a>` into a markdown link before parsing -- the toolchain change the guard exists to catch, injected at the seam where this code hands the source over, because the platform is what keeps HTML inert and a mutation pass cannot mutate the platform. The harness runs the named test alone, asserts `1 test in 1 suite`, requires a green unmutated baseline, matches the recorded issue against the test's own display name, and restores the file. RED: evidence/runs/m19-red-green.a10.log -- all ten arms bit, exit 0. The counter-measurement is what makes this an arm rather than a decoration: the SAME mutation run against M19's four spellings SURVIVED -- evidence/runs/m19-a10-unfailable-control.log. Re-witnessed independently on 2026-08-29 in three `--only` chunks on a tree whose `MarkdownInline.swift` was hashed identical before and after every run: all ten arms bit, A10 red (exit 0) and SURVIVED against M19's body (exit 1). evidence/runs/m19-red-green.a10.rerun.log."
   }
 ]

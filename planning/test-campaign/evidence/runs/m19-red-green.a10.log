@@ -1,0 +1,28 @@
+# scripts/m19-red-green.py — full pass, all ten arms
+#
+# produced by:  python3 scripts/m19-red-green.py
+# run from:     repository root, worktree .worktrees/N8, branch ai/n8
+# tree:         08a24ed plus this branch's working changes to
+#               app/Sources/MCPRouterKit/Markdown/MarkdownInline.swift,
+#               app/Tests/MCPRouterKitTests/MarkdownSecurityTests.swift and
+#               scripts/m19-red-green.py
+# toolchain:    Swift 6.2, macOS 26.6.2 (build 25G83), Debug, swift test
+# date:         2026-08-29
+# exit code:    0
+#
+# A10 is this item's arm. Its mutation makes MarkdownInline interpret an HTML anchor before it
+# parses — the toolchain change the guard exists to catch, injected at the seam where this code
+# hands the source to the platform, because the platform itself is what keeps HTML inert and a
+# mutation pass cannot mutate the platform.
+A1  red       — "the read me carries every block kind the mock draws" recorded an issue
+A2  red       — "no block in any tab falls back to raw text" recorded an issue
+A3  red       — "every other scheme is stripped, and the words stay" recorded an issue
+A4  red       — "every route out of the package is refused, each with its own reason" recorded an issue
+A5  red       — "a parsed shield carries no colour from the badge" recorded an issue
+A6  red       — "a shield's fill is one of the app's own two text-safe fills, never the badge's" recorded an issue
+A7  red       — "the panel fabricates no action, and the seam a caller uses is the only way in" recorded an issue
+A8  red       — "a ragged table is padded and truncated to its header's width" recorded an issue
+A9  red       — "a fourth heading level falls back to plain text rather than being drawn or dropped" recorded an issue
+A10  red       — "inline HTML is handed back verbatim and acquires no attribute naming a destination" recorded an issue
+
+m19-redgreen: all 10 arms bit, each through the test it names, and every file was restored

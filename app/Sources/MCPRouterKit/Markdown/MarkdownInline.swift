@@ -11,7 +11,10 @@ import Foundation
 ///
 /// The allowlist is two entries:
 ///
-/// - `inlinePresentationIntent`, which carries emphasis, strong and code and no destination.
+/// - `inlinePresentationIntent`, which carries emphasis, strong and code and no destination. It
+///   also carries `.inlineHTML`, which the parser sets on a tag it recognised and declined to
+///   obey — a record that something was refused, with no URL and nothing to fetch.
+///   `MarkdownSecurityTests.htmlIsInert` pins that as the only intent inline HTML acquires.
 /// - `link`, and only where the scheme is `https`. `DiscoverDetailSheet.swift`'s repository row
 ///   already applies that rule to a registry-supplied URL; this is the same rule one level in,
 ///   where the URL is supplied by the document body instead.

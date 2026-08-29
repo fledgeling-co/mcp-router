@@ -1310,6 +1310,16 @@
       ],
       "since": "2026-08-29",
       "reason": "WAIVED BECAUSE IT NEEDS A BUILT BINARY, which is this registry's standing rule for an acceptance lane: it starts app/.build/debug/MCPRouterCLI on a scratch MCP_ROUTER_HOME, so a control here would either build inside `make lint` or report green on a machine where the lane cannot run at all. It is enrolled in scripts/acceptance/acceptance-lanes.sh, which is where a lane's own red is read.\n\nITS ABSENCE CLAIMS ARE ARMED, in the run itself and outside it, which is what the waiver is traded against. The lane asserts that a planted credential is absent from the bundle in three forms, and an absence assertion is the shape this gate exists to distrust. Three things inside the run stop it passing vacuously: the plant is grepped off disk in all four positions BEFORE the daemon starts and the lane exits 1 if fewer than four land; a public canary and both key names must be PRESENT in the reply, so a 404, a 503 or an empty document fails; and `occurrencesRemoved` must be non-zero. It also refuses to run at all if an encoded form comes out equal to the literal, because that is exactly how two of its assertions were unfailable in its first draft. Outside the run it was armed twice against a rebuilt CLI: removing layer 2 takes it to 19 ok / 4 failed and removing the encoded variants to 21 ok / 2 failed, both recorded in planning/plans/plan-R22.md."
+    },
+    {
+      "path": "planning/evidence/F6/red-green.py",
+      "disposition": "waived",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-29",
+      "reason": "A lane needing a built binary is waived, not control: this driver runs `swift test` once per mutation plus a baseline, eleven full builds of RouterCore and its test bundle, and took 24 minutes on the run recorded in planning/evidence/F6/red-green.txt. A control that re-armed it would double that on every sweep-gate run. What stands in place of one is that the driver ARMS ITSELF in both directions and cannot report a clean zero. It refuses to run at all unless the unmutated tree is green, printing BASELINE NOT GREEN and exiting 1 - so a run whose tests were all already failing cannot report ten catches. It classifies three outcomes rather than two: RED (every named test failed), PARTIAL (some did) and SURVIVED (none did), and PARTIAL and SURVIVED both exit non-zero, so a mutation that stopped biting is a failure rather than a quieter pass. And a mutation whose search text no longer exists in the source reports NOT APPLICABLE and exits non-zero, which is the specific way this class of driver rots: the code moves, the find string stops matching, and every arm silently applies nothing. The recorded run is 10 of 10 RED. What it does NOT prove, stated rather than implied: that the ten mutations are the ten that matter. It proves each named test can fail for the reason its name gives, not that the suite would catch a defect nobody thought of."
     }
   ]
 }

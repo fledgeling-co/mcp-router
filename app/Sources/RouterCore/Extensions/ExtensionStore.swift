@@ -84,6 +84,15 @@ public struct DiskExtensionStore: ExtensionStoring {
         return record(kind, name: name)
     }
 
+    /// Read on every call from the same path ``read(_:name:)`` reads, so the two cannot disagree.
+    public func descriptorText(_ kind: ExtensionKind, name: String) -> String? {
+        guard ExtensionNaming.isWellFormedName(name) else { return nil }
+        let descriptor = (entryPath(kind, name) as NSString)
+            .appendingPathComponent(kind.descriptorPath)
+        guard let bytes = try? Data(contentsOf: URL(fileURLWithPath: descriptor)) else { return nil }
+        return String(bytes: bytes, encoding: .utf8)
+    }
+
     private func record(_ kind: ExtensionKind, name: String) -> ExtensionRecord {
         let entry = entryPath(kind, name)
         guard isDirectory(entry) else {
@@ -103,7 +112,7 @@ public struct DiskExtensionStore: ExtensionStoring {
         case let .read(reading):
             return ExtensionRecord(
                 name: name, title: reading.title, description: reading.description,
-                files: walk.files, bytes: walk.bytes
+                version: reading.version, files: walk.files, bytes: walk.bytes
             )
         case let .unreadable(problem):
             return ExtensionRecord(

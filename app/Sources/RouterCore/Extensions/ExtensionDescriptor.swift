@@ -10,6 +10,20 @@ public enum ExtensionDescriptor {
     public struct Reading: Sendable, Hashable {
         public let title: String
         public let description: String?
+        /// The version the entry declares for itself, or `nil` when it declares none.
+        ///
+        /// Read by the rule that already reads ``title`` — the `version:` frontmatter line for a
+        /// skill, the `version` member for a plugin and a marketplace — and **`nil` is the ordinary
+        /// answer rather than a fault**. Measured on this machine on 2026-08-29, 10 of the 22
+        /// readable skills declare no version at all, so an entry without one is held and reported
+        /// rather than refused, exactly as an entry carrying an unrecognised key is.
+        public let version: String?
+
+        public init(title: String, description: String?, version: String? = nil) {
+            self.title = title
+            self.description = description
+            self.version = version
+        }
     }
 
     public enum Outcome: Sendable, Hashable {
@@ -44,6 +58,7 @@ public enum ExtensionDescriptor {
         lines = lines.dropFirst()
         var title: String?
         var description: String?
+        var version: String?
         var closed = false
         for line in lines {
             if line.trimmed == "---" {
@@ -55,6 +70,7 @@ public enum ExtensionDescriptor {
             let value = String(line[line.index(after: separator)...]).trimmed
             if key == "name", !value.isEmpty { title = value }
             if key == "description", !value.isEmpty { description = value }
+            if key == "version", !value.isEmpty { version = value }
         }
         guard closed else {
             return .unreadable("\(file)'s frontmatter block is never closed by a second ---")
@@ -62,7 +78,7 @@ public enum ExtensionDescriptor {
         guard let title else {
             return .unreadable("\(file)'s frontmatter carries no name")
         }
-        return .read(Reading(title: title, description: description))
+        return .read(Reading(title: title, description: description, version: version))
     }
 
     // MARK: - plugin.json and marketplace.json
@@ -85,9 +101,11 @@ public enum ExtensionDescriptor {
             return .unreadable("\(file) carries no plugins array")
         }
         let description = parsed.member("description")?.asString?.string
+        let version = parsed.member("version")?.asString?.string
         return .read(Reading(
             title: title,
-            description: (description?.isEmpty ?? true) ? nil : description
+            description: (description?.isEmpty ?? true) ? nil : description,
+            version: (version?.isEmpty ?? true) ? nil : version
         ))
     }
 }

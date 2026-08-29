@@ -2160,5 +2160,125 @@
   "armed": false,
   "evidence": [],
   "note": "R22. The verb IS the gate, and it is not describing a mutation. The bundle changes nothing. It is a POST because stage 2 of `ControlHandler.handle` gates the token on POST/DELETE/PATCH only, so the verb is the only thing deciding whether this router hands its whole diagnostic corpus \u2014 log lines included \u2014 to any unauthenticated caller that can open the loopback port, which per `ControlToken` includes a web page the user merely visits."
+ },
+ {
+  "id": "CASE-0276",
+  "req": "REQ-007",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "n/a",
+   "theme": "n/a",
+   "role": "operator",
+   "dataShape": "a catalogue offering a strictly newer version",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "planning/evidence/F6/lane-f6-updates.txt",
+   "planning/evidence/F6/red-green.txt"
+  ],
+  "note": "F6. `update-available` is the ONE verdict of eight that means an install, and it is the one the real machine cannot produce: measured 2026-08-29 over all 127 installed plugins by planning/evidence/F6/measure-update-surface.py, it fires ZERO times. So this case is fixture-driven by necessity and its arm is what makes it evidence. ARMED: red-green M2 inverts the direction in ExtensionFreshness and F1, F3 and G1 all go red; M1 makes an unorderable pair compare ascending and S3 and F4 go red."
+ },
+ {
+  "id": "CASE-0277",
+  "req": "REQ-007",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "degraded",
+   "viewport": "n/a",
+   "theme": "n/a",
+   "role": "operator",
+   "dataShape": "a catalogue OLDER than what is installed",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "planning/evidence/F6/lane-f6-updates.txt",
+   "planning/evidence/F6/red-green.txt"
+  ],
+  "note": "F6. The state actually measured on this machine: security-guidance@claude-code-plugins holds 2.0.0 while its catalogue offers 1.0.0. `installed != offered` reads that as an update and would offer a DOWNGRADE described as an update, with nothing in the reply able to say which it was. It is its own verdict, `catalogue-behind`, and hasUpdate is false for it. ARMED: red-green M3 makes hasUpdate true for catalogueBehind and F3 and F12 go red."
+ },
+ {
+  "id": "CASE-0278",
+  "req": "REQ-007",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "empty",
+   "viewport": "n/a",
+   "theme": "n/a",
+   "role": "operator",
+   "dataShape": "a catalogue that declares no versions",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "planning/evidence/F6/lane-f6-updates.txt",
+   "planning/evidence/F6/red-green.txt"
+  ],
+  "note": "F6. `0 updates` over 127 plugins is produced identically by a healthy machine and by a checker that read nothing, and on this machine 557 of the 763 offers across ten catalogues declare no version at all. The summary therefore carries `compared` and `uncomparable` beside `updatesAvailable`, and they sum to `total`. ARMED: red-green M7 makes isComparison true for every verdict and F12 and G2 go red; M4 runs the equality check first so two ABSENT versions read as two equal ones and F9 goes red."
+ },
+ {
+  "id": "CASE-0279",
+  "req": "REQ-007",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "error",
+   "viewport": "n/a",
+   "theme": "n/a",
+   "role": "operator",
+   "dataShape": "a catalogue whose age cannot be taken",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "planning/evidence/F6/lane-f6-updates.txt",
+   "planning/evidence/F6/red-green.txt"
+  ],
+  "note": "F6. Nothing in this item refreshes a catalogue, so every verdict travels with the age of what it was compared against. An age that could not be measured is null and never 0 \u2014 a zero reads as just-refreshed \u2014 and a catalogue whose newest file is stamped AHEAD of the router's clock is null too, because reported as a negative number it would exceed no window and read fresh forever. ARMED: red-green M6 reports the negative age as a number and G10 and U7 go red; M10 folds the age problem into the read problem, which suppressed every comparison against a catalogue that parsed fine, and the same two go red."
+ },
+ {
+  "id": "CASE-0280",
+  "req": "REQ-012",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "n/a",
+   "theme": "n/a",
+   "role": "operator",
+   "dataShape": "four mutating verbs against a read-only route",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "planning/evidence/F6/lane-f6-updates.txt",
+   "planning/evidence/F6/red-green.txt"
+  ],
+  "note": "F6. The brief's assumption is that update checks are read-only until the user approves, and it is held by there being no verb to call rather than by a flag: GET /extensions/updates has no sibling. POST, PUT, PATCH and DELETE are 405 and the store's file count is identical across all four, asserted on the filesystem rather than on the reply. ARMED: red-green M5 removes the one line teaching routeExtensions to decline /updates, the :kind match reclaims the path, a DELETE answers 404 no extension kind named \"updates\" \u2014 a denial that a served path exists \u2014 and U4 goes red."
  }
 ]

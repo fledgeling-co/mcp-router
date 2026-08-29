@@ -3,14 +3,13 @@
   "blocking": [
     "UNDECLARED"
   ],
-  "total": 82,
+  "total": 78,
   "by_file": {
     "planning/features-to-triage/BLOCKED-apple-identity.md": 1,
     "planning/features-to-triage/D3-copy-proposals.md": 1,
     "planning/features-to-triage/F-cross-harness-skill-sync.md": 1,
     "planning/features-to-triage/F-marketplace-auto-update-checker.md": 1,
     "planning/features-to-triage/F-session-analyzer-skill-recommender.md": 1,
-    "planning/features-to-triage/F-skill-version-usage-history-stats.md": 1,
     "planning/features-to-triage/G2-orchestrator-table-is-heterogeneous.md": 1,
     "planning/features-to-triage/G3-gapfix-2.md": 1,
     "planning/features-to-triage/G3-gapfix-3.md": 1,
@@ -70,12 +69,10 @@
     "planning/features-to-triage/gates-ran-with-their-verdict-discarded.md": 1,
     "planning/features-to-triage/gateway-log-rotation-size-policy.md": 1,
     "planning/features-to-triage/local-network-device-pairing-handshake.md": 1,
-    "planning/features-to-triage/phone-pairing-qr-render-and-countdown.md": 1,
     "planning/features-to-triage/phone-prominent-disabled-uses-an-unratified-token.md": 1,
     "planning/features-to-triage/reader-accounting-unnamed-drop-sites.md": 1,
     "planning/features-to-triage/server-disable-toggle-action.md": 1,
     "planning/features-to-triage/server-profile-export-redaction.md": 1,
-    "planning/features-to-triage/staged-tool-diff-visual-review.md": 1,
     "planning/features-to-triage/sweep-control-gate-undisposed.md": 1,
     "planning/features-to-triage/tailings-emits-three-findings-its-own-rows-contradict.md": 1,
     "planning/features-to-triage/the-blind-sweep-runs-on-a-vocabulary-nobody-wrote-for-this-project.md": 1,
@@ -85,7 +82,6 @@
     "planning/features-to-triage/twelve-cases-prove-only-that-something-rendered.md": 1,
     "planning/features-to-triage/upstream-auth-expiry-desktop-notification.md": 1,
     "planning/features-to-triage/upstream-citation-probe-basename-false-positive.md": 1,
-    "planning/features-to-triage/upstream-server-health-probe-settings.md": 1,
     "planning/features-to-triage/upstream-tokens-warden-migration.md": 1
   }
 }

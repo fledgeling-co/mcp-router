@@ -1,6 +1,8 @@
 ---
 status: to-triage
 found-by: merging R27 through an integration branch onto main, 2026-08-29
+registry-target: none
+no-target-reason: the subject is carrier-parity-gate.py's key, an instrument built this session; the registry holds no entity for a gate's own identity scheme
 ---
 
 # The carrier gate pins a landing to a SHA that moves every time the work is carried forward

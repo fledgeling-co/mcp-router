@@ -196,5 +196,14 @@
         public var remaining: TimeInterval? {
             liveCode?.timeRemaining(at: now)
         }
+
+        /// The same window the countdown text reads, as a fraction of the issued window.
+        ///
+        /// Read off `now` rather than a fresh `clock()` call, so the ring and the text can never
+        /// disagree about which second it is — they are two renderings of one reading, and a ring
+        /// a tick ahead of its own label is worse than no ring.
+        public var fractionRemaining: Double? {
+            liveCode?.fractionRemaining(at: now)
+        }
     }
 #endif

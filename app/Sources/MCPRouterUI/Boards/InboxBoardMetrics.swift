@@ -49,6 +49,16 @@
         /// a desk, and expressed in the sidebar unit so it moves with the rest of the system.
         static var qrSize: Double { MetricToken.sidebar.leadingScalar - unit * 2 }
         static var qrRadius: Double { MetricToken.selectionRadius.leadingScalar }
+
+        /// The expiry ring's outer size, and the weight it is drawn at.
+        ///
+        /// It sits on the caption line beside the countdown, so it is the smallest control the
+        /// ladder names (`Control mini`, 16pt) rather than a size picked to look right; the stroke
+        /// is `Focus ring` (2pt), the one hairline-plus weight §2 publishes. The superseded
+        /// prototype draws 15px at 2px, which is what these two tokens land on either side of —
+        /// close enough that no value here is a number nobody documented.
+        static var expiryRing: Double { MetricToken.controlMini.leadingScalar }
+        static var expiryRingStroke: Double { MetricToken.focusRing.leadingScalar }
     }
 
     /// Where each of `DESIGN.md` §5's nine states is met on this board.
@@ -86,7 +96,11 @@
     enum PairingSheetStates {
         static func treatment(for state: SurfaceState) -> String {
             switch state {
-            case .populated: "Phase.live — the QR, the code, the countdown"
+            case .populated:
+                """
+                Phase.live — the QR, the code, the countdown with its depleting ring, and the \
+                typed-code fallback sentence
+                """
             case .empty:
                 """
                 not a state here: a sheet with no code is Phase.noEndpoint or .preparing, both of \

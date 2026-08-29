@@ -70,6 +70,61 @@
         }
     }
 
+    /// The expiry, drawn as a depleting arc beside the words that say the same thing.
+    ///
+    /// **Determinate, where the mock's ring is an indeterminate spinner.** The mock defines it as
+    /// `animation:spin 2s linear infinite`, `design/mocks/prototype.html:287` at `08a24ed`, and a
+    /// head that turns at the same rate with four minutes left and with four seconds left carries
+    /// no information about the thing it sits next to. Worse on this build than in general: nothing in
+    /// either app target binds a listener, so a spinner on the pairing sheet reads as this Mac
+    /// waiting for a phone, which is the one thing it is not doing.
+    ///
+    /// The fraction it draws IS observed — this Mac issued the code and holds both ends of its
+    /// window — so `IssuedPairingCode.fractionRemaining(at:)` is what `DESIGN.md` §6 permits to
+    /// reach a screen, and a spinner is what it does not.
+    ///
+    /// **The design of record draws no ring at all**: it states the expiry as text alone, reading
+    /// `expires in 2:41`, `design/mcp-router-console.html:3853` at `08a24ed`. This sheet is not converted to
+    /// it — its lede is the prototype's
+    /// word for word — so the prototype is the citable design for this surface (`ORCHESTRATOR.md`,
+    /// Design authority), and converting it is `M23`'s contract rather than this item's.
+    ///
+    /// No animation and no implicit transition: the arc changes once a second because
+    /// `PairingSessionModel.now` changes, which is a redraw rather than motion, so there is nothing
+    /// here for Reduce Motion to switch off.
+    ///
+    /// Hidden from the accessibility tree because the label beside it carries the same fact in
+    /// words. VoiceOver reading one countdown twice is noise, and the ring is never the only place
+    /// the remaining time appears.
+    struct PairingExpiryRing: View {
+        let fraction: Double
+
+        var body: some View {
+            ZStack {
+                Circle()
+                    .strokeBorder(
+                        ColorToken.lineStrong.color,
+                        lineWidth: InboxBoardMetrics.expiryRingStroke
+                    )
+                Circle()
+                    .inset(by: InboxBoardMetrics.expiryRingStroke / 2)
+                    .trim(from: 0, to: fraction)
+                    .stroke(
+                        ColorToken.attention.color,
+                        style: StrokeStyle(
+                            lineWidth: InboxBoardMetrics.expiryRingStroke,
+                            lineCap: .round
+                        )
+                    )
+                    // Twelve o'clock rather than three, so the arc empties the way a clock face
+                    // reads. A static transform, not motion.
+                    .rotationEffect(.degrees(-90))
+            }
+            .frame(width: InboxBoardMetrics.expiryRing, height: InboxBoardMetrics.expiryRing)
+            .accessibilityHidden(true)
+        }
+    }
+
     /// The Mac half of pairing.
     ///
     /// **The state a Release build reaches is `noEndpoint`, and that is the point of the sheet's
@@ -151,6 +206,7 @@
 
                 warning
                 countdown
+                typedFallback
             }
         }
 
@@ -169,14 +225,37 @@
 
         /// An **observed** expiry — this Mac issued it — which is what makes a countdown here
         /// legitimate where the phone's typed path has none.
+        ///
+        /// The ring and the text are two renderings of one reading: both come off
+        /// `PairingSessionModel.now`, and both are absent together, because a live code always has
+        /// a remaining interval and a fraction of the window it was issued for. The ring is drawn
+        /// only where the model hands one over rather than defaulted to full, so a window that
+        /// could not be read draws nothing instead of drawing a lie about how much time is left.
         @ViewBuilder
         private var countdown: some View {
             if let remaining = session.remaining {
-                Text(InboxCopy.Pairing.expiresIn(remaining))
-                    .typeRole(.caption)
-                    .monospaced()
-                    .foregroundStyle(ColorToken.t2.color)
+                HStack(spacing: InboxBoardMetrics.labelGap) {
+                    if let fraction = session.fractionRemaining {
+                        PairingExpiryRing(fraction: fraction)
+                    }
+                    Text(InboxCopy.Pairing.expiresIn(remaining))
+                        .typeRole(.caption)
+                        .monospaced()
+                        .foregroundStyle(ColorToken.t2.color)
+                }
             }
+        }
+
+        /// What to do when the camera will not read the code.
+        ///
+        /// A sentence rather than a button, and `InboxCopy.Pairing.typeInsteadDetail` carries the
+        /// argument for that. It sits under the countdown rather than beside it because it wraps
+        /// and the countdown does not.
+        private var typedFallback: some View {
+            Text(InboxCopy.Pairing.typeInsteadDetail)
+                .typeRole(.caption)
+                .foregroundStyle(ColorToken.t3.color)
+                .fixedSize(horizontal: false, vertical: true)
         }
 
         private var expired: some View {

@@ -217,6 +217,104 @@ struct MacPairingTests {
         #expect(Set(outcomes.map(String.init(describing:))).count == refusals.count)
         #expect(outcomes.allSatisfy { !$0.isSuccess })
     }
+
+    // MARK: - M39 · the fraction the expiry ring draws
+
+    /// The two ends of the ring, and the one in the middle.
+    ///
+    /// Read against `MacPairing.lifetime` deliberately, because the interesting mutation is the one
+    /// that reads the constant *instead* of the window — and the test below is what tells the two
+    /// apart. This one would pass under either reading, which is why it is not the only one.
+    @Test("the fraction spans the issued window, one to nil")
+    func fractionSpansTheWindow() throws {
+        let issued = MacPairing.issue(at: Self.now)
+        #expect(issued.fractionRemaining(at: Self.now) == 1)
+
+        let half = try #require(
+            issued.fractionRemaining(at: Self.now.addingTimeInterval(MacPairing.lifetime / 2))
+        )
+        #expect(abs(half - 0.5) < 0.0001, "halfway through the window the ring is half full")
+
+        let nearlyGone = try #require(
+            issued.fractionRemaining(at: Self.now.addingTimeInterval(MacPairing.lifetime - 1))
+        )
+        #expect(nearlyGone > 0 && nearlyGone < 0.01)
+
+        #expect(
+            issued.fractionRemaining(at: Self.now.addingTimeInterval(MacPairing.lifetime)) == nil,
+            "a dead code has no fraction, matching timeRemaining rather than returning zero"
+        )
+    }
+
+    /// **The denominator is the window this code was issued for, not the five-minute constant.**
+    ///
+    /// `PairingSessionModel.issue` takes its lifetime from the service rather than from
+    /// `MacPairing.lifetime`, precisely so a transport that mints shorter-lived codes is described
+    /// accurately — and so the near-expiry state is reachable at all. A fraction computed against
+    /// the constant would draw a ring that starts one-sixth full for a fifty-second code and never
+    /// empties, which is a shape saying something nobody observed.
+    ///
+    /// Written as the ratio rather than as a literal so the assertion states the rule: at the
+    /// midpoint of ANY window the ring is half full.
+    @Test("a code with a shorter window still spans one to nil")
+    func theDenominatorIsTheIssuedWindow() throws {
+        let shortLifetime: TimeInterval = 50
+        #expect(shortLifetime != MacPairing.lifetime, "the arm needs the two to differ")
+        let issued = MacPairing.issue(at: Self.now, lifetime: shortLifetime)
+
+        #expect(issued.fractionRemaining(at: Self.now) == 1)
+        let half = try #require(
+            issued.fractionRemaining(at: Self.now.addingTimeInterval(shortLifetime / 2))
+        )
+        #expect(abs(half - 0.5) < 0.0001)
+        #expect(issued.fractionRemaining(at: Self.now.addingTimeInterval(shortLifetime)) == nil)
+    }
+
+    /// The two shapes that would make the arc draw unpredictably rather than fail.
+    ///
+    /// A clock earlier than `issuedAt` is representable — an injected clock, or a system clock
+    /// stepping back — and would compute a fraction above 1. A window of zero or less would divide
+    /// by zero. Both are answered here rather than left for `Shape.trim` to interpret.
+    @Test("a backwards clock clamps and a degenerate window has no fraction")
+    func theFractionIsBounded() {
+        let issued = MacPairing.issue(at: Self.now)
+        #expect(
+            issued.fractionRemaining(at: Self.now.addingTimeInterval(-60)) == 1,
+            "a fraction above one would trim an arc past its own length"
+        )
+
+        let degenerate = IssuedPairingCode(code: issued.code, issuedAt: Self.now, expiresAt: Self.now)
+        #expect(degenerate.fractionRemaining(at: Self.now) == nil)
+        // The reading that reaches the WINDOW guard rather than `timeRemaining`'s: a zero-length
+        // window read from before it was issued. `timeRemaining` answers sixty seconds there, so
+        // without the guard the fraction is 60/0 — an infinity `min(_:, 1)` returns as a full ring.
+        // Measured while arming: the two lines above leave that guard unreachable and it can be
+        // deleted with every assertion still green.
+        #expect(degenerate.fractionRemaining(at: Self.now.addingTimeInterval(-60)) == nil)
+
+        let inverted = IssuedPairingCode(
+            code: issued.code,
+            issuedAt: Self.now,
+            expiresAt: Self.now.addingTimeInterval(-1)
+        )
+        #expect(inverted.fractionRemaining(at: Self.now) == nil)
+    }
+
+    /// The ring and the countdown are two renderings of one reading, so they must be absent
+    /// together. Asserted across the whole window rather than at one instant, because a disagreement
+    /// at any second is a ring drawn under no label or a label with no ring.
+    @Test("the fraction is nil exactly when the remaining interval is")
+    func theFractionAgreesWithTheCountdown() {
+        let issued = MacPairing.issue(at: Self.now)
+        for offset in stride(from: -10.0, through: MacPairing.lifetime + 10, by: 1) {
+            let instant = Self.now.addingTimeInterval(offset)
+            #expect(
+                (issued.fractionRemaining(at: instant) == nil)
+                    == (issued.timeRemaining(at: instant) == nil),
+                "the two disagreed at \(offset)s"
+            )
+        }
+    }
 }
 
 @Suite("M6 — A9 · wire-format conformance with the phone")

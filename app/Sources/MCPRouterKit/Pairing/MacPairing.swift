@@ -70,6 +70,28 @@ public struct IssuedPairingCode: Sendable, Equatable {
         let remaining = expiresAt.timeIntervalSince(now)
         return remaining > 0 ? remaining : nil
     }
+
+    /// How much of this code's window is still to run, as a fraction of the whole.
+    ///
+    /// **The denominator is `issuedAt ... expiresAt`, never `MacPairing.lifetime`.** Both ends were
+    /// observed on this Mac, so the fraction is an observed quantity and drawing it is `DESIGN.md`
+    /// §6 kept rather than bent. Reading the constant instead would draw a ring that starts part
+    /// full and never reaches either end for a code issued with any other lifetime — and
+    /// `PairingSessionModel.issue` deliberately takes its lifetime from the service rather than
+    /// from this type, precisely so a shorter-lived code is described accurately.
+    ///
+    /// nil once the code has gone, matching `timeRemaining(at:)` rather than returning zero: the
+    /// two are read together, and a ring that drew an empty circle under a countdown that had
+    /// stopped rendering would be a shape standing for nothing.
+    ///
+    /// Clamped at 1 rather than trusted, because `now` earlier than `issuedAt` is representable —
+    /// a clock injected for a test, or a system clock stepping backwards — and an arc trimmed
+    /// beyond its own length draws unpredictably instead of failing.
+    public func fractionRemaining(at now: Date) -> Double? {
+        let window = expiresAt.timeIntervalSince(issuedAt)
+        guard window > 0, let remaining = timeRemaining(at: now) else { return nil }
+        return min(remaining / window, 1)
+    }
 }
 
 /// Why this Mac refused a pairing request.

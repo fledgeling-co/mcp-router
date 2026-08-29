@@ -247,7 +247,13 @@ public struct MCPEndpoint: Sendable {
     /// Read through the **store**, never a snapshot: an `mcp-router index` run while this process is
     /// up must reach the next client that lists tools. The caller's own directory is part of the
     /// answer, because a scoped server is served to some projects and not others.
-    private func listTools() async -> JSONValue {
+    ///
+    /// `internal` rather than `private`, which is the accessibility its sibling ``callTool(_:)``
+    /// already has and for the same reason: this is the function that decides what a session is
+    /// served, so it is the only honest read-back for a route that claims to have changed that.
+    /// M38's witness asks it after striking `POST /servers/:name/approve` through the control
+    /// handler; asking the approve response instead would be asking the writer whether it wrote.
+    func listTools() async -> JSONValue {
         let identity = await currentIdentity()
         let manifest = await deps.manifest.current()
         let tools = ToolUnion.unionTools(

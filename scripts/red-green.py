@@ -895,6 +895,75 @@ mut(
 )
 
 
+# ---------------------------------------------------------------- M38: the promotion at the catalog
+#
+# APP-1..5 arm `ControlApproveCatalogTests`, which reads `POST /servers/:name/approve` back through
+# `MCPEndpoint.listTools()` rather than through the route's own answer. Every arm below mutates the
+# route or the store, never the endpoint's own reader, so a kill says the assertion is watching the
+# write rather than watching itself.
+#
+# Ids outside `M01..M59` on purpose: this file's mutation namespace collides with the fleet's item
+# ids, and `M38` here would read as the thirty-eighth mutation.
+#
+# WHAT PROVING THESE COST, RECORDED BECAUSE IT IS THE FAILURE THIS FILE EXISTS TO REFUSE: APP-3's
+# first form used `if false {` to keep the catch block's braces balanced, which does not compile.
+# A scoped `swift test` run then produced no `recorded an issue` line at all, and a hand harness
+# reading only for reds called that SURVIVED — a mutation that measured nothing, reported as a
+# decoration exposed. This harness gets it right (`COMPILE_RE` demotes a non-compiling mutation),
+# and the arm below is the form that compiles and kills.
+
+mut(
+    "APP-1", "M38", "the promotion writes the pending tools, so the session is served them",
+    ROUTER_CORE / "Auth" / "AuthRoutes.swift",
+    '        updated.set("tools", pending.member("tools") ?? .array([]))',
+    "",
+    ["a held surface is not served", "a second approve is refused"],
+)
+
+mut(
+    "APP-2", "M38", "the promotion lands on the named entry and no other",
+    ROUTER_CORE / "Auth" / "AuthRoutes.swift",
+    "        manifest.setEntry(server.string, updated)",
+    "        for entry in manifest.serverEntries { manifest.setEntry(entry.name.string, updated) }",
+    # The sibling control. Without it every assertion about `held` is also passed by a route that
+    # promoted the whole manifest.
+    "a held surface is not served",
+)
+
+mut(
+    "APP-3", "M38", "R21 stays fixed: a refused write is reported rather than answered 200",
+    ROUTER_CORE / "Auth" / "AuthRoutes.swift",
+    "        do {\n"
+    "            try ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)\n"
+    "        } catch {\n"
+    '            let msg = "failed to write manifest: \\(error.localizedDescription)"\n'
+    "            return Promotion(status: 500, body: .object([\n"
+    '                JSONMember(key: "error", value: .string(JSString(msg)))\n'
+    "            ]), approved: 0)\n"
+    "        }\n",
+    "        try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)\n",
+    "a refused manifest write leaves the served catalog",
+)
+
+mut(
+    "APP-4", "M38", "an entry with nothing pending is refused rather than promoted again",
+    ROUTER_CORE / "Auth" / "AuthRoutes.swift",
+    "            let pending = entry.pending,\n            pending.isTruthy",
+    "            let pending = entry.pending ?? .object([]) as JSONValue?,\n            true",
+    "a second approve is refused",
+)
+
+mut(
+    "APP-5", "M38", "the served catalog is read through a store that re-reads the moved file",
+    ROUTER_CORE / "Manifest" / "ManifestStore.swift",
+    "        guard current != stamp else { return manifest }",
+    "        guard false, current != stamp else { return manifest }",
+    # The arm that proves the read-back is the SERVING path rather than a fresh load: a store that
+    # never notices the file moved keeps answering the pre-approval catalog.
+    ["a held surface is not served", "a second approve is refused"],
+)
+
+
 RESULTS = []
 
 

@@ -1,0 +1,36 @@
+mcp-router · lanes: macos-glass, ios-glass, swiftui, router-daemon, parity-wire
+Requirements: 28 inventoried, 0 with no case
+Surfaces:   28 enumerated, 0 with no case
+External effects: examined=9 witnessed=8 vacuous=0 unwitnessed=1 — armed proves the suite bites, and only a witness proves the product acted.
+  Effect claimed, no witness: REQ-016 (contradicted)
+Cases:      119 pass · 7 fail · 0 skip · 5 n/a · 0 carried · 0 inconclusive · 1 unoracled · 0 blocked · 0 open  (of 132)
+Observed:   126/132 cases produced a measurement · 6 could not be measured · 0 not attempted
+On glass:   ios-glass → /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug-iphonesimulator/MCPRouterIOS.app (XCUITest runner attached out-of-process to app.fledgeling.mcprouter.ios on MCPRouter-Glass (995BEF6F-101F-4D8A-ACE5-38724A13689A, iPhone 17 Pro, iOS 26.5), a device this lane creates and owns. Six green runs on 20 Aug 2026, 5 of 5 tests each; the last two were on the final source state and the four before them each carried one fewer fix. The four red runs between them were deliberate mutation arms, listed on CASE-0024, CASE-0122, CASE-0124 and CASE-0125. Simulator.app never opened and Ghostty stayed frontmost throughout. The device is lane-owned because a shared one was not: DEF-020 was another project's VPN app holding the foreground and receiving this lane's taps, and five runs failed on a different tab each time before anyone photographed the device itself.)
+On glass:   macos-glass → /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app (axkit attached pid=72421 owns CGWindowID 191539 title Activity; frontmost before/after = Relay)
+On glass:   swiftui → NOT attached: ?
+Oracles:    structural 1 · structural-visual 1 · outcome 71 · metamorphic 13 · effect-witness 8 · raster-visual 32
+Off-ladder: source-analysis 6 — reads source, runs nothing, buys no effect credit
+Armed:      119/119 passing cases have been watched to fail
+Lane:       ios-glass — 12 case(s) · 11 pass · 11 at an effect rung · 11 armed · outcome:6 raster-visual:6
+Lane:       ios-unit — 2 case(s) · 2 pass · 0 at an effect rung · 2 armed · source-analysis:2
+Lane:       macos-glass — 58 case(s) · 46 pass · 46 at an effect rung · 46 armed · metamorphic:5 outcome:30 raster-visual:23
+Lane:       parity-wire — 1 case(s) · 1 pass · 1 at an effect rung · 1 armed · outcome:1
+Lane:       router-daemon — 25 case(s) · 25 pass · 25 at an effect rung · 25 armed · effect-witness:8 metamorphic:2 outcome:14 raster-visual:1
+Lane:       swiftui — 34 case(s) · 34 pass · 28 at an effect rung · 34 armed · metamorphic:6 outcome:20 raster-visual:2 source-analysis:4 structural:1 structural-visual:1
+Planes:     NOT DECLARED — no case says what it was checked against, so a green suite over in-process doubles is indistinguishable from one over the running product.
+Journeys:   NOT DECLARED — no multi-step task is modelled, so nothing here counts one. A journey is a history, and no per-surface count can see it.
+Controls:   29 of 141 declared control(s) actuated by a passing effect-rung case, across 14 surface(s) that declare any
+Scope:      FULL — every case in the campaign was run
+Sample:     pairwise floor; 3-way on theme×viewport×surface (Mac boards) and role×state×network (honesty); oversample honesty-guardrails; drop high-contrast (no authored tokens); drop RTL (no localisation); pairing-transport cells blocked (I5: unimplemented)
+
+Worth reading, not blocking:
+  · 1 lane(s) whose every passing case sits below `outcome` (ios-unit (2 passing case(s), none above `structural`) (showing 1 of 1)) — proved to render, not to work
+
+Not ready to report:
+  · 1 case(s) unoracled — no property is specified that any check could read, so no instrument will settle them. These need an oracle built before any authority can close them; see references/oracle-construction.md
+  · 7 surface(s) declaring controls that no passing effect-rung case actuates (SURF-005 (9 control(s) declared, 0 actuated), SURF-008 (6 control(s) declared, 0 actuated), SURF-009 (7 control(s) declared, 0 actuated) … (showing 3 of 7)) — a control renders, carries a name and accepts a click whether or not its handler does anything
+  · 2 case(s) actuating a control their surface never declared (CASE-0207 actuates Servers (showing 1 of 1) — not among SURF-002's declared controls, CASE-0209 actuates kill the router underneath a running app (showing 1 of 1) — not among SURF-002's declared controls (showing 2 of 2)) — add the control to the surface, so the census has a denominator to count against
+  · 1 requirement(s) declaring an effect class the census does not recognise — an unrecognised class drops out of the count rather than failing, so it reads as no effect at all
+Wall:       21 published shot(s) · 21 distinct image(s)
+
+Finish them, resolve each to skip:/n-a: with a reason, or declare the stop with its resume point — in the reply, the verdict line and the report. Never silently.

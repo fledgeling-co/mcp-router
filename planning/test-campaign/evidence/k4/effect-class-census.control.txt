@@ -1,0 +1,12 @@
+# effect-class-census.py --control  ·  2026-08-29T04:19:50Z  ·  83e5380
+recognised: subprocess, outbound-socket, inbound-socket, packet-filter, multicast, filesystem-write, device, ipc, none
+  agreed by 24 copy/copies of the instrument across 12 origin(s): vendor, cache 0.10.0, cache 0.11.0, cache 0.13.0, cache 0.14.1, cache 0.15.0, cache 0.16.0, cache 0.9.3, cache 0.9.4, cache 0.9.6, cache 0.9.8, cache 0.9.9
+control: ok     an unrecognised effect class                         expected 1 finding(s), got 1
+control: ok     a narrowing naming a class the census DOES hold      expected 1 finding(s), got 1
+control: ok     a narrowing that does not spell itself `none`        expected 1 finding(s), got 1
+control: ok     a narrowing with no provider                         expected 1 finding(s), got 1
+control: ok     a narrowing whose provider resolves to nothing       expected 1 finding(s), got 1
+control: ok     a clean row                                          expected 0 finding(s), got 0
+control: ok     a clean narrowing                                    expected 0 finding(s), got 0
+control: 7 of 7 arms as expected.
+EXIT=0

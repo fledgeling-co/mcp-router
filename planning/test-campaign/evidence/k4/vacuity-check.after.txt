@@ -1,0 +1,33 @@
+# vacuity-check.py --gate (test-campaign 0.14.1)  ·  2026-08-29T04:20:14Z  ·  83e5380
+unclassed:  examined=28 findings=0
+uncensused: examined=9 findings=1
+  · REQ-016 declares a outbound-socket effect and records no `provider` — nothing in production source is named as able to perform it
+  providers: 8 of 9 named, 8 resolved under /Volumes/LLMs/Dev/mcp-router/.worktrees/K4 (campaign.json sourceRoot, 494 production file(s))
+blind:      examined=2282 mutating=481 re-read-after=370 blind=111
+  corpus: /Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app (campaign.json testRoot, 276 file(s))
+  blocks: declaration-style 2511 · arrow-style it/test 5
+  vocabulary: campaign.blindVocabulary only — defaults not applied — 19 mutator(s), 34 reader(s)
+  readers: load, read, list, get, fetch, calls, entries, snapshot, contents, resolve, decode, parse, fileExists, servers, current, latest, lookup, query, sample, status, rows, items, names, values, history, records, events, isEmpty, description, output, observe, inspect, dump, peek
+  · testTheAccessibilityEngineCanBeSwitchedOn — last mutator 'remove', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/MCPRouterIOSTests/PhoneSurfaceTests.swift)
+  · testHostPropagatesContentSizeIntoTheSwiftUIEnvironment — last mutator 'remove', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/MCPRouterIOSTests/PhoneSurfaceTests.swift)
+  · testContentStaysInsideTheSafeArea — last mutator 'set', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/MCPRouterIOSTests/PhoneSurfaceTests.swift)
+  · testEachTabRendersItsOwnSurface — last mutator 'set', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/MCPRouterIOSTests/TriageSurfaceIOSTests.swift)
+  · testSkeletonMatchesTheRowItReplaces — last mutator 'set', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/MCPRouterIOSTests/DiscoverSurfaceIOSTests.swift)
+  · testShippingAppComposesTheFixtureService — last mutator 'toggle', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/MCPRouterIOSTests/PairingTransportProbeTests.swift)
+  · undoRestoresTheItem — last mutator 'remove', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/Tests/MCPRouterUITests/QueueModelTests.swift)
+  · refusedRemovalIsSurfaced — last mutator 'remove', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/Tests/MCPRouterUITests/QueueModelTests.swift)
+  · opensOnScanner — last mutator 'start', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/Tests/MCPRouterUITests/PhoneFlowTests.swift)
+  · blockedCameraStates — last mutator 'start', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/Tests/MCPRouterUITests/PhoneFlowTests.swift)
+  · releaseIsAlwaysLive — last mutator 'release', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/Tests/MCPRouterUITests/ShellClientFactoryTests.swift)
+  · malformedEntriesReadAsAbsent — last mutator 'set', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/Tests/MCPRouterUITests/ShellFrameRestorationTests.swift)
+  · projectsSendsAnExplicitArray — last mutator 'add', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/Tests/MCPRouterUITests/ServersBoardWriteTests.swift)
+  · removeConsequenceBranches — last mutator 'remove', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/Tests/MCPRouterUITests/ServersBoardWriteTests.swift)
+  · reconnectIsNotReentrant — last mutator 'start', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/Tests/MCPRouterUITests/ActivityReconnectTests.swift)
+  · reconnectIsNotDeadAfterItsFirstSuccess — last mutator 'stop', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/Tests/MCPRouterUITests/ActivityReconnectTests.swift)
+  · returnOpensHeldReview — last mutator 'commit', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/Tests/MCPRouterUITests/SkillsMenuTests.swift)
+  · returnIsIgnoredOtherwise — last mutator 'commit', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/Tests/MCPRouterUITests/SkillsMenuTests.swift)
+  · returnIsIgnoredWithNoSelection — last mutator 'commit', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/Tests/MCPRouterUITests/SkillsMenuTests.swift)
+  · removalDialogDoesNotOverstateAScopedServer — last mutator 'remove', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/Tests/MCPRouterUITests/ServersBoardHonestyTests.swift)
+
+vacuity: requirements=28 external=9 findings=112
+EXIT=1

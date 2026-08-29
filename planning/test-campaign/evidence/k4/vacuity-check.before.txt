@@ -1,0 +1,14 @@
+unclassed:  examined=28 findings=0
+uncensused: examined=9 findings=1
+  · REQ-016 declares a outbound-socket effect and records no `provider` — nothing in production source is named as able to perform it
+  providers: 8 of 9 named, 8 resolved under /Volumes/LLMs/Dev/mcp-router/.worktrees/K4 (campaign.json sourceRoot, 494 production file(s))
+blind:      examined=2282 mutating=3 re-read-after=0 blind=3
+  corpus: /Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app (campaign.json testRoot, 276 file(s))
+  blocks: declaration-style 2511 · arrow-style it/test 5
+  vocabulary: defaults only — campaign.json declares no blindVocabulary — 9 mutator(s), 7 reader(s)
+  readers: list_, get_, read_, fetch_, sample_, count_, load_
+  · restartRechecksTheCamera — last mutator 'restart', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/Tests/MCPRouterUITests/PhoneStorageFailureTests.swift)
+  · restartIsIssuedBeforeTheStagingWrite — last mutator 'restart', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/Tests/RouterCoreTests/WatchRestartTests.swift)
+  · restartIsOwedBeforeTheWriteLands — last mutator 'restart', no read after it (/Volumes/LLMs/Dev/mcp-router/.worktrees/K4/app/Tests/RouterCoreTests/WatchRestartTests.swift)
+
+vacuity: requirements=28 external=9 findings=4

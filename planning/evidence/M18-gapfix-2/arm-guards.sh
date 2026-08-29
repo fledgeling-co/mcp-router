@@ -189,11 +189,20 @@ arm "the destructive button filled again" \
     '        if role == .destructive { return isPressed ? .f1 : .raised }' \
     'ButtonPaletteTests|MockButtonFidelityTests'
 
-# 7 — the design of record made to draw a disabled primary, which is the input rather than the code.
-arm "a disabled primary planted in the mock" \
+# 7 — the design of record's disabled-primary treatment removed, which is the input rather than the
+# code.
+#
+# **This arm used to plant `class="btn primary disabled"` on a control, and it stopped biting.**
+# Not because a guard went blind: `M31` landed in the meantime and gave the mock a
+# `.btn.primary:disabled,.btn.primary.disabled` rule that dims it, so a planted disabled primary
+# became a *conforming* shape and there was nothing left for the arm to prove. The old arm was
+# still counted as bitten by the harness's own exit-code reading, which is why gap-fix 4 replaced
+# that reading before finding this. The live property is the rule M31 added, and this arm takes one
+# of its two spellings away — `theMockDimsTheDisabledPrimary` reads both.
+arm "the mock's disabled-primary rule loses a spelling" \
     design/mcp-router-console.html \
-    'class="btn primary"' \
-    'class="btn primary disabled"' \
+    '.btn:disabled,.btn.disabled,.btn.primary:disabled,.btn.primary.disabled{' \
+    '.btn:disabled,.btn.disabled,.btn.primary:disabled{' \
     'MockButtonFidelityTests'
 
 # 8 — the mock's destructive rule given a fill, so the claim the style rests on stops holding.

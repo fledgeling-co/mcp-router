@@ -55,6 +55,12 @@ THE RULES, WHICH ARE UPSTREAM'S AND NOT THIS FILE'S
   * Only `actuates` names that are IN the surface's declared list count. A name outside it is a
     finding, not a count: it means the case and the registry disagree about what the surface
     carries, and the census has nothing to count it against.
+  * A case may name `actuatesSurface` when the control it PRESSES belongs to a different surface
+    from the one it is filed against -- you reach a board by pressing the shell's sidebar, and the
+    press is the shell's control while the claim is the board's. Added by K3, because two J5 cases
+    on SURF-002 named `Servers` (SURF-001's sidebar row) and read as a registry contradiction when
+    both halves were correct. It relaxes nothing: the name must still be declared on the surface it
+    now points at, and a case that points at a surface declaring no controls is still a stray.
   * Only a PASSING case at an effect rung moves the count. `outcome`, `metamorphic`,
     `effect-witness`, `raster-visual` and `interactive-glass` are the effect rungs; a
     presence-rung or structural-rung pass that clicked a control and asserted the control is still
@@ -126,7 +132,8 @@ def main() -> int:
         if not names:
             no_actuation.append(str(c.get("id") or "<case with no id>"))
             continue
-        sid = c.get("surface")
+        # Where the control lives, which is not always where the case is filed.
+        sid = c.get("actuatesSurface") or c.get("surface")
         if sid not in declared:
             strays.append(f"{c['id']} actuates {len(names)} control(s) on "
                           f"{sid or 'no surface'}, which declares none")

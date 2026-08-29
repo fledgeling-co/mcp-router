@@ -2034,5 +2034,131 @@
   "armed": false,
   "evidence": [],
   "note": "F5. With no reporter wired, GET /invocations answers 503 naming that the router was never pointed at a transcript corpus, not an empty window. ControlDeps' optional ports have shipped nil in RouterServiceDispatch twice with a green suite (control-registry-search, D-p1-a), which is a 503 on a whole family no unit test could see."
+ },
+ {
+  "id": "CASE-0270",
+  "req": "REQ-035",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "R22. Every CONFIGURED credential is absent from the bundle, and the document that omits it is a real one. The absence alone is the easiest unfailable assertion in this repository: it holds over an empty document, over a 404, and over a gatherer that never read the config. So it is asserted beside three things that must be PRESENT \u2014 a public canary planted in the same log line, the env key name, and the header key name \u2014 and beside `\"value\":\"present\"`, which proves a decision was taken about the value rather than the whole server having been skipped."
+ },
+ {
+  "id": "CASE-0271",
+  "req": "REQ-035",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "R22. Layer 2, and the channel layer 1 structurally cannot reach. A credential arrives in a diagnostics export by more routes than the field it was configured in: an upstream that rejects a call and quotes the token back in its error text, a command line carrying `--token=`, a log line somebody wrote by hand. Those are strings the bundle has every reason to carry, and the only thing distinguishing the secret inside one is its VALUE."
+ },
+ {
+  "id": "CASE-0272",
+  "req": "REQ-035",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "R22. The needle floor, which is a correctness rule rather than a performance one. An env value of `1`, `true` or `dev` used as a scrub needle deletes every occurrence of that text from every log line in the bundle \u2014 the timestamps, the ports, the word `device`. The result READS as thorough redaction and is a corrupted document, and nobody looking at it can tell which."
+ },
+ {
+  "id": "CASE-0273",
+  "req": "REQ-035",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "R22. A secret does not always reach a log line as itself. It reaches it percent-encoded when it travelled in a URL and base64-encoded when it travelled in a `Basic` credential, and a scrubber that knows only the literal reports a clean bundle over both. Both out-of-family lanes raised this independently and it is the one addition of theirs taken wholesale."
+ },
+ {
+  "id": "CASE-0274",
+  "req": "REQ-035",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "R22. The preview is a GET and GET is UNGATED in this router \u2014 `ControlHandler.gate` reads the token only for POST/DELETE/PATCH, matching the reference, recorded there as a ported defect rather than quietly fixed. So the preview is written to one rule: it discloses nothing `GET /servers` does not already disclose. Category names, counts, key names, and the redaction plan."
+ },
+ {
+  "id": "CASE-0275",
+  "req": "REQ-035",
+  "surface": "SURF-016",
+  "flow": null,
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "daemon",
+   "dataShape": "live-router",
+   "executionPlane": "headless"
+  },
+  "oracle": "outcome",
+  "status": "open",
+  "armed": false,
+  "evidence": [],
+  "note": "R22. The verb IS the gate, and it is not describing a mutation. The bundle changes nothing. It is a POST because stage 2 of `ControlHandler.handle` gates the token on POST/DELETE/PATCH only, so the verb is the only thing deciding whether this router hands its whole diagnostic corpus \u2014 log lines included \u2014 to any unauthenticated caller that can open the loopback port, which per `ControlToken` includes a web page the user merely visits."
  }
 ]

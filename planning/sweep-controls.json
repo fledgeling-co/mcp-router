@@ -1290,6 +1290,26 @@
         "scripts/lint/no-telemetry-egress-selftest.sh"
       ],
       "proves": "Three arms, and the third is the one this gate would otherwise die of. Arm 1 requires exit 0 on the unmutated tree. Arm 2 plants a file carrying URLSession into a SCRATCH COPY of the subject directory and requires exit 1 AND that the offending file is named \u2014 a gate that reddened without saying where is a claim rather than a finding. Arm 3 points the gate at a directory holding no Swift and requires exit 2: this gate asserts an ABSENCE, so a gate whose subject directory was renamed keeps exiting 0 forever and every reader downstream reads that as a measurement. It works in a scratch copy throughout, because a gate that mutates the working tree as a side effect of checking is a rule this repository learned the hard way. What it does NOT prove is that the pattern list is complete \u2014 a Swift name for reaching the network that is not in PATTERNS is invisible to both the gate and this control."
+    },
+    {
+      "path": "planning/test-campaign/bin/arm-r22-diagnostics.sh",
+      "disposition": "waived",
+      "markers": [
+        "V1",
+        "V2"
+      ],
+      "since": "2026-08-29",
+      "reason": "WAIVED FOR THE SAME REASON, one layer in: it runs `swift test` seven times and needs the package built, so a control on it inside `make lint` would be a build. It is also not a sweep that makes a claim about the product \u2014 it is the instrument that arms R22's cases, and its readings are of the SUITE rather than of the tree.\n\nIT ARMS ITSELF IN BOTH DIRECTIONS ALREADY, which is what a control here would otherwise add. Every arm is required to report a NON-ZERO test count, so a filter that matched nothing is a refusal rather than a silent pass \u2014 R27's arming pass recorded four arms reporting `0 tests passed` that would have gone green having compared nothing. Each arm names WHICH cases went red rather than only how many, which is what turns *the two layers are independent* from a claim in a comment into a measurement: ARM 1 reddens CASE-0270 and leaves CASE-0271 green, ARM 2 the reverse. A green baseline runs unmutated at the end, and the restore is checked against copies taken at the top rather than against `git status`, because three of the five files it mutates are new on this branch and git calls an untracked file modified whatever the pass did to it."
+    },
+    {
+      "path": "scripts/acceptance/r22-diagnostics.sh",
+      "disposition": "waived",
+      "markers": [
+        "V1",
+        "V3"
+      ],
+      "since": "2026-08-29",
+      "reason": "WAIVED BECAUSE IT NEEDS A BUILT BINARY, which is this registry's standing rule for an acceptance lane: it starts app/.build/debug/MCPRouterCLI on a scratch MCP_ROUTER_HOME, so a control here would either build inside `make lint` or report green on a machine where the lane cannot run at all. It is enrolled in scripts/acceptance/acceptance-lanes.sh, which is where a lane's own red is read.\n\nITS ABSENCE CLAIMS ARE ARMED, in the run itself and outside it, which is what the waiver is traded against. The lane asserts that a planted credential is absent from the bundle in three forms, and an absence assertion is the shape this gate exists to distrust. Three things inside the run stop it passing vacuously: the plant is grepped off disk in all four positions BEFORE the daemon starts and the lane exits 1 if fewer than four land; a public canary and both key names must be PRESENT in the reply, so a 404, a 503 or an empty document fails; and `occurrencesRemoved` must be non-zero. It also refuses to run at all if an encoded form comes out equal to the literal, because that is exactly how two of its assertions were unfailable in its first draft. Outside the run it was armed twice against a rebuilt CLI: removing layer 2 takes it to 19 ok / 4 failed and removing the encoded variants to 21 ok / 2 failed, both recorded in planning/plans/plan-R22.md."
     }
   ]
 }

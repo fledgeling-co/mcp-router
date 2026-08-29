@@ -269,6 +269,16 @@
       "evidence": "observed",
       "effect": "subprocess",
       "provider": "app/Sources/RouterCore/Health/UpstreamProbing.swift app/Sources/RouterCore/Pool/StdioUpstreamTransport.swift PoolUpstreamProbe \u2014 the probe leases the upstream from UpstreamPool and sends tools/list down it, which for a stdio upstream is the Process() in StdioUpstreamTransport. Witnessed by planning/test-campaign/bin/witness-health-probe.sh, whose sabotage arm denies the effect and requires the reading to flip."
+    },
+    {
+      "id": "REQ-035",
+      "class": "honesty-guardrail",
+      "text": "One action exports the router's recent log, every declared upstream with its live state and cached tool surface, and the recent tool calls \u2014 and no credential value leaves in it. A secret-bearing field is never placed in the document; every known secret value is removed from every string that does survive, in its literal, percent-encoded and base64 forms; a value too short to be scrubbed from free text is named rather than used; and the untokened preview carries counts and no content.",
+      "source": "planning/features-to-triage/daemon-diagnostics-bundle-export.md; planning/specs/spec-R22.md",
+      "evidence": "observed",
+      "effect": "inbound-socket",
+      "provider": "app/Sources/RouterCore/Control/ControlDiagnostics.swift routeDiagnostics and app/Sources/RouterCore/Control/ControlDiagnosticsJSON.swift bundleValue \u2014 the document is served on the loopback control listener bound by RouterService, which is the inbound socket this row names; app/Sources/RouterCore/Diagnostics/SecretRedactor.swift is the pass that decides what those bytes may contain. Witnessed by scripts/acceptance/r22-diagnostics.sh, which plants a credential literal in a real servers.json and a real router.log, drives the route over the daemon's own socket, and requires the plant to be provably present on disk before any absence in the reply counts.",
+      "note": "R22. The requirement is written as an honesty guardrail rather than a behaviour because the load-bearing half is a promise about what is NOT in the output, and this campaign's own history is that such a promise is satisfied trivially by producing nothing. Every case under it therefore pairs its absence with a presence: a public canary in the same log line, the key names, and a non-zero `occurrencesRemoved`.\n\nR25 (server configuration profile export with safe secret redaction) is the sibling and had NOT landed when this was built \u2014 checked at LEDGER.md, status To Do \u2014 so the redactor is new here rather than a second one. It is deliberately a general component under RouterCore/Diagnostics rather than private to the bundle, so R25 reuses it instead of writing a third."
     }
   ],
   "surface": [
@@ -1590,6 +1600,15 @@
       "title": "A stdio child that starts and then exits is not noticed, so acquisition waits out the whole startup budget",
       "text": "Measured by R27 on 2026-08-29 against the daemon on a scratch home. A server whose command exists and exits immediately (a shell that returns 17) is acquired for the full startupTimeoutMs and then reported as 'did not initialize within Nms': with the budget at 3000ms the probe took 3.15s wall clock. A server whose command does NOT exist fails in 0.01s, because the spawn itself throws. So the cost is specific to a child that spawns and dies, and the reason is that the handshake races connect() against a timer with no third branch for 'the process exited' - nothing watches the child's termination during startup.\n\nNOT FIXED HERE, and the reason is a boundary rather than effort. The race lives in StdioUpstreamTransport, which is the reference-diffed startup path R2 owns and R4 compares; adding an exit branch would change how this router reports a failure the reference reports differently, which is a parity decision and not a health-check one. R27's own bound is deliberately narrower - probeTimeoutMs covers the tools/list request so that 'the child never started' and 'the child answered too slowly' stay different answers - which means the budget that governs this arm is the upstream's startupTimeoutMs, and that is stated on the record rather than hidden.\n\nWHAT IT COSTS TODAY: a manual probe of a crash-looping stdio upstream blocks for the default 60s, and the caller has no way to shorten it except by setting that server's startupTimeoutMs. scripts/acceptance/r27-health.sh sets 1500 on its flaky fixture for exactly this reason, and says so.",
       "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "DEF-070",
+      "req": "REQ-035",
+      "surface": "SURF-016",
+      "title": "GET /servers discloses every stdio upstream's full argv to an unauthenticated local caller",
+      "text": "Found while building R22's redactor, filed rather than fixed. `Describe.row` emits `command` and `args` RAW, and `ControlHandler.gate` reads the token only for POST/DELETE/PATCH, so the complete command line of every stdio upstream is readable by anything that can open the loopback port. The same function is careful in the adjacent case \u2014 it emits `envKeys` and `headerKeys` and never a value, with B10's reasoning attached \u2014 so argv is the one credential-carrying position on that route that is published whole.\n\nIt matters because argv IS a credential channel: `--token=`, `--api-key=` and a connection string with an inline password are ordinary MCP server invocations, and R22 scrubs args for exactly that reason. The exposure predates R22 and is not made worse by it: the bundle's args go through the value scrub, and this route's do not.\n\nNOT FIXED HERE, and the reason is a parity decision rather than effort. `GET /servers` is reference-diffed \u2014 `control-servers-get` in planning/parity/surface.tsv, verdict `proven` \u2014 so redacting args moves a surface R4 compares byte for byte, and the ungated GET is itself a ported defect this repository records rather than silently repairs. Closing it means changing both routers or declaring a divergence, and that is the owner's call.",
+      "source": "app/Sources/RouterCore/Control/Describe.swift transportMembers; app/Sources/RouterCore/Control/ControlHandler.swift gate; src/control.ts is the reference half",
       "status": "open"
     }
   ]

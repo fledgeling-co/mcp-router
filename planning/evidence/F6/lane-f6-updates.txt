@@ -1,7 +1,7 @@
 # produced by: bash scripts/acceptance/f6-updates.sh
-# run at: 2026-08-29T09:44:16Z · MCPRouterCLI built from this worktree · scratch MCP_ROUTER_HOME
+# run at: 2026-08-29T10:25:39Z · MCPRouterCLI built from this worktree · scratch MCP_ROUTER_HOME
 
-F6 — /extensions/updates on the daemon's own socket, home /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/mcprouter-f6.g1zLgzrHu7
+F6 — /extensions/updates on the daemon's own socket, home /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/mcprouter-f6.PM2k667GeX
 
 the route is wired at all — the missing-dependency class
   ok   GET /extensions/updates answers                                200

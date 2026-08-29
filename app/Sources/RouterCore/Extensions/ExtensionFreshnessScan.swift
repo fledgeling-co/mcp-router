@@ -44,8 +44,21 @@ public enum ExtensionFreshnessScan {
         let store: any ExtensionStoring
         let staleAfter: Double
         let now: Double
-        private var catalogues: [String: MarketplaceCatalogue?] = [:]
-        private var read: [String: CatalogueReading] = [:]
+        /// One catalogue read once, held with what it offered.
+        ///
+        /// A `Dictionary`, and declared rather than waved past: `no-wire-codable.sh` refuses one in
+        /// this directory because a dictionary loses member order and code-unit key identity
+        /// (S4, S5, B24), and both of those objections are answered here rather than being absent.
+        /// **Order** does not survive to a caller — ``readings()`` sorts by name before returning,
+        /// so the array on the wire is a function of the names and not of the hash. **Key
+        /// identity** has no hazard to lose: a key is a marketplace's entry name, which
+        /// ``ExtensionNaming/isWellFormedName(_:)`` constrains to ASCII letters, digits, `.`, `_`,
+        /// `-` and `@`, so there is no astral-plane key and no canonically-equivalent pair for a
+        /// `String` comparison to fold together. What reaches the wire is the values, and they are
+        /// ordered on the way out.
+        // The marker must sit on the offending line or the one immediately above it.
+        // swift-wire-exempt: a memo, never serialised — readings() sorts by name on the way out
+        private var memo: [String: (reading: CatalogueReading, catalogue: MarketplaceCatalogue?)] = [:]
         private let marketplaceRoot: String
 
         init(store: any ExtensionStoring, staleAfter: Double, now: Double) {
@@ -56,7 +69,7 @@ public enum ExtensionFreshnessScan {
         }
 
         func readings() -> [CatalogueReading] {
-            read.values.sorted { $0.name < $1.name }
+            memo.values.map(\.reading).sorted { $0.name < $1.name }
         }
 
         func row(kind: ExtensionKind, record: ExtensionRecord) -> FreshnessRow {
@@ -107,9 +120,9 @@ public enum ExtensionFreshnessScan {
             }
             let plugin = String(split[0])
             let market = String(split[1])
-            let reading = catalogue(named: market)
-            let problem = reading.problem
-            let offer = catalogues[market].flatMap { $0 }?.offer(named: plugin)
+            let entry = catalogue(named: market)
+            let problem = entry.reading.problem
+            let offer = entry.catalogue?.offer(named: plugin)
             return FreshnessRow(
                 kind: .plugins, name: record.name, catalogue: market,
                 verdict: ExtensionFreshness.compare(
@@ -119,13 +132,14 @@ public enum ExtensionFreshnessScan {
         }
 
         @discardableResult
-        private func catalogue(named market: String) -> CatalogueReading {
-            if let existing = read[market] { return existing }
+        private func catalogue(
+            named market: String
+        ) -> (reading: CatalogueReading, catalogue: MarketplaceCatalogue?) {
+            if let existing = memo[market] { return existing }
             let path = (marketplaceRoot as NSString).appendingPathComponent(market)
             let stamp = ExtensionStamp.measure(path)
             let parsed = store.descriptorText(.marketplaces, name: market)
                 .flatMap { MarketplaceCatalogue.read(text: $0) }
-            catalogues[market] = parsed
             // A negative age is not a young one. When the catalogue's newest file is stamped ahead
             // of the router's clock — skew, a restored backup, an archive extracted with its own
             // timestamps — the difference is unmeasurable rather than small, and reporting it as a
@@ -172,8 +186,8 @@ public enum ExtensionFreshnessScan {
                 problem: problem,
                 ageProblem: ageProblem
             )
-            read[market] = reading
-            return reading
+            memo[market] = (reading, parsed)
+            return (reading, parsed)
         }
     }
 }

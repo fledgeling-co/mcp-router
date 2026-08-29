@@ -1,0 +1,10 @@
+  ok    clean                  exit 0, 0 findings
+  ok    dropped-row            exit 1, UNDISPOSITIONED
+  ok    flipped-carrier        exit 1, DISAGREES
+  ok    empty-note             exit 1, no note
+  ok    unknown-disposition    exit 1, is not one of
+  ok    no-pin                 exit 2, carries no
+  ok    stale-row              exit 1, STALE
+  ok    malformed-row          exit 1, MALFORMED
+
+carrier-parity-selftest: 8 arms, all as declared, and the tracked ledger is byte-identical.

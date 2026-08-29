@@ -1,0 +1,27 @@
+carrier parity — the two routers, and what landed in only one of them
+
+  control C1  ok    dropping 034251b must report UNDISPOSITIONED
+  control C2  ok    recording 034251b as typescript-only must report DISAGREES
+  control C3  ok    the census must find at least one one-sided landing across all history
+
+  window        afaad59..HEAD, 31 landings
+  touched a router in the window   5
+  of those, one-sided              5, each needing a row
+  one-sided BEFORE the pin         30, a stated backlog and not a pass
+
+  a fresh install selects the swift router, so a swift-only capability is reachable
+  on it and a typescript-only one is not. WHAT IS INSTALLED ON A GIVEN MACHINE IS
+  NOT A FACT THIS REPOSITORY HOLDS — R33 measured launchd agents running node on
+  2026-08-28, which is an install predating R4-C1, not a disagreement with the
+  line above.
+
+  one-sided landings in the window:
+    784dde9 r28            swift-only       swift=12  ts=0    divergent-recorded
+    b80c638 r29            typescript-only  swift=0   ts=6    divergent-recorded
+    516be61 r30            swift-only       swift=16  ts=0    divergent-recorded
+    567b5a1 r31            swift-only       swift=14  ts=0    divergent-recorded
+    034251b r32            swift-only       swift=6   ts=0    divergent-recorded
+
+carrier parity: 5 one-sided landing(s) in the window, 5 dispositioned, 0 findings.
+This gate REPORTS the split; it does not close it. Retiring src/*.ts is REQ-020 and
+stays the owner's decision.

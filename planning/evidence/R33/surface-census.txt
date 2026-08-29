@@ -1,0 +1,12 @@
+total	105
+group	authserver	8
+group	cli	10
+group	control	17
+group	divergence	26
+group	fixture	24
+group	install	5
+group	log	1
+group	mcp	5
+group	overlap	2
+group	pool	6
+group	state	1

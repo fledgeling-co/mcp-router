@@ -1,0 +1,42 @@
+landing	516be6160269b3f83c19904b1e1350622ab60e42	r30	swift-only	16	0
+landing	567b5a190ede5094191b5c3ea4778cb94a305ec3	r31	swift-only	14	0
+landing	034251b5b50962976b73f46678cc0628fa079e1a	r32	swift-only	6	0
+landing	b80c63851aee63e1843827d17dbd78fd61439b8b	r29	typescript-only	0	6
+landing	784dde98c33dd463496d25bfa3f63d21ae02883d	r28	swift-only	12	0
+landing	c735ab1167358e23d91c77d3241138d821084a3d	p9	typescript-only	0	5
+landing	8ca250df3edf79db54ab5d518412264055cbaf41	m30	both	3	2
+landing	da3d9a4b15d5028cbb65347847d263049f5ead11	m29	both	12	7
+landing	0e5ff49b57e1af2121faa87623b892ba4b1e9f5c	gate-repairs	swift-only	1	0
+landing	bbdc14b7ce947f3a75e3583eaa9f01cdb669f479	fix-shutdown-hang	typescript-only	0	2
+landing	9b5c0ef60121591be8d79d5304796bd26f07b700	R18	swift-only	1	0
+landing	8da8df8a29933dbd8d25039fc0c02f843c709d6a	R21	swift-only	1	0
+landing	070c9ce124364bdba08929d456145efa2a2b3c8b	R16	swift-only	1	0
+landing	ff05efd4c5a1ece3687c6098d733a868c7abcd13	R19-INT	both	4	5
+landing	4db287c6b91dd74124c0c44b1a670d6530dcd462	W1	swift-only	2	0
+landing	6595362cd2bcea0aec0bd2ff9e90773aff4dffb9	M22	swift-only	16	0
+landing	54666f78cb172284ed63174bf609694e39b1e0e6	R17	both	1	1
+landing	4429e3618ef9273436f0c0574a0c63295f93070e	R7	swift-only	9	0
+landing	4e18cc028fe858eeb35961bef9fa6e505a305107	G3	swift-only	3	0
+landing	2481e05aa39e7134d4ebcb0e222dca94576a85c1	R14 and R15	both	13	3
+landing	8241e0f3f2b2be45f66ea8e4b63dc1f98ef0c44f	main into ai/r10	both	3	1
+landing	a263bc5306679593b06d43556729fe179affb1c4	R10	swift-only	2	0
+landing	f52014425e0ab82fe114718f767ce06d490b4e5a	R10	swift-only	1	0
+landing	31cc45d1bcbb15aaf8bfa3aab20f5e329e26ff85	R10	swift-only	1	0
+landing	05794cef1492261d4da70e7436f1fb6c4996ddd5	R10 WIP	swift-only	4	0
+landing	22f80d296a43400554e817a73a88f80770ae61e6	r8 into main	both	7	5
+landing	df8d8113164b790d505696575905a8ddfbbe3432	r9 into main	swift-only	1	0
+landing	d7f41f71f87b6af1ca43fc628826ad27dedf28d8	p7 into main	swift-only	13	0
+landing	997f7afc3c1093d33bc66c6c9fde5514ba9697bb	D1	swift-only	2	0
+landing	f46602036c9adc8e09131784647e22cdf0a5433f	P3	swift-only	4	0
+landing	95d16f91400db29e661b7a25e11be08fb71f0cd3	P2	swift-only	8	0
+landing	496f88c2afa49b9b698f6ded322ac8dbd469a469	P1	swift-only	5	0
+landing	29af3ebc0ccaf6ab6de43218c3d952576b380ae3	V1	swift-only	15	0
+landing	8e48a80f20e42d99e906dbb1cb68aff23a324ba8	R2-W	swift-only	15	0
+landing	62678aa542195b5312b5f280aabaea384d343041	R2-R	swift-only	22	0
+landing	b7c527c574ca8af729fb18c059bd249781cdb23a	R5	swift-only	12	0
+landing	e154bae5292664353c01c067c291d33f88149cfd	R3	swift-only	22	0
+landing	a8091bbea295bdb528ed502b15673ed1c2e16453	R2	swift-only	9	0
+landing	c30eac918d7a97311b1cd4578c13f1a902b78ebc	R1	swift-only	26	0
+landing	2e70229c7a973a3d53472ceb59bcd1feff685e3a	Add HTTP passthrough, control API, auth and per-	typescript-only	0	10
+landing	9970b8e37c00695406a138011e0f1b943f840132	Fix the defects a code review found, two of them	typescript-only	0	5
+landing	dc63c607b10394ae8739db2ac2448671a5111f1b	One shared MCP endpoint that spawns servers only	typescript-only	0	7

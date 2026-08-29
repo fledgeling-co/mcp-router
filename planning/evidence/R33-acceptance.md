@@ -7,7 +7,7 @@ row says otherwise, and the captured output is in `planning/evidence/R33/`.
 
 | Gate | Command | Exit | Log |
 |---|---|---|---|
-| whole lint, 27 members | `make lint` | **0** | `planning/evidence/R33/make-lint.txt` |
+| whole lint, 27 members | `make lint` | **0** | `planning/evidence/R33/make-lint-summary.txt` |
 | swiftlint, inside lint | — | 0 violations, 0 serious in **708** files | same log |
 | carrier parity | `python3 planning/carrier-parity-gate.py` | **0** | `carrier-parity-gate.txt` |
 | carrier parity, armed | `bash scripts/acceptance/carrier-parity-selftest.sh` | **0**, 8 arms | `carrier-parity-selftest.txt` |
@@ -22,6 +22,16 @@ row says otherwise, and the captured output is in `planning/evidence/R33/`.
 ever been recorded, so the streak is *unmeasured* rather than zero, and the script says which of
 those two it is. That is why it is out of `lint` and out of `all` — putting it in would make the
 honest state a red build, and the pressure would land on the instrument rather than on the runs.
+
+## Why the lint capture is a summary
+
+`make lint` prints 1467 lines and 32 of them carry a bare `path:line` out of the gates' own
+findings text. `citation-gate.py` blocks a newly tracked file holding bare citations above a
+baseline of zero, so **committing the raw capture turns a green lint red on the act of recording
+it** — the gate is right, and the log is not the place to fix it. The committed file is the
+per-member verdict lines, with the producing command written into its own header and the run's own
+exit code recorded at capture. `planning/evidence/R30/make-lint-summary.txt` is the same shape for
+the same reason.
 
 ## `make test` was not run, and the reason is measurable
 

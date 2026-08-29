@@ -207,3 +207,69 @@ struct InvocationScanTests {
         #expect(two.events.first?.name == "c")
     }
 }
+
+/// Where the router is pointed, and the fact that it is pointed nowhere by default.
+///
+/// The absent case is the one worth a test. `ControlDeps`' optional ports have shipped `nil` in
+/// `RouterServiceDispatch` twice with a green suite — `control-registry-search` and `D-p1-a` — and
+/// F5's own spec quotes that, so the wiring is asserted rather than assumed.
+@Suite("Where the transcript corpus comes from")
+struct InvocationSourcesTests {
+    private static func fileSystem() -> MemoryFileSystem {
+        let fileSystem = MemoryFileSystem()
+        fileSystem.seed("{}", atPath: "/corpus/claude/a.jsonl")
+        fileSystem.seed("{}", atPath: "/corpus/codex/b.jsonl")
+        return fileSystem
+    }
+
+    /// The two roots the fixture has, and nothing else.
+    ///
+    /// Supplied rather than taken from `MemoryFileSystem`, because the double answers
+    /// `contentsOfDirectory` for a path that does not exist by returning `[]` — so a guard written
+    /// against the seam admits a missing root, which is exactly what the first version of
+    /// `InvocationSources.parse` did and what the `gone=` arm below caught.
+    private static let onDisk: @Sendable (String) -> Bool = {
+        $0 == "/corpus/claude" || $0 == "/corpus/codex"
+    }
+
+    @Test("Unset and empty both name no corpus, and neither is an error")
+    func absentVariableYieldsNothing() {
+        #expect(InvocationSources.parse(nil, isDirectory: Self.onDisk).sources.isEmpty)
+        #expect(InvocationSources.parse("", isDirectory: Self.onDisk).sources.isEmpty)
+        #expect(InvocationSources.parse(nil, isDirectory: Self.onDisk).discarded == 0)
+    }
+
+    @Test("A pair naming a real directory is taken; a typo is dropped and counted")
+    func pairsAreParsedAndBadOnesCounted() {
+        let parsed = InvocationSources.parse(
+            "claude-code=/corpus/claude:codex=/corpus/codex:broken:empty=:gone=/no/such/place",
+            isDirectory: Self.onDisk
+        )
+        #expect(parsed.sources.map(\.harness) == ["claude-code", "codex"])
+        // Three discarded, not one: a malformed pair, an empty half, and a root that is not there.
+        // A caller that could not see this number would report a partial reading as a whole one.
+        #expect(parsed.discarded == 3)
+    }
+
+    @Test("With nothing named, the daemon holds no history at all")
+    func noVariableMeansNoHistory() {
+        let home = RouterHome(root: "/router")
+        #expect(InvocationSources.history(
+            environment: [:], home: home, fileSystem: Self.fileSystem(),
+            isDirectory: Self.onDisk
+        ) == nil)
+        #expect(InvocationSources.history(
+            environment: [InvocationSources.environmentKey: "claude-code=/corpus/claude"],
+            home: home, fileSystem: Self.fileSystem(), isDirectory: Self.onDisk
+        ) != nil)
+    }
+
+    /// Both carry `nil` runs and a reason. A zero against either would read as *this harness ran no
+    /// skills*, which is the finding, and it would be fabricated.
+    @Test("The two harnesses with files and no capability calls report null, never zero")
+    func unobservableHarnessesCarryNoFigure() {
+        #expect(InvocationSources.unobservable.count == 2)
+        #expect(InvocationSources.unobservable.allSatisfy { $0.runs == nil })
+        #expect(InvocationSources.unobservable.allSatisfy { $0.reason?.isEmpty == false })
+    }
+}

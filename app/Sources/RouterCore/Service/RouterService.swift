@@ -67,6 +67,13 @@ public actor RouterService {
     /// Upstream health — R27. Held for the life of the process because health IS history: a
     /// monitor rebuilt per request would report every server `unprobed` forever.
     let health: UpstreamHealthMonitor
+    /// F5's invocation history, or nil when nothing pointed the router at a transcript corpus.
+    ///
+    /// **Optional at the service, not just at `ControlDeps`.** The reader opens a directory of
+    /// somebody's agent sessions, so it exists only when a person named one — there is no default
+    /// and no discovery. Absent, `GET /invocations` answers 503 saying so, which is a different
+    /// claim from an empty window.
+    let invocations: InvocationHistory?
     let usedCodes = UsedCodeSet()
     let token: String
     let tokenPath: String
@@ -117,6 +124,18 @@ public actor RouterService {
             transporting: RoutingUpstreamTransport(log: log),
             clock: clock,
             log: log
+        )
+        // F5. Built here rather than per request for the reason `health` is: the watermarks and the
+        // ledger are read off disk at construction, and a history rebuilt per request would re-read
+        // 19.5 GB of transcripts on every call to `GET /invocations`.
+        //
+        // **Supplied here and nowhere else**, which is the whole of why this line carries a comment
+        // at all: `registry` and `authFlow` each existed, were unit-tested and were nil in the one
+        // process that ships, so every route depending on them answered a refusal on the wire while
+        // the suite stayed green (`D-p1-a`, and the `control-registry-search` row). This item's own
+        // spec quotes that, so shipping it nil would have reproduced it knowingly.
+        invocations = InvocationSources.history(
+            environment: environment, home: home, fileSystem: fileSystem
         )
         health = UpstreamHealthMonitor(
             upstreams: config.upstreams,

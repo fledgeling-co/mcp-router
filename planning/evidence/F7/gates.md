@@ -76,12 +76,32 @@ The first issue was this item's own and is fixed: `ShellIntegrationTests` enumer
 under `Boards/` against a written list, and `InsightsAnalystPanel.swift` was not in it. That is the
 gate working — a new board file that nothing registered.
 
-The second is `OAuthWireTests.swift:263`, one of the three load flakes this fleet has named. Green
+The second is *"the group's 50ms budget expired and it had still not returned: the cancelled child"*,
+`app/Tests/RouterCoreTests/OAuthWireTests.swift:265` at `08a24ed` — one of the three load flakes this
+fleet has named. Green
 in isolation (`--filter OAuthWireTests`, 18 tests in 5 suites, 3.1s) and green on the third full
 run. It also fired on the **baseline** run of `main` taken before any of this branch existed.
 
 Baseline for comparison, measured on this worktree at `08a24ed` before any change:
 **2160 tests in 275 suites.** This branch: **2199 in 281** — 39 tests and 6 suites added.
+
+## Three obligations the gates raised at COMMIT, and what each cost
+
+Every one of these went red only once the new files were **tracked**, which is the rule this fleet
+already writes down, and each is closed rather than waived.
+
+| gate | what it wanted | what was done |
+|---|---|---|
+| `carrier-parity-gate` | this landing touched one router and not the other and carried no row | a row in `planning/parity/carriers.tsv` naming the commit, `swift-only`, `divergent-recorded`, with the reason: `src/control.ts` answers the whole `/insights` family 404 by design (`div-m22-insights`), so there is nothing to diff bytes against and two routers being equally silent is not agreement |
+| `citation-gate` | three new files each held one bare citation against a baseline of zero | all three framed with anchor **and** tree; the first framing was itself refused as `DANGEROUS` because the quoted anchor spanned two lines and the cited line held only part of it — corrected to an anchor that sits inside the line it names |
+| `instrument-census` | four new instruments unrecorded | `--write`; 464 → 469 |
+
+Two more went red on the machine rather than on the branch, and both are the conditions this fleet
+has already measured. `sweep-control-gate` reported `scripts/acceptance/acceptance-lanes.sh`'s
+control as *did not finish in 120s*; run directly, `acceptance-lanes-selftest.sh` reports
+**13 arms, all held**, exit 0. And it reported `carrier-parity-selftest` failing its `clean` arm —
+which was **not** the machine: it was the missing carrier row above, and it cleared the moment the
+row landed (`8 arms, all as declared, and the tracked ledger is byte-identical`).
 
 ## Two environment facts, so a verifier does not diagnose them as a branch
 

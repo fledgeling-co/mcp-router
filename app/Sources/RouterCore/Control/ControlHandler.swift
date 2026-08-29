@@ -355,6 +355,7 @@ extension ControlHandler {
         _ path: String, _ request: ControlAPIRequest, _ deps: ControlDeps
     ) async -> ControlAPIResponse? {
         if let response = routeUsage(path, request, deps) { return response }
+        if let response = routeUpdates(path, request, deps) { return response }
         if let response = routeExtensions(path, request, deps) { return response }
         if let response = routeCaches(path, request, deps) { return response }
         if let response = await routeHealth(path, request, deps) { return response }

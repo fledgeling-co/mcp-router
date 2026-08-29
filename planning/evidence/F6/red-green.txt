@@ -1,0 +1,29 @@
+# produced by: python3 planning/evidence/F6/red-green.py
+# run at: 2026-08-29T09:17:51Z · tree 08a24ed plus uncommitted F6 work
+
+# F6 red-green — 10 mutations, filter SemanticVersionTests|MarketplaceCatalogueTests|ExtensionFreshnessTests|ExtensionFreshnessScanTests|ControlUpdateRoutesTests
+baseline: green
+
+M1  RED       expected ['S3', 'F4'] · went red ['F4', 'S3']
+     two unorderable versions are declared ascending, so a SHA is always behind
+M2  RED       expected ['F1', 'F3', 'G1'] · went red ['F1', 'F3', 'G1']
+     the direction is inverted, so a stale catalogue reads as an available update
+M3  RED       expected ['F3', 'F12'] · went red ['F12', 'F3']
+     catalogueBehind is counted as an update — the downgrade-as-update bug
+M4  RED       expected ['F9'] · went red ['F9']
+     the equality check runs first, so two ABSENT versions read as two equal ones
+M5  RED       expected ['U4'] · went red ['U4']
+     the :kind match reclaims /extensions/updates, so a DELETE on it answers 404
+M6  RED       expected ['G10', 'U7'] · went red ['G10', 'U7']
+     a negative age is reported as a number, so a future-stamped catalogue is fresh forever
+M7  RED       expected ['F12', 'G2'] · went red ['F12', 'G2']
+     everything counts as compared, so `0 updates` no longer distinguishes a read from a silence
+M8  RED       expected ['C1'] · went red ['C1']
+     an empty-string version is kept, so it compares unequal to everything
+M9  RED       expected ['G1'] · went red ['G1']
+     a skill's declared version is never read, so every versioned skill reads as silent
+M10  RED       expected ['G10', 'U7'] · went red ['G10', 'U7']
+     an unmeasurable AGE suppresses every comparison against a catalogue that reads fine
+
+every mutation was caught
+EXIT=0

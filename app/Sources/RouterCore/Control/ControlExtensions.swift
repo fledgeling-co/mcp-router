@@ -28,6 +28,12 @@ extension ControlHandler {
             return .error(503, "extension storage is unavailable: this router has no store")
         }
         let rest = String(path.dropFirst("/extensions".count))
+        // F6's route sits at `/extensions/updates`, which parses here as a KIND named `updates`.
+        // Declining it explicitly rather than relying on `routeUpdates` running first is what makes
+        // a non-GET on that path reach `handle`'s own 405: `routeUpdates` returns nil for a method
+        // it does not serve, and without this line the reply would be
+        // `404 no extension kind named "updates"` — a lie about a path that exists.
+        if rest == "/updates" { return nil }
         if rest.isEmpty {
             guard request.method == "GET" else { return nil }
             return inventory(store, deps)

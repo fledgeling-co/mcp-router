@@ -43,6 +43,13 @@ extension ControlHandler {
                 key: JSString("description"),
                 value: record.description.map { JSONValue.string(JSString($0)) } ?? .null
             ),
+            // Read from the descriptor on every call like `title`, and `null` rather than absent
+            // when the entry declares none — 10 of the 22 readable skills on this machine are in
+            // that state, so it is the ordinary answer rather than a fault (F6 §1).
+            JSONMember(
+                key: JSString("version"),
+                value: record.version.map { JSONValue.string(JSString($0)) } ?? .null
+            ),
             JSONMember(key: JSString("files"), value: .number(Double(record.files))),
             JSONMember(key: JSString("bytes"), value: .number(Double(record.bytes))),
             // Present and null on a clean entry, so a reader distinguishes "read fine" from a key

@@ -27,6 +27,9 @@ public struct ExtensionRecord: Sendable, Hashable {
     /// The name the descriptor gives itself, which is not always the directory it sits in.
     public let title: String?
     public let description: String?
+    /// The version the entry declares for itself, or `nil` when it declares none — read from the
+    /// descriptor on every call, like ``title``, so it cannot drift from the bytes.
+    public let version: String?
     public let files: Int
     public let bytes: Int
     /// Why this entry could not be read as its kind, or `nil` when it read cleanly.
@@ -40,6 +43,7 @@ public struct ExtensionRecord: Sendable, Hashable {
         name: String,
         title: String? = nil,
         description: String? = nil,
+        version: String? = nil,
         files: Int = 0,
         bytes: Int = 0,
         problem: String? = nil
@@ -47,6 +51,7 @@ public struct ExtensionRecord: Sendable, Hashable {
         self.name = name
         self.title = title
         self.description = description
+        self.version = version
         self.files = files
         self.bytes = bytes
         self.problem = problem
@@ -112,6 +117,17 @@ public enum ExtensionRemoveOutcome: Sendable {
 public protocol ExtensionStoring: Sendable {
     func list(_ kind: ExtensionKind) -> ExtensionListing
     func read(_ kind: ExtensionKind, name: String) -> ExtensionRecord?
+    /// The text of one entry's **descriptor**, or `nil` when there is not one to read.
+    ///
+    /// Deliberately not `file(_:name:path:)`. F6 needs a marketplace's `plugins` array, which is a
+    /// list and has nowhere to sit on ``ExtensionRecord``; the alternative — carrying the offers on
+    /// the record — was rejected on a measured cost, since the largest catalogue on this machine
+    /// declares **291** plugins and the ten together declare 763, so every `GET /extensions/
+    /// marketplaces` would grow by three orders of magnitude to serve a question that route is not
+    /// asked. This method takes no path, so it adds no traversal surface: the name goes through
+    /// ``ExtensionNaming/isWellFormedName(_:)`` exactly as ``read(_:name:)`` does, and the only
+    /// file it can address is ``ExtensionKind/descriptorPath``.
+    func descriptorText(_ kind: ExtensionKind, name: String) -> String?
     func add(_ kind: ExtensionKind, name: String, files: [ExtensionFile]) -> ExtensionWriteOutcome
     func remove(_ kind: ExtensionKind, name: String) -> ExtensionRemoveOutcome
 }

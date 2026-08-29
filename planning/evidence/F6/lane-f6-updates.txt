@@ -1,0 +1,54 @@
+# produced by: bash scripts/acceptance/f6-updates.sh
+# run at: 2026-08-29T09:44:16Z · MCPRouterCLI built from this worktree · scratch MCP_ROUTER_HOME
+
+F6 — /extensions/updates on the daemon's own socket, home /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/mcprouter-f6.g1zLgzrHu7
+
+the route is wired at all — the missing-dependency class
+  ok   GET /extensions/updates answers                                200
+  ok   and it is NOT read as a kind named updates                     200
+  ok   no 'unknown kind' reply reached the caller                     absent
+  ok   an unknown kind is still refused                               404
+  ok   an untokened read is served, as every GET is                   200
+
+all eight verdicts, driven against the fixture the real machine cannot produce
+  ok   an offered newer version is an update                          200
+  ok   equal versions are current                                     200
+  ok   an OLDER offer is the catalogue behind                         200
+  ok   two SHAs are unorderable                                       200
+  ok   a versionless offer is not current                             200
+  ok   a versionless install is not compared                          200
+  ok   a dropped plugin says so                                       200
+  ok   a missing marketplace says so                                  200
+
+the counts distinguish a reading from a silence
+  ok   exactly one update over the fixture                            200
+  ok   four rows were actually compared                               200
+  ok   and the other seven could not be                               200
+  ok   and the two sum to the total                                   200
+  ok   the catalogue reports its versionless offers                   200
+
+the evidence carries its own age and provenance
+  ok   a git checkout is refreshable                                  200
+  ok   a plain directory is not                                       200
+  ok   a catalogue that is not there has a NULL age                   200
+  ok   and never a zero one                                           absent
+  ok   the default window is one day                                  200
+  ok   an unreadable window is refused, not defaulted                 400
+
+read-only by construction — there is no other verb
+  ok   POST is 405                                                    405
+  ok   PUT is 405                                                     405
+  ok   PATCH is 405                                                   405
+  ok   DELETE is 405                                                  405
+  ok   the store is byte-for-byte the same size after all four        11 files
+
+the reading is of the disk, not of a cache
+  ok   an edit made behind the router changes the next reply          200
+  ok   and the rows it dropped become not-offered                     200
+
+nothing outside the scratch home was read or written
+  ok   the operator's own ~/.claude marketplaces are unchanged        10 entries
+  ok   every catalogue path in the reply is under the scratch home    scratch
+
+F6: 33 ok, 0 failed
+exit: 0

@@ -1277,6 +1277,16 @@
       ],
       "since": "2026-08-29",
       "reason": "R27's acceptance lane. WAIVED for the reason every other lane in `acceptance-lanes.sh` is: it needs `app/.build/debug/MCPRouterCLI`, binds a reserved port and spawns real python children, and it exits 2 rather than 0 when the binary is absent so a missing build cannot read as a pass. Its own arm is ARM 5 of `bin/arm-r27-health.sh`, which sets `ControlDeps.health` to nil in the daemon, rebuilds and re-runs this lane: three assertions fail, which is the shape a nil dependency makes on the wire and the one thing no unit test in this item can see."
+    },
+    {
+      "path": "planning/evidence/F6/red-green.py",
+      "disposition": "waived",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-29",
+      "reason": "A lane needing a built binary is waived, not control: this driver runs `swift test` once per mutation plus a baseline, eleven full builds of RouterCore and its test bundle, and took 24 minutes on the run recorded in planning/evidence/F6/red-green.txt. A control that re-armed it would double that on every sweep-gate run. What stands in place of one is that the driver ARMS ITSELF in both directions and cannot report a clean zero. It refuses to run at all unless the unmutated tree is green, printing BASELINE NOT GREEN and exiting 1 - so a run whose tests were all already failing cannot report ten catches. It classifies three outcomes rather than two: RED (every named test failed), PARTIAL (some did) and SURVIVED (none did), and PARTIAL and SURVIVED both exit non-zero, so a mutation that stopped biting is a failure rather than a quieter pass. And a mutation whose search text no longer exists in the source reports NOT APPLICABLE and exits non-zero, which is the specific way this class of driver rots: the code moves, the find string stops matching, and every arm silently applies nothing. The recorded run is 10 of 10 RED. What it does NOT prove, stated rather than implied: that the ten mutations are the ten that matter. It proves each named test can fail for the reason its name gives, not that the suite would catch a defect nobody thought of."
     }
   ]
 }

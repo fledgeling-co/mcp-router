@@ -118,6 +118,7 @@ LANES=(
     r32-desktop-entry.sh
     r32-desktop-entry-selftest.sh
     r30-ingest.sh
+    f6-updates.sh
 )
 
 # Both overrides exist for the selftest, which must be able to plant lanes with known exits. Neither

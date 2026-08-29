@@ -96,6 +96,7 @@ app/Tests/MCPRouterUITests/ActivityRecoveryTests.swift	swift-suite	app/Tests/MCP
 app/Tests/MCPRouterUITests/ActivityResetEntryPointTests.swift	swift-suite	app/Tests/MCPRouterUITests/ActivityResetEntryPointTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/ArrivalNotifierFactoryTests.swift	swift-suite	app/Tests/MCPRouterUITests/ArrivalNotifierFactoryTests.swift	swift	compiled and run by `swift test`; names argv ["node", …], execution unresolved	make:test
 app/Tests/MCPRouterUITests/BoardFilterActuationTests.swift	swift-suite	app/Tests/MCPRouterUITests/BoardFilterActuationTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterUITests/BoardWriteActuationTests.swift	swift-suite	app/Tests/MCPRouterUITests/BoardWriteActuationTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/ButtonPaletteTests.swift	swift-suite	app/Tests/MCPRouterUITests/ButtonPaletteTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/CapabilityDocumentSheetTests.swift	swift-suite	app/Tests/MCPRouterUITests/CapabilityDocumentSheetTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/CheckHistoryStoreTests.swift	swift-suite	app/Tests/MCPRouterUITests/CheckHistoryStoreTests.swift	swift	compiled and run by `swift test`	make:test
@@ -180,6 +181,7 @@ app/Tests/RouterCoreTests/ControlApproveDispatchTests.swift	swift-suite	app/Test
 app/Tests/RouterCoreTests/ControlAuthStartDispatchTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlAuthStartDispatchTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ControlBoardRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlBoardRoutesTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ControlCacheRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlCacheRoutesTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/RouterCoreTests/ControlDisableWriteTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlDisableWriteTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ControlDocumentRouteTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlDocumentRouteTests.swift	swift	compiled and run by `swift test`; names argv ["node", …], execution unresolved	make:test
 app/Tests/RouterCoreTests/ControlExtensionRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlExtensionRoutesTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ControlFixtureTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlFixtureTests.swift	swift	compiled and run by `swift test`	make:test
@@ -246,6 +248,7 @@ make:acceptance-r6	make-target	Makefile	both	npm run	-
 make:build-ios	make-target	Makefile	swift	xcodebuild	-
 make:build-mac	make-target	Makefile	swift	xcodebuild	-
 make:build-mac-release	make-target	Makefile	swift	xcodebuild	-
+make:green-streak	make-target	Makefile	both	via scripts/acceptance/green-streak.sh (via scripts/acceptance/parity-gate.sh ($MCP_ROUTER_DIST))	-
 make:install-default	make-target	Makefile	static	no router invocation matched	-
 make:lint	make-target	Makefile	node	via planning/instrument-census.py (argv ["node", …])	-
 make:mock-fidelity	make-target	Makefile	swift	via scripts/acceptance/mock-fidelity-gate.sh (swift build)	-
@@ -265,6 +268,7 @@ make:test	make-target	Makefile	swift	swift test	-
 make:tools	make-target	Makefile	static	no router invocation matched	-
 planning/G5-citation-frames.py	gate	planning/G5-citation-frames.py	static	no router invocation matched	-
 planning/brief-target-gate.py	gate	planning/brief-target-gate.py	static	no router invocation matched	make:lint
+planning/carrier-parity-gate.py	gate	planning/carrier-parity-gate.py	static	no router invocation matched	make:lint
 planning/citation-gate.py	gate	planning/citation-gate.py	static	no router invocation matched	make:lint,planning/goals/citations-blocking-check.sh
 planning/claim-sweep.py	gate	planning/claim-sweep.py	static	no router invocation matched	-
 planning/evidence-citation-gate.py	gate	planning/evidence-citation-gate.py	static	no router invocation matched	make:lint
@@ -310,6 +314,7 @@ planning/test-campaign/bin/arm-headless.py	gate	planning/test-campaign/bin/arm-h
 planning/test-campaign/bin/arm-pipeline.py	gate	planning/test-campaign/bin/arm-pipeline.py	static	no router invocation matched	-
 planning/test-campaign/bin/arm-suites.py	gate	planning/test-campaign/bin/arm-suites.py	swift	argv ["swift", …]	-
 planning/test-campaign/bin/arm-surface-reconcile.py	gate	planning/test-campaign/bin/arm-surface-reconcile.py	static	no router invocation matched	make:surface-reconcile-arm
+planning/test-campaign/bin/blind-vocabulary-arm.py	gate	planning/test-campaign/bin/blind-vocabulary-arm.py	static	no router invocation matched	make:lint
 planning/test-campaign/bin/capture-mac-design-size.sh	gate	planning/test-campaign/bin/capture-mac-design-size.sh	static	no router invocation matched	-
 planning/test-campaign/bin/capture-mac-glass.sh	gate	planning/test-campaign/bin/capture-mac-glass.sh	static	no router invocation matched	-
 planning/test-campaign/bin/capture-manifest.py	gate	planning/test-campaign/bin/capture-manifest.py	static	no router invocation matched	make:lint
@@ -319,6 +324,7 @@ planning/test-campaign/bin/capture-phone-mock.sh	gate	planning/test-campaign/bin
 planning/test-campaign/bin/control-census.py	gate	planning/test-campaign/bin/control-census.py	static	no router invocation matched	-
 planning/test-campaign/bin/crop-fidelity-pairs.py	gate	planning/test-campaign/bin/crop-fidelity-pairs.py	static	no router invocation matched	-
 planning/test-campaign/bin/design-controls.py	gate	planning/test-campaign/bin/design-controls.py	static	no router invocation matched	-
+planning/test-campaign/bin/effect-class-census.py	gate	planning/test-campaign/bin/effect-class-census.py	static	no router invocation matched	make:lint
 planning/test-campaign/bin/forced-state-assert.py	gate	planning/test-campaign/bin/forced-state-assert.py	static	no router invocation matched	make:lint
 planning/test-campaign/bin/forced-state.sh	gate	planning/test-campaign/bin/forced-state.sh	both	node <path> + swiftc	-
 planning/test-campaign/bin/g17-document-flow.sh	gate	planning/test-campaign/bin/g17-document-flow.sh	both	node <path> + swift build	-
@@ -357,9 +363,13 @@ scripts/acceptance/auth-rejection-visible.sh	lane	scripts/acceptance/auth-reject
 scripts/acceptance/axkit.swift	lane	scripts/acceptance/axkit.swift	static	no router invocation matched	-
 scripts/acceptance/board-registry.sh	lane	scripts/acceptance/board-registry.sh	static	no router invocation matched	-
 scripts/acceptance/build-freshness.sh	lane	scripts/acceptance/build-freshness.sh	static	no router invocation matched	make:build-ios,make:build-mac,make:build-mac-release,scripts/acceptance/i5-pairing-transport.sh,scripts/acceptance/m2-activity.sh,scripts/acceptance/m22-boards.sh,scripts/acceptance/m5-discover.sh,scripts/acceptance/m6-inbox-pairing.sh,scripts/acceptance/m7-evals-cleanup.sh,scripts/acceptance/m8-settings-menubar.sh,scripts/acceptance/mac-shell.sh,scripts/acceptance/shells.sh
+scripts/acceptance/carrier-census.sh	lane	scripts/acceptance/carrier-census.sh	static	no router invocation matched	-
+scripts/acceptance/carrier-parity-selftest.sh	lane	scripts/acceptance/carrier-parity-selftest.sh	static	no router invocation matched	-
 scripts/acceptance/control-client.sh	lane	scripts/acceptance/control-client.sh	both	node <path> + swift build	-
 scripts/acceptance/control-differential.sh	lane	scripts/acceptance/control-differential.sh	both	node <path> + swift router binary	scripts/acceptance/parity-control.sh
 scripts/acceptance/destination-oracle.swift	lane	scripts/acceptance/destination-oracle.swift	static	no router invocation matched	-
+scripts/acceptance/green-streak-selftest.sh	lane	scripts/acceptance/green-streak-selftest.sh	static	no router invocation matched	-
+scripts/acceptance/green-streak.sh	lane	scripts/acceptance/green-streak.sh	both	via scripts/acceptance/parity-gate.sh ($MCP_ROUTER_DIST)	make:green-streak
 scripts/acceptance/i2-phone-discover.sh	lane	scripts/acceptance/i2-phone-discover.sh	swift	xcodebuild	-
 scripts/acceptance/i3-phone-triage.sh	lane	scripts/acceptance/i3-phone-triage.sh	swift	xcodebuild	-
 scripts/acceptance/i5-pairing-transport.sh	lane	scripts/acceptance/i5-pairing-transport.sh	swift	swiftc	-
@@ -395,7 +405,7 @@ scripts/acceptance/parity-cli.sh	lane	scripts/acceptance/parity-cli.sh	both	node
 scripts/acceptance/parity-control.sh	lane	scripts/acceptance/parity-control.sh	both	via scripts/acceptance/control-differential.sh (node <path> + swift router binary)	scripts/acceptance/parity-gate.sh
 scripts/acceptance/parity-divergence.sh	lane	scripts/acceptance/parity-divergence.sh	both	node <path> + swift router binary	scripts/acceptance/parity-gate.sh
 scripts/acceptance/parity-fixture.sh	lane	scripts/acceptance/parity-fixture.sh	node	via scripts/capture-control-fixtures.sh (node <path>)	scripts/acceptance/parity-gate.sh
-scripts/acceptance/parity-gate.sh	lane	scripts/acceptance/parity-gate.sh	both	$MCP_ROUTER_DIST	-
+scripts/acceptance/parity-gate.sh	lane	scripts/acceptance/parity-gate.sh	both	$MCP_ROUTER_DIST	scripts/acceptance/green-streak.sh
 scripts/acceptance/parity-install-watch-mutations.sh	lane	scripts/acceptance/parity-install-watch-mutations.sh	swift	swift router binary	make:parity-watch-mutations
 scripts/acceptance/parity-install-watch.sh	lane	scripts/acceptance/parity-install-watch.sh	static	no router invocation matched	-
 scripts/acceptance/parity-install.sh	lane	scripts/acceptance/parity-install.sh	both	node <path> + swift router binary	scripts/acceptance/parity-gate.sh

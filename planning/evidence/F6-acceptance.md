@@ -71,7 +71,54 @@ stale answer as a fresh one — is served by carrying the age instead.
 | reader accounting | `python3 planning/reader-accounting.py` | exit 0 · 20 readers record, 45 declare, 2 recorded gaps — neither new file is among them |
 | sweep controls | `python3 planning/sweep-control-gate.py` | `planning/evidence/F6/red-green.py` dispositioned `waived` with its reason; the two findings left are `carrier-parity-gate.py` (120s under load) and `G11-corpus-determinism.py`, neither of which is this branch's |
 
-Whole-tree `make lint` and `make test` are recorded in §5.
+### 2.1 · The whole-tree run, and what is NOT established
+
+**`make lint` was run whole four times and each run's findings were acted on. No run reached a
+green exit, and the reason is the machine rather than the branch — so this is reported as an open
+gap rather than a pass.** Load averaged **384–1016 across 16 cores** with eight runners live, and
+the final attempts returned `Operation not permitted` on `scripts/lint/no-harness-config-writes.sh`
+— an EPERM class this fleet has recorded before (R33 was re-dispatched after one).
+
+What each whole run established, in order, with every finding fixed and re-run:
+
+| run | how far it got | what it found |
+|---|---|---|
+| 1 | the whole chain, to `pool-mutation-gate-selftest` 14/14 | `carrier-parity-gate.py`: `182e40f7` landed swift-only with no row. Fixed — `carriers.tsv` |
+| 2 | `swiftlint` complete | 1 violation: a 115-column line. Fixed |
+| 3 | `no-wire-codable` complete | 2 `[String: …]` memos undeclared. Fixed — collapsed to one, exemption written |
+| 4 | `swiftlint` complete | 1 violation: `orphaned_doc_comment`, caused by fix 3's marker placement. Fixed |
+| 5 | `swiftformat`, `swiftlint`, `no-raw-design-values`, `no-wire-codable` all clean | killed by EPERM at `no-harness-config-writes.sh` |
+
+So every gate that has actually reported on this tree is green, and the ones that have not reported
+are not known to be green. **The verify stage must run `make lint` and `make test` whole on an idle
+machine before this is treated as passing.** These are the figures that stand on their own:
+
+| gate | result |
+|---|---|
+| `swiftformat --lint` | **0 of 291 files require formatting** |
+| `swiftlint --strict` | **0 violations, 0 serious in 736 files** |
+| `no-raw-design-values.sh` | clean · 107 files under the geometry and boundary rules |
+| `no-wire-codable.sh` | clean over six directories · 3 exemptions recorded |
+| `planning/reader-accounting.py` | exit 0 |
+| `planning/null-run-gate.py` | exit 0 · armed |
+| `planning/citation-gate.py` | exit 0 · control 0 · blocking 0 · ratchet 0 |
+| `planning/registry-drop-gate.py` | exit 0 · no id dropped · 262 across four registries |
+| `planning/verification/G11-corpus-determinism.py` | exit 0, all four checks |
+| `planning/sweep-control-gate.py` | F6's row dispositioned; remaining findings are `carrier-parity-gate.py` (control did not finish in 120s) and, before it was cleaned, a fault a previous run left planted — see §4a |
+| `make test` | **not run to completion** — same cause |
+
+### 2a · A gate had left a planted fault in the working tree
+
+`G11-corpus-determinism.py` plants `worktree = True  # PLANT FAULT` into
+`planning/foreign-path-gate.py`, confirms the control trips, and restores it. A run that did not
+complete left the plant behind, and it was **committed with this item's first commit** before being
+spotted in `git show --stat`. Reverted immediately, and with it gone G11 passes all four checks and
+restores byte-identically.
+
+It is recorded here rather than fixed because it is not this item's to fix, and because it is the
+fleet's own rule arriving from the other side: *a gate must not mutate the working tree as a side
+effect of checking*. The exposure is that the mutation looks exactly like an intended edit to
+anything reading `git status`.
 
 ---
 

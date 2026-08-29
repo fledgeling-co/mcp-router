@@ -1165,6 +1165,57 @@ F1
 
 ---
 
+
+## Windows fleet - added 2026-08-30
+
+A second fleet in the same repository, on a different machine, against a different platform. The
+Mac fleet's rows are untouched and none of its constraints are relaxed.
+
+### The machine, measured rather than assumed
+
+This clone is `C:\Dev\mcp-router` on Windows 11, not the Mac. Measured 2026-08-30, and the
+reason this fleet is scheduled differently:
+
+- `swift`, `swiftlint`, `swiftformat`, `xcodebuild`, `make` and `gh` are **absent**. Every
+  verification target in the Makefile shells to `xcodebuild`, so **`make lint` and `make test`
+  cannot run here and are not available as an item gate**. WIN18 exists to build one that can.
+- The out-of-family reviewer CLIs (`codex`, `agy`, `grok`) are **absent**, and the `claude` CLI
+  lane returns "your organization has disabled Claude subscription access". **Cross-family verify
+  is unavailable on this machine.** It is recorded per item as not-run, never as a pass.
+- The WinUI lane is proved. Visual Studio's `MSBuild.exe` with `-t:Restore,Build` **succeeds**;
+  `dotnet build` **fails** with `MSB4062`, because it resolves `MSBuildExtensionsPath` to the .NET
+  SDK, which carries no `AppxPackage` tasks. Installing more Visual Studio does not converge them.
+- Every worktree registration in this clone pointed at `/Users/lukerhodes` or `/Volumes/LLMs` - 72
+  of them, all prunable, now pruned to 1. Those files live on the Mac and were not touched.
+- The 226 files `git status` calls modified are **line endings only**:
+  `git diff --ignore-cr-at-eol --numstat` returns nothing. They are not work.
+
+### Two failure modes this fleet has already hit
+
+- **A wrapper's exit code lied twice.** `winget install` exited 0 while printing "Installer failed
+  with exit code: 1", and `setup.exe modify` run without elevation exited 0 while logging
+  "Exit Code: 87" and leaving the component absent. Verify an install by an artifact on disk.
+- **`brief-target-gate.py` reads the git index, not the working tree.** Twenty-three new briefs
+  were invisible to it until staged. Stage a new file before trusting a gate's verdict on it.
+
+### Wave plan
+
+| Wave | Items | Why they are together |
+|---|---|---|
+| W0 | WIN1 | Done. The framework call everything else inherits |
+| W1 | WIN2, WIN17, WIN18 | No internal dependencies. WIN18 gates every later item, WIN2 is what lets a Windows surface be judged at all, WIN17 is TypeScript and independent of the UI |
+| W2 | WIN3, WIN20 | The shell every board is drawn inside, and the automation plane that decides whether any of them can be measured |
+| W3 | WIN4-WIN11, WIN13-WIN16 | The thirteen surfaces. Each is one dispatchable item, and each inherits WIN2's floor and WIN3's shell |
+| W4 | WIN19, WIN21, WIN22, WIN23 | Cross-cutting, and each needs a surface to exist first |
+
+### The exit condition for this fleet is not a drained ledger
+
+Reconciliation on this repository cannot be completed from Windows: `campaign.py check` and
+`strict-check.py` measure a macOS application that cannot be built or launched here. So this
+fleet's honest finish is its own rows merged and verified against the WIN18 lane, with the
+campaign reconciliation recorded as **not-run on this machine** and owed to the Mac. That is a
+stated limitation of where the work is happening, and not a class this fleet may report as zero.
+
 ## Ledger
 
 Status: `Untriaged → Spec → Plan → In Progress → Ready to merge → Merged` · `Blocked` ·
@@ -1185,6 +1236,29 @@ does **not** change what any check reads, and must not be described as though it
 
 | ID | Title | Category | Deps | Mock (deep link) | Lane | Status | Branch | Outcome |
 |---|---|---|---|---|---|---|---|---|
+| **WIN1** | Windows client framework - decided: WinUI 3 | windows | - | - | Opus | Done | decide/win1-framework | WinUI 3 chosen; dotnet build fails MSB4062, VS MSBuild.exe succeeds. Probes recorded in the brief |
+| **WIN2** | A Windows native floor in DESIGN.md | windows | - | design/mcp-router-console.html | Opus | Ready | - | DESIGN.md s3 is macOS-only, so a Windows surface can today neither pass nor fail. Must not weaken the macOS floor |
+| **WIN17** | The router's five macOS assumptions | router | - | - | Opus | Ready | - | No process.platform anywhere in src/. /usr/bin/open, launchd in four files, flock measured on darwin, /tmp sockets. TypeScript, buildable now |
+| **WIN18** | Windows build and verify lane | harness | WIN1 | - | Opus | Ready | - | No gate spine on Windows: every make target shells to xcodebuild. Gates every other WIN item |
+| **WIN3** | Windows app shell | windows | WIN1, WIN2, WIN18 | design/mcp-router-console.html | Opus | Blocked | - | Nine boards plus Settings. Rule 9's menu bar has no Windows equivalent, so the command surface is the open question |
+| **WIN20** | Windows automation plane for the campaign | windows | WIN1 | - | Opus | Blocked | - | Without a UIA tree all thirteen surfaces land permanently in never-measured |
+| **WIN4** | Servers board and the Signal Path | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | The signature element; drawn rather than a stock control. Geometry must be restated in effective pixels |
+| **WIN5** | Activity board | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | Live log over GET /usage/stream. Densest reading surface, so a direct test of the Windows palette |
+| **WIN6** | Skills board | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | Per-harness slots. Held-for-review is a security guarantee rather than a decoration |
+| **WIN7** | Discover board | windows | WIN3 | design/mocks/mac-surfaces.html | Opus | Blocked | - | Two bands never one list; no install affordance on a row |
+| **WIN8** | Checks board | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | A result belongs to the version it ran against. No model-graded evaluation exists in this product |
+| **WIN9** | Cleanup board | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | States its window; every row carries why it might still matter; re-checks upstream before offering removal |
+| **WIN10** | Inbox board and review sheet | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | The phone queues, it never installs. Review sheet is plain-language capability lines in the conditional |
+| **WIN11** | Ambient surface replacing the menu-bar popover | windows | WIN3 | design/mocks/mac-surfaces.html | Opus | Blocked | - | No Windows equivalent exists. A notification-area flyout is a candidate, not a decision |
+| **WIN12** | Pairing an iPhone to the Windows client | windows | WIN10, WIN17 | design/mocks/mac-surfaces.html | Opus | Blocked | - | Secret goes to Credential Manager, never a config file. A firewall prompt must not read as a broken product |
+| **WIN13** | Settings board | windows | WIN3, WIN2 | design/mcp-router-console.html | Opus | Blocked | - | Seven panes and the menu-bar pane renames. Biggest control-vocabulary gap: checkbox against toggle |
+| **WIN14** | Harnesses board | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | Most Windows-specific of the thirteen: everything it reads is a path, and the Windows harness inventory is unmeasured |
+| **WIN15** | Insights board | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | No figure without its denominator. Resident memory must be genuinely measured on Windows |
+| **WIN16** | Capability document panel and the update gate | windows | WIN6, WIN7, WIN10 | design/mcp-router-console.html | Opus | Blocked | - | Capability diff before content diff. The ordering is the guarantee |
+| **WIN19** | Windows packaging and distribution | windows | WIN3 | - | Opus | Blocked | - | proposed-by-ai. SmartScreen is the notarisation analogue; the unsigned path must be honest about what a user sees |
+| **WIN21** | Windows keyboard model | windows | WIN3, WIN20 | - | Opus | Blocked | - | proposed-by-ai. DESIGN.md s8 is macOS. Access keys, and the completeness rule 9 provided is lost |
+| **WIN22** | Toasts for waiting decisions | windows | WIN10, WIN11 | - | Opus | Blocked | - | proposed-by-ai. No toast action may install: that would move an irreversible decision into a transient surface |
+| **WIN23** | Router lifecycle on Windows | router | WIN17 | - | Opus | Blocked | - | proposed-by-ai. launchd has no Windows twin. Does the router outlive the client? A product question wearing infrastructure clothes |
 | F1 | Swift workspace, kit, three targets | foundation | — | — | Opus | **Merged** `0924040` | — | `make all` exit 0 on the merged tree · 31 tests · both targets build · **A12 (CI) MET** — run 31747021039 `build-and-test: success` on a clean GitHub runner, 2026-08-14 |
 | F2 | Design system in SwiftUI | foundation | F1 ✓ | `?only=mac` + `DESIGN.md` §§2–7 | Opus | **Merged** `22d1802` | — | merged-tree `make all` exit 0 · 75 tests · both appearances authored · tokens tested *against* `DESIGN.md`, so doc and code cannot drift · two recorded deviations (tertiary 50% not 25%; `--onAccent` 3.23:1, kit wins) |
 | F3 | Control-API client and models | foundation | F1 ✓ | — (surface: `src/control.ts`) | Opus | **Merged** `13825c9` | — | merged-tree `make all` exit 0 · 147 tests · 23 recorded fixtures + `ControlProbe` · **merge found a real defect**: unanchored `.gitignore` `servers.json` had silently swallowed a source fixture, green on the branch and red only when merged |

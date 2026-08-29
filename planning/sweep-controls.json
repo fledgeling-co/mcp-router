@@ -1239,6 +1239,38 @@
         "--selftest"
       ],
       "proves": "Eight arms, and the two halves are armed by different mechanisms because the gate has two. Five static arms hand the analyser one planted call each and require the verdict to differ across them: an unanchored `git ls-files` reported, `-C <root>` and `cwd=root` not reported, `cwd=\".\"` REPORTED because a literal relative cwd is the caller's directory under another name, and an unanchored `git rev-parse HEAD` not reported because it enumerates nothing. So a rule that flagged everything and a rule that flagged nothing both fail. Two dynamic arms run a planted script from two directories inside a scratch repository built under mktemp: a cwd-sensitive enumerator must be caught by the comparison and its `-C`-anchored twin must pass it, which is what stops the dynamic half rotting into a comparison that can only agree. The eighth is the null arm \u2014 a corpus of zero files must be a refusal rather than a clean report. Nothing in this corpus is read or written by any arm."
+    },
+    {
+      "path": "planning/test-campaign/bin/arm-r27-health.sh",
+      "disposition": "waived",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-29",
+      "reason": "R27's arming pass, and it IS a control rather than a thing needing one \u2014 it exists to make five assertions go red and put the sources back. WAIVED because running it needs a Swift toolchain and a build: each arm compiles the mutated tree and one rebuilds `MCPRouterCLI` to re-run an acceptance lane, which is minutes rather than the seconds this gate spends. It carries its own two-way guard: every run reports how many tests it matched and the script exits 1 if an arm matched none. That guard was earned \u2014 the first version filtered on `@Suite` display names, swift-testing matched nothing, and all four arms reported `0 tests passed`, which is four arms that compared nothing wearing a green."
+    },
+    {
+      "path": "planning/test-campaign/bin/witness-health-probe.sh",
+      "disposition": "waived",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-29",
+      "reason": "R27's effect witness. WAIVED rather than `control`, and the reason is the one this repository already writes down for a lane needing a built binary: it runs `app/.build/debug/MCPRouterCLI serve` on a reserved port and spawns real python children, so it cannot run in a checkout that has not been built and a control that skips is not a control. WHAT ARMS IT INSTEAD IS INSIDE THE SCRIPT, which is unusual and is the point: its part-4 sabotage drives the same route against a second upstream whose command does not exist and requires all four recorders to flip \u2014 no child, no pidfile, an unchanged child count, and `degraded` rather than `healthy`. A witness whose recorder cannot be made to read zero has measured nothing, so the arm is not optional decoration here and the script exits non-zero when it does not hold."
+    },
+    {
+      "path": "scripts/acceptance/r27-health.sh",
+      "disposition": "waived",
+      "markers": [
+        "V1",
+        "V2"
+      ],
+      "since": "2026-08-29",
+      "reason": "R27's acceptance lane. WAIVED for the reason every other lane in `acceptance-lanes.sh` is: it needs `app/.build/debug/MCPRouterCLI`, binds a reserved port and spawns real python children, and it exits 2 rather than 0 when the binary is absent so a missing build cannot read as a pass. Its own arm is ARM 5 of `bin/arm-r27-health.sh`, which sets `ControlDeps.health` to nil in the daemon, rebuilds and re-runs this lane: three assertions fail, which is the shape a nil dependency makes on the wire and the one thing no unit test in this item can see."
     }
   ]
 }

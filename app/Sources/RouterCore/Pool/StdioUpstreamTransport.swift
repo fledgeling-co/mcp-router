@@ -237,7 +237,7 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
         transport: any Transport,
         timeoutMilliseconds: Int
     ) async -> Handshake {
-        let outcome = FirstOutcome()
+        let outcome = FirstOutcome<Handshake>()
         let connecting = Task {
             do {
                 _ = try await client.connect(transport: transport)
@@ -261,17 +261,23 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
 /// The first of several racing answers, with the losers abandoned rather than awaited.
 ///
 /// One writer wins; every later offer is dropped. `wait()` resumes exactly once.
-final class FirstOutcome: Sendable {
+///
+/// **Generic over the answer**, and it was not always: it carried `Handshake` directly until R27
+/// needed the same race to bound a health probe's `tools/list`. Copying it would have left two
+/// implementations of one concurrency primitive free to drift, which is the argument
+/// `SelfReference.loopbackHosts` already records about sharing a definition rather than repeating
+/// one — and the drift would be in the half nobody reads until it hangs.
+final class FirstOutcome<Value: Sendable>: Sendable {
     private struct State {
-        var value: StdioUpstreamTransport.Handshake?
+        var value: Value?
         var waiter: Waiter?
     }
 
     private let state = Mutex(State())
 
-    typealias Waiter = CheckedContinuation<StdioUpstreamTransport.Handshake, Never>
+    typealias Waiter = CheckedContinuation<Value, Never>
 
-    func offer(_ value: StdioUpstreamTransport.Handshake) {
+    func offer(_ value: Value) {
         let waiter = state.withLock { current -> Waiter? in
             guard current.value == nil else { return nil }
             current.value = value
@@ -281,9 +287,9 @@ final class FirstOutcome: Sendable {
         waiter?.resume(returning: value)
     }
 
-    func wait() async -> StdioUpstreamTransport.Handshake {
+    func wait() async -> Value {
         await withCheckedContinuation { (continuation: Waiter) in
-            let ready = state.withLock { current -> StdioUpstreamTransport.Handshake? in
+            let ready = state.withLock { current -> Value? in
                 if let value = current.value { return value }
                 current.waiter = continuation
                 return nil

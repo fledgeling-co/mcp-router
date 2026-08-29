@@ -122,6 +122,11 @@ public enum ConfigLoader {
             }
         }
 
+        // R27. Resolved once here so a refused top-level value is carried rather than dropped;
+        // each server's own block is resolved against the result of this, per server, in
+        // ``UpstreamHealthMonitor``.
+        let globalHealth = HealthPolicy.readGlobal(raw.member("health"))
+
         // Nullish, not truthy: an explicit `0` or `""` in the file is honoured rather than
         // replaced by the default.
         let config = RouterConfig(
@@ -130,6 +135,11 @@ public enum ConfigLoader {
             idleMs: options.idleMs ?? intMember(raw, "idleMs") ?? RouterHome.defaultIdleMs,
             // No option-level override exists for this one, matching the reference.
             startupTimeoutMs: intMember(raw, "startupTimeoutMs") ?? RouterHome.defaultStartupTimeoutMs,
+            // R27. The top-level `health` block is the default every server inherits; a server's
+            // own block overrides it key by key. Resolved per server rather than here, because a
+            // refusal has to name the server whose value was refused.
+            health: globalHealth.policy,
+            healthRefusals: globalHealth.refusals,
             upstreams: upstreams,
             manifestPath: home.manifestPath,
             logPath: home.logPath,

@@ -210,28 +210,16 @@ public struct ControlHandler: Sendable {
         case ("/reindex", "POST"):
             return await reindexResponse(upstream: upstream, name: name, deps: deps)
 
+        // R27. The reference has no such sub-path and falls through to its own 405; this is the
+        // `div-r27-probe` row in `planning/parity/surface.tsv`.
+        case ("/probe", "POST"):
+            return await probeResponse(name: name, deps: deps)
+
         case ("/document", "GET"):
             return documentResponse(upstream: upstream, name: name, deps: deps)
 
         case ("/changes", "GET"):
-            // The in-memory snapshot, never a disk read, and observationally read-only (B35).
-            let entry = deps.manifest.entry(named: name.string)
-            let pending = entry?.pending?.isTruthy == true
-            var members: [JSONMember] = [
-                JSONMember(key: "server", value: .string(name)),
-                JSONMember(key: "pending", value: .bool(pending))
-            ]
-            if let seenAt = entry?.pending?.member("seenAt") {
-                members.append(JSONMember(key: "seenAt", value: seenAt))
-            }
-            var changes: [ToolChange] = []
-            if pending, let entry {
-                changes = DiffTools.diff(before: entry.tools, after: entry.pendingTools)
-            }
-            members.append(JSONMember(
-                key: "changes", value: .array(changes.map(\.value))
-            ))
-            return .json(200, .object(members))
+            return changesResponse(name: name, deps: deps)
 
         default:
             return nil
@@ -369,6 +357,7 @@ extension ControlHandler {
         if let response = routeUsage(path, request, deps) { return response }
         if let response = routeExtensions(path, request, deps) { return response }
         if let response = routeCaches(path, request, deps) { return response }
+        if let response = await routeHealth(path, request, deps) { return response }
         switch (path, request.method) {
         case ("/harnesses", "GET"): return harnessesResponse(deps)
         case ("/insights", "GET"): return await insightsResponse(deps)

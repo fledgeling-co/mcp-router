@@ -112,6 +112,7 @@ LANES=(
     menu-badge-lane-selftest.sh
     menu-reason-plane.sh
     menu-reason-plane-selftest.sh
+    r27-health.sh
     r28-extensions.sh
     r31-caches.sh
     r32-desktop-entry.sh

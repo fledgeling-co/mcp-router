@@ -149,13 +149,57 @@ public enum InsightsBoardCopy {
     public static let analyst = "The analyst"
     public static let analyseNow = "Analyse now"
 
-    /// Why the analyst's one action is dim. `PRD.md` §6 specifies a session analyst and nothing in
-    /// `app/Sources` implements one, so this is `featureUnbuilt` rather than a surface missing from
-    /// this build — and saying which is the difference `CommandAvailability` exists to keep.
+    /// Why the analyst's one action is dim — and after F7 it is dim for a **different reason**.
+    ///
+    /// Until F7 nothing under `app/Sources` implemented `PRD.md` §6, so the button was
+    /// `featureUnbuilt`: no router anywhere could run one. It now says the router on the other end
+    /// has none, which is version skew rather than an unbuilt feature — the reference
+    /// implementation answers this whole family 404 and always will, and it is the installed
+    /// default. Saying which of the two is the difference `CommandAvailability` exists to keep.
     public static let analyseUnavailable = """
-    Nothing reads your session logs yet, so there is nothing to run. When something does, \
-    this says which model judged and what it found.
+    This router has no session analyst. The one that ships with the Swift router reads your \
+    own agent logs on this Mac; the reference router does not have it.
     """
+
+    public static let analystPrimary = "Primary"
+    public static let analystFallback = "Fallback"
+    public static let analystRuns = "Runs"
+    public static let analystLastRun = "Last run"
+    public static let analystNoFallback = "No fallback"
+    public static let analystNeverRun = "Never"
+
+    /// The design's own caption, kept because it is the whole privacy argument in one sentence and
+    /// because it states the fallback rule the `judgedBy` line on every finding depends on.
+    public static let analystCallout = """
+    Excerpts are read locally and passed to a CLI you are already signed into, so there is no \
+    API bill and nothing leaves this Mac. If the primary hits a usage limit the fallback runs \
+    and the finding says which model judged it.
+    """
+
+    /// What the cadence readout is **not**. `spec-F7.md` §2 records the deferral; this is the
+    /// sentence that stops a stored preference from reading as a schedule the router keeps.
+    public static let analystNotScheduled = """
+    Nothing runs the analyst on a timer yet, so this is the cadence it would use rather than \
+    one it is keeping. Press Analyse now to run it.
+    """
+
+    /// `41 min ago · 12,400 lines · 3 findings`, minus the relative time — this board states an
+    /// absolute stamp elsewhere for the reason M12 settled, and a run with no reading says so.
+    public static func analystLastRunSummary(_ run: AnalystRun) -> String {
+        guard run.hasRun else { return analystNeverRun }
+        let lines = run.linesRead ?? 0
+        let findings = run.findings ?? 0
+        return "\(lines) lines · \(findings) finding\(findings == 1 ? "" : "s")"
+    }
+
+    /// The stores the run could not open, named. Nil when it opened all of them, so a surface
+    /// draws nothing rather than an empty list — and never a silence over a store it skipped.
+    public static func analystUnreadSummary(_ run: AnalystRun) -> String? {
+        let unread = run.unreadStores
+        guard !unread.isEmpty else { return nil }
+        return unread.map { "\($0.harness): \($0.reason ?? "unread")" }
+            .joined(separator: " · ")
+    }
 
     /// The caption under the duty-cycle chart.
     ///
@@ -186,9 +230,13 @@ public enum InsightsBoardCopy {
 
     public static let analystAbsentTitle = "No analyst has run"
     public static let analystAbsentBody = """
-    Nothing has read your session logs. When something does, this says which model judged, how \
-    much it read and what it found.
+    Nothing has read your session logs yet. Press Analyse now and this says which model judged, \
+    how much it read and what it found.
     """
+
+    /// The empty state for a router that has no analyst at all, as distinct from one that has an
+    /// analyst and has never run it. Two absences, two sentences: only one of them has an action.
+    public static let analystUnsupportedTitle = "This router has no analyst"
 
     /// The failure rate, with both its numerator and its denominator, because a percentage on its
     /// own is a claim and this is a reading.

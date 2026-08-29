@@ -26,6 +26,11 @@ public enum ControlPaths {
             // as divergences in `planning/parity/surface.tsv` rather than left to be discovered.
             || pathname == "/harnesses"
             || pathname == "/insights"
+            // F7's two. Exact matches beside `/insights`, for the reason M22's own comment gives:
+            // the family has exactly these sub-paths, so `/insights/anything-else` is not a route
+            // this router answers and claiming it would turn a typo into a 405.
+            || pathname == "/insights/analyse"
+            || pathname == "/insights/analyst"
             // R28's family. A prefix arm as well as the exact match, unlike M22's two above:
             // this one HAS sub-paths — `/extensions/skills` and `/extensions/skills/<name>` —
             // and without the prefix the collections would fall through to `/mcp`. `/extensionsx`
@@ -56,6 +61,12 @@ public enum ControlPaths {
             // owned. Both diverge from `src/control.ts`, which claims neither and answers 404.
             || pathname == "/diagnostics"
             || pathname == "/diagnostics/bundle"
+            // F8's family. A prefix arm as well as the exact match, like R28's and unlike M22's:
+            // this one has sub-paths — `/profiles/<name>` and `/profiles/<name>/projection` — and
+            // without the prefix they would fall through to `/mcp`. `/profilesx` shares a prefix
+            // with an owned path and is not owned, which is what the trailing slash is for.
+            || pathname == "/profiles"
+            || pathname.hasPrefix("/profiles/")
     }
 }
 

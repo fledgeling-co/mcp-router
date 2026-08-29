@@ -241,7 +241,21 @@ extension RouterService {
             health: health,
             // F5. Nil unless `MCP_ROUTER_TRANSCRIPTS` named a corpus — see ``InvocationSources``.
             // Nil is the ordinary state and the routes say so rather than serving an empty window.
-            invocations: invocations
+            invocations: invocations,
+            // F7. Built here and nowhere else, for the reason the R28 line above states about
+            // itself: an engine that is unit-tested and nil in the process that ships answers 503
+            // on the wire while the suite stays green. Its candidate source is the same registry
+            // `/registry/search` uses, so a recommendation always names an entry that resolves.
+            analyst: analyst,
+            // F8. Supplied here and nowhere else, for the reason `extensions` is: a capability that
+            // exists, is unit-tested and is nil in the one process that ships answers a refusal on
+            // the wire with the suite green. `scripts/acceptance/f8-profiles.sh` drives the
+            // daemon's own socket, because that is the only oracle that can see these two missing.
+            profiles: DiskProfileStore(root: home.profilesPath, clock: clock),
+            // The home the daemon was started under, never `NSHomeDirectory()`. A lane can then
+            // point this at a scratch tree rather than at the operator's own harness directories,
+            // which is the discipline `div-m22-harnesses` records for `GET /harnesses`.
+            skillRoots: DiskSkillRoots()
         )
     }
 

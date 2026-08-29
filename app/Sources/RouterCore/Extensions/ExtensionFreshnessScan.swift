@@ -44,19 +44,21 @@ public enum ExtensionFreshnessScan {
         let store: any ExtensionStoring
         let staleAfter: Double
         let now: Double
-        /// One catalogue read once, held with what it offered.
-        ///
-        /// A `Dictionary`, and declared rather than waved past: `no-wire-codable.sh` refuses one in
-        /// this directory because a dictionary loses member order and code-unit key identity
-        /// (S4, S5, B24), and both of those objections are answered here rather than being absent.
-        /// **Order** does not survive to a caller — ``readings()`` sorts by name before returning,
-        /// so the array on the wire is a function of the names and not of the hash. **Key
-        /// identity** has no hazard to lose: a key is a marketplace's entry name, which
-        /// ``ExtensionNaming/isWellFormedName(_:)`` constrains to ASCII letters, digits, `.`, `_`,
-        /// `-` and `@`, so there is no astral-plane key and no canonically-equivalent pair for a
-        /// `String` comparison to fold together. What reaches the wire is the values, and they are
-        /// ordered on the way out.
-        // The marker must sit on the offending line or the one immediately above it.
+        // One catalogue read once, held with what it offered.
+        //
+        // A `Dictionary`, and declared rather than waved past: `no-wire-codable.sh` refuses one in
+        // this directory because a dictionary loses member order and code-unit key identity
+        // (S4, S5, B24), and both of those objections are answered here rather than being absent.
+        // ORDER does not survive to a caller — `readings()` sorts by name before returning, so the
+        // array on the wire is a function of the names and not of the hash. KEY IDENTITY has no
+        // hazard to lose: a key is a marketplace's entry name, which `ExtensionNaming
+        // .isWellFormedName` constrains to ASCII letters, digits, `.`, `_`, `-` and `@`, so there
+        // is no astral-plane key and no canonically-equivalent pair for a `String` comparison to
+        // fold together. What reaches the wire is the values, and they are ordered on the way out.
+        //
+        // Written as `//` rather than `///` because swiftlint's `orphaned_doc_comment` fires on a
+        // doc comment separated from its declaration — and the gate below requires its marker on
+        // the line immediately above the property, so the two rules leave exactly one shape.
         // swift-wire-exempt: a memo, never serialised — readings() sorts by name on the way out
         private var memo: [String: (reading: CatalogueReading, catalogue: MarketplaceCatalogue?)] = [:]
         private let marketplaceRoot: String

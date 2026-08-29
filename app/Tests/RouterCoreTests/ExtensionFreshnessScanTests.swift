@@ -73,7 +73,9 @@ struct ExtensionFreshnessScanTests {
             )
         }
 
-        func cleanup() { try? FileManager.default.removeItem(atPath: root) }
+        func cleanup() {
+            try? FileManager.default.removeItem(atPath: root)
+        }
     }
 
     private static func row(_ report: FreshnessReport, _ name: String) -> FreshnessRow? {
@@ -101,7 +103,7 @@ struct ExtensionFreshnessScanTests {
         bench.skill("noversion", version: nil)
         bench.skill("versioned", version: "3.0.0")
 
-        let report = ExtensionFreshnessScan.build(store: bench.store, now: 10_000)
+        let report = ExtensionFreshnessScan.build(store: bench.store, now: 10000)
 
         #expect(Self.row(report, "behind@mkt")?.verdict.state == "update-available")
         #expect(Self.row(report, "level@mkt")?.verdict.state == "current")
@@ -130,7 +132,7 @@ struct ExtensionFreshnessScanTests {
         bench.plugin("c@mkt", version: "1.0.0")
         bench.skill("s", version: nil)
 
-        let report = ExtensionFreshnessScan.build(store: bench.store, now: 10_000)
+        let report = ExtensionFreshnessScan.build(store: bench.store, now: 10000)
         #expect(report.summary.total == 5) // four entries plus the marketplace's own row
         #expect(report.summary.compared + report.summary.uncomparable == report.summary.total)
         #expect(report.summary.compared == 1)
@@ -179,7 +181,7 @@ struct ExtensionFreshnessScanTests {
         bench.plugin("a@plain", version: "1.0.0")
         bench.plugin("b@cloned", version: "1.0.0")
 
-        let report = ExtensionFreshnessScan.build(store: bench.store, now: 10_000)
+        let report = ExtensionFreshnessScan.build(store: bench.store, now: 10000)
         #expect(report.catalogues.first { $0.name == "plain" }?.refreshable == false)
         #expect(report.catalogues.first { $0.name == "cloned" }?.refreshable == true)
     }
@@ -193,7 +195,7 @@ struct ExtensionFreshnessScanTests {
         defer { bench.cleanup() }
         bench.plugin("a@gone", version: "1.0.0")
 
-        let report = ExtensionFreshnessScan.build(store: bench.store, now: 10_000)
+        let report = ExtensionFreshnessScan.build(store: bench.store, now: 10000)
         let reading = report.catalogues.first { $0.name == "gone" }
         #expect(reading?.newestModifiedMilliseconds == nil)
         #expect(reading?.ageMilliseconds == nil)
@@ -234,7 +236,7 @@ struct ExtensionFreshnessScanTests {
         bench.marketplace("mkt", offers: [("a", "1.0.0"), ("b", nil), ("c", nil)])
         bench.plugin("a@mkt", version: "1.0.0")
 
-        let report = ExtensionFreshnessScan.build(store: bench.store, now: 10_000)
+        let report = ExtensionFreshnessScan.build(store: bench.store, now: 10000)
         let reading = report.catalogues.first { $0.name == "mkt" }
         #expect(reading?.offers == 3)
         #expect(reading?.declaredNoVersion == 2)
@@ -251,18 +253,18 @@ struct ExtensionFreshnessScanTests {
         bench.marketplace("mkt", offers: [("a", "1.0.0")])
         bench.plugin("a@mkt", version: "1.0.0")
         #expect(
-            ExtensionFreshnessScan.build(store: bench.store, now: 10_000)
+            ExtensionFreshnessScan.build(store: bench.store, now: 10000)
                 .summary.updatesAvailable == 0
         )
 
         let manifest = ((((bench.root as NSString).appendingPathComponent("marketplaces")
-            as NSString).appendingPathComponent("mkt") as NSString)
+                as NSString).appendingPathComponent("mkt") as NSString)
             .appendingPathComponent(".claude-plugin") as NSString)
             .appendingPathComponent("marketplace.json")
         try? "{\"name\":\"mkt\",\"plugins\":[{\"name\":\"a\",\"version\":\"9.9.9\"}]}"
             .write(toFile: manifest, atomically: true, encoding: .utf8)
 
-        let after = ExtensionFreshnessScan.build(store: bench.store, now: 10_000)
+        let after = ExtensionFreshnessScan.build(store: bench.store, now: 10000)
         #expect(after.summary.updatesAvailable == 1)
         #expect(Self.row(after, "a@mkt")?.verdict == .updateAvailable(installed: "1.0.0", available: "9.9.9"))
     }
@@ -276,12 +278,12 @@ struct ExtensionFreshnessScanTests {
         bench.skill("s", version: "1.0.0")
 
         let plugins = ExtensionFreshnessScan.build(
-            store: bench.store, kinds: [.plugins], now: 10_000
+            store: bench.store, kinds: [.plugins], now: 10000
         )
         #expect(plugins.rows.count == 1)
         #expect(plugins.rows[0].verdict.state == "update-available")
 
-        let named = ExtensionFreshnessScan.build(store: bench.store, now: 10_000, name: "s")
+        let named = ExtensionFreshnessScan.build(store: bench.store, now: 10000, name: "s")
         #expect(named.rows.count == 1)
         #expect(named.rows[0].kind == .skills)
     }
@@ -292,7 +294,7 @@ struct ExtensionFreshnessScanTests {
     func emptyStore() {
         let bench = Bench()
         defer { bench.cleanup() }
-        let report = ExtensionFreshnessScan.build(store: bench.store, now: 10_000)
+        let report = ExtensionFreshnessScan.build(store: bench.store, now: 10000)
         #expect(report.rows.isEmpty)
         #expect(report.summary.total == 0)
         #expect(report.summary.compared == 0)

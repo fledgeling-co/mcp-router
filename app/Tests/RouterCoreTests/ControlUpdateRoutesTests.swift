@@ -43,8 +43,12 @@ struct ControlUpdateRoutesTests {
     }
 
     private static func stocked(_ store: DiskExtensionStore) {
-        write(store, .marketplaces, "mkt",
-              #"{"name":"mkt","plugins":[{"name":"a","version":"2.0.0"},{"name":"b"}]}"#)
+        write(
+            store,
+            .marketplaces,
+            "mkt",
+            #"{"name":"mkt","plugins":[{"name":"a","version":"2.0.0"},{"name":"b"}]}"#
+        )
         write(store, .plugins, "a@mkt", #"{"name":"a","version":"1.0.0"}"#)
         write(store, .plugins, "b@mkt", #"{"name":"b","version":"1.0.0"}"#)
         write(store, .skills, "s", "---\nname: s\ndescription: a skill\n---\n")

@@ -121,6 +121,22 @@ Recorded because each was found by an assertion going red, not by re-reading.
    into `no-catalogue`. How old a file is and whether it parses are independent questions, and
    `CatalogueReading` now carries them as two members. M10 is the arm.
 
+**And three more that only the WHOLE-tree `make lint` could find**, which is why rule 1 of this
+fleet says to run it whole rather than the filter:
+
+4. **The landing is Swift-only and carried no carrier row.** `carrier-parity-gate.py` refused it —
+   *a landing that touched one router and not the other is not a defect; not saying so is*. The row
+   is now in `planning/parity/carriers.tsv`, keyed on `182e40f7`, and the reason is structural
+   rather than a scheduling accident: the route reads the Swift store at `<router home>/extensions`,
+   which the node router has no concept of, so a TypeScript half would have nothing to read.
+5. **`no-wire-codable.sh` refused two `[String: …]` memos** under `RouterCore/Extensions`, because a
+   Swift `Dictionary` loses member order and code-unit key identity (S4, S5, B24). Both objections
+   are answerable here — `readings()` sorts by name before returning, and every key is an
+   `ExtensionNaming`-constrained ASCII segment — so the two were collapsed into one and the
+   exemption written with that reason rather than waved past.
+6. A test helper signature at 115 columns against a 110 limit. A filtered `swift test` run does not
+   lint.
+
 The lane found three more before it went green: an assertion that an untokened read is refused
 (the control token guards the mutating half, so a GET is served — the lane now asserts the design
 instead of a guess about it), a fixture whose catalogue did not offer the entry the row was named

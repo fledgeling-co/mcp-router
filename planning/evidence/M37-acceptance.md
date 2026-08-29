@@ -81,3 +81,47 @@ effect of checking* — arriving as a load-dependent interaction between two mem
 Recorded here rather than fixed: the fix is a restore-on-kill in one of the two gates, it belongs
 to whoever owns them, and inventing it inside a feature branch would be the scope creep this
 pipeline forbids.
+
+---
+
+## The mutation lane
+
+Ten arms, declared in `planning/plans/plan-M37.md` before they were run, each planted against a
+green baseline with the tree restored from `HEAD` afterwards. All ten red **by assertion** — the
+table in the plan says which, because a mutation that merely fails to compile exits 1 without
+measuring anything and reads identically from the outside.
+
+Two of them changed the work rather than confirming it:
+
+- **PAU-4 found an unguarded oracle.** Re-aimed after its first form turned out not to compile, it
+  passed against a switch that dimmed itself once the server was disabled — because the assertion
+  searched the whole Behaviour section and the `Keep warm` toggle's identical `disabledReason`
+  satisfied it two declarations below. The assertion now slices the switch's own declaration first.
+  Without the arm, D5 would have shipped with nothing watching it.
+- **PAU-8c/d measured a divergence this item does not own.** Driving `{"disabled":"yes"}` through
+  the port and reading the result back: the server is **still served**.
+
+## A second finding about the router, not about this branch
+
+Measured 2026-08-29 on this branch, by parsing one config and asking the two readers:
+
+    "disabled": "yes"   typed `UpstreamConfig.disabled` = nil
+                        `ToolUnion.isServed` = true      (the tools are served)
+                        raw truthiness       = true      (`Describe.row` reports disabled: true)
+
+`ServerParser` reads the field through `asBool`, which returns `nil` for anything that is not a
+JSON boolean, while `Describe` reads the same field off `raw` and reports its JS truthiness — that
+second reading is deliberate and its comment says so. The TypeScript reference copies the raw value
+and tests `!u.disabled`, so `"yes"` is **not served** there.
+
+So on the Swift router a config carrying a non-boolean truthy `disabled` draws *disabled by you*
+on the board over a server whose tools are still in every session's list. It is reachable: the
+control API's PATCH writes the supplied value through, and `scripts/acceptance/control-differential.sh`
+already drives exactly `{"disabled":"yes"}` — but that lane diffs the status, the response body and
+`servers.json`, none of which disagree, which is K5's point about an equivalence lane restated by a
+second example.
+
+**Not fixed here, deliberately.** It is RouterCore behaviour, it is a parity semantics question
+rather than a bug with one obvious answer — match the reference's JS truthiness, or refuse a
+non-boolean at the PATCH — and M37 changes no router code at all. Filed as a finding for whoever
+owns R4's parity surface.

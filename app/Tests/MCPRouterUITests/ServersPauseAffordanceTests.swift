@@ -299,13 +299,47 @@
             }
 
             // Oracle 5 — the switch takes the section's own reason (writing, router not
-            // answering) and nothing else. A `.disabled(server.disabled)` here would make the one
-            // control that turns a server back on unreachable on a server that is off.
-            #expect(body.contains("disabledReason: disabledReason"))
+            // answering) and nothing else. A reason that fires on `server.disabled` here would
+            // dim the one control that turns a server back on, on a server that is off.
+            //
+            // **Sliced to this toggle's own declaration**, and that is the arm's doing rather
+            // than foresight: the first version of this assertion searched the whole section, so
+            // `Keep warm`'s identical `disabledReason: disabledReason` satisfied it and PAU-4
+            // passed against a switch that dimmed itself. The mutation is the only reason that
+            // is known.
+            let declaration = try Self.disableToggleDeclaration(in: body)
             #expect(
-                !body.contains(".disabled(server.disabled)"),
+                declaration.contains("disabledReason: disabledReason"),
+                "the switch's own reason is no longer the section's: \(declaration)"
+            )
+            #expect(
+                !declaration.contains("server.disabled ?"),
                 "the switch dims itself once it is on, so it cannot be switched back"
             )
+            #expect(
+                !declaration.contains(".disabled("),
+                "the switch carries its own dim rather than the section's reason"
+            )
+        }
+
+        /// The disable switch's own declaration, sliced out of the section.
+        ///
+        /// The section holds three `ToggleRow`s with the same argument labels, so an assertion
+        /// over the whole body is satisfied by any of them. PAU-4 proved that is not theoretical:
+        /// a switch that dimmed itself on `server.disabled` passed, because `Keep warm`'s
+        /// `disabledReason: disabledReason` two declarations below still matched.
+        static func disableToggleDeclaration(in body: String) throws -> String {
+            let start = try #require(
+                body.range(of: "title: ServerInspector.disableToggleTitle"),
+                "the section no longer declares the switch at all"
+            )
+            let rest = body[start.upperBound...]
+            let end = rest.range(of: "ToggleRow(")
+            let slice = String(end.map { rest[..<$0.lowerBound] } ?? rest)
+            // The slice has to end before the next control, or it is the whole section again.
+            #expect(!slice.contains("Keep warm"), "the slice ran past the switch's declaration")
+            #expect(slice.contains("isOn:"), "the slice stops before the switch's own arguments")
+            return slice
         }
 
         /// The other two call sites, in the other file.

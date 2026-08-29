@@ -83,24 +83,34 @@ oracle 12: `make mock-fidelity SURFACE=servers` exits 3 on a break inherited fro
 is no accessor for a SwiftUI control's label on this host. A source-binding assertion is weaker
 than a render and is labelled as such rather than dressed up.
 
-### Mutation arms — what must redden, and it is checked by running them
+### Mutation arms — declared, then run, with what actually happened
 
-| Id | The mutation | What must go red |
+Each was planted, the named filter run, and the tree restored from `HEAD` afterwards. Both
+baselines green first, so a red arm is the mutation rather than a tree that was already failing.
+An arm is only red if an **assertion** fired: a mutation that fails to compile is BLOCKED, and this
+table says which.
+
+| Id | The mutation | Result |
 |---|---|---|
-| PAU-1 | Delete the new `ToggleRow` from `behaviour` | the existence and binding tests |
-| PAU-2 | Invert the toggle's polarity (`isOn: !server.disabled`) | the binding test |
-| PAU-3 | Swap the setter's argument to a constant `true` | the both-directions effect test |
-| PAU-4 | Add `.disabled(server.disabled)` to the toggle | D5's arm |
-| PAU-5 | Replace the toggle's title with the literal `"Disable this server"` | the source-binding test |
-| PAU-6 | Revert `headerDetail` to the interpolated count | oracle 8 |
-| PAU-7 | Revert `projectScopeHelp` to the two-way version | oracle 9 |
-| PAU-8 | Change the vector's disable body to `{"disabled":"yes"}` | **both halves**, which is what makes 14 a claim rather than a hope |
-| PAU-9 | Delete the `disabled` arm from `applyPatchFields` (K5's mutation) | the router half of the witness — already covered by `ControlDisableWriteTests`, re-run here to prove the new file is not a second copy of an existing green |
+| PAU-1 | Delete the switch from `behaviour` | red, assertion |
+| PAU-2 | Invert the polarity (`isOn: !server.disabled`) | red, assertion |
+| PAU-3 | Swap the setter's argument to a constant `true` | red, assertion |
+| PAU-4 | Give the switch a `disabledReason` that fires on `server.disabled` | **BLOCKED, then re-aimed, then red — and it found a hole.** See below |
+| PAU-5 | Replace the switch's title with a literal | red, assertion |
+| PAU-6 | Revert `headerDetail` to the interpolated count | red, assertion |
+| PAU-7 | Delete `projectScopeHelp`'s disabled branch | red, assertion |
+| PAU-8a/b | Change the pinned disable body to `{"warm":true}` | red in **both** halves, assertions — which is what makes oracle 14 a claim |
+| PAU-8c/d | Change it to `{"disabled":"yes"}` | red in both halves, assertions — for a reason worth recording; see the evidence file |
+| PAU-9 | Delete the `disabled` arm from `applyPatchFields` (K5's mutation) | red, assertion, in the new router suite |
 
-PAU-8 is the arm that matters most: it is the only one that fails if the two halves have quietly
-stopped reading the same file.
-
----
+**PAU-4 is the one that earned its place.** Its first form put `.disabled(server.disabled)` in a
+position that does not compile, so it exited 1 without any assertion firing — BLOCKED, not red,
+and indistinguishable from a red if only the exit code is read. Re-aimed (not swapped) to a
+`disabledReason` ternary that compiles, it then **passed**: the oracle-5 assertion searched the
+whole `behaviour` body, and `Keep warm`'s identical `disabledReason: disabledReason` two
+declarations below satisfied it. So D5 was unguarded and the suite looked green. The assertion now
+slices the switch's own declaration out of the section before reading it, with two arms proving the
+slice actually stops before the next control, and PAU-4 reddens.
 
 ## What this plan explicitly does not do
 

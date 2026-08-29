@@ -27,8 +27,8 @@ promising nothing observable and therefore owing no witness.
 The list is not copied here, because a copy drifts from the tool it describes. Read it with:
 
 ```sh
-python3 planning/test-campaign/bin/effect-class-census.py --quiet   # prints nothing but findings
 python3 planning/test-campaign/bin/effect-class-census.py           # prints the recognised set
+python3 planning/test-campaign/bin/effect-class-census.py --quiet   # suppresses only that header
 ```
 
 That gate parses the set out of every copy of the instrument this repository can see — the

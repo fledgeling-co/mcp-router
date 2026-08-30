@@ -29,7 +29,7 @@ import { hasTokens, isAuthFailure } from './auth.js';
 import { cmdWatch } from './watch.js';
 import { askSessionsToReload, sweepSessions, type Reach } from './sessions.js';
 import { configureLogging, log } from './log.js';
-import { openInBrowser, supervisor, PLATFORM } from './platform.js';
+import { openInBrowser, supervisor, configWatcher, PLATFORM } from './platform.js';
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(`--${name}`);
@@ -45,6 +45,11 @@ const SHUTDOWN_DEADLINE_MS = 15_000;
 const has = (name: string): boolean => process.argv.includes(`--${name}`);
 
 function usage(): void {
+  /* The parenthetical on the `watch` line is the one piece of this text that is not true
+     everywhere. It said "(run by launchd on file change)" on every host, including the ones with
+     no launchd, so a Windows user read that their newly-added servers were being adopted for them
+     when nothing was adopting anything. `configWatcher()` supplies the platform's own sentence. */
+  const watchNote = configWatcher().usageNote;
   process.stdout.write(`mcp-router — one shared MCP endpoint, upstreams opened on demand
 
   mcp-router import [--from <path>]   Adopt servers from ~/.claude.json (stdio and http)
@@ -55,7 +60,8 @@ function usage(): void {
   mcp-router auth <server>            Authorize an http upstream in your browser
   mcp-router usage [--limit N]        Recent tool calls, with the project that made them
   mcp-router watch [--verbose]        One shot: adopt any new server out of
-                                      ~/.claude.json (run by launchd on file change)
+                                      ~/.claude.json
+                                      (${watchNote})
   mcp-router sessions [--push] [--dry-run]
                                       Which live Claude Code sessions a reload can reach,
                                       and by which mechanism. --push asks them to reload
@@ -285,6 +291,15 @@ async function cmdServe(): Promise<void> {
    */
   const supervision = supervisor();
   if (supervision.kind === 'none') log.warn(`supervision: ${supervision.guarantee}`);
+
+  /*
+   * And the other half of the same finding. launchd does two jobs for this router — it restarts it,
+   * and it fires `mcpr watch` when `~/.claude.json` changes. Only the first was restated when
+   * `supervisor()` landed, so on Windows the auto-adoption path silently did not exist while the
+   * usage text still credited launchd with it. An operator reading this log now learns both.
+   */
+  const watcher = configWatcher();
+  if (watcher.kind === 'none') log.warn(`config watcher: ${watcher.guarantee}`);
 
   let closing = false;
   const shutdown = (sig: string) => {

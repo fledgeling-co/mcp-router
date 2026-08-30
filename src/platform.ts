@@ -26,6 +26,12 @@
  *   `watch.ts`'s restart after adopting a new upstream, and `router.ts`'s note about a hung close.
  *   Windows has no equivalent this daemon can assume, so `supervisor()` reports `none` and the
  *   guarantee is restated at `serve` startup rather than left implied. WIN23 owns choosing one.
+ * - **Automatic adoption of a newly-added server.** launchd's `WatchPaths` fires `mcpr watch` on
+ *   every write to `~/.claude.json`, so a server added by `claude mcp add` reaches the router on
+ *   its own. Nothing does that on Windows, so `configWatcher()` reports `none` and the usage text,
+ *   the `serve` banner and `watch`'s own log all say `mcpr watch` has to be run by hand there.
+ *   Restating this in the product's output rather than only here is the whole of that fix: the
+ *   usage text used to print "(run by launchd on file change)" to a Windows user.
  * - **Client attribution.** `lsof` names the process on the other end of a loopback socket *and*
  *   its working directory. `netstat -ano` gives the pid; a foreign process's cwd is not readable on
  *   Windows without opening the process, so usage records there carry a pid and an image name and
@@ -35,6 +41,15 @@
  *   and `existsSync` of a *live* pipe returns `false` — measured against `\\.\pipe\InitShutdown`.
  *   A `readdir` of `\\.\pipe\` does see them, but cost 7 204 ms for 57 792 entries, so it is not an
  *   existence check either. Presence there is `indeterminate` and the connect attempt settles it.
+ *
+ * ## What proves this file, and what deliberately does not
+ *
+ * `scripts/e2e-platform.mjs`, run on the host whose behaviour is in question, is the oracle for
+ * everything here. The differential parity corpus is **not**, deliberately, and
+ * `scripts/parity/generate-vectors.mjs` carries that position in full: a parity vector compares two
+ * implementations of one behaviour, and nothing in this file has a second implementation — the
+ * Swift `RouterCore` it is compared against builds only on macOS, where every Windows branch below
+ * is dead. Windows behaviour is out of the parity corpus on purpose, and its oracle is named.
  */
 import { execFileSync, execFile } from 'node:child_process';
 import { existsSync, constants as fsConstants } from 'node:fs';
@@ -79,9 +94,54 @@ function stdoutOf(command: string, args: string[], timeoutMs: number): { out: st
   }
 }
 
-/** One PowerShell invocation. `-NoProfile` keeps a user's profile out of the timings and the output. */
+/**
+ * The same contract as `stdoutOf`, off the event loop.
+ *
+ * WIN17 gap-fix. The synchronous helper above was used by `residentKb` and `peerOfLocalPort`, both
+ * of which are declared `async` and neither of which was: `execFileSync` blocks the whole thread,
+ * so an `await` on them yielded to nothing. Measured 2026-08-30 on this machine, from node, with a
+ * 10 ms interval sampling its own drift:
+ *
+ *   | call                                | wall   | event-loop lag |
+ *   |---|---|---|
+ *   | `peerOfLocalPort` (netstat + PS)    |  93 ms |  83 ms         |
+ *   | `residentKb` (one PowerShell)       | 433 ms | 423 ms         |
+ *   | a bare synchronous `Get-Process`    | 372 ms | —              |
+ *
+ * `peerOfLocalPort` runs once per accepted connection (`router.ts`'s `http.on('connection')`) and
+ * is awaited again on the request path, so the first request from each new client stopped the
+ * router for roughly 0.45 s — timers, other sockets, in-flight upstream reads, all of it. The macOS
+ * path this replaced was `execFile` throughout and never did that. Lag here is now the process
+ * spawn only: a few milliseconds, whatever the child costs.
+ *
+ * `stdout` is still read off the *error* as well as the resolved value, for the reason above: both
+ * `ps` and `Get-Process` exit non-zero over an unusable pid and one of them still prints the good
+ * rows.
+ */
+function stdoutOfAsync(command: string, args: string[], timeoutMs: number): Promise<{ out: string; ran: boolean }> {
+  return new Promise((resolve) => {
+    execFile(command, args, { encoding: 'utf8', timeout: timeoutMs, maxBuffer: 4 * 1024 * 1024 }, (err, stdout) => {
+      if (!err) return resolve({ out: String(stdout ?? ''), ran: true });
+      const code = (err as NodeJS.ErrnoException).code;
+      const missing = code === 'ENOENT' || code === 'EACCES' || code === 'EPERM';
+      resolve({ out: String(stdout ?? ''), ran: !missing });
+    });
+  });
+}
+
+/** The argv every PowerShell probe here uses. `-NoProfile` keeps a user's profile out of the
+ *  timings and the output; `-NonInteractive` keeps a prompt from becoming a hang. */
+const powershellArgv = (script: string): string[] => ['-NoProfile', '-NonInteractive', '-Command', script];
+
+/** One PowerShell invocation, synchronously. Only `processStartSeconds` still needs this — see the
+ *  note there about why that one probe is not async. */
 function powershell(script: string, timeoutMs = 20_000): { out: string; ran: boolean } {
-  return stdoutOf('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], timeoutMs);
+  return stdoutOf('powershell.exe', powershellArgv(script), timeoutMs);
+}
+
+/** One PowerShell invocation, off the event loop. */
+function powershellAsync(script: string, timeoutMs = 20_000): Promise<{ out: string; ran: boolean }> {
+  return stdoutOfAsync('powershell.exe', powershellArgv(script), timeoutMs);
 }
 
 /* ------------------------------------------------------------------ opening a browser */
@@ -231,6 +291,30 @@ export interface StartTimeProbe {
 }
 
 /**
+ * The PowerShell expression that turns a `DateTime` into epoch seconds, **flooring**.
+ *
+ * WIN17 gap-fix, and the reason it is exported rather than written inline is that it must agree
+ * exactly with `parseProcStart`, and the only way a harness can prove that is by running the
+ * shipped expression rather than a copy of it.
+ *
+ * The defect it closes: this probe used to cast, `[int64](...TotalSeconds)`, and a .NET cast to
+ * an integral type **rounds to nearest** — `[int64]1.6` is `2`, and `[int64]1.5` is `2` as well.
+ * `parseProcStart` reads the registry's FILETIME with `BigInt(text) / 10_000_000n`, which
+ * truncates. So for any process whose start instant has a fractional second at or above .5, the
+ * probe said one second later than the parser did, deterministically. Measured 2026-08-30 across
+ * all ten rows of this machine's live session registry, **five of the ten disagreed by exactly one
+ * second** — and `sessions.ts` classifies a row `recycled` when the two differ by more than one.
+ * Half of all Windows sessions therefore sat exactly on that boundary by construction rather than
+ * by clock drift, so any real drift tipped a live session into `recycled` and its message landed
+ * nowhere. The earlier note in this file read that symptom — "agreed to within one second" — as
+ * headroom, when it was the asymmetry showing.
+ *
+ * Both sides floor now, and a live process's two spellings agree to zero rather than to one.
+ */
+export const windowsEpochSeconds = (dateTimeExpr: string): string =>
+  `[int64][System.Math]::Floor(((${dateTimeExpr}).ToUniversalTime() - [datetime]'1970-01-01').TotalSeconds)`;
+
+/**
  * Start times for the pids given, as epoch seconds, from one OS call.
  *
  * **macOS** — `ps -o pid=,lstart=`, with `LC_ALL=C` load-bearing: without it `ps` prints
@@ -243,6 +327,22 @@ export interface StartTimeProbe {
  * wearing a different hat. `Get-Process` is also the fast lane — 342 ms batched against
  * `Get-CimInstance Win32_Process`'s 3 138 ms and `tasklist`'s 3 782 ms, all measured 2026-08-30.
  * `wmic` is absent on this Windows 11 build (ENOENT) and is not a fallback.
+ *
+ * **This one probe is still synchronous, and that is a decision rather than an oversight.** Its
+ * callers — `sessions.ts`'s `processStarts` and `sweepSessions` — are synchronous all the way up
+ * to the `mcpr sessions` CLI, and none of them runs inside the router's request path, so the
+ * event-loop cost `residentKb` and `peerOfLocalPort` had to shed does not apply here. Making it
+ * async would turn a read-only sweep into an async signature change across `sessions.ts` and the
+ * control API's `/sessions` handler for no measured gain.
+ *
+ * **What that costs is not symmetric between the platforms, and is stated here rather than left to
+ * be discovered.** When a batch answers for nobody the sweep falls back to one call per pid — the
+ * regression arm that keeps one junk registry row from answering for the others. On macOS a `ps`
+ * invocation is a couple of milliseconds, so the fallback is free. On Windows one PowerShell start
+ * is 372 ms measured, so the same fallback is 372 ms × the number of rows: about 3.7 s at this
+ * machine's registry size of ten, and it blocks while it runs. It is bounded by the registry, it
+ * fires only in the degenerate case, and it is a CLI path — but it is 200× the macOS cost for the
+ * identical code, and a registry an order of magnitude larger would be felt.
  */
 export function processStartSeconds(pids: number[]): StartTimeProbe {
   const starts = new Map<number, number>();
@@ -265,7 +365,7 @@ export function processStartSeconds(pids: number[]): StartTimeProbe {
   if (IS_WINDOWS) {
     const ask = (batch: number[]): { out: string; ran: boolean } =>
       powershell(
-        `$ErrorActionPreference='SilentlyContinue'; Get-Process -Id ${batch.join(',')} | ForEach-Object { "$($_.Id) $([int64](($_.StartTime.ToUniversalTime() - [datetime]'1970-01-01').TotalSeconds))" }`
+        `$ErrorActionPreference='SilentlyContinue'; Get-Process -Id ${batch.join(',')} | ForEach-Object { "$($_.Id) $(${windowsEpochSeconds('$_.StartTime')})" }`
       );
 
     const first = ask(wanted);
@@ -317,10 +417,17 @@ const FILETIME_EPOCH_OFFSET_SECONDS = 11_644_473_600n;
  *
  *   · macOS writes ctime in **UTC** — `Sat Aug 22 10:02:12 2026`.
  *   · Windows writes a **FILETIME decimal string** — `"134324966130572677"`, 100 ns since
- *     1601-01-01 UTC. Converted here, all five agreed with `Get-Process`'s `StartTime` to within
- *     one second, which is inside the tolerance the identity check already uses.
+ *     1601-01-01 UTC.
  *
- * Before this, `Date.parse("134324966130572677 UTC")` returned `NaN`, so the caller's
+ * **Both spellings floor, and that is load-bearing rather than incidental.** `BigInt / 10_000_000n`
+ * truncates; `windowsEpochSeconds` floors for the same reason, having previously cast — which
+ * rounds to nearest and put half this machine's registry exactly one second away from the probe.
+ * The caller compares the two instants with a tolerance of one second, so a systematic one-second
+ * offset consumed the entire tolerance and left nothing for real clock drift: see
+ * `windowsEpochSeconds` for the ten-row measurement. A live process's registry `procStart` and its
+ * `Get-Process` start time now agree exactly, and the tolerance is spent on drift alone.
+ *
+ * Before any of this, `Date.parse("134324966130572677 UTC")` returned `NaN`, so the caller's
  * `registered !== undefined` guard skipped the identity check entirely and **the recycled-pid
  * check silently did not run on Windows** — a message aimed at a reused pid would have landed in
  * whatever now owns that number.
@@ -369,6 +476,10 @@ export function socketPresence(path: string): SocketPresence {
  * as such wherever it is displayed. `tasklist` would have given the same figure but takes 3.8 s
  * against `Get-Process`'s 392 ms, and prints it as a culture-formatted `"62,192 K"` whose thousands
  * separator depends on the machine; the byte count avoids both.
+ *
+ * The Windows call is `execFile`, not `execFileSync`: this function is `async`, it is awaited from
+ * `pool.ts`'s status sweep, and the synchronous version cost 423 ms of event-loop lag every time —
+ * see `stdoutOfAsync`.
  */
 export async function residentKb(pids: number[]): Promise<Map<number, number>> {
   const out = new Map<number, number>();
@@ -376,7 +487,7 @@ export async function residentKb(pids: number[]): Promise<Map<number, number>> {
   if (wanted.length === 0) return out;
 
   if (IS_WINDOWS) {
-    const { out: raw } = powershell(
+    const { out: raw } = await powershellAsync(
       `$ErrorActionPreference='SilentlyContinue'; Get-Process -Id ${wanted.join(',')} | ForEach-Object { "$($_.Id) $($_.WorkingSet64)" }`,
       5_000
     );
@@ -416,20 +527,28 @@ export interface PeerProcess {
  * what turns "something called browser_navigate" into "the session working in ~/Dev/mcp-router
  * called it".
  *
- * **Windows** — `netstat -ano` (23 ms, measured) carries the owning pid on every row, and the row
- * wanted is the one whose *local* address is that port, since a loopback connection appears twice
- * and the other row is this router. The image name comes from `Get-Process`. **There is no cwd**:
- * a foreign process's current directory lives in its PEB and is not readable without opening the
- * process, so a Windows usage record carries a pid and an image name and reports no project. A
- * smaller record, made deliberately, rather than a guessed one.
+ * **Windows** — `netstat -ano` carries the owning pid on every row, and the row wanted is the one
+ * whose *local* address is that port, since a loopback connection appears twice and the other row
+ * is this router. The image name comes from `Get-Process`. **There is no cwd**: a foreign process's
+ * current directory lives in its PEB and is not readable without opening the process, so a Windows
+ * usage record carries a pid and an image name and reports no project. A smaller record, made
+ * deliberately, rather than a guessed one.
+ *
+ * **Both Windows calls are `execFile`, and on this function that is the whole point.** It runs once
+ * per accepted connection from `router.ts`'s `http.on('connection')` and is awaited again on the
+ * request path, so a synchronous shell-out here is not one caller waiting — it is the entire router
+ * stopped, serving nobody, for as long as the child takes. Measured 2026-08-30 from node: the
+ * synchronous pair cost 93 ms wall and 83 ms of event-loop lag, against a header that had quoted
+ * netstat at 23 ms. That 23 ms was the command's own time measured in a shell; from node, with the
+ * spawn, the pipe and the wait, it is 83–93 ms, and it was the figure the sync choice was made on.
  */
 export async function peerOfLocalPort(port: number, selfPid: number): Promise<PeerProcess> {
   if (!Number.isSafeInteger(port) || port <= 0) return {};
 
   if (IS_WINDOWS) {
-    // `netstat` directly rather than through PowerShell: 23 ms against ~350 ms, measured, and this
-    // runs once per accepted connection.
-    const { out: raw, ran } = stdoutOf('netstat', ['-ano', '-p', 'TCP'], 5_000);
+    // `netstat` directly rather than through PowerShell: 23 ms against ~350 ms for the command
+    // itself, and both are paid off the event loop.
+    const { out: raw, ran } = await stdoutOfAsync('netstat', ['-ano', '-p', 'TCP'], 5_000);
     if (!ran) return {};
     let pid: number | undefined;
     for (const line of raw.split('\n')) {
@@ -442,7 +561,7 @@ export async function peerOfLocalPort(port: number, selfPid: number): Promise<Pe
       break;
     }
     if (!pid) return {};
-    const { out: name } = powershell(
+    const { out: name } = await powershellAsync(
       `$ErrorActionPreference='SilentlyContinue'; Get-Process -Id ${pid} | ForEach-Object { $_.ProcessName }`,
       5_000
     );
@@ -538,5 +657,55 @@ export function supervisor(): Supervisor {
         detail: `no supervisor on ${PLATFORM}, so ${label} was not restarted; start the router again yourself`,
       };
     },
+  };
+}
+
+/* ------------------------------------------------------------------ the config watcher */
+
+export interface ConfigWatcher {
+  /** What fires `mcpr watch` when `~/.claude.json` changes. `none` is a real answer. */
+  kind: 'launchd' | 'none';
+  /** One sentence for a person: whether a newly-added server is adopted on its own here. */
+  guarantee: string;
+  /** The parenthetical the `watch` line of the usage text carries on this platform. */
+  usageNote: string;
+}
+
+/**
+ * Whether anything on this host runs `mcpr watch` when `~/.claude.json` changes.
+ *
+ * WIN17 gap-fix. `supervisor()` above closed the *restart* half of the launchd finding and left
+ * this half open, which is the more visible of the two: on macOS a `WatchPaths` job fires `mcpr
+ * watch` on every write to `~/.claude.json`, so a server added by `claude mcp add` is adopted into
+ * the router within a second and the user never types anything. **Nothing fires it on Windows.**
+ * A server added there stays in `~/.claude.json`, is started per-session by Claude Code rather than
+ * shared through the router, and no message anywhere says so — `watch.ts`'s own header asserted
+ * "launchd fires this on the file change" unconditionally, and the usage text printed "(run by
+ * launchd on file change)" to a Windows user reading it on a machine with no launchd.
+ *
+ * This states the absence rather than papering over it. A Windows watcher is buildable — a
+ * `FileSystemWatcher` in a long-lived process, or a scheduled task — but both need something to
+ * keep them alive, which is the supervision question `supervisor()` deliberately leaves to WIN23.
+ * Inventing one here would answer that by accident, and would answer it worse: a watcher with no
+ * supervisor is a watcher that stops silently, which is the same failure wearing a fix.
+ *
+ * So on Windows the honest product behaviour is `mcpr watch` run by hand or by the client, and the
+ * text this returns is what says so, in the usage output, at `serve` startup, and in `watch`'s own
+ * log.
+ */
+export function configWatcher(): ConfigWatcher {
+  if (IS_DARWIN) {
+    return {
+      kind: 'launchd',
+      guarantee: 'launchd watches ~/.claude.json and runs `mcpr watch` when it changes.',
+      usageNote: 'run by launchd on file change',
+    };
+  }
+  return {
+    kind: 'none',
+    guarantee:
+      `nothing watches ~/.claude.json on ${PLATFORM}: a server added there is NOT adopted on its own, ` +
+      'so run `mcpr watch` yourself after `claude mcp add`. WIN23 decides what runs it here.',
+    usageNote: `nothing runs this for you on ${PLATFORM} — run it yourself after \`claude mcp add\``,
   };
 }

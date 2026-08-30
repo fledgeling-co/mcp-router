@@ -22,6 +22,12 @@
 # Slow by construction: each mutation is a rebuild plus a test run. Kept out of `make all` for that
 # reason and run before a merge, not on every save.
 #
+# macOS only, and not merely by accident of tooling: every mutation edits `app/Sources/RouterCore`
+# and rebuilds it with xcodebuild, which exists on no other platform. The corpus's position on
+# Windows behaviour — deliberately out, with `scripts/e2e-platform.mjs` named as its oracle instead
+# — is stated in full at the top of `generate-vectors.mjs`. Nothing in this table mutates
+# `src/platform.ts`, and that is the reason.
+#
 # Usage:  scripts/parity/mutation-gate.sh [--list] [id ...]
 #         with no arguments, every mutation runs. An id that names no mutation in the table is a
 #         failure (exit 2) rather than an empty, silently-successful run — see the selection block.

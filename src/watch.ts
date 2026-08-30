@@ -2,15 +2,21 @@
  * One-shot watcher: absorbs newly-added MCP servers out of `~/.claude.json`.
  *
  * `~/.claude.json` is the staging area. `claude mcp add` writes an stdio server into
- * its `mcpServers`, launchd fires this on the file change, and the server is moved
+ * its `mcpServers`, something fires this on the file change, and the server is moved
  * into the router's own list, indexed, and deleted from user scope. From then on it
  * reaches every session through the router instead of starting a copy per session.
+ *
+ * **What fires it is platform-dependent, and on Windows nothing does.** On macOS a launchd
+ * `WatchPaths` job runs this on every write to that file. Windows has no such thing here, so
+ * `configWatcher()` reports `none`, `mcpr watch` has to be run by hand after `claude mcp add`,
+ * and this run says so in its own log rather than leaving a user to infer that a server they
+ * added was adopted when it was not. WIN23 owns choosing what runs it there.
  *
  * Two facts shape the whole design:
  *
  * 1. That file is ~268 KB and Claude Code rewrites it constantly with session state,
- *    so this runs *very* often. The common case — nothing about `mcpServers` changed —
- *    must be a read, a hash and an exit, with nothing spawned and nothing written.
+ *    so this runs *very* often on macOS. The common case — nothing about `mcpServers`
+ *    changed — must be a read, a hash and an exit, with nothing spawned and nothing written.
  * 2. It holds live session state for every project on the machine. So: back up before
  *    writing, write temp-plus-rename rather than truncating in place, and abandon the
  *    run entirely rather than write anything derived from a parse that failed.
@@ -30,7 +36,7 @@ import {
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
-import { supervisor } from './platform.js';
+import { supervisor, configWatcher } from './platform.js';
 import {
   ROUTER_HOME,
   DEFAULT_CONFIG_PATH,
@@ -164,6 +170,11 @@ function candidateOf(name: string, s: RawServer, port: number): UpstreamConfig |
 }
 
 export async function cmdWatch(opts: { verbose?: boolean } = {}): Promise<void> {
+  /* Said before any work, because the interesting case is the user who is running this by hand
+     and does not know they will have to keep doing so. On macOS this line names launchd; on
+     Windows it says nothing runs it, which is the fact `configWatcher()` exists to carry. */
+  if (opts.verbose) process.stdout.write(`${configWatcher().guarantee}\n`);
+
   if (!existsSync(CLAUDE_JSON)) return;
 
   const raw = readFileSync(CLAUDE_JSON, 'utf8');

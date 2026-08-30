@@ -65,6 +65,13 @@ import json
 import sys
 from pathlib import Path
 
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 REPO = Path(__file__).resolve().parents[3]
 CAMPAIGN = REPO / "planning/test-campaign"
 VENDOR = REPO / "vendor/test-campaign/skills/test-campaign/scripts"
@@ -97,7 +104,7 @@ def parse_classes(path: Path):
     A regex over source is the reader this repository files defects about: it cannot tell a
     definition from a mention in a docstring, and both appear in these files.
     """
-    tree = ast.parse(path.read_text(errors="replace"))
+    tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
     for node in ast.walk(tree):
         if not isinstance(node, ast.Assign):
             continue
@@ -279,8 +286,8 @@ def main() -> int:
         for cls, where in sets.items():
             divergence.append("%s: %s" % (", ".join(where), ", ".join(cls)))
 
-    campaign = json.loads((CAMPAIGN / "campaign.json").read_text())
-    inv = json.loads((CAMPAIGN / "inventory.json").read_text())
+    campaign = json.loads((CAMPAIGN / "campaign.json").read_text(encoding="utf-8"))
+    inv = json.loads((CAMPAIGN / "inventory.json").read_text(encoding="utf-8"))
     reqs = inv.get("requirement", [])
 
     if not args.quiet:

@@ -1,8 +1,8 @@
 import { appendFileSync, mkdirSync, readFileSync, writeFileSync, renameSync, existsSync, statSync, rmSync } from 'node:fs';
 import { dirname, basename } from 'node:path';
-import { execFile } from 'node:child_process';
 import type { Socket } from 'node:net';
 import { log } from './log.js';
+import { peerOfLocalPort } from './platform.js';
 
 /** One tool call, as it happened. This is the unit the app's activity view renders. */
 export interface UsageRecord {
@@ -51,27 +51,26 @@ const IDENT = Symbol('mcp-router.client');
 const MAX_LOG_BYTES = 8 * 1024 * 1024;
 const RING_SIZE = 500;
 
-function run(cmd: string, args: string[], timeoutMs = 2000): Promise<string> {
-  return new Promise((resolve) => {
-    execFile(cmd, args, { timeout: timeoutMs, maxBuffer: 1024 * 1024 }, (err, stdout) => {
-      resolve(err ? '' : stdout);
-    });
-  });
-}
-
 /**
  * Work out which process is on the other end of a loopback connection.
  *
  * The MCP protocol carries nothing that identifies a session: `clientInfo` says
  * "claude-code" for every window on the machine, and this router is deliberately
  * stateless so there is no session id either. The socket, though, is a real object
- * with a real peer, and on macOS `lsof` will name the process holding it. That is
- * what turns "something called browser_navigate" into "the session working in
- * ~/Dev/mcp-router called browser_navigate", which is the question the app exists
- * to answer.
+ * with a real peer, and the OS will name the process holding it. That is what turns
+ * "something called browser_navigate" into "the session working in ~/Dev/mcp-router
+ * called browser_navigate", which is the question the app exists to answer.
  *
  * Cost is paid once per connection, not per call, and every failure path returns
  * an empty identity: an unattributed record is worth far more than a dropped one.
+ *
+ * WIN17 — **this is smaller on Windows and that is a deliberate, stated limit.** macOS reads both
+ * halves out of `lsof`: the process and its working directory. Windows gives up the pid readily
+ * (`netstat -ano`, 23 ms) and the image name from `Get-Process`, but a foreign process's current
+ * directory lives in its PEB and is not readable without opening the process. So a Windows usage
+ * record carries a pid and a client name and **no cwd**, and therefore no `project` — the field the
+ * activity view groups by. That is a narrower record, not a wrong one; nothing is guessed to fill
+ * the gap. `platform.ts` holds the mechanism.
  */
 export class ClientResolver {
   private byPid = new Map<number, ClientIdentity>();
@@ -94,38 +93,16 @@ export class ClientResolver {
   }
 
   private async resolve(peerPort: number): Promise<ClientIdentity> {
-    // `-i :port` matches either end of the connection, so this returns both the
-    // client and this router. The one that is not us is the caller.
-    const out = await run('/usr/sbin/lsof', ['-nP', `-iTCP:${peerPort}`, '-sTCP:ESTABLISHED', '-Fpc']);
-    if (!out) return UNKNOWN;
+    const peer = await peerOfLocalPort(peerPort, process.pid);
+    if (!peer.pid) return UNKNOWN;
 
-    let pid: number | undefined;
-    let client: string | undefined;
-    let currentPid: number | undefined;
-    for (const line of out.split('\n')) {
-      if (line.startsWith('p')) {
-        currentPid = Number(line.slice(1));
-      } else if (line.startsWith('c') && currentPid && currentPid !== process.pid) {
-        pid = currentPid;
-        client = line.slice(1);
-        break;
-      }
-    }
-    if (!pid) return UNKNOWN;
-
-    const known = this.byPid.get(pid);
+    const known = this.byPid.get(peer.pid);
     if (known) return known;
 
-    const cwdOut = await run('/usr/sbin/lsof', ['-a', '-p', String(pid), '-d', 'cwd', '-Fn']);
-    const cwd = cwdOut
-      .split('\n')
-      .find((l) => l.startsWith('n'))
-      ?.slice(1);
-
-    const identity: ClientIdentity = { pid, client, cwd: cwd || undefined };
+    const identity: ClientIdentity = { pid: peer.pid, client: peer.client, cwd: peer.cwd || undefined };
     // A pid is reused eventually, but not within one router lifetime in any
     // realistic case, and the cost of being wrong is a mislabelled log line.
-    this.byPid.set(pid, identity);
+    this.byPid.set(peer.pid, identity);
     if (this.byPid.size > 512) this.byPid.clear();
     return identity;
   }

@@ -43,12 +43,20 @@ from __future__ import annotations  # `X | None` is evaluated at def time on 3.9
 
 
 import re
+import os
 import shutil
 import subprocess
 import sys
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
+
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -81,7 +89,7 @@ from pathlib import Path
 
 def rows(path):
     kept = []
-    for line in Path(path).read_text().splitlines():
+    for line in Path(path).read_text(encoding="utf-8").splitlines():
         if not line.startswith("| "):
             continue
         kept.append(line)
@@ -167,6 +175,74 @@ def script_dirs(script: str) -> tuple[str, ...]:
         raise LookupError(f'{script} names no "$ROOT/…" directory — the derivation stopped '
                           "matching, and a fixture built from nothing measures nothing")
     return found
+
+
+# ---------------------------------------------------------------------------------------------
+# The shell and the interpreter, resolved rather than assumed.
+#
+# Neither name below is a Windows-only trap. They are ordinary names with more than one answer,
+# and the wrong answer is reached first on a machine that has several:
+#
+#   "bash"     handed to `subprocess` as a bare name is resolved by CreateProcess, which searches
+#              System32 ahead of PATH and so returns the WSL launcher: a different machine, with
+#              a different filesystem, which cannot see this checkout. With virtualisation off it
+#              exits 1 having printed a UTF-16 error, and that reads as a failing gate rather
+#              than as a missing shell. `/bin/bash` does not exist on Windows at all.
+#   "python3"  is whatever is on PATH, which need not be the interpreter running this gate. On
+#              Windows it is an App Execution Alias stub that raises OSError 216, "not a valid
+#              application for this OS platform" — a message about the machine, not the corpus.
+#
+# So a candidate shell is proved by asking it to read this file; a shell that cannot see the tree
+# it is being asked about is rejected instead of measured. `None` means there is no POSIX shell
+# on this machine, and every caller reports that as could-not-run, which is not a pass.
+_POSIX_SHELL: list = []
+
+
+def posix_shell():
+    """An absolute path to a shell that can read this checkout, or None if there is none."""
+    if _POSIX_SHELL:
+        return _POSIX_SHELL[0] or None
+    witness = os.path.abspath(__file__).replace(os.sep, "/")
+    candidates = [shutil.which("bash"), "/bin/bash"]
+    git = shutil.which("git")
+    if git:
+        # Every caller here already needs git, and git ships the shell its own tooling runs.
+        # Derived from a tool that must be present rather than a hardcoded install location.
+        home = os.path.dirname(os.path.dirname(os.path.realpath(git)))
+        candidates += [os.path.join(home, "bin", "bash.exe"), os.path.join(home, "bin", "bash")]
+    for candidate in candidates:
+        if not candidate or not os.path.exists(candidate):
+            continue
+        try:
+            done = subprocess.run(
+                [candidate, "-c", 'test -e "$1" && printf posix-ok', "sh", witness],
+                capture_output=True, timeout=60)
+        except (OSError, subprocess.SubprocessError):
+            continue
+        if done.stdout.strip() == b"posix-ok":
+            _POSIX_SHELL.append(candidate)
+            return candidate
+    _POSIX_SHELL.append("")
+    return None
+
+
+def resolve_interpreter(command):
+    """argv with a bare interpreter name replaced by the one this gate is actually running under.
+
+    A member declared `python3 …` means "under the suite's Python" and one declared `bash …`
+    means "under the shell that can read this tree"; taking either from PATH lets a second
+    installation answer for the first. Returns None when the command names a shell this machine
+    does not have, so the caller can say could-not-run rather than guess.
+    """
+    if not command:
+        return list(command)
+    head = os.path.basename(command[0]).lower()
+    if head in ("python", "python3", "python.exe", "python3.exe"):
+        return [sys.executable] + list(command[1:])
+    if head in ("bash", "sh", "bash.exe", "sh.exe"):
+        shell = posix_shell()
+        return None if shell is None else [shell] + list(command[1:])
+    return list(command)
 
 
 def lint_tree(script: str, dirs: tuple[str, ...] | None = None, content: str = "") -> object:
@@ -514,7 +590,7 @@ def make_repo(root: Path) -> str:
     files: list[str] = []
     dirs: list[str] = []
     for entry in sorted(root.rglob("*")):
-        (files if entry.is_file() else dirs).append(str(entry.relative_to(root)))
+        (files if entry.is_file() else dirs).append(entry.relative_to(root).as_posix())
     try:
         subprocess.run(["git", "init", "-q"], cwd=root, check=True, capture_output=True,
                        timeout=60)
@@ -542,10 +618,16 @@ def fire(arm: Arm) -> tuple[str, str]:
         script = root / (arm.run or arm.target)
         if not script.is_file():
             return "blocked", f"{arm.run or arm.target} is not in the scratch tree"
-        runner = [sys.executable] if script.suffix == ".py" else ["/bin/bash"]
+        if script.suffix == ".py":
+            runner = [sys.executable]
+        else:
+            shell = posix_shell()
+            if shell is None:
+                return "blocked", f"{script.name} needs a POSIX shell and this machine has none"
+            runner = [shell]
         try:
             proc = subprocess.run(runner + [str(script)], cwd=root, capture_output=True,
-                                  text=True, timeout=180)
+                                  text=True, timeout=180, encoding="utf-8")
         except (OSError, subprocess.SubprocessError) as exc:
             return "blocked", f"could not run {script.name}: {exc}"
         out = proc.stdout + proc.stderr

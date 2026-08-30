@@ -101,6 +101,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 ROOT = Path(__file__).resolve().parent.parent
 BRIEFS = ROOT / "planning" / "features-to-triage"
 LEDGER = BRIEFS / "LEDGER.md"
@@ -235,7 +242,7 @@ def on_branch(shas):
     pipeline as unshipped."""
     try:
         listing = subprocess.run(["git", "-C", str(ROOT), "rev-list", INTEGRATION],
-                                 capture_output=True, text=True, check=True)
+                                 capture_output=True, text=True, check=True, encoding="utf-8")
     except (OSError, subprocess.CalledProcessError):
         return None
     reachable = set(listing.stdout.split())
@@ -246,7 +253,7 @@ def on_branch(shas):
         return {}
     probe = subprocess.run(["git", "-C", str(ROOT), "cat-file", "--batch-check"],
                            input="\n".join(s + "^{commit}" for s in wanted),
-                           capture_output=True, text=True)
+                           capture_output=True, text=True, encoding="utf-8")
     resolved = {}
     for short, line in zip(wanted, probe.stdout.splitlines()):
         parts = line.split()
@@ -583,7 +590,7 @@ def main():
 
     if not LEDGER.is_file():
         print("NOT A PASS -- no %s, so no brief's word could be checked against anything"
-              % LEDGER.relative_to(ROOT))
+              % LEDGER.relative_to(ROOT).as_posix())
         return INCONCLUSIVE
     rows, unparsed = ledger_rows(LEDGER.read_text(encoding="utf-8"))
     briefs, unread = briefs_on_disk()
@@ -603,7 +610,7 @@ def main():
     if reckoning is None:
         print("NOT A PASS -- no reckoning under %s holds a ledger.json, so R4 and R6 have no "
               "citation edges to read and nothing could be told apart"
-              % RECKONINGS.relative_to(ROOT))
+              % RECKONINGS.relative_to(ROOT).as_posix())
         return INCONCLUSIVE
     cases, defects, requirements = campaign_registry()
     backing, contra = citation_backing(reckoning / "ledger.json", cases, defects, requirements)

@@ -1,6 +1,8 @@
 import { openSync, closeSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { homedir } from 'node:os';
+import { exclusiveOpenFlags } from './platform.js';
+import { log } from './log.js';
 
 /**
  * The cross-process mutual exclusion a shared config file needs — node's half.
@@ -32,6 +34,20 @@ import { homedir } from 'node:os';
  *
  * The kernel releases either form when the descriptor closes, including when the process is killed,
  * so a crash cannot leave a lock file that deadlocks the next run.
+ *
+ * **WIN17 — that whole paragraph was a macOS paragraph, and off macOS it was excluding nothing.**
+ * The flag word above returns `EINVAL` on Windows, and `EINVAL` was in the *unsupported* set below,
+ * so every call took the "this filesystem implements no advisory locking, proceed unlocked" branch
+ * — which is silent by design, because it was written for a network mount where there was never
+ * any exclusion to lose. Measured 2026-08-30 on node v24.19.0 against `dist/lock.js` as shipped:
+ * two processes were inside the same critical section simultaneously, and **no `.lock` sidecar was
+ * created at all**. `platform.ts`'s `exclusiveOpenFlags()` now supplies the flag word and both
+ * errno sets per platform, with Windows's unsupported set deliberately empty — the exclusion there
+ * is a share mode the kernel applies to the handle, not a filesystem feature a volume might lack,
+ * so no errno legitimately means "carry on unlocked" and an unexpected one becomes a visible
+ * `couldNotOpen`. The Windows mechanism was measured to hold in all three directions that matter:
+ * a second process refused `EBUSY` while the holder lived, acquiring within 200 ms of its close,
+ * and a holder killed with SIGKILL released it.
  */
 
 /** The daemon's bound — a contended control request fails fast and visibly rather than stalling. */
@@ -44,20 +60,13 @@ export const DAEMON_TIMEOUT_MS = 2000;
 export const WATCHER_TIMEOUT_MS = 10000;
 
 /**
- * macOS `fcntl.h`, read numerically because node does not export the first of them.
+ * The flag word and the two errno sets, chosen once for this platform.
  *
- * `O_CLOEXEC` is belt and braces rather than the load-bearing flag it is on the Swift side. Measured
- * 2026-08-22: node already opens with close-on-exec set — a child spawned while the parent held the
- * lock did not keep it alive after the parent closed the descriptor, with and without the flag. It
- * is passed anyway because the daemon's pool spawns children constantly and an inherited lock
- * descriptor would keep the lock alive for as long as that child lived, which is a guarantee worth
- * stating in the call rather than inheriting from a runtime detail.
+ * Resolved at module load rather than per call: `exclusiveOpenFlags()` reads `process.platform` and
+ * `fs.constants`, neither of which moves, and the flags are wanted inside a retry loop.
+ * `platform.ts` carries the measurements behind both branches.
  */
-const O_RDWR = 2;
-const O_CREAT = 0x200;
-const O_EXLOCK = 0x20;
-const O_NONBLOCK = 0x4;
-const O_CLOEXEC = 0x1000000;
+const LOCK_OPEN = exclusiveOpenFlags();
 
 /** How long a refused attempt waits before trying again. `usleep(2000)` on the Swift side. */
 const RETRY_INTERVAL_MS = 2;
@@ -175,15 +184,29 @@ export function withExclusiveLock<T>(path: string, timeoutMs: number, body: () =
     let descriptor: number;
     for (;;) {
       try {
-        descriptor = openSync(lock, O_RDWR | O_CREAT | O_EXLOCK | O_NONBLOCK | O_CLOEXEC, 0o600);
+        descriptor = openSync(lock, LOCK_OPEN.flags, 0o600);
         break;
       } catch (err: unknown) {
         const code = errnoOf(err);
-        // A filesystem that does not implement advisory locking at all — some network mounts — must
-        // not turn a write that worked before this item into one that fails. There was never any
-        // exclusion there to lose, so the write proceeds unlocked. Declared, never silent.
-        if (code === 'ENOTSUP' || code === 'EOPNOTSUPP' || code === 'EINVAL') return body();
-        if (code !== 'EAGAIN' && code !== 'EWOULDBLOCK' && code !== 'EINTR') {
+        /*
+         * A filesystem that does not implement advisory locking at all — some network mounts — must
+         * not turn a write that worked before this item into one that fails. There was never any
+         * exclusion there to lose, so the write proceeds unlocked.
+         *
+         * "Declared, never silent" is now literally true rather than an intention. This branch was
+         * a bare `return body()`, and on Windows every single call reached it via `EINVAL` and said
+         * nothing (WIN17). A warning costs one line in a log nobody reads until the day two writers
+         * corrupt a config, which is the only day it matters. The set is empty on Windows, so this
+         * cannot be reached there at all.
+         */
+        if (LOCK_OPEN.unsupported.includes(code)) {
+          log.warn(
+            `lock: ${lock} reports no support for ${LOCK_OPEN.mechanism} (${code}); ` +
+              'writing without cross-process exclusion.'
+          );
+          return body();
+        }
+        if (!LOCK_OPEN.contended.includes(code)) {
           throw LockProblem.couldNotOpen(lock, (err as Error).message);
         }
         if (Date.now() >= deadline) throw LockProblem.notAcquired(path, timeoutMs);
@@ -194,8 +217,10 @@ export function withExclusiveLock<T>(path: string, timeoutMs: number, body: () =
     try {
       return body();
     } finally {
-      // `flock` and `O_EXLOCK` are both released by the close; there is no separate unlock call to
-      // make, and closing is the only thing that can release it.
+      // Every form of this lock is released by the close and only by the close — `flock` and
+      // `O_EXLOCK` on macOS, the handle's exclusive share mode on Windows. There is no separate
+      // unlock call to make on either, and both are released by the kernel when the process dies,
+      // which was measured on Windows with a SIGKILL'd holder.
       closeSync(descriptor);
     }
   } finally {

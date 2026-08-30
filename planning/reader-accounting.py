@@ -51,6 +51,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 ROOT = Path(__file__).resolve().parent.parent
 REGISTRY = Path(__file__).resolve().parent / "reader-accounting.tsv"
 SCANNED = ("planning", "scripts")
@@ -580,7 +587,7 @@ def main() -> int:
     unresolved: list[str] = []
     unparsed: list[str] = []
     for path in files:
-        rel = str(path.relative_to(ROOT))
+        rel = path.relative_to(ROOT).as_posix()
         try:
             found, it, disc, unres = analyse_file(path, rel)
         except (SyntaxError, ValueError, RecursionError) as exc:

@@ -49,6 +49,13 @@ import json
 import sys
 from pathlib import Path
 
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 CAMPAIGN = Path(__file__).resolve().parent.parent
 MANIFEST = CAMPAIGN / "evidence/shots/captures.json"
 SHOTS = CAMPAIGN / "evidence/shots"
@@ -136,7 +143,7 @@ LANE_REASON = {
 
 
 def cases_citing() -> dict[str, list[str]]:
-    cases = json.loads((CAMPAIGN / "cases.json").read_text())
+    cases = json.loads((CAMPAIGN / "cases.json").read_text(encoding="utf-8"))
     out: dict[str, list[str]] = {}
     for c in cases:
         for e in c.get("evidence") or []:
@@ -147,7 +154,7 @@ def cases_citing() -> dict[str, list[str]]:
 def published_paths() -> dict[str, str]:
     """Every path `inventory.json` puts on the wall, mapped to the subject that publishes it --
     surfaces and flow steps alike, because the evidence page renders a `shot` on either."""
-    inv = json.loads((CAMPAIGN / "inventory.json").read_text())
+    inv = json.loads((CAMPAIGN / "inventory.json").read_text(encoding="utf-8"))
     out = {s["shot"]: s["id"] for s in inv.get("surface", []) if s.get("shot")}
     for f in inv.get("flow", []):
         out.update({st["shot"]: st["id"] for st in f.get("steps", []) if st.get("shot")})
@@ -155,7 +162,7 @@ def published_paths() -> dict[str, str]:
 
 
 def derive() -> list[dict]:
-    committed = {e["path"]: e for e in json.loads(MANIFEST.read_text())}
+    committed = {e["path"]: e for e in json.loads(MANIFEST.read_text(encoding="utf-8"))}
     citing = cases_citing()
     rows: dict[str, dict] = {}
 
@@ -166,21 +173,21 @@ def derive() -> list[dict]:
             rows[path] = dict(e)
 
     # --- iOS: `evidence/shots/ios/captures.json`, written by the XCTAttachment collector.
-    ios = json.loads((SHOTS / "ios/captures.json").read_text())
+    ios = json.loads((SHOTS / "ios/captures.json").read_text(encoding="utf-8"))
     for e in ios:
         rows[e["path"]] = dict(e)
 
     # --- the capability-document lane: `evidence/g17-document/captures.json`, written and
     # re-stamped by `bin/g17-document-flow.sh` as it renders. THIS is the row set the
     # top-level manifest had a stale hand copy of.
-    g17 = json.loads((CAMPAIGN / "evidence/g17-document/captures.json").read_text())
+    g17 = json.loads((CAMPAIGN / "evidence/g17-document/captures.json").read_text(encoding="utf-8"))
     for e in g17:
         rows[e["path"]] = dict(e)
 
     # --- design-size: `bin/capture-mac-design-size.sh` records the shutter's own window-title
     # readback and the digest; it records no `target`, so one is constructed from the readback
     # by the same rule the glass script applies at capture time.
-    ds = json.loads((SHOTS / "design-size/captures.json").read_text())["captures"]
+    ds = json.loads((SHOTS / "design-size/captures.json").read_text(encoding="utf-8"))["captures"]
     for e in ds:
         title = e["conditions"]["windowTitleReadback"]
         rows[e["path"]] = {
@@ -196,7 +203,7 @@ def derive() -> list[dict]:
 
     # --- mock-hidpi: `evidence/shots/mock-hidpi/raw.json`, written by
     # `bin/capture-mock-refs-hidpi.py` over CDP against the prototype.
-    raw = json.loads((SHOTS / "mock-hidpi/raw.json").read_text())
+    raw = json.loads((SHOTS / "mock-hidpi/raw.json").read_text(encoding="utf-8"))
     for e in raw["captures"]:
         rows[e["full"]] = {
             "path": e["full"], "subject": None,
@@ -224,7 +231,7 @@ def derive() -> list[dict]:
 
     # --- fidelity: `evidence/shots/fidelity/pairs.json`, written by `bin/crop-fidelity-pairs.py`,
     # which records both digests and the image and box each half was cropped from.
-    pairs = json.loads((SHOTS / "fidelity/pairs.json").read_text())
+    pairs = json.loads((SHOTS / "fidelity/pairs.json").read_text(encoding="utf-8"))
     for p in pairs["pairs"]:
         for half, chan_key, sha_key, src_key in (
             ("design", "designChannel", "designSha256", "designCropFrom"),
@@ -251,7 +258,7 @@ def derive() -> list[dict]:
     # against a REAL router rather than a fixture, so each row's `conditions` carries the state that
     # was arranged and whether the router was answering at the shutter — the two facts that decide
     # what the picture is evidence of.
-    forced = json.loads((SHOTS / "forced-state/captures.json").read_text())
+    forced = json.loads((SHOTS / "forced-state/captures.json").read_text(encoding="utf-8"))
     for e in forced:
         rows[e["path"]] = dict(e)
 
@@ -335,13 +342,13 @@ def verify(rows: list[dict]) -> list[str]:
     for p in sorted(SHOTS.rglob("*")):
         walked += 1
         if p.suffix.lower() != ".png":
-            skipped.append(("not a .png", str(p.relative_to(SHOTS))))
+            skipped.append(("not a .png", p.relative_to(SHOTS).as_posix()))
             continue
         if MOCK_DIRS & {q.lower() for q in p.relative_to(SHOTS).parts[:-1]}:
             skipped.append((f"under {'/ or '.join(sorted(MOCK_DIRS))}/ — a render of the DESIGN, "
-                            "not a photograph of the build", str(p.relative_to(SHOTS))))
+                            "not a photograph of the build", p.relative_to(SHOTS).as_posix()))
             continue
-        rel = str(p.relative_to(CAMPAIGN))
+        rel = p.relative_to(CAMPAIGN).as_posix()
         if rel not in seen:
             bad.append(f"{rel}: on disk and named by no lane manifest")
     # Grouped by reason rather than one line per path — `input_accounting.Tally`'s rule. The count
@@ -349,7 +356,7 @@ def verify(rows: list[dict]) -> list[str]:
     by_reason: dict[str, int] = {}
     for reason, _name in skipped:
         by_reason[reason] = by_reason.get(reason, 0) + 1
-    print(f"coverage sweep: walked {walked} path(s) under {SHOTS.relative_to(CAMPAIGN)}; "
+    print(f"coverage sweep: walked {walked} path(s) under {SHOTS.relative_to(CAMPAIGN).as_posix()}; "
           f"{walked - len(skipped)} tested against the manifest; "
           f"{len(skipped)} skipped ("
           + "; ".join(f"{r} {n}" for r, n in sorted(by_reason.items())) + ")")
@@ -360,22 +367,22 @@ def main() -> int:
     rows = derive()
     bad = verify(rows)
     if bad:
-        print(f"{len(bad)} problem(s) assembling {MANIFEST.relative_to(CAMPAIGN)}:")
+        print(f"{len(bad)} problem(s) assembling {MANIFEST.relative_to(CAMPAIGN).as_posix()}:")
         for b in bad:
             print(f"   {b}")
         return 1
     text = json.dumps(rows, indent=1) + "\n"
     if "--write" in sys.argv:
-        MANIFEST.write_text(text)
-        print(f"wrote {MANIFEST.relative_to(CAMPAIGN)} — {len(rows)} row(s) from the lane manifests")
+        MANIFEST.write_text(text, encoding="utf-8")
+        print(f"wrote {MANIFEST.relative_to(CAMPAIGN).as_posix()} — {len(rows)} row(s) from the lane manifests")
         return 0
-    if text != MANIFEST.read_text():
-        print(f"{MANIFEST.relative_to(CAMPAIGN)} is not what the lane manifests say.\n"
+    if text != MANIFEST.read_text(encoding="utf-8"):
+        print(f"{MANIFEST.relative_to(CAMPAIGN).as_posix()} is not what the lane manifests say.\n"
               f"A hand-maintained copy of a capture-time record goes stale on the next run of the "
               f"lane it copies, with no signal until `capture-lineage.py` reports it as "
               f"RECONSTRUCTED. Re-run with --write.")
         return 1
-    print(f"{MANIFEST.relative_to(CAMPAIGN)} matches the lane manifests — {len(rows)} row(s)")
+    print(f"{MANIFEST.relative_to(CAMPAIGN).as_posix()} matches the lane manifests — {len(rows)} row(s)")
     return 0
 
 

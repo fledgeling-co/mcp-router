@@ -14,6 +14,30 @@ this document and the mock disagree, the mock is stale and this document is the 
 `design/mocks/prototype.html` is the superseded prototype and is cited only where a
 surface it drew has not yet been converted.
 
+**Two floors over one direction, and which section is which.** A Windows 11 client violates most
+of §3 *by construction* rather than by carelessness — it has no menu bar for rule 9 to name, it
+cannot ship the font rule 7 requires, and rule 3's material sits on the opposite surface there. A
+surface that can neither pass nor fail has no floor, so this document carries two: §3 is the macOS
+one and §11 is the Windows one, each stated to the same standard. **Neither relaxes the other.**
+Where a Windows rule and a macOS rule disagree, they are two answers to one question on two
+platforms, never a loosening of either.
+
+| Section | Scope |
+|---|---|
+| 1 · Direction | shared — Patchbay and the Signal Path are the direction on both |
+| 2 · Tokens | macOS values; §12 is the Windows arm, measured against Windows grounds |
+| 3 · The native floor | **macOS**; §11 is the Windows floor |
+| 4 · Icons | macOS; §13 carries the Windows icon set |
+| 5 · The states are the design | shared |
+| 6 · Words | shared — except the menu-bar casing exception, which is macOS's alone (§11 rule 2) |
+| 7 · Motion | macOS idiom; §13 carries the Windows one |
+| 8 · The keyboard | macOS; §13 carries the Windows keyboard |
+| 9 · Forgiveness | shared |
+| 10 · What is still owed | shared; §13 closes with what Windows owes on top |
+| 11 · The Windows native floor | **Windows** |
+| 12 · Windows tokens, type and geometry | **Windows** |
+| 13 · Windows icons, motion and the keyboard | **Windows** |
+
 ---
 
 ## 1 · Direction
@@ -425,6 +449,11 @@ document that is. §7 says why.
 These are not stylistic preferences. Each is a rule from the macOS 27 kit, and a
 violation is a defect rather than a variation.
 
+**This is the macOS floor, and it is not the only one.** §11 is the Windows floor, stated to the
+same standard and answering every rule below one for one. Nothing here is loosened to let a
+Windows surface pass; where the two platforms genuinely differ, the difference is recorded there
+rather than absorbed here.
+
 1. Selection is a flat inset rounded fill with accent text — never a full-bleed bar.
 2. Sidebar and section headers are **sentence case**, system font, secondary colour.
    Tracked uppercase is the loudest web tell; do not fix its tracking, remove it.
@@ -817,3 +846,455 @@ Recorded here rather than in a report, because it is the next design work:
   forbids. The console mock does not draw that surface at all, so nothing has replaced the
   judgement yet; the surfaces that ship phone Discover own the fix.
 
+---
+
+## 11 · The Windows native floor
+
+These are not stylistic preferences. Each is a rule from published Windows 11 / Fluent guidance,
+and a violation is a defect rather than a variation. Where this document and that guidance
+disagree, **the guidance wins** — the precedence at the head of this file, pointed at the other
+platform.
+
+Every rule carries the page it came from. Nothing below was invented here, and the places where
+Windows publishes no answer are marked as absences rather than filled in.
+
+1. Selection is a 4px rounded backplate at `SubtleFillColorSecondary` plus **one** indicator —
+   3×16 at radius 2, `AccentFillColorDefaultBrush` — on the leading edge of the selected item: its
+   left edge in a left pane, its bottom edge in a top one. The label stays
+   `TextFillColorPrimary`, so the accent is spent on the indicator and never on the label, and a
+   navigation view draws no more than one indicator.
+   *(Geometry — "in-page elements such as buttons and list backplates are rounded using a 4px
+   corner radius"; NavigationView — "Selected items will draw their selection indicators along
+   their left edge when in left mode or their bottom edge when in top mode", "The entire
+   NavigationView will show no more than one selection indicator";
+   `NavigationView_themeresources.xaml` — indicator width 3, height 16, corner radius 2,
+   `NavigationViewItemForegroundSelected` = `TextFillColorPrimaryBrush`.)*
+2. Sentence case everywhere, **titles and menu items included**. Windows publishes one casing rule
+   and states no exception to it, so §6's macOS menu-bar carve-out does not cross.
+   *(Typography — "Casing | Sentence case | Use sentence casing for all UI text, including
+   titles".)*
+3. Mica or Mica Alt on the window backdrop, **once**, and never on a UI element. The content layer
+   above it is `LayerFillColorDefaultBrush`; cards are `CardBackgroundFillColorDefault`; every
+   layer that wants the material to show through is transparent. Transient surfaces take Acrylic,
+   not Mica.
+   *(Mica — "apply Mica or Mica Alt as the base layer of your app"; "**Don't** apply backdrop
+   material more than once in an application"; "**Don't** apply backdrop material to a UI
+   element".)*
+4. One accent-filled action per view. **In a dialog the "do it" buttons lead and the safe action is
+   rightmost** — the reverse of §3 rule 4. Only the default button takes the accent fill, and it is
+   the one Enter fires; a destructive action is never the default. Disabled dims in place —
+   `ControlFillColorDisabled` under `TextFillColorDisabled` — and never disappears.
+   *(Dialogs — "The 'do it' action button(s) should appear as the leftmost buttons. The safe,
+   nondestructive action should appear as the rightmost button"; "the affirmation button should be
+   on the left (the primary button) and the cancel button (the secondary button) should be on the
+   right"; "The button receives the Accent Button visual treatment … will respond to the ENTER key
+   automatically".)*
+5. Density: 14/20 epx body off the Windows type ramp, nothing off that ramp, nothing below 14px
+   semibold or 12px regular. Emphasis is Semibold. Hierarchy comes from the ramp and from weight,
+   never from size inflation.
+   *(Typography — the type ramp; "Minimum values | 14px Semibold, 12px Regular"; "Bold and Italic
+   styles are not part of the Windows type ramp. Use Semibold instead of Bold for emphasis".)*
+6. A ComboBox shows a value; a DropDownButton or MenuFlyout carries a static title. CheckBox is an
+   independent setting **and** the control for any setting that needs an apply step; RadioButton is
+   an exclusive set; **ToggleSwitch is a binary setting that takes effect the moment it moves**,
+   and it keeps its On/Off labels. A toggle switch behind an Apply button is a defect, and so is a
+   checkbox for a setting that commits immediately.
+   *(Toggle switches — "Use a toggle switch for binary settings when changes become effective
+   immediately after the user changes them"; "Use a checkbox when the user has to perform extra
+   steps for changes to be effective"; "Use the default On and Off labels when you can".)*
+7. Commands live on a CommandBar — primary commands visible, secondary in the overflow — or on a
+   MenuBar at the top of the app window. Icons are Segoe Fluent Icons resolved through
+   `SymbolThemeFontFamily`, monochrome, drawn in `Foreground`. The window title says what you are
+   looking at, not the app's name.
+   *(Commanding basics — "Command bars help organize commands and make them easy to access … a
+   MenuBar can also be used when the functionality in your app is too complex for a command bar";
+   Icons — "Windows 11 introduces a new system icon font, Segoe Fluent Icons"; "FontIcon and
+   SymbolIcon use the font family defined by the `SymbolThemeFontFamily` XAML theme resource".)*
+8. Arrow cursor everywhere in app chrome. The hand is the link cursor and means one thing.
+   *(Mouse and pointers — "**Use the hand (or 'link select') pointer only for text and graphic
+   links.**"; "To avoid confusion, it is imperative not to use the hand pointer for other purposes
+   … command buttons already have a strong affordance, so they don't need a hand pointer."
+   **Cited honestly:** that page is the Windows 7 UX guide and Microsoft heads it "This design
+   guide was created for Windows 7 and has not been updated for newer versions of Windows. Much of
+   the guidance still applies in principle." It is the most specific published statement of the
+   rule and it is cited as that, not as current Windows 11 guidance. Its conclusion happens to be
+   §3 rule 8's, reached from a different document rather than carried across from one.)*
+9. **Windows has no global menu bar, so the surface §3 rule 9 names does not exist and cannot be
+   required of a Windows surface.** What that rule was *for* survives, restated against what
+   Windows has: every command the app can perform is reachable from one enumerable in-window
+   surface — a MenuBar at the top of the window, or a CommandBar whose overflow carries the
+   secondary commands — and every command on that surface carries an access key, so `Alt`
+   enumerates the whole command set without a pointer. A command reachable only by a chord, a
+   right-click or a gesture is a defect.
+   *(Menus and context menus — menus are "grouped in a menu bar at the top of the app window";
+   Access keys — "Pressing the Alt key initializes access key functionality and displays all
+   currently available key combinations in keytips"; Keyboard accelerators — "users rely on an
+   application's menus to discover and learn the available command set", and "comprehensive
+   command coverage is crucial".)*
+10. Motion animates transform and opacity only, at the durations and curves Windows publishes
+    (§13), and stops when the user has turned animations off.
+    *(Motion — the animation-properties table; `UISettings.AnimationsEnabled`, "Gets whether
+    animations are enabled for the user interface".)*
+11. The focus visual is the platform's high-visibility one and is **not accent-bound**: a 2px
+    primary border outside a 1px secondary border, 1px clear of the control bounds, at
+    `FocusStrokeColorOuter` over `FocusStrokeColorInner`. It measures 15.73:1 light and 16.29:1
+    dark on the base ground (§12), which is why it does not need the accent and must not be given
+    it — a focus ring bound to a colour the user chooses is a focus ring whose contrast the app
+    cannot state.
+    *(Visual feedback — "The primary border is **2px** thick, and runs around the *outside* of the
+    secondary border. The secondary border is **1px** thick and runs around the *inside* of the
+    primary border"; "The default margin is **1px** away from the control bounds".)*
+12. **The accent is the user's.** `AccentFillColorDefault` resolves to `SystemAccentColorDark1` in
+    light and `SystemAccentColorLight2` in dark, both derived from a colour set in Windows
+    Settings. No Windows surface may make the accent the only carrier of a meaning, and no text
+    that has to be read may be drawn in `AccentFillColorDefault`; a label on an accent fill takes
+    `TextOnAccentFillColorPrimary` from the theme rather than a hand-picked white. §12 says why no
+    accent ratio is published here.
+    *(Color in Windows — "Color is personal. In Windows, users can choose an accent color and a
+    light or dark theme"; `Common_themeresources_any.xaml` — `AccentFillColorDefaultBrush`
+    resolves to `SystemAccentColorDark1` / `SystemAccentColorLight2`.)*
+
+### Every rule of §3, answered
+
+Ten rows for ten rules, because a floor that quietly drops one is a floor a surface can fail
+without anyone noticing. "None" is a real answer here and appears once.
+
+| §3 rule | On Windows | What changes, and why |
+|---|---|---|
+| 1 · inset rounded fill, accent text | §11 rule 1 | Same refusal of the full-bleed bar, different construction: Windows carries the state in an accent indicator on the leading edge and leaves the label at primary text. Accent-as-label is the part that does not cross |
+| 2 · sentence case, tracked uppercase removed | §11 rule 2 | Stricter. Windows publishes sentence case for *all* UI text including titles, so §6's menu-bar exception is macOS-only and does not travel |
+| 3 · Liquid Glass on floating chrome, opaque content | §11 rule 3 | Inverted placement. Mica is the *window base*, applied once, never on an element; the transient surfaces macOS glazes take Acrylic instead |
+| 4 · one prominent action, trailing; Cancel leads | §11 rule 4 | Order reverses. Windows puts the "do it" buttons leftmost and the safe action rightmost. Everything else — one accent fill, destructive never default, disabled dims in place — holds |
+| 5 · 13pt body, 24pt controls | §11 rule 5 | Different metrics entirely. 13pt is not a point on the Windows ramp; the body is 14/20 epx and the control ladder is replaced by the ramp plus the 4/8px radius pair |
+| 6 · pop-up vs pull-down; checkbox / radio / switch | §11 rule 6 | The switch changes meaning. On macOS it is an emphasized group toggle; on Windows it is *the immediacy control*, and the checkbox is what an apply step requires |
+| 7 · borderless monochrome SF Symbols, ≤3 groups | §11 rule 7 · §13 | The icon set cannot cross — SF Symbols is a licensed Apple font that cannot ship on Windows. Segoe Fluent Icons takes its place, monochrome and `Foreground`-driven. The "at most three groups" limit is this document's own and is kept |
+| 8 · arrow cursor; the hand is a web signal | §11 rule 8 | Same conclusion, independently sourced, with the age of the source stated |
+| 9 · the menu bar is the complete command surface | **None as written** | There is no global menu bar on Windows, so no surface can satisfy or violate the rule as stated. §11 rule 9 carries the completeness it existed for onto the in-window command surface, and adds the access-key requirement the macOS rule never needed |
+| 10 · transform and opacity only, honours Reduce Motion | §11 rule 10 · §13 | Same restriction, different idiom and a different setting to read — durations and curves rather than springs, `UISettings.AnimationsEnabled` rather than `accessibilityReduceMotion` |
+
+### Three things in this document that Windows has no counterpart for
+
+Recorded rather than silently skipped, because an absent counterpart and an unwritten rule look
+identical from outside.
+
+- **The traffic lights.** `--tl-close`, `--tl-min`, `--tl-zoom` and `--tl-off` are the macOS window
+  buttons at the system's own hues. Windows draws its caption buttons in the title bar the system
+  owns; an app that authors their colour is painting chrome that is not its own. No Windows token
+  replaces them.
+- **The increased-contrast overlay.** §2 authors nine tokens for the system's increased-contrast
+  setting. Windows has High Contrast instead, and it is not an overlay on this palette: in
+  `Common_themeresources_any.xaml`'s `HighContrast` dictionary every text tier collapses onto
+  `SystemColorWindowTextColor` and every control fill onto `SystemColorButtonFaceColor` — the
+  user's own colours, not ours. Nothing is authored for it. What the app owes instead is that no
+  meaning survives only in colour, because in that mode the colours are gone.
+- **Concentric corners.** §2 derives a child radius from its parent's minus the padding. Windows
+  publishes two fixed radii — `ControlCornerRadius` 4 and `OverlayCornerRadius` 8 — and no
+  derivation, so the rule has nothing to compute against and does not apply.
+
+---
+
+## 12 · Windows tokens, type and geometry
+
+The Windows arm of §2, under §2's rule: every value below is either a published Windows/WinUI value
+or a stated deviation from one, and nothing was picked by eye.
+
+**Provenance, so a reader can check rather than trust.** Every colour is read out of
+`microsoft/microsoft-ui-xaml`, `controls/dev/CommonStyles/Common_themeresources_any.xaml` on
+`winui3/main`, by resource key. Type, geometry and elevation come from the Windows design articles
+cited beside them.
+
+**The ratios below are re-measured, not carried across.** §2's numbers are measured against a white
+or graphite ground this platform does not have, and a ratio measured against one ground is not a
+ratio against another. Every figure here is computed with the same WCAG 2.x arithmetic §2 uses,
+against the Windows grounds, and against **each** of the three grounds a Windows label can land on
+— because unlike §2's label tiers, which are solid hexes precisely so they measure the same
+everywhere, the Windows text tiers are alpha over whatever is beneath them. That is the platform's
+decision rather than ours, and it is why one number per token is not enough here.
+
+### Windows grounds and layers
+
+Mica is dynamic and samples the wallpaper, so it has no fixed value to measure. **The floor is
+stated against its fallback**, `SolidBackgroundFillColorBase`, which is what Windows draws when
+transparency is off, on battery saver, on low-end hardware, and whenever the window is not active
+— a ground the app is guaranteed to be measured on.
+
+| Ground | Role | Dark | Light | Composited | What it is |
+|---|---|---|---|---|---|
+| `SolidBackgroundFillColorBase` | ground | `#202020` | `#F3F3F3` | — | the base layer; Mica's fallback and the value every ratio here is measured against |
+| `LayerFillColorDefault` | ground | `#4C3A3A3A` | `#80FFFFFF` | `#282828` / `#F9F9F9` | the content layer, over the base |
+| `CardBackgroundFillColorDefault` | ground | `#0DFFFFFF` | `#B3FFFFFF` | `#333333` / `#FDFDFD` | a card, over the content layer |
+| `SubtleFillColorSecondary` | ground | `#0FFFFFFF` | `#09000000` | `#343434` / `#F0F0F0` | the selected row's backplate, over the content layer |
+| `ControlStrokeColorDefault` | hairline | `#12FFFFFF` | `#0F000000` | — | a control bezel |
+| `ControlStrokeColorSecondary` | hairline | `#18FFFFFF` | `#29000000` | — | the firmer bezel, the bottom edge of a control |
+| `DividerStrokeColorDefault` | hairline | `#15FFFFFF` | `#0F000000` | — | hairline dividers |
+| `FocusStrokeColorOuter` | nonText | `#FFFFFF` | `#E4000000` | — | the focus visual's 2px primary border |
+| `FocusStrokeColorInner` | nonText | `#B3000000` | `#B3FFFFFF` | — | its 1px secondary border, inside the primary |
+| `SmokeFillColorDefault` | chrome | `#4D000000` | `#4D000000` | — | behind a modal dialog |
+
+The composited column is the ground as actually painted, and it carries one finding worth stating:
+in both appearances the content layer over the base lands exactly on the platform's own
+`SolidBackgroundFillColorTertiary` (`#282828` dark, `#F9F9F9` light). The two are the same ground
+reached two ways, which is a coherence check on the palette rather than a coincidence to exploit.
+
+**Layering on Windows is not carried by tone, and the numbers say so.** The content layer measures
+**1.05:1** over the base in light and **1.10:1** in dark; a card over that layer, **1.04:1** and
+**1.17:1**; the selected row's backplate over the layer, **1.08:1** and **1.20:1**. None of those
+is a step a reader could see on its own. Windows separates layers with a **1px stroke and a
+shadow** — the elevation ladder publishes a stroke width of 1 at every level, from a layer at
+elevation 1 to a window or dialog at 128 — so a Windows surface that tries to separate two layers
+by tone alone is asking the palette to do something it cannot. *(Layering and elevation — Window
+128, Dialog 128, Flyout 32, Tooltip 16, Card 8, Control 2, Layer 1, each "Stroke width: 1".)*
+
+### Windows text tiers, measured on each ground they can land on
+
+| Token | Role | Dark | Light | Dark: base / layer / card / selected row | Light: base / layer / card / selected row |
+|---|---|---|---|---|---|
+| `TextFillColorPrimary` | text | `#FFFFFF` | `#E4000000` | 16.29 / 14.79 / 12.69 / 12.37 | 15.73 / 16.47 / 17.00 / 15.39 |
+| `TextFillColorSecondary` | text | `#C5FFFFFF` | `#9E000000` | 10.17 / 9.40 / 8.27 / 8.10 | 5.99 / 6.09 / 6.16 / 5.94 |
+| `TextFillColorTertiary` | text | `#87FFFFFF` | `#72000000` | 5.51 / 5.24 / 4.79 / 4.71 | **3.27 / 3.29 / 3.31 / 3.25** |
+| `TextFillColorDisabled` | disabled | `#5DFFFFFF` | `#5C000000` | 3.35 / 3.27 / 3.09 / 3.06 | 2.49 / 2.51 / 2.52 / 2.49 |
+
+**Deviation, deliberate, and against the platform value.** `TextFillColorTertiary` does not clear
+the 4.5:1 body floor in light on any ground it can land on — 3.27:1, 3.29:1, 3.31:1, 3.25:1 — while
+clearing it in dark. Contrast Dilution is §1's named #1 defect for this direction, and this is that
+defect arriving through a published value rather than through carelessness: the precedence rule at
+the head of this file would ship it. So **the Windows floor spends no tertiary tier on text that has
+to be read.** A third tier of hierarchy takes `TextFillColorSecondary` (5.99:1 light, 10.17:1 dark
+on the base ground) and separates from the second by weight and position, the same answer §2 gave
+`--t3` and reached the same way — by measuring first. `TextFillColorTertiary` remains available for
+glyphs and marks that carry no reading, where the floor is 3:1.
+
+**`TextFillColorDisabled` is under every floor in both appearances, and that is claimed rather than
+skipped.** 2.49:1 light and 3.35:1 dark on the base ground. It is exempt under **WCAG 1.4.3**,
+which excepts "text or images of text that are part of an inactive user interface component" — the
+same clause §3 claims for `--t4`, named here for the same reason it is named there: a skipped check
+and a passed check are the same shade of green.
+
+### Windows indicator hues, and the one thing about them that matters
+
+`SystemFillColorSuccess`, `SystemFillColorCaution` and `SystemFillColorCritical` take the meanings
+§2 gives `--live`, `--attn` and `--fail`, and §2's exclusivity rule carries unchanged: nothing else
+in the app may be any of these colours.
+
+| Token | Role | Dark | Light | Dark: base / layer / card | Light: base / layer / card | On its own `…Background` fill |
+|---|---|---|---|---|---|---|
+| `SystemFillColorSuccess` | pairedWithAWord | `#6CCB5F` | `#0F7B0F` | 8.03 / 7.29 / 6.25 | 4.90 / 5.17 / 5.36 | 5.57 dark on `#393D1B` · 4.76 light on `#DFF6DD` |
+| `SystemFillColorCaution` | pairedWithAWord | `#FCE100` | `#9D5D00` | 12.34 / 11.21 / 9.61 | 4.73 / 4.99 / 5.17 | 9.03 dark on `#433519` · 4.77 light on `#FFF4CE` |
+| `SystemFillColorCritical` | pairedWithAWord | `#FF99A4` | `#C42B1C` | 8.03 / 7.29 / 6.25 | 5.10 / 5.38 / 5.58 | 6.61 dark on `#442726` · 4.79 light on `#FDE7E9` |
+
+**Windows needs no text-safe twin, and that is the good news.** Every one of the three clears 4.5:1
+as text on every ground in both appearances, so the `-ink` split §2 had to author does not recur
+here. Nothing is added to the palette that the platform already solved.
+
+**And the finding that makes §6 load-bearing on Windows.** `SystemFillColorSuccess` against
+`SystemFillColorCritical` measures **1.00:1 in dark and 1.04:1 in light**. The two Windows values
+that mean *succeeded* and *failed* are the same luminance in both appearances, so hue is the only
+channel separating them — and red against green is exactly where protan and deuteran vision has
+nothing to work with. This is the argument §2 makes for pulling `--attn` toward yellow, landing on
+a pair §2 never had to worry about, and it is not ours to fix: these are the platform's published
+values and the header rule says the platform wins. What the app owes instead is §6's, already
+written and now doing more work than it does on macOS — **every state that has a colour has a word
+beside it**, and on Windows that word is the only thing some users will have.
+
+### The accent, and why no ratio for it appears here
+
+`AccentFillColorDefault` resolves to `SystemAccentColorDark1` in light and `SystemAccentColorLight2`
+in dark; `AccentTextFillColorPrimary` to `SystemAccentColorDark2` and `SystemAccentColorLight3`.
+All four derive from a colour the user sets in Windows Settings, so **this document cannot publish
+an accent contrast ratio, and inventing one would be a fabricated number in a palette's clothes** —
+the refusal §3 already makes about `--t4` on `--accent-ink`, arriving for a different reason.
+
+Microsoft's own claim is that "Accent color values are generated automatically and optimized for
+contrast in both light and dark modes". That is Microsoft's claim about a value measured nowhere in
+this repository, and it is recorded as a claim rather than as a measurement.
+
+What is stated instead is the rule, which does not need the number:
+
+- Text that has to be read is never drawn in `AccentFillColorDefault`. Where the accent must be
+  read, it is `AccentTextFillColorPrimary`.
+- A label on an accent fill is `TextOnAccentFillColorPrimary` from the theme — `#FFFFFF` in light,
+  `#000000` in dark — never a hand-picked white. Note that Windows *inverts* it between
+  appearances; a surface that hard-codes white ships an unreadable dark-theme label.
+- Meaning never rests on the accent alone. §2's exclusivity rule is **stronger** here than on
+  macOS, not weaker: a user whose accent is green makes an accent-filled control and a
+  `SystemFillColorSuccess` mark the same hue, and the app has no say in it.
+
+### Windows type, and the instrument voice
+
+| Style | Weight | Size / line height |
+|---|---|---|
+| Caption | Small | 12 / 16 epx |
+| **Body** | **Text** | **14 / 20 epx** |
+| Body strong | Text semibold | 14 / 20 epx |
+| Body large | Text | 18 / 24 epx |
+| Body large strong | Text semibold | 18 / 24 epx |
+| Subtitle | Display semibold | 20 / 28 epx |
+| Title | Display semibold | 28 / 36 epx |
+| Title large | Display semibold | 40 / 52 epx |
+| Display | Display semibold | 68 / 92 epx |
+
+Segoe UI Variable, with the optical-size axis automatic; Segoe UI for Arabic, Armenian, Georgian
+and Hebrew. Nothing off this ladder, nothing below 14px semibold or 12px regular, and no bold or
+italic — the ramp does not carry them, and Semibold is the emphasis.
+
+**The instrument voice is Consolas.** §2 reserves monospace for numerals, counts, durations, error
+codes and status subtitles, and that rule is platform-neutral; only the face changes. Consolas is
+the fixed-width face the same published table lists — "Fixed width font that supports European
+scripts (Latin, Greek and Cyrillic)" — so it is taken from the platform's own list rather than
+chosen here.
+
+### Windows geometry
+
+| Element | Value | Where it comes from |
+|---|---|---|
+| `ControlCornerRadius` | 4px | Geometry — buttons, checkboxes, combo boxes, text boxes, list backplates, bars |
+| `OverlayCornerRadius` | 8px | Geometry — app windows, dialogs, flyouts, menu flyouts, teaching tips |
+| ToolTip radius | 4px | Geometry — the stated exception to the 8px overlay radius, "due to its small size" |
+| Snapped or maximised window | 0px | Geometry — "Window corners are not rounded when windows are snapped or maximized" |
+| Focus primary border | 2px, outside | Visual feedback |
+| Focus secondary border | 1px, inside the primary | Visual feedback |
+| Focus margin | 1px from the control bounds | Visual feedback |
+| Selection indicator | 3 × 16, radius 2 | `NavigationView_themeresources.xaml` |
+| Navigation item, left pane | 36px minimum height | `NavigationViewItemOnLeftMinHeight` |
+| Elevation stroke | 1px at every level | Layering and elevation |
+| Elevation ladder | 128 window · 128 dialog · 32 flyout · 16 tooltip · 8 card · 2 control · 1 layer | Layering and elevation |
+
+**One thing §2 has that Windows does not publish: a spacing scale.** The geometry article names
+"consistent gutters" and gives no numbers for them. So §2's 8pt grid crosses as **this document's
+own decision**, not as a platform value, and is marked as such — a Windows surface built on it is
+following us rather than Microsoft, and a future Fluent spacing scale outranks it under the header
+rule.
+
+---
+
+## 13 · Windows icons, motion and the keyboard
+
+The Windows twins of §4, §7 and §8 — the three remaining macOS-shaped sections. §5, §6 and §9 need
+none: states, words and forgiveness are platform-neutral and are already written for both.
+
+### Windows icons
+
+**Drawn or Fluent, never unicode.** §4's rule survives; only the source changes. Icons are Segoe
+Fluent Icons through `SymbolIcon` or `FontIcon`, resolved by the `SymbolThemeFontFamily` theme
+resource, monochrome and drawn in `Foreground`. Where no Fluent glyph fits, the same 16px
+`currentColor` SVG sprite §4 authors is drawn as a `PathIcon` or an `ImageIcon` over an
+`SVGImageSource` — the sprite is already the right shape for it, which is why §4's asset does not
+need a second cut for Windows.
+
+**SF Symbols does not cross**, and the reason is licensing rather than taste: it is an Apple font
+that may not ship on Windows. That is why §3 rule 7 could never be satisfied here and why §11 rule 7
+exists.
+
+**Marketplace artwork is authored, never generated chrome.** §4's rule carries verbatim — real
+512px art where the marketplace ships it, a drawn monogram plate where it does not, and a gradient
+rectangle nowhere.
+
+Tile sizes are §4's, read as effective pixels: rows 30, cards 46, detail 64. **Their radii are
+not.** §4's 7 / 11 / 14 sit on a concentric derivation Windows does not have, so all three take
+`ControlCornerRadius` — they are in-page elements, and Windows publishes 4px for those.
+
+### Windows motion
+
+Springs are the wrong idiom here. Windows publishes its own timing and easing, so on Windows this
+document authors neither: it takes the table.
+
+| Purpose | Ease | Timing | Used for |
+|---|---|---|---|
+| Direct entrance | `cubic-bezier(0, 0, 0, 1)` | 167 / 250 / 333ms | position, scale, rotation |
+| Existing elements | `cubic-bezier(0.55, 0.55, 0, 1)` | 167 / 250 / 333ms | position, scale, rotation |
+| Direct exit | `cubic-bezier(0, 0, 0, 1)` | 167ms | position, scale, rotation — always combined with a fade out |
+| Gentle exit | `cubic-bezier(1, 0, 1, 1)` | 167ms | position, scale |
+| Bare minimum | linear | 83ms | opacity |
+
+*(Motion in Windows — the animation-properties table.)*
+
+The moments §7 names map onto it without re-authoring: a plug lighting or going dark is **direct
+entrance** at 167ms on the fill and the ring; a badge count change takes the same timing for the
+same reason §7 gives — a badge ticking up and a plug lighting are the same event; a flyout or
+dialog entry is the platform's own, since Windows guidance is to "avoid custom animations where
+possible" and use the WinUI transitions; a commit bar rises on transform only. Row selection stays
+immediate.
+
+**§7's three accessibility settings have two Windows counterparts and one absence.** Reduced motion
+is `UISettings.AnimationsEnabled` — "Gets whether animations are enabled for the user interface".
+Reduced transparency is the transparency switch the Mica article already names: Mica falls back to
+`SolidBackgroundFillColorBase` when "the user turns off transparency in Settings > Personalization >
+Color", and the app inherits that rather than implementing it. Increased contrast has **no**
+counterpart, for the reason §11 records: Windows has High Contrast instead, and in that mode the
+palette is the user's rather than ours.
+
+**Never animate opacity from 0 on entry** — §7's rule, unchanged and platform-neutral. Windows'
+own table agrees with it in the one place it touches: a direct exit is always combined with a fade
+*out*, and there is no fade-in-from-nothing entrance on the ladder.
+
+### The Windows keyboard
+
+Named in every spec, not discovered later — §8's rule, with `Ctrl` where §8 has `⌘` and a different
+set of collisions to respect.
+
+| Key | Behaviour |
+|---|---|
+| `Ctrl+N` | Add server… |
+| `Ctrl+F` | Focus search |
+| `Del` | Remove the selected server (undoable, never confirmed) |
+| `Ctrl+1` | Discover |
+| `Ctrl+2` | Skills |
+| `Ctrl+3` | Servers |
+| `Ctrl+4` | Activity |
+| `Ctrl+6` | Checks |
+| `Ctrl+7` | Cleanup |
+| `Ctrl+8` | Inbox |
+| `Alt` | Reveals the access keys — the whole command set, per §11 rule 9 |
+| `F6` | Move to the next pane; `Shift+F6` the previous |
+| `Return` | Commits the view's one default action |
+| `Esc` | Dismisses the dialog, then clears selection |
+| `Space` | Toggles the selected row's **Keep warm** |
+
+`Ctrl+1`–`Ctrl+8` follow the platform's own precedent for an app-wide switcher — the accelerator
+article's Outlook example, where "Ctrl+1 and Ctrl+2 work app-wide". `Ctrl+5` and `Ctrl+9` are absent
+for §8's reason and not a new one: Harnesses and Insights do not exist yet, and a row for a board
+the app cannot open is a binding this document states and the app cannot honour.
+
+Focus follows §11 rule 11 — the high-visibility visual, 2px over 1px, neutral rather than
+accent-bound. `F6` cycles panes sidebar → table → inspector, which is §8's tab order read through
+the Windows key for it; `Tab` moves within a pane rather than between them. `Ctrl+A` inside a list
+is the platform's own control accelerator and is inherited rather than granted.
+
+**A chord is granted here only if the command can fire in some context and Windows has not already
+published the combination for a different command.** Two limbs, as in §8, and the second limb does
+more work here because Windows publishes a table of common accelerators that §8's platform does not.
+As in §8, **every refusal is in this prose and none of them is a row in the table above** — a row
+saying *not granted* is read by a parser as a binding.
+
+Four of §8's sixteen do not cross, each refused by the second limb:
+
+- **`⌘R` · Reset the selected server.** `Ctrl+R` and `F5` are both published as **Refresh**, and a
+  reset is not a refresh. Reset takes no chord and lives on the command bar with an access key.
+- **`⌃W` · Wake the selected server.** `Ctrl+W` is published as **Close**. Wake takes no chord and
+  lives on the command bar and the row's context menu.
+- **`⌘,` · Settings.** Windows publishes no settings accelerator, and it does not need one: the
+  navigation view carries "an optional entry point for app settings" as its own item at the foot of
+  the pane, which is where a Windows user looks. Recorded as an absence with a surface behind it
+  rather than as a gap.
+- **`⌘⌫` · Remove.** Not refused but respelled: Windows publishes `Del` for "Delete selected item
+  (with undo)", which is exactly §9's contract — undo over confirm — stated by the platform.
+
+**`Space` is granted with a condition.** It toggles Keep warm only while the servers list is in
+single-selection mode; where a list offers multiple selection, `Space` belongs to selection and
+Keep warm moves to the row's context menu. Windows publishes no ruling on this, so the condition is
+this document's own and is marked as such.
+
+### What the Windows floor still owes
+
+- **The Signal Path's plug is accent-coloured, and on Windows the accent is the user's.** A user
+  whose accent is green makes a lit plug and a `SystemFillColorSuccess` mark the same hue, and §2's
+  exclusivity rule cannot prevent it because the collision is outside the app. The plug therefore
+  needs a second channel — its ring, its shape, or the label beside it — before the Signal Path is
+  drawn on Windows. This is the signature element, so it is the first thing to settle.
+- **Nothing here has been rendered.** Every ratio in §12 is computed from published values by the
+  same arithmetic §2 uses, and no Windows surface has been photographed against any of them. That
+  is the same gap §2 records for its increased-contrast contexts, one platform over, and it closes
+  the same way: with a built app and a capture, not with a stronger sentence.
+- **The 8pt grid is unsourced on Windows.** §12 says why. If Fluent publishes a spacing scale, it
+  outranks the grid under this document's own precedence rule, and the geometry that follows from
+  it moves.

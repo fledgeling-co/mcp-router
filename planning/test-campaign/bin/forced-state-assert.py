@@ -74,6 +74,13 @@ import sys
 import tempfile
 from pathlib import Path
 
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 CAMPAIGN = Path(__file__).resolve().parent.parent
 OBSERVATIONS = "evidence/forced-state/observations.json"
 
@@ -135,7 +142,7 @@ def read_router(campaign: Path, rel: str | None) -> dict | None:
     """
     if rel is None:
         return None
-    return json.loads((campaign / rel).read_text())
+    return json.loads((campaign / rel).read_text(encoding="utf-8"))
 
 
 class RouterFigures:
@@ -275,7 +282,7 @@ def assess(campaign: Path) -> tuple[Compared, int]:
         print(f"no observations at {OBSERVATIONS} — run bin/forced-state.sh first. Nothing was "
               f"compared, and a clean verdict over nothing is the failure this gate exists for.")
         return cmp_, 0
-    record = json.loads(path.read_text())
+    record = json.loads(path.read_text(encoding="utf-8"))
     states = {s["state"]: s for s in record["states"]}
     missing = [s for s in REQUIRED_STATES if s not in states]
     if missing:
@@ -289,7 +296,7 @@ def assess(campaign: Path) -> tuple[Compared, int]:
         if not dump.exists():
             print(f"state {name!r} names {observation['ax']}, and there is no file there.")
             return cmp_, 0
-        texts[name] = dump.read_text()
+        texts[name] = dump.read_text(encoding="utf-8")
         cmp_.check(f"{name}/settled", observation["settled"] is True,
                    "the board never reached a settled reading inside the wait, so this picture is "
                    "of a board mid-flight rather than of an arranged state")
@@ -493,8 +500,8 @@ def plant(root: Path, mutation: str | None) -> None:
         raise SystemExit(f"the control does not know how to plant {mutation!r}")
 
     for state, text in dumps.items():
-        (ax / f"SURF-002.live-{state}.window.txt").write_text(text)
-    (out / "router.running.json").write_text(json.dumps(reading))
+        (ax / f"SURF-002.live-{state}.window.txt").write_text(text, encoding="utf-8")
+    (out / "router.running.json").write_text(json.dumps(reading), encoding="utf-8")
 
     record = {
         "tool": "control",
@@ -516,7 +523,7 @@ def plant(root: Path, mutation: str | None) -> None:
             for state in ("cold", "running", "stale")
         ],
     }
-    (out / "observations.json").write_text(json.dumps(record, indent=1))
+    (out / "observations.json").write_text(json.dumps(record, indent=1), encoding="utf-8")
 
 
 def control() -> int:

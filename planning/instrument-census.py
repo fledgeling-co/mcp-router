@@ -93,6 +93,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from input_accounting import Tally  # noqa: E402
 
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 ROOT = Path(__file__).resolve().parent.parent
 CENSUS = Path(__file__).resolve().parent / "instrument-census.tsv"
 
@@ -151,7 +158,7 @@ LANES_DEFAULT = re.compile(r'LANES="\$\{PARITY_LANES:-([^}]*)\}"')
 
 
 def tracked(root: Path) -> list[str]:
-    out = subprocess.run(["git", "ls-files"], cwd=root, capture_output=True, text=True, check=True)
+    out = subprocess.run(["git", "ls-files"], cwd=root, capture_output=True, text=True, check=True, encoding="utf-8")
     return [line for line in out.stdout.splitlines() if line]
 
 
@@ -487,7 +494,7 @@ def run(write: bool) -> int:
     derived = render(rows)
     if write:
         CENSUS.write_text("\n".join(derived) + "\n", encoding="utf-8")
-        print(f"  wrote {CENSUS.relative_to(ROOT)} — {len(rows)} instruments")
+        print(f"  wrote {CENSUS.relative_to(ROOT).as_posix()} — {len(rows)} instruments")
         return 0
 
     have = committed()
@@ -533,30 +540,30 @@ def control() -> int:
         (scratch / "scripts/acceptance").mkdir(parents=True)
         (scratch / "planning").mkdir(parents=True)
         (scratch / "app/Tests/RouterCoreTests/PlantedSuite.swift").write_text(
-            '@testable import RouterCore\n@Suite("planted")\nstruct PlantedSuiteTests {}\n')
+            '@testable import RouterCore\n@Suite("planted")\nstruct PlantedSuiteTests {}\n', encoding="utf-8")
         (scratch / "scripts/acceptance/parity-planted.sh").write_text(
-            '#!/usr/bin/env bash\nnode "$REPO_ROOT/dist/index.js" watch\n')
+            '#!/usr/bin/env bash\nnode "$REPO_ROOT/dist/index.js" watch\n', encoding="utf-8")
         (scratch / "scripts/acceptance/parity-gate.sh").write_text(
-            '#!/usr/bin/env bash\nLANES="${PARITY_LANES:-planted}"\n')
-        (scratch / "planning/planted-gate.py").write_text("print('reads text only')\n")
+            '#!/usr/bin/env bash\nLANES="${PARITY_LANES:-planted}"\n', encoding="utf-8")
+        (scratch / "planning/planted-gate.py").write_text("print('reads text only')\n", encoding="utf-8")
         # A gate that only WRITES ABOUT the node artefact. It must stay `static`.
         (scratch / "planning/planted-prose-gate.py").write_text(
-            '"""dist/index.js is the thing that actually runs, and it is not tracked."""\n')
+            '"""dist/index.js is the thing that actually runs, and it is not tracked."""\n', encoding="utf-8")
         # A lane whose only node references are a header comment and a repair instruction it prints.
         (scratch / "scripts/acceptance/parity-advises.sh").write_text(
             '#!/usr/bin/env bash\n# run `npm run build` first.\n'
-            'echo "no dist — run: node dist/index.js"\ntrue\n')
+            'echo "no dist — run: node dist/index.js"\ntrue\n', encoding="utf-8")
         # A lane that MENTIONS another instrument without running it. The edge must not appear.
         (scratch / "scripts/acceptance/parity-mentions.sh").write_text(
-            '#!/usr/bin/env bash\n# move the pin in scripts/acceptance/parity-planted.sh in the same change.\ntrue\n')
+            '#!/usr/bin/env bash\n# move the pin in scripts/acceptance/parity-planted.sh in the same change.\ntrue\n', encoding="utf-8")
         # A lane that INVOKES one. The edge must appear, and the swift reach must close upward.
         (scratch / "scripts/acceptance/parity-invokes.sh").write_text(
-            '#!/usr/bin/env bash\nbash "$REPO_ROOT/scripts/acceptance/parity-swifty.sh"\n')
+            '#!/usr/bin/env bash\nbash "$REPO_ROOT/scripts/acceptance/parity-swifty.sh"\n', encoding="utf-8")
         (scratch / "scripts/acceptance/parity-swifty.sh").write_text(
-            '#!/usr/bin/env bash\nswift test --filter Nothing\n')
+            '#!/usr/bin/env bash\nswift test --filter Nothing\n', encoding="utf-8")
         (scratch / "Makefile").write_text(
             "test:\n\tcd app; swift test\n\nnarrow:\n\tswift test --filter PlantedSuiteTests\n"
-            "\nquiet:\n\t./scripts/acceptance/parity-swifty.sh\n")
+            "\nquiet:\n\t./scripts/acceptance/parity-swifty.sh\n", encoding="utf-8")
         subprocess.run(["git", "init", "-q"], cwd=scratch, check=True)
         subprocess.run(["git", "add", "-A"], cwd=scratch, check=True)
 
@@ -607,9 +614,9 @@ def control() -> int:
 
         # A Python gate carrying a node invocation as FIXTURE DATA, and one that really calls it.
         (scratch / "planning/planted-fixture-gate.py").write_text(
-            'BODY = "#!/usr/bin/env bash\\nnode $ROOT/dist/index.js watch\\n"\nprint(BODY)\n')
+            'BODY = "#!/usr/bin/env bash\\nnode $ROOT/dist/index.js watch\\n"\nprint(BODY)\n', encoding="utf-8")
         (scratch / "planning/planted-runner-gate.py").write_text(
-            'import subprocess\nsubprocess.run(["node", "dist/index.js", "index"], check=True)\n')
+            'import subprocess\nsubprocess.run(["node", "dist/index.js", "index"], check=True)\n', encoding="utf-8")
         subprocess.run(["git", "add", "-A"], cwd=scratch, check=True)
         rows, tally = collect(scratch)
 

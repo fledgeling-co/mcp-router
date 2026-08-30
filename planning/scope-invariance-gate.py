@@ -106,6 +106,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from input_accounting import Tally  # noqa: E402
 
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 ROOT = Path(__file__).resolve().parent.parent
 
 # A git subcommand whose result is a set of paths. Anchoring is load-bearing for exactly these:
@@ -390,9 +397,9 @@ def run_twice(script: Path, root: Path, subdir: Path) -> tuple[bool, str, str]:
     `0 vs 0` on the instance this gate was written for.
     """
     a = subprocess.run([sys.executable, str(script)], cwd=str(root),
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, encoding="utf-8")
     b = subprocess.run([sys.executable, str(script)], cwd=str(subdir),
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, encoding="utf-8")
     if (a.returncode, a.stdout) == (b.returncode, b.stdout):
         return True, f"exit {a.returncode}", f"exit {b.returncode}"
     da, db = first_difference(a.stdout, b.stdout)

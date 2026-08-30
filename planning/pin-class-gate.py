@@ -87,6 +87,13 @@ import sys
 import tempfile
 from pathlib import Path
 
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 ROOT = Path(__file__).resolve().parent.parent
 VECTORS = "app/Tests/RouterCoreTests/Vectors"
 SRC = "src"
@@ -356,7 +363,7 @@ def generators(root: Path) -> tuple[list[str], dict[str, list[str]]]:
     generator written in a language this reader cannot open must be visible as a hole rather than
     absent from the figure.
     """
-    out = subprocess.run(["git", "ls-files"], capture_output=True, text=True, cwd=root)
+    out = subprocess.run(["git", "ls-files"], capture_output=True, text=True, cwd=root, encoding="utf-8")
     kept: list[str] = []
     dropped: dict[str, list[str]] = {"not under scripts/": [], "not a .mjs": []}
     for path in out.stdout.splitlines():

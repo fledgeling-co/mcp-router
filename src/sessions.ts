@@ -33,14 +33,38 @@
  * reports nobody reachable at the exact moment everybody is. Instants are compared here, never
  * spellings, and `scripts/e2e-session-push.mjs` plants a session in the other spelling and
  * requires it to still read `reachable`.
+ *
+ * ## WIN17 — the same failure, through a different door, measured on Windows
+ *
+ * Everything above is macOS's registry read by macOS's tools. On Windows, on 2026-08-30, this
+ * module reported all five live Claude Code sessions on the machine as `exited` — the identical
+ * "nobody reachable at the moment everybody is" outcome the note above exists to prevent. Three
+ * separate causes, each now a visible branch in `platform.ts`:
+ *
+ *   · **`ps` is not there.** `execFileSync('ps', …, { PATH: '/bin:/usr/bin' })` failed ENOENT in
+ *     under a millisecond, and an empty start-time map reads as "every pid is dead". The Windows
+ *     lane is `Get-Process`, and `processStartSeconds` now reports whether the probe *ran*, so
+ *     "nobody was asked" is no longer spelled the same as "nobody is alive".
+ *   · **`procStart` is a different number, not a different spelling.** Windows writes a FILETIME
+ *     decimal string — `"134324966130572677"` — where macOS writes ctime. `Date.parse` of it is
+ *     `NaN`, which fell through the `registered !== undefined` guard below, so the recycled-pid
+ *     identity check *silently did not run at all* on Windows. `parseProcStart` reads both.
+ *   · **The socket is a named pipe and cannot be stat'd.** `messagingSocketPath` on this machine is
+ *     `\\.\pipe\cc-msg-<32 hex>`, and `existsSync` returns `false` for a live pipe, so the presence
+ *     check below would have classified every Windows session `noSocket`. Presence is
+ *     `indeterminate` there and the connect settles it.
+ *
+ * The reach vocabulary is unchanged — five classes, the same five on both platforms — because the
+ * control API is one contract and a Windows client must not have to know which host it is talking
+ * to.
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { createConnection } from 'node:net';
-import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { log } from './log.js';
+import { parseProcStart, processStartSeconds, socketPresence } from './platform.js';
 
 /** How long one socket write is given before it is abandoned. A client must never stall the router. */
 const PUSH_TIMEOUT_MS = 2_000;
@@ -83,91 +107,70 @@ export interface PushOutcome {
 
 const sessionsDir = (home: string): string => join(home, '.claude', 'sessions');
 
-/** `Sat Aug 22 10:02:12 2026` (UTC, as the registry writes it) -> epoch seconds. */
+/**
+ * `Sat Aug 22 10:02:12 2026` (UTC, as the macOS registry writes it) -> epoch seconds.
+ *
+ * Kept as the macOS-spelling reader; `parseProcStart` in `platform.ts` is the one that dispatches
+ * on the spelling and is what the classifier below calls, because Windows writes a FILETIME
+ * decimal rather than a ctime string.
+ */
 export function parseProcStartUtc(s: string): number | undefined {
   const ms = Date.parse(`${s.trim()} UTC`);
   return Number.isNaN(ms) ? undefined : Math.floor(ms / 1000);
 }
 
 /**
- * Start times for the pids given, as epoch seconds, from one `ps`.
+ * Start times for the pids given, as epoch seconds, from one OS call.
  *
- * `LC_ALL=C` is load-bearing: without it `ps` prints `Sat 22 Aug 20:02:12 2026` on this machine
- * and the parse silently yields the wrong instant. One call rather than one per session.
+ * The mechanism is `platform.ts`'s, which is `ps -o pid=,lstart=` on macOS and `Get-Process` on
+ * Windows and carries the measurements behind both. This wrapper keeps the shape the rest of the
+ * router and `scripts/e2e-session-push.mjs` already use, and drops the `probed` flag, because a
+ * caller holding only a Map cannot act on it. `listSessions` reads the flag directly.
+ *
+ * The defence both lanes keep: one unusable pid must never answer for the others. macOS `ps`
+ * rejects the whole invocation over an out-of-range pid — `ps: process id too large: 4194303` —
+ * prints nothing for the good ones and exits non-zero; Windows `Get-Process` exits 1 over the same
+ * input but does print the good rows. Both are read off the error's stdout, and a batch that
+ * answered for nobody is retried one pid at a time.
  */
 export function processStarts(pids: number[]): Map<number, number> {
-  const out = new Map<number, number>();
-  const wanted = pids.filter((n) => Number.isSafeInteger(n) && n > 0);
-  if (wanted.length === 0) return out;
+  return processStartSeconds(pids).starts;
+}
 
-  const ask = (batch: number[]): string => {
-    try {
-      return execFileSync('ps', ['-o', 'pid=,lstart=', '-p', batch.join(',')], {
-        encoding: 'utf8',
-        env: { LC_ALL: 'C', PATH: '/bin:/usr/bin' },
-      });
-    } catch (err) {
-      /*
-       * Two different things arrive here and they must not be conflated.
-       *
-       * Every pid being dead is an ordinary exit-1 from `ps` with the output it did produce
-       * still on the error, so that output is read rather than discarded.
-       *
-       * A single unusable pid is the one that cost this a defect: macOS `ps` rejects the whole
-       * invocation — `ps: process id too large: 4194303` — prints NOTHING for the pids that were
-       * fine, and exits non-zero. Read as "nobody is alive", one junk row in the registry
-       * silently reclassifies every live session on the machine as exited, and the feature then
-       * reports nobody reachable at the moment everybody is. That is not a corner case worth a
-       * bound: it is a reason never to let one bad entry answer for the others.
-       */
-      return String((err as { stdout?: unknown }).stdout ?? '');
-    }
-  };
-
-  const absorb = (raw: string): number => {
-    let found = 0;
-    for (const line of raw.split('\n')) {
-      const m = /^\s*(\d+)\s+(.+?)\s*$/.exec(line);
-      if (!m) continue;
-      // `ps` prints local time and `Date.parse` of a bare ctime string reads it as local.
-      // Correct here, and the exact opposite of how `procStart` must be read — see the header.
-      const at = Date.parse(m[2]!);
-      if (Number.isNaN(at)) continue;
-      out.set(Number(m[1]), Math.floor(at / 1000));
-      found += 1;
-    }
-    return found;
-  };
-
-  absorb(ask(wanted));
-  /*
-   * Only when the batch answered for nobody, and only then: asking once per pid costs one
-   * process per session, which is the reason the batched call exists. Reaching here means the
-   * batch was refused rather than empty, so the per-pid pass is what separates "the registry
-   * holds a junk row" from "nothing is running".
+export interface SessionSweep {
+  sessions: SessionView[];
+  /**
+   * Whether the liveness probe ran at all.
+   *
+   * `false` means no pid was *asked* about, so every row's `exited` is an artefact of the sweep
+   * rather than a fact about the machine. Carried here and not on `SessionView` deliberately: the
+   * control API's `/sessions` response is one contract shared with the Windows client, and its five
+   * reach classes have no way to say "unknown". Widening that vocabulary is a contract change and
+   * belongs with whoever designs the Windows client contract (WIN12, WIN23), not to WIN17. Until
+   * then the honest signal goes to the CLI, which is where a person is reading, and to the log.
    */
-  if (out.size === 0 && wanted.length > 1) {
-    for (const pid of wanted) absorb(ask([pid]));
-  }
-  return out;
+  livenessProbed: boolean;
+  /** Present when `livenessProbed` is false: what was missing. */
+  detail?: string;
 }
 
 /**
- * Every session the registry knows about, each classified by whether a message could reach it.
+ * Every session the registry knows about, each classified by whether a message could reach it,
+ * together with whether the classification could be made at all.
  *
  * Read-only and total: a row that cannot be parsed is dropped with a warning rather than taking
  * the sweep down with it, and the count of what was dropped is reported by the caller.
  */
-export function listSessions(home: string = homedir()): SessionView[] {
+export function sweepSessions(home: string = homedir()): SessionSweep {
   const dir = sessionsDir(home);
-  if (!existsSync(dir)) return [];
+  if (!existsSync(dir)) return { sessions: [], livenessProbed: true };
 
   let names: string[];
   try {
     names = readdirSync(dir);
   } catch (err) {
     log.warn(`sessions: cannot read ${dir}: ${(err as Error).message}`);
-    return [];
+    return { sessions: [], livenessProbed: true };
   }
 
   /* The key file is `<pid>.<64 hex>.key` and holds `{ peerToken, procStart }` at 0600. Indexed
@@ -190,9 +193,16 @@ export function listSessions(home: string = homedir()): SessionView[] {
   }
 
   const pids = rows.map((r) => Number(r.pid)).filter((n) => Number.isInteger(n) && n > 0);
-  const starts = processStarts(pids);
+  const probe = processStartSeconds(pids);
+  const starts = probe.starts;
+  if (!probe.probed) {
+    log.error(
+      `sessions: the liveness probe did not run (${probe.detail ?? 'unknown reason'}), so no pid was asked about; ` +
+        `every one of the ${rows.length} row(s) below reads "exited" because nothing answered, not because nothing is running.`
+    );
+  }
 
-  return rows.map((r) => {
+  const sessions = rows.map((r) => {
     const pid = Number(r.pid);
     const socketPath = typeof r.messagingSocketPath === 'string' ? r.messagingSocketPath : undefined;
     const view: SessionView = {
@@ -214,12 +224,19 @@ export function listSessions(home: string = homedir()): SessionView[] {
      * message aimed at a reused pid lands in whatever now owns it. Comparing instants rather
      * than the two spellings of one is the whole of the header note above.
      */
-    const registered = typeof r.procStart === 'string' ? parseProcStartUtc(r.procStart) : undefined;
+    const registered = typeof r.procStart === 'string' ? parseProcStart(r.procStart) : undefined;
     if (registered !== undefined && Math.abs(registered - liveAt) > 1) {
       return { ...view, reach: 'recycled' as const };
     }
 
-    if (!socketPath || !existsSync(socketPath)) return { ...view, reach: 'noSocket' as const };
+    /*
+     * `absent` is the only answer that settles this negatively. On Windows the endpoint is a named
+     * pipe, which cannot be stat'd — `existsSync` of a live one returns false — so presence there
+     * is `indeterminate` and the row goes on to the key check. What that costs is stated rather
+     * than hidden: a stale Windows endpoint is discovered as a `refused` push outcome instead of
+     * being filtered out here as `noSocket`.
+     */
+    if (!socketPath || socketPresence(socketPath) === 'absent') return { ...view, reach: 'noSocket' as const };
 
     const keyPath = keyFor.get(pid);
     if (!keyPath) return { ...view, reach: 'unauthenticated' as const };
@@ -233,6 +250,18 @@ export function listSessions(home: string = homedir()): SessionView[] {
       return { ...view, reach: 'unauthenticated' as const };
     }
   });
+
+  return { sessions, livenessProbed: probe.probed, detail: probe.detail };
+}
+
+/**
+ * Every session the registry knows about, classified.
+ *
+ * The shape every existing caller wants, and unchanged. `sweepSessions` is what to call when the
+ * difference between "nothing is running" and "nothing was asked" needs to reach the reader.
+ */
+export function listSessions(home: string = homedir()): SessionView[] {
+  return sweepSessions(home).sessions;
 }
 
 /**
@@ -333,7 +362,8 @@ export async function askSessionsToReload(
   what: string,
   opts: { home?: string; dryRun?: boolean } = {}
 ): Promise<PushReport> {
-  const sessions = listSessions(opts.home ?? homedir());
+  const sweep = sweepSessions(opts.home ?? homedir());
+  const sessions = sweep.sessions;
   const byReach: Record<Reach, number> = {
     reachable: 0,
     unauthenticated: 0,
@@ -344,6 +374,17 @@ export async function askSessionsToReload(
   for (const s of sessions) byReach[s.reach] += 1;
 
   const targets = sessions.filter((s) => s.reach === 'reachable' || s.reach === 'unauthenticated');
+  /*
+   * A sweep whose liveness probe did not run finds nobody, and "nobody was reachable" is exactly
+   * how that looks from the outside. Said here as well as in `sweepSessions`, because this is the
+   * call that decides nothing gets sent.
+   */
+  if (!sweep.livenessProbed) {
+    log.error(
+      `sessions: no message will be sent — the liveness probe did not run (${sweep.detail ?? 'unknown reason'}), ` +
+        `so every one of the ${sessions.length} registered session(s) was classified without being asked.`
+    );
+  }
   if (opts.dryRun) {
     return {
       considered: sessions.length,

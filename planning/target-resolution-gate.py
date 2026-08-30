@@ -166,6 +166,13 @@ import subprocess
 import sys
 import tempfile
 
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 HERE = pathlib.Path(__file__).resolve()
 ROOT = HERE.parent.parent
 FLOOR = ROOT / "planning" / "target-resolution-ratchet.json"
@@ -551,7 +558,7 @@ def registry_ids(root):
         p = camp / fn
         if p.exists():
             try:
-                rows = json.loads(p.read_text())
+                rows = json.loads(p.read_text(encoding="utf-8"))
             except (ValueError, OSError):
                 continue
             for r in rows if isinstance(rows, list) else []:
@@ -560,7 +567,7 @@ def registry_ids(root):
     inv = camp / "inventory.json"
     if inv.exists():
         try:
-            d = json.loads(inv.read_text())
+            d = json.loads(inv.read_text(encoding="utf-8"))
         except (ValueError, OSError):
             d = {}
         for kind, rows in (d.items() if isinstance(d, dict) else []):
@@ -575,7 +582,7 @@ def retirements(root):
     if not p.exists():
         return {}
     try:
-        rows = json.loads(p.read_text())
+        rows = json.loads(p.read_text(encoding="utf-8"))
     except (ValueError, OSError):
         return {}
     return {r["id"]: r.get("reason", "") for r in rows
@@ -616,9 +623,9 @@ def build_control_repo(d):
     run("config", "user.name", "control")
     (p / "planning").mkdir()
     (p / "planning" / "plans").mkdir()
-    (p / "planning" / "kept.py").write_text("kept\n")
-    (p / "planning" / "vanishes.py").write_text("vanishes\n")
-    (p / "planning" / "renamed.py").write_text("a" * 400 + "\n")
+    (p / "planning" / "kept.py").write_text("kept\n", encoding="utf-8")
+    (p / "planning" / "vanishes.py").write_text("vanishes\n", encoding="utf-8")
+    (p / "planning" / "renamed.py").write_text("a" * 400 + "\n", encoding="utf-8")
     run("add", "-A")
     run("commit", "-q", "-m", "old")
     old = subprocess.run(["git", "-C", d, "rev-parse", "--short=7", "HEAD"],
@@ -950,7 +957,7 @@ def main():
                       "by_file": dict(sorted(now.items()))},
             "ids": {"blocking": ID_BLOCKING, "total": len(idblocking),
                     "by_file": dict(sorted(idnow.items()))},
-        }, indent=2) + "\n")
+        }, indent=2) + "\n", encoding="utf-8")
         print("floor: written — %d dead path target(s) across %d file(s), %d absent id(s) across "
               "%d file(s)" % (len(blocking), len(now), len(idblocking), len(idnow)))
         return 0
@@ -958,9 +965,9 @@ def main():
     rc = 0
     if not FLOOR.exists():
         print("floor: no baseline at %s — run --set-floor to set one"
-              % FLOOR.relative_to(ROOT))
+              % FLOOR.relative_to(ROOT).as_posix())
     else:
-        base = json.loads(FLOOR.read_text())
+        base = json.loads(FLOOR.read_text(encoding="utf-8"))
         for arm, cur, label in (("paths", now, "dead path target"),
                                 ("ids", idnow, "absent id")):
             b = base.get(arm, {}).get("by_file", {})

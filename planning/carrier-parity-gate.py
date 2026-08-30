@@ -72,8 +72,16 @@ would let every landing pass for want of anything to check.
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
+
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # `CARRIER_LEDGER` exists so the gate can be armed against a deliberately broken copy without
@@ -89,18 +97,89 @@ ONE_SIDED = ("swift-only", "typescript-only")
 DISPOSITIONS = ("divergent-recorded", "ported", "reference-only", "not-a-feature")
 
 
+# ---------------------------------------------------------------------------------------------
+# The shell and the interpreter, resolved rather than assumed.
+#
+# Neither name below is a Windows-only trap. They are ordinary names with more than one answer,
+# and the wrong answer is reached first on a machine that has several:
+#
+#   "bash"     handed to `subprocess` as a bare name is resolved by CreateProcess, which searches
+#              System32 ahead of PATH and so returns the WSL launcher: a different machine, with
+#              a different filesystem, which cannot see this checkout. With virtualisation off it
+#              exits 1 having printed a UTF-16 error, and that reads as a failing gate rather
+#              than as a missing shell. `/bin/bash` does not exist on Windows at all.
+#   "python3"  is whatever is on PATH, which need not be the interpreter running this gate. On
+#              Windows it is an App Execution Alias stub that raises OSError 216, "not a valid
+#              application for this OS platform" — a message about the machine, not the corpus.
+#
+# So a candidate shell is proved by asking it to read this file; a shell that cannot see the tree
+# it is being asked about is rejected instead of measured. `None` means there is no POSIX shell
+# on this machine, and every caller reports that as could-not-run, which is not a pass.
+_POSIX_SHELL: list = []
+
+
+def posix_shell():
+    """An absolute path to a shell that can read this checkout, or None if there is none."""
+    if _POSIX_SHELL:
+        return _POSIX_SHELL[0] or None
+    witness = os.path.abspath(__file__).replace(os.sep, "/")
+    candidates = [shutil.which("bash"), "/bin/bash"]
+    git = shutil.which("git")
+    if git:
+        # Every caller here already needs git, and git ships the shell its own tooling runs.
+        # Derived from a tool that must be present rather than a hardcoded install location.
+        home = os.path.dirname(os.path.dirname(os.path.realpath(git)))
+        candidates += [os.path.join(home, "bin", "bash.exe"), os.path.join(home, "bin", "bash")]
+    for candidate in candidates:
+        if not candidate or not os.path.exists(candidate):
+            continue
+        try:
+            done = subprocess.run(
+                [candidate, "-c", 'test -e "$1" && printf posix-ok', "sh", witness],
+                capture_output=True, timeout=60)
+        except (OSError, subprocess.SubprocessError):
+            continue
+        if done.stdout.strip() == b"posix-ok":
+            _POSIX_SHELL.append(candidate)
+            return candidate
+    _POSIX_SHELL.append("")
+    return None
+
+
+def resolve_interpreter(command):
+    """argv with a bare interpreter name replaced by the one this gate is actually running under.
+
+    A member declared `python3 …` means "under the suite's Python" and one declared `bash …`
+    means "under the shell that can read this tree"; taking either from PATH lets a second
+    installation answer for the first. Returns None when the command names a shell this machine
+    does not have, so the caller can say could-not-run rather than guess.
+    """
+    if not command:
+        return list(command)
+    head = os.path.basename(command[0]).lower()
+    if head in ("python", "python3", "python.exe", "python3.exe"):
+        return [sys.executable] + list(command[1:])
+    if head in ("bash", "sh", "bash.exe", "sh.exe"):
+        shell = posix_shell()
+        return None if shell is None else [shell] + list(command[1:])
+    return list(command)
+
+
 def run(args):
     """Run a command in the repo and return (exit, stdout). stderr is passed through."""
     proc = subprocess.run(
         args, cwd=REPO_ROOT, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        universal_newlines=True,
+        universal_newlines=True, encoding="utf-8",
     )
     return proc.returncode, proc.stdout, proc.stderr
 
 
 def take_census():
     """Measure every landing's carrier. Returns a dict sha -> (label, carrier, nswift, nts)."""
-    code, out, err = run(["bash", CENSUS])
+    shell = posix_shell()
+    if shell is None:
+        return None, "the census is a shell script and this machine has no POSIX shell"
+    code, out, err = run([shell, CENSUS])
     if code != 0:
         return None, err.strip() or "the census exited %d having printed nothing" % code
     rows = {}
@@ -233,7 +312,7 @@ def controls(census, pin, ledger_text, window):
 def installer_default():
     """Which binary a fresh install selects, read from the installer rather than remembered."""
     try:
-        with open(INSTALLER) as handle:
+        with open(INSTALLER, encoding="utf-8") as handle:
             for line in handle:
                 found = re.match(r'\s*MCPR_ROUTER="\$\{MCPR_ROUTER:-(\w+)\}"', line)
                 if found:
@@ -248,7 +327,7 @@ def main():
         print("environment: no disposition ledger at %s" % LEDGER)
         return 2
 
-    with open(LEDGER) as handle:
+    with open(LEDGER, encoding="utf-8") as handle:
         ledger_text = handle.read()
 
     census, why = take_census()

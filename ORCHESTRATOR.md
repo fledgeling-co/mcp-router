@@ -1262,6 +1262,27 @@ This is the third instrument in this repository whose answer depends on the inde
 tree, after `brief-target-gate.py` and `evidence-citation-gate.py`. Treat "did I stage it first?" as
 the first question whenever one of them disagrees with what is plainly on disk.
 
+### DISPATCH — parallel() BETWEEN STAGES IS A BARRIER, AND IT COST THIS FLEET A WHOLE WAVE'S HEAD START
+
+`wf_cc5f93f1-9a8` was written as `parallel(verifiers)` and then `parallel(builders)`. That second
+call cannot begin until the LAST verifier returns. WIN3 and WIN20 depend on nothing those verifiers
+produce - W1 had already merged - so they have sat idle for several iterations behind a barrier the
+DAG never asked for, and the ledger recorded them as `Running` the whole time because the conductor
+wrote the status from the dispatch rather than from the journal.
+
+Two separate faults, and the second is the worse one:
+
+- **The barrier.** `pipeline()` runs each item through its own stages independently, so item N
+  verifies while item N+1 builds. `parallel()` per stage synchronises them. ship-fleet says this
+  outright and measures it as where a fleet's wall clock actually goes.
+- **The row said `Running` when nothing was running.** The journal showed `started: 3` throughout,
+  and all three were verifiers. A status written from intent rather than from evidence is exactly
+  what produced this repository's four stale-row dispatches, where runners were sent at work that
+  had already merged. **Write a row's status from the journal, never from the dispatch.**
+
+Not repaired mid-flight: dispatching WIN3 and WIN20 separately now would double-dispatch them when
+the barrier lifts. The rows are corrected to `Queued`, which is what they actually are.
+
 ### Wave plan
 
 | Wave | Items | Why they are together |
@@ -1304,8 +1325,8 @@ does **not** change what any check reads, and must not be described as though it
 | **WIN2** | A Windows native floor in DESIGN.md | windows | - | design/mcp-router-console.html | Opus | Done | merged to main | verified PASS by an independent verifier that fetched seven cited sources and checked every quoted token verbatim. +481/-0, ten macOS rules intact. Two documentation notes: the carried-clause overclaim is fixed; the unmeasured disabled pairing is WIN24 |
 | **WIN17** | The router's five macOS assumptions | router | - | - | Opus | Needs-work | merged to main | verified NEEDS-WORK by an independent verifier that EXERCISED it - router served, upstream spawned and reaped, OAuth browser launch judged by process count 7->16, lock contention measured. 5 of 6 acceptance items confirmed. Item 7 REJECTED (parity position unstated). D1 rounding: parseProcStart floors while the PowerShell probe rounds, so 5 of 10 live sessions sit exactly on the recycled boundary. D2: execFileSync blocks the event loop ~0.45s on the request path for every new client. G1: the launchd config watcher half of the finding is unclosed. D3 FIXED by the conductor - the 37-check e2e is now enrolled in the Windows lane |
 | **WIN18** | Windows build and verify lane | harness | WIN1 | - | Opus | Verifying | merged to main | merged. scripts/windows/verify.ps1 live: 8 passed / 0 failed / 5 not-run, exit 0. CONDUCTOR-AUTHORED, so nobody independent has reviewed it; verifier told to try to break it |
-| **WIN3** | Windows app shell | windows | WIN1, WIN2, WIN18 | design/mcp-router-console.html | Opus | Running | ai/win3 | dispatched wf_cc5f93f1-9a8 in its own worktree; W1 merged so the DAG allows it |
-| **WIN20** | Windows automation plane for the campaign | windows | WIN1 | - | Opus | Running | ai/win20 | dispatched wf_cc5f93f1-9a8 in its own worktree; decides whether any Windows surface can be measured at all |
+| **WIN3** | Windows app shell | windows | WIN1, WIN2, WIN18 | design/mcp-router-console.html | Opus | Queued | - | NOT running. Barriered behind all three verifiers in wf_cc5f93f1-9a8 by a parallel() stage boundary; the journal shows 3 agents started, none of them this one |
+| **WIN20** | Windows automation plane for the campaign | windows | WIN1 | - | Opus | Queued | - | NOT running. Same barrier as WIN3 - it starts when the last verifier returns, not when the DAG allows |
 | **WIN4** | Servers board and the Signal Path | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | The signature element; drawn rather than a stock control. Geometry must be restated in effective pixels |
 | **WIN5** | Activity board | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | Live log over GET /usage/stream. Densest reading surface, so a direct test of the Windows palette |
 | **WIN6** | Skills board | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | Per-harness slots. Held-for-review is a security guarantee rather than a decoration |

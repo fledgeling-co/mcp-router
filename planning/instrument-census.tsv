@@ -319,7 +319,9 @@ planning/goals/liveness-check.sh	gate	planning/goals/liveness-check.sh	static	no
 planning/goals/tests-check.sh	gate	planning/goals/tests-check.sh	static	no router invocation matched	-
 planning/goals/tests-reader-control.sh	gate	planning/goals/tests-reader-control.sh	static	no router invocation matched	planning/goals/tests-check.sh
 planning/goals/w2-dispatch.js	gate	planning/goals/w2-dispatch.js	swift	xcodebuild	-
-planning/goals/win-gates.py	gate	planning/goals/win-gates.py	static	no router invocation matched	planning/goals/w2-dispatch.js
+planning/goals/w3-dispatch.js	gate	planning/goals/w3-dispatch.js	swift	xcodebuild	-
+planning/goals/w4-dispatch.js	gate	planning/goals/w4-dispatch.js	swift	xcodebuild	-
+planning/goals/win-gates.py	gate	planning/goals/win-gates.py	static	no router invocation matched	planning/goals/w2-dispatch.js,planning/goals/w3-dispatch.js,planning/goals/w4-dispatch.js
 planning/goals/worklist-check.sh	gate	planning/goals/worklist-check.sh	static	no router invocation matched	-
 planning/hooks/install.sh	gate	planning/hooks/install.sh	static	no router invocation matched	make:lint
 planning/hooks/prove-pre-commit.sh	gate	planning/hooks/prove-pre-commit.sh	static	no router invocation matched	-

@@ -1,0 +1,35 @@
+﻿2026-08-30T02:05:31.9605097Z session=1 station=WinSta0 user=luke
+2026-08-30T02:05:32.0106113Z probe binary: C:\Dev\mcp-router\.worktrees\WIN20\app\windows\AutomationProbe\bin\Debug\net8.0-windows10.0.26100.0\win-x64\AutomationProbe.exe (written 2026-08-30T02:00:20.2782839Z)
+2026-08-30T02:05:32.3267926Z probe started, pid=269128
+2026-08-30T02:05:33.1621951Z the probe's window is on the automation plane
+2026-08-30T02:05:35.3142587Z dump(control): read 36 elements from 1 top-level window(s) -> C:\Dev\mcp-router\.worktrees\WIN20\planning\evidence\WIN20\run\uia-control-view.json
+2026-08-30T02:05:35.3285406Z dump(control) exit=0
+2026-08-30T02:05:38.5891147Z dump(raw): read 65 elements from 1 top-level window(s) -> C:\Dev\mcp-router\.worktrees\WIN20\planning\evidence\WIN20\run\uia-raw-view.json
+2026-08-30T02:05:38.7563741Z dump(raw) exit=0
+2026-08-30T02:05:38.8103275Z assert: WIN20 automation-plane assertions against SURF-029
+2026-08-30T02:05:38.8113855Z assert:   subject: MCPRouter.AutomationProbe ÔÇö WIN20's WinUI 3 probe window
+2026-08-30T02:05:38.8128983Z assert:   dump:    C:\Dev\mcp-router\.worktrees\WIN20\planning\evidence\WIN20\run\uia-control-view.json (36 elements)
+2026-08-30T02:05:38.8154488Z assert: 
+2026-08-30T02:05:38.8176457Z assert:   passed    85
+2026-08-30T02:05:38.8186861Z assert:   FAILED    0
+2026-08-30T02:05:38.8217960Z assert:   unoracled 2  (neither pass nor failure)
+2026-08-30T02:05:38.8231380Z assert:     UNORACLED  unoracled.probe.command.exportLog: 'Export log' is absent from the control view and from the raw view, so it is not realised at all
+2026-08-30T02:05:38.8247083Z assert:                reason: a CommandBar's SecondaryCommands are not realised while the overflow is closed, so the element does not exist on the automation plane at rest. It is absent from the control view AND the raw view.
+2026-08-30T02:05:38.8267961Z assert:                a rung opens if: either the harness opens the overflow ÔÇö which mutates the surface it is measuring and gives up the never-activated guarantee ÔÇö or the command is also reachable from a surface that is realised at rest. The second is the fix; the first is not.
+2026-08-30T02:05:38.8288635Z assert:     UNORACLED  unoracled.probe.command.resetRouter: 'Reset router' is absent from the control view and from the raw view, so it is not realised at all
+2026-08-30T02:05:38.8314589Z assert:                reason: same as probe.command.exportLog ÔÇö SecondaryCommands are unrealised while the overflow is closed.
+2026-08-30T02:05:38.8337130Z assert:                a rung opens if: as above.
+2026-08-30T02:05:38.8360199Z assert exit=0
+2026-08-30T02:05:38.9116576Z probe stopped
+2026-08-30T02:05:38.9425749Z   probe: 2026-08-30T02:05:32.3748642Z pid=269128 Program.Main entered, args=[]
+2026-08-30T02:05:38.9454701Z   probe: 2026-08-30T02:05:32.3823568Z pid=269128 ComWrappers initialised
+2026-08-30T02:05:38.9469766Z   probe: 2026-08-30T02:05:32.4682382Z pid=269128 App ctor: before InitializeComponent
+2026-08-30T02:05:38.9517616Z   probe: 2026-08-30T02:05:32.4821362Z pid=269128 App ctor: after InitializeComponent
+2026-08-30T02:05:38.9573126Z   probe: 2026-08-30T02:05:32.5146070Z pid=269128 OnLaunched: constructing MainWindow
+2026-08-30T02:05:38.9598229Z   probe: 2026-08-30T02:05:32.5465303Z pid=269128 MainWindow: before InitializeComponent
+2026-08-30T02:05:38.9623295Z   probe: 2026-08-30T02:05:32.5954383Z pid=269128 MainWindow: after InitializeComponent
+2026-08-30T02:05:38.9649048Z   probe: 2026-08-30T02:05:32.5988114Z pid=269128 MainWindow: resized and moved
+2026-08-30T02:05:38.9659393Z   probe: 2026-08-30T02:05:32.6100654Z pid=269128 MainWindow: Servers selected
+2026-08-30T02:05:38.9734975Z   probe: 2026-08-30T02:05:32.6103987Z pid=269128 OnLaunched: MainWindow constructed
+2026-08-30T02:05:38.9801455Z   probe: 2026-08-30T02:05:32.6150121Z pid=269128 OnLaunched: shown without activation, hwnd=4328746
+2026-08-30T02:05:38.9975903Z pass: the tree was read out of process, the target never held the foreground, and every assertion that could run, passed.

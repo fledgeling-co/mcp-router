@@ -1,0 +1,11 @@
+﻿2026-08-30T02:05:32.3748642Z pid=269128 Program.Main entered, args=[]
+2026-08-30T02:05:32.3823568Z pid=269128 ComWrappers initialised
+2026-08-30T02:05:32.4682382Z pid=269128 App ctor: before InitializeComponent
+2026-08-30T02:05:32.4821362Z pid=269128 App ctor: after InitializeComponent
+2026-08-30T02:05:32.5146070Z pid=269128 OnLaunched: constructing MainWindow
+2026-08-30T02:05:32.5465303Z pid=269128 MainWindow: before InitializeComponent
+2026-08-30T02:05:32.5954383Z pid=269128 MainWindow: after InitializeComponent
+2026-08-30T02:05:32.5988114Z pid=269128 MainWindow: resized and moved
+2026-08-30T02:05:32.6100654Z pid=269128 MainWindow: Servers selected
+2026-08-30T02:05:32.6103987Z pid=269128 OnLaunched: MainWindow constructed
+2026-08-30T02:05:32.6150121Z pid=269128 OnLaunched: shown without activation, hwnd=4328746

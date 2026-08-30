@@ -1,0 +1,367 @@
+{
+  "schema": "win20.assert/1",
+  "subject": "MCPRouter.AutomationProbe — WIN20's WinUI 3 probe window",
+  "subjectIsNotTheProduct": "WIN3 has not landed a drawable Windows shell. Every figure taken against this manifest is a measurement of WinUI 3's automation behaviour on this machine, not of the MCP Router Windows client. When WIN3 lands, point the harness at it and re-take them.",
+  "proposedSurfaceId": "SURF-029",
+  "dump": "C:\\Dev\\mcp-router\\.worktrees\\WIN20\\planning\\evidence\\WIN20\\run\\uia-control-view.json",
+  "rawDump": "C:\\Dev\\mcp-router\\.worktrees\\WIN20\\planning\\evidence\\WIN20\\run\\uia-raw-view.json",
+  "capturedAtUtc": "2026-08-30T02:05:35.2611260Z",
+  "elementCount": 36,
+  "passed": [
+    {
+      "check": "window.name",
+      "detail": "name == 'Automation probe'"
+    },
+    {
+      "check": "window.className",
+      "detail": "className == 'WinUIDesktopWin32WindowClass'"
+    },
+    {
+      "check": "window.frameworkId",
+      "detail": "frameworkId == 'Win32'"
+    },
+    {
+      "check": "window.isVisible",
+      "detail": "the window is mapped"
+    },
+    {
+      "check": "window.isMinimised",
+      "detail": "the window is not minimised"
+    },
+    {
+      "check": "foreground.targetNeverFront",
+      "detail": "target hwnd 4328746 / pid 269128 held the foreground at none of the 3 samples"
+    },
+    {
+      "check": "addressable.probe.destination.activity",
+      "detail": "one element, at path /0/0/1/0/0/0/0"
+    },
+    {
+      "check": "vocabulary.probe.destination.activity",
+      "detail": "name == 'Activity'"
+    },
+    {
+      "check": "controlType.probe.destination.activity",
+      "detail": "controlType == ListItem"
+    },
+    {
+      "check": "addressable.probe.destination.servers",
+      "detail": "one element, at path /0/0/1/0/0/0/1"
+    },
+    {
+      "check": "vocabulary.probe.destination.servers",
+      "detail": "name == 'Servers'"
+    },
+    {
+      "check": "controlType.probe.destination.servers",
+      "detail": "controlType == ListItem"
+    },
+    {
+      "check": "addressable.probe.destination.skills",
+      "detail": "one element, at path /0/0/1/0/0/0/2"
+    },
+    {
+      "check": "vocabulary.probe.destination.skills",
+      "detail": "name == 'Skills'"
+    },
+    {
+      "check": "controlType.probe.destination.skills",
+      "detail": "controlType == ListItem"
+    },
+    {
+      "check": "addressable.probe.destination.discover",
+      "detail": "one element, at path /0/0/1/0/0/0/3"
+    },
+    {
+      "check": "vocabulary.probe.destination.discover",
+      "detail": "name == 'Discover'"
+    },
+    {
+      "check": "controlType.probe.destination.discover",
+      "detail": "controlType == ListItem"
+    },
+    {
+      "check": "addressable.probe.destination.inbox",
+      "detail": "one element, at path /0/0/1/0/0/0/4"
+    },
+    {
+      "check": "vocabulary.probe.destination.inbox",
+      "detail": "name == 'Inbox'"
+    },
+    {
+      "check": "controlType.probe.destination.inbox",
+      "detail": "controlType == ListItem"
+    },
+    {
+      "check": "addressable.probe.destination.checks",
+      "detail": "one element, at path /0/0/1/0/0/0/5"
+    },
+    {
+      "check": "vocabulary.probe.destination.checks",
+      "detail": "name == 'Checks'"
+    },
+    {
+      "check": "controlType.probe.destination.checks",
+      "detail": "controlType == ListItem"
+    },
+    {
+      "check": "addressable.probe.destination.cleanup",
+      "detail": "one element, at path /0/0/1/0/0/0/6"
+    },
+    {
+      "check": "vocabulary.probe.destination.cleanup",
+      "detail": "name == 'Cleanup'"
+    },
+    {
+      "check": "controlType.probe.destination.cleanup",
+      "detail": "controlType == ListItem"
+    },
+    {
+      "check": "addressable.probe.destination.settings",
+      "detail": "one element, at path /0/0/1/0/1/0/0"
+    },
+    {
+      "check": "vocabulary.probe.destination.settings",
+      "detail": "name == 'Settings'"
+    },
+    {
+      "check": "controlType.probe.destination.settings",
+      "detail": "controlType == ListItem"
+    },
+    {
+      "check": "addressable.probe.command.addServer",
+      "detail": "one element, at path /0/0/0/0"
+    },
+    {
+      "check": "vocabulary.probe.command.addServer",
+      "detail": "name == 'Add server'"
+    },
+    {
+      "check": "controlType.probe.command.addServer",
+      "detail": "controlType == Button"
+    },
+    {
+      "check": "addressable.probe.command.refresh",
+      "detail": "one element, at path /0/0/0/1"
+    },
+    {
+      "check": "vocabulary.probe.command.refresh",
+      "detail": "name == 'Refresh'"
+    },
+    {
+      "check": "controlType.probe.command.refresh",
+      "detail": "controlType == Button"
+    },
+    {
+      "check": "addressable.probe.command.holdQueue",
+      "detail": "one element, at path /0/0/0/2"
+    },
+    {
+      "check": "vocabulary.probe.command.holdQueue",
+      "detail": "name == 'Hold queue'"
+    },
+    {
+      "check": "controlType.probe.command.holdQueue",
+      "detail": "controlType == Button"
+    },
+    {
+      "check": "addressable.probe.serverList",
+      "detail": "one element, at path /0/0/1/4"
+    },
+    {
+      "check": "vocabulary.probe.serverList",
+      "detail": "name == 'Servers'"
+    },
+    {
+      "check": "controlType.probe.serverList",
+      "detail": "controlType == List"
+    },
+    {
+      "check": "addressable.probe.server.filesystem",
+      "detail": "one element, at path /0/0/1/4/0"
+    },
+    {
+      "check": "vocabulary.probe.server.filesystem",
+      "detail": "name == 'Filesystem'"
+    },
+    {
+      "check": "controlType.probe.server.filesystem",
+      "detail": "controlType == ListItem"
+    },
+    {
+      "check": "addressable.probe.server.github",
+      "detail": "one element, at path /0/0/1/4/1"
+    },
+    {
+      "check": "vocabulary.probe.server.github",
+      "detail": "name == 'GitHub'"
+    },
+    {
+      "check": "controlType.probe.server.github",
+      "detail": "controlType == ListItem"
+    },
+    {
+      "check": "addressable.probe.server.braveSearch",
+      "detail": "one element, at path /0/0/1/4/2"
+    },
+    {
+      "check": "vocabulary.probe.server.braveSearch",
+      "detail": "name == 'Brave Search'"
+    },
+    {
+      "check": "controlType.probe.server.braveSearch",
+      "detail": "controlType == ListItem"
+    },
+    {
+      "check": "addressable.probe.button.removeServer",
+      "detail": "one element, at path /0/0/1/5"
+    },
+    {
+      "check": "vocabulary.probe.button.removeServer",
+      "detail": "name == 'Remove server'"
+    },
+    {
+      "check": "controlType.probe.button.removeServer",
+      "detail": "controlType == Button"
+    },
+    {
+      "check": "addressable.probe.button.pairServer",
+      "detail": "one element, at path /0/0/1/6"
+    },
+    {
+      "check": "vocabulary.probe.button.pairServer",
+      "detail": "name == 'Pair server'"
+    },
+    {
+      "check": "controlType.probe.button.pairServer",
+      "detail": "controlType == Button"
+    },
+    {
+      "check": "addressable.probe.switch.pauseRouting",
+      "detail": "one element, at path /0/0/1/7"
+    },
+    {
+      "check": "vocabulary.probe.switch.pauseRouting",
+      "detail": "name == 'Pause routing'"
+    },
+    {
+      "check": "controlType.probe.switch.pauseRouting",
+      "detail": "controlType == Button"
+    },
+    {
+      "check": "addressable.probe.board.title",
+      "detail": "one element, at path /0/0/1/1"
+    },
+    {
+      "check": "vocabulary.probe.board.title",
+      "detail": "name == 'Servers'"
+    },
+    {
+      "check": "controlType.probe.board.title",
+      "detail": "controlType == Text"
+    },
+    {
+      "check": "addressable.probe.status.busyWord",
+      "detail": "one element, at path /0/0/1/3"
+    },
+    {
+      "check": "vocabulary.probe.status.busyWord",
+      "detail": "name == 'Starting upstream'"
+    },
+    {
+      "check": "controlType.probe.status.busyWord",
+      "detail": "controlType == Text"
+    },
+    {
+      "check": "state.disabled.probe.button.removeServer",
+      "detail": "isEnabled == False, off the plane"
+    },
+    {
+      "check": "state.disabled.probe.button.pairServer",
+      "detail": "isEnabled == True, off the plane"
+    },
+    {
+      "check": "state.selected.probe.navigation",
+      "detail": "SelectionPattern reports [\"Servers\"]"
+    },
+    {
+      "check": "state.selected.probe.destination.servers",
+      "detail": "isSelected == True"
+    },
+    {
+      "check": "state.unselected.probe.destination.activity",
+      "detail": "isSelected == False"
+    },
+    {
+      "check": "state.unselected.probe.destination.skills",
+      "detail": "isSelected == False"
+    },
+    {
+      "check": "state.unselected.probe.destination.discover",
+      "detail": "isSelected == False"
+    },
+    {
+      "check": "state.unselected.probe.destination.inbox",
+      "detail": "isSelected == False"
+    },
+    {
+      "check": "state.unselected.probe.destination.checks",
+      "detail": "isSelected == False"
+    },
+    {
+      "check": "state.unselected.probe.destination.cleanup",
+      "detail": "isSelected == False"
+    },
+    {
+      "check": "state.unselected.probe.destination.settings",
+      "detail": "isSelected == False"
+    },
+    {
+      "check": "state.selected.probe.serverList",
+      "detail": "SelectionPattern reports [\"GitHub\"]"
+    },
+    {
+      "check": "state.selected.probe.server.github",
+      "detail": "isSelected == True"
+    },
+    {
+      "check": "state.unselected.probe.server.filesystem",
+      "detail": "isSelected == False"
+    },
+    {
+      "check": "state.unselected.probe.server.braveSearch",
+      "detail": "isSelected == False"
+    },
+    {
+      "check": "state.held.probe.command.holdQueue",
+      "detail": "TogglePattern.ToggleState == On"
+    },
+    {
+      "check": "state.held.probe.switch.pauseRouting",
+      "detail": "TogglePattern.ToggleState == On"
+    },
+    {
+      "check": "state.busy.probe.status.busyRing",
+      "detail": "the plane carries the busy marker in the name: 'Busy Starting upstream'"
+    },
+    {
+      "check": "state.busy.probe.status.busyRing.onscreen",
+      "detail": "isOffscreen == False"
+    }
+  ],
+  "failed": [],
+  "unoracled": [
+    {
+      "check": "unoracled.probe.command.exportLog",
+      "detail": "'Export log' is absent from the control view and from the raw view, so it is not realised at all",
+      "reason": "a CommandBar's SecondaryCommands are not realised while the overflow is closed, so the element does not exist on the automation plane at rest. It is absent from the control view AND the raw view.",
+      "whatWouldOpenARung": "either the harness opens the overflow — which mutates the surface it is measuring and gives up the never-activated guarantee — or the command is also reachable from a surface that is realised at rest. The second is the fix; the first is not."
+    },
+    {
+      "check": "unoracled.probe.command.resetRouter",
+      "detail": "'Reset router' is absent from the control view and from the raw view, so it is not realised at all",
+      "reason": "same as probe.command.exportLog — SecondaryCommands are unrealised while the overflow is closed.",
+      "whatWouldOpenARung": "as above."
+    }
+  ]
+}

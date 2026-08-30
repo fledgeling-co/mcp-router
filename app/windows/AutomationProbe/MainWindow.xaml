@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="MCPRouter.AutomationProbe.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    xmlns:automation="using:Microsoft.UI.Xaml.Automation"
+    Title="Automation probe">
+
+    <!-- DESIGN.md §11 rule 3: Mica on the window backdrop, ONCE, and never on a UI element. -->
+    <Window.SystemBackdrop>
+        <MicaBackdrop />
+    </Window.SystemBackdrop>
+
+    <!--
+      WIN20's probe surface.
+
+      Every control here exists to answer one question WIN20's acceptance asks, and the file is
+      arranged so a reader can see which question each one is for:
+
+        · the eight destinations        — are a NavigationView's items individually addressable,
+                                          and does the selected one publish its selection?
+        · the command surface           — does a CommandBar publish its primary commands, and what
+                                          happens to the secondary ones while the overflow is shut?
+        · the four states               — disabled · selected · held · busy, each readable from the
+                                          automation plane rather than from pixels.
+
+      The on-screen vocabulary is the SAME vocabulary the campaign's expectation manifest carries
+      (scripts/windows/uia/probe-expectation.json). That manifest is written from DESIGN.md §11 and
+      the Mac shell's own destination list, not generated from this file, so a name changed here
+      and not there fails the lane rather than moving the target.
+    -->
+
+    <Grid RowSpacing="0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- §11 rule 7 / rule 9: the in-window command surface. Primary commands visible,
+             secondary in the overflow, and every one of them carries an access key so Alt
+             enumerates the whole command set without a pointer. -->
+        <muxc:CommandBar
+            Grid.Row="0"
+            DefaultLabelPosition="Right"
+            AutomationProperties.AutomationId="probe.commandbar"
+            AutomationProperties.Name="Router commands"
+            IsOpen="False">
+
+            <muxc:AppBarButton
+                AutomationProperties.AutomationId="probe.command.addServer"
+                Label="Add server"
+                AccessKey="A">
+                <muxc:AppBarButton.Icon>
+                    <FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" Glyph="&#xE710;" />
+                </muxc:AppBarButton.Icon>
+            </muxc:AppBarButton>
+
+            <muxc:AppBarButton
+                AutomationProperties.AutomationId="probe.command.refresh"
+                Label="Refresh"
+                AccessKey="R">
+                <muxc:AppBarButton.Icon>
+                    <FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" Glyph="&#xE72C;" />
+                </muxc:AppBarButton.Icon>
+            </muxc:AppBarButton>
+
+            <!-- The "held" state, on the command surface: a toggle that is ON right now. -->
+            <muxc:AppBarToggleButton
+                x:Name="HoldQueueToggle"
+                AutomationProperties.AutomationId="probe.command.holdQueue"
+                Label="Hold queue"
+                AccessKey="H"
+                IsChecked="True">
+                <muxc:AppBarToggleButton.Icon>
+                    <FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" Glyph="&#xE769;" />
+                </muxc:AppBarToggleButton.Icon>
+            </muxc:AppBarToggleButton>
+
+            <muxc:CommandBar.SecondaryCommands>
+                <muxc:AppBarButton
+                    AutomationProperties.AutomationId="probe.command.exportLog"
+                    Label="Export log"
+                    AccessKey="E" />
+                <muxc:AppBarButton
+                    AutomationProperties.AutomationId="probe.command.resetRouter"
+                    Label="Reset router"
+                    AccessKey="T" />
+            </muxc:CommandBar.SecondaryCommands>
+        </muxc:CommandBar>
+
+        <!-- §11 rule 1: the selection indicator is the NavigationView's own — 3×16 at radius 2 on
+             the leading edge — and the label stays TextFillColorPrimary. Nothing is restyled here;
+             a restyled indicator would measure this document rather than the platform. -->
+        <muxc:NavigationView
+            Grid.Row="1"
+            x:Name="Shell"
+            AutomationProperties.AutomationId="probe.navigation"
+            AutomationProperties.Name="Destinations"
+            PaneDisplayMode="Left"
+            IsBackButtonVisible="Collapsed"
+            IsSettingsVisible="False"
+            IsPaneToggleButtonVisible="False"
+            OpenPaneLength="220">
+
+            <muxc:NavigationView.MenuItems>
+                <muxc:NavigationViewItem
+                    Content="Activity"
+                    AutomationProperties.AutomationId="probe.destination.activity">
+                    <muxc:NavigationViewItem.Icon>
+                        <FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" Glyph="&#xE9D9;" />
+                    </muxc:NavigationViewItem.Icon>
+                </muxc:NavigationViewItem>
+
+                <!-- The "selected" state. Servers is the selected destination at rest. -->
+                <muxc:NavigationViewItem
+                    x:Name="ServersItem"
+                    Content="Servers"
+                    AutomationProperties.AutomationId="probe.destination.servers">
+                    <muxc:NavigationViewItem.Icon>
+                        <FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" Glyph="&#xE968;" />
+                    </muxc:NavigationViewItem.Icon>
+                </muxc:NavigationViewItem>
+
+                <muxc:NavigationViewItem
+                    Content="Skills"
+                    AutomationProperties.AutomationId="probe.destination.skills">
+                    <muxc:NavigationViewItem.Icon>
+                        <FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" Glyph="&#xE945;" />
+                    </muxc:NavigationViewItem.Icon>
+                </muxc:NavigationViewItem>
+
+                <muxc:NavigationViewItem
+                    Content="Discover"
+                    AutomationProperties.AutomationId="probe.destination.discover">
+                    <muxc:NavigationViewItem.Icon>
+                        <FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" Glyph="&#xE721;" />
+                    </muxc:NavigationViewItem.Icon>
+                </muxc:NavigationViewItem>
+
+                <muxc:NavigationViewItem
+                    Content="Inbox"
+                    AutomationProperties.AutomationId="probe.destination.inbox">
+                    <muxc:NavigationViewItem.Icon>
+                        <FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" Glyph="&#xE8BD;" />
+                    </muxc:NavigationViewItem.Icon>
+                </muxc:NavigationViewItem>
+
+                <muxc:NavigationViewItem
+                    Content="Checks"
+                    AutomationProperties.AutomationId="probe.destination.checks">
+                    <muxc:NavigationViewItem.Icon>
+                        <FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" Glyph="&#xE9D5;" />
+                    </muxc:NavigationViewItem.Icon>
+                </muxc:NavigationViewItem>
+
+                <muxc:NavigationViewItem
+                    Content="Cleanup"
+                    AutomationProperties.AutomationId="probe.destination.cleanup">
+                    <muxc:NavigationViewItem.Icon>
+                        <FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" Glyph="&#xE74D;" />
+                    </muxc:NavigationViewItem.Icon>
+                </muxc:NavigationViewItem>
+            </muxc:NavigationView.MenuItems>
+
+            <muxc:NavigationView.FooterMenuItems>
+                <muxc:NavigationViewItem
+                    Content="Settings"
+                    AutomationProperties.AutomationId="probe.destination.settings">
+                    <muxc:NavigationViewItem.Icon>
+                        <FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" Glyph="&#xE713;" />
+                    </muxc:NavigationViewItem.Icon>
+                </muxc:NavigationViewItem>
+            </muxc:NavigationView.FooterMenuItems>
+
+            <!-- The content layer. §11 rule 3: LayerFillColorDefaultBrush above the Mica base. -->
+            <Grid
+                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                Padding="24"
+                RowSpacing="16">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <TextBlock
+                    Grid.Row="0"
+                    Text="Servers"
+                    Style="{StaticResource SubtitleTextBlockStyle}"
+                    AutomationProperties.AutomationId="probe.board.title" />
+
+                <!-- The "busy" state, with §6's rule doing the work §12 says it has to do on
+                     Windows: every state that has a colour has a word beside it. -->
+                <StackPanel
+                    Grid.Row="1"
+                    Orientation="Horizontal"
+                    Spacing="12"
+                    AutomationProperties.AutomationId="probe.status.band">
+                    <muxc:ProgressRing
+                        x:Name="StartingRing"
+                        AutomationProperties.AutomationId="probe.status.busyRing"
+                        AutomationProperties.Name="Starting upstream"
+                        IsIndeterminate="True"
+                        IsActive="True"
+                        Width="20"
+                        Height="20" />
+                    <TextBlock
+                        Text="Starting upstream"
+                        Style="{StaticResource BodyTextBlockStyle}"
+                        VerticalAlignment="Center"
+                        AutomationProperties.AutomationId="probe.status.busyWord" />
+                </StackPanel>
+
+                <Grid Grid.Row="2" ColumnSpacing="24">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- The "selected" state a second time, on a list rather than a nav pane —
+                         two different providers for the same claim. -->
+                    <muxc:ListView
+                        Grid.Column="0"
+                        x:Name="ServerList"
+                        AutomationProperties.AutomationId="probe.serverList"
+                        AutomationProperties.Name="Servers"
+                        SelectionMode="Single"
+                        SelectedIndex="1">
+                        <muxc:ListViewItem
+                            Content="Filesystem"
+                            AutomationProperties.AutomationId="probe.server.filesystem" />
+                        <muxc:ListViewItem
+                            Content="GitHub"
+                            AutomationProperties.AutomationId="probe.server.github" />
+                        <muxc:ListViewItem
+                            Content="Brave Search"
+                            AutomationProperties.AutomationId="probe.server.braveSearch" />
+                    </muxc:ListView>
+
+                    <StackPanel Grid.Column="1" Spacing="12" Width="220">
+                        <!-- §11 rule 4 / §11 rule 6, and the "disabled" state. Disabled dims in
+                             place and never disappears — which is exactly what makes it readable
+                             from the automation plane instead of inferable from its absence. -->
+                        <Button
+                            x:Name="RemoveServerButton"
+                            Content="Remove server"
+                            IsEnabled="False"
+                            HorizontalAlignment="Stretch"
+                            AutomationProperties.AutomationId="probe.button.removeServer" />
+
+                        <Button
+                            x:Name="PairServerButton"
+                            Content="Pair server"
+                            Style="{StaticResource AccentButtonStyle}"
+                            HorizontalAlignment="Stretch"
+                            AutomationProperties.AutomationId="probe.button.pairServer" />
+
+                        <!-- §11 rule 6: a ToggleSwitch is a binary setting that takes effect the
+                             moment it moves, and it keeps its On/Off labels. -->
+                        <muxc:ToggleSwitch
+                            x:Name="PauseRoutingSwitch"
+                            Header="Pause routing"
+                            IsOn="True"
+                            AutomationProperties.AutomationId="probe.switch.pauseRouting"
+                            AutomationProperties.Name="Pause routing" />
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </muxc:NavigationView>
+    </Grid>
+</Window>

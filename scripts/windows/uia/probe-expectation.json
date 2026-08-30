@@ -1,0 +1,117 @@
+{
+  "schema": "win20.expectation/1",
+  "proposedSurfaceId": "SURF-029",
+  "proposedSurfaceIdIsNotYetInTheRegistry": "SURF-029 is PROPOSED, in planning/evidence/WIN20/registry-rows.proposed.json, and does not resolve against inventory.json yet. It is spelled here as a proposal rather than as a citation on purpose: an id that does not resolve reads to reckon as evidence of ABSENCE — 'somebody wrote down what should exist and it is not there' — which is a finding about the product rather than about this file. The first id tried here was SURF-018, which looked free because surfaces.in.json stops at SURF-017 for the glass lanes; inventory.json already holds SURF-018 as an ios-glass surface. The two files disagree because inventory.json is generated from more sources than surfaces.in.json, and only campaign.py on macOS can regenerate it.",
+  "subject": "MCPRouter.AutomationProbe — WIN20's WinUI 3 probe window",
+  "subjectIsNotTheProduct": "WIN3 has not landed a drawable Windows shell. Every figure taken against this manifest is a measurement of WinUI 3's automation behaviour on this machine, not of the MCP Router Windows client. When WIN3 lands, point the harness at it and re-take them.",
+  "provenance": {
+    "vocabularySource": "DESIGN.md §11 (the Windows native floor) for the command surface and control kinds; the campaign's REQ-003 for the eight destination words, so a Windows destination and its Mac twin are the same word rather than two.",
+    "writtenBy": "hand, from those two documents. It is deliberately NOT generated from MainWindow.xaml — a manifest generated from the thing it checks moves whenever the subject moves and can never fail."
+  },
+
+  "window": {
+    "nameEquals": "Automation probe",
+    "classNameEquals": "WinUIDesktopWin32WindowClass",
+    "frameworkIdEquals": "Win32",
+    "mustBeVisible": true,
+    "mustNotBeMinimised": true
+  },
+
+  "controls": [
+    { "automationId": "probe.destination.activity",  "name": "Activity",      "controlType": "ListItem" },
+    { "automationId": "probe.destination.servers",   "name": "Servers",       "controlType": "ListItem" },
+    { "automationId": "probe.destination.skills",    "name": "Skills",        "controlType": "ListItem" },
+    { "automationId": "probe.destination.discover",  "name": "Discover",      "controlType": "ListItem" },
+    { "automationId": "probe.destination.inbox",     "name": "Inbox",         "controlType": "ListItem" },
+    { "automationId": "probe.destination.checks",    "name": "Checks",        "controlType": "ListItem" },
+    { "automationId": "probe.destination.cleanup",   "name": "Cleanup",       "controlType": "ListItem" },
+    { "automationId": "probe.destination.settings",  "name": "Settings",      "controlType": "ListItem" },
+
+    { "automationId": "probe.command.addServer",     "name": "Add server",    "controlType": "Button" },
+    { "automationId": "probe.command.refresh",       "name": "Refresh",       "controlType": "Button" },
+    { "automationId": "probe.command.holdQueue",     "name": "Hold queue",    "controlType": "Button" },
+
+    { "automationId": "probe.serverList",            "name": "Servers",       "controlType": "List" },
+    { "automationId": "probe.server.filesystem",     "name": "Filesystem",    "controlType": "ListItem" },
+    { "automationId": "probe.server.github",         "name": "GitHub",        "controlType": "ListItem" },
+    { "automationId": "probe.server.braveSearch",    "name": "Brave Search",  "controlType": "ListItem" },
+
+    { "automationId": "probe.button.removeServer",   "name": "Remove server", "controlType": "Button" },
+    { "automationId": "probe.button.pairServer",     "name": "Pair server",   "controlType": "Button" },
+    { "automationId": "probe.switch.pauseRouting",   "name": "Pause routing", "controlType": "Button" },
+
+    { "automationId": "probe.board.title",           "name": "Servers",       "controlType": "Text" },
+    { "automationId": "probe.status.busyWord",       "name": "Starting upstream", "controlType": "Text" }
+  ],
+
+  "states": {
+    "disabled": [
+      {
+        "automationId": "probe.button.removeServer",
+        "isEnabled": false,
+        "why": "DESIGN.md §11 rule 4 — disabled dims in place and never disappears. That is what makes it readable rather than inferable from absence."
+      },
+      { "automationId": "probe.button.pairServer", "isEnabled": true }
+    ],
+
+    "selected": [
+      {
+        "container": "probe.navigation",
+        "selectedAutomationId": "probe.destination.servers",
+        "selectionNames": ["Servers"],
+        "unselected": [
+          "probe.destination.activity", "probe.destination.skills", "probe.destination.discover",
+          "probe.destination.inbox", "probe.destination.checks", "probe.destination.cleanup",
+          "probe.destination.settings"
+        ]
+      },
+      {
+        "container": "probe.serverList",
+        "selectedAutomationId": "probe.server.github",
+        "selectionNames": ["GitHub"],
+        "unselected": ["probe.server.filesystem", "probe.server.braveSearch"]
+      }
+    ],
+
+    "held": [
+      {
+        "automationId": "probe.command.holdQueue",
+        "toggleState": "On",
+        "why": "an AppBarToggleButton that is currently held on"
+      },
+      {
+        "automationId": "probe.switch.pauseRouting",
+        "toggleState": "On",
+        "why": "DESIGN.md §11 rule 6 — a ToggleSwitch is a binary setting that takes effect the moment it moves"
+      }
+    ],
+
+    "busy": [
+      {
+        "automationId": "probe.status.busyRing",
+        "controlType": "ProgressBar",
+        "nameContains": "Starting upstream",
+        "busyMarkerInName": "Busy",
+        "mustNotBeOffscreen": true,
+        "why": "WinUI publishes an active ProgressRing as ControlType.ProgressBar and PREPENDS the localised word 'Busy' to the automation name. The busy state is therefore readable, but it is carried in the NAME rather than in a pattern, which is why this row asserts the marker explicitly instead of assuming a RangeValuePattern."
+      }
+    ]
+  },
+
+  "unoracled": [
+    {
+      "automationId": "probe.command.exportLog",
+      "onScreenName": "Export log",
+      "reason": "a CommandBar's SecondaryCommands are not realised while the overflow is closed, so the element does not exist on the automation plane at rest. It is absent from the control view AND the raw view.",
+      "whatWouldOpenARung": "either the harness opens the overflow — which mutates the surface it is measuring and gives up the never-activated guarantee — or the command is also reachable from a surface that is realised at rest. The second is the fix; the first is not.",
+      "designRule": "DESIGN.md §11 rule 9 — every command reachable from one enumerable in-window surface"
+    },
+    {
+      "automationId": "probe.command.resetRouter",
+      "onScreenName": "Reset router",
+      "reason": "same as probe.command.exportLog — SecondaryCommands are unrealised while the overflow is closed.",
+      "whatWouldOpenARung": "as above.",
+      "designRule": "DESIGN.md §11 rule 9"
+    }
+  ]
+}

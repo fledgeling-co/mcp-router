@@ -69,8 +69,21 @@ if (Test-Path (Join-Path $root 'node_modules')) {
     Invoke-Check 'router typecheck (tsc --noEmit)' {
         & npx --no-install tsc --noEmit -p tsconfig.json
     }
+    # WIN17's platform layer has 37 checks and, until WIN17's verifier said so, they ran only
+    # when a human typed the command - no gate, no target, and not here, on the lane built to be
+    # that path. An oracle enrolled in nothing is evidence nobody will re-run.
+    if (Test-Path (Join-Path $root 'scripts/e2e-platform.mjs')) {
+        if (Test-Path (Join-Path $root 'dist/index.js')) {
+            Invoke-Check 'platform e2e (scripts/e2e-platform.mjs)' {
+                & node (Join-Path $root 'scripts/e2e-platform.mjs')
+            }
+        } else {
+            Skip-Check 'platform e2e' 'dist/ absent - run npx tsc -p tsconfig.json first'
+        }
+    }
 } else {
     Skip-Check 'router typecheck' 'node_modules absent - run npm install first'
+    Skip-Check 'platform e2e' 'node_modules absent'
 }
 
 # ---------------------------------------------------------------- the Windows client

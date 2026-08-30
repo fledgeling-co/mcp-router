@@ -1187,8 +1187,23 @@ reason this fleet is scheduled differently:
   SDK, which carries no `AppxPackage` tasks. Installing more Visual Studio does not converge them.
 - Every worktree registration in this clone pointed at `/Users/lukerhodes` or `/Volumes/LLMs` - 72
   of them, all prunable, now pruned to 1. Those files live on the Mac and were not touched.
-- The 226 files `git status` calls modified are **line endings only**:
-  `git diff --ignore-cr-at-eol --numstat` returns nothing. They are not work.
+- The 226 files `git status` called modified were **file-mode differences, not line endings**.
+  The conductor asserted line endings for eight iterations on the strength of
+  `git diff --ignore-cr-at-eol --numstat` returning nothing - which is true, and does not mean
+  what it was taken to mean. It returns nothing because there is no content difference *at all*:
+  the bytes are identical, both LF. The index holds mode `100755`, Windows has no executable bit,
+  so every one of them read as modified on a mode change alone.
+
+  It was not cosmetic. It blocked `git merge` outright - five different attempts failed with
+  "Your local changes would be overwritten by merge", through `--renormalize`,
+  `update-index --really-refresh`, `checkout -f`, and toggling `core.autocrlf` both ways. The fix
+  is one line, and it drops the count from 226 to 1:
+
+      git config core.fileMode false
+
+  The lesson is the one this fleet keeps relearning: a check that returns "no difference" answers
+  the question it was asked, not the question you meant. `--ignore-cr-at-eol` was asked whether
+  the *content* differed. Nobody asked git what it thought had changed until iteration 9.
 
 ### Two failure modes this fleet has already hit
 

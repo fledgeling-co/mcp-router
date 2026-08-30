@@ -334,11 +334,17 @@ def coverage():
     import glob
     rows = [i for i, _ in rows_all()]
     covered = set(LANDED)
+    unread = []
     for f in glob.glob(str(ROOT / "planning" / "goals" / "w*-dispatch.js")):
         try:
             covered |= set(re.findall(r"'(WIN\d+)'", open(f, encoding="utf-8").read()))
-        except OSError:
-            continue
+        except OSError as e:
+            # Recorded rather than skipped. An unreadable dispatch script makes every item it
+            # would have launched look uncovered, so the reason has to reach the reader or the
+            # gate reports a coverage hole that is really a permissions problem.
+            unread.append("%s (%s)" % (Path(f).name, e.__class__.__name__))
+    if unread:
+        print("coverage: %d dispatch script(s) could not be read: %s" % (len(unread), ", ".join(unread)))
     missing = [r for r in rows if r not in covered]
     if not missing:
         print("coverage: all %d rows reachable by a wave or already landed." % len(rows))

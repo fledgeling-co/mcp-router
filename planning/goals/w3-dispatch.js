@@ -87,6 +87,11 @@ Reads configs, does not write them. "Open config" reveals in Explorer rather tha
 NO FIGURE WITHOUT ITS DENOMINATOR. A percentage carries numerator and denominator and names its dominant contributor; memory says it was measured; a zero is EXPLAINED rather than left bare. Bare stat tiles would lose the property that makes the board trustworthy.
 Resident memory across child processes is read differently on Windows - "measured, not modelled" must stay true of however you obtain it. src/platform.ts (WIN17) already has residentKb.
 Figures come from GET /usage/summary, not computed in the client, so a client-side number cannot diverge from the router's.`],
+  ['WIN12', 'Pairing an iPhone to the Windows client', `WIN10's value depends on a paired phone: the phone discovers and queues, the desktop decides. Without this, WIN10 degrades to analyst findings only and the existing iOS app has no Windows counterpart to pair with.
+The phone side already exists and does NOT change - you are building the other end of a protocol that is already specified. Do not propose a new scheme.
+THE SECRET GOES TO WINDOWS CREDENTIAL MANAGER, never a config file. DPAPI encrypts per user. Never display, log or copy the value. This is a security-relevant substitution, not a styling one.
+Discovery and reachability need a Windows answer, and Windows Defender Firewall WILL prompt on first bind - a pairing flow that silently fails behind a firewall prompt reads to the user as a broken product. Handle it and say what to do.
+Distinct failure states: wrong code, expired code, unreachable phone, already paired.`],
   ['WIN16', 'Capability document panel and the update gate', `The detail surface every other board hands off to: three tabs over one package - Capabilities, Changelog, Flags worth knowing - across versions.
 It carries THE UPDATE GATE, "the heart of the product": a new version lands as a shadow copy, evals re-run, and it promotes only if the capability diff is empty. Most updates are empty and promote silently with NO notification.
 CAPABILITY DIFF BEFORE CONTENT DIFF - the ordering IS the guarantee, "because a 400-line diff gets click-through-approved and a four-line capability delta does not". Leading with the content diff, or showing both with equal weight, loses the property even though every element is present.

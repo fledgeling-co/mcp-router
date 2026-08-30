@@ -511,5 +511,7 @@ scripts/red-green.py	gate	scripts/red-green.py	swift	argv ["swift", …]	-
 scripts/warden/apply-migration.py	gate	scripts/warden/apply-migration.py	static	no router invocation matched	scripts/warden/plan-migration.py
 scripts/warden/plan-migration.py	gate	scripts/warden/plan-migration.py	static	no router invocation matched	-
 scripts/warden/selftest.sh	gate	scripts/warden/selftest.sh	static	no router invocation matched	make:lint
+scripts/windows/uia/uia-assert.py	gate	scripts/windows/uia/uia-assert.py	static	no router invocation matched	-
+scripts/windows/uia/uia-selftest.py	gate	scripts/windows/uia/uia-selftest.py	static	no router invocation matched	-
 scripts/worktree-preflight-selftest.sh	gate	scripts/worktree-preflight-selftest.sh	static	no router invocation matched	make:lint
 scripts/worktree-preflight.sh	gate	scripts/worktree-preflight.sh	static	no router invocation matched	make:tools,scripts/worktree-preflight-selftest.sh

@@ -1242,6 +1242,26 @@ items; thirteen agents in one tree would not survive on the named-path rule alon
 W1 is not being relocated mid-flight — the work is on disk and moving it would cost more than it
 protects. Its commits are reconciled by named path, serially, by the conductor.
 
+### CONDUCTOR — STAGE THE FILE, THEN REGENERATE THE CENSUS. NOT THE OTHER WAY ROUND
+
+`planning/instrument-census.py` went red three turns running and each time it looked like a fresh
+oversight. It is one rule, and it is the same rule `brief-target-gate.py` follows: **the population
+is `git ls-files`, never the working directory** (`instrument-census.py:34`, `:161`).
+
+So a new script the conductor has written but not yet staged is INVISIBLE to `--write`. Regenerating
+at that moment records a census that omits it, `git add` then makes the file visible, and the very
+next run of the gate is red - having just been "refreshed".
+
+The order that works:
+
+    git add <the new instrument>
+    PYTHONIOENCODING=utf-8 python3 planning/instrument-census.py --write
+    git add planning/instrument-census.tsv
+
+This is the third instrument in this repository whose answer depends on the index rather than the
+tree, after `brief-target-gate.py` and `evidence-citation-gate.py`. Treat "did I stage it first?" as
+the first question whenever one of them disagrees with what is plainly on disk.
+
 ### Wave plan
 
 | Wave | Items | Why they are together |

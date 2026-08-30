@@ -1,0 +1,18 @@
+<Application
+    x:Class="MCPRouter.Shell.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!--
+                  The Fluent control resources and nothing else. Every colour this shell draws is
+                  a WinUI theme resource by key (DESIGN.md §12's provenance rule), so there is no
+                  app palette to merge: the tokens are the platform's, and a hand-authored copy of
+                  them would be a second palette to keep in step with the first.
+                -->
+                <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

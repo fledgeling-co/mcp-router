@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="MCPRouter.Shell.Views.BoardPlaceholder"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+      DESIGN.md §5's Empty row, read for a surface whose emptiness is the build's rather than the
+      data's: "first-run gets an illustration, one sentence, one action - never a bare 'No items'".
+
+      There is no action here on purpose. The one action a real empty state offers is the thing
+      that would fill it, and nothing this shell can do fills a board that has not been written.
+      An action that navigated somewhere else would be a button offered in place of the feature.
+    -->
+    <Grid Padding="24">
+        <Border
+            MaxWidth="520"
+            Padding="32"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="{ThemeResource ControlCornerRadius}">
+
+            <StackPanel Spacing="12">
+                <!--
+                  A glyph carries no reading, so TextFillColorTertiary is legitimate here at the
+                  3:1 non-text floor. §12 forbids it for anything that has to be read, and every
+                  line below takes Primary or Secondary for exactly that reason.
+                -->
+                <FontIcon
+                    x:Name="Glyph"
+                    HorizontalAlignment="Left"
+                    FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                    FontSize="28"
+                    Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+
+                <TextBlock
+                    x:Name="BoardName"
+                    Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                    Style="{StaticResource SubtitleTextBlockStyle}" />
+
+                <TextBlock
+                    x:Name="WillShow"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    TextWrapping="Wrap" />
+
+                <TextBlock
+                    x:Name="NotBuiltYet"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

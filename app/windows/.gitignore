@@ -1,0 +1,7 @@
+# MSBuild output. The Windows client is built by scripts/windows/build-shell.ps1, and its
+# self-contained output is ~90 MB per configuration.
+bin/
+obj/
+
+# The self-test writes beside the executable when it is run from the build output.
+shell-startup.log

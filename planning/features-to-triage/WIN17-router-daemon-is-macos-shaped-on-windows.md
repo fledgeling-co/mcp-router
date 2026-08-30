@@ -19,7 +19,7 @@ on Windows before any Windows surface means anything. It does not today. Measure
 
 - **`grep -n "process.platform\|win32\|os.platform" src/*.ts` returns nothing.** There is not one
   platform branch in the router. Every platform-specific decision is therefore unconditional.
-- **`src/index.ts:376` calls `execFile('/usr/bin/open', [body.authorizationUrl])`** to open the
+- **`src/index.ts:376` at `5ea32650` calls `execFile('/usr/bin/open', [body.authorizationUrl])`** to open the
   browser for an OAuth authorization URL. That path does not exist on Windows, so OAuth sign-in
   fails at the last step — and it fails in a callback that ignores its error, so it fails silently.
   This is the sharpest of the five: the `needs sign-in` state on the Servers board would be

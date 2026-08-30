@@ -5,7 +5,7 @@
   "proposedSurfaceId": "SURF-029",
   "dump": "C:\\Dev\\mcp-router\\.worktrees\\WIN20\\planning\\evidence\\WIN20\\run\\uia-control-view.json",
   "rawDump": "C:\\Dev\\mcp-router\\.worktrees\\WIN20\\planning\\evidence\\WIN20\\run\\uia-raw-view.json",
-  "capturedAtUtc": "2026-08-30T02:26:19.4789377Z",
+  "capturedAtUtc": "2026-08-30T02:31:36.7961464Z",
   "elementCount": 36,
   "passed": [
     {
@@ -30,7 +30,7 @@
     },
     {
       "check": "foreground.targetNeverFront",
-      "detail": "target hwnd 2821872 / pid 328056 held the foreground at none of the 3 samples"
+      "detail": "target hwnd 14748722 / pid 349612 held the foreground at none of the 3 samples"
     },
     {
       "check": "manifest.minimums.busy",

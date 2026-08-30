@@ -174,6 +174,14 @@ def arm_manifest_declares_no_floor(_dump, expectation):
     expectation.pop("minimums", None)
 
 
+def arm_manifest_floor_is_zero(_dump, expectation):
+    """A floor of zero satisfies itself whatever the manifest holds. It looks like a guard and
+    re-opens the emptied-manifest hole underneath one."""
+    expectation["controls"] = []
+    expectation["states"] = {}
+    expectation["minimums"] = dict((k, 0) for k in expectation.get("minimums", {"controls": 0}))
+
+
 def arm_empty_tree(dump, _expectation):
     dump["elements"] = []
     dump["elementCount"] = 0
@@ -208,6 +216,7 @@ ARMS = [
     ("a declared-unoracled control turns up on the plane", EXIT_FAIL, arm_unoracled_control_turns_up),
     ("the expectation manifest is emptied", EXIT_FAIL, arm_manifest_emptied),
     ("the manifest declares no floor of its own", EXIT_FAIL, arm_manifest_declares_no_floor),
+    ("the manifest's floor is zero, which guards nothing", EXIT_FAIL, arm_manifest_floor_is_zero),
     ("the tree is empty", EXIT_NO_VERDICT, arm_empty_tree),
     ("no target window was found", EXIT_NO_VERDICT, arm_no_target_window),
     ("the walk hit its guard and truncated", EXIT_NO_VERDICT, arm_truncated_walk),

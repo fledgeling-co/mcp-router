@@ -465,6 +465,14 @@ def check_manifest_is_not_vacuous(expectation, findings):
         actual = counts.get(key)
         if actual is None:
             findings.bad("manifest.minimums", "unknown minimum %r" % key)
+        elif floor < 1:
+            # A floor of zero is not a floor. It satisfies itself whatever the manifest holds, so
+            # it would let the emptied-manifest hole straight back open while looking like a guard.
+            findings.bad(
+                "manifest.minimums." + key,
+                "the floor for %s is %d; a floor below 1 is satisfied by an empty list and guards "
+                "nothing" % (key, floor),
+            )
         elif actual < floor:
             findings.bad(
                 "manifest.minimums." + key,

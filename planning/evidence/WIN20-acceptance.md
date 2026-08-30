@@ -22,7 +22,7 @@ Each row was run at the commit this file lands on. Nothing below is reported fro
 | Probe build | `MSBuild app/windows/AutomationProbe/AutomationProbe.csproj -t:Build` | **0** | inside the lane, from clean |
 | The live automation lane, run A | `powershell -File scripts/windows/uia/run-probe-lane.ps1` | **0** | 36 control-view elements · 65 raw-view · 90 passed · 0 failed · 2 unoracled |
 | The live automation lane, run B | as above | **0** | identical figures — 36 / 65 / 90 / 0 / 2 |
-| The armed assertions | `python scripts/windows/uia/uia-selftest.py --dump planning/evidence/WIN20/run/uia-control-view.json` | **0** | 25 arms, 0 misbehaved |
+| The armed assertions | `python scripts/windows/uia/uia-selftest.py --dump planning/evidence/WIN20/run/uia-control-view.json` | **0** | 26 arms, 0 misbehaved |
 | Address the window by title, not by pid | `uia-dump.ps1 -TitleContains 'Automation probe'` | **0** | 36 elements — the path WIN3 will use, exercised rather than assumed |
 | …and its negative arm | `uia-dump.ps1 -TitleContains 'no such window anywhere'` | **3** | NO VERDICT, not an empty pass |
 
@@ -148,18 +148,18 @@ so WIN3 inherits it rather than rediscovering it.
 **The list is two-way.** A declared-unoracled control that turns up in either view *fails* the gate
 (selftest arm 18). An absence-assertion passes for free the day it stops being able to fire.
 
-## Falsifiability — 25 arms, both directions
+## Falsifiability — 26 arms, both directions
 
 `uia-selftest.py` hands each assertion a doctored dump and requires it to fire, then requires the
 real dump to fire **none** of them. The control is the second half: a suite where every arm fires is
 as uninformative as one where none do.
 
-Twenty arms must produce exit 1 (a wrong name, a missing control, a duplicate id, a wrong control
+Twenty-one arms must produce exit 1 (a wrong name, a missing control, a duplicate id, a wrong control
 type, a disabled control reporting enabled, an unselected selection, two items selected in a
 single-selection list, a container naming the wrong selection, a container with no SelectionPattern,
 a held toggle reading Off, a toggle that stopped publishing TogglePattern, a stripped busy marker, an
 offscreen busy indicator, the target taking the foreground mid-walk, an unbracketed walk, a minimised
-window, a tree from the wrong window, a declared-unoracled control turning up, an emptied expectation manifest, and a manifest that declares no floor of its own).
+window, a tree from the wrong window, a declared-unoracled control turning up, an emptied expectation manifest, and a manifest that declares no floor of its own, and a floor of zero — which satisfies itself whatever the manifest holds, and would re-open the emptied-manifest hole underneath something that looks like a guard).
 
 Four must produce exit **3** — an empty tree, no target window, a truncated walk, and a dump file
 that is not there. Those four are the ones that keep a green tick from being spent on a window that

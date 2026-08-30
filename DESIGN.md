@@ -858,6 +858,13 @@ platform.
 Every rule carries the page it came from. Nothing below was invented here, and the places where
 Windows publishes no answer are marked as absences rather than filled in.
 
+Two clauses are **carried from §3 rather than sourced from Windows guidance**, and are marked here
+so the sentence above stays true. Rule 4's *"a destructive action is never the default"* is §3's:
+the Dialogs page makes the default button optional and says nothing about destructive defaults.
+Rule 7's three-group toolbar limit is likewise this document's own. Both are kept because a
+guarantee this product already makes should not weaken on a second platform, which is a different
+claim from Windows requiring them.
+
 1. Selection is a 4px rounded backplate at `SubtleFillColorSecondary` plus **one** indicator —
    3×16 at radius 2, `AccentFillColorDefaultBrush` — on the leading edge of the selected item: its
    left edge in a left pane, its bottom edge in a top one. The label stays

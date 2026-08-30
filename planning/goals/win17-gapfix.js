@@ -21,9 +21,9 @@ D1 - A ROUNDING ASYMMETRY THIS ITEM INTRODUCED.
 \`parseProcStart\` FLOORS the FILETIME (\`BigInt(text) / 10_000_000n\`) while the Windows probe casts
 \`[int64](....TotalSeconds)\` in PowerShell, which ROUNDS TO NEAREST ([int64]1.6 = 2, [int64]1.5 = 2).
 Across all 10 rows of this machine's live registry, 5 OF 10 DISAGREE BY EXACTLY ONE SECOND, and
-\`sessions.ts:228\` treats \`> 1\` as recycled. So half of all Windows sessions sit exactly on the
+\`sessions.ts's recycled-pid check\` treats \`> 1\` as recycled. So half of all Windows sessions sit exactly on the
 boundary, deterministically rather than through clock drift - any real drift tips a live session
-into \`recycled\` and its message lands nowhere. \`platform.ts:326\` records that the two "agreed to
+into \`recycled\` and its message lands nowhere. \`platform.ts's parseProcStart comment\` records that the two "agreed to
 within one second, which is inside the tolerance": the author saw the symptom and read their own
 asymmetry as headroom. Floor both sides.
 
@@ -31,15 +31,15 @@ D2 - THE WINDOWS LANES BLOCK THE EVENT LOOP, INSIDE FUNCTIONS DECLARED async.
 \`platform.ts\` uses \`execFileSync\` for both netstat and PowerShell. Measured: \`peerOfLocalPort\`
 93 ms wall / 83 ms event-loop lag; \`residentKb\` 433 ms / 423 ms lag; a bare synchronous
 \`powershell Get-Process\` 372 ms. \`peerOfLocalPort\` runs on every accepted connection
-(\`router.ts:486\`) and is awaited on the request path (\`router.ts:175\`, \`202\`, \`357\`), so the
+(\`router.ts's connection handler\`) and is awaited on the request path (\`router.ts's request path\`, \`202\`, \`357\`), so the
 first request from each new client STALLS THE WHOLE ROUTER for roughly 0.45 s, serving nobody. The
 macOS path it replaced was fully async \`execFile\`. The header quotes netstat at "23 ms" where the
 verifier measures 83-93 ms from node. Make them genuinely async, and correct the quoted figure.
 
 G1 - THE launchd FINDING IS HALF-CLOSED.
 Supervision is restated honestly; the CONFIG WATCHER is not. Nothing fires \`mcpr watch\` on Windows,
-so a server added to ~/.claude.json is never adopted. \`watch.ts:5\` still says "launchd fires this on
-the file change" unconditionally, and \`index.ts:58\` prints "(run by launchd on file change)" in the
+so a server added to ~/.claude.json is never adopted. \`watch.ts's header comment\` still says "launchd fires this on
+the file change" unconditionally, and \`index.ts's usage text\` prints "(run by launchd on file change)" in the
 usage text ON WINDOWS. A user gets no signal the auto-adoption path does not exist on this host.
 Either implement the watcher or say plainly, in the product's own output, that it does not exist
 here - do not leave text asserting a macOS mechanism to a Windows user.

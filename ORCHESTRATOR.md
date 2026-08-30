@@ -1283,6 +1283,25 @@ Two separate faults, and the second is the worse one:
 Not repaired mid-flight: dispatching WIN3 and WIN20 separately now would double-dispatch them when
 the barrier lifts. The rows are corrected to `Queued`, which is what they actually are.
 
+### HYGIENE — THREE BRANCHES HOLD UNMERGED WORK, AND THE HANDOVER NAMED ONE
+
+Audited 2026-08-30 with `git branch --no-merged main`. Everything else in this repository - well
+over two hundred branches - is fully merged and carries zero unique commits. These three do not:
+
+| Branch | Unique | What it is |
+|---|---|---|
+| `ai/p4` | 1 | **R26**, the Mac fleet's built-but-unmerged item. 30 files, 2,462 insertions, **16 of them Swift**. Known, and named in the handover. It cannot be verified from Windows and must not be merged from here: the repository's own rule is that the compiler is the only thing that catches a union-resolved comma loss. Owed to the Mac. |
+| `rescue/campaign-stash-20260827` | 2 | **A rescued git stash**, not a feature branch - "On main: campaign worktree state (orchestrator-managed, backup /tmp/campaign-dirty-20260827-145130)". 13 files, +1,447/-508, and it touches `planning/test-campaign/strict-ratchet.json`. A stash holding a ratchet diff is worth a human deciding about rather than a fleet resolving. **Undocumented until now.** |
+| `union-sim` | 11 | **Superseded scratch.** It was the union-merge simulation behind the "union-resolving a conflict in CODE drops separators" finding. Its substance is already on `main` - `CASE-0184` and `SURF-028` both resolve there - and `main` is **409 commits ahead of it**. Safe to retire; kept only because retiring branches is the owner's call rather than a fleet's. |
+
+**No branch was deleted.** Merged branches are cheap to keep and deleting two hundred of them is a
+bulk irreversible action on someone else's history, which nothing in this goal needs. What the audit
+was for is the other end of the list: work that exists and is reachable from no wave and no merge,
+which is the same failure the coverage gate exists to catch, one level down.
+
+The stash is the one that should reach a person. It is the only item here whose contents nobody has
+described, and it carries a ratchet.
+
 ### Wave plan
 
 | Wave | Items | Why they are together |

@@ -23,6 +23,8 @@ Each row was run at the commit this file lands on. Nothing below is reported fro
 | The live automation lane, run A | `powershell -File scripts/windows/uia/run-probe-lane.ps1` | **0** | 36 control-view elements · 65 raw-view · 90 passed · 0 failed · 2 unoracled |
 | The live automation lane, run B | as above | **0** | identical figures — 36 / 65 / 90 / 0 / 2 |
 | The armed assertions | `python scripts/windows/uia/uia-selftest.py --dump planning/evidence/WIN20/run/uia-control-view.json` | **0** | 25 arms, 0 misbehaved |
+| Address the window by title, not by pid | `uia-dump.ps1 -TitleContains 'Automation probe'` | **0** | 36 elements — the path WIN3 will use, exercised rather than assumed |
+| …and its negative arm | `uia-dump.ps1 -TitleContains 'no such window anywhere'` | **3** | NO VERDICT, not an empty pass |
 
 ### What could NOT be run, and why
 

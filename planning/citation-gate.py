@@ -128,6 +128,13 @@ import subprocess
 import sys
 import tempfile
 
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 HERE = pathlib.Path(__file__).resolve()
 ROOT = HERE.parent.parent
 RATCHET = ROOT / "planning" / "citation-ratchet.json"
@@ -575,14 +582,14 @@ def build_control_repo(d):
     run("init", "-q")
     run("config", "user.email", "control@example.invalid")
     run("config", "user.name", "control")
-    (pathlib.Path(d) / "a.md").write_text(CONTROL_OLD_A)
-    (pathlib.Path(d) / "w.md").write_text(CONTROL_WRAP)
+    (pathlib.Path(d) / "a.md").write_text(CONTROL_OLD_A, encoding="utf-8")
+    (pathlib.Path(d) / "w.md").write_text(CONTROL_WRAP, encoding="utf-8")
     run("add", "-A")
     run("commit", "-q", "-m", "old")
     old = subprocess.run(["git", "-C", d, "rev-parse", "--short=7", "HEAD"],
                          capture_output=True, check=True).stdout.decode().strip()
-    (pathlib.Path(d) / "a.md").write_text(CONTROL_NEW_A)
-    (pathlib.Path(d) / "b.md").write_text(CONTROL_NEW_B)
+    (pathlib.Path(d) / "a.md").write_text(CONTROL_NEW_A, encoding="utf-8")
+    (pathlib.Path(d) / "b.md").write_text(CONTROL_NEW_B, encoding="utf-8")
     run("add", "-A")
     run("commit", "-q", "-m", "new")
     new = subprocess.run(["git", "-C", d, "rev-parse", "--short=7", "HEAD"],
@@ -862,7 +869,7 @@ def main():
 
     baseline = None
     if RATCHET.exists():
-        baseline = json.loads(RATCHET.read_text())
+        baseline = json.loads(RATCHET.read_text(encoding="utf-8"))
     bare_now = tally["BARE"]
     if "--write-ratchet" in argv:
         RATCHET.write_text(json.dumps({
@@ -874,7 +881,7 @@ def main():
             "bare": bare_now,
             "n5": n5,
             "by_file": dict(sorted(bare_by_file.items())),
-        }, indent=2) + "\n")
+        }, indent=2) + "\n", encoding="utf-8")
         print("ratchet: written — BARE %d over N5 %d, across %d files"
               % (bare_now, n5, len(bare_by_file)))
         return rc_control
@@ -882,7 +889,7 @@ def main():
     rc_ratchet = 0
     if baseline is None:
         print("ratchet: no baseline at %s — run --write-ratchet to set one"
-              % RATCHET.relative_to(ROOT))
+              % RATCHET.relative_to(ROOT).as_posix())
     else:
         # Per file, not in total. A scalar ratchet lets a deletion or a refactor in one file buy
         # headroom for a brand-new bare citation in another, and the defect spreads while the

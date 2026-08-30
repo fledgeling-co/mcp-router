@@ -73,6 +73,13 @@ unreadable.
 from __future__ import annotations
 import json, subprocess, sys, os
 
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 CAMPAIGN = 'planning/test-campaign'
 HIGHWATER = 'planning/registry-highwater.json'
 RETIREMENTS = 'planning/registry-retirements.json'
@@ -89,7 +96,7 @@ SOURCES = [
 
 def read_ref(ref, path):
     """Ids at a git ref, or None when the ref cannot supply the file."""
-    r = subprocess.run(['git', 'show', f'{ref}:{path}'], capture_output=True, text=True)
+    r = subprocess.run(['git', 'show', f'{ref}:{path}'], capture_output=True, text=True, encoding="utf-8")
     if r.returncode != 0:
         return None
     try:
@@ -173,7 +180,7 @@ def baselines():
     if os.environ.get('REGISTRY_BASE'):
         return [os.environ['REGISTRY_BASE']]
     r = subprocess.run(['git', 'rev-list', '--parents', '-n', '1', 'HEAD'],
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, encoding="utf-8")
     if r.returncode != 0 or not r.stdout.split():
         return []
     parts = r.stdout.split()

@@ -139,6 +139,13 @@ import subprocess
 import sys
 import tempfile
 
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 BLOCK = re.compile(r"(?<![A-Za-z0-9_~.-])(?P<path>/(?:Users|Volumes)/[A-Za-z0-9_.~+=@-][^\s\"'`,;:)\]}<>]*)")
@@ -169,7 +176,7 @@ RUN_SUFFIX = frozenset(".sh .bash .zsh .py .js .mjs .cjs .rb .pl .command".split
 def tracked(root):
     """(path, mode) for every tracked file. Mode comes from the index, not the filesystem."""
     out = subprocess.run(["git", "-C", str(root), "ls-files", "-s"],
-                         capture_output=True, text=True, check=True).stdout
+                         capture_output=True, text=True, check=True, encoding="utf-8").stdout
     for line in out.splitlines():
         meta, _, name = line.partition("\t")
         yield name, meta.split()[0]
@@ -204,7 +211,7 @@ def scan(root):
             continue
         runnable.append(name)
         try:
-            text = p.read_text(errors="replace")
+            text = p.read_text(encoding="utf-8", errors="replace")
         except OSError:
             continue
         for lineno, line in enumerate(text.splitlines(), 1):
@@ -232,7 +239,7 @@ def record_diagnostic(root):
         if not p.is_file() or is_runnable(root, name, mode):
             continue
         try:
-            if BLOCK.search(p.read_text(errors="replace")):
+            if BLOCK.search(p.read_text(encoding="utf-8", errors="replace")):
                 files += 1
         except OSError:
             pass
@@ -262,14 +269,14 @@ def blind_spots(root, runnable):
     with_path = 0
     for name in sources:
         try:
-            if BLOCK.search((root / name).read_text(errors="replace")):
+            if BLOCK.search((root / name).read_text(encoding="utf-8", errors="replace")):
                 with_path += 1
         except OSError:
             pass
     uservar = folded = 0
     for name in runnable:
         try:
-            text = (root / name).read_text(errors="replace")
+            text = (root / name).read_text(encoding="utf-8", errors="replace")
         except OSError:
             continue
         uservar += len(USERVAR.findall(text))
@@ -303,7 +310,7 @@ def control():
         d = pathlib.Path(td)
         subprocess.run(["git", "init", "-q", str(d)], check=True)
         for name, (body, _) in PLANTS.items():
-            (d / name).write_text(body)
+            (d / name).write_text(body, encoding="utf-8")
             if name.endswith((".sh", ".py")) or name == "extensionless":
                 os.chmod(d / name, 0o755)
         subprocess.run(["git", "-C", str(d), "add", "-A"], check=True)
@@ -313,7 +320,7 @@ def control():
         # never written or never added — so the `notrunnable.md` arm could not fail in the skip
         # direction (`grok-4.6`, 2026-08-26).
         tracked = subprocess.run(["git", "-C", str(d), "ls-files"],
-                                 capture_output=True, text=True).stdout.split()
+                                 capture_output=True, text=True, encoding="utf-8").stdout.split()
         missing = [n for n in PLANTS if n not in tracked or not (d / n).is_file()]
         if missing:
             # A guard that returned a PARTIAL `got` was this gate's own subject one layer up.

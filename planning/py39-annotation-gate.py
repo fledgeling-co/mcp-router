@@ -62,7 +62,7 @@ def unions(path):
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 files = subprocess.run(['git', '-C', ROOT, 'ls-files', '*.py'],
-                       capture_output=True, text=True).stdout.split()
+                       capture_output=True, text=True, encoding="utf-8").stdout.split()
 bad = []
 for f in files:
     st, hits = unions(os.path.join(ROOT, f))
@@ -73,9 +73,16 @@ print(f'{len(bad)} file(s) carry a PEP 604 union with no `from __future__ import
 
 # ---- presence control ----
 import tempfile
+
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
 d = tempfile.mkdtemp()
-p1 = os.path.join(d, 'plant_bad.py');  open(p1,'w').write('import ast\ndef f(x: ast.AST | None) -> bool:\n    return True\n')
-p2 = os.path.join(d, 'plant_good.py'); open(p2,'w').write('from __future__ import annotations\nimport ast\ndef f(x: ast.AST | None) -> bool:\n    return True\n')
+p1 = os.path.join(d, 'plant_bad.py');  open(p1,'w', encoding="utf-8").write('import ast\ndef f(x: ast.AST | None) -> bool:\n    return True\n')
+p2 = os.path.join(d, 'plant_good.py'); open(p2,'w', encoding="utf-8").write('from __future__ import annotations\nimport ast\ndef f(x: ast.AST | None) -> bool:\n    return True\n')
 ok = unions(p1)[0] == 'BREAKS-3.9' and unions(p2)[0] == 'OK-future'
 print('control:', 'HELD — planted union found, planted future-import exempted' if ok
       else 'DID NOT FIRE — this sweep cannot see the defect it reports on, so the count above is not evidence')

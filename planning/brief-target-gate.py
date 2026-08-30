@@ -169,6 +169,13 @@ FLOOR = ROOT / "planning" / "brief-target-ratchet.json"
 sys.path.insert(0, str(HERE.parent))
 from input_accounting import Tally  # noqa: E402  — the drop contract, not an optional import
 
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 
 def _sibling(name: str):
     """Import a sibling gate by path. The filenames carry hyphens, so `import` cannot reach them,
@@ -286,7 +293,7 @@ def discover(root: pathlib.Path) -> tuple:
     the difference between "this gate read the queue" and "this gate read part of the queue".
     """
     out = subprocess.run(["git", "ls-files", "--", BRIEFS_REL],
-                         capture_output=True, text=True, cwd=str(root))
+                         capture_output=True, text=True, cwd=str(root), encoding="utf-8")
     tally = Tally("brief discovery", "the git index under " + BRIEFS_REL)
     for path in out.stdout.splitlines():
         rel = path[len(BRIEFS_REL) + 1:]
@@ -408,11 +415,11 @@ def reckon_classes(reckon_py: str, briefs_dir: str, campaign: str) -> dict:
     with tempfile.TemporaryDirectory() as out:
         r = subprocess.run([sys.executable, reckon_py, "build", "--briefs", briefs_dir,
                             "--campaign", campaign, "--out", out],
-                           capture_output=True, text=True)
+                           capture_output=True, text=True, encoding="utf-8")
         led = pathlib.Path(out) / "ledger.json"
         if r.returncode != 0 or not led.is_file():
             return {}
-        d = json.loads(led.read_text())
+        d = json.loads(led.read_text(encoding="utf-8"))
     rows = {}
     for row in d.get("rows", []):
         if row.get("entity") == "brief":
@@ -514,10 +521,10 @@ def control(root: pathlib.Path, verbose: bool = True) -> bool:
         with tempfile.TemporaryDirectory() as q:
             pathlib.Path(q, "AGREE-01-declared.md").write_text(
                 "---\nreckon-sources: [%s]\n---\n\n# a planted brief that declares its target\n\n"
-                "Planted by planning/brief-target-gate.py --control.\n" % target)
+                "Planted by planning/brief-target-gate.py --control.\n" % target, encoding="utf-8")
             pathlib.Path(q, "AGREE-02-bare.md").write_text(
                 "# a planted brief that names nothing\n\nPlanted by "
-                "planning/brief-target-gate.py --control.\n")
+                "planning/brief-target-gate.py --control.\n", encoding="utf-8")
             got = reckon_classes(reckon_py, q, campaign)
         classes, cited = got.get("classes", {}), got.get("cited", set())
         declared_joined = "BRIEF-AGREE-01-declared" in cited
@@ -714,16 +721,16 @@ def main() -> int:
             "blocking": list(BLOCKING_RATCHETED),
             "total": len(now),
             "by_file": dict(sorted(now.items())),
-        }, indent=2) + "\n")
+        }, indent=2) + "\n", encoding="utf-8")
         print("floor: written — %d undeclared brief(s)" % len(now))
         return 0
 
     rc = 0
     if not FLOOR.exists():
         print("floor: no baseline at %s — run --set-floor to set one"
-              % FLOOR.relative_to(ROOT))
+              % FLOOR.relative_to(ROOT).as_posix())
     else:
-        base = json.loads(FLOOR.read_text())
+        base = json.loads(FLOOR.read_text(encoding="utf-8"))
         risen = risen_against(now, base.get("by_file", {}))
         if risen:
             rc = FINDINGS

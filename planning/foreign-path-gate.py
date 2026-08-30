@@ -104,6 +104,13 @@ import subprocess
 import sys
 import tempfile
 
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 HERE = pathlib.Path(__file__).resolve()
 ROOT = HERE.parent.parent
 
@@ -388,7 +395,7 @@ def read_corpus(root=ROOT, rev="HEAD", worktree=False):
     Returns `(files_data, dropped, undecodable, is_dirty, dirty_count)`.
     """
     dirty_res = subprocess.run(["git", "-C", str(root), "status", "--porcelain"],
-                               capture_output=True, text=True, check=True)
+                               capture_output=True, text=True, check=True, encoding="utf-8")
     dirty_lines = [l for l in dirty_res.stdout.splitlines() if l.strip()]
     is_dirty = len(dirty_lines) > 0
     dirty_count = len(dirty_lines)
@@ -538,16 +545,16 @@ def driver_arm(d):
     # The wrap: `(gone)` sits on the next source line, adjacent only once whitespace collapses.
     (repo / "wrapped.md").write_text(
         "The sweep that decided it lived at `/tmp/control-definitely-absent-9f3a/w.py`\n"
-        "(gone), so the verdict resting on it is no longer falsifiable.\n")
+        "(gone), so the verdict resting on it is no longer falsifiable.\n", encoding="utf-8")
     (repo / "dead.md").write_text(
-        "The sweep is at `/tmp/control-definitely-absent-9f3a/d.py` and decides the item.\n")
+        "The sweep is at `/tmp/control-definitely-absent-9f3a/d.py` and decides the item.\n", encoding="utf-8")
     subprocess.run(["git", "add", "-A"], cwd=repo, check=True)
     subprocess.run(["git", "commit", "-m", "planted"], cwd=repo, capture_output=True, check=True)
 
     res = subprocess.run(
         [sys.executable, str(pathlib.Path(__file__).resolve()),
          "--root", str(repo), "--skip-control", "--quiet"],
-        capture_output=True, text=True)
+        capture_output=True, text=True, encoding="utf-8")
     # Read the BLOCKED block alone, whole, with no per-line discard — naming the file anywhere
     # in stdout is not enough, because the counts block names it too in the reader-disagreement
     # diagnostic. Matched rather than looped so this reader drops nothing silently.
@@ -571,7 +578,7 @@ def run_control(verbose=True):
     with tempfile.TemporaryDirectory() as td:
         d = pathlib.Path(td)
         for name, body, expect, note in CONTROL_PLANTS:
-            (d / name).write_text(body)
+            (d / name).write_text(body, encoding="utf-8")
             got = scan_collapsed(name, body)
             actual = got[0]["class"] if got else "NO-HIT"
             good = actual == expect
@@ -588,7 +595,7 @@ def run_control(verbose=True):
                      "the worst reading of a repeated token wins, not the first"))
 
         name, body, expect_c, expect_l = CONTROL_WRAP
-        (d / name).write_text(body)
+        (d / name).write_text(body, encoding="utf-8")
         c = scan_collapsed(name, body)
         line = scan_lines(name, body)
         ac = c[0]["class"] if c else "NO-HIT"
@@ -619,7 +626,7 @@ def run_control(verbose=True):
         subprocess.run(["git", "config", "user.name", "Control"], cwd=repo_dir, check=True)
         subprocess.run(["git", "config", "user.email", "control@test.com"], cwd=repo_dir, check=True)
 
-        (repo_dir / "record.md").write_text("Evidence cited at `/tmp/control-definitely-absent-9f3a/e.log`.\n")
+        (repo_dir / "record.md").write_text("Evidence cited at `/tmp/control-definitely-absent-9f3a/e.log`.\n", encoding="utf-8")
         subprocess.run(["git", "add", "record.md"], cwd=repo_dir, check=True)
         subprocess.run(["git", "commit", "-m", "init"], cwd=repo_dir, capture_output=True, check=True)
 
@@ -628,7 +635,7 @@ def run_control(verbose=True):
                        capture_output=True, check=True)
 
         # Dirty the working tree in repo_dir by adding (gone) on disk without committing
-        (repo_dir / "record.md").write_text("Evidence cited at `/tmp/control-definitely-absent-9f3a/e.log` (gone).\n")
+        (repo_dir / "record.md").write_text("Evidence cited at `/tmp/control-definitely-absent-9f3a/e.log` (gone).\n", encoding="utf-8")
 
         repo_head_data, _, _, repo_dirty, _ = read_corpus(root=repo_dir, rev="HEAD", worktree=False)
         pristine_head_data, _, _, pristine_dirty, _ = read_corpus(root=pristine_dir, rev="HEAD", worktree=False)

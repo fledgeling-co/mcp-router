@@ -60,6 +60,13 @@ import sys
 import tempfile
 from pathlib import Path
 
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 REPO = Path(__file__).resolve().parents[3]
 CAMPAIGN = REPO / "planning/test-campaign"
 CACHE = Path.home() / ".claude/plugins/cache/fledgeling-plugins/test-campaign"
@@ -163,7 +170,7 @@ def main() -> int:
               "A pass that could not run is not a pass that found nothing.")
         return 1
 
-    campaign = json.loads((CAMPAIGN / "campaign.json").read_text())
+    campaign = json.loads((CAMPAIGN / "campaign.json").read_text(encoding="utf-8"))
     vocab = campaign.get("blindVocabulary") or {}
     muts = list(vocab.get("mutators") or ())
     rds = list(vocab.get("readers") or ())
@@ -202,7 +209,7 @@ def main() -> int:
                                     ("reading plant", READING_PLANT, 0)):
         with tempfile.TemporaryDirectory() as td:
             p = Path(td) / "ArmTests.swift"
-            p.write_text(body)
+            p.write_text(body, encoding="utf-8")
             ex, mu, rr, bl = counts(vc, Path(td), muts, rds)
             ok = (ex, mu, bl) == (1, 1, want_blind)
             print("isolated:   %-14s examined=%d mutating=%d blind=%d — %s"
@@ -224,7 +231,7 @@ def main() -> int:
         target.parent.mkdir(parents=True, exist_ok=True)
         for label, body, d_blind in (("blind plant", BLIND_PLANT, 1),
                                      ("reading plant", READING_PLANT, 0)):
-            target.write_text(body)
+            target.write_text(body, encoding="utf-8")
             ex, mu, rr, bl = counts(vc, copy, muts, rds)
             ok = (ex - base[0], mu - base[1], bl - base[3]) == (1, 1, d_blind)
             print("corpus:     %-14s examined %+d mutating %+d blind %+d — %s"

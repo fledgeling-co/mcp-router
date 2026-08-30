@@ -107,6 +107,13 @@ import re
 import sys
 from pathlib import Path
 
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 ROOT = Path(__file__).resolve().parents[3]
 CAMPAIGN = ROOT / "planning/test-campaign"
 AX = CAMPAIGN / "evidence/ax"
@@ -206,7 +213,7 @@ def ax_controls(sid: str) -> tuple[set[str], set[str], list[str], Tally, list[st
         # Depth of the shallowest data collection still open above the current node. `None` means
         # no collection is open, so anything read here is the surface's own control.
         collection_depth: int | None = None
-        for line in path.read_text(errors="replace").splitlines():
+        for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
             cols = line.split("\t")
             if len(cols) < 7:
                 tally.seen += 1
@@ -302,8 +309,8 @@ def read_dispositions(data: dict) -> tuple[dict[tuple[str, str], dict], list[str
 def load_dispositions() -> tuple[dict[tuple[str, str], dict], list[str]]:
     """The registry as it sits on disk."""
     if not REGISTRY.exists():
-        return {}, [f"{REGISTRY.relative_to(ROOT)} does not exist — every extra is undisposed"]
-    return read_dispositions(json.loads(REGISTRY.read_text()))
+        return {}, [f"{REGISTRY.relative_to(ROOT).as_posix()} does not exist — every extra is undisposed"]
+    return read_dispositions(json.loads(REGISTRY.read_text(encoding="utf-8")))
 
 
 def findings_for(report: dict, dispositions: dict) -> list[str]:
@@ -319,7 +326,7 @@ def findings_for(report: dict, dispositions: dict) -> list[str]:
         for key in row["inBuildNotDesign"]:
             if (sid, key) not in dispositions:
                 findings.append(f"{sid}: the build draws `{key}` and the design of record does not "
-                                f"specify it — no row in {REGISTRY.relative_to(ROOT)}")
+                                f"specify it — no row in {REGISTRY.relative_to(ROOT).as_posix()}")
     # A disposition for a control the build stopped drawing is a claim nobody is checking any more.
     for (sid, key), row in sorted(dispositions.items()):
         entry = report.get(sid)
@@ -460,11 +467,11 @@ def main() -> int:
         return control()
 
     if not CENSUS.exists():
-        print(f"vocab differential: NOT RUN — {CENSUS.relative_to(ROOT)} does not exist. Run "
+        print(f"vocab differential: NOT RUN — {CENSUS.relative_to(ROOT).as_posix()} does not exist. Run "
               f"planning/test-campaign/bin/design-controls.py first. A missing design half is not "
               f"a design that specifies nothing.")
         return 3
-    census = json.loads(CENSUS.read_text())
+    census = json.loads(CENSUS.read_text(encoding="utf-8"))
     surfaces = sorted(census.get("surfaces", {}))
     if not surfaces:
         print("vocab differential: NOT RUN — the census declares no surfaces.")
@@ -510,8 +517,8 @@ def main() -> int:
         return 2
 
     if args.write:
-        OUT.write_text(json.dumps({"accepted": ACCEPTED, "surfaces": report}, indent=2) + "\n")
-        print(f"wrote {OUT.relative_to(ROOT)}")
+        OUT.write_text(json.dumps({"accepted": ACCEPTED, "surfaces": report}, indent=2) + "\n", encoding="utf-8")
+        print(f"wrote {OUT.relative_to(ROOT).as_posix()}")
 
     print(f"findings: {len(findings)}")
     for line in findings:

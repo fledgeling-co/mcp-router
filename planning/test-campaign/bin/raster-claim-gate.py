@@ -61,6 +61,13 @@ import subprocess
 import sys
 import tempfile
 
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 CAMPAIGN_REL = "planning/test-campaign"
@@ -208,7 +215,7 @@ def audit(campaign_dir: str, root: str, tracked: set) -> dict:
     cases_path = os.path.join(campaign_dir, "cases.json")
     if not os.path.exists(cases_path):
         return {"blocked": "no cases.json at %s" % cases_path}
-    with open(cases_path, "r") as handle:
+    with open(cases_path, "r", encoding="utf-8") as handle:
         cases = json.load(handle)
 
     drops = Drops("cases.json")
@@ -352,7 +359,7 @@ def control() -> bool:
             h.write(_png(8, 0xC0))
         with open(os.path.join(shots, "B.png"), "wb") as h:
             h.write(_png(8, 0x20))
-        with open(os.path.join(shots, "captures.json"), "w") as h:
+        with open(os.path.join(shots, "captures.json"), "w", encoding="utf-8") as h:
             h.write('[{"frame": "A", "sha256": "0"}]')
         with open(os.path.join(shots, "UNCOMMITTED.png"), "wb") as h:
             h.write(_png(8, 0x60))
@@ -365,7 +372,7 @@ def control() -> bool:
                        check=True, capture_output=True)
 
         def verdict(cases, note):
-            with open(os.path.join(camp, "cases.json"), "w") as handle:
+            with open(os.path.join(camp, "cases.json"), "w", encoding="utf-8") as handle:
                 json.dump(cases, handle)
             a = audit(camp, tmp, tracked_files(tmp))
             if a.get("blocked"):

@@ -110,6 +110,13 @@ import sys
 import tempfile
 import traceback
 
+# The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
+# non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
+# gate would exit on its terminal rather than on its findings.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 REGISTRY = "planning/sweep-controls.json"
 CONTROL_TIMEOUT = 120
 
@@ -174,7 +181,7 @@ def tracked_scripts(root: str) -> tuple[list[str], dict[str, list[str]], list[st
     discards come back with the corpus and are printed with it, which is what the gate demands of
     every other reader in the tree.
     """
-    out = subprocess.run(["git", "ls-files"], capture_output=True, text=True, cwd=root)
+    out = subprocess.run(["git", "ls-files"], capture_output=True, text=True, cwd=root, encoding="utf-8")
     kept: list[str] = []
     discarded: dict[str, list[str]] = {reason: [] for reason in DISCARDS}
     shebang: list[str] = []
@@ -237,7 +244,7 @@ def discover(root: str) -> Corpus:
     # An INDEPENDENT count of what `git ls-files` returned, taken by a second call rather than
     # derived from the first one's partition. `considered` is defined as kept + discarded, so
     # checking one against the other is an identity that holds however badly the loop drops.
-    ledger = subprocess.run(["git", "ls-files"], capture_output=True, text=True, cwd=root)
+    ledger = subprocess.run(["git", "ls-files"], capture_output=True, text=True, cwd=root, encoding="utf-8")
     announced = len(ledger.stdout.splitlines())
     for relative in files:
         path = os.path.join(root, relative)
@@ -268,6 +275,74 @@ def load_registry(root: str) -> tuple[dict[str, dict], str | None]:
     return entries, None
 
 
+# ---------------------------------------------------------------------------------------------
+# The shell and the interpreter, resolved rather than assumed.
+#
+# Neither name below is a Windows-only trap. They are ordinary names with more than one answer,
+# and the wrong answer is reached first on a machine that has several:
+#
+#   "bash"     handed to `subprocess` as a bare name is resolved by CreateProcess, which searches
+#              System32 ahead of PATH and so returns the WSL launcher: a different machine, with
+#              a different filesystem, which cannot see this checkout. With virtualisation off it
+#              exits 1 having printed a UTF-16 error, and that reads as a failing gate rather
+#              than as a missing shell. `/bin/bash` does not exist on Windows at all.
+#   "python3"  is whatever is on PATH, which need not be the interpreter running this gate. On
+#              Windows it is an App Execution Alias stub that raises OSError 216, "not a valid
+#              application for this OS platform" — a message about the machine, not the corpus.
+#
+# So a candidate shell is proved by asking it to read this file; a shell that cannot see the tree
+# it is being asked about is rejected instead of measured. `None` means there is no POSIX shell
+# on this machine, and every caller reports that as could-not-run, which is not a pass.
+_POSIX_SHELL: list = []
+
+
+def posix_shell():
+    """An absolute path to a shell that can read this checkout, or None if there is none."""
+    if _POSIX_SHELL:
+        return _POSIX_SHELL[0] or None
+    witness = os.path.abspath(__file__).replace(os.sep, "/")
+    candidates = [shutil.which("bash"), "/bin/bash"]
+    git = shutil.which("git")
+    if git:
+        # Every caller here already needs git, and git ships the shell its own tooling runs.
+        # Derived from a tool that must be present rather than a hardcoded install location.
+        home = os.path.dirname(os.path.dirname(os.path.realpath(git)))
+        candidates += [os.path.join(home, "bin", "bash.exe"), os.path.join(home, "bin", "bash")]
+    for candidate in candidates:
+        if not candidate or not os.path.exists(candidate):
+            continue
+        try:
+            done = subprocess.run(
+                [candidate, "-c", 'test -e "$1" && printf posix-ok', "sh", witness],
+                capture_output=True, timeout=60)
+        except (OSError, subprocess.SubprocessError):
+            continue
+        if done.stdout.strip() == b"posix-ok":
+            _POSIX_SHELL.append(candidate)
+            return candidate
+    _POSIX_SHELL.append("")
+    return None
+
+
+def resolve_interpreter(command):
+    """argv with a bare interpreter name replaced by the one this gate is actually running under.
+
+    A member declared `python3 …` means "under the suite's Python" and one declared `bash …`
+    means "under the shell that can read this tree"; taking either from PATH lets a second
+    installation answer for the first. Returns None when the command names a shell this machine
+    does not have, so the caller can say could-not-run rather than guess.
+    """
+    if not command:
+        return list(command)
+    head = os.path.basename(command[0]).lower()
+    if head in ("python", "python3", "python.exe", "python3.exe"):
+        return [sys.executable] + list(command[1:])
+    if head in ("bash", "sh", "bash.exe", "sh.exe"):
+        shell = posix_shell()
+        return None if shell is None else [shell] + list(command[1:])
+    return list(command)
+
+
 def run_control(root: str, entry: dict) -> tuple[bool, str]:
     command = entry.get("control")
     if not command:
@@ -278,9 +353,13 @@ def run_control(root: str, entry: dict) -> tuple[bool, str]:
     # File 2 finding d2).
     if isinstance(command, str):
         command = shlex.split(command)
+    declared = " ".join(command)
+    command = resolve_interpreter(command)
+    if command is None:
+        return False, f"`{declared}` needs a POSIX shell and this machine has none"
     try:
         done = subprocess.run(command, capture_output=True, text=True, cwd=root,
-                              timeout=CONTROL_TIMEOUT)
+                              timeout=CONTROL_TIMEOUT, encoding="utf-8")
     except subprocess.TimeoutExpired:
         return False, f"control did not finish in {CONTROL_TIMEOUT}s"
     except OSError as error:
@@ -390,14 +469,14 @@ def self_control(root: str) -> tuple[bool, list[str]]:
                      f"against {corpus.announced} counted independently)")
 
         failing = {"path": "planted_sweep.py", "disposition": "control",
-                   "control": ["python3", "-c", "import sys; sys.exit(1)"]}
+                   "control": [sys.executable, "-c", "import sys; sys.exit(1)"]}
         passed, said = run_control(temp, failing)
         ok = ok and not passed
         lines.append(f"  {'sees ' if not passed else 'BLIND'} a control that exits 1 is reported "
                      f"failing — it said: {said}")
 
         working = {"path": "planted_sweep.py", "disposition": "control",
-                   "control": ["python3", "-c", "import sys; sys.exit(0)"]}
+                   "control": [sys.executable, "-c", "import sys; sys.exit(0)"]}
         passed, said = run_control(temp, working)
         ok = ok and passed
         lines.append(f"  {'ok   ' if passed else 'FAIL '} a control that exits 0 is reported "

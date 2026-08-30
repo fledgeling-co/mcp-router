@@ -25,7 +25,12 @@ TERMINAL = ("done", "parked", "waived")
 EXPECTED = 23
 
 
-def rows():
+# Items already landed or in flight outside a dispatch script: W0's decision, W1's rescue, and
+# W2, which was launched inline rather than from a staged file.
+LANDED = ("WIN1", "WIN2", "WIN17", "WIN18", "WIN3", "WIN20")
+
+
+def rows_all():
     """Every WIN ledger row as (id, status). The table is | ID | Title | Cat | Deps | Mock | Lane | Status | ..."""
     out = []
     for line in ORCH.read_text(encoding="utf-8").splitlines():
@@ -36,6 +41,10 @@ def rows():
             continue
         out.append((cells[0].strip("*"), cells[6].lower()))
     return out
+
+
+def rows():
+    return rows_all()
 
 
 def ledger():
@@ -300,7 +309,38 @@ def liveness():
     return 1
 
 
-CHECKS = {"ledger": ledger, "lane": lane, "branches": branches, "liveness": liveness}
+def coverage():
+    """Is every ledger row reachable by some wave?
+
+    The inverse of the question the other gates ask. `ledger` asks whether each row has
+    finished; nothing asked whether each row can ever START. Five rows were reachable by no
+    wave at all - WIN12 lost between a ledger entry and a wave-plan range that described the
+    same wave differently, and WIN19/21/22/23 in a wave that had no script - and no gate would
+    ever have reported it. The ledger gate would have printed the same open count forever while
+    every wave reported success, which is a fleet declaring victory over a backlog it never
+    dispatched."""
+    import glob
+    rows = [i for i, _ in rows_all()]
+    covered = set(LANDED)
+    for f in glob.glob(str(ROOT / "planning" / "goals" / "w*-dispatch.js")):
+        try:
+            covered |= set(re.findall(r"'(WIN\d+)'", open(f, encoding="utf-8").read()))
+        except OSError:
+            continue
+    missing = [r for r in rows if r not in covered]
+    if not missing:
+        print("coverage: all %d rows reachable by a wave or already landed." % len(rows))
+        return 0
+    print("coverage: %d row(s) reachable by NO wave — nothing would ever launch them:" % len(missing))
+    for r in missing:
+        print("    %s" % r)
+    print("        A row no wave dispatches is not blocked, it is forgotten.")
+    print("        Next action: add it to a w*-dispatch.js, or park it with a written reason.")
+    return 1
+
+
+CHECKS = {"ledger": ledger, "lane": lane, "branches": branches,
+          "liveness": liveness, "coverage": coverage}
 
 if __name__ == "__main__":
     if len(sys.argv) != 2 or sys.argv[1] not in CHECKS:

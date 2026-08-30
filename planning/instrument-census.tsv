@@ -321,7 +321,8 @@ planning/goals/tests-reader-control.sh	gate	planning/goals/tests-reader-control.
 planning/goals/w2-dispatch.js	gate	planning/goals/w2-dispatch.js	swift	xcodebuild	-
 planning/goals/w3-dispatch.js	gate	planning/goals/w3-dispatch.js	swift	xcodebuild	-
 planning/goals/w4-dispatch.js	gate	planning/goals/w4-dispatch.js	swift	xcodebuild	-
-planning/goals/win-gates.py	gate	planning/goals/win-gates.py	static	no router invocation matched	planning/goals/w2-dispatch.js,planning/goals/w3-dispatch.js,planning/goals/w4-dispatch.js
+planning/goals/win-gates.py	gate	planning/goals/win-gates.py	static	no router invocation matched	planning/goals/w2-dispatch.js,planning/goals/w3-dispatch.js,planning/goals/w4-dispatch.js,planning/goals/win17-gapfix.js
+planning/goals/win17-gapfix.js	gate	planning/goals/win17-gapfix.js	swift	xcodebuild	-
 planning/goals/worklist-check.sh	gate	planning/goals/worklist-check.sh	static	no router invocation matched	-
 planning/hooks/install.sh	gate	planning/hooks/install.sh	static	no router invocation matched	make:lint
 planning/hooks/prove-pre-commit.sh	gate	planning/hooks/prove-pre-commit.sh	static	no router invocation matched	-

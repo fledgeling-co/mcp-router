@@ -145,7 +145,7 @@ region, board title, drag region. The three caption buttons stay the system's.
 ### 4.2 The ten destinations
 
 A `NavigationView` in left mode, its items and grouping taken from the design of record's sidebar
-(`design/mcp-router-console.html:1832–1878`) rather than restated:
+(`<nav class="sidebar" id="sidebar" role="tablist" aria-label="Boards">`, `design/mcp-router-console.html:1834` at `45bef1a`) rather than restated:
 
 | Group | Destinations |
 |---|---|

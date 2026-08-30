@@ -24,7 +24,9 @@
   Directory for the artifacts. Defaults to planning/evidence/WIN20/run.
 
 .PARAMETER TimeoutSeconds
-  How long to wait for the scheduled lane to produce lane.json.
+  How long to wait for the scheduled lane to produce lane.json. It must exceed the lane's own
+  window-wait (180s) plus both tree walks, or this wrapper reports NO VERDICT over a lane that was
+  still working - a timeout of the timer rather than of the thing being timed.
 
 .OUTPUTS
   The lane's own exit code: 0 pass, 1 fail, 3 no verdict.
@@ -32,7 +34,7 @@
 [CmdletBinding()]
 param(
     [string] $Out = '',
-    [int]    $TimeoutSeconds = 180
+    [int]    $TimeoutSeconds = 420
 )
 
 $ErrorActionPreference = 'Continue'

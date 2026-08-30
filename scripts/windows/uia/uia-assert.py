@@ -432,6 +432,49 @@ def check_unoracled(index, raw_index, expectation, findings):
         )
 
 
+def check_manifest_is_not_vacuous(expectation, findings):
+    """The expectation manifest is the oracle, and an empty oracle grades everything as correct.
+
+    Every check below iterates a list out of the manifest, so a manifest that declares nothing
+    produces zero failures and exit 0 — a green tick meaning "nothing was asked". That is the same
+    shape as the empty-tree hole one file along, arriving from the other side, and it is the one an
+    editor could open by accident while trimming a row.
+
+    So the manifest declares its own floor in `minimums`, and the floor is asserted before anything
+    is graded against it.
+    """
+    minimums = expectation.get("minimums") or {}
+
+    counts = {
+        "controls": len(expectation.get("controls") or []),
+        "disabled": len(expectation.get("states", {}).get("disabled") or []),
+        "selected": len(expectation.get("states", {}).get("selected") or []),
+        "held": len(expectation.get("states", {}).get("held") or []),
+        "busy": len(expectation.get("states", {}).get("busy") or []),
+    }
+
+    if not minimums:
+        findings.bad(
+            "manifest.minimums",
+            "the expectation declares no `minimums`, so it cannot be told from an emptied one. "
+            "An oracle that asks nothing grades everything as correct",
+        )
+        return
+
+    for key, floor in sorted(minimums.items()):
+        actual = counts.get(key)
+        if actual is None:
+            findings.bad("manifest.minimums", "unknown minimum %r" % key)
+        elif actual < floor:
+            findings.bad(
+                "manifest.minimums." + key,
+                "the manifest declares %d %s and its own floor is %d; it has been trimmed below "
+                "what it promises to check" % (actual, key, floor),
+            )
+        else:
+            findings.ok("manifest.minimums." + key, "%d %s, floor %d" % (actual, key, floor))
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dump", required=True, help="control-view dump from uia-dump.ps1")
@@ -476,6 +519,7 @@ def main(argv=None):
     target = check_window(dump, expectation, findings)
     if target is not None:
         check_never_foregrounded(dump, target, findings)
+    check_manifest_is_not_vacuous(expectation, findings)
     check_addressability(index, expectation, findings)
     check_disabled(index, expectation, findings)
     check_selected(index, expectation, findings)

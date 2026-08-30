@@ -9,6 +9,15 @@
     "writtenBy": "hand, from those two documents. It is deliberately NOT generated from MainWindow.xaml — a manifest generated from the thing it checks moves whenever the subject moves and can never fail."
   },
 
+  "minimums": {
+    "controls": 20,
+    "disabled": 2,
+    "selected": 2,
+    "held": 2,
+    "busy": 1
+  },
+  "minimumsNote": "The manifest's own floor, asserted before anything is graded against it. Every check in uia-assert.py iterates a list out of this file, so a manifest emptied — by an edit, a bad merge, a trimmed row — would produce zero failures and exit 0: a green tick meaning 'nothing was asked'. That is the empty-tree hole arriving from the oracle's side instead of the subject's.",
+
   "window": {
     "nameEquals": "Automation probe",
     "classNameEquals": "WinUIDesktopWin32WindowClass",

@@ -20,9 +20,9 @@ Each row was run at the commit this file lands on. Nothing below is reported fro
 | The Windows lane | `powershell -File scripts/windows/verify.ps1` | **0** | passed 10 · failed 0 · not-run 7 |
 | Probe restore | `MSBuild app/windows/AutomationProbe/AutomationProbe.csproj -t:Restore` | **0** | inside the lane |
 | Probe build | `MSBuild app/windows/AutomationProbe/AutomationProbe.csproj -t:Build` | **0** | inside the lane, from clean |
-| The live automation lane, run A | `powershell -File scripts/windows/uia/run-probe-lane.ps1` | **0** | 36 control-view elements · 65 raw-view · 85 passed · 0 failed · 2 unoracled |
-| The live automation lane, run B | as above | **0** | identical figures — 36 / 65 / 85 / 0 / 2 |
-| The armed assertions | `python scripts/windows/uia/uia-selftest.py --dump planning/evidence/WIN20/run/uia-control-view.json` | **0** | 23 arms, 0 misbehaved |
+| The live automation lane, run A | `powershell -File scripts/windows/uia/run-probe-lane.ps1` | **0** | 36 control-view elements · 65 raw-view · 90 passed · 0 failed · 2 unoracled |
+| The live automation lane, run B | as above | **0** | identical figures — 36 / 65 / 90 / 0 / 2 |
+| The armed assertions | `python scripts/windows/uia/uia-selftest.py --dump planning/evidence/WIN20/run/uia-control-view.json` | **0** | 25 arms, 0 misbehaved |
 
 ### What could NOT be run, and why
 
@@ -37,8 +37,21 @@ reported green.
 | `planning/null-run-gate.py`, `sweep-control-gate.py`, `carrier-parity-gate.py` | their control arms shell to a `.sh` member or a macOS binary; they correctly refuse a verdict here |
 | `planning/registry-drop-gate.py` | NO VERDICT — neither baseline ref carries `cases.json` or `inventory.json`, so 0 of 8 registry views were comparable |
 | router typecheck, platform e2e | `node_modules` is absent in this worktree |
-| cross-family review | `codex`, `agy` and `grok` are absent, and the `claude` CLI returns *your organization has disabled Claude subscription access*. **Not run. Not a pass.** |
+| cross-family review | `codex`, `agy`, `grok` and `cursor-agent` are all absent — `Get-Command` returns nothing for any of them. **Not run. Not a pass.** |
 | Narrator / screen-reader announcement | acceptance clause 6. The same tree serves Narrator by construction, but nothing here drove one |
+
+### One stated constraint that turned out to be false, and was measured rather than repeated
+
+This runner was told the `claude` CLI on this machine "returns *your organization has disabled
+Claude subscription access*". **It does not.** Measured 2026-08-30:
+`claude --model claude-fable-5 -p "Reply with the single word OK."` printed `OK` and exited **0**.
+
+That changes one thing and not the other. The four out-of-family binaries are genuinely absent, so
+the **cross-family gate is still not run and is still not a pass**. But a *same-family* adversarial
+review was available the whole time and is not a substitute anybody should have to guess about, so
+it was run: `planning/evidence/WIN20/review-fable.md`, `claude-fable-5`, asked to find ways this
+gate could report exit 0 having measured nothing. In-family review does not satisfy a cross-family
+gate and is not offered as one.
 
 ---
 
@@ -93,6 +106,31 @@ The asserted invariant is **the target never held the foreground**, not *the for
 changed*. `planning/evidence/M34-oracle-lane.md` records the cost of the second phrasing: a check
 that failed because frontmost went from Chrome to ghostty, neither of them the app under test.
 
+**The assertion fired on a real run, and it was the lane's fault rather than the surface's.** That
+is worth recording in full, because it is the only evidence that the check works on something other
+than a doctored fixture.
+
+An earlier run timed out waiting for the probe's window — WinUI cold start here is slow and variable,
+and the 45-second default was too short — and `Stop-Lane` exited **without stopping the probe it had
+started**. The leaked window later took the foreground. The next run stopped that stale probe a
+moment before launching a fresh one, at which point Windows handed the foreground to the new probe,
+because the previous owner had just died. `foreground.targetNeverFront` failed with
+*the target held the foreground at midwalk, after*. Nothing had activated anything; the harness had
+manufactured the condition through its own housekeeping.
+
+Three fixes, none of them to the assertion:
+
+- the probe process id is captured as soon as it launches and **every** exit path stops it, so no run
+  can leak a window into the next one;
+- the window-wait default is 180s, measured — one run took 53 seconds from launch to a window on the
+  plane and the next took 19;
+- the lane now **establishes the precondition before the probe exists**: it settles, reads who owns
+  the foreground, writes it into the transcript, and returns NO VERDICT if nobody does. "The target
+  never held the foreground" is only a measurement if something else held it, and on an empty desktop
+  Windows will hand the foreground to the first window that appears.
+
+The two runs recorded above both show `foreground before launch: … name=WindowsTerminal`.
+
 ## Unoracled, with the reason
 
 | control | on-screen | reason | what would open a rung |
@@ -108,18 +146,18 @@ so WIN3 inherits it rather than rediscovering it.
 **The list is two-way.** A declared-unoracled control that turns up in either view *fails* the gate
 (selftest arm 18). An absence-assertion passes for free the day it stops being able to fire.
 
-## Falsifiability — 23 arms, both directions
+## Falsifiability — 25 arms, both directions
 
 `uia-selftest.py` hands each assertion a doctored dump and requires it to fire, then requires the
 real dump to fire **none** of them. The control is the second half: a suite where every arm fires is
 as uninformative as one where none do.
 
-Eighteen arms must produce exit 1 (a wrong name, a missing control, a duplicate id, a wrong control
+Twenty arms must produce exit 1 (a wrong name, a missing control, a duplicate id, a wrong control
 type, a disabled control reporting enabled, an unselected selection, two items selected in a
 single-selection list, a container naming the wrong selection, a container with no SelectionPattern,
 a held toggle reading Off, a toggle that stopped publishing TogglePattern, a stripped busy marker, an
 offscreen busy indicator, the target taking the foreground mid-walk, an unbracketed walk, a minimised
-window, a tree from the wrong window, and a declared-unoracled control turning up).
+window, a tree from the wrong window, a declared-unoracled control turning up, an emptied expectation manifest, and a manifest that declares no floor of its own).
 
 Four must produce exit **3** — an empty tree, no target window, a truncated walk, and a dump file
 that is not there. Those four are the ones that keep a green tick from being spent on a window that
@@ -146,7 +184,16 @@ None of these would have shown in a green run, and two were caught by the lane's
    verdict. It searches for the newest `AutomationProbe.exe` now and writes the path it chose into
    the transcript.
 
-A fourth, in the dump's own serialisation: `$list | Sort-Object` unrolls to a bare string when the
+A fourth and a fifth, in the harness itself, both above: the leaked probe process and the
+window-wait that was too short for a WinUI cold start. A sixth, found by reading rather than by
+running — **an emptied expectation manifest would have passed.** Every check iterates a list out of
+that file, so a manifest trimmed by an edit or a bad merge produces zero failures and exit 0: a green
+tick meaning *nothing was asked*, which is the empty-tree hole arriving from the oracle's side
+instead of the subject's. The manifest declares its own floor now (`minimums`), the floor is asserted
+before anything is graded against it, and two selftest arms cover both halves — an emptied manifest,
+and a manifest with no floor to catch it.
+
+A seventh, in the dump's own serialisation: `$list | Sort-Object` unrolls to a bare string when the
 list holds one item, so `ConvertTo-Json` wrote a JSON *string* where every other row had an array.
 A consumer iterating `patterns` would have iterated the characters of one pattern name and seen
 plausible nonsense rather than an error. Wrapped in `@()`.

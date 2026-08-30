@@ -33,6 +33,13 @@
 .PARAMETER TimeoutSeconds
   How long to wait for the probe's window to appear on the plane.
 
+  180s, and the number was measured rather than picked. WinUI 3 cold start on this machine is slow
+  and highly variable: the probe's own startup trace has shown 15 seconds between "constructing
+  MainWindow" and the markup pass finishing, and one run took 53 seconds from launch to a window on
+  the plane while the next took 19. A 45-second default was tried first and produced a NO VERDICT on
+  a probe that was working - which is the right refusal from a lane that cannot see a window, and
+  the wrong answer about this probe.
+
 .OUTPUTS
   Exit 0  the tree was read and every assertion that could run, passed.
   Exit 1  an assertion failed.
@@ -42,7 +49,7 @@
 param(
     [string] $Out = '',
     [string] $ExePath = '',
-    [int]    $TimeoutSeconds = 45
+    [int]    $TimeoutSeconds = 180
 )
 
 $ErrorActionPreference = 'Continue'   # native tools write progress to stderr; see CLAUDE.md
@@ -77,8 +84,20 @@ function Say {
     Add-Content -Path $transcript -Value $line -Encoding UTF8
 }
 
+# Set as soon as the probe is launched, so EVERY exit path can stop it. A lane that leaks its own
+# probe is not a tidiness problem: the leaked window later takes the foreground, and the NEXT run
+# stops it a moment before launching a fresh one, at which point Windows hands the foreground to
+# the new probe because the previous owner just died. That is exactly how this lane first failed
+# `foreground.targetNeverFront` on a run where nothing had activated anything - a false FAIL
+# manufactured by the harness's own housekeeping, one run earlier.
+$script:ProbeProcessId = 0
+
 function Stop-Lane {
     param([int] $Code, [string] $Why)
+    if ($script:ProbeProcessId -gt 0) {
+        Stop-Process -Id $script:ProbeProcessId -Force -ErrorAction SilentlyContinue
+        Say "probe pid $($script:ProbeProcessId) stopped"
+    }
     Say $Why
     $summary = [ordered]@{
         schema     = 'win20.lane/1'
@@ -129,10 +148,41 @@ $probeLog = Join-Path $Out 'probe-startup.log'
 Remove-Item $probeLog -ErrorAction SilentlyContinue
 $env:WIN20_PROBE_LOG = $probeLog
 
-Get-Process -Name AutomationProbe -ErrorAction SilentlyContinue |
-    ForEach-Object { Say "stopping a stale probe, pid=$($_.Id)"; Stop-Process -Id $_.Id -Force }
+Add-Type -Namespace Win20Fg -Name Native -MemberDefinition @'
+    [DllImport("user32.dll")] public static extern System.IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] public static extern int GetWindowThreadProcessId(System.IntPtr h, out int pid);
+'@
+
+$stale = @(Get-Process -Name AutomationProbe -ErrorAction SilentlyContinue)
+foreach ($s in $stale) { Say "stopping a stale probe, pid=$($s.Id)"; Stop-Process -Id $s.Id -Force }
+
+# THE PRECONDITION, established before the probe exists rather than assumed afterwards.
+#
+# "The target never held the foreground" is only a measurement if something ELSE held it. When the
+# foreground owner exits - and stopping a stale probe on the line above is one way to make that
+# happen - Windows hands the foreground to the next top-level window, which is about to be ours.
+# The probe never asks for it (SW_SHOWNOACTIVATE) and the walk never calls SetFocus, but a window
+# that was given the foreground is still a window that held it, and grading a run like that would
+# be reporting a different condition from the one claimed.
+#
+# So: settle, then read who owns it. If nobody does, this run cannot make the claim, and that is
+# NO VERDICT - not a pass, and not a failure of the surface.
+Start-Sleep -Seconds 2
+$fgHwnd = [Win20Fg.Native]::GetForegroundWindow()
+$fgPid = 0
+[void][Win20Fg.Native]::GetWindowThreadProcessId($fgHwnd, [ref] $fgPid)
+$fgName = (Get-Process -Id $fgPid -ErrorAction SilentlyContinue).ProcessName
+Say "foreground before launch: hwnd=$([int64]$fgHwnd) pid=$fgPid name=$fgName"
+
+if ([int64]$fgHwnd -eq 0 -or $fgPid -eq 0) {
+    Stop-Lane 3 ("NO VERDICT: no window owns the foreground on this desktop, so 'the target never " +
+        "held the foreground' cannot be measured - Windows will hand the foreground to the first " +
+        "window that appears, and that window is about to be the probe. Nothing here is a finding " +
+        "about the surface.")
+}
 
 $probe = Start-Process -FilePath $ExePath -PassThru
+$script:ProbeProcessId = $probe.Id
 Say "probe started, pid=$($probe.Id)"
 
 Add-Type -AssemblyName UIAutomationClient
@@ -198,8 +248,7 @@ if (-not $python) {
 }
 
 # ------------------------------------------------------------------ 5. teardown
-Stop-Process -Id $probe.Id -Force -ErrorAction SilentlyContinue
-Say "probe stopped"
+# Stop-Lane stops the probe on every path below; this only surfaces its trace first.
 Get-Content $probeLog -ErrorAction SilentlyContinue | ForEach-Object { Say "  probe: $_" }
 
 if ($controlExit -eq 3 -or $assertExit -eq 3) {

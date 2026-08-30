@@ -162,6 +162,18 @@ def arm_unoracled_control_turns_up(dump, expectation):
     dump["elements"].append(template)
 
 
+def arm_manifest_emptied(_dump, expectation):
+    """The oracle's own side of the empty-tree hole. Every check iterates a list out of the
+    manifest, so an emptied manifest grades everything as correct and exits 0."""
+    expectation["controls"] = []
+    expectation["states"] = {}
+
+
+def arm_manifest_declares_no_floor(_dump, expectation):
+    """Without `minimums` the emptied manifest above cannot be told from a real one."""
+    expectation.pop("minimums", None)
+
+
 def arm_empty_tree(dump, _expectation):
     dump["elements"] = []
     dump["elementCount"] = 0
@@ -194,6 +206,8 @@ ARMS = [
     ("the window was minimised while it was read", EXIT_FAIL, arm_window_minimised),
     ("the tree came from a different window", EXIT_FAIL, arm_window_renamed),
     ("a declared-unoracled control turns up on the plane", EXIT_FAIL, arm_unoracled_control_turns_up),
+    ("the expectation manifest is emptied", EXIT_FAIL, arm_manifest_emptied),
+    ("the manifest declares no floor of its own", EXIT_FAIL, arm_manifest_declares_no_floor),
     ("the tree is empty", EXIT_NO_VERDICT, arm_empty_tree),
     ("no target window was found", EXIT_NO_VERDICT, arm_no_target_window),
     ("the walk hit its guard and truncated", EXIT_NO_VERDICT, arm_truncated_walk),

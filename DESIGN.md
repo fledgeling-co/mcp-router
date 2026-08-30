@@ -1077,6 +1077,31 @@ which excepts "text or images of text that are part of an inactive user interfac
 same clause §3 claims for `--t4`, named here for the same reason it is named there: a skipped check
 and a passed check are the same shade of green.
 
+**The pairing §11 rule 4 actually specifies, measured.** The two figures above are against the
+*ground*, and a disabled control does not sit on the ground — it sits on `ControlFillColorDisabled`.
+That is the pairing the rule names, and until now it was the one pairing here with no number, while
+§3 published its macOS twin. Both tokens are alpha, so each composites before any ratio is taken:
+
+| Appearance | `ControlFillColorDisabled` | composited fill | `TextFillColorDisabled` on it | Ratio |
+|---|---|---|---|---|
+| Dark | `#0BFFFFFF` over `#202020` | `#2A2A2A` | `#777777` | **3.24:1** |
+| Light | `#4DF9F9F9` over `#F3F3F3` | `#F5F5F5` | `#9C9C9C` | **2.50:1** |
+
+Read 2026-08-30 from `microsoft/microsoft-ui-xaml` @ `winui3/main`,
+`controls/dev/CommonStyles/Common_themeresources_any.xaml` — the same file §12's other tokens come
+from, and it publishes `TextFillColorDisabled` as `#5DFFFFFF` / `#5C000000`, matching what this
+section already carried. Computed by `planning/evidence/WIN24/disabled-pairing-ratio.py`, which
+carries a control: it recomputes §3's macOS pairing and reproduces **2.94:1 dark and 2.62:1 light**
+exactly as §3 publishes them. A first attempt guessed the macOS hexes, returned 2.75 against a
+published 2.94, and was caught by that control before these Windows figures were trusted — which is
+the entire reason the control is in the file.
+
+Both are exempt under **WCAG 1.4.3** on the same inactive-component clause. One asymmetry with macOS
+is worth stating rather than leaving to be noticed: **the Windows dark pairing clears 3:1 and the
+macOS one does not** (3.24 against 2.94). The light pairings sit together below it, 2.50 against
+2.62. Nothing turns on this — the exemption is claimed either way — but a reader comparing the two
+floors should not have to infer it.
+
 ### Windows indicator hues, and the one thing about them that matters
 
 `SystemFillColorSuccess`, `SystemFillColorCaution` and `SystemFillColorCritical` take the meanings

@@ -311,6 +311,7 @@ planning/evidence/M31/arm-unfilled-variants.sh	gate	planning/evidence/M31/arm-un
 planning/evidence/M31/render-probe.sh	gate	planning/evidence/M31/render-probe.sh	static	no router invocation matched	-
 planning/evidence/M31/sweep-prominent-disabled.py	gate	planning/evidence/M31/sweep-prominent-disabled.py	static	no router invocation matched	-
 planning/evidence/R29/fixture-push.mjs	gate	planning/evidence/R29/fixture-push.mjs	static	no router invocation matched	-
+planning/evidence/WIN24/disabled-pairing-ratio.py	gate	planning/evidence/WIN24/disabled-pairing-ratio.py	static	no router invocation matched	-
 planning/fleet-runner.js	gate	planning/fleet-runner.js	static	no router invocation matched	-
 planning/foreign-path-gate.py	gate	planning/foreign-path-gate.py	static	no router invocation matched	make:lint,planning/verification/G6-shared-ledger-withdrawals.py
 planning/goals/citations-blocking-check.sh	gate	planning/goals/citations-blocking-check.sh	static	no router invocation matched	-

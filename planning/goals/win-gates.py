@@ -64,7 +64,7 @@ def ledger():
     #
     # Transcript volume is monotonic while an agent is working and frozen the moment it stops,
     # so it moves exactly when the run deserves another turn.
-    if any(s.startswith("running") for _, s in open_rows):
+    if any(s.startswith(("running", "verifying")) for _, s in open_rows):
         vol, n = _runner_volume()
         if n:
             print("        %d runner transcript(s), %d lines total." % (n, vol))

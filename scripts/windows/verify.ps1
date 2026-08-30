@@ -29,22 +29,30 @@ $passed  = New-Object System.Collections.Generic.List[string]
 $notrun  = New-Object System.Collections.Generic.List[string]
 
 function Invoke-Check {
-    param([string]$Name, [scriptblock]$Body)
-    Write-Host ("  {0,-44} " -f $Name) -NoNewline
-    $out = ""
-    try   { $out = (& $Body | Out-String); $rc = $LASTEXITCODE }
+    param([string]$Name, [scriptblock]$Body, [int[]]$NoVerdictCodes = @())
+    Write-Host ("  {0,-52} " -f $Name) -NoNewline
+    try   { & $Body | Out-Null; $rc = $LASTEXITCODE }
     catch { $rc = 1; Write-Host "EXCEPTION: $($_.Exception.Message)" -ForegroundColor Red }
     if ($null -eq $rc) { $rc = 1 }
 
-    # This repository distinguishes three outcomes, not two. A gate that says NOT A PASS,
-    # NO VERDICT or CONTROL FAILED is telling you it measured nothing - which is neither a
-    # pass nor a failure, and filing it as either loses the fact the gate exists to state.
-    if ($out -match 'NOT A PASS|NO VERDICT|CONTROL[- ]FAILED|could not run') {
+    # Three outcomes, keyed on the EXIT CODES the gates reserve - never on their prose.
+    #
+    # The first version of this scanned stdout for "NOT A PASS", "NO VERDICT" and
+    # "CONTROL FAILED", and it did so BEFORE testing the exit code. WIN18's verifier proved
+    # that a gate exiting 1 whose narrative merely contains one of those phrases was filed
+    # no-verdict, and no-verdict does not reach exit 1 - so a real finding-failure was
+    # swallowed and the harness went green. It was live, not hypothetical: carrier-parity-gate
+    # prints the ordinary English "a stated backlog and not a pass" while exiting 1, and
+    # sweep-control-gate QUOTES another gate's "NO VERDICT" inside a FAIL line.
+    #
+    # A gate that wants to say it measured nothing says so in its exit code. Those codes are
+    # documented per gate below; anything else non-zero is a failure.
+    if ($rc -eq 0) { Write-Host "pass" -ForegroundColor Green; $passed.Add($Name) }
+    elseif ($NoVerdictCodes -contains $rc) {
         Write-Host ("NO VERDICT (exit {0}) - it measured nothing" -f $rc) -ForegroundColor DarkYellow
-        $notrun.Add("$Name - the gate reported no verdict (exit $rc)")
+        $notrun.Add("$Name - the gate reserves exit $rc for 'measured nothing'")
     }
-    elseif ($rc -eq 0) { Write-Host "pass" -ForegroundColor Green; $passed.Add($Name) }
-    else               { Write-Host "FAIL (exit $rc)" -ForegroundColor Red; $failed.Add($Name) }
+    else { Write-Host "FAIL (exit $rc)" -ForegroundColor Red; $failed.Add($Name) }
 }
 
 function Skip-Check {
@@ -108,26 +116,57 @@ if ($projects.Count -eq 0) {
 
 # ---------------------------------------------------------------- the portable repo gates
 Write-Host "`nPortable gates" -ForegroundColor Cyan
+#
+# ALL 24 python members of `make lint`, with the Makefile's own flags. The first version ran
+# EIGHT of them and named none of the rest. WIN18's verifier ran the other thirteen: eight would
+# have passed for free, and THREE were red on genuine findings - two of those against files this
+# fleet itself authored. A lane that selects the gates it runs, and does not say which it left
+# out, reports its own selection rather than the repository.
+#
+# `NoVerdict` lists the exit codes each gate RESERVES for "I measured nothing". Anything else
+# non-zero is a failure. Nothing is decided by reading a gate's prose.
 $gates = @(
-    'planning/brief-target-gate.py',
-    'planning/pin-class-gate.py',
-    'planning/shipped-brief-gate.py',
-    'planning/evidence-citation-gate.py',
-    'planning/py39-annotation-gate.py',
-    'planning/scope-invariance-gate.py',
-    'planning/registry-drop-gate.py',
-    'planning/instrument-census.py'
+    @{ Cmd = 'planning/reader-accounting.py' },
+    @{ Cmd = 'planning/null-run-gate.py' },
+    @{ Cmd = 'planning/py39-annotation-gate.py' },
+    @{ Cmd = 'planning/citation-gate.py' },
+    @{ Cmd = 'planning/sweep-control-gate.py';                       NoVerdict = @(4) },
+    @{ Cmd = 'planning/scope-invariance-gate.py'; Args = @('--quiet') },
+    @{ Cmd = 'planning/instrument-census.py' },
+    @{ Cmd = 'planning/runnable-path-gate.py' },
+    @{ Cmd = 'planning/registry-drop-gate.py';                       NoVerdict = @(2) },
+    @{ Cmd = 'planning/evidence-citation-gate.py' },
+    @{ Cmd = 'planning/foreign-path-gate.py';     Args = @('--quiet'); NoVerdict = @(2) },
+    @{ Cmd = 'planning/target-resolution-gate.py'; Args = @('--quiet') },
+    @{ Cmd = 'planning/pin-class-gate.py';                           NoVerdict = @(2) },
+    @{ Cmd = 'planning/shipped-brief-gate.py';                       NoVerdict = @(3) },
+    @{ Cmd = 'planning/brief-target-gate.py';     Args = @('--quiet') },
+    @{ Cmd = 'planning/carrier-parity-gate.py';                      NoVerdict = @(2) },
+    @{ Cmd = 'planning/test-campaign/bin/capture-manifest.py' },
+    @{ Cmd = 'planning/test-campaign/bin/raster-claim-gate.py';      NoVerdict = @(4) },
+    @{ Cmd = 'planning/test-campaign/bin/forced-state-assert.py'; Args = @('--control') },
+    @{ Cmd = 'planning/test-campaign/bin/effect-class-census.py'; Args = @('--control') },
+    @{ Cmd = 'planning/test-campaign/bin/effect-class-census.py' },
+    @{ Cmd = 'planning/test-campaign/bin/blind-vocabulary-arm.py' },
+    @{ Cmd = 'planning/test-campaign/bin/vocab-differential.py';  Args = @('--control') },
+    @{ Cmd = 'planning/test-campaign/bin/vocab-differential.py' }
 )
 foreach ($g in $gates) {
-    if (-not (Test-Path (Join-Path $root $g))) { Skip-Check $g 'file absent'; continue }
-    Invoke-Check $g { & $python (Join-Path $root $g) 2>$null }
+    $path = Join-Path $root $g.Cmd
+    $argv = @(); if ($g.ContainsKey('Args')) { $argv = $g.Args }
+    $label = $g.Cmd + $(if ($argv.Count) { ' ' + ($argv -join ' ') } else { '' })
+    if (-not (Test-Path $path)) { Skip-Check $label 'file absent'; continue }
+    $nv = @(); if ($g.ContainsKey('NoVerdict')) { $nv = $g.NoVerdict }
+    Invoke-Check $label { & $python $path @argv 2>$null } $nv
 }
 
-# Gates whose control arm shells to a .sh member or a macOS binary. They correctly refuse to
-# report a verdict here, and this lane records that refusal rather than dressing it as a pass.
-Skip-Check 'planning/null-run-gate.py'       'its control shells to no-raw-design-values.sh (bash member)'
-Skip-Check 'planning/sweep-control-gate.py'  'control arm invokes a script Windows cannot execute'
-Skip-Check 'planning/carrier-parity-gate.py' 'census depends on the macOS build'
+# Nothing is hardcoded as unrunnable any more. The three that were - null-run-gate,
+# sweep-control-gate and carrier-parity-gate - were each claimed to need bash or a macOS build,
+# and WIN18's verifier measured all three RUNNING here: the first exits 0, and the other two
+# exit 1 on real findings, one of which names planning/goals/win-gates.py. WIN18's own commit had
+# added Windows portability to exactly those three files and the lane then declared them
+# unreachable. A skip asserts a fact about the machine; if it is not measured it is a guess, and
+# a guess that suppresses a red gate is the most expensive kind.
 
 # ---------------------------------------------------------------- the honest disclaimer
 Write-Host "`n" ("-" * 72)

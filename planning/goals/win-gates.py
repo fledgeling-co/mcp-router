@@ -49,10 +49,22 @@ def rows():
 
 def ledger():
     r = rows()
-    if len(r) != EXPECTED:
-        print("ledger: found %d WIN rows in ORCHESTRATOR.md, expected %d." % (len(r), EXPECTED))
-        print("        A row that vanished is not a row that finished — restore it before continuing.")
+    # A floor, not an exact count. Rows are ADDED legitimately - WIN24 came out of WIN2's own
+    # verification - and requiring an exact number would have meant editing the expected total
+    # every time the work grew, which is how a guard against loss becomes a rubber stamp. What
+    # must never happen is a row disappearing, so the floor only ever rises.
+    floor_file = Path(__file__).resolve().parent / "win-row-floor.txt"
+    try:
+        floor = int(floor_file.read_text(encoding="utf-8").strip())
+    except Exception:
+        floor = EXPECTED
+    if len(r) < floor:
+        print("ledger: %d WIN rows in ORCHESTRATOR.md, floor is %d." % (len(r), floor))
+        print("        A row that vanished is not a row that finished - restore it before continuing.")
         return 1
+    if len(r) > floor:
+        floor_file.write_text(str(len(r)), encoding="utf-8")
+        print("ledger: row floor raised %d -> %d (rows were added, none lost)." % (floor, len(r)))
     open_rows = [(i, s) for i, s in r if not any(s.startswith(t) for t in TERMINAL)]
     if not open_rows:
         print("ledger: all %d WIN rows terminal (done or parked with a reason)." % len(r))

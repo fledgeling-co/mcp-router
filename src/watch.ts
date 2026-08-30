@@ -30,7 +30,7 @@ import {
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
+import { supervisor } from './platform.js';
 import {
   ROUTER_HOME,
   DEFAULT_CONFIG_PATH,
@@ -442,15 +442,20 @@ export async function cmdWatch(opts: { verbose?: boolean } = {}): Promise<void> 
  * The running router loaded its upstream list at startup, so a server that has just
  * been added to servers.json is not one it knows how to spawn yet. The manifest hot-
  * reloads; the upstream list does not, so a config change means a restart.
+ *
+ * WIN17 — **on a host with no supervisor this does not happen, and the log says so instead of
+ * saying it failed.** The macOS route is `launchctl kickstart`, which is not a request to a running
+ * process but an instruction to the thing that owns it; Windows has no equivalent this daemon may
+ * assume, so `supervisor()` reports `none` and the adopted upstream stays unspawnable until
+ * somebody restarts the router. Reporting that as "could not restart (ENOENT)" — which is what
+ * happened before, in 1 ms, from a `/bin/launchctl` that does not exist — describes a broken
+ * command rather than a missing guarantee. WIN23 decides what supervises the router here.
  */
 function restartRouter(): void {
-  try {
-    execFileSync('/bin/launchctl', ['kickstart', '-k', `gui/${process.getuid?.() ?? 501}/${LAUNCHD_LABEL}`], {
-      stdio: 'ignore',
-      timeout: 15_000,
-    });
-    watchLog(`restarted ${LAUNCHD_LABEL} to pick up the new upstream`);
-  } catch (err) {
-    watchLog(`could not restart ${LAUNCHD_LABEL} (${(err as Error).message}); run it manually`);
-  }
+  const outcome = supervisor().restart(LAUNCHD_LABEL);
+  watchLog(
+    outcome.restarted
+      ? `${outcome.detail} to pick up the new upstream`
+      : `${outcome.detail}; the new upstream will not be spawnable until the router is restarted`
+  );
 }

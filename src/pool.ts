@@ -9,6 +9,7 @@ import { FileOAuthProvider, isAuthFailure } from './auth.js';
 import { log } from './log.js';
 import { readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { PATH_LIST_SEPARATOR, residentKb, IS_WINDOWS } from './platform.js';
 
 /**
  * The most directories PATH discovery will add. A home with thousands of dot-directories would
@@ -25,6 +26,12 @@ const CHILD_PATH_DISCOVERY_LIMIT = 64;
  * directory scan rather than `$SHELL -l -c 'echo $PATH'`.
  *
  * Sorted so this router and the Swift one produce one string from one home.
+ *
+ * WIN17: the launchd rationale does not apply off macOS — a router started from a shell or a
+ * client inherits that user's real PATH, with nothing having stripped it. The scan is kept anyway
+ * rather than branched away, because it costs one `readdir` and appending a directory that already
+ * resolves changes nothing. What did have to change is the separator the result is joined with;
+ * see `augmentPath`.
  */
 function userBinDirectories(home: string): string[] {
   const candidates = [join(home, 'bin')];
@@ -81,19 +88,24 @@ function cachedUserBinDirectories(home: string): string[] {
  * no command that resolved before can resolve to a different binary after. Prepending would let a
  * version manager under $HOME capture `node` and `npx` for every child, and the measured defect is
  * a missing binary rather than a wrong one.
+ *
+ * WIN17: the separator is `path.delimiter`, not a literal `':'`. On Windows it is `;`, and
+ * splitting a Windows PATH on `:` turns every single entry into two — `C:\Program Files\nodejs`
+ * becomes `C` and `\Program Files\nodejs` — so every stdio upstream would have been spawned with a
+ * shredded PATH. That does not fail loudly; the child reports the capability missing.
  */
 export function augmentPath(inherited: string, home: string): string {
   // Empty components are KEPT. execvp reads an empty entry as the current directory, so dropping
   // one from an inherited `:/usr/bin` would change where a child looks — and this function's whole
   // contract is that the inherited PATH survives unaltered.
-  const merged = inherited === '' ? [] : inherited.split(':');
+  const merged = inherited === '' ? [] : inherited.split(PATH_LIST_SEPARATOR);
   const seen = new Set(merged);
   for (const directory of cachedUserBinDirectories(home)) {
     if (seen.has(directory)) continue;
     seen.add(directory);
     merged.push(directory);
   }
-  return merged.join(':');
+  return merged.join(PATH_LIST_SEPARATOR);
 }
 
 export interface UpstreamHandle {
@@ -470,9 +482,15 @@ export class UpstreamPool {
   /**
    * Resident size of each live stdio child, in MB.
    *
-   * One `ps` for every pid rather than one per server: the warm set is a budget the
+   * One OS call for every pid rather than one per server: the warm set is a budget the
    * user sets in memory, so the number behind it has to be measured. HTTP upstreams
    * have no local process and are reported as 0 rather than guessed at.
+   *
+   * WIN17: `/bin/ps -o rss=` is macOS's; the Windows counterpart is `Get-Process`'s
+   * `WorkingSet64`, and the two are near neighbours rather than the same measurement —
+   * RSS counts resident pages, a working set counts pages the process currently has
+   * mapped in. Named as a working set wherever a Windows figure is shown, not silently
+   * relabelled RSS. The mechanism and the numbers behind choosing it are in `platform.ts`.
    */
   async residentMb(): Promise<Record<string, number>> {
     const pids: Array<[string, number]> = [];
@@ -481,22 +499,12 @@ export class UpstreamPool {
       if (pid) pids.push([name, pid]);
     }
     if (!pids.length) return {};
-    const { execFile } = await import('node:child_process');
-    const out = await new Promise<string>((resolve) => {
-      execFile(
-        '/bin/ps',
-        ['-o', 'pid=,rss=', '-p', pids.map(([, p]) => p).join(',')],
-        { timeout: 2000 },
-        (err, stdout) => resolve(err ? '' : stdout)
-      );
-    });
-    const rssByPid = new Map<number, number>();
-    for (const line of out.trim().split('\n')) {
-      const [pid, rss] = line.trim().split(/\s+/).map(Number);
-      if (pid && rss) rssByPid.set(pid, Math.round(rss / 1024));
-    }
-    return Object.fromEntries(pids.map(([name, pid]) => [name, rssByPid.get(pid) ?? 0]));
+    const kbByPid = await residentKb(pids.map(([, p]) => p));
+    return Object.fromEntries(pids.map(([name, pid]) => [name, Math.round((kbByPid.get(pid) ?? 0) / 1024)]));
   }
+
+  /** What `residentMb` is measuring on this host, for anything that displays the figure. */
+  static readonly residentMetric = IS_WINDOWS ? 'working set' : 'resident set size';
 
   private async reap(serverName: string, force = false): Promise<void> {
     const entry = this.entries.get(serverName);

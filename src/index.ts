@@ -2,7 +2,6 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { execFile } from 'node:child_process';
 import {
   loadConfig,
   parseServer,
@@ -28,8 +27,9 @@ import { UsageStore } from './usage.js';
 import { controlToken, TOKEN_PATH } from './control.js';
 import { hasTokens, isAuthFailure } from './auth.js';
 import { cmdWatch } from './watch.js';
-import { askSessionsToReload, listSessions, type Reach } from './sessions.js';
+import { askSessionsToReload, sweepSessions, type Reach } from './sessions.js';
 import { configureLogging, log } from './log.js';
+import { openInBrowser, supervisor, PLATFORM } from './platform.js';
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(`--${name}`);
@@ -274,6 +274,18 @@ async function cmdServe(): Promise<void> {
       `0 open, idle window ${Math.round(config.idleMs / 1000)}s`
   );
 
+  /*
+   * The supervision guarantee, said out loud at startup on any host that does not have one.
+   *
+   * Three behaviours in this router are built on launchd's KeepAlive — the forced non-zero exit
+   * below, `watch.ts`'s restart after adopting an upstream, and `router.ts`'s reasoning about a
+   * hung close. On a host with no supervisor those are not the same behaviours, and the difference
+   * belongs in the log the operator reads rather than only in a comment somebody would have to go
+   * looking for. WIN23 decides what supervises the router on Windows.
+   */
+  const supervision = supervisor();
+  if (supervision.kind === 'none') log.warn(`supervision: ${supervision.guarantee}`);
+
   let closing = false;
   const shutdown = (sig: string) => {
     if (closing) return;
@@ -292,9 +304,19 @@ async function cmdServe(): Promise<void> {
      * The forced exit is non-zero on purpose: the launchd job restarts on an
      * unsuccessful exit, so a router that could not shut down cleanly comes back
      * rather than staying down.
+     *
+     * That last sentence is a macOS sentence. Where `supervisor().kind` is `none`
+     * the exit code changes nothing about what happens next — the process stops and
+     * stays stopped — so the log line says which of the two this host is rather
+     * than repeating a guarantee it does not have.
      */
     const deadline = setTimeout(() => {
-      log.warn(`shutdown did not finish within ${SHUTDOWN_DEADLINE_MS}ms; exiting anyway`);
+      log.warn(
+        `shutdown did not finish within ${SHUTDOWN_DEADLINE_MS}ms; exiting anyway` +
+          (supervision.kind === 'launchd'
+            ? ' (launchd will restart the job)'
+            : ` (nothing supervises this process on ${PLATFORM}, so it will stay down until it is started again)`)
+      );
       process.exit(1);
     }, SHUTDOWN_DEADLINE_MS);
     deadline.unref();
@@ -373,7 +395,18 @@ async function cmdAuth(): Promise<void> {
   if (!res.ok || !body.authorizationUrl) throw new Error(body.error ?? `authorization could not start`);
 
   process.stdout.write(`opening your browser to authorize "${name}"\n${body.authorizationUrl}\n`);
-  execFile('/usr/bin/open', [body.authorizationUrl], () => undefined);
+  /*
+   * Reported, never swallowed. This was `execFile('/usr/bin/open', [url], () => undefined)`, whose
+   * callback discards the error — so on Windows, where that path does not exist, the browser never
+   * opened, nothing was printed, and the poll below ran its full five minutes waiting for a token
+   * that could not arrive. `needs sign-in` became a state with no way out that looked like a hang.
+   *
+   * A failure here is not fatal: the URL is already on stdout above, so somebody who is told the
+   * open failed can paste it. That is the difference between a degraded flow and a dead one.
+   */
+  await openInBrowser(body.authorizationUrl).catch((err: Error) => {
+    process.stdout.write(`\ncould not open your browser: ${err.message}\nopen the URL above yourself to continue.\n`);
+  });
 
   // Poll rather than hold the socket: the exchange completes inside the router.
   for (let i = 0; i < 150; i++) {
@@ -427,7 +460,8 @@ async function cmdUsage(): Promise<void> {
 async function cmdSessions(): Promise<void> {
   const push = has('push');
   const dryRun = has('dry-run');
-  const sessions = listSessions();
+  const sweep = sweepSessions();
+  const sessions = sweep.sessions;
 
   const label: Record<Reach, string> = {
     reachable: 'reachable',
@@ -450,6 +484,19 @@ async function cmdSessions(): Promise<void> {
   process.stdout.write(
     `\n  ${Object.entries(counts).map(([k, v]) => `${v} ${label[k as Reach]}`).join(', ') || 'none'}\n`
   );
+
+  /*
+   * The counts above are only worth reading if somebody actually asked the OS. When the liveness
+   * probe could not run, every row reads `exited` and the table looks like a quiet machine rather
+   * than an unanswered question — which is the failure this module's header exists to prevent,
+   * and the one that was live on Windows before WIN17.
+   */
+  if (!sweep.livenessProbed) {
+    process.stdout.write(
+      `\n  ! the liveness probe did not run on this machine (${sweep.detail ?? 'unknown reason'}).\n` +
+        '    Every row above reads "exited" because nothing was asked, not because nothing is running.\n'
+    );
+  }
 
   /*
    * Said whether or not --push was given, because it is the half people do not know exists.

@@ -320,7 +320,11 @@ public sealed partial class ShellWindow : Window
         var destination = DestinationCatalog.ById(destinationId);
         _currentDestinationId = destinationId;
 
-        BoardHost.Content = new BoardPlaceholder(destination);
+        // The one destination with a board behind it mounts that board; the other nine keep
+        // their placeholder until their item builds them. WIN4's Servers board is the first.
+        BoardHost.Content = destination.Id == "servers"
+            ? new ServersBoard()
+            : new BoardPlaceholder(destination);
 
         // §11 rule 7: the window title says what you are looking at, not the app's name. Both the
         // band and the window itself, so the taskbar agrees with the chrome.

@@ -1348,7 +1348,7 @@ does **not** change what any check reads, and must not be described as though it
 | **WIN20** | Windows automation plane for the campaign | windows | WIN1 | - | Opus | Done | merged to main | Fresh-context verifier's machine-era blockers repaired; record corrected to 90/26 and API-error review marked NOT-RUN. Live probe lane 90/0/2, positive title 0 / negative 3, mutation arms fired; branch lane 26/0/4; merged 779e5eaf |
 | **WIN4** | Servers board and the Signal Path | windows | WIN3 | design/mcp-router-console.html | Opus | Running | ai/win4 | Builder launched in isolated worktree; STOP before verify and merge |
 | **WIN5** | Activity board | windows | WIN3 | design/mcp-router-console.html | Opus | Running | ai/win5 | Builder launched in isolated worktree; STOP before verify and merge |
-| **WIN6** | Skills board | windows | WIN3 | design/mcp-router-console.html | Opus | Running | ai/win6 | Builder launched in isolated worktree; STOP before verify and merge |
+| **WIN6** | Skills board | windows | WIN3 | design/mcp-router-console.html | Opus | Verifying | ai/win6 | Builder returned READY-TO-VERIFY at 334beb75 (223 tests, 3 projects build, fixture lane Debug-only). Fresh-context verifier dispatched 2026-08-31 |
 | **WIN7** | Discover board | windows | WIN3 | design/mocks/mac-surfaces.html | Opus | Running | ai/win7 | Builder launched in isolated worktree; STOP before verify and merge |
 | **WIN8** | Checks board | windows | WIN3 | design/mcp-router-console.html | Opus | Running | ai/win8 | Builder launched in isolated worktree; STOP before verify and merge |
 | **WIN9** | Cleanup board | windows | WIN3 | design/mcp-router-console.html | Opus | Queued | ai/win9 | Ready after W2 merge; queued for W3 batch dispatch 2026-08-31 |

@@ -320,7 +320,12 @@ public sealed partial class ShellWindow : Window
         var destination = DestinationCatalog.ById(destinationId);
         _currentDestinationId = destinationId;
 
-        BoardHost.Content = new BoardPlaceholder(destination);
+        // WIN7 is the first board built inside this shell; every other destination keeps its
+        // placeholder until its item lands. A board is created per visit and loads on
+        // appearance, which is the Mac board's own lifetime.
+        BoardHost.Content = destinationId == "discover"
+            ? new Views.DiscoverBoard()
+            : new BoardPlaceholder(destination);
 
         // §11 rule 7: the window title says what you are looking at, not the app's name. Both the
         // band and the window itself, so the taskbar agrees with the chrome.

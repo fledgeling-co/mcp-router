@@ -130,3 +130,17 @@ planning/fidelity/dumps/
 
 # better-goal: machine-local cached lane verdict, never evidence
 planning/goals/.lane-verdict.json
+
+# WIN20's Windows client build output. The probe is built self-contained (the machine has the
+# WindowsAppRuntime framework package but no Main package or DDLM, so the framework-dependent
+# unpackaged path cannot launch), which puts 331 redistributable files in bin/. None of them is
+# ours and none of them is evidence.
+app/windows/**/bin/
+app/windows/**/obj/
+
+# ...but DO keep WIN20's run evidence, for the reason the campaign's exemption above gives:
+# `*.log` is unanchored and matches at every depth, and this lane's transcript and the probe's own
+# startup trace are exactly the artifacts its records cite. `planning/evidence-citation-gate.py`
+# fails a citation to a file the repository does not hold, so an ignored transcript is a citation
+# that resolves only on the machine that wrote it.
+!/planning/evidence/WIN20/**/*.log

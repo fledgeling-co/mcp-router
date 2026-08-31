@@ -97,8 +97,21 @@ if (Test-Path (Join-Path $root 'node_modules')) {
 # ---------------------------------------------------------------- the Windows client
 Write-Host "`nWindows client" -ForegroundColor Cyan
 $msbuild = 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe'
+# The exclusion is matched against the path RELATIVE to $root, not the absolute one. Absolute
+# matching broke the check in the one place it is used most: every ship-feature runner verifies
+# from inside .worktrees/<ID>, where $root itself contains "\.worktrees\", so every project in the
+# tree was filtered out and the lane printed "no .csproj yet - WIN3 has not landed the shell" while
+# looking straight at one. A skip that reads like a fact about the repository is worse than a
+# failure, because nobody goes and checks it.
+$prefix = $root.TrimEnd('\', '/') + '\'
 $projects = @(Get-ChildItem -Path $root -Recurse -Filter '*.csproj' -ErrorAction SilentlyContinue |
-              Where-Object { $_.FullName -notmatch '\\(node_modules|\.worktrees|bin|obj)\\' })
+              Where-Object {
+                  $rel = $_.FullName
+                  if ($rel.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+                      $rel = $rel.Substring($prefix.Length)
+                  }
+                  $rel -notmatch '(^|\\)(node_modules|\.worktrees|bin|obj)\\'
+              })
 if ($projects.Count -eq 0) {
     Skip-Check 'client build' 'no .csproj yet - WIN3 has not landed the shell'
 } elseif (-not (Test-Path $msbuild)) {
@@ -107,12 +120,59 @@ if ($projects.Count -eq 0) {
     foreach ($p in $projects) {
         # dotnet build CANNOT build WinUI here: it resolves MSBuildExtensionsPath to the .NET SDK,
         # which carries no AppxPackage tasks, and fails MSB4062 however complete VS is.
+        #
+        # RESTORE AND BUILD ARE TWO INVOCATIONS, and that is not tidiness. `-t:Restore,Build` in a
+        # single MSBuild call evaluates the project ONCE, before restore has written
+        # obj/*.nuget.g.props - so the Microsoft.WindowsAppSDK targets that carry the XAML markup
+        # compiler are never imported, no App.g.i.cs is generated, and the build fails
+        #     CSC : error CS5001: Program does not contain a static 'Main' method
+        # which names a missing entry point and is actually a missing markup pass. Measured on
+        # WIN20's probe, 2026-08-30: from clean, one invocation exits 1 and two exit 0, every time.
+        Invoke-Check ("restore {0}" -f $p.Name) {
+            & $msbuild $p.FullName -t:Restore -v:q -nologo 2>&1 | Out-Host
+            $LASTEXITCODE
+        }
         Invoke-Check ("build {0}" -f $p.Name) {
-            & $msbuild $p.FullName -t:Restore,Build -v:q -nologo 2>&1 | Out-Host
+            & $msbuild $p.FullName -t:Build -v:q -nologo 2>&1 | Out-Host
             $LASTEXITCODE
         }
     }
 }
+
+# ---------------------------------------------------------------- WIN20's automation plane
+# The campaign's Windows oracle. It needs a drawn window and the interactive window station, so it
+# is NOT run inline here: an agent shell on this machine sits in session 0, where a WinUI process
+# cannot start and a UIA walk returns an empty list rather than an error. The lane refuses that
+# station itself; this block records the command and its three outcomes rather than pretending to
+# have taken them.
+Write-Host "`nWindows automation plane (WIN20)" -ForegroundColor Cyan
+$uiaSelftest = Join-Path $root 'scripts/windows/uia/uia-selftest.py'
+$uiaDump     = Join-Path $root 'planning/evidence/WIN20/run/uia-control-view.json'
+if (-not (Test-Path $uiaSelftest)) {
+    Skip-Check 'uia assertions, armed' 'scripts/windows/uia/uia-selftest.py absent'
+} elseif (-not (Test-Path $uiaDump)) {
+    Skip-Check 'uia assertions, armed' 'no captured dump - run scripts/windows/uia/run-probe-lane.ps1 first'
+} else {
+    # Portable: it arms the graded assertions against a dump already on disk, so it needs no
+    # window and runs anywhere. Exit 3 is its reserved "measured nothing", and it is classified
+    # here by EXIT CODE rather than by scanning its prose - this file's own history is the reason
+    # (a gate exiting 1 whose narrative merely contained "NO VERDICT" was filed no-verdict, and a
+    # real failure went green).
+    Write-Host ("  {0,-44} " -f 'uia assertions, armed') -NoNewline
+    & $python $uiaSelftest --dump $uiaDump 2>$null | Out-Null
+    $uiaRc = $LASTEXITCODE
+    if ($uiaRc -eq 0) {
+        Write-Host "pass" -ForegroundColor Green
+        $passed.Add('uia assertions, armed')
+    } elseif ($uiaRc -eq 3) {
+        Write-Host "NO VERDICT (exit 3) - it measured nothing" -ForegroundColor DarkYellow
+        $notrun.Add('uia assertions, armed - the gate reserves exit 3 for "measured nothing"')
+    } else {
+        Write-Host ("FAIL (exit {0})" -f $uiaRc) -ForegroundColor Red
+        $failed.Add('uia assertions, armed')
+    }
+}
+Skip-Check 'uia live lane (run-probe-lane.ps1)' 'needs WinSta0; run it directly and read planning/evidence/WIN20/run/lane.json'
 
 # ---------------------------------------------------------------- the portable repo gates
 Write-Host "`nPortable gates" -ForegroundColor Cyan

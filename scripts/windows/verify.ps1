@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
   The Windows verification lane (WIN18).
 
@@ -138,6 +138,26 @@ if ($projects.Count -eq 0) {
         }
     }
 }
+
+
+# The shell's structural gates. They are plain net8.0 with no WinUI reference, on purpose: they
+# read DESIGN.md §13 and the design of record and hold the shell's catalogue to both, and they
+# need no display to do it - which matters on a machine whose agent session cannot host a window.
+$shellTests = Join-Path $root 'app\windows\MCPRouter.Shell.Tests\MCPRouter.Shell.Tests.csproj'
+if (Test-Path $shellTests) {
+    Invoke-Check 'shell model tests (dotnet test)' {
+        & dotnet test $shellTests --nologo -v:q 2>&1 | Out-Host
+        $LASTEXITCODE
+    }
+} else {
+    Skip-Check 'shell model tests' 'MCPRouter.Shell.Tests is absent'
+}
+
+# The shell's in-process self-test needs an interactive session and this lane may not be in one.
+# It is NOT enrolled as a pass/fail check here, because its "could not run" and its "passed" would
+# be the same green from outside. Run scripts/windows/run-shell-selftest.ps1 and read its exit
+# code: 0 ran clean, 1 ran and found failures, 2 could not run.
+Skip-Check 'shell self-test (captures)' 'needs an interactive session - run scripts/windows/run-shell-selftest.ps1'
 
 # ---------------------------------------------------------------- WIN20's automation plane
 # The campaign's Windows oracle. It needs a drawn window and the interactive window station, so it

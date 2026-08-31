@@ -349,6 +349,7 @@ public sealed partial class ShellWindow : Window
             "checks" => new ChecksBoard(),
             "activity" => new ActivityBoard(destination, this, SelectDestination),
             "discover" => new DiscoverBoard(),
+            "cleanup" => new CleanupBoard(),
             _ => new BoardPlaceholder(destination),
         };
 

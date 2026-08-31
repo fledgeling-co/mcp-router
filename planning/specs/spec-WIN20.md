@@ -156,7 +156,7 @@ gates are built against.
 One near-miss is recorded because it is the kind that reads as fine: the first surface id tried was
 **SURF-018, which looked free** — `surfaces.in.json` stops at SURF-017 for the glass lanes — and
 **is taken** in `inventory.json` by an ios-glass surface. The two files disagree because the inventory
-is generated from more sources than the input. The proposal uses **SURF-029**.
+is generated from more sources than the input. The proposal uses **SURF-029**, which has no row in any registry — proposed in §8, not written.
 
 ---
 

@@ -226,4 +226,4 @@ Confirmed: the interactive task reports `SESSION=1`, `STATION=WinSta0`, `INTERAC
 | `planning/evidence/WIN20/run/lane.json` | the lane's own verdict and exit code |
 | `planning/evidence/WIN20/run/lane.log` | the transcript, including the binary it chose |
 | `planning/evidence/WIN20/run/probe-startup.log` | the probe's own startup trace |
-| `planning/evidence/WIN20/registry-rows.proposed.json` | SURF-029, REQ-036/037, CASE-0293…0296 — proposed, not written |
+| `planning/evidence/WIN20/registry-rows.proposed.json` | SURF-029, REQ-036/037, CASE-0293…0296 — each has no row in any registry: proposed, not written |

@@ -64,7 +64,7 @@ returned 0 on any of them would be spending a green tick on a measurement that n
 |---|---|---|
 | pointing the harness at the product | WIN3 | there is no product window. The harness takes `-ProcessId` or `-TitleContains`; nothing about it is probe-specific |
 | the thirteen Windows surfaces' own cases | WIN4–WIN16 | they stay `never-measured` until they exist. What changed is that the channel now exists |
-| merging SURF-029 / REQ-036 / REQ-037 / CASE-0293…0296 into the registry | a macOS run of `campaign.py` | the derived views cannot be regenerated on Windows |
+| merging SURF-029 / REQ-036 / REQ-037 / CASE-0293…0296 (each has no row in any registry: proposed, not written) into the registry | a macOS run of `campaign.py` | the derived views cannot be regenerated on Windows |
 | Narrator announcement | unscheduled | acceptance clause 6; the tree serves Narrator by construction but nothing here drove one |
 | the CommandBar overflow finding | WIN3's construction | recorded as unoracled with the two conditions that would open a rung |
 | geometry off the plane (bounding rectangles are captured but nothing asserts them) | when a Windows surface has a published geometry to check against | §12's geometry table is authored; no Windows surface exists to measure it on |

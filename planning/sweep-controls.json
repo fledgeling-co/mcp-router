@@ -1325,6 +1325,22 @@
       ],
       "since": "2026-08-31",
       "reason": "Its sibling selftest (`scripts/lint/no-harness-skill-writes-selftest.sh`) is the presence control, and that selftest starts with `mktemp -d -t f8-skill-writes`. Git Bash's mktemp requires at least three X's in a -t template and rejects this one (`too few X's in template`), then the selftest hangs in a null sandbox. Waived on Windows; the selftest is a live control on macOS BSD mktemp. Porting the template to `mktemp -d` is owed rather than done here \u2014 it is F8's instrument, not this fleet's."
+    },
+    {
+      "path": "scripts/windows/uia/uia-assert.py",
+      "disposition": "control",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-31",
+      "control": [
+        "python3",
+        "scripts/windows/uia/uia-selftest.py",
+        "--dump",
+        "planning/evidence/WIN20/run/uia-control-view.json"
+      ],
+      "proves": "The sibling selftest plants 26 misbehaviours (stripped Busy markers, zeroed floors, an unoracled control that turns up) against a real dump and requires each to fire; the floor-of-zero arm exists because a floor of 0 is satisfied by an empty list. Discovered as a sweep for its `== 0` floors and absence vocabulary; the selftest is what stops those floors being confident zeros."
     }
   ]
 }

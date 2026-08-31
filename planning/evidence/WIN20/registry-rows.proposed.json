@@ -27,7 +27,7 @@
       "id": "REQ-036",
       "class": "affordance",
       "text": "A Windows surface publishes a UI Automation tree in which every control is individually addressable by AutomationId, with names matching the on-screen vocabulary, readable out of process without the window being activated or foregrounded.",
-      "source": "planning/specs/spec-WIN20.md; DESIGN.md:851-963",
+      "source": "planning/specs/spec-WIN20.md; DESIGN.md:851-963 at dd54938",
       "evidence": "observed",
       "effect": "none",
       "providerNote": "the provider is the framework's own automation peers; the campaign reads them, it does not implement them."
@@ -36,7 +36,7 @@
       "id": "REQ-037",
       "class": "affordance",
       "text": "A Windows control's state — disabled, selected, held and busy — is readable from the automation plane rather than from pixels.",
-      "source": "planning/specs/spec-WIN20.md; DESIGN.md:868-963",
+      "source": "planning/specs/spec-WIN20.md; DESIGN.md:868-963 at dd54938",
       "evidence": "observed",
       "effect": "none",
       "providerNote": "disabled via the IsEnabled property; selected via SelectionPattern and SelectionItemPattern; held via TogglePattern; busy via the localised 'Busy' marker WinUI prepends to an active ProgressRing's name, since it exposes no usable RangeValuePattern state."

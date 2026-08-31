@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="MCPRouter.Shell.Views.ChecksBoard"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+      The Checks board (spec-WIN8). One root grid: the head, then the state the board is in.
+
+      Everything below the head swaps by state - DESIGN.md §5's nine rows are the design, so the
+      empty, loading, disconnected and partial states are built surfaces, not absent ones. The
+      loaded state is the table over the stored, version-stamped results, the invalidation
+      notices above it, and the selected row's detail below.
+    -->
+    <Grid x:Name="Root" Padding="24,20,24,16" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- ============================================================ the head -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Spacing="4">
+                <TextBlock
+                    x:Name="HeadTitle"
+                    AutomationProperties.AutomationId="Checks.Title"
+                    Style="{StaticResource SubtitleTextBlockStyle}"
+                    Text="Checks" />
+                <!--
+                  The permanent disclosure (DESIGN.md §6's table, verbatim). It is a statement
+                  about the product rather than about the data, so it draws in EVERY state -
+                  including loading and disconnected - and is never hidden by them.
+                -->
+                <TextBlock
+                    x:Name="HeadSubtitle"
+                    AutomationProperties.AutomationId="Checks.Subtitle"
+                    MaxWidth="720"
+                    HorizontalAlignment="Left"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+
+            <StackPanel
+                Grid.Column="1"
+                VerticalAlignment="Top"
+                Orientation="Horizontal"
+                Spacing="8">
+                <TextBlock
+                    x:Name="ProgressText"
+                    AutomationProperties.AutomationId="Checks.Progress"
+                    VerticalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    Visibility="Collapsed" />
+                <!--
+                  The two head actions, distinct by construction. "Run all" takes the view's one
+                  accent fill and is the default (§11 rule 4; Return commits it, §13); "Run the
+                  stale suite" is standard and is enabled exactly when a stale row exists - a
+                  disabled control dims in place with a discoverable reason (its HelpText).
+                -->
+                <Button
+                    x:Name="RunStaleButton"
+                    AutomationProperties.AutomationId="Checks.RunStale"
+                    Click="OnRunStaleClick" />
+                <Button
+                    x:Name="RunAllButton"
+                    AutomationProperties.AutomationId="Checks.RunAll"
+                    Click="OnRunAllClick"
+                    Style="{StaticResource AccentButtonStyle}" />
+            </StackPanel>
+        </Grid>
+
+        <!-- ============================================================ the states -->
+        <Grid Grid.Row="1">
+            <!-- loading: skeleton rows at the real row height; the subtitle stays visible above -->
+            <StackPanel
+                x:Name="LoadingPanel"
+                AutomationProperties.AutomationId="Checks.Loading"
+                AutomationProperties.Name="Loading"
+                Spacing="8"
+                Visibility="Collapsed">
+                <Border Height="34" Background="{ThemeResource SubtleFillColorSecondaryBrush}" CornerRadius="4" />
+                <Border Height="44" Background="{ThemeResource SubtleFillColorSecondaryBrush}" CornerRadius="4" />
+                <Border Height="44" Background="{ThemeResource SubtleFillColorSecondaryBrush}" CornerRadius="4" />
+                <Border Height="44" Background="{ThemeResource SubtleFillColorSecondaryBrush}" CornerRadius="4" />
+                <Border Height="44" Background="{ThemeResource SubtleFillColorSecondaryBrush}" CornerRadius="4" />
+            </StackPanel>
+
+            <!-- empty: the built product's sentence, no dead action (spec-WIN8 §3.6) -->
+            <Grid
+                x:Name="EmptyPanel"
+                AutomationProperties.AutomationId="Checks.Empty"
+                AutomationProperties.Name="Nothing to check yet"
+                Visibility="Collapsed">
+                <Border
+                    MaxWidth="520"
+                    Padding="32"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4">
+                    <StackPanel Spacing="12">
+                        <FontIcon
+                            FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                            FontSize="28"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                            Glyph="&#xE73E;" />
+                        <TextBlock
+                            x:Name="EmptyTitle"
+                            Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <TextBlock
+                            x:Name="EmptyDetail"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource BodyTextBlockStyle}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- disconnected / failed-with-nothing: what happened, how to fix it, one action -->
+            <Grid
+                x:Name="DisconnectedPanel"
+                AutomationProperties.AutomationId="Checks.Disconnected"
+                Visibility="Collapsed">
+                <Border
+                    MaxWidth="560"
+                    Padding="32"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4">
+                    <StackPanel Spacing="12">
+                        <FontIcon
+                            FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                            FontSize="28"
+                            Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                            Glyph="&#xE7BA;" />
+                        <TextBlock
+                            x:Name="DisconnectedHeadline"
+                            Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <TextBlock
+                            x:Name="DisconnectedAdvice"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource BodyTextBlockStyle}"
+                            TextWrapping="Wrap" />
+                        <Button
+                            x:Name="RetryButton"
+                            AutomationProperties.AutomationId="Checks.Retry"
+                            Click="OnRetryClick" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- loaded (and stale-with-reading): notices, the table, the detail, the footer -->
+            <ScrollViewer
+                x:Name="LoadedPanel"
+                AutomationProperties.AutomationId="Checks.Loaded"
+                HorizontalScrollMode="Disabled"
+                Visibility="Collapsed">
+                <StackPanel Spacing="12">
+                    <!-- a read that failed after a reading keeps the rows and says why -->
+                    <InfoBar
+                        x:Name="ErrorBar"
+                        AutomationProperties.AutomationId="Checks.ErrorBar"
+                        IsClosable="False"
+                        IsOpen="False"
+                        Severity="Warning" />
+
+                    <!-- §5's Partial row: what arrived, what did not, with the reason -->
+                    <InfoBar
+                        x:Name="PartialNote"
+                        AutomationProperties.AutomationId="Checks.PartialNote"
+                        IsClosable="False"
+                        IsOpen="False"
+                        Severity="Informational" />
+
+                    <!-- one notice per dropped result, each naming the move and offering the rerun -->
+                    <StackPanel
+                        x:Name="InvalidationList"
+                        AutomationProperties.AutomationId="Checks.Invalidations"
+                        Spacing="8" />
+
+                    <!-- the store could not be read: a different claim from "never checked" -->
+                    <InfoBar
+                        x:Name="HistoryErrorBar"
+                        AutomationProperties.AutomationId="Checks.HistoryErrorBar"
+                        IsClosable="False"
+                        IsOpen="False"
+                        Severity="Warning" />
+
+                    <!-- the table -->
+                    <Border
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4">
+                        <StackPanel>
+                            <Grid x:Name="HeaderRow" Margin="12,10,12,6" />
+                            <ListBox
+                                x:Name="RowsList"
+                                AutomationProperties.AutomationId="Checks.Table"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Padding="0,0,0,4"
+                                SelectionChanged="OnRowSelected"
+                                SelectionMode="Single" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- the selected capability's detail -->
+                    <Border
+                        x:Name="DetailCard"
+                        Padding="20"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Visibility="Collapsed">
+                        <StackPanel
+                            x:Name="DetailPanel"
+                            AutomationProperties.AutomationId="Checks.Detail"
+                            Spacing="10" />
+                    </Border>
+
+                    <TextBlock
+                        x:Name="FooterText"
+                        AutomationProperties.AutomationId="Checks.Footer"
+                        MaxWidth="860"
+                        HorizontalAlignment="Left"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>

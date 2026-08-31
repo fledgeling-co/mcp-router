@@ -95,11 +95,12 @@ renders "2 failed" and "9 of 11"; this board renders "not met" and the tally seg
 
 The Mac's board checks servers (six) and skills (five). The five skill checks read one input and
 only one: `GET /skills`. **The router this product installs is the TypeScript one, and it serves
-no `/skills` route** (`src/control.ts` `isControlPath`: `/servers`, `/usage`, `/sessions`,
-`/registry/` only) — the Mac's own client records that this endpoint exists only on the Swift
-router and answers 404 everywhere else (`ControlAPIClient.swift:241`). A Windows port of the five
-checks would be code whose only input can never arrive: a closed set of questions with no way to
-gather a single answer.
+no `/skills` route** (`isControlPath` recognises `/servers`, `/usage`, `/sessions` and
+`/registry/` only — `src/control.ts:423` at `22d7abf6`) — the Mac's own client records that this
+endpoint exists only on the Swift router and answers 404 everywhere else
+(`app/Sources/MCPRouterKit/Control/ControlAPIClient.swift:241` at `22d7abf6`). A Windows port of
+the five checks would be code whose only input can never arrive: a closed set of questions with
+no way to gather a single answer.
 
 So this board ships the **six server checks** — every one a pure function of `GET /servers`'s
 fields, every one ported with its Mac semantics intact — and implements the skills read path for
@@ -322,3 +323,61 @@ DESIGN.md §5's nine rows are the design; real copy, no placeholders:
    are honest about it.
 6. **High Contrast is unmeasured**, as §11 already records for the whole Windows floor. The
    meaning-never-rests-on-colour rule is carried: every state word sits beside its mark.
+
+---
+
+## 8 · Progress — built on `ai/win8`, 2026-08-31
+
+**Status: built and gated; NOT verified, NOT merged.** The conductor verifies from fresh context
+and serializes the merge.
+
+### 8.1 What ran, with its real exit codes
+
+| Command | Exit | Notes |
+|---|---|---|
+| `MSBuild.exe MCPRouter.Shell.csproj -t:Restore` / `-t:Build` | 0 / 0 | two invocations, per the WIN18/WIN20 rule; artifacts on disk (`MCPRouter.Shell.exe`, `MCPRouter.Checks.Model.dll`, `MCPRouter.Shell.pri` under `bin/Debug/.../win-x64/`) |
+| `MSBuild.exe -t:Restore` / `-t:Build` on Checks.Model, Shell.Model, Shell.Tests, AutomationProbe | 0 / 0 each | all five `.csproj` in the tree build |
+| `dotnet test MCPRouter.Shell.Tests.csproj` | 0 | **242 passed, 0 failed** — 199 pre-existing + 43 new |
+| 24 python gates of the lane (exact lane arguments, `PYTHONIOENCODING=utf-8`) | see left | 21 green; 3 at their lane-reserved no-verdict codes, none failed: `registry-drop-gate` exit 2, `foreign-path-gate --quiet` exit 2, `raster-claim-gate` exit 4. `sweep-control-gate` needed ~4 minutes and exits 0 — its earlier timeout was the probe, not the gate |
+
+### 8.2 The acceptance sketch, clause by clause
+
+| # | Clause | Verdict | Evidence |
+|---|---|---|---|
+| 1 | every result stamped with the version it ran against, visible on the row | **met in code** | `Stamp` is failable — no version, no stored result; the row's Version cell draws the live stamp, the detail heading names the run's stamp. `CheckHistoryStoreTests`, `VersionBoundTests` |
+| 2 | version moves → previous result dropped, row reads stale, never re-shown | **met in code** | `VersionBoundTests.WhenTheVersionMovesTheResultIsDroppedAndTheRowReadsStale`, `…TheDroppedRunSurvivesInHistoryLabelledWithItsVersion`, `…AStaleRowShowsNoLiveInputsBesideItsSupersededEvidence` |
+| 3 | the invalidation notice names what was dropped and why, offers re-run | **met in code** | `CheckCopy.Invalidated` (name, both stamps, the refusal sentence); one InfoBar per drop, each with `Re-run <name>`. `TheInvalidationNoticeNamesWhatWasDroppedAndWhy` |
+| 4 | `Run all` and `Run the stale suite` distinct; the second acts only on stale rows | **met in code** | `TheStaleSuiteActsOnlyOnStaleRows` (two rows, one moves, exactly one reindex call), `RunAllActsOnEveryRow` |
+| 5 | a failing check opens to the exchange that failed, not to a count | **met in code** | the detail renders each check's statement, verdict word, reason and the observed input. `SelectingARowExposesTheExchangesThatFailed`, `EveryCheckNamesTheInputItWasComputedFrom` |
+| 6 | no surface shows a model-graded score | **met in code** | `TheOnlyGradedWordAnywhereIsTheDenialItself`, `NoStringShowsAScoreOrAPercentage`, `TheVerdictVocabularyIsTheObservationSet` |
+| 7 | empty, running, disconnected states draw | **built; drawing unmeasured here** | all three are built surfaces with real copy (§5); the disconnected state is what this machine's board actually loads into. Their captures belong to the self-test lane, which this session cannot run (7.5) |
+
+### 8.3 What could not run here, and why
+
+1. **The live router conversation** — nothing listens on 8879 and no `servers.json`/`control.token`
+   exists on this machine (measured 2026-08-31). The read/write path is proven against a real
+   loopback `HttpListener` fixture (`ControlClientTests`, 8 cases over real sockets). **not-run
+   against the installed router.**
+2. **The self-test and any window capture** — attempted from this session with the built exe:
+   the process exited before writing `shell-startup.log` and the self-test directory stayed
+   empty, matching spec-WIN3 §7's measured Session-0 death. The interactive-task lane
+   (`run-shell-selftest.ps1`) is the channel; **not-run here.**
+3. **The UI Automation lane** — needs the interactive window station; **not-run.**
+4. **Out-of-family review (codex/agy/grok, and the claude lane)** — absent/disabled on this
+   machine; recorded **not-run** per §3.9, never as a pass.
+5. **The reindex write against a real router** — fixture-proven only (bearer header sent, 401
+   mapped); **not-run** live.
+
+### 8.4 Departures and parked items
+
+- §3.4's dropped durations, §3.5's accent placement, §3.6's empty state, §3.2's six checks — all
+  decisions, recorded in place.
+- `library.runDoctor` stays disabled with its `WIN8` owning-item string unchanged (§3.8); the
+  conductor should re-target or schedule it — this item did not build doctor.
+- `Button.IsDefault` does not exist in WinUI 3: the board binds no Return default. `Run all`
+  remains reachable by pointer, access key and `Library → Run all checks`; §13's Return row is
+  unimplemented on this board and noted here rather than silently dropped.
+- Row selection uses a `ListBox` (its items publish the selection patterns WIN20 measured); the
+  invalidation notice is an `InfoBar` per dropped result, the Fluent control for exactly this
+  shape.
+

@@ -192,6 +192,17 @@ public sealed partial class ShellWindow : Window
                 SelectDestination("discover");
                 break;
 
+            case "library.runChecks":
+                // WIN8: the command navigates to the board and runs all. The board may still be
+                // composing when the call arrives, so it is deferred to its own Loaded path.
+                SelectDestination("checks");
+                if (BoardHost.Content is ChecksBoard board)
+                {
+                    _ = board.RunAllFromCommandAsync();
+                }
+
+                break;
+
             case "help.about":
                 ShowAbout();
                 break;
@@ -320,7 +331,11 @@ public sealed partial class ShellWindow : Window
         var destination = DestinationCatalog.ById(destinationId);
         _currentDestinationId = destinationId;
 
-        BoardHost.Content = new BoardPlaceholder(destination);
+        // The Checks board is the first destination with its own surface (WIN8); everything else
+        // still draws its placeholder until its item lands.
+        BoardHost.Content = destinationId == "checks"
+            ? new ChecksBoard()
+            : new BoardPlaceholder(destination);
 
         // §11 rule 7: the window title says what you are looking at, not the app's name. Both the
         // band and the window itself, so the taskbar agrees with the chrome.

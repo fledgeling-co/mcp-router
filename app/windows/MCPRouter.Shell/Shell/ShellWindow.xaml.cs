@@ -339,16 +339,16 @@ public sealed partial class ShellWindow : Window
         var destination = DestinationCatalog.ById(destinationId);
         _currentDestinationId = destinationId;
 
-        // Two destinations are built boards; the rest still say what will build them. Each board
-        // receives what it needs from the shell (the Skills board gets navigation so its buttons
-        // reach destinations the shell already owns; the Checks board is self-contained).
-        BoardHost.Content = destinationId == "skills"
-            ? new SkillsBoard(
+        // Built boards mount their views; unbuilt destinations keep their placeholder.
+        BoardHost.Content = destinationId switch
+        {
+            "servers" => new ServersBoard(),
+            "skills" => new SkillsBoard(
                 _skillsClient ?? new LiveSkillsControlClient(),
-                SelectDestination)
-            : destinationId == "checks"
-            ? new ChecksBoard()
-            : new BoardPlaceholder(destination);
+                SelectDestination),
+            "checks" => new ChecksBoard(),
+            _ => new BoardPlaceholder(destination),
+        };
 
         // §11 rule 7: the window title says what you are looking at, not the app's name. Both the
         // band and the window itself, so the taskbar agrees with the chrome.

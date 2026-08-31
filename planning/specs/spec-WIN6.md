@@ -31,7 +31,7 @@ built** — the board is read-only, for the same reason and in the same words as
 
 ### 2.1 The router serves no `/skills` route, and app-side work is forbidden from adding one
 
-Measured: `isControlPath` in `src/control.ts:423` serves `/servers`, `/usage`, `/sessions`,
+Measured: `isControlPath`, `src/control.ts:423` at `2f718779` serves `/servers`, `/usage`, `/sessions`,
 `/registry/*` — nothing for skills or marketplaces. `src/skills.ts` has no commits on any branch;
 commit `b9db114d` ("M4: revert the TypeScript router work — a merged gate forbids it") records
 why: `StandingConstraintsTests.theReferenceIsUntouched` (A38) fails on **any** diff to `src/`.

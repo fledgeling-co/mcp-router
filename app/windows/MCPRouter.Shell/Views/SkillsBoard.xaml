@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="MCPRouter.Shell.Views.SkillsBoard"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+      The Skills board (WIN6). The static skeleton is XAML; every row, card and count is built in
+      code-behind from the snapshot, so the drawn surface and the tested model cannot drift.
+    -->
+    <Grid RowSpacing="12" Padding="24,16,24,16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Head -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
+                <TextBlock x:Name="BoardHeading" Text="Skills" Style="{StaticResource SubtitleTextBlockStyle}" />
+                <TextBlock
+                    x:Name="SubtitleText"
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    AutomationProperties.Name="Skills summary" />
+            </StackPanel>
+
+            <StackPanel
+                x:Name="HeadActions"
+                Grid.Column="1"
+                Orientation="Horizontal"
+                Spacing="8"
+                VerticalAlignment="Center" />
+        </Grid>
+
+        <!-- Tabs -->
+        <ContentControl
+            x:Name="TabsHost"
+            Grid.Row="1"
+            HorizontalContentAlignment="Left"
+            IsTabStop="False" />
+
+        <!-- Held and partial banners -->
+        <StackPanel x:Name="BannersHost" Grid.Row="2" Spacing="8" />
+
+        <!-- Content -->
+        <Grid Grid.Row="3">
+            <ContentControl
+                x:Name="ContentHost"
+                HorizontalContentAlignment="Stretch"
+                VerticalContentAlignment="Stretch"
+                IsTabStop="False" />
+        </Grid>
+    </Grid>
+</UserControl>

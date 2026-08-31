@@ -1,4 +1,5 @@
 using MCPRouter.Shell.Model;
+using MCPRouter.Shell.Model.Control;
 using MCPRouter.Shell.Views;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Input;
@@ -26,9 +27,16 @@ public sealed partial class ShellWindow : Window
     private string _currentDestinationId = DestinationCatalog.Default.Id;
     private double _rasterizationScale;
     private bool _sidebarShown = true;
+    private readonly ISkillsControlClient? _skillsClient;
 
-    public ShellWindow()
+    /// <param name="skillsClient">
+    /// The skills board's read client. Null builds the live one against the loopback control
+    /// port; App passes the Debug fixture client for <c>--fixture-skills</c>.
+    /// </param>
+    public ShellWindow(ISkillsControlClient? skillsClient = null)
     {
+        _skillsClient = skillsClient;
+
         InitializeComponent();
 
         // §11 rule 3: Mica on the window backdrop, once, and never on a UI element. When the user
@@ -320,7 +328,14 @@ public sealed partial class ShellWindow : Window
         var destination = DestinationCatalog.ById(destinationId);
         _currentDestinationId = destinationId;
 
-        BoardHost.Content = new BoardPlaceholder(destination);
+        // One destination is a built board; the other nine still say what will build them. The
+        // board receives the shell's navigation so its buttons reach destinations the shell
+        // already owns (Run doctor -> Checks; Browse in the store -> Discover).
+        BoardHost.Content = destinationId == "skills"
+            ? new SkillsBoard(
+                _skillsClient ?? new LiveSkillsControlClient(),
+                SelectDestination)
+            : new BoardPlaceholder(destination);
 
         // §11 rule 7: the window title says what you are looking at, not the app's name. Both the
         // band and the window itself, so the taskbar agrees with the chrome.

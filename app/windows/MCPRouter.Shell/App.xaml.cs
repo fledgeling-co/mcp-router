@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using MCPRouter.Shell.Model.Control;
 using MCPRouter.Shell.Shell;
 using Microsoft.UI.Xaml;
 
@@ -13,6 +14,13 @@ public partial class App : Application
     /// normal launch.
     /// </summary>
     internal static string? SelfTestDirectory { get; private set; }
+
+    /// <summary>
+    /// Debug-only opt-in to the populated board fixture. The live client remains the default;
+    /// the fixture is not a fallback, because a release build must never claim router data it did
+    /// not read.
+    /// </summary>
+    internal static bool UseSkillsFixture { get; private set; }
 
     public App()
     {
@@ -34,10 +42,14 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        SelfTestDirectory = ReadSelfTestDirectory(Environment.GetCommandLineArgs());
-        StartupLog.Write($"launched, selftest={SelfTestDirectory ?? "(no)"}");
+        var argv = Environment.GetCommandLineArgs();
+        SelfTestDirectory = ReadSelfTestDirectory(argv);
+#if DEBUG
+        UseSkillsFixture = HasFlag(argv, "--fixture-skills");
+#endif
+        StartupLog.Write($"launched, selftest={SelfTestDirectory ?? "(no)"}, skills-fixture={UseSkillsFixture}");
 
-        _window = new ShellWindow();
+        _window = new ShellWindow(UseSkillsFixture ? new FixtureSkillsControlClient() : null);
         _window.Activate();
     }
 
@@ -62,6 +74,9 @@ public partial class App : Application
 
         return null;
     }
+
+    private static bool HasFlag(IReadOnlyList<string> argv, string flag) =>
+        argv.Any(argument => string.Equals(argument, flag, StringComparison.OrdinalIgnoreCase));
 }
 
 /// <summary>

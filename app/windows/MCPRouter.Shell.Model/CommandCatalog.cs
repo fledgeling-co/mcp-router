@@ -202,7 +202,7 @@ public static class CommandCatalog
         order = 0;
         list.Add(new("library.updateSkills", MenuLibrary, "Update all skills", "U",
             null,
-            Unbuilt("WIN6", "Updating is the Skills board's;"),
+            Unbuilt("WIN6", "The Skills board reads, but its writes wait on the router's skills routes;"),
             order++));
         list.Add(new("library.runDoctor", MenuLibrary, "Run doctor", "D",
             null,
@@ -220,7 +220,7 @@ public static class CommandCatalog
             order++, SeparatorBefore: true));
         list.Add(new("library.exportLibrary", MenuLibrary, "Export library…", "E",
             null,
-            Unbuilt("WIN6", "Export reads the library the Skills board owns;"),
+            Unbuilt("WIN6", "Export waits on the same router skills routes as the board's writes;"),
             order++));
 
         // ------------------------------------------------------------------ Help

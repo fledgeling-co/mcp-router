@@ -320,7 +320,12 @@ public sealed partial class ShellWindow : Window
         var destination = DestinationCatalog.ById(destinationId);
         _currentDestinationId = destinationId;
 
-        BoardHost.Content = new BoardPlaceholder(destination);
+        // One additive branch, the seam WIN3 left: the activity destination draws the live
+        // board (spec-WIN5); every destination whose item is not built yet keeps the
+        // placeholder that says so.
+        BoardHost.Content = destination.Id == "activity"
+            ? new ActivityBoard(destination, this, SelectDestination)
+            : new BoardPlaceholder(destination);
 
         // §11 rule 7: the window title says what you are looking at, not the app's name. Both the
         // band and the window itself, so the taskbar agrees with the chrome.

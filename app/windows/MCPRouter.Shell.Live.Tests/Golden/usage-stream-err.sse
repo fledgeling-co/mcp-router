@@ -1,0 +1,8 @@
+: connected
+
+data: {"ts":"2026-08-31T10:48:29.720Z","server":"fixture","tool":"ping","ok":true,"ms":2,"cold":false,"pid":10816,"client":"node"}
+
+data: {"ts":"2026-08-31T10:48:31.400Z","server":"dieoncall","tool":"flaky","ok":false,"ms":7,"cold":true,"err":"unknown upstream server \"dieoncall\""}
+
+: ping
+

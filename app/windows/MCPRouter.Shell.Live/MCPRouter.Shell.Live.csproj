@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    The Activity board's router client, deliberately plain net8.0 with no WinUI reference.
+
+    The reference machine cannot host a XAML window from the session that runs the gates
+    (spec-WIN3 §7 gap 1), so every claim this library makes about the wire - the SSE framing,
+    the record shape, the reconnect ladder, the pause window - has to be checkable by a test
+    that needs no display. Keeping the client out of the WinUI project is what makes that
+    possible; the same reasoning split MCPRouter.Shell.Model out in WIN3.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>MCPRouter.Shell.Live</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+</Project>

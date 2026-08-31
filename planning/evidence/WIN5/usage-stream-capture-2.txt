@@ -1,0 +1,14 @@
+# status 200
+# content-type text/event-stream
+# +0ms
+: connected
+
+# +3293ms
+data: {"ts":"2026-08-31T10:48:29.720Z","server":"fixture","tool":"ping","ok":true,"ms":2,"cold":false,"pid":10816,"client":"node"}
+
+# +4978ms
+data: {"ts":"2026-08-31T10:48:31.400Z","server":"dieoncall","tool":"flaky","ok":false,"ms":7,"cold":true,"err":"unknown upstream server \"dieoncall\""}
+
+# +24997ms
+: ping
+

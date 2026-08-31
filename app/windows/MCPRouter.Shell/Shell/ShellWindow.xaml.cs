@@ -347,6 +347,7 @@ public sealed partial class ShellWindow : Window
                 _skillsClient ?? new LiveSkillsControlClient(),
                 SelectDestination),
             "checks" => new ChecksBoard(),
+            "activity" => new ActivityBoard(destination, this, SelectDestination),
             _ => new BoardPlaceholder(destination),
         };
 

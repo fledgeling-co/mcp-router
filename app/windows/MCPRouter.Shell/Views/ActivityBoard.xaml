@@ -1,0 +1,406 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="MCPRouter.Shell.Views.ActivityBoard"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    xmlns:views="using:MCPRouter.Shell.Views">
+
+    <!--
+      The Windows Activity board (spec-WIN5).
+
+      WHAT is design/mcp-router-console.html §ACTIVITY; HOW is DESIGN.md §11-§13. Every sentence
+      on this board comes from ActivityCopy, every colour is a ThemeResource, and every state of
+      spec §4 is drawn by exactly one pane below - the states are the design, not a fallback for
+      it (DESIGN.md §5).
+    -->
+    <UserControl.Resources>
+        <!--
+          One row of the log, at the row geometry the whole board keeps: 32 epx high, five
+          columns of 88 / 120 / star / 88 / 100 with 12 epx between them. The header below and
+          the loading skeleton in code use the same numbers on purpose - the spec's loading state
+          promises "the true row geometry", and three copies of the same numbers is how a XAML
+          tree keeps that promise.
+        -->
+        <DataTemplate x:Key="LogRowTemplate" x:DataType="views:ActivityRowPresentation">
+            <Grid
+                Height="32"
+                Background="Transparent"
+                ColumnSpacing="12"
+                ToolTipService.ToolTip="{x:Bind ToolTipText}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="88" />
+                    <ColumnDefinition Width="120" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="88" />
+                    <ColumnDefinition Width="100" />
+                </Grid.ColumnDefinitions>
+
+                <!-- §3.8: Time, Tool and Duration are the instrument voice (Consolas) - they are
+                     the columns a reader pastes or compares. Time reads Secondary; it is context,
+                     not the row's payload. -->
+                <TextBlock
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    FontFamily="Consolas"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="{x:Bind TimeText}" />
+
+                <!-- §3.1: the harness is a word, not a paste-string, so it stays Segoe UI. -->
+                <TextBlock
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                    Text="{x:Bind HarnessText}"
+                    TextTrimming="CharacterEllipsis" />
+
+                <TextBlock
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    FontFamily="Consolas"
+                    Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                    Text="{x:Bind ToolText}"
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="NoWrap" />
+
+                <TextBlock
+                    Grid.Column="3"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    FontFamily="Consolas"
+                    Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                    Text="{x:Bind DurationText}" />
+
+                <!-- §3.2 / §12: the mark is the colour, the word is the meaning, and neither is
+                     optional - success against critical measures 1.00:1 dark on Windows, so a
+                     reader relying on hue alone is a reader relying on nothing. -->
+                <StackPanel
+                    Grid.Column="4"
+                    Orientation="Horizontal"
+                    Spacing="8"
+                    VerticalAlignment="Center">
+                    <Ellipse
+                        Width="8"
+                        Height="8"
+                        VerticalAlignment="Center"
+                        Fill="{ThemeResource SystemFillColorSuccessBrush}"
+                        Visibility="{x:Bind SuccessMarkVisibility}" />
+                    <Ellipse
+                        Width="8"
+                        Height="8"
+                        VerticalAlignment="Center"
+                        Fill="{ThemeResource SystemFillColorCautionBrush}"
+                        Visibility="{x:Bind CautionMarkVisibility}" />
+                    <Ellipse
+                        Width="8"
+                        Height="8"
+                        VerticalAlignment="Center"
+                        Fill="{ThemeResource SystemFillColorCriticalBrush}"
+                        Visibility="{x:Bind CriticalMarkVisibility}" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                        Text="{x:Bind ResultWord}" />
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+
+        <!-- §11 rule 5: the smallest text on the board is 12 epx regular (Caption), nothing
+             below. The column headers and the foot use it; every row of data uses Body. -->
+        <Style x:Key="ColumnHeader" TargetType="TextBlock">
+            <Setter Property="Style" Value="{StaticResource CaptionTextBlockStyle}" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid x:Name="Root" Padding="24,12,24,16" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- ================================================================ the head -->
+        <Grid Grid.Row="0" ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Spacing="2">
+                <TextBlock
+                    x:Name="MissionText"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    TextWrapping="Wrap" />
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <TextBlock
+                        x:Name="StatusLine"
+                        AutomationProperties.AutomationId="activity.status"
+                        Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                        Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <TextBlock
+                        x:Name="FilteredCountText"
+                        AutomationProperties.AutomationId="activity.filteredCount"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{StaticResource BodyTextBlockStyle}"
+                        Visibility="Collapsed" />
+                    <TextBlock
+                        x:Name="PausedNote"
+                        AutomationProperties.AutomationId="activity.pausedNote"
+                        Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                        Style="{StaticResource BodyTextBlockStyle}"
+                        Visibility="Collapsed" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- §11 rule 7: the board's commands live on a CommandBar, labels visible (a log
+                 reader needs the words, not icon archaeology), access keys on both so Alt
+                 enumerates them (§11 rule 9). -->
+            <muxc:CommandBar
+                Grid.Column="1"
+                VerticalAlignment="Top"
+                AutomationProperties.AutomationId="activity.commands"
+                AutomationProperties.Name="Activity commands"
+                DefaultLabelPosition="Right"
+                IsOpen="False">
+                <muxc:AppBarButton
+                    x:Name="PauseButton"
+                    AutomationProperties.AutomationId="activity.pause"
+                    AccessKey="P"
+                    Click="OnPauseClicked"
+                    Label="Pause">
+                    <muxc:AppBarButton.Icon>
+                        <SymbolIcon Symbol="Pause" />
+                    </muxc:AppBarButton.Icon>
+                </muxc:AppBarButton>
+                <muxc:AppBarButton
+                    x:Name="ExportButton"
+                    AutomationProperties.AutomationId="activity.export"
+                    AccessKey="E"
+                    Click="OnExportClicked"
+                    Label="Export…">
+                    <muxc:AppBarButton.Icon>
+                        <SymbolIcon Symbol="Save" />
+                    </muxc:AppBarButton.Icon>
+                </muxc:AppBarButton>
+            </muxc:CommandBar>
+        </Grid>
+
+        <!-- ================================================================ the filters -->
+        <StackPanel Grid.Row="1" Spacing="10">
+            <muxc:SelectorBar
+                x:Name="FilterBar"
+                AutomationProperties.AutomationId="activity.filters"
+                AutomationProperties.Name="Filters"
+                SelectionChanged="OnFilterChanged" />
+
+            <views:ActivityWrapPanel
+                x:Name="TallyPanel"
+                AutomationProperties.AutomationId="activity.tallies"
+                AutomationProperties.Name="Harness tallies" />
+        </StackPanel>
+
+        <!-- ================================================================ the banners -->
+        <!-- Both banners speak only when the board itself has a history to speak over; the
+             full-pane states below carry their own words. Messages are set in the constructor
+             from ActivityCopy, so the words stay the tests' words. -->
+        <StackPanel Grid.Row="2" Spacing="8">
+            <muxc:InfoBar
+                x:Name="ReconnectingBanner"
+                AutomationProperties.AutomationId="activity.banner.reconnecting"
+                IsClosable="False"
+                IsOpen="False"
+                Severity="Warning" />
+            <muxc:InfoBar
+                x:Name="DisconnectedBanner"
+                AutomationProperties.AutomationId="activity.banner.disconnected"
+                IsClosable="False"
+                IsOpen="False"
+                Severity="Error" />
+        </StackPanel>
+
+        <!-- ================================================================ the content -->
+        <Grid x:Name="StateHost" Grid.Row="3">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Populated: the header at the row's own column geometry, then the log. -->
+            <StackPanel x:Name="RowsHost" Grid.Row="0" Spacing="6">
+                <Grid ColumnSpacing="12" Margin="12,0,12,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="88" />
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="88" />
+                        <ColumnDefinition Width="100" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="HeaderTime" Grid.Column="0" Style="{StaticResource ColumnHeader}" />
+                    <TextBlock x:Name="HeaderHarness" Grid.Column="1" Style="{StaticResource ColumnHeader}" />
+                    <TextBlock x:Name="HeaderTool" Grid.Column="2" Style="{StaticResource ColumnHeader}" />
+                    <TextBlock x:Name="HeaderDuration" Grid.Column="3" HorizontalAlignment="Right" Style="{StaticResource ColumnHeader}" />
+                    <TextBlock x:Name="HeaderResult" Grid.Column="4" Style="{StaticResource ColumnHeader}" />
+                </Grid>
+                <muxc:ListView
+                    x:Name="RowsList"
+                    AutomationProperties.AutomationId="activity.rows"
+                    AutomationProperties.Name="Calls"
+                    IsItemClickEnabled="False"
+                    ItemTemplate="{StaticResource LogRowTemplate}"
+                    SelectionMode="None">
+                    <!-- A live log re-renders every second; replaying the platform's add
+                         transition on each event is churn, not the published motion §11 rule 10
+                         means, so the container carries no transitions at all. -->
+                    <muxc:ListView.ItemContainerTransitions>
+                        <TransitionCollection />
+                    </muxc:ListView.ItemContainerTransitions>
+                    <muxc:ListView.ItemContainerStyle>
+                        <Style TargetType="muxc:ListViewItem">
+                            <Setter Property="Height" Value="32" />
+                            <Setter Property="MinHeight" Value="32" />
+                            <Setter Property="Padding" Value="12,0,12,0" />
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="VerticalContentAlignment" Value="Center" />
+                        </Style>
+                    </muxc:ListView.ItemContainerStyle>
+                </muxc:ListView>
+            </StackPanel>
+
+            <!-- Loading: skeleton rows at the row geometry + the status line - never a spinner
+                 over a blank pane (§4). The rows are built in the constructor. -->
+            <StackPanel
+                x:Name="LoadingPane"
+                Grid.Row="0"
+                Padding="12"
+                Spacing="6"
+                Visibility="Collapsed">
+                <StackPanel x:Name="SkeletonRows" Margin="0,8,0,8" Spacing="6" />
+                <TextBlock
+                    x:Name="LoadingStatusText"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource BodyTextBlockStyle}" />
+            </StackPanel>
+
+            <!-- Empty: the mock's state, word for word, with a real navigation for its action. -->
+            <Grid x:Name="EmptyPane" Grid.Row="0" Visibility="Collapsed">
+                <Border
+                    MaxWidth="520"
+                    Padding="32"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{ThemeResource ControlCornerRadius}">
+                    <StackPanel Spacing="12">
+                        <FontIcon
+                            x:Name="EmptyGlyph"
+                            HorizontalAlignment="Left"
+                            FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                            FontSize="28"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        <TextBlock
+                            x:Name="EmptyTitleText"
+                            Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                            Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock
+                            x:Name="EmptyDetailText"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource BodyTextBlockStyle}"
+                            TextWrapping="Wrap" />
+                        <Button
+                            x:Name="EmptyActionButton"
+                            AutomationProperties.AutomationId="activity.seeHarnesses"
+                            Click="OnSeeHarnessesClicked"
+                            Style="{StaticResource AccentButtonStyle}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Offline: nothing is listening on the loopback port. §3.6's Reconnect, not the
+                 Mac's Start-the-router, because only real actions get buttons. -->
+            <Grid x:Name="OfflinePane" Grid.Row="0" Visibility="Collapsed">
+                <Border
+                    MaxWidth="520"
+                    Padding="32"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{ThemeResource ControlCornerRadius}">
+                    <StackPanel Spacing="12">
+                        <FontIcon
+                            x:Name="OfflineGlyph"
+                            HorizontalAlignment="Left"
+                            FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                            FontSize="28"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        <TextBlock
+                            x:Name="OfflineTitleText"
+                            Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                            Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock
+                            x:Name="OfflineDetailText"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource BodyTextBlockStyle}"
+                            TextWrapping="Wrap" />
+                        <Button
+                            x:Name="ReconnectButton"
+                            AutomationProperties.AutomationId="activity.reconnect"
+                            Click="OnReconnectClicked"
+                            Style="{StaticResource AccentButtonStyle}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Filtered to nothing: the window has calls, this combination has none. -->
+            <Grid x:Name="FilteredPane" Grid.Row="0" Visibility="Collapsed">
+                <Border
+                    MaxWidth="520"
+                    Padding="32"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{ThemeResource ControlCornerRadius}">
+                    <StackPanel Spacing="12">
+                        <FontIcon
+                            x:Name="FilteredGlyph"
+                            HorizontalAlignment="Left"
+                            FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                            FontSize="28"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        <TextBlock
+                            x:Name="FilteredTitleText"
+                            Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                            Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock
+                            x:Name="FilteredDetailText"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource BodyTextBlockStyle}"
+                            TextWrapping="Wrap" />
+                        <Button
+                            x:Name="ClearFiltersButton"
+                            AutomationProperties.AutomationId="activity.clearFilters"
+                            Click="OnClearFiltersClicked" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- ================================================================ the foot -->
+        <TextBlock
+            x:Name="FootText"
+            Grid.Row="5"
+            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+            Style="{StaticResource CaptionTextBlockStyle}"
+            TextWrapping="Wrap" />
+    </Grid>
+</UserControl>

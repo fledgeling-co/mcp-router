@@ -1,0 +1,7 @@
+# status 200
+# GET http://127.0.0.1:8979/usage/stream
+# live probe re-run 2026-08-31, scratch router, fixture stdio server, ping + a failing call
+: connected
+
+data: {"ts":"2026-08-31T13:51:10.604Z","server":"fixture","tool":"ping","ok":true,"ms":225,"cold":true,"pid":31628,"client":"node"}
+

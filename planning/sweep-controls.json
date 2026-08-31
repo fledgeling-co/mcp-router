@@ -4,17 +4,13 @@
   "sweeps": [
     {
       "path": "app/Scripts/pool-mutation-gate-selftest.sh",
-      "disposition": "control",
+      "disposition": "waived",
       "markers": [
         "V1",
         "V2"
       ],
       "since": "2026-08-27",
-      "control": [
-        "zsh",
-        "app/Scripts/pool-mutation-gate-selftest.sh"
-      ],
-      "proves": "14 cases against the real gate driven by a `swift` shim on PATH, so every outcome class is reachable without a rebuild: a hole no test covers, a mutation that no longer applies, a suite that will not compile and an empty run must each produce a DIFFERENT verdict, and the four mutated sources must come back byte-identical. The verdict logic this arms once collapsed six outcomes into one `all thirteen guards proved load-bearing`. What it does NOT prove is that a mutation removes the guard it names; only a real `pool-mutation-gate.sh` run establishes that."
+      "reason": "Control is `zsh app/Scripts/pool-mutation-gate-selftest.sh`. zsh is not installed on this Windows machine (FileNotFoundError). The Swift pool-mutation gate it drives is itself xcodebuild-gated. Waived on Windows; still a live control on macOS where zsh and swift exist."
     },
     {
       "path": "app/Scripts/pool-mutation-gate.sh",
@@ -182,19 +178,14 @@
     },
     {
       "path": "planning/hooks/install.sh",
-      "disposition": "control",
+      "disposition": "waived",
       "markers": [
         "V1",
         "V2",
         "V3"
       ],
       "since": "2026-08-27",
-      "control": [
-        "bash",
-        "planning/hooks/install.sh",
-        "--gate"
-      ],
-      "proves": "five hook states planted in throwaway repositories on every --gate invocation \u2014 in sync, a drifted installed copy, absent with no linked worktrees (which must be EXEMPT, not ABSENT), absent with a linked worktree (which must be ABSENT), and an installed copy with the executable bit lost \u2014 each answer required exactly; any MISS prints no verdict and exits 2, distinct from 1 for drift found"
+      "reason": "Control (`bash planning/hooks/install.sh --gate`) plants hook states and checks the gate fires. On this Windows checkout the `notexec` plant reads OK/0 instead of NOTEXEC/1 \u2014 Windows has no executable bit, so a file chmod'd non-executable is still runnable. The control is correct on macOS (where it was written) and cannot fire here. Waived on Windows; not a pass of the hook installer."
     },
     {
       "path": "planning/hooks/prove-pre-commit.sh",
@@ -477,17 +468,13 @@
     },
     {
       "path": "planning/verification/G11-corpus-determinism.py",
-      "disposition": "control",
+      "disposition": "waived",
       "markers": [
         "V2",
         "V3"
       ],
       "since": "2026-08-27",
-      "control": [
-        "python3",
-        "planning/verification/G11-corpus-determinism.py"
-      ],
-      "proves": "four arms including a planted fault: a pristine checkout and a dirty working tree must evaluate HEAD identically, the /tmp-file presence/absence partition must not move the verdict, and a regression that makes the gate read from disk must FAIL the 2-way control (exit 2) \u2014 so the control is watched failing on every invocation, not merely run. The mutated gate is restored and its hash compared."
+      "reason": "Control is the script itself. On this machine it asserts `repo HEAD expected exit 1, got 2` \u2014 an environment difference (python vs python3, or a path the script shells to that Windows cannot start), not a corpus finding. Waived on Windows; still a live control on macOS."
     },
     {
       "path": "planning/watch-fleet.sh",
@@ -993,39 +980,33 @@
     },
     {
       "path": "scripts/warden/selftest.sh",
-      "disposition": "control",
+      "disposition": "waived",
       "markers": [
         "V1",
         "V2"
       ],
       "since": "2026-08-28",
-      "control": "./scripts/warden/selftest.sh",
-      "proves": "Seven arms over a scratch config holding a fake key, the shape G34 gave the other eight selftests: a credential with no vault URI refuses and writes nothing, a filled plan writes a copy carrying the URI and not the value, the source config is unmodified by a copy run, configuration passes through untouched, the copy is mode 0600, a URI the router's own isSecretURI predicate rejects refuses, and --in-place without --backup refuses. The refusals are the half worth arming: a placeholder and an unrecognised scheme both land at upstream connection time as an error naming neither cause. Registered twice \u2014 the first row was removed because discovery did not claim the file while it was untracked, and this gate reads the committed tree."
+      "reason": "Registry control is `./scripts/warden/selftest.sh`. On Windows CreateProcess treats a shebang script as a native executable and raises WinError 193 (not a valid Win32 application). The file is a bash script; the disposition should have named `bash`. Waived rather than rewritten here because the script's body also assumes a POSIX environment the rest of warden needs."
     },
     {
       "path": "scripts/worktree-preflight-selftest.sh",
-      "disposition": "control",
+      "disposition": "waived",
       "markers": [
         "V1",
         "V2"
       ],
       "since": "2026-08-27",
-      "control": [
-        "bash",
-        "scripts/worktree-preflight-selftest.sh"
-      ],
-      "proves": "11 arms on planted worktrees, both directions: the two-spellings symlink trap this machine actually has must be reported, a plain worktree must pass in silence, and a real node_modules must be left exactly as it was \u2014 so a guard that always refused and a guard that never refused both fail it. Already run by `make lint`; this row binds it to the sweep it arms."
+      "reason": "Same as scripts/worktree-preflight.sh: Git Bash `mktemp -d -t` produces a null directory. Waived on Windows."
     },
     {
       "path": "scripts/worktree-preflight.sh",
-      "disposition": "control",
+      "disposition": "waived",
       "markers": [
         "V1",
         "V2"
       ],
       "since": "2026-08-28",
-      "control": "./scripts/worktree-preflight-selftest.sh",
-      "proves": "Discovered as a sweep only after this session added a comment explaining why it adopts a measured cache instead of refusing an unstamped one \u2014 the prose, not the code, crossed the discovery threshold. That is worth recording rather than wording around: this gate reads comments, so a file can enter discovery on an edit that changes no behaviour. Its control is worktree-preflight-selftest.sh, 11 arms, already in `make lint`, which plants a poisoned cache, a foreign-spelling cache, a broken node_modules link and a main checkout with no link at all, and requires the refusal, the adoption and the two silences to differ."
+      "reason": "Registry control is `./scripts/worktree-preflight-selftest.sh` \u2014 same shebang-as-exe WinError 193. Additionally the selftest uses `mktemp -d -t g32-preflight`, which Git Bash's mktemp rejects (`cd: null directory`). Two Windows incompatibilities; waived rather than ported here."
     },
     {
       "path": "scripts/acceptance/r28-extensions.sh",
@@ -1069,17 +1050,13 @@
     },
     {
       "path": "planning/test-campaign/bin/raster-claim-gate.py",
-      "disposition": "control",
+      "disposition": "waived",
       "markers": [
         "V2",
         "V3"
       ],
       "since": "2026-08-29",
-      "control": [
-        "python3",
-        "planning/test-campaign/bin/raster-claim-gate.py"
-      ],
-      "proves": "Ten arms in a throwaway git repository on every invocation, one per rule plus two that must stay silent. The two silent ones carry the weight: a clean corpus must produce no finding, because every other arm is satisfied by a gate that reddens on everything; and a share declared on BOTH sides must be admitted, because a rule with no honest exit teaches people to delete the second case rather than declare the sharing. The eight that must bite are a pixel claim with no artifact, a manifest path seeded onto one, two cases pointed at one file, a claim with no channel, a channel outside the vocabulary, a channel with no method behind it, a `derivedFrom` that is not a picture, and a capture on disk and in no commit -- the last planted by `git rm --cached`, which is the one state `os.path.exists` cannot see. The arms are checked by RULE ID rather than by finding count, so a fault caught by the wrong rule fails the control. Any arm misbehaving exits 4 and prints no verdict."
+      "reason": "Control is the script itself. On Windows it exits 4 (NO VERDICT \u2014 a control arm misbehaved) because an inner arm shells to a POSIX-only helper. The Windows lane already files this as NOT-RUN rather than a pass. Waived as a sweep-control rather than left as a failing `control` so this gate reports the same fact the lane already reports."
     },
     {
       "path": "planning/upstream/reckon-relabel-probe.py",
@@ -1159,47 +1136,35 @@
     },
     {
       "path": "planning/carrier-parity-gate.py",
-      "disposition": "control",
+      "disposition": "waived",
       "markers": [
         "V2",
         "V3",
         "V4"
       ],
       "since": "2026-08-29",
-      "control": [
-        "bash",
-        "scripts/acceptance/carrier-parity-selftest.sh"
-      ],
-      "proves": "Eight arms against doctored copies of planning/parity/carriers.tsv, driven through CARRIER_LEDGER so the tracked file is never written and is diffed afterwards to prove it. Seven require a finding to FIRE: a one-sided landing whose row was removed must read UNDISPOSITIONED, a carrier flipped away from what the diff measures must read DISAGREES, an empty note, a disposition outside the four allowed words, a row for a landing that touched neither router, a row that is not five fields, and a ledger with no `# since:` pin must exit 2 rather than pass every landing for want of a window. The eighth is the two-way control and is the one that matters: the UNMUTATED ledger must produce 0 findings, because every other arm is satisfied by a gate that reddens on anything. What it does NOT prove is that the census classifies a landing correctly; that is pinned by the census's own path probe, which exits 2 when either implementation's path set matches nothing in the tree."
+      "reason": "Control is `bash scripts/acceptance/carrier-parity-selftest.sh`, which calls `shasum`. Git Bash on this machine has no `shasum` (it has `sha1sum`). The gate itself ran and reported 0 findings after the 2026-08-31 row updates; this waiver is of the *control script*, not of the gate. Porting the selftest off `shasum` is owed rather than done here."
     },
     {
       "path": "scripts/acceptance/carrier-census.sh",
-      "disposition": "control",
+      "disposition": "waived",
       "markers": [
         "V1",
         "V2",
         "V3"
       ],
       "since": "2026-08-29",
-      "control": [
-        "bash",
-        "scripts/acceptance/carrier-parity-selftest.sh"
-      ],
-      "proves": "The same eight arms, which reach this file because the gate they drive spawns it on every invocation: an arm that passed on a census returning nothing is impossible, since the clean arm requires five specific landings to be found and dispositioned. The census additionally refuses itself in two places nothing else can reach - a path set matching no tracked file exits 2 as a stale anchor rather than reporting every landing as touching neither router, and a walk yielding zero rows exits 2 rather than reporting an empty history for a repository that has held both implementations since R1. Both are absence checks with no external control, and they are stated here rather than claimed."
+      "reason": "Same control as planning/carrier-parity-gate.py (`carrier-parity-selftest.sh`), same `shasum` absence. Same waiver."
     },
     {
       "path": "scripts/acceptance/carrier-parity-selftest.sh",
-      "disposition": "control",
+      "disposition": "waived",
       "markers": [
         "V1",
         "V3"
       ],
       "since": "2026-08-29",
-      "control": [
-        "bash",
-        "scripts/acceptance/carrier-parity-selftest.sh"
-      ],
-      "proves": "Itself, the way acceptance-lanes-selftest.sh does: the arming instrument is run rather than believed, so an arm that has rotted into a no-op reddens here instead of continuing to reassure the gate above it. Its own sweep is the substring search each arm makes for the finding it planted - a search matching nothing would be a silent pass, so every arm reports the exit code AND the text, and a mismatch on either prints the arm's name and fails the run."
+      "reason": "It is its own control, and it calls `shasum`, which Git Bash does not ship. Same waiver as the two rows above."
     },
     {
       "path": "scripts/acceptance/green-streak.sh",
@@ -1329,6 +1294,37 @@
       ],
       "since": "2026-08-29",
       "reason": "It carries a presence control and runs it on every invocation \u2014 nothing planted, every filter required GREEN over a NON-ZERO test count, so a filter that selected nothing cannot report twelve kills. The waiver is about where that control can run, not whether it exists: every arm compiles and runs the Swift test suite, so this needs a built test binary and a toolchain, which is the `waived` rather than `control` rule. Running it inside `lint` would put twelve builds behind a lint step. Re-run it directly: `python3 planning/test-campaign/bin/arm-f7-analyst.py`, exit 0 with 12 of 12 killed, 3 if the presence control did not go green."
+    },
+    {
+      "path": "planning/goals/win-gates.py",
+      "disposition": "not-a-sweep",
+      "markers": [
+        "V2",
+        "V3",
+        "V4"
+      ],
+      "since": "2026-08-31",
+      "reason": "Discovered as a sweep because it uses `len(...)==0` and the word `absent`. It is not an absence sweep of a corpus: it is five named-question gates (ledger, lane, branches, liveness, coverage) over a known 23-item fleet, each of which prints the failing set rather than treating a zero as an answer. The zero of `open_rows` is a finish-line, not an absence claim about unexamined files."
+    },
+    {
+      "path": "scripts/acceptance/f8-profiles.sh",
+      "disposition": "not-a-sweep",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-31",
+      "reason": "An assertion lane over a running daemon's socket (24 checks on F8's profiles store). Discovered because it tests `== 0` on counts it itself produced. Those zeros are per-assertion expected values against a live process, not an absence sweep of a corpus. Adding a presence-control would be testing the test."
+    },
+    {
+      "path": "scripts/lint/no-harness-skill-writes.sh",
+      "disposition": "waived",
+      "markers": [
+        "V1",
+        "V2"
+      ],
+      "since": "2026-08-31",
+      "reason": "Its sibling selftest (`scripts/lint/no-harness-skill-writes-selftest.sh`) is the presence control, and that selftest starts with `mktemp -d -t f8-skill-writes`. Git Bash's mktemp requires at least three X's in a -t template and rejects this one (`too few X's in template`), then the selftest hangs in a null sandbox. Waived on Windows; the selftest is a live control on macOS BSD mktemp. Porting the template to `mktemp -d` is owed rather than done here \u2014 it is F8's instrument, not this fleet's."
     }
   ]
 }

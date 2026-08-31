@@ -1197,6 +1197,48 @@ own decision**, not as a platform value, and is marked as such — a Windows sur
 following us rather than Microsoft, and a future Fluent spacing scale outranks it under the header
 rule.
 
+### Signal Path geometry (Windows) `(specified)`
+
+§2's `### Signal Path geometry` is written in macOS points; this is its Windows arm. The
+conversion is the one §13 already established for §4's tile sizes — **read as effective pixels,
+one for one**, because a point on the macOS ladder and an epx on the Windows ramp are the same
+lay-out unit. Every value below is therefore either §2's own value under that convention, or a
+stated replacement with the section that forces it.
+
+| Element | Value | Where it comes from |
+|---|---|---|
+| Signal Path padding | 12px | §2's value, read as effective px |
+| Jack minimum width | 132px | §2's value, read as effective px |
+| Jack inset | 10px | §2's value, read as effective px |
+| Jack gap | 9px | §2's value, read as effective px |
+| Jack lane height | 44px | §2's `Jack lane` row, read as effective px |
+| Jack plug diameter | 16px | §2's value, read as effective px |
+| Jack plug ring | 3px | §2's value, read as effective px |
+| Row plug diameter | 8px | §2's value, read as effective px |
+| Hub width | 76px | §2's value, read as effective px |
+| Flow arrow width | 20px | §2's value, read as effective px |
+| **Plug transition** | **167ms, `cubic-bezier(0, 0, 0, 1)`** | **replaces §2's 0.2s.** §13's motion table maps "a plug lighting or going dark" to direct entrance, and the platform table outranks the hand-set duration under the header rule. On the fill and the ring, as §2 says |
+| Jack corner radius | 4px | `ControlCornerRadius` — §13's tile-radius rule: the jack is an in-page element, and the concentric derivation §2 derives child radii from has no Windows counterpart |
+| Jack bezel (resting) | 1px `ControlStrokeColorDefault` | the platform's control bezel, at the elevation ladder's 1px stroke |
+| Plug at rest | `TextFillColorDisabled`, as a **non-text mark** | authored here with provenance: Windows publishes no jack token. An unlit socket is absence — the Mac's `--jack-off` measures 1.45:1 light for the same reason — and the word beside every jack carries the state, per the finding below |
+| Ring at rest | `ControlStrokeColorDefault` | the resting bezel value, doing a second stated job one step inside the bezel |
+| Plug lit / tripped / held | `SystemFillColorSuccess` / `SystemFillColorCritical` / `SystemFillColorCaution` | §12's indicator-hue table. **The accent is never spent on a plug** — see §13's settled debt. `held` and `needs sign-in` share caution and are told apart by their words, as the Mac's `JackState` does |
+| Ring around a lit plug | the same hue's own `…Background` token | `SystemFillColorSuccessBackground` and siblings — a halo of the state hue from a published value rather than a second invention |
+
+The jack field packs to the width available, never a fixed column count — §2's
+`repeat(auto-fill, minmax(132px, 1fr))`, drawn with the platform's wrap layout. §2's three
+invariants carry unchanged and are the check a drawing fails before it fails a colour: the plug
+plus both sides of its ring fits inside the lane; the label column is the larger half of the
+jack; the ring is thinner than the plug's own radius.
+
+**The word beside every jack is not decoration, and this table is where that is measured rather
+than asserted.** §12 finds `SystemFillColorSuccess` against `SystemFillColorCritical` at
+**1.00:1 dark and 1.04:1 light** — the platform's own "succeeded" and "failed" are the same
+luminance — so awake and tripped are separable here only by hue, and hue is exactly where protan
+and deuteran vision has nothing to work with. §6's rule answers it on both platforms, but on
+Windows it is load-bearing: every jack draws its state's word, and a jack that dropped the word
+would be a jack whose two failure states are the same grey-green to some users.
+
 ---
 
 ## 13 · Windows icons, motion and the keyboard
@@ -1318,11 +1360,13 @@ this document's own and is marked as such.
 
 ### What the Windows floor still owes
 
-- **The Signal Path's plug is accent-coloured, and on Windows the accent is the user's.** A user
-  whose accent is green makes a lit plug and a `SystemFillColorSuccess` mark the same hue, and §2's
-  exclusivity rule cannot prevent it because the collision is outside the app. The plug therefore
-  needs a second channel — its ring, its shape, or the label beside it — before the Signal Path is
-  drawn on Windows. This is the signature element, so it is the first thing to settle.
+- **The Signal Path's plug and the accent — settled by WIN4.** The debt read: *"The Signal Path's
+  plug is accent-coloured, and on Windows the accent is the user's."* The resolution is a refusal,
+  not a token: **the plug never takes the accent.** It takes `SystemFillColorSuccess` — the
+  platform's own hue for exactly this meaning (§12's mapping of `--live`) — and the second channel
+  this entry asked for is the word every jack carries, which §12's 1.00:1 finding makes
+  load-bearing rather than decorative. The geometry, the off-socket tokens and the ring pairing are
+  specified in §12's `### Signal Path geometry (Windows)`.
 - **Nothing here has been rendered.** Every ratio in §12 is computed from published values by the
   same arithmetic §2 uses, and no Windows surface has been photographed against any of them. That
   is the same gap §2 records for its increased-contrast contexts, one platform over, and it closes

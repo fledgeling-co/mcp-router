@@ -1,0 +1,96 @@
+<UserControl
+    x:Class="MCPRouter.Shell.Views.InsightsBoard"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid x:Name="RootGrid" Background="Transparent">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Padding="24,16,24,32" Spacing="20" MaxWidth="1080" HorizontalAlignment="Left">
+                <!-- Board Head -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Insights" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="SemiBold" />
+                        <TextBlock Text="What your agents actually used, and what the analyst found in your own session logs. Every number here is counted from calls this router served — none of it is modelled."
+                                   Style="{ThemeResource BodyTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   TextWrapping="Wrap" MaxWidth="720" />
+                    </StackPanel>
+                    <Button Grid.Column="1" VerticalAlignment="Top" Content="Last 7 days" />
+                </Grid>
+
+                <!-- 4 Headline Metric Tiles -->
+                <Grid Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Tile 1: Processes -->
+                    <Border Grid.Column="0" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
+                            CornerRadius="{ThemeResource ControlCornerRadius}" Padding="16,12">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="0" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="Bold" />
+                            <TextBlock Text="Processes at rest" FontWeight="SemiBold" />
+                            <TextBlock Text="peak 4 · 11 declared" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Tile 2: Memory -->
+                    <Border Grid.Column="2" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
+                            CornerRadius="{ThemeResource ControlCornerRadius}" Padding="16,12">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="214 MB" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="Bold" />
+                            <TextBlock Text="Resident memory" FontWeight="SemiBold" />
+                            <TextBlock Text="measured, not modelled" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Tile 3: Calls -->
+                    <Border Grid.Column="4" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
+                            CornerRadius="{ThemeResource ControlCornerRadius}" Padding="16,12">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="9,418" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="Bold" />
+                            <TextBlock Text="Tool calls (7 d)" FontWeight="SemiBold" />
+                            <TextBlock Text="1,482 in last 24 h" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Tile 4: Failures -->
+                    <Border Grid.Column="6" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
+                            CornerRadius="{ThemeResource ControlCornerRadius}" Padding="16,12">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="0.13%" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="Bold" />
+                            <TextBlock Text="Failed calls" FontWeight="SemiBold" />
+                            <TextBlock Text="12 of 9,418 · 9 docker-mcp" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Section: Harness Breakdown -->
+                <TextBlock Text="Where calls came from" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" Margin="0,12,0,0" />
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="{ThemeResource ControlCornerRadius}">
+                    <StackPanel x:Name="HarnessBreakdownContainer" />
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

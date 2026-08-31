@@ -1,0 +1,40 @@
+<UserControl
+    x:Class="MCPRouter.Shell.Views.InboxBoard"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid x:Name="RootGrid" Background="Transparent">
+        <ScrollViewer x:Name="IdealView" VerticalScrollBarVisibility="Auto">
+            <StackPanel Padding="24,16,24,32" Spacing="16" MaxWidth="1080" HorizontalAlignment="Left">
+                <!-- Board Head -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Inbox" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="SemiBold" />
+                        <TextBlock Text="Everything waiting on a decision from you: what your phone queued, and what the session analyst noticed. Nothing here has been installed — the phone queues, it never installs."
+                                   Style="{ThemeResource BodyTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   TextWrapping="Wrap" MaxWidth="720" />
+                    </StackPanel>
+                    <Button Grid.Column="1" VerticalAlignment="Top" x:Name="PairButton" Content="Pair iPhone…" />
+                </Grid>
+
+                <!-- Filter Tabs -->
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button x:Name="TabUndecided" Content="Undecided · 3" Click="OnTabUndecidedClicked" FontWeight="SemiBold" />
+                    <Button x:Name="TabApproved" Content="Approved · 0" Style="{ThemeResource SubtleButtonStyle}" Click="OnTabApprovedClicked" />
+                    <Button x:Name="TabNotForMe" Content="Not for me · 0" Style="{ThemeResource SubtleButtonStyle}" Click="OnTabNotForMeClicked" />
+                </StackPanel>
+
+                <!-- Items Container -->
+                <StackPanel x:Name="CardsContainer" Spacing="12" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

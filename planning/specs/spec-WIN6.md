@@ -10,7 +10,7 @@
 | Brief | `planning/features-to-triage/WIN6-windows-skills-board.md` |
 | Source of layout, IA and vocabulary | `design/mcp-router-console.html` (`#b-skills`), cross-checked against the Mac's shipped M4 board (`app/Sources/MCPRouterUI/Boards/SkillsBoard.swift`, `SkillPresentation.swift`, `SkillCopy.swift`) |
 | Source of the visual language | `DESIGN.md` §11 · §12 · §13 |
-| Source of the wire shapes | `app/Sources/MCPRouterKit/Control/SkillModels.swift` — "transcribed from `src/skills.ts`", the Mac fleet's M4 models |
+| Source of the wire shapes | `app/Sources/MCPRouterKit/Control/SkillModels.swift` — its header credits a path in no commit reachable from any ref (`src/skills.ts`, the TypeScript models were never merged); the Windows models transcribe the Swift, which is the real source |
 | Triage | 2026-08-31 |
 
 ---

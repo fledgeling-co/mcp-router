@@ -1,0 +1,34 @@
+# Goal ledger — windows-parity-fleet
+
+| turn | at | verdict | failing | note |
+|---|---|---|---|---|
+| 1 | 21:59:06 | block | lane, ledger | iteration 1/80 · repeat ×1 |
+| 2 | 22:00:21 | block | lane, ledger | iteration 2/80 · repeat ×1 |
+| 3 | 22:02:01 | block | lane, ledger | iteration 3/80 · repeat ×2 |
+| 4 | 22:04:18 | block | lane, ledger | iteration 4/80 · repeat ×1 |
+| 5 | 22:05:41 | block | lane, ledger | iteration 5/80 · repeat ×1 |
+| 6 | 22:07:33 | block | lane, ledger | iteration 6/80 · repeat ×1 |
+| 7 | 22:09:16 | block | lane, ledger | iteration 7/80 · repeat ×1 |
+| 8 | 22:11:24 | block | lane, ledger | iteration 8/80 · repeat ×1 |
+| 9 | 01:08:33 | block | lane, ledger | iteration 9/80 · repeat ×1 |
+| 10 | 01:14:30 | block | ledger | iteration 10/80 · repeat ×1 |
+| 11 | 01:15:33 | block | ledger | iteration 11/80 · repeat ×2 |
+| 12 | 01:16:15 | block | ledger | iteration 12/80 · repeat ×1 |
+| 13 | 01:19:40 | block | lane, ledger | iteration 13/80 · repeat ×1 |
+| 14 | 01:20:10 | block | ledger | iteration 14/80 · repeat ×1 |
+| 15 | 01:21:15 | block | ledger | iteration 15/80 · repeat ×1 |
+| 16 | 01:25:38 | block | ledger | iteration 16/80 · repeat ×1 |
+| 17 | 01:28:07 | block | lane, ledger | iteration 17/80 · repeat ×1 |
+| 18 | 01:29:19 | block | ledger | iteration 18/80 · repeat ×1 |
+| 19 | 01:30:37 | block | ledger | iteration 19/80 · repeat ×1 |
+| 20 | 01:31:42 | block | ledger | iteration 20/80 · repeat ×1 |
+| 21 | 01:34:47 | block | ledger | iteration 21/80 · repeat ×1 |
+| 22 | 01:36:46 | block | ledger | iteration 22/80 · repeat ×1 |
+| 23 | 01:52:26 | block | branches, lane, ledger | iteration 23/80 · repeat ×1 |
+| 24 | 02:18:09 | block | branches, lane, ledger | iteration 24/80 · repeat ×1 |
+| 25 | 02:30:22 | block | branches, lane, ledger | iteration 25/80 · repeat ×1 |
+| 26 | 02:35:33 | block | branches, lane, ledger | iteration 26/80 · repeat ×1 |
+| 26 | 02:37:10 | api-error | — | turn ended on an API error (unknown) ×1; no gates run, iteration not advanced |
+| 26 | 02:37:15 | api-error | — | turn ended on an API error (unknown) ×2; no gates run, iteration not advanced |
+| 26 | 02:37:18 | api-error | — | turn ended on an API error (unknown) ×3; no gates run, iteration not advanced |
+| R1 | 17:24 | resume | - | resumed in-session after 3 api_error turn deaths at 02:37. Journal truth: wf_cc5f93f1 started 5 returned 3 (WIN17/WIN3/WIN20 work on disk, builders never returned); wf_01c0e6bd and wf_1205eab8 started 3 returned 0. WIN17 node_modules junction recreated; WIN20 review-fable committed 903f865e; ORCHESTRATOR rows corrected from Queued to Verifying. Three fresh-context verifiers launched via claude CLI (opus requested; grok-4.6 served — logged downgrade). |

@@ -216,7 +216,8 @@ public static class CommandCatalog
             order++));
         list.Add(new("library.runChecks", MenuLibrary, "Run all checks", "C",
             null,
-            Unbuilt("WIN8", "Checks are run and reported on the Checks board;"),
+            // WIN8: the board is here, and the command navigates to it and runs all.
+            Availability.Available,
             order++, SeparatorBefore: true));
         list.Add(new("library.exportLibrary", MenuLibrary, "Export library…", "E",
             null,

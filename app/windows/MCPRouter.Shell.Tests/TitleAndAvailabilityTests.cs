@@ -85,6 +85,7 @@ public sealed class TitleAndAvailabilityTests
         string[] live =
         {
             "file.exit", "help.about", "view.toggleSidebar", "library.browseStore",
+            "library.runChecks",
         };
 
         foreach (var id in live)

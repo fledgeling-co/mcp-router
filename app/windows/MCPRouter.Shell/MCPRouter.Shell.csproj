@@ -20,5 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MCPRouter.Shell.Model\MCPRouter.Shell.Model.csproj" />
+    <ProjectReference Include="..\MCPRouter.Checks.Model\MCPRouter.Checks.Model.csproj" />
   </ItemGroup>
 </Project>

@@ -200,6 +200,17 @@ public sealed partial class ShellWindow : Window
                 SelectDestination("discover");
                 break;
 
+            case "library.runChecks":
+                // WIN8: the command navigates to the board and runs all. The board may still be
+                // composing when the call arrives, so it is deferred to its own Loaded path.
+                SelectDestination("checks");
+                if (BoardHost.Content is ChecksBoard board)
+                {
+                    _ = board.RunAllFromCommandAsync();
+                }
+
+                break;
+
             case "help.about":
                 ShowAbout();
                 break;
@@ -328,13 +339,15 @@ public sealed partial class ShellWindow : Window
         var destination = DestinationCatalog.ById(destinationId);
         _currentDestinationId = destinationId;
 
-        // One destination is a built board; the other nine still say what will build them. The
-        // board receives the shell's navigation so its buttons reach destinations the shell
-        // already owns (Run doctor -> Checks; Browse in the store -> Discover).
+        // Two destinations are built boards; the rest still say what will build them. Each board
+        // receives what it needs from the shell (the Skills board gets navigation so its buttons
+        // reach destinations the shell already owns; the Checks board is self-contained).
         BoardHost.Content = destinationId == "skills"
             ? new SkillsBoard(
                 _skillsClient ?? new LiveSkillsControlClient(),
                 SelectDestination)
+            : destinationId == "checks"
+            ? new ChecksBoard()
             : new BoardPlaceholder(destination);
 
         // §11 rule 7: the window title says what you are looking at, not the app's name. Both the

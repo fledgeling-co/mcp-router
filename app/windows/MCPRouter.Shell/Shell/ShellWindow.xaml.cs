@@ -348,6 +348,7 @@ public sealed partial class ShellWindow : Window
                 SelectDestination),
             "checks" => new ChecksBoard(),
             "activity" => new ActivityBoard(destination, this, SelectDestination),
+            "discover" => new DiscoverBoard(),
             _ => new BoardPlaceholder(destination),
         };
 

@@ -20,6 +20,16 @@
 
 $ErrorActionPreference = 'Continue'   # native tools write progress to stderr; see CLAUDE.md
 $env:PYTHONIOENCODING = 'utf-8'       # repo gates die under cp1252 without this
+# The sweep-control gate runs every declared control under a per-control budget. Its 120s
+# default is a macOS measurement. On this clone the shell that gate resolves is Cygwin bash and
+# eight fleet runners share the box, and the two bash-heavy selftests in its registry measured
+# 5m22s (no-telemetry-egress-selftest.sh - 3 of 3 arms held, exit 0) and 2m30s
+# (acceptance-lanes-selftest.sh - 13 of 13 arms held, exit 0) on 2026-08-31. Both controls are
+# healthy; neither approaches 120s, and timing them out reddens this lane while answering
+# nothing about whether a control is rotted - an always-red that erodes. The budget is a
+# condition of the run, so this lane states its own rather than inheriting a machine's: the
+# gate's default is untouched, and every control must still pass inside whatever budget is set.
+$env:SWEEP_CONTROL_TIMEOUT = '600'      # headroom over the 5m22s measured under load
 
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 Set-Location $root

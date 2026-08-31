@@ -118,7 +118,16 @@ for _stream in (sys.stdout, sys.stderr):
         _stream.reconfigure(encoding="utf-8")
 
 REGISTRY = "planning/sweep-controls.json"
-CONTROL_TIMEOUT = 120
+# The budget each declared control runs under, overridable because it is a property of the
+# machine rather than of the tree. Measured 2026-08-31 on the Windows fleet's clone, where the
+# shell this gate resolves is Cygwin bash and eight fleet runners share the box: the two
+# bash-heavy selftests in the registry took 5m22s (no-telemetry-egress-selftest.sh — 3 of 3 arms
+# held, exit 0) and 2m30s (acceptance-lanes-selftest.sh — 13 of 13 arms held, exit 0). Both
+# controls hold; neither approaches 120s, and a timeout there answered nothing about whether the
+# control is rotted. A budget that cannot be stated cannot be compared with another run's — the
+# ACCEPTANCE-ENV lesson one level up — so it is an environment variable the lane can declare,
+# and the default stays 120, the macOS measurement it has always been.
+CONTROL_TIMEOUT = int(os.environ.get("SWEEP_CONTROL_TIMEOUT", "120"))
 
 # Four readers, named. Each is one way a script announces that it treats a zero as an answer.
 MARKERS: dict[str, re.Pattern] = {

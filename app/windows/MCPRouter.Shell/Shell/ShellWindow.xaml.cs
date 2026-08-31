@@ -363,6 +363,7 @@ public sealed partial class ShellWindow : Window
             "inbox" => new InboxBoard(),
             "settings" => new SettingsBoard(),
             "harnesses" => new HarnessesBoard(),
+            "insights" => new InsightsBoard(),
             _ => new BoardPlaceholder(destination),
         };
             _ => new BoardPlaceholder(destination),

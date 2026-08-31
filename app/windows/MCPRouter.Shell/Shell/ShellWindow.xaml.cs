@@ -361,6 +361,7 @@ public sealed partial class ShellWindow : Window
             "discover" => new DiscoverBoard(),
             "cleanup" => new CleanupBoard(),
             "inbox" => new InboxBoard(),
+            "settings" => new SettingsBoard(),
             _ => new BoardPlaceholder(destination),
         };
             _ => new BoardPlaceholder(destination),

@@ -42,3 +42,7 @@
 | 2 | 11:05:34 | block | branches, lane, ledger | iteration 2/80 · repeat ×1 |
 | 2 | 11:15:54 | block | branches, lane, ledger | iteration 2/80 · repeat ×1 |
 | R7 | 21:40 | verifying | - | WIN6 builder returned READY-TO-VERIFY (334beb75: 17 files, 223 model tests green, 3 projects restore+build 0, honest NOT-RUNs incl. no /skills route + A38 boundary). Fresh-context verifier dispatched. Other four builders still running. |
+| 3 | 11:37:20 | block | branches, lane, ledger | iteration 3/80 · repeat ×1 |
+| R8 | 21:52 | resumed | - | WIN5 builder died ECONNRESET 21:50 mid-file-creation; its work survives uncommitted (MCPRouter.Shell.Live project + tests + spec + plan + evidence). Relaunched for the tail with a resume brief that surveys then finishes the on-disk work. Deviation logged: 6 agents briefly (5 builders + WIN6 verifier) against the 5-cap; accepted because the excess is one short verifier and holding idles a builder slot ~40min. |
+| 4 | 11:54:57 | block | branches, lane, ledger | iteration 4/80 · repeat ×1 |
+| M1 | 22:00 | merged | WIN6 | ai/win6 (334beb75) merged to main as 22afe57f after fresh-context verify VERDICT: PASS — 223 model tests re-run by verifier, 3/3 mutation arms fired (held-exclusion, 404→version-skew wording, unknown-kind-throws), src/ untouched (A38), all six ratchet files byte-identical. Verifier's one flag (spec §3.4 offline row was a loose paraphrase of shipped copy) fixed docs-only in this row's branch. Windows lane running on the merged tree; merge completes on lane green. |

@@ -87,7 +87,7 @@ verbatim; everything after it is summarised.
 - `strict-check` **135 of 156 (87%)** · case-id max **CASE-0292** · **197 briefs**
 - `make test` **2329 tests / 299 suites exit 0** · swiftlint **0 violations over 793 files**
 - Three known load flakes: `CallbackLifecycleTests` (a listener binds once),
-  `OAuthWireTests.swift:263`, `RealProcessTests.swift:93`. Re-run in isolation before reporting red.
+  `OAuthWireTests.swift:263` at 9059295, `RealProcessTests.swift:93` at 9059295. Re-run in isolation before reporting red.
 - `.worktrees` is a **symlink** to `/Volumes/LLMs/Dev/mcp-router/.worktrees`. Tools resolving
   `pwd -P` need the `/Volumes` spelling.
 - Promoted sessions for the three Wave P agents that died with work uncommitted:

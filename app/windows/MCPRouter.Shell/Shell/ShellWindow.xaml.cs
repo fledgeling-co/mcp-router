@@ -349,23 +349,11 @@ public sealed partial class ShellWindow : Window
             "checks" => new ChecksBoard(),
             "activity" => new ActivityBoard(destination, this, SelectDestination),
             "discover" => new DiscoverBoard(),
-        // Built boards mount their views; unbuilt destinations keep their placeholder.
-        BoardHost.Content = destinationId switch
-        {
-            "servers" => new ServersBoard(),
-            "skills" => new SkillsBoard(
-                _skillsClient ?? new LiveSkillsControlClient(),
-                SelectDestination),
-            "checks" => new ChecksBoard(),
-            "activity" => new ActivityBoard(destination, this, SelectDestination),
-            "discover" => new DiscoverBoard(),
             "cleanup" => new CleanupBoard(),
             "inbox" => new InboxBoard(),
             "settings" => new SettingsBoard(),
             "harnesses" => new HarnessesBoard(),
             "insights" => new InsightsBoard(),
-            _ => new BoardPlaceholder(destination),
-        };
             _ => new BoardPlaceholder(destination),
         };
 

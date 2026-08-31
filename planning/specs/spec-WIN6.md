@@ -118,7 +118,7 @@ load, which is a different fact from off).
 | Loading | skeleton rows at the real row height, never a spinner over a blank pane |
 | Partial | a client's directory unreadable → `partialNote` naming the client, the consequence, the path and the reason; marketplace list failed while skills loaded → auto-update cells say "Not shown" |
 | Error | version skew (404): "this router has no /skills endpoint — the router may be newer or older than this app"; server errors and decode failures name what happened and how to fix it |
-| Offline | connect refused / token file absent → "MCP Router is not running. Nothing is listening on the control port (127.0.0.1:8879), so there is nothing to show yet. Start the router and retry." + a Retry action |
+| Offline | connect refused / token file absent → headline "The router isn't running" + the Mac's verbatim advice line + a Retry action (the §3.7 wording; earlier drafts of this row paraphrased copy that does not ship) |
 | Disabled | every write control, disabled in place with `writesNotYetAvailable` or its specific reason |
 | Success | **not reachable — the board is read-only** (§2.2). Recorded, as the Mac's M4 recorded it, rather than pretended |
 | Overflow | long names and paths truncate with the full value in the tooltip and inspector; rows never change height |

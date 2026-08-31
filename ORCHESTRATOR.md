@@ -1309,8 +1309,8 @@ described, and it carries a ratchet.
 | W0 | WIN1 | Done. The framework call everything else inherits |
 | W1 | WIN2, WIN17, WIN18 | No internal dependencies. WIN18 gates every later item, WIN2 is what lets a Windows surface be judged at all, WIN17 is TypeScript and independent of the UI |
 | W2 | WIN3, WIN20 | The shell every board is drawn inside, and the automation plane that decides whether any of them can be measured |
-| W3 | WIN4-WIN11, WIN13-WIN16 | The thirteen surfaces. Each is one dispatchable item, and each inherits WIN2's floor and WIN3's shell |
-| W4 | WIN19, WIN21, WIN22, WIN23 | Cross-cutting, and each needs a surface to exist first |
+| W3 | WIN4-WIN11, WIN13-WIN16 | The twelve independent surfaces; WIN12 waits for WIN10 + WIN17. Each inherits WIN2's floor and WIN3's shell |
+| W4 | WIN12, WIN19, WIN21, WIN22, WIN23 | Cross-cutting; WIN12 needs WIN10 + WIN17, the others need their named surface(s) |
 
 ### The exit condition for this fleet is not a drained ledger
 
@@ -1342,10 +1342,10 @@ does **not** change what any check reads, and must not be described as though it
 |---|---|---|---|---|---|---|---|---|
 | **WIN1** | Windows client framework - decided: WinUI 3 | windows | - | - | Opus | Done | decide/win1-framework | WinUI 3 chosen; dotnet build fails MSB4062, VS MSBuild.exe succeeds. Probes recorded in the brief |
 | **WIN2** | A Windows native floor in DESIGN.md | windows | - | design/mcp-router-console.html | Opus | Done | merged to main | verified PASS by an independent verifier that fetched seven cited sources and checked every quoted token verbatim. +481/-0, ten macOS rules intact. Two documentation notes: the carried-clause overclaim is fixed; the unmeasured disabled pairing is WIN24 |
-| **WIN17** | The router's five macOS assumptions | router | - | - | Opus | Ready to merge | ai/win17-gapfix | Fresh-context verifier (grok-4.6 via perch-router; Opus requested but unavailable) PASS 2026-08-31: 56/0 e2e, tsc 0, Windows lane 9/0/5, all 4 mutation arms fired and reverted. Merge serialized after final gate |
+| **WIN17** | The router's five macOS assumptions | router | - | - | Opus | Done | merged to main | Fresh-context verifier PASS 2026-08-31: 56/0 e2e, tsc 0, Windows lane 22/0/4 on branch; merged 177a416d, carrier row repointed at landing merge cd0d3068. All 4 mutation arms fired and reverted |
 | **WIN18** | Windows build and verify lane | harness | WIN1 | - | Opus | Done | merged to main | Verified NEEDS-WORK (classifier could turn red green; 3 false Skip-Check; incomplete disclaimer). Repair landed 11894600. Lane now keys on reserved exit codes and runs all 24 portable python lint members. Cross-family not-run |
-| **WIN3** | Windows app shell | windows | WIN1, WIN2, WIN18 | design/mcp-router-console.html | Opus | Ready to merge | ai/win3 | Fresh-context verifier reported NEEDS-WORK only on machine toolchain; VS BuildTools repaired 2026-08-31 (SDK + Appx PRI tasks), exact clean build-shell.ps1 -Clean exit 0, self-test exit 0 (10/12/44), dotnet test 173/0. Three mutation arms fired; final gate 23/0/4. Merge serialized |
-| **WIN20** | Windows automation plane for the campaign | windows | WIN1 | - | Opus | Ready to merge | ai/win20 | Fresh-context verifier's machine-era NEEDS-WORK repaired: VS SDK/Appx tasks restored; lane records corrected (90/26 figures, API-error review marked NOT-RUN). Live probe lane 90/0/2 exit 0, title positive 0 / negative 3, mutation arms fired. Branch tip ad20c290; merge serialized |
+| **WIN3** | Windows app shell | windows | WIN1, WIN2, WIN18 | design/mcp-router-console.html | Opus | Done | merged to main | Fresh-context verifier's only blocker was the repaired VS toolchain; post-rebase clean build-shell.ps1 -Clean 0, self-test 0 (10/12/44), dotnet test 173/0, lane 33/0/5. Three mutation arms fired; merged 031295c3 |
+| **WIN20** | Windows automation plane for the campaign | windows | WIN1 | - | Opus | Done | merged to main | Fresh-context verifier's machine-era blockers repaired; record corrected to 90/26 and API-error review marked NOT-RUN. Live probe lane 90/0/2, positive title 0 / negative 3, mutation arms fired; branch lane 26/0/4; merged 779e5eaf |
 | **WIN4** | Servers board and the Signal Path | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | The signature element; drawn rather than a stock control. Geometry must be restated in effective pixels |
 | **WIN5** | Activity board | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | Live log over GET /usage/stream. Densest reading surface, so a direct test of the Windows palette |
 | **WIN6** | Skills board | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | Per-harness slots. Held-for-review is a security guarantee rather than a decoration |

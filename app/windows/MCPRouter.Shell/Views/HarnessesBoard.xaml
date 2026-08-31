@@ -1,0 +1,33 @@
+<UserControl
+    x:Class="MCPRouter.Shell.Views.HarnessesBoard"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid x:Name="RootGrid" Background="Transparent">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Padding="24,16,24,32" Spacing="16" MaxWidth="1080" HorizontalAlignment="Left">
+                <!-- Board Head -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Harnesses" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="SemiBold" />
+                        <TextBlock Text="Which AI tools on this PC actually route through here. Pointing a harness at the endpoint is the easy half; the half that saves anything is noticing it still spawns its own copies."
+                                   Style="{ThemeResource BodyTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   TextWrapping="Wrap" MaxWidth="720" />
+                    </StackPanel>
+                    <Button Grid.Column="1" VerticalAlignment="Top" x:Name="RescanButton" Content="Rescan all" />
+                </Grid>
+
+                <!-- Cards Container -->
+                <StackPanel x:Name="HarnessContainer" Spacing="12" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -1,0 +1,46 @@
+<UserControl
+    x:Class="MCPRouter.Shell.Views.PairingDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Width="420">
+
+    <Border Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+            BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="{ThemeResource OverlayCornerRadius}"
+            Padding="24">
+        <StackPanel Spacing="16" HorizontalAlignment="Center">
+            <TextBlock Text="Pair iPhone" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="SemiBold" HorizontalAlignment="Center" />
+            <TextBlock Text="On your phone: Conduit → Settings → Pair PC, then scan this."
+                       Style="{ThemeResource BodyTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                       TextAlignment="Center" TextWrapping="Wrap" />
+
+            <!-- Code Display -->
+            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{ThemeResource ControlCornerRadius}"
+                    Padding="16" HorizontalAlignment="Center">
+                <TextBlock x:Name="PairingCodeText" Text="K7X9-W4M2"
+                           Style="{ThemeResource TitleTextBlockStyle}"
+                           FontFamily="Consolas" FontWeight="Bold" HorizontalAlignment="Center" />
+            </Border>
+
+            <TextBlock x:Name="ExpiresText" Text="expires in 4:45"
+                       Style="{ThemeResource CaptionTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                       HorizontalAlignment="Center" />
+
+            <TextBlock Text="Treat this code like a password. Anyone who scans it can put items in your inbox until it expires."
+                       Style="{ThemeResource CaptionTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                       TextAlignment="Center" TextWrapping="Wrap" />
+
+            <Button Content="Done" HorizontalAlignment="Center" Width="120" />
+        </StackPanel>
+    </Border>
+</UserControl>

@@ -126,6 +126,28 @@ public static class JackPresentation
              : $"{(int)span.TotalDays} d ago";
     }
 
+    /// <summary>
+    /// The plug's brush tokens, from §12's restated geometry row: the state's own indicator hue
+    /// on the fill, the same hue's published …Background token as the halo ring. At rest the
+    /// authored off tokens stand in, with §12's provenance — Windows publishes no jack token,
+    /// an unlit socket is absence, and the word beside the jack carries the state.
+    ///
+    /// <para><b>The accent is never among them</b> (§13's settled debt): the accent is the
+    /// user's, and a plug that took it would read "the app is running this" in the one hue the
+    /// user can set to mean themselves. The map lives here rather than in the view because
+    /// that refusal is a product decision, and <see cref="JackState"/> is plain C# — a decision
+    /// that only a running XAML host could exercise is a decision that ships wrong.</para>
+    /// </summary>
+    /// <returns>The fill and ring tokens as the Fluent colour-token names; the view resolves
+    /// each under its own theme by appending the platform's <c>Brush</c> suffix.</returns>
+    public static (string FillToken, string RingToken) PlugTokens(this JackState state) => state switch
+    {
+        JackState.Live => ("SystemFillColorSuccess", "SystemFillColorSuccessBackground"),
+        JackState.Tripped => ("SystemFillColorCritical", "SystemFillColorCriticalBackground"),
+        JackState.Held or JackState.NeedsSignIn => ("SystemFillColorCaution", "SystemFillColorCautionBackground"),
+        _ => ("TextFillColorDisabled", "ControlStrokeColorDefault"),
+    };
+
     private static string Sentence(string word) =>
         char.IsAsciiLetterUpper(word[0]) || !char.IsAsciiLetter(word[0])
             ? word

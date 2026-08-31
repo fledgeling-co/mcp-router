@@ -276,7 +276,7 @@ measured against a live router, and the signature claim is photographed end to e
 | Five states draw distinctly, not hue alone | **measured** (live: awake, dormant; fixture-driven: tripped/held/needs-sign-in at the unit boundary + recorded fixtures) | `JackStateTests` cross product; every jack and row carries its word; hue pairs at 1.00:1 never stand alone |
 | Jack lights on a real call, darkens on reap | **measured, photographed** | `captures/jack-lit-real-call.png` (green plug, "3:50 left", hub "1 at rest", row "Awake · 3:50 left") · `captures/jack-darkened-after-reap.png` |
 | Countdowns tick and are legible; at-rest reads at rest | **measured** | 3:50 = exact `max(0, 300 − idleSec)` from the router's own figures; 1s tick re-renders words only |
-| `Reap idle` acts | **NOT-RUN on the wire** — §3.4's measurement stands: no reap verb exists on any platform; button drawn, wired, disabled with the discoverable reason | `ControlPaths.isControlPath` family + `PATCH`'s five fields + `UpstreamPoolReaping` (idleMs ≤ 0 *disables* reaping) + the Mac's own `.featureUnbuilt` ruling |
+| `Reap idle` acts | **NOT-RUN on the wire** — §3.4's measurement stands: no reap verb exists on any platform; button drawn, wired, disabled with the discoverable reason | `ControlPaths.isControlPath` family + `PATCH`'s five fields + `UpstreamPoolReaping` (idleMs ≤ 0 *disables* reaping) + the Mac's own `.featureUnbuilt` ruling. The reason itself is witnessed on every channel §3.4 names — accessibility `HelpText` and a tooltip on the button, and the head's own reason line — all carrying `ServersCopy.ReapIdleReason`, gated by `ReapReasonTests` (source-text) and the sentence-case suite |
 | `Add server…` opens a further view; ellipsis load-bearing | **built, verified at the boundary** | Real ContentDialog → `POST /servers` with bearer token; 400/409/422 shapes and the hint→"Add it anyway" rule gated in `ControlApiClientTests`. **Not exercised against the live router on purpose** — a successful POST is an irreversible write to the user's real `servers.json` |
 | Empty + disconnected states draw | **disconnected: not photographed on this machine** — the reference router stayed up; the state machine is gated (`Render()` truth table + §6 wording parity tests). Empty likewise unit-gated | `ControlApiClientTests`, `ServersCopyTests`; the shell walks the board every self-test run |
 | Signal Path geometry restated in the design authority | **done** | DESIGN.md §12 `### Signal Path geometry (Windows)`; §13's plug-debt entry marked settled |
@@ -291,6 +291,10 @@ measured against a live router, and the signature claim is photographed end to e
 - **The lane's first-render packing** was wrong twice against the live board (cells narrower
   than the jack's minimum, neighbour-clipped) and is now packed from `JackGrid.ActualWidth`
   with a `SizeChanged` re-pack; both captures above are post-fix.
+- **§12's plug transition was never recorded here** — the build shipped a comment deferring it
+  to "the platform's own state transitions", which animates nothing on a `Fill` swap, and the
+  first verification called the silence. Resolved 2026-08-31, not parked: implemented for real
+  (see the gap-fix section below).
 
 ### Evidence on disk
 
@@ -298,3 +302,40 @@ measured against a live router, and the signature claim is photographed end to e
 jack-lit-real-call, jack-darkened-after-reap, forced-light (the element-scoped theme-brush
 resolution proven against the self-test's forced Light). Captures are `RenderTargetBitmap`s of
 the XAML tree; they do not hold Mica or the system caption buttons.
+
+### Gap fix — closing the first verification's findings (2026-08-31)
+
+The first fresh-context verification returned NEEDS-WORK with three findings. Each, and what it
+got:
+
+1. **The Reap idle reason was never discoverable** — `ServersCopy.ReapIdleReason` existed and
+   passed its sentence-case test, but nothing attached it. Fixed on both channels §3.4 names,
+   the way the disconnected state's `StartButton` already carries its own: the accessibility
+   `HelpText` (WIN3's pattern) and a tooltip on `ReapButton`, and the head's own reason line
+   beside the dimmed action. One wording carries all three, so the sentence-case gate covers
+   them together. Gated by the new `ReapReasonTests` (source-text) — the wiring, not the
+   wording, was what had been missing.
+2. **§12's 167 ms `cubic-bezier(0, 0, 0, 1)` plug transition was not implemented** — the old
+   comment deferred to state transitions the platform does not animate on a `Fill` swap, and
+   `RenderJacks` rebuilds the jack field every poll, so no element-lived transition could fire.
+   Implemented for real on the fill and the ring: each plug's previous tones are kept per
+   server, so a state change carries the crossing across a rebuild onto the fresh element, and
+   a plug's first tones are set directly — a first colour is not a change. The curve itself is
+   exact, not an approximation: this WinUI projection ships no `BezierEase`, so the crossing is
+   drawn as a spline key frame, and a `KeySpline` takes the same two control points
+   cubic-bezier does — (0,0)–(0,1) is §13's direct-entrance ease. The crossing holds under
+   `UISettings.AnimationsEnabled`, §13's own reduced-motion mapping. Which token each state
+   takes moved to `JackPresentation.PlugTokens` in Shell.Model (finding 3's enabler).
+3. **The plug-accent refusal had no Windows gate** — a one-line regression in the view would
+   have shipped green. The state→brush decision now lives in Shell.Model as a pure function
+   returning brush *tokens*, and the view consumes it; `PlugTokenTests` gate the token mapping
+   (live → `SystemFillColorSuccess`, every state swept for never-accent), and a source-text
+   gate asserts `ServersBoard.xaml.cs` never assigns an Accent brush to any fill or stroke.
+   The add action's accent-filled button is style-level and untouched; §13's debt is about
+   fills and strokes.
+
+Gates after the fix, exit codes the evidence: `dotnet test` **exit 0 — 236/0** (226 unmodified
+plus the ten new gates); MSBuild `-t:Restore` then `-t:Build`, separate calls, **exit 0 / exit
+0**, `MCPRouter.Shell.exe` fresh on disk; `run-shell-selftest.ps1` **exit 0** — 10 destinations,
+2 appearances, 12 captures, no failures. Cross-family review remains **not-run** — `codex`,
+`agy` and `grok` are absent on this machine.

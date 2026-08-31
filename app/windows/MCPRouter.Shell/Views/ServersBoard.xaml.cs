@@ -3,7 +3,10 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Shapes;
+using Windows.UI;
+using Windows.UI.ViewManagement;
 
 namespace MCPRouter.Shell.Views;
 
@@ -45,6 +48,13 @@ public sealed partial class ServersBoard : UserControl
     private const double SignalPathPadding = 12;
     private const int ClientPort = 8879;
 
+    /// <summary>§13's motion table, as §12's restated row carries it: a plug lighting or going
+    /// dark is a direct entrance — 167ms, cubic-bezier(0, 0, 0, 1), on the fill and the ring —
+    /// replacing §2's hand-set 0.2s under the header rule. This projection ships no
+    /// <c>BezierEase</c>, so <see cref="AnimatePlugTone"/> carries the curve as a
+    /// <see cref="KeySpline"/>: the same two control points, therefore the same curve.</summary>
+    private static readonly Duration PlugTransition = new(TimeSpan.FromMilliseconds(167));
+
     private readonly ControlApiClient _client = new();
 
     /// <summary>The jack word labels and the row state cells that a tick re-renders, so a
@@ -52,6 +62,12 @@ public sealed partial class ServersBoard : UserControl
     /// tooltips survive the tick.</summary>
     private readonly List<(TextBlock Label, ServerRow Server)> _jackWords = [];
     private readonly List<(TextBlock Cell, ServerRow Server)> _stateCells = [];
+
+    /// <summary>Each plug's fill and stroke as last drawn, by server. <see cref="RenderJacks"/>
+    /// rebuilds the jack field on every poll, so a state change is not an element's lifetime
+    /// event: the previous tones are kept here, and the fresh element carries the transition
+    /// from them.</summary>
+    private readonly Dictionary<string, (Color Fill, Color Stroke)> _plugColors = [];
 
     private DispatcherTimer? _pollTimer;
     private DispatcherTimer? _tickTimer;
@@ -74,6 +90,15 @@ public sealed partial class ServersBoard : UserControl
 
         AutomationProperties.SetName(this, "Servers");
         BuildLegend();
+
+        // spec-WIN4 §3.4: Reap idle is disabled with a discoverable reason, on every channel
+        // the spec names — the accessibility HelpText (WIN3's pattern; the disconnected state's
+        // StartButton does the same), a tooltip, and the head's own reason line. One wording,
+        // ServersCopy.ReapIdleReason, carries all three, so the sentence-case gate covers them
+        // together.
+        AutomationProperties.SetHelpText(ReapButton, ServersCopy.ReapIdleReason);
+        ToolTipService.SetToolTip(ReapButton, ServersCopy.ReapIdleReason);
+        ReapReasonText.Text = ServersCopy.ReapIdleReason;
 
         ActualThemeChanged += (_, _) =>
         {
@@ -370,7 +395,6 @@ public sealed partial class ServersBoard : UserControl
                 StrokeThickness = PlugRing,
             };
             var plug = new Ellipse { Width = PlugDiameter, Height = PlugDiameter };
-            ApplyPlugTone(plug, plugRing, condition.State);
             Grid.SetColumn(plugRing, 0);
             content.Children.Add(plugRing);
             content.Children.Add(plug);
@@ -401,6 +425,11 @@ public sealed partial class ServersBoard : UserControl
             AutomationProperties.SetName(jack, $"{server.Name}, {condition.Word}");
             ToolTipService.SetToolTip(jack, $"{server.Name}: {condition.Word}");
             JackGrid.Children.Add(jack);
+
+            // Applied once the jack is in the tree: the crossing's timeline starts at Begin,
+            // and a jack mounted in this same pass draws frame one of it — not a frame that
+            // passed while the element was still detached.
+            ApplyPlugTone(plug, plugRing, condition.State, server.Name);
 
             // The tick re-renders this label from the SAME envelope the state came from; only
             // the clock moved, never the state.
@@ -576,34 +605,90 @@ public sealed partial class ServersBoard : UserControl
     /// The plug and its ring, from §12's restatement: the state's own indicator hue on the fill,
     /// the same hue's published …Background token as the halo, and — never — the accent, which
     /// is the user's (§13's settled debt). At rest the socket takes the authored off tokens.
+    /// Which token each state takes is <see cref="JackPresentation.PlugTokens"/>' decision —
+    /// a pure map in Shell.Model, gated headlessly; this method only resolves the tokens under
+    /// this element's theme.
+    ///
+    /// <para>The crossing itself is §13's direct entrance — 167ms on cubic-bezier(0, 0, 0, 1),
+    /// the platform's own timing that §12's row records replacing §2's hand-set 0.2s — on the
+    /// fill and the ring. A plug's first tones are not a change, so they are set directly; a
+    /// change crosses from what this server's plug last drew, even across a poll rebuild.</para>
     /// </summary>
-    private void ApplyPlugTone(Ellipse plug, Ellipse ring, JackState state)
+    private void ApplyPlugTone(Ellipse plug, Ellipse ring, JackState state, string server)
     {
-        switch (state)
-        {
-            case JackState.Live:
-                plug.Fill = ThemeBrush("SystemFillColorSuccessBrush");
-                ring.Stroke = ThemeBrush("SystemFillColorSuccessBackgroundBrush");
-                break;
-            case JackState.Tripped:
-                plug.Fill = ThemeBrush("SystemFillColorCriticalBrush");
-                ring.Stroke = ThemeBrush("SystemFillColorCriticalBackgroundBrush");
-                break;
-            case JackState.Held:
-            case JackState.NeedsSignIn:
-                plug.Fill = ThemeBrush("SystemFillColorCautionBrush");
-                ring.Stroke = ThemeBrush("SystemFillColorCautionBackgroundBrush");
-                break;
-            default:
-                plug.Fill = ThemeBrush("TextFillColorDisabledBrush");
-                ring.Stroke = ThemeBrush("ControlStrokeColorDefaultBrush");
-                break;
-        }
+        var (fillToken, ringToken) = state.PlugTokens();
 
-        // The 167ms direct entrance on fill and ring (§13's motion table) is left to the
-        // platform's own state transitions rather than an authored storyboard: a plug lighting
-        // is a state change the control template animates, not a one-off effect this view
-        // choreographs.
+        // The theme's brushes are shared resources; a storyboard animating one would repaint
+        // every element resolving it. The plug and ring own copies — still resolved under THIS
+        // element's theme, per the class contract above.
+        var fill = ThemeColor(fillToken + "Brush");
+        var stroke = ThemeColor(ringToken + "Brush");
+        plug.Fill = new SolidColorBrush(fill);
+        ring.Stroke = new SolidColorBrush(stroke);
+
+        var previous = _plugColors.TryGetValue(server, out var lastDrawn)
+            ? lastDrawn
+            : (Fill: fill, Stroke: stroke);
+        _plugColors[server] = (fill, stroke);
+        if (previous.Fill == fill && previous.Stroke == stroke) return;
+        if (!AnimationsWanted) return;   // §13: reduced motion is UISettings.AnimationsEnabled
+
+        AnimatePlugTone(plug, previous.Fill, fill, "(Ellipse.Fill).(SolidColorBrush.Color)");
+        AnimatePlugTone(ring, previous.Stroke, stroke, "(Ellipse.Stroke).(SolidColorBrush.Color)");
+    }
+
+    /// <summary>Reads a theme colour out of the resolved brush, loudly: every token the plug
+    /// takes publishes a solid brush, so anything else is a renamed key and must throw — the
+    /// same policy ThemeBrush states.</summary>
+    private Color ThemeColor(string key) => ((SolidColorBrush)ThemeBrush(key)).Color;
+
+    /// <summary>Whether the OS still wants motion. §13 maps reduced motion to
+    /// <c>UISettings.AnimationsEnabled</c>, so the plug's crossing holds while it is off. A
+    /// failed ask leaves motion on: a missing setting must not take the transition away from
+    /// everyone.</summary>
+    private static bool AnimationsWanted
+    {
+        get
+        {
+            try { return new UISettings().AnimationsEnabled; }
+            catch (Exception) { return true; }
+        }
+    }
+
+    /// <summary>One crossing, 167ms on cubic-bezier(0, 0, 0, 1) — fast start, settled stop.
+    ///
+    /// <para>This projection ships no <c>BezierEase</c>, so the curve goes in through its own
+    /// definition instead: a <see cref="KeySpline"/> takes the same two control points
+    /// cubic-bezier does — fixed endpoints, two authored knots — and (0,0)–(0,1) is §13's
+    /// direct-entrance ease exactly, not an approximation of it. The discrete frame at time
+    /// zero pins the tone the plug is leaving, since the element was already mounted at its
+    /// destination tone.</para>
+    /// </summary>
+    private static void AnimatePlugTone(Ellipse target, Color from, Color to, string property)
+    {
+        if (from == to) return;
+
+        var storyboard = new Storyboard();
+        var crossing = new ColorAnimationUsingKeyFrames();
+        crossing.KeyFrames.Add(new DiscreteColorKeyFrame
+        {
+            KeyTime = KeyTime.FromTimeSpan(TimeSpan.Zero),
+            Value = from,
+        });
+        crossing.KeyFrames.Add(new SplineColorKeyFrame
+        {
+            KeyTime = KeyTime.FromTimeSpan(PlugTransition.TimeSpan),
+            Value = to,
+            KeySpline = new KeySpline
+            {
+                ControlPoint1 = new Windows.Foundation.Point(0, 0),
+                ControlPoint2 = new Windows.Foundation.Point(0, 1),
+            },
+        });
+        storyboard.Children.Add(crossing);
+        Storyboard.SetTarget(crossing, target);
+        Storyboard.SetTargetProperty(crossing, property);
+        storyboard.Begin();
     }
 
     private void TickCountdowns()

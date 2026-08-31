@@ -49,11 +49,11 @@ Claude subscription access*". **It does not.** Measured 2026-08-30:
 `claude --model claude-fable-5 -p "Reply with the single word OK."` printed `OK` and exited **0**.
 
 That changes one thing and not the other. The four out-of-family binaries are genuinely absent, so
-the **cross-family gate is still not run and is still not a pass**. But a *same-family* adversarial
-review was available the whole time and is not a substitute anybody should have to guess about, so
-it was run: `planning/evidence/WIN20/review-fable.md`, `claude-fable-5`, asked to find ways this
-gate could report exit 0 having measured nothing. In-family review does not satisfy a cross-family
-gate and is not offered as one.
+the **cross-family gate is still not run and is still not a pass**. A same-family adversarial review was attempted (`claude-fable-5`) and returned
+`API Error: 400 {"error":"no binding for request","code":"no_binding"}`. That is not a
+review. `planning/evidence/WIN20/review-fable.md` records the attempt as NOT-RUN rather
+than as a completed artefact. In-family review does not satisfy a cross-family gate
+and is not offered as one; an API error is not offered as either.
 
 ---
 

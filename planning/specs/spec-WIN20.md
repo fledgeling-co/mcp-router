@@ -29,8 +29,8 @@ Measured on **LUKESFF**, Windows 11 Pro 10.0.26200, **2026-08-30**.
 | UIA client | `System.Windows.Automation` (.NET Framework), Windows PowerShell 5.1, **out of process** |
 | elements, control view | **36** |
 | elements, raw view | **65** |
-| graded assertions | **85 passed, 0 failed, 2 unoracled** |
-| armed assertions in the selftest | **23 arms, 0 misbehaved** |
+| graded assertions | **90 passed, 0 failed, 2 unoracled** |
+| armed assertions in the selftest | **26 arms, 0 misbehaved** |
 
 ---
 

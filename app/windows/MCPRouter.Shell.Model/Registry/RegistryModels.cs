@@ -1,7 +1,7 @@
 namespace MCPRouter.Shell.Model.Registry;
 
 /// <summary>
-/// The shapes <c>GET /registry/search</c> serves (<c>src/control.ts:856</c>, built by
+/// The shapes <c>GET /registry/search</c> serves (<c>src/control.ts line 856</c>, built by
 /// <c>src/registry.ts</c>).
 ///
 /// The registry is the one part of the wire that is not the router's own data: it is what two

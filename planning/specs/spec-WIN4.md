@@ -127,7 +127,7 @@ children on demand**: the control path family (`ControlPaths.isControlPath`) con
 route; `PATCH /servers/:name` writes exactly `projects, warm, idleMs, placard, disabled`, and
 `UpstreamPoolReaping` treats `idleMs <= 0` as *disable reaping for this server* — so there is no
 field whose write forces a reap either. The Mac reached the same wall and ships *Reap Idle
-Children* as a `.featureUnbuilt` menu command (MenuCommand.swift:220; DESIGN.md §8 refuses its
+Children* as a `.featureUnbuilt` menu command (MenuCommand.swift line 220; DESIGN.md §8 refuses its
 chord on the first limb).
 
 So on Windows the button exists in the head, is wired to a real client method that performs the

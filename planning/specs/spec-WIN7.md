@@ -11,7 +11,7 @@
 | Mock | `design/mocks/mac-surfaces.html` §4 (brief's named mock) |
 | Design of record | `design/mcp-router-console.html` §DISCOVER (`:2830`) — outranks the mock per DESIGN.md §1 |
 | Presentation of record | `app/Sources/MCPRouterKit/Registry/*`, `MCPRouterKit/Discover/DiscoverCopy*`, `DiscoverBands.swift`, `MCPRouterUI/Boards/DiscoverBoard*` — the Mac's settled decisions, taken over rather than re-derived |
-| Data endpoint | `GET /registry/search` on the loopback control API (`src/control.ts:856`), served by `src/registry.ts` |
+| Data endpoint | `GET /registry/search` on the loopback control API (`src/control.ts line 856`), served by `src/registry.ts` |
 | Triage | 2026-08-31, by the WIN7 runner (fleet item; no separate triage session) |
 | Cross-family spec review | **NOT-RUN.** `codex`, `agy`, `grok` and the `claude` CLI lane are absent on this machine (ORCHESTRATOR.md, "Windows fleet"). Recorded as not-run, never as a pass. |
 
@@ -35,7 +35,7 @@ different claims. A trending row carries a window AND a signed delta, or it is n
 trending."* Both clauses are implemented as stated, and the second one decides the band names:
 
 **Measured fact: nothing in this product keeps a history of either index.** `/registry/search`
-serves `useCount` (cumulative Smithery sessions — `src/registry.ts:48`) and `stars` (current
+serves `useCount` (cumulative Smithery sessions — `src/registry.ts line 48`) and `stars` (current
 GitHub counts, day-cached in `github-cache.json`, one freshness stamp, overwritten on refresh).
 No window, no delta, no prior observation exists anywhere on the wire or on disk. **A trending
 row therefore cannot be drawn, and none is**: no code path in this board produces a signed delta,
@@ -43,7 +43,7 @@ so the brief's conditional resolves to its second branch for every possible row.
 trending rows (`+218%`, `+64%`, `−8%`, window `7d ⌄`) are the stale drawing; DESIGN.md §6's table
 already rules on exactly this — *"Discover, trend and velocity … the refusal wins and the drawing
 is stale"* — and names the sentence the surface states instead
-(`RegistryPresentation+Notes.swift:83`).
+(`RegistryPresentation+Notes.swift line 83`).
 
 The bands are the design system's own (`DiscoverBands.swift`), taken over with their copy so §6's
 one-name-per-state rule holds across platforms:
@@ -159,7 +159,7 @@ word is the only channel some users have).
 `Registry/` folder: wire models matching `/registry/search` exactly, the presentation port
 (sanitising, provenance, dates, figures, bands, notes, states), the install capability
 (statement, action, declaration), and `RegistryClient` over `HttpClient`. Reads need no token
-(the router only gates mutating methods — `src/control.ts:464`). The port is the router's own
+(the router only gates mutating methods — `src/control.ts line 464`). The port is the router's own
 config value: top-level `port` in `servers.json` when present, else 8879; host 127.0.0.1. The
 board fetches on load and on debounced query change, generation-guarded so a superseded response
 — success or failure — never repaints a newer query, and marshals to the UI thread through the

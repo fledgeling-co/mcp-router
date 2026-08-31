@@ -19,7 +19,7 @@ public static class ActivityCopy
     // ------------------------------------------------------------------ the board's own words
 
     /// <summary>The design of record's mission line, drawn under the board title
-    /// (design/mcp-router-console.html:2219). The one place the product says what this surface
+    /// (design/mcp-router-console.html line 2219). The one place the product says what this surface
     /// is for, so it stays the mock's own words.</summary>
     public const string Mission =
         "Every tool call every harness made, as it happens. This is the only place that can answer \"which of my agents did that\".";

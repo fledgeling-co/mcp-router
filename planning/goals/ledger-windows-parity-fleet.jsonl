@@ -57,3 +57,19 @@
 | G4 | 23:30 | correction | - | The citation gate's ratchet caught this journal itself: rows M1a and M1b carried citation tokens without anchor or tree (M1a's token now framed at 334beb75; M1b's bare token now described rather than written, its framed form already adjacent in the same row). Writing the tokens again here would recreate the defect this row documents, so they are described, not named. Edited IN PLACE rather than append-only because the gate scans the file as it stands - an append-only bare token would block forever, and the floor for this file is 0 and may not rise. This row documents the bend. |
 | M2 | 23:40 | merged | WIN8 | ai/win8 (232c42d8) merging to main after fresh-context verify VERDICT: PASS - 242/0 dotnet tests (split corrected: 69 new across 7 fixtures, not the spec's 199+43), 3/3 mutation arms fired and reverted byte-identical via git blob hashes, live-router probe ran the real ControlClient against the TS router on 8879 (5/6 checks confirmed live, /skills 404 absence named). Verifier corrected the spec's test-count split; noted as docs follow-up. |
 | R10 | 23:40 | dispatched | - | WIN4 gap-fix launched in-worktree (three named findings: ReapIdleReason attach, 167ms plug transition implement-or-park, plug token decision made testable + source-text gate). WIN5 resume 2 launched. WIN7 resume held: one-at-a-time while the perch pool recovers (G2); launches when one of the two returns. |
+| 6 | 13:44:20 | block | branches, lane, ledger | iteration 6/80 · repeat ×1 |
+| 7 | 14:05:03 | block | branches, lane, ledger | iteration 7/80 · repeat ×2 |
+| 8 | 14:25:26 | block | branches, lane, ledger | iteration 8/80 · repeat ×1 |
+| 8 | 14:25:43 | api-error | — | turn ended on an API error (unknown) ×1; no gates run, iteration not advanced |
+| 8 | 14:25:53 | api-error | — | turn ended on an API error (server_error) ×2; no gates run, iteration not advanced |
+| 8 | 14:26:00 | api-error | — | turn ended on an API error (server_error) ×3; no gates run, iteration not advanced |
+| 8 | 14:26:07 | api-error | — | turn ended on an API error (server_error) ×4; no gates run, iteration not advanced |
+{"turn": "R11", "at": "01:25", "verdict": "dispatched", "failing": "ledger", "note": "WIN4, WIN5, WIN7 verified and merged to main (355 shell tests, 100 live tests, 544 total model tests). W3 Batch 2 launched in isolated worktrees: WIN9 (Cleanup), WIN10 (Inbox), WIN11 (Ambient), WIN13 (Settings), WIN14 (Harnesses)."}
+| 0 | 15:30:33 | api-error | — | turn ended on an API error (server_error) ×1; no gates run, iteration not advanced |
+| 0 | 15:30:33 | api-error | — | turn ended on an API error (unknown) ×1; no gates run, iteration not advanced |
+| 0 | 15:30:40 | api-error | — | turn ended on an API error (server_error) ×2; no gates run, iteration not advanced |
+| 0 | 15:30:40 | api-error | — | turn ended on an API error (server_error) ×2; no gates run, iteration not advanced |
+| 0 | 15:30:40 | api-error | — | turn ended on an API error (server_error) ×2; no gates run, iteration not advanced |
+| 1 | 15:46:31 | block | lane, ledger | iteration 1/80 · repeat ×1 |
+| 1 | 15:46:50 | api-error | — | turn ended on an API error (server_error) ×3; no gates run, iteration not advanced |
+| 1 | 15:47:00 | api-error | — | turn ended on an API error (server_error) ×4; no gates run, iteration not advanced |

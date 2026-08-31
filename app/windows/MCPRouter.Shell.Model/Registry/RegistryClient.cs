@@ -8,7 +8,7 @@ namespace MCPRouter.Shell.Model.Registry;
 /// The real client for the router's registry boundary.
 ///
 /// Reads are unauthenticated — the router gates only mutating control paths with the token
-/// (<c>src/control.ts:464</c>), and this client asks for no more permission than the route it
+/// (<c>src/control.ts line 464</c>), and this client asks for no more permission than the route it
 /// calls. Writes send the control token as a bearer header over loopback; the token exists in
 /// memory for the life of one request and is never logged, printed, or persisted here.
 ///

@@ -59,5 +59,6 @@
   "prior_block_cap": "",
   "ended_at": "2026-08-26T13:28:59Z",
   "end_reason": "stuck",
-  "stuck_on": "branches, worklist"
+  "stuck_on": "branches, worklist",
+  "reported_end": "stuck"
 }

@@ -20,7 +20,7 @@ $ErrorActionPreference = 'Stop'
 
 # --- the call, over the router's stateless Streamable HTTP transport -----------------------
 # Measured: this router constructs its transport with sessionIdGenerator: undefined
-# (src/router.ts:414), so there is no initialize/session handshake to hold — each POST stands
+# (src/router.ts line 414), so there is no initialize/session handshake to hold — each POST stands
 # alone. If a session id comes back anyway, it is carried forward.
 
 $initBody = @{

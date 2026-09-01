@@ -1,36 +1,36 @@
-﻿2026-08-30T02:31:28.3110772Z session=1 station=WinSta0 user=luke
-2026-08-30T02:31:28.5681180Z probe binary: C:\Dev\mcp-router\.worktrees\WIN20\app\windows\AutomationProbe\bin\Debug\net8.0-windows10.0.26100.0\win-x64\AutomationProbe.exe (written 2026-08-30T02:30:44.9643367Z)
-2026-08-30T02:31:31.2037938Z foreground before launch: hwnd=4067028 pid=11040 name=WindowsTerminal
-2026-08-30T02:31:31.5442771Z probe started, pid=349612
-2026-08-30T02:31:32.3510367Z the probe's window is on the automation plane
-2026-08-30T02:31:36.9424227Z dump(control): read 36 elements from 1 top-level window(s) -> C:\Dev\mcp-router\.worktrees\WIN20\planning\evidence\WIN20\run\uia-control-view.json
-2026-08-30T02:31:36.9789026Z dump(control) exit=0
-2026-08-30T02:31:41.6628090Z dump(raw): read 65 elements from 1 top-level window(s) -> C:\Dev\mcp-router\.worktrees\WIN20\planning\evidence\WIN20\run\uia-raw-view.json
-2026-08-30T02:31:41.6956525Z dump(raw) exit=0
-2026-08-30T02:31:41.7775333Z assert: WIN20 automation-plane assertions against SURF-029
-2026-08-30T02:31:41.7817631Z assert:   subject: MCPRouter.AutomationProbe ÔÇö WIN20's WinUI 3 probe window
-2026-08-30T02:31:41.7886292Z assert:   dump:    C:\Dev\mcp-router\.worktrees\WIN20\planning\evidence\WIN20\run\uia-control-view.json (36 elements)
-2026-08-30T02:31:41.7921565Z assert: 
-2026-08-30T02:31:41.7982171Z assert:   passed    90
-2026-08-30T02:31:41.8005719Z assert:   FAILED    0
-2026-08-30T02:31:41.8051360Z assert:   unoracled 2  (neither pass nor failure)
-2026-08-30T02:31:41.8066405Z assert:     UNORACLED  unoracled.probe.command.exportLog: 'Export log' is absent from the control view and from the raw view, so it is not realised at all
-2026-08-30T02:31:41.8092177Z assert:                reason: a CommandBar's SecondaryCommands are not realised while the overflow is closed, so the element does not exist on the automation plane at rest. It is absent from the control view AND the raw view.
-2026-08-30T02:31:41.8131113Z assert:                a rung opens if: either the harness opens the overflow ÔÇö which mutates the surface it is measuring and gives up the never-activated guarantee ÔÇö or the command is also reachable from a surface that is realised at rest. The second is the fix; the first is not.
-2026-08-30T02:31:41.8156346Z assert:     UNORACLED  unoracled.probe.command.resetRouter: 'Reset router' is absent from the control view and from the raw view, so it is not realised at all
-2026-08-30T02:31:41.8193970Z assert:                reason: same as probe.command.exportLog ÔÇö SecondaryCommands are unrealised while the overflow is closed.
-2026-08-30T02:31:41.8216491Z assert:                a rung opens if: as above.
-2026-08-30T02:31:41.8237035Z assert exit=0
-2026-08-30T02:31:41.8282052Z   probe: 2026-08-30T02:31:31.7258988Z pid=349612 Program.Main entered, args=[]
-2026-08-30T02:31:41.8307925Z   probe: 2026-08-30T02:31:31.7332338Z pid=349612 ComWrappers initialised
-2026-08-30T02:31:41.8328180Z   probe: 2026-08-30T02:31:31.8242321Z pid=349612 App ctor: before InitializeComponent
-2026-08-30T02:31:41.8375070Z   probe: 2026-08-30T02:31:31.8370884Z pid=349612 App ctor: after InitializeComponent
-2026-08-30T02:31:41.8401801Z   probe: 2026-08-30T02:31:31.8663276Z pid=349612 OnLaunched: constructing MainWindow
-2026-08-30T02:31:41.8422489Z   probe: 2026-08-30T02:31:31.8953240Z pid=349612 MainWindow: before InitializeComponent
-2026-08-30T02:31:41.8463747Z   probe: 2026-08-30T02:31:31.9412142Z pid=349612 MainWindow: after InitializeComponent
-2026-08-30T02:31:41.8475662Z   probe: 2026-08-30T02:31:31.9436323Z pid=349612 MainWindow: resized and moved
-2026-08-30T02:31:41.8515004Z   probe: 2026-08-30T02:31:31.9582107Z pid=349612 MainWindow: Servers selected
-2026-08-30T02:31:41.8538008Z   probe: 2026-08-30T02:31:31.9585003Z pid=349612 OnLaunched: MainWindow constructed
-2026-08-30T02:31:41.8551473Z   probe: 2026-08-30T02:31:31.9621980Z pid=349612 OnLaunched: shown without activation, hwnd=14748722
-2026-08-30T02:31:41.9382789Z probe pid 349612 stopped
-2026-08-30T02:31:41.9407989Z pass: the tree was read out of process, the target never held the foreground, and every assertion that could run, passed.
+﻿2026-09-01T21:41:02.9144844Z session=1 station=WinSta0 user=rhode
+2026-09-01T21:41:02.9737029Z probe binary: C:\Dev\mcp-router\app\windows\AutomationProbe\bin\Debug\net8.0-windows10.0.26100.0\win-x64\AutomationProbe.exe (written 2026-09-01T03:38:18.2489610Z)
+2026-09-01T21:41:05.1330421Z foreground before launch: hwnd=1574124 pid=5188 name=WindowsTerminal
+2026-09-01T21:41:05.3084726Z probe started, pid=35488
+2026-09-01T21:41:07.2673082Z the probe's window is on the automation plane
+2026-09-01T21:41:08.2051730Z dump(control): read 36 elements from 1 top-level window(s) -> C:\Dev\mcp-router\planning\evidence\WIN20\run\uia-control-view.json
+2026-09-01T21:41:08.2210500Z dump(control) exit=0
+2026-09-01T21:41:09.0908410Z dump(raw): read 65 elements from 1 top-level window(s) -> C:\Dev\mcp-router\planning\evidence\WIN20\run\uia-raw-view.json
+2026-09-01T21:41:09.1167488Z dump(raw) exit=0
+2026-09-01T21:41:09.1824335Z assert: WIN20 automation-plane assertions against SURF-029
+2026-09-01T21:41:09.1824335Z assert:   subject: MCPRouter.AutomationProbe ΓÇö WIN20's WinUI 3 probe window
+2026-09-01T21:41:09.1885484Z assert:   dump:    C:\Dev\mcp-router\planning\evidence\WIN20\run\uia-control-view.json (36 elements)
+2026-09-01T21:41:09.1885484Z assert: 
+2026-09-01T21:41:09.1885484Z assert:   passed    90
+2026-09-01T21:41:09.1885484Z assert:   FAILED    0
+2026-09-01T21:41:09.1885484Z assert:   unoracled 2  (neither pass nor failure)
+2026-09-01T21:41:09.1885484Z assert:     UNORACLED  unoracled.probe.command.exportLog: 'Export log' is absent from the control view and from the raw view, so it is not realised at all
+2026-09-01T21:41:09.1967964Z assert:                reason: a CommandBar's SecondaryCommands are not realised while the overflow is closed, so the element does not exist on the automation plane at rest. It is absent from the control view AND the raw view.
+2026-09-01T21:41:09.1978855Z assert:                a rung opens if: either the harness opens the overflow ΓÇö which mutates the surface it is measuring and gives up the never-activated guarantee ΓÇö or the command is also reachable from a surface that is realised at rest. The second is the fix; the first is not.
+2026-09-01T21:41:09.1978855Z assert:     UNORACLED  unoracled.probe.command.resetRouter: 'Reset router' is absent from the control view and from the raw view, so it is not realised at all
+2026-09-01T21:41:09.2008024Z assert:                reason: same as probe.command.exportLog ΓÇö SecondaryCommands are unrealised while the overflow is closed.
+2026-09-01T21:41:09.2008024Z assert:                a rung opens if: as above.
+2026-09-01T21:41:09.2008024Z assert exit=0
+2026-09-01T21:41:09.2071097Z   probe: 2026-09-01T21:41:05.7913816Z pid=35488 Program.Main entered, args=[]
+2026-09-01T21:41:09.2086834Z   probe: 2026-09-01T21:41:05.8112302Z pid=35488 ComWrappers initialised
+2026-09-01T21:41:09.2086834Z   probe: 2026-09-01T21:41:06.3006535Z pid=35488 App ctor: before InitializeComponent
+2026-09-01T21:41:09.2118771Z   probe: 2026-09-01T21:41:06.3775623Z pid=35488 App ctor: after InitializeComponent
+2026-09-01T21:41:09.2118771Z   probe: 2026-09-01T21:41:06.5566489Z pid=35488 OnLaunched: constructing MainWindow
+2026-09-01T21:41:09.2118771Z   probe: 2026-09-01T21:41:06.6945059Z pid=35488 MainWindow: before InitializeComponent
+2026-09-01T21:41:09.2118771Z   probe: 2026-09-01T21:41:06.8302859Z pid=35488 MainWindow: after InitializeComponent
+2026-09-01T21:41:09.2180119Z   probe: 2026-09-01T21:41:06.8358823Z pid=35488 MainWindow: resized and moved
+2026-09-01T21:41:09.2202828Z   probe: 2026-09-01T21:41:06.8511658Z pid=35488 MainWindow: Servers selected
+2026-09-01T21:41:09.2202828Z   probe: 2026-09-01T21:41:06.8515418Z pid=35488 OnLaunched: MainWindow constructed
+2026-09-01T21:41:09.2202828Z   probe: 2026-09-01T21:41:06.8739853Z pid=35488 OnLaunched: shown without activation, hwnd=4392224
+2026-09-01T21:41:09.2648403Z probe pid 35488 stopped
+2026-09-01T21:41:09.2756496Z pass: the tree was read out of process, the target never held the foreground, and every assertion that could run, passed.

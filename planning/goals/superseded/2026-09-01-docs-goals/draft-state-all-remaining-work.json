@@ -1,0 +1,36 @@
+{
+  "slug": "all-remaining-work",
+  "armed": true,
+  "session_id": "cb0a5655-b914-457f-9b88-aa3c18b262dd",
+  "cwd": "C:/Dev/mcp-router",
+  "brief": "docs/goals/goal-all-remaining-work.md",
+  "ledger": "docs/goals/goal-all-remaining-work.ledger.md",
+  "started_at": "2026-09-01T13:30:00Z",
+  "iteration": 0,
+  "max_iterations": 80,
+  "deadline": "2026-09-03T09:00:00Z",
+  "stuck_after": 3,
+  "set_notice_after": 10,
+  "verify": [
+    {
+      "name": "brief-exists",
+      "cmd": "test -s docs/goals/goal-all-remaining-work.md",
+      "timeout": 30
+    },
+    {
+      "name": "brief-targets",
+      "cmd": "PYTHONIOENCODING=utf-8 python planning/brief-target-gate.py",
+      "timeout": 180
+    },
+    {
+      "name": "reckon-clean",
+      "cmd": "PYTHONIOENCODING=utf-8 python C:/Users/rhode/.claude/remote/plugins/b0ea86c2daca5c19/skills/reckon/scripts/reckon.py check planning/reckoning/2026-09-01/ledger.json",
+      "timeout": 60
+    },
+    {
+      "name": "strict-ratchet",
+      "cmd": "PYTHONIOENCODING=utf-8 python C:/Users/rhode/.claude/remote/plugins/9f1dcc6b2a6d2938/skills/test-campaign/scripts/strict-check.py planning/test-campaign",
+      "timeout": 60
+    }
+  ]
+}

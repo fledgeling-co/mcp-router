@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   The Windows verification lane (WIN18).
 

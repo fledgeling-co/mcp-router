@@ -18,6 +18,18 @@ it, runs the gate, and restores. Two properties, both learned here the hard way:
   * A PRESENCE CONTROL runs first. If the arm's own mutation did not change the
     file, the arm proves nothing and must report that rather than a green tick.
 
+WHY THE ARMS ARE RELATIVE RATHER THAN ABSOLUTE. The first version of this file
+hardcoded each gate's CURRENT colour: `record("wincoverage", "as-is (0 of 16
+named)", "red", ...)`. Then the work landed, wincoverage went green for the best
+possible reason, and this harness reported it as WRONG -- an arm asserting a
+world that no longer existed. A proof harness that decays into noise every time
+the tree improves gets switched off, and a switched-off proof proves nothing.
+
+So an arm no longer states what colour a gate IS. It observes that as a
+BASELINE, then requires each mutation to FLIP it. An arm whose mutation aims at
+a colour the gate already had is reported INCONCLUSIVE rather than OK, because a
+gate that was already red tells you nothing when it stays red.
+
     python planning/goals/prove-gates.py
 """
 import io
@@ -65,12 +77,47 @@ class Arm:
 
 
 results = []
+BASELINE = {}
 
 
-def record(gate, arm, expect, rc, out):
-    ok = (rc != 0) if expect == "red" else (rc == 0)
+def observe(gate, label, rc):
+    """Record what the gate says about the tree as it stands. Never scored.
+
+    This is an observation, not an arm. It is also one half of the two-way proof:
+    the live tree IS one of the two directions, and it is the only one nobody had
+    to simulate.
+    """
+    BASELINE[gate] = rc
+    print("  %-12s %-34s baseline %-5s (exit %d)"
+          % (gate, label, "red" if rc else "green", rc))
+
+
+def record(gate, arm, expect, rc, out, against=None):
+    want_red = (expect == "red")
+    base = BASELINE.get(gate) if against is None else against
+    if base is not None and ((base != 0) == want_red):
+        # The mutation aimed at the colour the gate already had, so its outcome
+        # is not evidence either way. Saying OK here would be the harness
+        # congratulating itself for a gate that never moved.
+        results.append((gate, arm, expect, rc, None))
+        print("  %-12s %-34s expect %-3s  exit %d  INCONCLUSIVE (baseline already %s)"
+              % (gate, arm, expect, rc, "red" if base else "green"))
+        return
+    ok = (rc != 0) if want_red else (rc == 0)
     results.append((gate, arm, expect, rc, ok))
-    first = next((l for l in out.splitlines() if l.strip()), "")
+    # Counted, not filtered away: reader-accounting.py flags a bare comprehension
+    # filter, and it is right to - "the first non-blank line" silently discards
+    # however many blank ones preceded it, and a gate whose output is ALL blank
+    # would print an empty reason and look like a gate with nothing to say.
+    lines = out.splitlines()
+    first, blanks = "", 0
+    for line in lines:
+        if line.strip():
+            first = line
+            break
+        blanks += 1
+    if not first and lines:
+        first = "(%d line(s) of output, all blank)" % len(lines)
     print("  %-12s %-34s expect %-3s  exit %d  %s" % (gate, arm, expect, rc, "OK" if ok else "*** WRONG ***"))
     if not ok:
         print("        %s" % first[:150])
@@ -81,7 +128,7 @@ print("Proving the completion gates can go both ways.\n")
 # ---------------------------------------------------------------- waves
 print("waves -- zero scheduled product+evidence work, on a reckoning newer than HEAD")
 rc, out = run("waves")
-record("waves", "as-is (67 items remain)", "red", rc, out)
+observe("waves", "as the tree stands", rc)
 
 led = ROOT / "planning" / "reckoning" / "2026-09-01" / "ledger.json"
 a = Arm(led)
@@ -103,72 +150,102 @@ try:
                               capture_output=True, text=True).stdout.strip() or "0")
     os.utime(led, (head - 3600, head - 3600))
     rc, out = run("waves")
-    record("waves", "cleared but STALE (predates HEAD)", "red", rc, out)
+    # Measured against the CLEARED state proved green one line above, not against
+    # the untouched tree: the only difference between them is the timestamp.
+    record("waves", "cleared but STALE (predates HEAD)", "red", rc, out, against=0)
 finally:
     a.restore()
 
 # ---------------------------------------------------------------- wincoverage
 print("\nwincoverage -- every drawn Windows surface named by a campaign surface, and cased")
 rc, out = run("wincoverage")
-record("wincoverage", "as-is (0 of 16 named)", "red", rc, out)
+observe("wincoverage", "as the tree stands", rc)
 
-surf = ROOT / "planning" / "test-campaign" / "surfaces.in.json"
+# The gate reads inventory.json for surfaces and cases.json for cases. An earlier
+# version of this arm mutated surfaces.in.json -- the INPUT file campaign.py reads
+# and never writes -- so it could not have flipped the gate no matter what it put
+# there, and its green tick meant nothing. The gate's own docstring says which
+# file is the registry; this arm now reads it from the same place.
+inv = ROOT / "planning" / "test-campaign" / "inventory.json"
 cases = ROOT / "planning" / "test-campaign" / "cases.json"
-WIN = ["WIN3", "WIN4", "WIN5", "WIN6", "WIN7", "WIN8", "WIN9", "WIN10",
-       "WIN11", "WIN12", "WIN13", "WIN14", "WIN15", "WIN16", "WIN21", "WIN22"]
-sa, ca = Arm(surf), Arm(cases)
+
+ia, ca = Arm(inv), Arm(cases)
 try:
-    def add_surfaces(d):
-        rows = d if isinstance(d, list) else d.get("surfaces", [])
-        for i, w in enumerate(WIN):
-            rows.append({"id": "SURF-9%02d" % i, "title": "Windows %s board" % w, "item": w})
-        return d
-
-    def add_cases(d):
+    def drop_windows_cases(d):
         rows = d if isinstance(d, list) else d.get("cases", [])
-        for i, w in enumerate(WIN):
-            rows.append({"id": "CASE-9%03d" % i, "surface": "SURF-9%02d" % i, "status": "pass"})
-        return d
+        kept = [c for c in rows if not str(c.get("surface", "")).startswith("SURF-0")
+                or str(c.get("lane", "")) != "windows-glass"]
+        dropped = len(rows) - len(kept)
+        if not dropped:
+            raise SystemExit("PRESENCE CONTROL FAILED: no windows-glass cases to drop, so this "
+                             "arm cannot demonstrate the uncased state it exists to demonstrate.")
+        return kept if isinstance(d, list) else {**d, "cases": kept}
 
-    sa.mutate(add_surfaces)
+    ca.mutate(drop_windows_cases)
     rc, out = run("wincoverage")
-    record("wincoverage", "16 surfaces added, no cases", "red", rc, out)
+    record("wincoverage", "every windows-glass case removed", "red", rc, out)
+    ca.restore()
 
-    ca.mutate(add_cases)
+    def drop_windows_surfaces(d):
+        rows = d.get("surface") or []
+        kept = [x for x in rows if str(x.get("lane", "")) != "windows-glass"]
+        if len(kept) == len(rows):
+            raise SystemExit("PRESENCE CONTROL FAILED: no windows-glass surfaces to drop.")
+        return {**d, "surface": kept}
+
+    ia.mutate(drop_windows_surfaces)
     rc, out = run("wincoverage")
-    record("wincoverage", "16 surfaces + 16 cases", "green", rc, out)
+    record("wincoverage", "every windows-glass surface removed", "red", rc, out)
 finally:
     ca.restore()
-    sa.restore()
+    ia.restore()
 
 # ---------------------------------------------------------------- winlive
 print("\nwinlive -- a UIA verdict against the REAL shell, not WIN20's own probe")
 rc, out = run("winlive")
-record("winlive", "as-is (probe, self-disclaimed)", "red", rc, out)
+observe("winlive", "as the tree stands", rc)
 
-rep = ROOT / "planning" / "evidence" / "WIN20" / "run" / "assert-report.json"
+# Repointed 2026-09-02 from WIN20's probe report to the shell lane's, because the
+# gate was repointed. An arm still mutating WIN20's file would have gone on
+# passing while measuring a file the gate no longer opens -- the same
+# wrong-file failure the wincoverage arm above had.
+rep = ROOT / "planning" / "evidence" / "WIN-SHELL" / "run" / "assert-report.json"
 ra = Arm(rep)
+CLEAN = {"destinations": 10, "measured": 10, "passed": 10, "failed": 0, "crashed": 0,
+         "unoracled": 0, "inconclusive": 0, "subjectIsNotTheProduct": ""}
 try:
-    ra.mutate(lambda d: {**d, "subject": "MCPRouter.Shell", "subjectIsNotTheProduct": ""})
+    ra.mutate(lambda d: {**d, **CLEAN})
     rc, out = run("winlive")
-    record("winlive", "repointed at the real shell", "green", rc, out)
+    record("winlive", "all ten destinations passing", "green", rc, out)
 
-    ra.mutate(lambda d: {**d, "subject": "MCPRouter.Shell", "subjectIsNotTheProduct": "",
-                         "failed": [{"id": "x", "why": "a board did not draw"}]})
+    ra.mutate(lambda d: {**d, **CLEAN, "passed": 9, "failed": 1})
     rc, out = run("winlive")
-    record("winlive", "real shell, one assertion failing", "red", rc, out)
+    record("winlive", "one destination failing", "red", rc, out, against=0)
 
-    ra.mutate(lambda d: {**d, "subject": "MCPRouter.Shell", "subjectIsNotTheProduct": "",
-                         "failed": [], "passed": []})
+    # The denominator arm. 10 of 10 passing is a different claim from 6 of 6
+    # passing out of 10, and a gate that cannot tell them apart is how a
+    # coverage figure loses its denominator.
+    ra.mutate(lambda d: {**d, **CLEAN, "measured": 6, "passed": 6})
     rc, out = run("winlive")
-    record("winlive", "real shell, asserted NOTHING", "red", rc, out)
+    record("winlive", "6 of 10 measured, all passing", "red", rc, out, against=0)
+
+    ra.mutate(lambda d: {**d, **CLEAN, "measured": 0, "passed": 0})
+    rc, out = run("winlive")
+    record("winlive", "nothing measured at all", "red", rc, out, against=0)
+
+    # A lane that declares itself not a measurement of the product outranks
+    # every figure in it, however green.
+    ra.mutate(lambda d: {**d, **CLEAN,
+                         "subjectIsNotTheProduct": "this is the probe, not the shell"})
+    rc, out = run("winlive")
+    record("winlive", "perfect figures, self-disclaimed", "red", rc, out, against=0)
 finally:
     ra.restore()
 
 # ---------------------------------------------------------------- branches
 print("\nbranches -- no unmerged ai/* branch")
 rc, out = run("branches")
-record("branches", "as-is (ai/p4 unmerged)", "red", rc, out)
+observe("branches", "as the tree stands", rc)
 print("        green arm: not simulated -- it would require merging or deleting a real branch.")
 print("        The gate reads `git branch --no-merged main --list ai/*` and is empty-set green;")
 print("        the previous fleet's version of it went green for real on 2026-09-01.")
@@ -176,7 +253,7 @@ print("        the previous fleet's version of it went green for real on 2026-09
 # ---------------------------------------------------------------- liveness
 print("\nliveness -- something moved recently, and auto-passes once waves is satisfied")
 rc, out = run("liveness")
-record("liveness", "as-is (1324 min idle)", "red", rc, out)
+observe("liveness", "as the tree stands", rc)
 import os
 os.environ["FINISH_LIVENESS_BUDGET_MIN"] = "999999"
 r = subprocess.run([sys.executable, str(GATE), "liveness"], cwd=ROOT, capture_output=True,
@@ -184,13 +261,27 @@ r = subprocess.run([sys.executable, str(GATE), "liveness"], cwd=ROOT, capture_ou
                    env={**os.environ, "PYTHONIOENCODING": "utf-8"})
 record("liveness", "budget widened past the idle time", "green", r.returncode, r.stdout or "")
 
+os.environ["FINISH_LIVENESS_BUDGET_MIN"] = "0"
+r = subprocess.run([sys.executable, str(GATE), "liveness"], cwd=ROOT, capture_output=True,
+                   text=True, encoding="utf-8", errors="replace",
+                   env={**os.environ, "PYTHONIOENCODING": "utf-8"})
+record("liveness", "budget of zero minutes", "red", r.returncode, r.stdout or "")
+os.environ.pop("FINISH_LIVENESS_BUDGET_MIN", None)
+
 # ---------------------------------------------------------------- verdict
 print("\n" + "-" * 72)
-bad = [r for r in results if not r[4]]
-print("%d arm(s), %d correct, %d WRONG" % (len(results), len(results) - len(bad), len(bad)))
+bad = [r for r in results if r[4] is False]
+inconclusive = [r for r in results if r[4] is None]
+good = [r for r in results if r[4] is True]
+print("%d arm(s), %d correct, %d WRONG, %d inconclusive"
+      % (len(results), len(good), len(bad), len(inconclusive)))
+for g, a_, e, rc, _ in inconclusive:
+    print("  INCONCLUSIVE: %s / %s aimed at %s, which the gate already was" % (g, a_, e))
 if bad:
     for g, a_, e, rc, _ in bad:
         print("  WRONG: %s / %s expected %s, got exit %d" % (g, a_, e, rc))
     sys.exit(1)
-print("every arm flipped the gate the way it should. The gates are evidence.")
+print("every arm that could move a gate, moved it the way it should.")
+print("Baselines observed on the live tree: %s"
+      % ", ".join("%s=%s" % (g, "red" if rc else "green") for g, rc in sorted(BASELINE.items())))
 sys.exit(0)

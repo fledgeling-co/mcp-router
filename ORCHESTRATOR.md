@@ -3589,3 +3589,60 @@ WIN9, WIN10, WIN11, WIN13, WIN14, WIN15 each shipped one XAML view, so they are 
 they are wired to real data is what the Windows campaign lane will settle.
 
 Full worklists and evidence: `planning/tailings-win/`.
+
+### 2026-09-02 · The Windows campaign lane settled it: three of nine boards do not open
+
+The line above — *"whether they are wired to real data is what the Windows campaign lane will
+settle"* — is now answered, and the answer is worse than "not wired to real data". Three of the
+nine boards never mount at all.
+
+`scripts/windows/uia/shell-lane.ps1` launches the shipped `MCPRouter.Shell` binary in the
+interactive session, actuates each of the ten pane items through
+`SelectionItemPattern.Select()` out of process, and reads back the window title and the whole
+control-view tree **after** each actuation. Ten destinations, measured ten, and the result is
+6 pass / 4 fail:
+
+| destination | verdict | what was read after selecting it |
+|---|---|---|
+| Discover, Servers, Activity, Checks, Insights, Settings | **pass** | own title, own tree, distinct fingerprint |
+| Skills | **fail — CRASH** | process terminated; `0xC000027B` in `CoreMessagingXP.dll` |
+| Harnesses, Cleanup, Inbox | **fail — COLLAPSE** | pane item `IsSelected=True`, board and title unchanged |
+
+Four findings came out of it, all filed in `planning/test-campaign/defects-windows.json`:
+
+- **DEF-077** (critical) Selecting **Skills** terminates the shell. Reproduced on every run. This
+  also explains DEF-071 without replacing it: the in-process self-test captures exactly one board
+  and stops, because `discover` is first in `DestinationCatalog.All` and `skills` is second.
+- **DEF-078** (critical) **Harnesses, Cleanup and Inbox** take the selection and never open. The
+  highlight moves; nothing behind it does. Order-independent — a reverse sweep, where every
+  destination has a different predecessor, fails on exactly the same three.
+- **DEF-079** (medium) The app's `UnhandledException` logger has never written a line, including
+  for the Skills crash, which by definition had one. Its silence is not evidence of health.
+- **DEF-076** is now measured on the running board, and the dump CONFIRMS it rather than clearing
+  it. The Settings board does open, and its realised control view holds **no ToggleSwitch and no
+  CheckBox at all** — 19 Text, 10 ListItem (the pane), 9 Pane, 8 Button of which five are window
+  chrome, and the only board-owned button is `Copy`. Toggle rows are present as prose: the text
+  "Launch router daemon at sign-in" and its subtitle are published, and nothing actuable sits
+  beside them. So the WIN13 claim of "7 settings sections, Fluent ToggleSwitch controls" is not
+  merely unnamed on the automation plane — on this evidence there is no toggle control in the
+  tree to name. That is an accessibility defect and an inertness question in one, and it is now
+  measured on the product rather than inferred from the XAML.
+
+**Why every earlier check passed.** The boards compile. The pane draws all ten items with correct
+accessible names. `ShowDestination`'s switch genuinely maps ten destinations to ten distinct board
+types — reading it is what produced the earlier "navigation verified honest", and that reading was
+correct as far as it went. The unit tests cover the models rather than the mounting. Nothing was
+false; no instrument actuated a control and then read a state outside it. That is the whole
+difference, and it is the sixth failure mode in the test-campaign skill almost verbatim.
+
+**Gate consequences.** `winlive` was reading WIN20's probe report — an honest artifact whose own
+`subjectIsNotTheProduct` field said it was measuring the plane, not the product. It now reads the
+shell lane's report, and that repointing made it **redder**, not greener: it fails on four real
+destinations against the real binary.
+
+**One harness defect worth keeping.** `shell-lane.ps1` was written, parse-checked clean under
+PowerShell 7, scheduled, and exited 1 having written nothing. Windows PowerShell 5.1 — what
+scheduled tasks run — decodes a file with no BOM as cp1252, so an em dash inside a double-quoted
+string becomes a curly quote, ends the string early, and breaks the parse. Five tracked `.ps1`
+files were one prose edit from the same failure. `scripts/windows/ps-parse-gate.py` now checks
+both halves and carries a four-fixture two-way control.

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   WIN20 — run the automation-plane lane in the interactive session, from wherever you are.
 

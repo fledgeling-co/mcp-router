@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   WIN20 — the Windows automation-plane lane. Launch the probe, read its UIA tree, grade it.
 

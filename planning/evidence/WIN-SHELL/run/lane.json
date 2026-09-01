@@ -1,0 +1,8 @@
+﻿{
+    "subject":  "MCPRouter.Shell — the Windows client",
+    "exitCode":  1,
+    "verdict":  "fail",
+    "schema":  "win-shell.uia-lane/1",
+    "why":  "4 destination(s) failed against the real shell on the automation plane.",
+    "finishedAt":  "2026-09-01T23:05:22.8104645Z"
+}

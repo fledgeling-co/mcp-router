@@ -88,10 +88,23 @@ def latest_reckoning():
     """Newest reckoning ledger by its own directory mtime."""
     if not RECKONING.is_dir():
         return None
-    cands = [d / "ledger.json" for d in RECKONING.iterdir() if (d / "ledger.json").is_file()]
+    # reader-accounting.py is right to flag a bare comprehension filter here: a
+    # reckoning directory with no ledger.json is a real thing (a run that died
+    # part-way writes reckoning.md and no ledger), and silently skipping it is
+    # how a gate reports on a corpus smaller than the one it was handed. So the
+    # drop is COUNTED and printed rather than declared away.
+    cands, dropped = [], []
+    for d in sorted(RECKONING.iterdir()):
+        if (d / "ledger.json").is_file():
+            cands.append(d / "ledger.json")
+        elif d.is_dir():
+            dropped.append(d.name)
+    if dropped:
+        print("waves: read %d reckoning dir(s), dropped %d with no ledger.json: %s"
+              % (len(cands) + len(dropped), len(dropped), ", ".join(dropped)))
     if not cands:
         return None
-    return max(cands, key=lambda p: p.stat().st_mtime)
+    return max(cands, key=lambda q: q.stat().st_mtime)
 
 
 # --------------------------------------------------------------------------
@@ -281,29 +294,31 @@ def wincoverage():
 def winlive():
     """The UIA live lane has a verdict against the REAL shell, not only the probe.
 
-    WIN20's plane is proved -- measured 2026-09-01T21:41Z, 90 assertions passed,
-    0 failed, 2 honestly unoracled, the tree read out of process and the target
-    never holding the foreground. But its verdict names SURF-029, WIN20's own
-    probe window. A plane proved on its own probe measures the plane, not the
-    product, and reporting that as Windows coverage is the exact substitution
-    this repository has recorded before.
+    HISTORY, because this gate has been repointed once and that is the kind of
+    edit that deserves its reason written down. It used to read WIN20's report
+    under planning/evidence/WIN20/run/. That lane is real work and its numbers
+    are true -- 90 assertions passed, 0 failed, 2 honestly unoracled, the tree
+    read out of process with the target never holding the foreground -- but its
+    subject is SURF-029, WIN20's OWN probe window, and it says so itself in a
+    field called `subjectIsNotTheProduct` whose value was "WIN3 has not landed a
+    drawable Windows shell". A plane proved on its own probe measures the plane.
+
+    WIN3 landed, and scripts/windows/uia/shell-lane.ps1 now drives the shipped
+    MCPRouter.Shell binary through that same plane. So this gate reads the
+    product's lane. That repointing did NOT turn it green: the shell lane
+    reports four failing destinations, one of which terminates the process. A
+    gate moved onto a truer subject and made redder by the move is the opposite
+    of the edit this repository has learned to distrust.
     """
-    rundir = EVIDENCE / "WIN20" / "run"
+    rundir = EVIDENCE / "WIN-SHELL" / "run"
     report = rundir / "assert-report.json"
     if not report.is_file():
-        print("winlive: no assert-report.json under planning/evidence/WIN20/run/.")
-        print("         NEXT: pwsh -NoProfile -File scripts/windows/uia/run-probe-lane.ps1")
+        print("winlive: no assert-report.json under planning/evidence/WIN-SHELL/run/.")
+        print("         That is NOT-RUN, which is red. The probe lane's report is not a")
+        print("         substitute: it measures WinUI's automation plane, not this product.")
+        print("         NEXT: powershell -File scripts/windows/uia/run-shell-lane.ps1")
         return 1
 
-    # Key on the report's OWN self-declaration, not on a window-name substring.
-    # The first draft of this gate matched "automationprobe" against the dump
-    # and reported `subject(s): none` on a dump whose window is named
-    # "Automation probe" -- so it was red for the wrong reason and would have
-    # stayed red after the work landed. WIN20 already publishes the fact this
-    # gate needs: `subjectIsNotTheProduct` is the lane's own disclosure that it
-    # measured the plane rather than the product, and its current value reads
-    # "WIN3 has not landed a drawable Windows shell". WIN3 landed at 031295c3,
-    # so that disclosure is now the work order rather than a standing caveat.
     try:
         d = _read_json_bom(report)
     except Exception as e:
@@ -311,34 +326,51 @@ def winlive():
         return 1
 
     subject = str(d.get("subject") or "?")
-    disclaimer = str(d.get("subjectIsNotTheProduct") or "").strip()
-    passed = len(d.get("passed") or [])
-    failed = len(d.get("failed") or [])
-    unoracled = len(d.get("unoracled") or [])
+    total = int(d.get("destinations") or 0)
+    measured = int(d.get("measured") or 0)
+    passed = int(d.get("passed") or 0)
+    failed = int(d.get("failed") or 0)
+    crashed = int(d.get("crashed") or 0)
+    unoracled = int(d.get("unoracled") or 0)
+    inconclusive = int(d.get("inconclusive") or 0)
     captured = str(d.get("capturedAtUtc") or "?")
 
     print("winlive: subject %s" % subject)
-    print("         captured %s -- passed %d, FAILED %d, unoracled %d"
-          % (captured, passed, failed, unoracled))
+    print("         captured %s" % captured)
+    print("         destinations %d -- measured %d, passed %d, FAILED %d (%d by crash), "
+          "unoracled %d, inconclusive %d"
+          % (total, measured, passed, failed, crashed, unoracled, inconclusive))
 
+    # A lane's own disclosure that it is not measuring the product outranks every
+    # figure in it. Kept here so that if this lane ever grows one, it blocks.
+    disclaimer = str(d.get("subjectIsNotTheProduct") or "").strip()
     if disclaimer:
         print("         The lane DECLARES ITSELF not a measurement of the product:")
         print("           %s" % disclaimer[:200])
-        print("         That is an honest artifact, not a broken one -- but it is the plane's")
-        print("         self-portrait, and counting it as Windows coverage is the substitution")
-        print("         this repository has recorded before.")
-        print("         NEXT: point the lane at MCPRouter.Shell's real boards and clear the")
-        print("         `subjectIsNotTheProduct` field, which is only clearable by repointing it.")
         return 1
+
+    if measured == 0:
+        print("         0 destinations measured. A lane that asserted nothing is NOT-RUN,")
+        print("         which is red, not green -- a filter selecting nothing cannot pass.")
+        return 1
+
+    # Unmeasured destinations are not failures and they are not passes either.
+    # Reporting `passed` against `measured` while `total` is larger is how a
+    # denominator goes missing, so the shortfall is named on its own line.
+    if measured < total:
+        print("         %d of %d destination(s) were never measured. They are neither passing"
+              % (total - measured, total))
+        print("         nor failing, and they are not covered by the figures above.")
+        return 1
+
     if failed:
-        print("         %d assertion(s) FAILED against the real shell." % failed)
+        print("         %d destination(s) FAILED against the real shell -- see DEF-077 (Skills"
+              % failed)
+        print("         terminates the process) and DEF-078 (three boards select and never mount).")
         return 1
-    if passed == 0:
-        print("         0 assertions passed. A lane that asserted nothing is NOT-RUN, which is")
-        print("         red, not green -- a filter selecting nothing cannot report a pass.")
-        return 1
-    print("winlive: the real shell was read on the automation plane and every assertion that")
-    print("         could run, passed.")
+
+    print("winlive: every destination in the shipped shell was actuated through the automation")
+    print("         plane and read back a distinct, correctly-titled tree.")
     return 0
 
 

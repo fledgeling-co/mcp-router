@@ -1,0 +1,19 @@
+﻿
+2026-09-01T23:04:29.2733405Z shell binary: C:\Dev\mcp-router\app\windows\MCPRouter.Shell\bin\Debug\net8.0-windows10.0.19041.0\win-x64\MCPRouter.Shell.exe (written 2026-09-01T22:20:26.6193235Z)
+2026-09-01T23:04:30.4617743Z shell pid 41624 is on the automation plane: 'Servers'
+2026-09-01T23:04:30.4938536Z catalogue: 10 destination(s) — discover, skills, servers, activity, harnesses, checks, cleanup, inbox, insights, settings
+2026-09-01T23:04:36.0596306Z   discover: PASS — title 'Discover', 905 element(s), fp 92CAA03DEF686BEC
+2026-09-01T23:04:41.0881033Z   skills: FAIL — title '', 0 element(s), fp E3B0C44298FC1C14
+2026-09-01T23:04:41.0881033Z   the shell is gone; relaunching before 'servers'
+2026-09-01T23:04:43.7417450Z   servers: PASS — title 'Servers', 84 element(s), fp ABCC3298987ED66C
+2026-09-01T23:04:45.4681518Z   activity: PASS — title 'Activity', 114 element(s), fp 51733BF04FA671D7
+2026-09-01T23:04:56.5097612Z   harnesses: FAIL — title 'Activity', 114 element(s), fp 51733BF04FA671D7
+2026-09-01T23:04:58.0511872Z   checks: PASS — title 'Checks', 70 element(s), fp 48B098BE235A4C4B
+2026-09-01T23:05:08.8864967Z   cleanup: FAIL — title 'Checks', 70 element(s), fp 48B098BE235A4C4B
+2026-09-01T23:05:19.6667202Z   inbox: FAIL — title 'Checks', 70 element(s), fp 48B098BE235A4C4B
+2026-09-01T23:05:21.1858164Z   insights: PASS — title 'Insights', 74 element(s), fp CD918463BB25FA47
+2026-09-01T23:05:22.7360993Z   settings: PASS — title 'Settings', 61 element(s), fp 32F22AD06FD8C67D
+2026-09-01T23:05:22.7775350Z wrote C:\Dev\mcp-router\planning\evidence\WIN-SHELL\run\assert-report.json
+2026-09-01T23:05:22.7804480Z destinations 10 · measured 10 · passed 6 · FAILED 4 · unoracled 0 · inconclusive 0
+2026-09-01T23:05:22.8077017Z shell pid 15724 stopped
+2026-09-01T23:05:22.8104645Z 4 destination(s) failed against the real shell on the automation plane.

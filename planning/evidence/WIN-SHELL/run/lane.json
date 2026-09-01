@@ -1,8 +1,8 @@
 ﻿{
     "subject":  "MCPRouter.Shell — the Windows client",
-    "exitCode":  1,
-    "verdict":  "fail",
+    "exitCode":  0,
+    "verdict":  "pass",
     "schema":  "win-shell.uia-lane/1",
-    "why":  "4 destination(s) failed against the real shell on the automation plane.",
-    "finishedAt":  "2026-09-01T23:05:22.8104645Z"
+    "why":  "pass: 10 of 10 destination(s) were actuated through the automation plane and read back distinct, correctly-titled trees, out of process, without the target ever being foregrounded. 0 unreachable and 0 unactuable are reported, not counted as passes.",
+    "finishedAt":  "2026-09-01T23:39:30.0666113Z"
 }

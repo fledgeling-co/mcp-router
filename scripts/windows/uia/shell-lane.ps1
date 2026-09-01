@@ -392,6 +392,7 @@ foreach ($d in $destinations) {
 
     $elements = 0
     $names    = @()
+    $boardFailed = $false
     if (Test-Path $dump) {
         try {
             $doc = Get-Content $dump -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -400,6 +401,10 @@ foreach ($d in $destinations) {
             foreach ($m in [regex]::Matches($flat, '"name"\s*:\s*"([^"]{1,60})"')) {
                 $names += $m.Groups[1].Value
             }
+            # BoardFailure sets AutomationProperties.AutomationId to "board.failure.<id>". Keyed
+            # on the automation id rather than on the card's prose, because prose is edited and an
+            # oracle that a copy change silently disarms is not an oracle.
+            $boardFailed = $flat -match 'board\.failure\.'
         } catch { }
     }
 
@@ -422,6 +427,22 @@ foreach ($d in $destinations) {
         $row.reason  = ("CRASH: MCPRouter.Shell terminated while this destination was being read. " +
                         "The board was actuated and the process did not survive it, so the empty " +
                         "tree below is the absence of an application rather than of a board.")
+        $failed++
+    } elseif ($boardFailed) {
+        # THE FAILURE-CARD CHECK, and this lane needed it the moment the product got better at
+        # reporting. ShowDestination now catches a board that throws and mounts a BoardFailure
+        # card in its place - which is the right product behaviour and was very nearly a false
+        # green here: the card sets the window title correctly and publishes its own distinct
+        # tree, so the title oracle and the collapse oracle were both satisfied by a board that
+        # had not been built. Three destinations went from FAIL to PASS on the strength of it.
+        # A harness that grades the error state as a success is worse than no harness.
+        $row.status = 'fail'
+        $row.boardFailedToBuild = $true
+        $row.reason = ("the destination mounted a BoardFailure card rather than its board: the " +
+                       "board threw while being built and the shell caught it. The title and the " +
+                       "tree both moved, so only the failure card's own automation id " +
+                       "distinguishes this from a working board. See shell-startup.log for the " +
+                       "exception.")
         $failed++
     } elseif ($elements -eq 0) {
         $row.status = 'fail'

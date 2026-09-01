@@ -14,14 +14,14 @@ Written by `scripts/windows/uia/shell-lane.ps1`, run through
 - `run/uia-shell-<destination>.json` — the control-view tree as it stood *after* that
   destination was actuated. `uia-shell-settings.json` is the evidence behind DEF-076.
 
-## What is deliberately not here
+## A note on `uia-shell-discover.json`
 
-`run/uia-shell-discover.json` is not committed. On the recorded run it was 1.5 MB — the Discover
-board realises a populated store rail, so its tree is an order of magnitude larger than the
-others, and a file that size per run per commit is a cost the evidence does not need to carry.
-Every claim made about `discover` rests on `assert-report.json`, which holds its title, element
-count and tree fingerprint. Regenerate the full dump with the command above if the tree itself
-is ever the question.
+It is committed, and its size moves a lot between runs — 1.5 MB on one early run against 90 KB on
+the recorded one. The Discover board realises a store rail whose contents depend on what the
+fixture lane holds, so its tree is the one dump here that is not roughly constant. If a future run
+produces another very large one, that is the board being populated rather than the lane
+misbehaving.
 
-Nothing else was dropped. The omission is here rather than in a `.gitignore` because a silently
-absent artifact and a deliberately absent one look identical to the next reader.
+Nothing has been dropped from this directory. If something is ever left out, the reason belongs
+here rather than in a `.gitignore`, because a silently absent artifact and a deliberately absent
+one look identical to the next reader.

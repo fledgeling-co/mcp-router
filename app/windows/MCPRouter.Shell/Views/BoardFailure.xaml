@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="MCPRouter.Shell.Views.BoardFailure"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+      What a destination draws when building its board threw.
+
+      This is deliberately NOT the placeholder. A placeholder says "this board has not been
+      written yet", which is a true and reassuring sentence, and saying it over a board that WAS
+      written and just failed would be the most misleading thing on the screen. DEF-078 is the
+      reason this control exists: three boards threw, the assignment that would have mounted them
+      was abandoned, and the shell went on showing the PREVIOUS board with the PREVIOUS title
+      while the pane item the user clicked sat highlighted. Nothing anywhere said a word.
+
+      DESIGN.md §5's Error row, and §19 rule 3 - "a refused write is shown as the server's
+      refusal" - read for a failure that is the app's own: name it, show the technical detail
+      rather than hiding it behind a friendly sentence, and never dress it as an empty state.
+    -->
+    <Grid Padding="24">
+        <Border
+            MaxWidth="640"
+            Padding="32"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource SystemFillColorCriticalBrush}"
+            BorderThickness="1"
+            CornerRadius="{ThemeResource ControlCornerRadius}">
+
+            <StackPanel Spacing="12">
+                <!-- A glyph carries no reading, so the tertiary/critical fill is at the 3:1
+                     non-text floor rather than §12's text floor. Every line below is Primary or
+                     Secondary. -->
+                <FontIcon
+                    HorizontalAlignment="Left"
+                    FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                    FontSize="28"
+                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                    Glyph="&#xE783;" />
+
+                <TextBlock
+                    x:Name="BoardName"
+                    Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                    Style="{StaticResource SubtitleTextBlockStyle}" />
+
+                <TextBlock
+                    x:Name="Summary"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    TextWrapping="Wrap" />
+
+                <!-- The exception type and message, in place. A reader who can see this can say
+                     what broke without a debugger, and an automation plane can read it out of
+                     process - which is how the lane will grade this board from now on. -->
+                <TextBlock
+                    x:Name="Detail"
+                    FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    IsTextSelectionEnabled="True"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    TextWrapping="Wrap" />
+
+                <TextBlock
+                    x:Name="Where"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

@@ -3646,3 +3646,47 @@ scheduled tasks run — decodes a file with no BOM as cp1252, so an em dash insi
 string becomes a curly quote, ends the string early, and breaks the parse. Five tracked `.ps1`
 files were one prose edit from the same failure. `scripts/windows/ps-parse-gate.py` now checks
 both halves and carries a four-fixture two-way control.
+
+### 2026-09-02 · Fixed: the shell now opens all ten boards, and the cause was one missing key
+
+The four failures above are fixed, and the diagnosis came from making the application say what it
+had been swallowing rather than from more reading. Two guards were added first — `ShowDestination`
+now catches a board that throws, and `SkillsBoard.OnLoaded` no longer lets anything escape an
+`async void` — and the first run afterwards printed the stack traces that named every cause:
+
+- **`SubtleButtonStyle` is not a WinUI 3 key and this app never defined it.** Eleven references
+  across five views asked for it. Cleanup and Inbox threw inside `InitializeComponent`, Harnesses
+  in its card builder. The XAML ones surfaced as `XamlParseException: undeclared prefix`, which
+  names neither the key nor the file — which is why reading the markup never found it. Defined
+  once in `App.xaml`, based on the platform's `DefaultButtonStyle`. **DEF-078 fixed.**
+- **`SkillsBoard.FragmentNs` declared only the default namespace** while its 33 fragments use
+  `x:Name`, so `x:` really was an undeclared prefix and `XamlReader.Load` threw. The first
+  fragment to load is `ErrorState`'s — what the board renders when no router is running — so it
+  threw inside `async void` and killed the process. **DEF-077 fixed.**
+- **DEF-071 fixed without touching the self-test.** Its cause was DEF-077 all along: the driver
+  walks the catalogue in order, `skills` is second, and the process did not survive it.
+  `run-shell-selftest.ps1` now exits 0 — *"destinations walked: 10, captures on disk: 12, no
+  failures reported"*. There are now per-destination PNGs for all ten boards; there was one.
+
+**Measured after:** ten of ten destinations pass on the lane, on a single process with no
+relaunch and no crash, with real trees (Harnesses 70, Cleanup 90, Inbox 79 elements). 625 shell
+model tests still pass. `winlive` is green and earned it.
+
+**Two things deliberately left standing.**
+
+`DEF-076` is unchanged and re-confirmed: the Settings board still publishes no `ToggleSwitch` and
+no `CheckBox` against a claim of seven sections of toggles. It opens, it draws, and its toggles
+are prose.
+
+`DEF-079` stays open. The two new handlers — `AppDomain.CurrentDomain.UnhandledException` and
+`TaskScheduler.UnobservedTaskException` — have never been observed firing, because every exception
+since has been caught at a site that logs directly. An unproven handler is precisely what that
+defect is about, and closing it on registration alone would repeat the error it records.
+
+**One near-miss worth recording, because it was mine.** Adding the `BoardFailure` card turned the
+lane green at 10/10 *before* any board was fixed — the card sets the window title correctly and
+publishes its own distinct tree, so both the title oracle and the collapse oracle were satisfied
+by a board that had not been built. Three destinations went FAIL → PASS on the strength of a
+better error state. The lane now keys on the card's own automation id, and a mutation run that
+renames `SubtleButtonStyle` turns exactly those three red again — which is what proves the new
+check, and not the old ones, is what catches them.

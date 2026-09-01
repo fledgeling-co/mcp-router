@@ -1,23 +1,23 @@
 ﻿{
     "schema":  "win20.uia-dump/1",
-    "capturedAtUtc":  "2026-09-01T23:05:22.6324417Z",
+    "capturedAtUtc":  "2026-09-01T23:39:29.8795991Z",
     "host":  {
                  "osVersion":  "10.0.26220.0",
                  "psVersion":  "5.1.26100.9223",
                  "machine":  "Z13"
              },
     "request":  {
-                    "processId":  15724,
+                    "processId":  15392,
                     "titleContains":  "",
                     "view":  "Control"
                 },
     "targets":  [
                     {
-                        "hwnd":  2622296,
+                        "hwnd":  3147682,
                         "name":  "Settings",
                         "className":  "WinUIDesktopWin32WindowClass",
                         "frameworkId":  "Win32",
-                        "processId":  15724,
+                        "processId":  15392,
                         "isVisible":  true,
                         "isMinimised":  false
                     }
@@ -25,22 +25,22 @@
     "foregroundSamples":  [
                               {
                                   "when":  "before",
-                                  "hwnd":  2622296,
-                                  "processId":  15724
+                                  "hwnd":  3147682,
+                                  "processId":  15392
                               },
                               {
                                   "when":  "midwalk",
-                                  "hwnd":  2622296,
-                                  "processId":  15724
+                                  "hwnd":  3147682,
+                                  "processId":  15392
                               },
                               {
                                   "when":  "after",
-                                  "hwnd":  2622296,
-                                  "processId":  15724
+                                  "hwnd":  3147682,
+                                  "processId":  15392
                               }
                           ],
     "truncated":  false,
-    "elementCount":  60,
+    "elementCount":  55,
     "elements":  [
                      {
                          "depth":  0,
@@ -78,162 +78,6 @@
                          "depth":  1,
                          "path":  "/0",
                          "automationId":  "",
-                         "name":  "PopupHost",
-                         "controlType":  "Pane",
-                         "localizedControlType":  "pane",
-                         "className":  "Microsoft.UI.Content.PopupWindowSiteBridge",
-                         "frameworkId":  "Win32",
-                         "isEnabled":  true,
-                         "isOffscreen":  false,
-                         "isKeyboardFocusable":  false,
-                         "hasKeyboardFocus":  false,
-                         "isContentElement":  true,
-                         "isControlElement":  true,
-                         "accessKey":  "",
-                         "acceleratorKey":  "",
-                         "helpText":  "",
-                         "boundingRectangle":  {
-                                                   "y":  1369,
-                                                   "width":  478,
-                                                   "height":  88,
-                                                   "x":  -6
-                                               },
-                         "patterns":  [
-
-                                      ],
-                         "patternState":  {
-
-                                          }
-                     },
-                     {
-                         "depth":  2,
-                         "path":  "/0/0",
-                         "automationId":  "",
-                         "name":  "",
-                         "controlType":  "Pane",
-                         "localizedControlType":  "pane",
-                         "className":  "InputSiteWindowClass",
-                         "frameworkId":  "XAML",
-                         "isEnabled":  true,
-                         "isOffscreen":  false,
-                         "isKeyboardFocusable":  false,
-                         "hasKeyboardFocus":  false,
-                         "isContentElement":  true,
-                         "isControlElement":  true,
-                         "accessKey":  "",
-                         "acceleratorKey":  "",
-                         "helpText":  "",
-                         "boundingRectangle":  {
-                                                   "y":  0,
-                                                   "width":  2560,
-                                                   "height":  1528,
-                                                   "x":  0
-                                               },
-                         "patterns":  [
-                                          "TransformPatternIdentifiers.Pattern"
-                                      ],
-                         "patternState":  {
-
-                                          }
-                     },
-                     {
-                         "depth":  3,
-                         "path":  "/0/0/0",
-                         "automationId":  "",
-                         "name":  "Popup",
-                         "controlType":  "Window",
-                         "localizedControlType":  "window",
-                         "className":  "Popup",
-                         "frameworkId":  "XAML",
-                         "isEnabled":  true,
-                         "isOffscreen":  true,
-                         "isKeyboardFocusable":  false,
-                         "hasKeyboardFocus":  false,
-                         "isContentElement":  true,
-                         "isControlElement":  true,
-                         "accessKey":  "",
-                         "acceleratorKey":  "",
-                         "helpText":  "",
-                         "boundingRectangle":  {
-                                                   "y":  Infinity,
-                                                   "width":  -Infinity,
-                                                   "height":  -Infinity,
-                                                   "x":  Infinity
-                                               },
-                         "patterns":  [
-                                          "ScrollItemPatternIdentifiers.Pattern"
-                                      ],
-                         "patternState":  {
-
-                                          }
-                     },
-                     {
-                         "depth":  4,
-                         "path":  "/0/0/0/0",
-                         "automationId":  "",
-                         "name":  "Seven panes of what this app may do to the machine, and how often it re-reads it.",
-                         "controlType":  "ToolTip",
-                         "localizedControlType":  "tool tip",
-                         "className":  "ToolTip",
-                         "frameworkId":  "XAML",
-                         "isEnabled":  true,
-                         "isOffscreen":  false,
-                         "isKeyboardFocusable":  false,
-                         "hasKeyboardFocus":  false,
-                         "isContentElement":  true,
-                         "isControlElement":  true,
-                         "accessKey":  "",
-                         "acceleratorKey":  "",
-                         "helpText":  "",
-                         "boundingRectangle":  {
-                                                   "y":  1371,
-                                                   "width":  466,
-                                                   "height":  73,
-                                                   "x":  0
-                                               },
-                         "patterns":  [
-                                          "ScrollItemPatternIdentifiers.Pattern"
-                                      ],
-                         "patternState":  {
-
-                                          }
-                     },
-                     {
-                         "depth":  5,
-                         "path":  "/0/0/0/0/0",
-                         "automationId":  "",
-                         "name":  "Seven panes of what this app may do to the machine, and how often it re-reads it.",
-                         "controlType":  "Text",
-                         "localizedControlType":  "text",
-                         "className":  "TextBlock",
-                         "frameworkId":  "XAML",
-                         "isEnabled":  true,
-                         "isOffscreen":  false,
-                         "isKeyboardFocusable":  false,
-                         "hasKeyboardFocus":  false,
-                         "isContentElement":  true,
-                         "isControlElement":  true,
-                         "accessKey":  "",
-                         "acceleratorKey":  "",
-                         "helpText":  "",
-                         "boundingRectangle":  {
-                                                   "y":  1382,
-                                                   "width":  435,
-                                                   "height":  48,
-                                                   "x":  15
-                                               },
-                         "patterns":  [
-                                          "ScrollItemPatternIdentifiers.Pattern",
-                                          "TextPatternIdentifiers.Pattern"
-                                      ],
-                         "patternState":  {
-
-                                          }
-                     },
-                     {
-                         "depth":  1,
-                         "path":  "/1",
-                         "automationId":  "",
                          "name":  "Non Client Input Sink Window",
                          "controlType":  "Pane",
                          "localizedControlType":  "pane",
@@ -263,7 +107,7 @@
                      },
                      {
                          "depth":  1,
-                         "path":  "/2",
+                         "path":  "/1",
                          "automationId":  "",
                          "name":  "AppWindow Custom Title Bar",
                          "controlType":  "Pane",
@@ -294,7 +138,7 @@
                      },
                      {
                          "depth":  2,
-                         "path":  "/2/0",
+                         "path":  "/1/0",
                          "automationId":  "Minimize",
                          "name":  "Minimize",
                          "controlType":  "Button",
@@ -325,7 +169,7 @@
                      },
                      {
                          "depth":  2,
-                         "path":  "/2/1",
+                         "path":  "/1/1",
                          "automationId":  "Restore",
                          "name":  "Restore",
                          "controlType":  "Button",
@@ -356,7 +200,7 @@
                      },
                      {
                          "depth":  2,
-                         "path":  "/2/2",
+                         "path":  "/1/2",
                          "automationId":  "Close",
                          "name":  "Close",
                          "controlType":  "Button",
@@ -387,7 +231,7 @@
                      },
                      {
                          "depth":  1,
-                         "path":  "/3",
+                         "path":  "/2",
                          "automationId":  "",
                          "name":  "",
                          "controlType":  "Pane",
@@ -418,7 +262,7 @@
                      },
                      {
                          "depth":  2,
-                         "path":  "/3/0",
+                         "path":  "/2/0",
                          "automationId":  "",
                          "name":  "",
                          "controlType":  "Pane",
@@ -449,7 +293,7 @@
                      },
                      {
                          "depth":  3,
-                         "path":  "/3/0/0",
+                         "path":  "/2/0/0",
                          "automationId":  "Commands",
                          "name":  "",
                          "controlType":  "MenuBar",
@@ -480,7 +324,7 @@
                      },
                      {
                          "depth":  4,
-                         "path":  "/3/0/0/0",
+                         "path":  "/2/0/0/0",
                          "automationId":  "",
                          "name":  "File",
                          "controlType":  "MenuItem",
@@ -513,7 +357,7 @@
                      },
                      {
                          "depth":  4,
-                         "path":  "/3/0/0/1",
+                         "path":  "/2/0/0/1",
                          "automationId":  "",
                          "name":  "Edit",
                          "controlType":  "MenuItem",
@@ -546,7 +390,7 @@
                      },
                      {
                          "depth":  4,
-                         "path":  "/3/0/0/2",
+                         "path":  "/2/0/0/2",
                          "automationId":  "",
                          "name":  "View",
                          "controlType":  "MenuItem",
@@ -579,7 +423,7 @@
                      },
                      {
                          "depth":  4,
-                         "path":  "/3/0/0/3",
+                         "path":  "/2/0/0/3",
                          "automationId":  "",
                          "name":  "Router",
                          "controlType":  "MenuItem",
@@ -612,7 +456,7 @@
                      },
                      {
                          "depth":  4,
-                         "path":  "/3/0/0/4",
+                         "path":  "/2/0/0/4",
                          "automationId":  "",
                          "name":  "Library",
                          "controlType":  "MenuItem",
@@ -645,7 +489,7 @@
                      },
                      {
                          "depth":  4,
-                         "path":  "/3/0/0/5",
+                         "path":  "/2/0/0/5",
                          "automationId":  "",
                          "name":  "Help",
                          "controlType":  "MenuItem",
@@ -678,7 +522,7 @@
                      },
                      {
                          "depth":  3,
-                         "path":  "/3/0/1",
+                         "path":  "/2/0/1",
                          "automationId":  "BoardTitle",
                          "name":  "Settings",
                          "controlType":  "Text",
@@ -710,7 +554,7 @@
                      },
                      {
                          "depth":  3,
-                         "path":  "/3/0/2",
+                         "path":  "/2/0/2",
                          "automationId":  "Nav",
                          "name":  "",
                          "controlType":  "Custom",
@@ -745,7 +589,7 @@
                      },
                      {
                          "depth":  4,
-                         "path":  "/3/0/2/0",
+                         "path":  "/2/0/2/0",
                          "automationId":  "TogglePaneButton",
                          "name":  "Close Navigation",
                          "controlType":  "Button",
@@ -777,7 +621,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/3/0/2/0/0",
+                         "path":  "/2/0/2/0/0",
                          "automationId":  "PaneTitleTextBlock",
                          "name":  "",
                          "controlType":  "Text",
@@ -809,7 +653,7 @@
                      },
                      {
                          "depth":  4,
-                         "path":  "/3/0/2/1",
+                         "path":  "/2/0/2/1",
                          "automationId":  "PaneRoot",
                          "name":  "",
                          "controlType":  "Window",
@@ -840,7 +684,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/3/0/2/1/0",
+                         "path":  "/2/0/2/1/0",
                          "automationId":  "MenuItemsScrollViewer",
                          "name":  "",
                          "controlType":  "Pane",
@@ -872,7 +716,7 @@
                      },
                      {
                          "depth":  6,
-                         "path":  "/3/0/2/1/0/0",
+                         "path":  "/2/0/2/1/0/0",
                          "automationId":  "MenuItemsHost",
                          "name":  "",
                          "controlType":  "Group",
@@ -903,7 +747,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/3/0/2/1/0/0/0",
+                         "path":  "/2/0/2/1/0/0/0",
                          "automationId":  "HeaderText",
                          "name":  "Store",
                          "controlType":  "Text",
@@ -935,7 +779,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/3/0/2/1/0/0/1",
+                         "path":  "/2/0/2/1/0/0/1",
                          "automationId":  "",
                          "name":  "Discover",
                          "controlType":  "ListItem",
@@ -967,7 +811,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/3/0/2/1/0/0/2",
+                         "path":  "/2/0/2/1/0/0/2",
                          "automationId":  "",
                          "name":  "Skills",
                          "controlType":  "ListItem",
@@ -999,7 +843,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/3/0/2/1/0/0/3",
+                         "path":  "/2/0/2/1/0/0/3",
                          "automationId":  "HeaderText",
                          "name":  "Routing",
                          "controlType":  "Text",
@@ -1031,7 +875,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/3/0/2/1/0/0/4",
+                         "path":  "/2/0/2/1/0/0/4",
                          "automationId":  "",
                          "name":  "Servers",
                          "controlType":  "ListItem",
@@ -1063,7 +907,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/3/0/2/1/0/0/5",
+                         "path":  "/2/0/2/1/0/0/5",
                          "automationId":  "",
                          "name":  "Activity",
                          "controlType":  "ListItem",
@@ -1095,7 +939,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/3/0/2/1/0/0/6",
+                         "path":  "/2/0/2/1/0/0/6",
                          "automationId":  "",
                          "name":  "Harnesses",
                          "controlType":  "ListItem",
@@ -1127,7 +971,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/3/0/2/1/0/0/7",
+                         "path":  "/2/0/2/1/0/0/7",
                          "automationId":  "HeaderText",
                          "name":  "Maintenance",
                          "controlType":  "Text",
@@ -1159,7 +1003,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/3/0/2/1/0/0/8",
+                         "path":  "/2/0/2/1/0/0/8",
                          "automationId":  "",
                          "name":  "Checks",
                          "controlType":  "ListItem",
@@ -1191,7 +1035,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/3/0/2/1/0/0/9",
+                         "path":  "/2/0/2/1/0/0/9",
                          "automationId":  "",
                          "name":  "Cleanup",
                          "controlType":  "ListItem",
@@ -1223,7 +1067,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/3/0/2/1/0/0/10",
+                         "path":  "/2/0/2/1/0/0/10",
                          "automationId":  "HeaderText",
                          "name":  "Attention",
                          "controlType":  "Text",
@@ -1255,7 +1099,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/3/0/2/1/0/0/11",
+                         "path":  "/2/0/2/1/0/0/11",
                          "automationId":  "",
                          "name":  "Inbox",
                          "controlType":  "ListItem",
@@ -1287,7 +1131,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/3/0/2/1/0/0/12",
+                         "path":  "/2/0/2/1/0/0/12",
                          "automationId":  "",
                          "name":  "Insights",
                          "controlType":  "ListItem",
@@ -1319,7 +1163,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/3/0/2/1/1",
+                         "path":  "/2/0/2/1/1",
                          "automationId":  "FooterItemsScrollViewer",
                          "name":  "",
                          "controlType":  "Pane",
@@ -1351,7 +1195,7 @@
                      },
                      {
                          "depth":  6,
-                         "path":  "/3/0/2/1/1/0",
+                         "path":  "/2/0/2/1/1/0",
                          "automationId":  "FooterMenuItemsHost",
                          "name":  "",
                          "controlType":  "Group",
@@ -1382,7 +1226,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/3/0/2/1/1/0/0",
+                         "path":  "/2/0/2/1/1/0/0",
                          "automationId":  "SettingsItem",
                          "name":  "Settings",
                          "controlType":  "ListItem",
@@ -1414,7 +1258,7 @@
                      },
                      {
                          "depth":  4,
-                         "path":  "/3/0/2/2",
+                         "path":  "/2/0/2/2",
                          "automationId":  "",
                          "name":  "",
                          "controlType":  "Pane",
@@ -1446,7 +1290,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/3/0/2/2/0",
+                         "path":  "/2/0/2/2/0",
                          "automationId":  "",
                          "name":  "Settings",
                          "controlType":  "Text",
@@ -1478,7 +1322,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/3/0/2/2/1",
+                         "path":  "/2/0/2/2/1",
                          "automationId":  "",
                          "name":  "Router",
                          "controlType":  "Text",
@@ -1510,7 +1354,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/3/0/2/2/2",
+                         "path":  "/2/0/2/2/2",
                          "automationId":  "",
                          "name":  "Loopback Endpoint",
                          "controlType":  "Text",
@@ -1542,7 +1386,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/3/0/2/2/3",
+                         "path":  "/2/0/2/2/3",
                          "automationId":  "",
                          "name":  "http://127.0.0.1:8879",
                          "controlType":  "Text",
@@ -1574,7 +1418,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/3/0/2/2/4",
+                         "path":  "/2/0/2/2/4",
                          "automationId":  "",
                          "name":  "Copy",
                          "controlType":  "Button",
@@ -1606,7 +1450,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/3/0/2/2/5",
+                         "path":  "/2/0/2/2/5",
                          "automationId":  "",
                          "name":  "Launch router daemon at sign-in",
                          "controlType":  "Text",
@@ -1638,7 +1482,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/3/0/2/2/6",
+                         "path":  "/2/0/2/2/6",
                          "automationId":  "",
                          "name":  "Starts the background loopback service automatically.",
                          "controlType":  "Text",
@@ -1670,7 +1514,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/3/0/2/2/7",
+                         "path":  "/2/0/2/2/7",
                          "automationId":  "",
                          "name":  "",
                          "controlType":  "Button",
@@ -1702,7 +1546,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/3/0/2/2/8",
+                         "path":  "/2/0/2/2/8",
                          "automationId":  "",
                          "name":  "Security \u0026 Confirmations",
                          "controlType":  "Text",
@@ -1734,7 +1578,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/3/0/2/2/9",
+                         "path":  "/2/0/2/2/9",
                          "automationId":  "",
                          "name":  "Require confirmation on destructive operations",
                          "controlType":  "Text",
@@ -1766,7 +1610,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/3/0/2/2/10",
+                         "path":  "/2/0/2/2/10",
                          "automationId":  "",
                          "name":  "Prompts before removing servers, skills, or deleting stored tokens.",
                          "controlType":  "Text",
@@ -1798,7 +1642,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/3/0/2/2/11",
+                         "path":  "/2/0/2/2/11",
                          "automationId":  "",
                          "name":  "",
                          "controlType":  "Button",
@@ -1830,7 +1674,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/3/0/2/2/12",
+                         "path":  "/2/0/2/2/12",
                          "automationId":  "",
                          "name":  "Ambient Notification Surface",
                          "controlType":  "Text",
@@ -1862,7 +1706,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/3/0/2/2/13",
+                         "path":  "/2/0/2/2/13",
                          "automationId":  "",
                          "name":  "Show status in notification area",
                          "controlType":  "Text",
@@ -1894,7 +1738,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/3/0/2/2/14",
+                         "path":  "/2/0/2/2/14",
                          "automationId":  "",
                          "name":  "Displays ambient router status and queued inbox items in the Windows tray.",
                          "controlType":  "Text",
@@ -1926,7 +1770,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/3/0/2/2/15",
+                         "path":  "/2/0/2/2/15",
                          "automationId":  "",
                          "name":  "",
                          "controlType":  "Button",

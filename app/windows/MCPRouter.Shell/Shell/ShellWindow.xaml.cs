@@ -340,22 +340,42 @@ public sealed partial class ShellWindow : Window
         _currentDestinationId = destinationId;
 
         // Built boards mount their views; unbuilt destinations keep their placeholder.
-        BoardHost.Content = destinationId switch
+        //
+        // The construction is guarded because DEF-078 measured what happens when it throws:
+        // nothing. `BoardHost.Content = <switch>` is a single statement, so an exception while
+        // building the board abandons the assignment AND never reaches the two title lines below
+        // it - leaving the previous board on screen with the previous title, while the pane item
+        // the user clicked sits highlighted. Harnesses, Cleanup and Inbox all did this, in both
+        // sweep directions, and the application looked like it was working. A visible failure is
+        // strictly better than a silent one: a board that cannot be built now says so, in place,
+        // and writes the exception where a session that cannot see the desktop can read it.
+        UIElement content;
+        try
         {
-            "servers" => new ServersBoard(),
-            "skills" => new SkillsBoard(
-                _skillsClient ?? new LiveSkillsControlClient(),
-                SelectDestination),
-            "checks" => new ChecksBoard(),
-            "activity" => new ActivityBoard(destination, this, SelectDestination),
-            "discover" => new DiscoverBoard(),
-            "cleanup" => new CleanupBoard(),
-            "inbox" => new InboxBoard(),
-            "settings" => new SettingsBoard(),
-            "harnesses" => new HarnessesBoard(),
-            "insights" => new InsightsBoard(),
-            _ => new BoardPlaceholder(destination),
-        };
+            content = destinationId switch
+            {
+                "servers" => new ServersBoard(),
+                "skills" => new SkillsBoard(
+                    _skillsClient ?? new LiveSkillsControlClient(),
+                    SelectDestination),
+                "checks" => new ChecksBoard(),
+                "activity" => new ActivityBoard(destination, this, SelectDestination),
+                "discover" => new DiscoverBoard(),
+                "cleanup" => new CleanupBoard(),
+                "inbox" => new InboxBoard(),
+                "settings" => new SettingsBoard(),
+                "harnesses" => new HarnessesBoard(),
+                "insights" => new InsightsBoard(),
+                _ => new BoardPlaceholder(destination),
+            };
+        }
+        catch (Exception exception)
+        {
+            StartupLog.Write($"board '{destinationId}' failed to build: {exception}");
+            content = new BoardFailure(destination, exception);
+        }
+
+        BoardHost.Content = content;
 
         // §11 rule 7: the window title says what you are looking at, not the app's name. Both the
         // band and the window itself, so the taskbar agrees with the chrome.

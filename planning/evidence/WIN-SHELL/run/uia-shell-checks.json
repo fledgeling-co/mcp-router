@@ -1,23 +1,23 @@
 ﻿{
     "schema":  "win20.uia-dump/1",
-    "capturedAtUtc":  "2026-09-01T23:04:57.9562267Z",
+    "capturedAtUtc":  "2026-09-01T23:39:23.9480880Z",
     "host":  {
                  "osVersion":  "10.0.26220.0",
                  "psVersion":  "5.1.26100.9223",
                  "machine":  "Z13"
              },
     "request":  {
-                    "processId":  15724,
+                    "processId":  15392,
                     "titleContains":  "",
                     "view":  "Control"
                 },
     "targets":  [
                     {
-                        "hwnd":  2622296,
+                        "hwnd":  3147682,
                         "name":  "Checks",
                         "className":  "WinUIDesktopWin32WindowClass",
                         "frameworkId":  "Win32",
-                        "processId":  15724,
+                        "processId":  15392,
                         "isVisible":  true,
                         "isMinimised":  false
                     }
@@ -25,18 +25,18 @@
     "foregroundSamples":  [
                               {
                                   "when":  "before",
-                                  "hwnd":  2622296,
-                                  "processId":  15724
+                                  "hwnd":  3147682,
+                                  "processId":  15392
                               },
                               {
                                   "when":  "midwalk",
-                                  "hwnd":  2622296,
-                                  "processId":  15724
+                                  "hwnd":  3147682,
+                                  "processId":  15392
                               },
                               {
                                   "when":  "after",
-                                  "hwnd":  2622296,
-                                  "processId":  15724
+                                  "hwnd":  3147682,
+                                  "processId":  15392
                               }
                           ],
     "truncated":  false,

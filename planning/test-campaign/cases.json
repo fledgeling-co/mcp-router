@@ -4111,7 +4111,7 @@
       "executionPlane": "on-glass"
     },
     "oracle": "outcome",
-    "status": "fail",
+    "status": "pass",
     "armed": false,
     "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
     "actuates": [
@@ -4122,7 +4122,7 @@
       "planning/evidence/WIN-SHELL/run/lane.log",
       "planning/evidence/WIN-SHELL/run/uia-shell-skills.json"
     ],
-    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Skills' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed. THIS ROW IS A CRASH: selecting the destination terminated the process. See DEF-077.",
+    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Skills' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
@@ -4152,7 +4152,7 @@
       "planning/evidence/WIN-SHELL/run/lane.log",
       "planning/evidence/WIN-SHELL/run/uia-shell-servers.json"
     ],
-    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Servers' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed. The shell was relaunched before this destination because a previous one terminated it; this board was measured on a fresh process.",
+    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Servers' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
@@ -4201,7 +4201,7 @@
       "executionPlane": "on-glass"
     },
     "oracle": "outcome",
-    "status": "fail",
+    "status": "pass",
     "armed": false,
     "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
     "actuates": [
@@ -4212,7 +4212,7 @@
       "planning/evidence/WIN-SHELL/run/lane.log",
       "planning/evidence/WIN-SHELL/run/uia-shell-harnesses.json"
     ],
-    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Harnesses' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed. Actuation took 3 attempts - UIA reported the selection pattern available and then threw on fetch, a stale-element race in the harness rather than a property of the board.",
+    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Harnesses' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
@@ -4261,7 +4261,7 @@
       "executionPlane": "on-glass"
     },
     "oracle": "outcome",
-    "status": "fail",
+    "status": "pass",
     "armed": false,
     "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
     "actuates": [
@@ -4272,7 +4272,7 @@
       "planning/evidence/WIN-SHELL/run/lane.log",
       "planning/evidence/WIN-SHELL/run/uia-shell-cleanup.json"
     ],
-    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Cleanup' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed. Actuation took 3 attempts - UIA reported the selection pattern available and then threw on fetch, a stale-element race in the harness rather than a property of the board.",
+    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Cleanup' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
@@ -4291,7 +4291,7 @@
       "executionPlane": "on-glass"
     },
     "oracle": "outcome",
-    "status": "fail",
+    "status": "pass",
     "armed": false,
     "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
     "actuates": [
@@ -4302,7 +4302,7 @@
       "planning/evidence/WIN-SHELL/run/lane.log",
       "planning/evidence/WIN-SHELL/run/uia-shell-inbox.json"
     ],
-    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Inbox' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed. Actuation took 3 attempts - UIA reported the selection pattern available and then threw on fetch, a stale-element race in the harness rather than a property of the board.",
+    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Inbox' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
@@ -4381,7 +4381,7 @@
       "executionPlane": "on-glass"
     },
     "oracle": "outcome",
-    "status": "fail",
+    "status": "pass",
     "armed": false,
     "armedNote": "not armed; see the destination rows.",
     "actuates": [
@@ -4390,7 +4390,7 @@
     "evidence": [
       "planning/evidence/WIN-SHELL/run/assert-report.json"
     ],
-    "note": "The shell's own row, and it asserts the one thing no per-destination case can: that the destinations are DISTINCT. 10 destination(s) were measured and produced 7 distinct control-view fingerprint(s). Counting the shell as one surface and stopping there is how an application whose six sidebar items opened a single placeholder view reported 8 of 8 surfaces covered.",
+    "note": "The shell's own row, and it asserts the one thing no per-destination case can: that the destinations are DISTINCT. 10 destination(s) were measured and produced 10 distinct control-view fingerprint(s). Counting the shell as one surface and stopping there is how an application whose six sidebar items opened a single placeholder view reported 8 of 8 surfaces covered.",
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {

@@ -41,7 +41,21 @@ public sealed partial class SkillsBoard : UserControl
     private const string ScanReason =
         "The scan is the router's to run, and its skills routes have not shipped.";
 
-    private const string FragmentNs = "xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"";
+    // Both namespaces, and the second one is not optional: 33 `x:Name` attributes appear across
+    // the fragments this constant is spliced into, and `x:` is meaningless without its
+    // declaration. Every one of those fragments threw
+    // `XamlParseException: undeclared prefix` at XamlReader.Load - a message that names neither
+    // the prefix nor the attribute, and reports a character offset into a string that exists
+    // only at runtime. Because the first fragment to load was the one in ErrorState, and
+    // ErrorState is what a board with no router running renders, selecting Skills threw from
+    // inside `async void OnLoaded` and took the whole process with it (DEF-077).
+    //
+    // The default namespace alone was enough for the fragments that carry no `x:` attribute,
+    // which is why this shipped: the board's own tests build models rather than markup, and
+    // nothing had loaded a fragment on a machine where the router was absent.
+    private const string FragmentNs =
+        "xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" "
+        + "xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\"";
 
     private readonly ISkillsControlClient _client;
     private readonly Action<string> _navigate;
@@ -67,7 +81,52 @@ public sealed partial class SkillsBoard : UserControl
         Loaded += OnLoaded;
     }
 
-    private async void OnLoaded(object sender, RoutedEventArgs e) => await RefreshAsync();
+    /// <summary>
+    /// The Loaded handler, and the one place in this board where an exception is fatal rather
+    /// than rendered.
+    ///
+    /// DEF-077: this is `async void`, so anything escaping it terminates the process instead of
+    /// faulting a task somebody awaits - and that is exactly what happened. Selecting Skills
+    /// ended the application with exception code 0xC000027B (STATUS_STOWED_EXCEPTION) on every
+    /// one of eight measured runs, taking the whole window with it, and the app's own
+    /// UnhandledException log recorded nothing (DEF-079).
+    ///
+    /// RefreshAsync catches SkillsControlException around each await and the live client does
+    /// convert every HTTP failure into that typed error, so the read path was already guarded.
+    /// What was not guarded is everything else: Render builds XAML fragments by string
+    /// concatenation and loads them, and a malformed fragment throws at runtime. This catch is
+    /// deliberately broad because the alternative here is not a narrower catch, it is process
+    /// death - and a board that cannot draw itself should leave the rest of the shell standing.
+    /// </summary>
+    private async void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await RefreshAsync();
+        }
+        catch (Exception exception)
+        {
+            StartupLog.Write($"skills board: OnLoaded threw, which used to end the process: {exception}");
+            try
+            {
+                _refreshing = false;
+                Render(SkillsBoardSnapshot.FromResults(
+                    null,
+                    new SkillsControlError.Transport(
+                        $"the skills board failed to build: {exception.GetType().Name}"),
+                    null,
+                    new SkillsControlError.Transport(
+                        $"the skills board failed to build: {exception.GetType().Name}")));
+            }
+            catch (Exception renderFailure)
+            {
+                // If rendering the failure ALSO throws, then Render is the broken thing and
+                // there is nothing this board can safely draw. Say so once and leave the shell
+                // alive rather than recursing into the same fault.
+                StartupLog.Write($"skills board: rendering the failed state threw too: {renderFailure}");
+            }
+        }
+    }
 
     // ------------------------------------------------------------------ the reads
 

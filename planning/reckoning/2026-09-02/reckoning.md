@@ -1,6 +1,6 @@
 # Reckoning — mcp-router
 
-202 piece(s) of work remain — 57 product, 16 evidence, 129 decision — across 541 ledger rows. This reckoning speaks for 161/171 (94%) of the campaign's designed cases and 18/32 (56%) of its stated requirements; the rest is not known to be done, it is simply not known. 109 brief(s) could not be tied to the registry at all; they are listed as `unjoined` and counted as decision work, rather than assumed unbuilt.
+202 piece(s) of work remain — 57 product, 16 evidence, 129 decision — across 544 ledger rows. This reckoning speaks for 161/171 (94%) of the campaign's designed cases and 18/32 (56%) of its stated requirements; the rest is not known to be done, it is simply not known. 109 brief(s) could not be tied to the registry at all; they are listed as `unjoined` and counted as decision work, rather than assumed unbuilt.
 
 ## What it can speak for
 
@@ -27,7 +27,7 @@ Two counts, because they answer different questions. **Rows** is every entity on
 | `unnamed` | 1 | 1 | decision-work | the campaign found it; no document claims it |
 | `undecided` | 19 | 19 | decision-work | the documents and the evidence disagree; needs a person |
 | `waived` | 0 | 77 | exception | somebody decided not to — an exception, and it stays visible |
-| `verified-done` | 0 | 250 | none | not remaining; kept so the denominator is honest |
+| `verified-done` | 0 | 253 | none | not remaining; kept so the denominator is honest |
 
 ## What unblocks the most
 
@@ -85,9 +85,9 @@ costs its slowest member — measured wall-clock ÷ slowest member was 1.05 at t
 | `DEF-043` the sidebar foot's loopback readout is absent from the build on every  | product-work | S | 3 min – 25 min | — | broken work defaults to M; wording suggests a contained change |
 | `BRIEF-G9-two-gates-pin-a-worktree-that-no-longer-exists` Two executable gates `cd` into a worktree that was deleted, and one is | product-work | L | 14 min – 68 min | DEF-253 | unbuilt work defaults to L |
 | `BRIEF-a-brief-that-names-nothing-cannot-be-retired` A brief that names nothing the registry holds can never leave the rema | product-work | L | 14 min – 68 min | DEF-253 | unbuilt work defaults to L |
-| `DEF-071` The Windows shell self-test never completes: one destination captured, | product-work | L | 14 min – 68 min | — | broken work defaults to M; severity high |
 | `DEF-072` WIN22's Action Center toasts cannot fire: nothing in product source ra | product-work | L | 14 min – 68 min | — | broken work defaults to M; severity high |
 | `DEF-073` WIN19's packaging and distribution ships no package: no manifest of an | product-work | L | 14 min – 68 min | — | broken work defaults to M; severity high |
+| `DEF-079` The shell's unhandled-exception log never fires, including for a crash | product-work | L | 14 min – 68 min | — | broken work defaults to M; wording suggests it spans more than one surface |
 | `BRIEF-R9-sdk-drops-upstream-message` R9 — the upstream's own words survive the SDK that drops them | evidence-work | M | 7 min – 56 min | DEF-047 | unmeasured work defaults to M |
 | `BRIEF-X1-ios-a11y-harness` X1 — the iOS accessibility-tree harness, and the two surfaces that wer | evidence-work | M | 7 min – 56 min | DEF-029 | unmeasured work defaults to M |
 | `BRIEF-eleven-surfaces-declare-controls-that-nothing-drives` Eleven surfaces declare their controls and no passing case drives one  | product-work | M | 7 min – 56 min | SURF-001, SURF-002, SURF-004 | broken work defaults to M |
@@ -318,7 +318,7 @@ These are decisions — a person reading two documents and ruling — and they h
 
 - **BRIEF-2026-08-26-campaign-reckon-trawl** — Ideation Log — 2026-08-26, from test-campaign + tailings + reckon
   - the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule
-  - nearest the join considered: REQ-027 (0.08), REQ-016 (0.08), REQ-026 (0.06)
+  - nearest the join considered: REQ-027 (0.08), REQ-016 (0.08), DEF-078 (0.07)
 - **BRIEF-BLOCKED-apple-identity** — BLOCKED — the Apple developer identity. Not scheduled, not acted on.
   - the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule
   - nearest the join considered: REQ-016 (0.07), REQ-034 (0.06), REQ-027 (0.06)
@@ -330,7 +330,7 @@ These are decisions — a person reading two documents and ruling — and they h
   - nearest the join considered: REQ-003 (0.04), REQ-016 (0.03), REQ-027 (0.03)
 - **BRIEF-F-session-analyzer-skill-recommender** — Session Analyzer and Multi-Harness Skill Recommender
   - the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule
-  - nearest the join considered: REQ-031 (0.05), REQ-030 (0.05), REQ-003 (0.04)
+  - nearest the join considered: REQ-031 (0.05), DEF-079 (0.05), REQ-030 (0.05)
 - **BRIEF-G2-orchestrator-table-is-heterogeneous** — G2 — the ledger table holds two row shapes, and every reader silently drops one
   - the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule
   - nearest the join considered: REQ-027 (0.13), REQ-016 (0.08), REQ-034 (0.07)
@@ -345,19 +345,19 @@ These are decisions — a person reading two documents and ruling — and they h
   - nearest the join considered: REQ-027 (0.09), REQ-016 (0.08), REQ-034 (0.05)
 - **BRIEF-G4-gapfix** — G4 gap-fix — the census counted the instrument into its own denominator
   - the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule
-  - nearest the join considered: REQ-027 (0.12), REQ-016 (0.08), REQ-034 (0.06)
+  - nearest the join considered: REQ-027 (0.12), REQ-016 (0.08), DEF-078 (0.06)
 - **BRIEF-G4-gapfix-2** — G4 gap-fix 2 — the item that catches unwritten records shipped one
   - the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule
   - nearest the join considered: REQ-027 (0.13), REQ-016 (0.09), REQ-034 (0.07)
 - **BRIEF-G5-gapfix-2** — G5 gap-fix 2 — a file moved aside and never moved back, and two clauses
   - the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule
-  - nearest the join considered: REQ-027 (0.14), REQ-016 (0.09), REQ-034 (0.07)
+  - nearest the join considered: REQ-027 (0.14), REQ-016 (0.09), DEF-078 (0.07)
 - **BRIEF-G6-evidence-that-lives-in-tmp-is-not-evidence** — A sweep that proves a guard is armed, kept in `/tmp`
   - the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule
   - nearest the join considered: REQ-027 (0.11), REQ-016 (0.10), REQ-034 (0.08)
 - **BRIEF-G7-a-citation-that-does-not-resolve-where-it-is-read** — A citation that resolved when written and does not resolve where it is read
   - the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule
-  - nearest the join considered: REQ-027 (0.14), REQ-016 (0.09), REQ-034 (0.08)
+  - nearest the join considered: REQ-027 (0.14), REQ-016 (0.09), DEF-078 (0.08)
 - **BRIEF-G8-a-question-answered-at-the-wrong-scope** — A question answered at the wrong scope returns a clean answer
   - the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule
   - nearest the join considered: REQ-027 (0.10), REQ-016 (0.09), REQ-034 (0.09)
@@ -372,7 +372,7 @@ These are decisions — a person reading two documents and ruling — and they h
   - nearest the join considered: REQ-027 (0.11), REQ-034 (0.07), REQ-016 (0.07)
 - **BRIEF-M19-gfm-viewer** — M19 — the in-app GitHub-flavoured Markdown viewer
   - the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule
-  - nearest the join considered: REQ-027 (0.11), REQ-026 (0.07), REQ-016 (0.06)
+  - nearest the join considered: REQ-027 (0.11), REQ-026 (0.07), DEF-078 (0.06)
 - **BRIEF-M20-gapfix** — M20 gap-fix 1 — it does not compile, and three of four slices are only in the plan
   - the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule
   - nearest the join considered: REQ-027 (0.11), REQ-016 (0.10), REQ-034 (0.08)
@@ -411,10 +411,10 @@ These are decisions — a person reading two documents and ruling — and they h
   - nearest the join considered: REQ-016 (0.11), REQ-027 (0.11), REQ-034 (0.08)
 - **BRIEF-M32-a-mock-driven-gate-is-blind-to-what-the-mock-does-not-draw** — A mock-driven fidelity gate cannot see a defect in something the mock does not draw
   - the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule
-  - nearest the join considered: REQ-027 (0.13), REQ-016 (0.12), REQ-034 (0.07)
+  - nearest the join considered: REQ-027 (0.13), REQ-016 (0.12), DEF-078 (0.08)
 - **BRIEF-M33-swift-build-cannot-gate-the-app-target** — `swift build` exits 0 and silent on a fault `xcodebuild` calls fatal
   - the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule
-  - nearest the join considered: REQ-016 (0.10), REQ-027 (0.09), REQ-026 (0.08)
+  - nearest the join considered: REQ-016 (0.10), REQ-027 (0.09), DEF-078 (0.09)
 - **BRIEF-P7-auth-post-oauth-client** — P7 — `control-auth-post-http` needs a real OAuth client
   - the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule
   - nearest the join considered: REQ-027 (0.10), REQ-016 (0.08), REQ-030 (0.07)
@@ -429,13 +429,13 @@ These are decisions — a person reading two documents and ruling — and they h
   - nearest the join considered: REQ-027 (0.12), REQ-034 (0.08), REQ-016 (0.08)
 - **BRIEF-R17-gapfix-2** — R17 gap-fix 2 — two clauses, both a withdrawn claim outliving its withdrawal
   - the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule
-  - nearest the join considered: REQ-027 (0.11), REQ-019 (0.09), REQ-016 (0.07)
+  - nearest the join considered: REQ-027 (0.11), REQ-019 (0.09), DEF-078 (0.07)
 - **BRIEF-R17-gapfix-3** — R17 gap-fix 3 — one claim, two homes, and a sweep that could not see one of them
   - the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule
-  - nearest the join considered: REQ-027 (0.12), REQ-016 (0.09), REQ-026 (0.07)
+  - nearest the join considered: REQ-027 (0.12), REQ-016 (0.09), DEF-078 (0.07)
 - **BRIEF-R17-gapfix-4** — R17 gap-fix 4 — stop stating a rate that the next measurement keeps refuting
   - the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule
-  - nearest the join considered: REQ-027 (0.12), REQ-016 (0.10), REQ-034 (0.07)
+  - nearest the join considered: REQ-027 (0.12), REQ-016 (0.10), DEF-078 (0.07)
 - _…and 69 more in ledger.json_
 
 ## Undecided (19)

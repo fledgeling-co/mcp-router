@@ -216,6 +216,34 @@ def main():
             "generatedBy": GENERATOR,
         })
 
+    # ------------------------------------------------------------- the defect registry
+    # defects-windows.json is where the Windows defects are authored, and inventory.json is what
+    # `reckon` and the campaign gates actually read. Keeping both by hand drifted within one day:
+    # DEF-071 was fixed and verified in the Windows file while inventory still called it open, so
+    # the reckoning went on scheduling it as remaining work, and DEF-077, DEF-078 and DEF-079 did
+    # not exist in the registry at all. A finding that never reaches the file the gate reads is a
+    # finding nobody acts on, so the sync belongs in the same command that writes the cases.
+    inv = read_json(CAMPAIGN / "inventory.json")
+    windows = read_json(CAMPAIGN / "defects-windows.json")
+    by_id = {d.get("id"): d for d in inv.get("defect", [])}
+    added, updated = [], []
+    for defect in windows:
+        did = defect.get("id")
+        if did not in by_id:
+            inv["defect"].append(defect)
+            added.append(did)
+        elif by_id[did].get("status") != defect.get("status"):
+            updated.append("%s %s -> %s" % (did, by_id[did].get("status"), defect.get("status")))
+            by_id[did].update(defect)
+    if added or updated:
+        write_json(CAMPAIGN / "inventory.json", inv)
+    print("win-cases-from-lane: registry defects added %d, status changed %d"
+          % (len(added), len(updated)))
+    for line in added:
+        print("    added   %s" % line)
+    for line in updated:
+        print("    changed %s" % line)
+
     write_json(CAMPAIGN / "cases.json", kept + written)
     print("win-cases-from-lane: replaced %d generated case(s) with %d" % (dropped, len(written)))
     by_status = {}

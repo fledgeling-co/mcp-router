@@ -1,0 +1,76 @@
+[
+  {
+    "id": "DEF-071",
+    "title": "The Windows shell self-test never completes: one destination captured, no report after 180 s",
+    "surface": "SURF-030",
+    "lane": "windows-glass",
+    "severity": "high",
+    "status": "open",
+    "found": "2026-09-02, test-campaign phase 0, on the first run of this instrument since it was written",
+    "evidence": "scripts/windows/run-shell-selftest.ps1 exits 2 `NOT-RUN: no selftest.json after 180 s`. shell-startup.log records two launches, 08:09:47.250 and 08:13:14.882, each followed by `loaded at rasterization scale 1.5` and nothing further. Exactly one capture is written, destination-discover.png at 103 KB - a real drawn board - and `discover` is the FIRST entry in DestinationCatalog.All. The process is gone afterwards: Get-Process MCPRouter.Shell returns nothing. Reproduced on a clean rebuild, scripts/windows/build-shell.ps1 exit 0.",
+    "mechanism": "NOT ESTABLISHED, and deliberately not guessed. Two hypotheses were formed and both were killed by reading the code. (1) A blocking board constructor: SkillsBoard is the second destination and takes a live control client, but its constructor only wires `Loaded += OnLoaded` and issues no call. (2) An unhandled exception in that `async void` handler terminating the process: RefreshAsync catches only SkillsControlException, but LiveSkillsControlClient already catches HttpRequestException and TaskCanceledException and rethrows them typed. So the crash site is unknown and this defect is `inconclusive` on cause while being measured on effect.",
+    "why-it-matters": "This is the only channel that can photograph the Windows boards - the agent session is Session 0, a WinUI process started there dies at 0xC000027B before App's constructor, and the interactive task's window station enumerates zero top-level windows so no external capture reaches it. Until this completes, per-destination pixel evidence exists for ONE of ten destinations and every raster claim about the other nine is inconclusive rather than failing.",
+    "contradicts": "ORCHESTRATOR.md's WIN3 row records `self-test 0 (10/12/44)`. Either that run happened on a tree this one has diverged from, or on a machine state this one lacks - note control.token is absent here, which LiveSkillsControlClient's own documentation says means the router has never run on this machine.",
+    "next": "Instrument SelfTestDriver to write its report incrementally and log each destination before it navigates, so the next run names the destination it dies on instead of leaving the question open."
+  },
+  {
+    "id": "DEF-072",
+    "title": "WIN22's Action Center toasts cannot fire: nothing in product source raises a notification",
+    "lane": "windows-glass",
+    "severity": "high",
+    "status": "open",
+    "found": "2026-09-02, tailings audit of the WIN fleet",
+    "evidence": "`ToastNotificationManager` has 0 hits in product source. `AppNotification` has 0 - all 26 raw hits are under obj/ and bin/, generated Windows App SDK projection code. The only real `ToastNotification` hits are WIN22's own two files, where it is the type name of a plain record. The item ships NotificationModels.cs (17 lines), NotificationPresentation.cs (22) and a unit test (23), with no XAML and no view.",
+    "class": "inert",
+    "why-it-matters": "The merge subject reads `WIN22: Windows toast notifications for waiting decisions - review-only actions, safe payloads, 621 tests` and the ledger row reads `Merged after verify PASS: 621 tests green, Action Center toast notifications`. The tests pass because they assert that a function building a payload record builds that payload record. No toast can reach the Action Center.",
+    "next": "Either build the notification path - AppNotificationManager registration, an AppUserModelID, and the COM activator that makes a toast action reach the review sheet - or withdraw the claim from the ledger and the design of record."
+  },
+  {
+    "id": "DEF-073",
+    "title": "WIN19's packaging and distribution ships no package: no manifest of any kind exists",
+    "lane": "windows-glass",
+    "severity": "high",
+    "status": "open",
+    "found": "2026-09-02, tailings audit of the WIN fleet",
+    "evidence": "A repository-wide search for `*.appxmanifest`, `Package.appxmanifest`, any winget manifest and any `*.wxs` returns nothing. The only winget/MSIX strings anywhere are WIN19's own PackagingModels.cs, PackagingPresentation.cs and their test - and their copies inside .worktrees/. The item is 3 source files totalling 67 added lines, with no XAML and no view.",
+    "class": "inert",
+    "why-it-matters": "The ledger row reads `Merged after verify PASS: 608 tests green, winget and MSIX distribution channel contract, SmartScreen disclosure, clean uninstall rules`. There is no channel, no package and nothing to uninstall. A user cannot install this application by any of the means the item claims to have delivered.",
+    "next": "Build the MSIX packaging project and the winget manifest, or reclassify the item as a distribution DESIGN and say so in the ledger."
+  },
+  {
+    "id": "DEF-074",
+    "title": "WIN23's logon-task supervision registers no task: the model describes a mechanism nothing performs",
+    "lane": "router-daemon",
+    "severity": "medium",
+    "status": "open",
+    "found": "2026-09-02, tailings audit of the WIN fleet",
+    "evidence": "`TaskService`, `schtasks`, `ServiceBase` and `StartupTask` appear in exactly two files, scripts/windows/run-shell-selftest.ps1 and scripts/windows/uia/run-probe-lane.ps1 - both WIN18/WIN20 harness scripts, neither WIN23's. LifecyclePresentation.cs maps DaemonSupervisionKind.LogonTask to the string `Scheduled Task at user logon (restarts on crash, un-elevated)`. Its test asserts that this function returns that string.",
+    "class": "inert",
+    "why-it-matters": "The ledger row reads `Merged after verify PASS: 625 tests green, interactive user-session lifecycle model, logon task supervision, live reload contract`. Nothing supervises the router on Windows. The assertion behind the claim cannot fail for any reason connected to whether supervision works, which is the shape `warrant`'s cannot-fail scan exists to catch.",
+    "next": "Either implement the registration - and a case at the effect-witness rung whose recorder is the Windows task scheduler itself - or record the item as a supervision MODEL awaiting an implementer."
+  },
+  {
+    "id": "DEF-075",
+    "title": "The Discover detail dialog is unaddressable from the automation plane: no control carries a name",
+    "surface": "SURF-044",
+    "lane": "windows-glass",
+    "severity": "medium",
+    "status": "open",
+    "found": "2026-09-02, test-campaign phase 3 control census",
+    "evidence": "DiscoverDetailContent.xaml declares no literal Content on any control and no AutomationProperties.Name at all - it is one of only two view files in MCPRouter.Shell/Views with neither (the other is BoardPlaceholder.xaml, which is a placeholder by design).",
+    "why-it-matters": "UI Automation is the only out-of-process channel this lane has. A surface whose controls carry no name cannot be asserted against by name, so every case on it would stand at `presence` at best. The same tree serves Narrator, so this is an accessibility defect and a measurability defect in one, exactly as WIN20's brief predicted.",
+    "next": "Set AutomationProperties.Name on the dialog's controls, then register cases at the structural rung against them."
+  },
+  {
+    "id": "DEF-076",
+    "title": "The Settings board declares one addressable control against a claim of seven sections of toggles",
+    "surface": "SURF-038",
+    "lane": "windows-glass",
+    "severity": "medium",
+    "status": "open",
+    "found": "2026-09-02, test-campaign phase 3 control census",
+    "evidence": "SettingsBoard.xaml yields exactly one literal control name, `Copy`, under a scan for Button/ToggleSwitch/CheckBox/ComboBox Content plus AutomationProperties.Name. The WIN13 ledger row claims `7 settings sections, Fluent ToggleSwitch controls`.",
+    "mechanism": "NOT ESTABLISHED. Either the toggles carry no accessible name - an accessibility defect that also makes them unaddressable - or there are fewer of them than claimed. The two have different remedies and the UIA dump of the running board settles which.",
+    "next": "Dump the Settings board's UIA tree with scripts/windows/uia/uia-dump.ps1 and compare the realised control count against the claim. Blocked behind DEF-071 for the in-process channel; the out-of-process channel can answer it now."
+  }
+]

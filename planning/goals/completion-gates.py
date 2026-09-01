@@ -27,6 +27,7 @@ does not, and each one is proved able to fail before it is armed.
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -156,35 +157,92 @@ def waves():
 
 
 # --------------------------------------------------------------------------
+def win_items_owing_a_surface():
+    """Which WIN items owe a campaign surface — MEASURED, not asserted.
+
+    The first version of this gate hardcoded sixteen ids, and two of them were
+    wrong: WIN21 is a shell-wide keyboard behaviour with no board of its own,
+    and WIN22 has no drawn surface at all because it is inert. A hardcoded list
+    is also a number this session can quietly tune until the gate goes green,
+    which is the move the whole harness exists to prevent.
+
+    So the expectation is derived: a WIN item owes a surface exactly when its
+    own merge added a .xaml under MCPRouter.Shell. That cannot be edited into
+    passing without editing git history, and it grows on its own when a later
+    item ships a view.
+
+    An item with NO view is not thereby excused — WIN19, WIN22 and WIN23 were
+    measured inert on 2026-09-02 and are carried as defects, which is a
+    different remedy from a missing surface and belongs in a different class.
+    """
+    out = []
+    r = _git("log", "--format=%H %s", "main")
+    for line in r.stdout.splitlines():
+        sha, _, subj = line.partition(" ")
+        m = re.match(r"WIN(\d+):", subj)
+        if not m:
+            continue
+        item = "WIN" + m.group(1)
+        if item in out:
+            continue
+        d = _git("diff", "--name-only", sha + "^", sha)
+        for path in d.stdout.splitlines():
+            if path.endswith(".xaml") and "MCPRouter.Shell" in path:
+                out.append(item)
+                break
+    return sorted(out, key=lambda s: int(s[3:]))
+
+
 def wincoverage():
     """Every drawn Windows surface is NAMED in the campaign registry and has a case.
 
-    At arm time this is red for the strongest possible reason: the registry
-    holds 20 surfaces, all Mac/iOS/router, and zero Windows anything -- against
+    At arm time this was red for the strongest possible reason: the registry
+    held 20 surfaces, all Mac/iOS/router, and zero Windows anything -- against
     220 C# and 38 XAML files that shipped in two days. reckon calls that class
     `never-named`, and its whole point is that an unnamed surface is invisible
     to a coverage percentage rather than counted against it.
     """
+    # The REGISTRY is inventory.json. surfaces.in.json is an input file that
+    # campaign.py reads and does not write, so a gate reading it reports the
+    # plan rather than the state — this gate did, and stayed red after 16
+    # surfaces had been registered.
+    # inventory.json keys its entities in the SINGULAR - `surface`, `case`,
+    # `requirement` - and cases are kept in cases.json beside it. The first
+    # reader here asked for `surfaces`, fell through to the input file, and
+    # reported 20 surfaces and 0 cases over a registry that held 44. A gate
+    # reading the wrong file reports the plan and calls it the state.
     try:
-        surfaces = _rows(_read_json(CAMPAIGN / "surfaces.in.json"))
-        cases = _rows(_read_json(CAMPAIGN / "cases.json"))
+        inv = _read_json(CAMPAIGN / "inventory.json")
+        surfaces = inv.get("surface") or inv.get("surfaces") or []
+        cases = inv.get("case") or inv.get("cases") or []
+        if not cases:
+            cases = _rows(_read_json(CAMPAIGN / "cases.json"))
     except Exception as e:
         print("wincoverage: could not read the campaign registry: %s" % e)
+        return 1
+    if not surfaces:
+        print("wincoverage: the registry reports ZERO surfaces. That is the instrument")
+        print("             failing, not the product passing.")
+        return 1
+
+    expected = win_items_owing_a_surface()
+    if not expected:
+        print("wincoverage: measured ZERO WIN items shipping a .xaml under MCPRouter.Shell.")
+        print("             That is the instrument failing, not the product passing.")
         return 1
 
     def blob(r):
         return json.dumps(r, ensure_ascii=False).lower()
 
-    # A surface counts as covering a WIN item when the item id appears in its
-    # record. Matching on the id and not on the word "windows" is deliberate:
+    # Matching on the item id and not on the word "windows" is deliberate:
     # `cases.json` already contains the English word twice, in prose about
     # dialogs, and a substring gate on it would have reported coverage that
     # does not exist.
     surf_by_item = {}
     for s in surfaces:
         b = blob(s)
-        for item in WIN_SURFACED:
-            if item.lower() in b:
+        for item in expected:
+            if re.search(r"\b%s\b" % item.lower(), b):
                 surf_by_item.setdefault(item, []).append(s.get("id"))
 
     case_by_surface = {}
@@ -193,17 +251,17 @@ def wincoverage():
         for s in surfaces:
             sid = str(s.get("id") or "")
             if sid and sid.lower() in b:
-                case_by_surface.setdefault(sid, 0)
-                case_by_surface[sid] += 1
+                case_by_surface[sid] = case_by_surface.get(sid, 0) + 1
 
-    missing_surface = [i for i in WIN_SURFACED if i not in surf_by_item]
+    missing_surface = [i for i in expected if i not in surf_by_item]
     uncased = []
     for item, sids in surf_by_item.items():
         if not any(case_by_surface.get(str(sid), 0) for sid in sids):
             uncased.append(item)
 
-    print("wincoverage: %d of %d drawn Windows item(s) named by a campaign surface"
-          % (len(surf_by_item), len(WIN_SURFACED)))
+    print("wincoverage: %d of %d WIN item(s) that shipped a view are named by a campaign surface"
+          % (len(surf_by_item), len(expected)))
+    print("             expected (measured from git, not asserted): %s" % ", ".join(expected))
     print("             registry holds %d surface(s), %d case(s)" % (len(surfaces), len(cases)))
     if missing_surface:
         print("             UNNAMED (reckon's `never-named` class -- invisible to coverage, not counted against it):")

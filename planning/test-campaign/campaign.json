@@ -25,10 +25,10 @@
   "run": {
     "scope": "full",
     "basis": "",
-    "lastFullRun": "2026-08-28T14:16:22+00:00",
-    "decidedBy": "user asked to find all remaining work",
+    "lastFullRun": "2026-09-01T22:13:36+00:00",
+    "decidedBy": "owner asked: 'every screen, for real', 2026-09-02 \u2014 the Windows client has zero registry coverage, so nothing can be carried",
     "maxFullRunAgeDays": 14.0,
-    "declaredAt": "2026-08-28T14:16:22+00:00"
+    "declaredAt": "2026-09-01T22:13:36+00:00"
   },
   "laneProof": {
     "macos-glass": {
@@ -58,6 +58,15 @@
       "attachedBy": "NOT ATTACHED, and the distinction is this lane's whole content. It hosts the product's own SwiftUI views in an NSHostingView inside a process whose activation policy is `.prohibited` and whose window is never ordered in. It does NOT claim MCPRouter.app was running and drawn \u2014 that is macos-glass's claim, and macos-glass proves it by axkit attaching to a CGWindowID the launched pid owns. What this lane witnesses is narrower and is stated as such: the hierarchy under measurement is compiled from app/Sources/MCPRouterUI rather than mocked, it laid out, and it painted. The in-view recorder (MCPRouterUI/Measure/Measured.swift, compiled only under MEASURE) reports resolved frames from inside the views themselves, because an NSHostingView hosting a real hierarchy has exactly one AppKit subview and walking it from outside the process returns nothing. A run whose recorder found no nodes exits 3 rather than writing an empty dump and reading as agreement.",
       "captureChannel": "NSHostingView.cacheDisplay(in:to:) -> NSBitmapImageRep -> PNG, off the view's own backing store. Not screencapture and not ScreenCaptureKit: nothing is photographed off the display, so no window can occlude the subject and there is no screen to take. G17 samples the frontmost application once a second for the whole of its run and asserts that neither MeasureDump nor the router ever appears in the sample (planning/test-campaign/evidence/g17-document/frontmost.txt) \u2014 a stronger statement than comparing the frontmost app before and after, which a third-party application stealing focus mid-run turns into a false red.",
       "declaredAt": "2026-08-27T02:59:59+00:00"
+    },
+    "windows-glass": {
+      "attached": true,
+      "artifact": "app\\windows\\MCPRouter.Shell\\bin\\Debug\\net8.0-windows10.0.19041.0\\win-x64\\MCPRouter.Shell.exe",
+      "artifactBytes": 276480,
+      "builtBy": "pwsh -NoProfile -File scripts/windows/build-shell.ps1",
+      "attachedBy": "2026-09-02T08:09:47Z shell-startup.log: 'launched, selftest=...' then 'loaded at rasterization scale 1.5', hosted by scheduled task MCPRouter_WIN3_SelfTest with /it into session 1 / WinSta0; the agent shell is Session 0 and a WinUI process started there dies at 0xC000027B before App's ctor. Independently, 2026-09-01T21:41:05Z the WIN20 UIA lane recorded 'probe started, pid=35488' then 'the probe's window is on the automation plane' and read 36 control-view elements out of process.",
+      "captureChannel": "TWO channels. (1) in-process RenderTargetBitmap via SelfTestDriver \u2014 photographs the XAML tree ONLY: it does not hold the Mica backdrop, which composites below XAML, nor the system caption buttons, which are not XAML, and those two claims stay unphotographed. (2) out-of-process UI Automation via scripts/windows/uia/uia-dump.ps1 \u2014 structural, no pixels, and does not foreground the target. Neither channel has a per-frame status signal.",
+      "declaredAt": "2026-09-01T22:13:36+00:00"
     }
   },
   "designOfRecordNote": "The design of record settled 2026-08-22 (ORCHESTRATOR.md Contract). design/mocks/prototype.html is the superseded prototype and is cited only for surfaces not yet converted \u2014 G28's per-surface `controlsSource` records which of the two each surface's control list was read from, so the distinction survives per row rather than being flattened here. The two disagree about the shell itself (6 menus vs 8, 8 sidebar rows vs 9, 'Conduit' vs 'MCP Router'), so SURF-001 stays sourced from the prototype until it is converted: unioning them would describe a shell no single design specifies.",

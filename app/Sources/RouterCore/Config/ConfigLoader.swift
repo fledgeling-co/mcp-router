@@ -126,6 +126,10 @@ public enum ConfigLoader {
         // each server's own block is resolved against the result of this, per server, in
         // ``UpstreamHealthMonitor``.
         let globalHealth = HealthPolicy.readGlobal(raw.member("health"))
+        // R26. The same treatment for the same reason: a value below the floor is refused and
+        // carried, never clamped, so the settings pane and the file cannot disagree in silence.
+        // There is no per-server block to resolve against — see ``AuthExpiryRefusal/scope``.
+        let globalExpiry = AuthExpiryPolicy.readGlobal(raw.member("authExpiry"))
 
         // Nullish, not truthy: an explicit `0` or `""` in the file is honoured rather than
         // replaced by the default.
@@ -140,6 +144,11 @@ public enum ConfigLoader {
             // refusal has to name the server whose value was refused.
             health: globalHealth.policy,
             healthRefusals: globalHealth.refusals,
+            // R26. Global only, and deliberately: a warning window is a preference about when its
+            // owner wants to be told, which is a property of the person rather than of one
+            // upstream.
+            authExpiry: globalExpiry.policy,
+            authExpiryRefusals: globalExpiry.refusals,
             upstreams: upstreams,
             manifestPath: home.manifestPath,
             logPath: home.logPath,

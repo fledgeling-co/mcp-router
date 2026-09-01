@@ -48,6 +48,15 @@ public enum ControlPaths {
             // block and shared with the reference. `/upstreamshealth` shares a prefix with an owned
             // path and is not owned, which is what the exact match is for.
             || pathname == "/upstreams/health"
+            // R26's two. Exact matches with no prefix arm, like R31's and R22's:
+            // `/upstreams/auth-expiry` and `/upstreams/auth-expiry/notify` are the whole family,
+            // so `/upstreams/auth-expiry/anything-else` is not a route this router answers and
+            // claiming it would turn a typo into a 405 that reads as "the method is wrong".
+            // `/upstreams/auth-expiryx` shares a prefix with an owned path and is not owned, which
+            // is what the exact match is for. Both diverge from `src/control.ts`, which claims
+            // neither and answers 404.
+            || pathname == "/upstreams/auth-expiry"
+            || pathname == "/upstreams/auth-expiry/notify"
             // F5's two. Exact matches with no prefix arm, like M22's and R31's: `/invocations` and
             // `/invocations/export` are the whole family, so `/invocations/anything-else` is not a
             // route this router answers. `/invocationsx` shares a prefix with an owned path and is

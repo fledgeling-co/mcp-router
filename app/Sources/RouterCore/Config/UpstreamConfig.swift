@@ -102,6 +102,14 @@ public struct RouterConfig: Sendable, Hashable {
     /// Top-level `health` values the loader would not take, carried so every server's report can
     /// say so. Empty for a file that configured nothing or configured it within range.
     public var healthRefusals: [HealthPolicyRefusal] = []
+    /// When the router warns that a credential is running out, and how often it says so again —
+    /// R26. Defaulted here rather than required for the reason ``health`` is, and with one of its
+    /// own: unlike health probing this feature is **on** by default, because deriving an expiry
+    /// from `authorizedAt + expires_in` reads two numbers already on disk and spawns nothing.
+    public var authExpiry: AuthExpiryPolicy = .standard
+    /// Top-level `authExpiry` values the loader would not take, carried out to the wire so a file
+    /// that says one number and a router that uses another cannot disagree in silence.
+    public var authExpiryRefusals: [AuthExpiryRefusal] = []
     public var upstreams: [UpstreamConfig]
     public var manifestPath: String
     public var logPath: String

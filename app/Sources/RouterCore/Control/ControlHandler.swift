@@ -355,7 +355,7 @@ extension ControlHandler {
         _ path: String, _ request: ControlAPIRequest, _ deps: ControlDeps
     ) async -> ControlAPIResponse? {
         if let response = routeReadingSynchronous(path, request, deps) { return response }
-        if let response = await routeHealth(path, request, deps) { return response }
+        if let response = await routeUpstreams(path, request, deps) { return response }
         if let response = await routeAnalyst(path, request, deps) { return response }
         switch (path, request.method) {
         case ("/harnesses", "GET"): return harnessesResponse(deps)
@@ -380,6 +380,22 @@ extension ControlHandler {
         if let response = routeCaches(path, request, deps) { return response }
         if let response = routeProfiles(path, request, deps) { return response }
         return routeDiagnostics(path, request, deps)
+    }
+
+    /// The two families that answer questions about the upstreams themselves rather than about
+    /// what the router holds: R27's health and R26's credential expiry.
+    ///
+    /// One arm in ``routeReading(_:_:_:)`` rather than two, and that is a constraint rather than a
+    /// preference — this file's own comment above records that adding M22's two routes inline took
+    /// `handle` to complexity 12 against a cap of 10, and R26's route took `routeReading` to 13 the
+    /// same way. Grouping them here is the same repair applied a second time, and the grouping is
+    /// real: both answer *what is the state of the thing on the other end*, and both are declared
+    /// divergences from `src/control.ts` rather than routes it also serves.
+    private func routeUpstreams(
+        _ path: String, _ request: ControlAPIRequest, _ deps: ControlDeps
+    ) async -> ControlAPIResponse? {
+        if let response = await routeHealth(path, request, deps) { return response }
+        return await routeAuthExpiry(path, request, deps)
     }
 
     private func routeUsage(

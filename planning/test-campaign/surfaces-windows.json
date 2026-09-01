@@ -1,0 +1,155 @@
+[
+  {
+    "id": "SURF-029",
+    "title": "Windows automation probe — WIN20's WinUI 3 plane witness",
+    "route": "app://windows/automation-probe",
+    "lane": "windows-glass",
+    "status": "ready",
+    "controls": ["Export log", "Reset router"],
+    "note": "WIN20's own probe window, not the product. Kept as a surface because it is what proves the automation plane works at all, and because its two SecondaryCommands are the recorded unoracled pair: a CommandBar's overflow items are not realised while the overflow is closed, so they exist on neither the control view nor the raw view."
+  },
+  {
+    "id": "SURF-030",
+    "title": "Windows shell — NavigationView, caption band, title, menus",
+    "route": "app://windows/shell",
+    "lane": "windows-glass",
+    "status": "ready",
+    "controls": ["File", "View", "Library", "Help"],
+    "note": "WIN3. The shell is ONE surface and its ten destinations are ten more, per the destination-collapse rule. Navigation was verified honest 2026-09-02: DestinationCatalog declares 10 destinations and ShellWindow.SelectDestination maps 10 distinct board types, with BoardPlaceholder reachable only as the unknown-id fallback."
+  },
+  {
+    "id": "SURF-031",
+    "title": "Windows Servers board and the Signal Path",
+    "route": "app://windows/shell#servers",
+    "lane": "windows-glass",
+    "status": "ready",
+    "destinationOf": "SURF-030",
+    "controls": ["Add server…", "Add one by hand…", "Reap idle", "Review changes…", "Start the router", "Try again"],
+    "note": "WIN4. The default destination."
+  },
+  {
+    "id": "SURF-032",
+    "title": "Windows Activity board — the live call log",
+    "route": "app://windows/shell#activity",
+    "lane": "windows-glass",
+    "status": "ready",
+    "destinationOf": "SURF-030",
+    "controls": ["Activity commands", "Calls", "Filters", "Harness tallies"]
+  },
+  {
+    "id": "SURF-033",
+    "title": "Windows Skills board",
+    "route": "app://windows/shell#skills",
+    "lane": "windows-glass",
+    "status": "ready",
+    "destinationOf": "SURF-030",
+    "controls": ["Skills summary"],
+    "note": "WIN6. One literal control name in XAML; the rest are built in DataTemplates and code-behind, so the declared list is a floor and the UIA tree is the census."
+  },
+  {
+    "id": "SURF-034",
+    "title": "Windows Discover board",
+    "route": "app://windows/shell#discover",
+    "lane": "windows-glass",
+    "status": "ready",
+    "destinationOf": "SURF-030",
+    "controls": ["Discover"],
+    "note": "WIN7."
+  },
+  {
+    "id": "SURF-035",
+    "title": "Windows Checks board",
+    "route": "app://windows/shell#checks",
+    "lane": "windows-glass",
+    "status": "ready",
+    "destinationOf": "SURF-030",
+    "controls": ["Loading", "Nothing to check yet"],
+    "note": "WIN8. Both declared names are STATES rather than controls; the board's real affordances are per-row and templated. Recorded as-is so the gap is visible rather than papered over."
+  },
+  {
+    "id": "SURF-036",
+    "title": "Windows Cleanup board",
+    "route": "app://windows/shell#cleanup",
+    "lane": "windows-glass",
+    "status": "ready",
+    "destinationOf": "SURF-030",
+    "controls": ["Mark all as keep", "Remove selected…", "Unused for 30 days"],
+    "note": "WIN9. `Remove selected…` is a destructive control — any sweep touching this board runs under the write firewall, never against a live config."
+  },
+  {
+    "id": "SURF-037",
+    "title": "Windows Inbox board and review sheet",
+    "route": "app://windows/shell#inbox",
+    "lane": "windows-glass",
+    "status": "ready",
+    "destinationOf": "SURF-030",
+    "controls": ["Undecided · 3", "Approved · 0", "Not for me · 0", "Pair iPhone…"],
+    "note": "WIN10. The three tab labels carry counts, so their accessible names move with the data — a case matching them exactly will be brittle by construction and must match on role plus prefix."
+  },
+  {
+    "id": "SURF-038",
+    "title": "Windows Settings board",
+    "route": "app://windows/shell#settings",
+    "lane": "windows-glass",
+    "status": "ready",
+    "destinationOf": "SURF-030",
+    "controls": ["Copy"],
+    "note": "WIN13 claims 7 sections and Fluent ToggleSwitch controls; the XAML declares exactly ONE literal control name. Either the toggles carry no AutomationProperties.Name — which is an accessibility defect and makes them unaddressable from the automation plane — or there are fewer than claimed. The UIA dump settles which, and this note stays until it does."
+  },
+  {
+    "id": "SURF-039",
+    "title": "Windows Harnesses board",
+    "route": "app://windows/shell#harnesses",
+    "lane": "windows-glass",
+    "status": "ready",
+    "destinationOf": "SURF-030",
+    "controls": ["Rescan all"],
+    "note": "WIN14."
+  },
+  {
+    "id": "SURF-040",
+    "title": "Windows Insights board",
+    "route": "app://windows/shell#insights",
+    "lane": "windows-glass",
+    "status": "ready",
+    "destinationOf": "SURF-030",
+    "controls": ["Last 7 days"],
+    "note": "WIN15."
+  },
+  {
+    "id": "SURF-041",
+    "title": "Windows ambient surface — notification-area flyout",
+    "route": "app://windows/ambient-flyout",
+    "lane": "windows-glass",
+    "status": "manual",
+    "controls": ["Open App", "Review Inbox (0)", "View Servers"],
+    "note": "WIN11. Not a destination and not addressable by a route: it is raised from the notification area. Reaching it needs an actuation the self-test driver does not perform, so it is `manual` rather than `ready` — counted, with the reason, rather than absent."
+  },
+  {
+    "id": "SURF-042",
+    "title": "Windows pairing dialog",
+    "route": "app://windows/pairing-dialog",
+    "lane": "windows-glass",
+    "status": "manual",
+    "controls": ["Done"],
+    "note": "WIN12. A ContentDialog reached from the Inbox board's `Pair iPhone…`. One literal control name; the pairing code and countdown are templated."
+  },
+  {
+    "id": "SURF-043",
+    "title": "Windows capability document panel — three tabs over one package",
+    "route": "app://windows/capability-document",
+    "lane": "windows-glass",
+    "status": "manual",
+    "controls": ["Capabilities", "Changelog", "Flags worth knowing", "Approve and promote", "Keep current version"],
+    "note": "WIN16. Reached from Skills, Discover or Inbox rather than from the shell's own navigation."
+  },
+  {
+    "id": "SURF-044",
+    "title": "Windows Discover detail dialog",
+    "route": "app://windows/discover-detail",
+    "lane": "windows-glass",
+    "status": "manual",
+    "controls": [],
+    "note": "WIN7's detail dialog. DiscoverDetailContent.xaml declares NO literal control name and no AutomationProperties.Name at all, so nothing on it is addressable from the automation plane by name. That is a finding, and it is why the control list is empty rather than omitted."
+  }
+]

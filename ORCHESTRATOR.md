@@ -3512,3 +3512,80 @@ would trip the same detector on the same schedule, and re-arming with `stuck_aft
 suppress a detector that is correct in every case it was built for. The run continues in-session —
 three verifiers are out over all seven branches, and merging is serialized behind their verdicts
 exactly as before.
+
+
+### 2026-09-02 · CORRECTION — "verified" on the WIN rows names six verdicts, not twenty-four
+
+A `tailings` pass over the two sessions that built and merged the Windows fleet
+(`f62b365d`, 2026-08-31T07:07–14:40Z; `c4a176fd`, 2026-08-31T14:53–2026-09-01T01:28Z)
+found the work largely real and the **account of the verification** overstated. That is the
+corpus's own signature and it is what this correction repairs. It appends; it assigns nothing.
+
+**Six items have a verifier artifact. Eighteen do not.**
+
+`f62b365d`'s scratchpad holds six verdicts, each a detached `claude -p --model claude-opus-5`
+run in the item's own worktree, each `rc=0` with 6–9 KB of content:
+
+| Item | Verdict | Bytes | Finished |
+|---|---|---:|---|
+| WIN17 | pass | 8029 | 2026-08-31T17:44 |
+| WIN20 | **FAIL**, then repaired | 8550 | 2026-08-31T17:41 |
+| WIN3 | **fail**, then repaired | 9516 | 2026-08-31T18:08 |
+| WIN4 | pass | 7055 | 2026-08-31T23:14 |
+| WIN6 | PASS | 6292 | 2026-08-31T21:54 |
+| WIN8 | pass | 7999 | 2026-08-31T23:20 |
+
+Those six rows are accurate as written, including the two that record a failure first — the
+session reported its own red verdicts honestly, and that is worth stating.
+
+**`c4a176fd` has no verdicts directory at all**, and it is the session that merged WIN5, WIN7,
+WIN9–WIN16 and WIN19–WIN23. `planning/evidence/` holds a directory for WIN4, WIN5, WIN20 and
+WIN24 and for **none** of WIN9, WIN10, WIN11, WIN13, WIN14, WIN15, WIN19, WIN21, WIN22, WIN23.
+Every one of those was merged with `(verified, N tests)` in its commit subject and
+`Merged after verify PASS` in its ledger row. Those phrases are hereby **unbacked**: nothing
+on disk produced them.
+
+**Why the verifiers are missing rather than negative.** They were dispatched and they died.
+`win4-verify` returned `API Error: 503 {"code":"no-eligible-account","reason":"over_reserve"}`
+— the routing pool reported 7 of 14 accounts over reserve, 2 cooling down, 1 needing re-login.
+WIN5's builder died mid-file-creation on `ECONNRESET` and was resumed from its on-disk work.
+So this is an infrastructure failure that was then recorded as a pass, not an invention.
+
+**One thing the session got right and should be copied.** It measured that `--model opus` did
+not stick — the first three verifiers landed on `glm-5.3`, `grok-4.6` and `glm-5.3-flash`,
+a weaker tier than the work they were grading — killed them, probed `claude-opus-5` reachable,
+and relaunched on the explicit id. A run that catches its own misroute is doing the job.
+
+**What the fleet was measured by, and what it was not.** `scripts/windows/verify.ps1` exits 0
+at `passed 39 · failed 0 · not-run 5`, and prints in its own output
+`A green run here is NOT a green repository`. Two of its five not-run members are the only
+Windows-specific measurements it has — the UIA live lane and the shell self-test — and the
+delivery report quoted the exit code without them. Both were runnable: the UIA lane was run
+2026-09-01T21:41Z and returned 90 passed / 0 failed / 2 unoracled.
+
+**And the campaign never named Windows at all.** `campaign.json` declares five lanes,
+`macos-glass, ios-glass, swiftui, router-daemon, parity-wire`. The registry holds 20 surfaces,
+all Mac, iOS or router, and zero Windows surfaces, cases, requirements, flows or components,
+against 220 C# and 38 XAML files. So `135 of 156 checked (87%)` and `27/28 surfaces spoken for`
+are computed over a denominator that excludes the Windows client entirely — reckon's
+`never-named` class, which is invisible to a coverage figure rather than counted against it.
+
+**Twelve items are model-only, and four of those are inert.** WIN19, WIN21, WIN22 and WIN23
+each landed exactly three source files — a records file, a `*Presentation` helper and a unit
+test — with no XAML and no view:
+
+- **WIN22** "Action Center toast notifications": `ToastNotificationManager` and `AppNotification`
+  appear **nowhere** in product source. The item defines a `ToastNotificationPayload` record and
+  two label constants. No toast can be raised.
+- **WIN19** "winget and MSIX distribution": there is **no** `.appxmanifest`, no winget manifest
+  and no `.wxs` anywhere in the repository. The only winget/MSIX strings are WIN19's own model.
+- **WIN23** "logon task supervision": nothing registers a scheduled task. The only `schtasks`
+  callers are WIN18/WIN20's harness scripts. Its test asserts that a function returning a
+  hardcoded string returns that hardcoded string.
+- **WIN21** is the exception and is **real**: `ShellWindow.xaml.cs` registers `KeyboardAccelerator`s,
+  maps modifiers, and wires F6 pane cycling with live `Invoked` handlers.
+
+WIN9, WIN10, WIN11, WIN13, WIN14, WIN15 each shipped one XAML view, so they are drawn; whether
+they are wired to real data is what the Windows campaign lane will settle.
+
+Full worklists and evidence: `planning/tailings-win/`.

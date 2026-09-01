@@ -1,0 +1,26 @@
+{
+ "schema": 1,
+ "repo": "C:\\Dev\\mcp-router",
+ "window": {
+  "since": "2026-08-31T07:07:00Z",
+  "until": "2026-08-31T14:40:31Z",
+  "commits": 55
+ },
+ "uncommitted_paths": 61,
+ "findings": [
+  {
+   "probe": "R2",
+   "title": "a cited path exists nowhere in the repo or its history: src/skills.ts",
+   "band": 2,
+   "confidence": "observed",
+   "remedy": "write src/skills.ts, or strike the claim that cites it",
+   "path": "src/skills.ts",
+   "line": 1576,
+   "quote": "The gate's sanctioned escape is withdrawal phrasing \u00e2\u20ac\u201d and the truth here is exactly that: `src/skills.ts` is quoted from the Swift file's own header comment, and the file was never merged. Rewording"
+  }
+ ],
+ "notes": [
+  "R4: no capture directory found; capture identity unchecked"
+ ],
+ "probes_that_could_not_run": []
+}

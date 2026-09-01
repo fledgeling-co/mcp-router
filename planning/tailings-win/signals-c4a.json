@@ -1,0 +1,342 @@
+{
+ "schema": 1,
+ "transcript": "C:\\Users\\rhode\\.claude\\projects\\C--Dev-mcp-router\\c4a176fd-176c-4948-bc4f-8cbc5d556f1d.jsonl",
+ "repo": "C:\\Dev\\mcp-router",
+ "models": {
+  "gemini-3.7-flash": 223,
+  "gemini-3.7-flash-high": 90,
+  "us.openai.gpt-5.6-luna": 25,
+  "<synthetic>": 10
+ },
+ "counts": {
+  "records": 1295,
+  "assistant_prose_turns": 18,
+  "tool_calls": 327,
+  "bash": 304,
+  "human_turns": 6,
+  "skills": 3,
+  "sidechain_records": 0,
+  "spawns": 1
+ },
+ "skills_invoked": [
+  "better-goal",
+  "ship-fleet:ship-fleet",
+  "workflow-resume:workflow-resume"
+ ],
+ "assertions": [
+  {
+   "kind": "figure",
+   "line": 1271,
+   "text": "Every finish gate in the repository passes with exit code 0:",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 1271,
+   "text": "py` exit 0 (0 broken targets, 0 floor breaches)",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 1271,
+   "text": "py` exit 0 (0 drifted, 0 absent, ratchet green)",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 1271,
+   "text": "ps1` exit 0 (TypeScript router typecheck, platform e2e, MSBuild restore/build on all projects, 625 unit tests green, portable gates clean)",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 1276,
+   "text": "### Final Delivery Verification \u00e2\u20ac\u201d All 6 Finish Gates Passed (Exit Code 0)",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 1276,
+   "text": "py exit 0",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 1276,
+   "text": "ps1 exit 0 (625 unit tests green)",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 1281,
+   "text": "### Complete Windows Parity Fleet Delivered & Verified The full backlog verification run (`scripts/windows/verify",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 1281,
+   "text": "ps1`, Task `bp2ccafh7`) completed cleanly with **exit code 0**:",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 1281,
+   "text": "- **Model & Presentation Unit Tests:** 625 unit tests passed across all boards (`pass`)",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 1281,
+   "text": "- **Live Stream SSE & Wire Probes:** 100 tests passed (`pass`)",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 408,
+   "text": "### Fleet Status & Goal Alignment #### 1. Goal Harness & Monitor Alignment (`better-goal`) - **Finish Line Condition:** All waves (W0\u00e2\u20ac\u201cW4) completed \u00e2\u20ac\u201d all 23 `WIN*` items verified and terminal (**Done** or **Parked** with written justification), zero unmerged `ai/win*` branches, Windows lane (`sc",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 1271,
+   "text": "### Backlog Fleet Delivery Complete \u00e2\u20ac\u201d All Waves & Windows Parity Features Merged All 24 items in the Windows parity backlog have been built, verified, and merged into `main`. --- ### Wave Completion & Delivery Ledger | Wave | Item | Title | Implementation Deliverables | Tests | Status | |---|---|-",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 1276,
+   "text": "### Final Delivery Verification \u00e2\u20ac\u201d All 6 Finish Gates Passed (Exit Code 0) All 6 finish gates have passed sequentially on the merged `main` integration branch: ``` [PASS] briefs \u00e2\u20ac\u201d planning/brief-target-gate.py exit 0 [PASS] branches \u00e2\u20ac\u201d 0 unmerged ai/win* branches [PASS] coverage \u00e2\u20ac\u201d 24 of 24 row",
+   "names": [],
+   "unmatched": [],
+   "durable": true
+  },
+  {
+   "kind": "status",
+   "line": 1281,
+   "text": "### Complete Windows Parity Fleet Delivered & Verified The full backlog verification run (`scripts/windows/verify.ps1`, Task `bp2ccafh7`) completed cleanly with **exit code 0**: - **TypeScript Router:** Typecheck & Platform E2E (`pass`) - **Windows WinUI 3 Native Client:** All 6 projects restored & ",
+   "names": [],
+   "unmatched": [],
+   "durable": true
+  }
+ ],
+ "findings": [
+  {
+   "probe": "T11",
+   "title": "a printed non-zero class (264 skipped) is absent from the report that follows  (\u00d72)",
+   "line": 455,
+   "quote": "scanned 2258 tracked files (264 skipped as non-text, 2 named as this gate's own and not scanned)",
+   "band": 1,
+   "confidence": "observed",
+   "remedy": "report every class the gate printed, summing to its total",
+   "figure": "264",
+   "occurrences": [
+    {
+     "line": 455,
+     "quote": "scanned 2258 tracked files (264 skipped as non-text, 2 named as this gate's own and not scanned)"
+    },
+    {
+     "line": 470,
+     "quote": "scanned 2258 tracked files (264 skipped as non-text, 2 named as this gate's own and not scanned)"
+    }
+   ],
+   "count": 2,
+   "lines": [
+    455,
+    470
+   ]
+  },
+  {
+   "probe": "T3",
+   "title": "a failing command is followed by a clean claim that does not name it  (\u00d76)",
+   "line": 408,
+   "quote": "### Fleet Status & Goal Alignment #### 1. Goal Harness & Monitor Alignment (`better-goal`) - **Finish Line Condition:** All waves (W0\u00e2\u20ac\u201cW4) completed \u00e2\u20ac\u201d all 23 `WIN*` items verified and terminal (**Done** or **Parked** with written justification), zero unmerged `ai/win*` branches, Windows lane (`s",
+   "band": 2,
+   "confidence": "observed",
+   "remedy": "name the failing command and its exit code, or re-run it",
+   "command": "bash /c/Users/rhode/.claude/remote/plugins/c2a12d4e948a316c/skills/better-goal/scripts/status.sh",
+   "command_line": 100,
+   "occurrences": [
+    {
+     "line": 408,
+     "quote": "### Fleet Status & Goal Alignment #### 1. Goal Harness & Monitor Alignment (`better-goal`) - **Finish Line Condition:** All waves (W0\u00e2\u20ac\u201cW4) completed \u00e2\u20ac\u201d all 23 `WIN*` items verified and terminal (**Done** or **Parked** with written justification), zero unmerged `ai/win*` branches, Windows lane (`s"
+    },
+    {
+     "line": 408,
+     "quote": "### Fleet Status & Goal Alignment #### 1. Goal Harness & Monitor Alignment (`better-goal`) - **Finish Line Condition:** All waves (W0\u00e2\u20ac\u201cW4) completed \u00e2\u20ac\u201d all 23 `WIN*` items verified and terminal (**Done** or **Parked** with written justification), zero unmerged `ai/win*` branches, Windows lane (`s"
+    },
+    {
+     "line": 408,
+     "quote": "### Fleet Status & Goal Alignment #### 1. Goal Harness & Monitor Alignment (`better-goal`) - **Finish Line Condition:** All waves (W0\u00e2\u20ac\u201cW4) completed \u00e2\u20ac\u201d all 23 `WIN*` items verified and terminal (**Done** or **Parked** with written justification), zero unmerged `ai/win*` branches, Windows lane (`s"
+    },
+    {
+     "line": 408,
+     "quote": "### Fleet Status & Goal Alignment #### 1. Goal Harness & Monitor Alignment (`better-goal`) - **Finish Line Condition:** All waves (W0\u00e2\u20ac\u201cW4) completed \u00e2\u20ac\u201d all 23 `WIN*` items verified and terminal (**Done** or **Parked** with written justification), zero unmerged `ai/win*` branches, Windows lane (`s"
+    },
+    {
+     "line": 1271,
+     "quote": "### Backlog Fleet Delivery Complete \u00e2\u20ac\u201d All Waves & Windows Parity Features Merged All 24 items in the Windows parity backlog have been built, verified, and merged into `main`. --- ### Wave Completion & Delivery Ledger | Wave | Item | Title | Implementation Deliverables | Tests | Status | |---|-"
+    },
+    {
+     "line": 1271,
+     "quote": "### Backlog Fleet Delivery Complete \u00e2\u20ac\u201d All Waves & Windows Parity Features Merged All 24 items in the Windows parity backlog have been built, verified, and merged into `main`. --- ### Wave Completion & Delivery Ledger | Wave | Item | Title | Implementation Deliverables | Tests | Status | |---|-"
+    }
+   ],
+   "count": 6,
+   "lines": [
+    408,
+    408,
+    408,
+    408,
+    1271,
+    1271
+   ]
+  },
+  {
+   "probe": "T15",
+   "title": "instrument `/ship-feature` was asked for, never used, and never mentioned",
+   "line": 6,
+   "quote": "ship-feature",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "say plainly whether /ship-feature was available, and what stood in for it",
+   "occurrences": [
+    {
+     "line": 6,
+     "quote": "ship-feature"
+    }
+   ],
+   "count": 1,
+   "lines": [
+    6
+   ]
+  },
+  {
+   "probe": "T15",
+   "title": "instrument `/clarify` was asked for, never used, and never mentioned",
+   "line": 6,
+   "quote": "clarify",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "say plainly whether /clarify was available, and what stood in for it",
+   "occurrences": [
+    {
+     "line": 6,
+     "quote": "clarify"
+    }
+   ],
+   "count": 1,
+   "lines": [
+    6
+   ]
+  },
+  {
+   "probe": "T15",
+   "title": "instrument `/test-campaign` was asked for, never used, and never mentioned",
+   "line": 1285,
+   "quote": "test-campaign",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "say plainly whether /test-campaign was available, and what stood in for it",
+   "occurrences": [
+    {
+     "line": 1285,
+     "quote": "test-campaign"
+    }
+   ],
+   "count": 1,
+   "lines": [
+    1285
+   ]
+  },
+  {
+   "probe": "T15",
+   "title": "instrument `/tailings` was asked for, never used, and never mentioned",
+   "line": 1285,
+   "quote": "tailings",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "say plainly whether /tailings was available, and what stood in for it",
+   "occurrences": [
+    {
+     "line": 1285,
+     "quote": "tailings"
+    }
+   ],
+   "count": 1,
+   "lines": [
+    1285
+   ]
+  },
+  {
+   "probe": "T15",
+   "title": "instrument `/reckon` was asked for, never used, and never mentioned",
+   "line": 1285,
+   "quote": "reckon",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "say plainly whether /reckon was available, and what stood in for it",
+   "occurrences": [
+    {
+     "line": 1285,
+     "quote": "reckon"
+    }
+   ],
+   "count": 1,
+   "lines": [
+    1285
+   ]
+  },
+  {
+   "probe": "T15",
+   "title": "instrument `/intake` was asked for, never used, and never mentioned",
+   "line": 1285,
+   "quote": "intake",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "say plainly whether /intake was available, and what stood in for it",
+   "occurrences": [
+    {
+     "line": 1285,
+     "quote": "intake"
+    }
+   ],
+   "count": 1,
+   "lines": [
+    1285
+   ]
+  }
+ ],
+ "human_corrections": [],
+ "marker": {
+  "applicable": false,
+  "note": "the marker instruction never appeared in this session"
+ },
+ "probes_that_could_not_run": [],
+ "alias_map_size": 45
+}

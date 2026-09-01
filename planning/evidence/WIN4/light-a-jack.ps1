@@ -1,4 +1,4 @@
-# Light a jack — WIN4's live-call probe.
+﻿# Light a jack — WIN4's live-call probe.
 
 # The brief's strongest claim: "a jack lights on a real call and darkens when the child is
 # reaped". The reference router runs on this machine at 127.0.0.1:8879 with a fixture server

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   WIN20 — read a Windows surface's UI Automation tree, out of process, without foregrounding it.
 

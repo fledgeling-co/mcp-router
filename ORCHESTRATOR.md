@@ -3589,3 +3589,104 @@ WIN9, WIN10, WIN11, WIN13, WIN14, WIN15 each shipped one XAML view, so they are 
 they are wired to real data is what the Windows campaign lane will settle.
 
 Full worklists and evidence: `planning/tailings-win/`.
+
+### 2026-09-02 · The Windows campaign lane settled it: three of nine boards do not open
+
+The line above — *"whether they are wired to real data is what the Windows campaign lane will
+settle"* — is now answered, and the answer is worse than "not wired to real data". Three of the
+nine boards never mount at all.
+
+`scripts/windows/uia/shell-lane.ps1` launches the shipped `MCPRouter.Shell` binary in the
+interactive session, actuates each of the ten pane items through
+`SelectionItemPattern.Select()` out of process, and reads back the window title and the whole
+control-view tree **after** each actuation. Ten destinations, measured ten, and the result is
+6 pass / 4 fail:
+
+| destination | verdict | what was read after selecting it |
+|---|---|---|
+| Discover, Servers, Activity, Checks, Insights, Settings | **pass** | own title, own tree, distinct fingerprint |
+| Skills | **fail — CRASH** | process terminated; `0xC000027B` in `CoreMessagingXP.dll` |
+| Harnesses, Cleanup, Inbox | **fail — COLLAPSE** | pane item `IsSelected=True`, board and title unchanged |
+
+Four findings came out of it, all filed in `planning/test-campaign/defects-windows.json`:
+
+- **DEF-077** (critical) Selecting **Skills** terminates the shell. Reproduced on every run. This
+  also explains DEF-071 without replacing it: the in-process self-test captures exactly one board
+  and stops, because `discover` is first in `DestinationCatalog.All` and `skills` is second.
+- **DEF-078** (critical) **Harnesses, Cleanup and Inbox** take the selection and never open. The
+  highlight moves; nothing behind it does. Order-independent — a reverse sweep, where every
+  destination has a different predecessor, fails on exactly the same three.
+- **DEF-079** (medium) The app's `UnhandledException` logger has never written a line, including
+  for the Skills crash, which by definition had one. Its silence is not evidence of health.
+- **DEF-076** is now measured on the running board, and the dump CONFIRMS it rather than clearing
+  it. The Settings board does open, and its realised control view holds **no ToggleSwitch and no
+  CheckBox at all** — 19 Text, 10 ListItem (the pane), 9 Pane, 8 Button of which five are window
+  chrome, and the only board-owned button is `Copy`. Toggle rows are present as prose: the text
+  "Launch router daemon at sign-in" and its subtitle are published, and nothing actuable sits
+  beside them. So the WIN13 claim of "7 settings sections, Fluent ToggleSwitch controls" is not
+  merely unnamed on the automation plane — on this evidence there is no toggle control in the
+  tree to name. That is an accessibility defect and an inertness question in one, and it is now
+  measured on the product rather than inferred from the XAML.
+
+**Why every earlier check passed.** The boards compile. The pane draws all ten items with correct
+accessible names. `ShowDestination`'s switch genuinely maps ten destinations to ten distinct board
+types — reading it is what produced the earlier "navigation verified honest", and that reading was
+correct as far as it went. The unit tests cover the models rather than the mounting. Nothing was
+false; no instrument actuated a control and then read a state outside it. That is the whole
+difference, and it is the sixth failure mode in the test-campaign skill almost verbatim.
+
+**Gate consequences.** `winlive` was reading WIN20's probe report — an honest artifact whose own
+`subjectIsNotTheProduct` field said it was measuring the plane, not the product. It now reads the
+shell lane's report, and that repointing made it **redder**, not greener: it fails on four real
+destinations against the real binary.
+
+**One harness defect worth keeping.** `shell-lane.ps1` was written, parse-checked clean under
+PowerShell 7, scheduled, and exited 1 having written nothing. Windows PowerShell 5.1 — what
+scheduled tasks run — decodes a file with no BOM as cp1252, so an em dash inside a double-quoted
+string becomes a curly quote, ends the string early, and breaks the parse. Five tracked `.ps1`
+files were one prose edit from the same failure. `scripts/windows/ps-parse-gate.py` now checks
+both halves and carries a four-fixture two-way control.
+
+### 2026-09-02 · Fixed: the shell now opens all ten boards, and the cause was one missing key
+
+The four failures above are fixed, and the diagnosis came from making the application say what it
+had been swallowing rather than from more reading. Two guards were added first — `ShowDestination`
+now catches a board that throws, and `SkillsBoard.OnLoaded` no longer lets anything escape an
+`async void` — and the first run afterwards printed the stack traces that named every cause:
+
+- **`SubtleButtonStyle` is not a WinUI 3 key and this app never defined it.** Eleven references
+  across five views asked for it. Cleanup and Inbox threw inside `InitializeComponent`, Harnesses
+  in its card builder. The XAML ones surfaced as `XamlParseException: undeclared prefix`, which
+  names neither the key nor the file — which is why reading the markup never found it. Defined
+  once in `App.xaml`, based on the platform's `DefaultButtonStyle`. **DEF-078 fixed.**
+- **`SkillsBoard.FragmentNs` declared only the default namespace** while its 33 fragments use
+  `x:Name`, so `x:` really was an undeclared prefix and `XamlReader.Load` threw. The first
+  fragment to load is `ErrorState`'s — what the board renders when no router is running — so it
+  threw inside `async void` and killed the process. **DEF-077 fixed.**
+- **DEF-071 fixed without touching the self-test.** Its cause was DEF-077 all along: the driver
+  walks the catalogue in order, `skills` is second, and the process did not survive it.
+  `run-shell-selftest.ps1` now exits 0 — *"destinations walked: 10, captures on disk: 12, no
+  failures reported"*. There are now per-destination PNGs for all ten boards; there was one.
+
+**Measured after:** ten of ten destinations pass on the lane, on a single process with no
+relaunch and no crash, with real trees (Harnesses 70, Cleanup 90, Inbox 79 elements). 625 shell
+model tests still pass. `winlive` is green and earned it.
+
+**Two things deliberately left standing.**
+
+`DEF-076` is unchanged and re-confirmed: the Settings board still publishes no `ToggleSwitch` and
+no `CheckBox` against a claim of seven sections of toggles. It opens, it draws, and its toggles
+are prose.
+
+`DEF-079` stays open. The two new handlers — `AppDomain.CurrentDomain.UnhandledException` and
+`TaskScheduler.UnobservedTaskException` — have never been observed firing, because every exception
+since has been caught at a site that logs directly. An unproven handler is precisely what that
+defect is about, and closing it on registration alone would repeat the error it records.
+
+**One near-miss worth recording, because it was mine.** Adding the `BoardFailure` card turned the
+lane green at 10/10 *before* any board was fixed — the card sets the window title correctly and
+publishes its own distinct tree, so both the title oracle and the collapse oracle were satisfied
+by a board that had not been built. Three destinations went FAIL → PASS on the strength of a
+better error state. The lane now keys on the card's own automation id, and a mutation run that
+renames `SubtleButtonStyle` turns exactly those three red again — which is what proves the new
+check, and not the old ones, is what catches them.

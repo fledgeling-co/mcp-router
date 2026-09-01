@@ -315,8 +315,10 @@ planning/evidence/WIN24/disabled-pairing-ratio.py	gate	planning/evidence/WIN24/d
 planning/fleet-runner.js	gate	planning/fleet-runner.js	static	no router invocation matched	-
 planning/foreign-path-gate.py	gate	planning/foreign-path-gate.py	static	no router invocation matched	make:lint,planning/verification/G6-shared-ledger-withdrawals.py
 planning/goals/citations-blocking-check.sh	gate	planning/goals/citations-blocking-check.sh	static	no router invocation matched	-
+planning/goals/completion-gates.py	gate	planning/goals/completion-gates.py	static	no router invocation matched	-
 planning/goals/lint-except-citation-ratchet.sh	gate	planning/goals/lint-except-citation-ratchet.sh	static	no router invocation matched	-
 planning/goals/liveness-check.sh	gate	planning/goals/liveness-check.sh	static	no router invocation matched	-
+planning/goals/prove-gates.py	gate	planning/goals/prove-gates.py	static	no router invocation matched	-
 planning/goals/tests-check.sh	gate	planning/goals/tests-check.sh	static	no router invocation matched	-
 planning/goals/tests-reader-control.sh	gate	planning/goals/tests-reader-control.sh	static	no router invocation matched	planning/goals/tests-check.sh
 planning/goals/w2-dispatch.js	gate	planning/goals/w2-dispatch.js	swift	xcodebuild	-
@@ -344,6 +346,7 @@ planning/scope-invariance-gate.py	gate	planning/scope-invariance-gate.py	static	
 planning/set-status.py	gate	planning/set-status.py	static	no router invocation matched	-
 planning/shipped-brief-gate.py	gate	planning/shipped-brief-gate.py	static	no router invocation matched	make:lint
 planning/sweep-control-gate.py	gate	planning/sweep-control-gate.py	static	no router invocation matched	make:lint
+planning/tailings-win/classify.py	gate	planning/tailings-win/classify.py	static	no router invocation matched	-
 planning/target-resolution-gate.py	gate	planning/target-resolution-gate.py	static	no router invocation matched	make:lint
 planning/test-campaign/bin/arm-f7-analyst.py	gate	planning/test-campaign/bin/arm-f7-analyst.py	static	no router invocation matched	-
 planning/test-campaign/bin/arm-headless.py	gate	planning/test-campaign/bin/arm-headless.py	swift	argv ["swift", …]	-

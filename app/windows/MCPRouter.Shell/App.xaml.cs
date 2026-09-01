@@ -38,6 +38,24 @@ public partial class App : Application
                 Environment.Exit(70);
             }
         };
+
+        // The XAML handler above is NOT enough, and DEF-079 is the proof: sixteen launches on
+        // 2026-09-02 wrote not one `unhandled:` line, including eight in which selecting Skills
+        // terminated the process with exception code 0xC000027B - which is by definition an
+        // unhandled exception. A stowed exception surfacing below the managed dispatch boundary,
+        // and a fault on a thread-pool thread, both reach neither this event nor the log, so the
+        // log's silence has been reading as "no exception occurred" when it meant "nothing was
+        // recorded". These two cover the gap.
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+            StartupLog.Write($"unhandled (appdomain, terminating={e.IsTerminating}): {e.ExceptionObject}");
+
+        // An `async void` handler whose exception nobody observes faults its task and is collected
+        // silently. SkillsBoard.OnLoaded is exactly that shape.
+        TaskScheduler.UnobservedTaskException += (_, e) =>
+        {
+            StartupLog.Write($"unobserved task exception: {e.Exception}");
+            e.SetObserved();
+        };
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)

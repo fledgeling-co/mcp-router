@@ -1,0 +1,629 @@
+{
+ "schema": 1,
+ "transcript": "C:\\Users\\rhode\\.claude\\projects\\C--Dev-mcp-router\\f62b365d-5561-4939-976d-2960a2f3eae4.jsonl",
+ "repo": "C:\\Dev\\mcp-router",
+ "models": {
+  "glm-5.3-flash": 421,
+  "us.openai.gpt-5.6-luna": 176,
+  "grok-4.6": 131,
+  "perch-router": 28,
+  "deepseek/deepseek-v4-pro-0813": 28,
+  "glm-5.3": 18,
+  "<synthetic>": 9
+ },
+ "counts": {
+  "records": 1853,
+  "assistant_prose_turns": 216,
+  "tool_calls": 404,
+  "bash": 292,
+  "human_turns": 3,
+  "skills": 5,
+  "sidechain_records": 0,
+  "spawns": 0
+ },
+ "skills_invoked": [
+  "ship-fleet:ship-fleet",
+  "superpowers:using-superpowers",
+  "better-goal:better-goal",
+  "ship-fleet:ship-fleet",
+  "superpowers:systematic-debugging"
+ ],
+ "assertions": [
+  {
+   "kind": "figure",
+   "line": 363,
+   "text": "mjs` \u00e2\u2020\u2019 **56/0, exit 0**",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 363,
+   "text": "- **WIN3:** `dotnet test` **173/0, exit 0**",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 363,
+   "text": "- **WIN20:** live probe lane **90 passed / 0 failed / 2 unoracled, exit 0**",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 402,
+   "text": "Checking whether `dotnet` itself can restore the *model* (it can \u00e2\u20ac\u201d tests passed) vs the WinUI app",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 420,
+   "text": "WIN3 self-test: **exit 0** \u00e2\u20ac\u201d 10 destinations, 2 appearances, 12 captures, 44 commands, Dark @ 1",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 444,
+   "text": "The builder's build succeeded yesterday, so the machine changed",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 484,
+   "text": "ps1 -Clean` exits 0 from a clean tree",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 667,
+   "text": "ps1 -Clean` \u00e2\u2020\u2019 exit 0 at 17:49)",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 716,
+   "text": "- WIN3: `VERDICT: NEEDS-WORK` only because the machine's VS BuildTools lacked SDK/PRI tasks; I repaired the install and re-ran the exact clean shell build to exit 0, plus self-test 0 and 173 tests",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 716,
+   "text": "The Windows lane is now **23 passed / 0 failed / 4 not-run, exit 0** on the conductor branch",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 776,
+   "text": "**Main is green: 23/0/4, exit 0 \u00e2\u20ac\u201d WIN17 is Done-and-merged",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 824,
+   "text": "WIN20 is now clean and green: **26 passed / 0 failed / 4 not-run, exit 0**",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 872,
+   "text": "WIN3\u00e2\u20ac\u2122s post-rebase gates are all green: TypeScript 0, clean shell build 0, 173 tests 0, self-test 0, and Windows lane **33/0/5, exit 0**",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 1199,
+   "text": "**Windows lane on main: 33 passed / 0 failed / 5 not-run, exit 0",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 1228,
+   "text": "13) instead of the Store stub, and `branches`/`briefs` run correctly under it \u00e2\u20ac\u201d `branches` correctly reports `ai/win8` as in flight, `briefs` exits 0",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 1594,
+   "text": "Target-resolution gate now exits 0",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 1687,
+   "text": "The WIN8 verifier already proved it exits 0 on this tree (~8 min in background); under fleet load its bash controls blow the 120s cap",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 1763,
+   "text": "If they pass (exit 0, just slowly), the honest fix is a measured `CONTROL_TIMEOUT` calibration in the gate with the numbers recorded \u00e2\u20ac\u201d the assertion \"control exits 0\" doesn't change, only the machine-specific hang-guar",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "figure",
+   "line": 1800,
+   "text": "The two settled builders are ready, and the gate diagnosis is now conclusive: all four slow controls exit 0, but on Windows they take 44s, 232s, 258s, and 118s",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 453,
+   "text": "BuildTools lost the UWP/AppxPackage component entirely (both v17.0 and v18.0 lack it). WIN1's brief records this install was done on 2026\u00e2\u20ac\u201808\u00e2\u20ac\u201829 \u00e2\u20ac\u201d it has since been removed, probably by an installer update. Checking whether this shell can modify the VS install (elevation), and what the installe",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 716,
+   "text": "Fresh verifiers are complete: - WIN17: `VERDICT: PASS`. - WIN20: `VERDICT: NEEDS-WORK` on the pre-repair machine and stale record; the machine/toolchain blockers are now repaired, and I corrected its two real record defects (API-error review + 85/23 stale figures) on `ai/win20`. - WIN3: `VERDICT: NE",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 729,
+   "text": "WIN17 is PASS and its worktree is clean except pre-existing/untracked verifier scratch. Finalizing it first, serialized, on the conductor branch. I\u00e2\u20ac\u2122ll merge it, resolve only code conflicts if any, rerun its real gates, then mark it merged before touching WIN20/WIN3.",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 776,
+   "text": "**Main is green: 23/0/4, exit 0 \u00e2\u20ac\u201d WIN17 is Done-and-merged.** Now WIN20: rebase, worktree prep, lane:",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 833,
+   "text": "WIN20 is merged. Proceeding with WIN3: rebase onto the updated main, rebuild from a clean output, rerun 173 tests + self-test + the lane, then merge only after all pass.",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 881,
+   "text": "**WIN3 is now merged and green.** I\u00e2\u20ac\u2122m updating the fleet memory to mark WIN17/WIN20/WIN3 terminal, then I\u00e2\u20ac\u2122ll start W3 in five-runner batches. I\u00e2\u20ac\u2122m also correcting the wave dependency handling for WIN12: it belongs after WIN10 (not in the same batch), so it will be dispatched only once WIN10 is ",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 886,
+   "text": "W2 is fully merged and the main lane is green. The status update itself was correctly blocked from a direct main commit by the repo hook; I\u00e2\u20ac\u2122ll commit that conductor-memory update on a branch and merge it, then start W3.",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 927,
+   "text": "W2 is complete. Starting W3 in three bounded batches (5 + 5 + 2), each item in its own worktree and each builder stopping before verify/merge. Updating the durable ledger to `Queued` before creating slots.",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 1199,
+   "text": "All remaining builder briefs (batch 2: WIN9\u00e2\u20ac\u201cWIN11, WIN13\u00e2\u20ac\u201cWIN16; batch 3: WIN12; W4: WIN19, WIN21\u00e2\u20ac\u201c23) are pre-staged for immediate launch as slots free. The fleet is now in a steady state worth summarizing. ## State of the run **Merged and verified today (W1/W2 complete \u00e2\u20ac\u201d 6 of 24 WIN rows Don",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 1281,
+   "text": "WIN6 is in verification with a monitor on its verdict. Current fleet shape: five builders dispatched (WIN6 returned, four still building), one verifier running, W2 all merged, lane green on main. The verify-then-merge cycle for WIN6 proceeds when the verdict lands; batch 2 launches as remaining batc",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 1301,
+   "text": "WIN5 is resuming from its on-disk work. The builder watcher's `done_set` already marked WIN5 done from the failed attempt, so re-arming it to cover the resume plus the remaining builders:",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 1326,
+   "text": "The WIN6 verifier finished at 21:54 with a 6.3 KB report, and WIN4 has since committed. Reading the verdict and identifying which processes survive:",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 1364,
+   "text": "The citation gate failed on the merged tree. Diagnosing directly:",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 1419,
+   "text": "The session was interrupted during the second full-lane run after the merge itself completed. I\u00e2\u20ac\u2122m resuming the existing backlog fleet rather than restarting work, and first checking the landed gate state plus builder/verifier survivors.",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 1433,
+   "text": "State: WIN6 merged with doc fixes (main @ a3e21d89), WIN4 done (3.6 KB report), WIN8 ended with a suspicious 137 B report, WIN5/WIN7 still building \u00e2\u20ac\u201d and **the full lane failed on the merged tree** (`verify.ps1 exited 1`). The lane is the blocker; diagnosing it first:",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 1469,
+   "text": "The previous lane process was interrupted after the gate rerun began, so I\u00e2\u20ac\u2122m not treating it as a result. Current artifacts show WIN4 and WIN8 are ready, WIN5/WIN7 are still active, and WIN6 is merged. I\u00e2\u20ac\u2122m checking live process ownership and the exact remaining ledger rows before dispatching the",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 1484,
+   "text": "I\u00e2\u20ac\u2122m continuing the live fleet, not restarting it. The settled WIN4/WIN8 reports will go through fresh-context verification now; WIN5/WIN7 remain in their original worktrees. In parallel I\u00e2\u20ac\u2122m separating the merged-tree lane failures from the stale pre-fix log so only current gate results drive rem",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 1527,
+   "text": "Fleet resumed and fully re-armed after the session restart: - **WIN6: merged** (verified PASS, mutation arms fired) with two follow-up doc fixes on main; WIN6-scoped citation gate now green. - **WIN4 + WIN8: dispatched to fresh-context verification** \u00e2\u20ac\u201d WIN8's builder gave a 137-byte report, so its",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 1576,
+   "text": "The gate's sanctioned escape is withdrawal phrasing \u00e2\u20ac\u201d and the truth here is exactly that: `src/skills.ts` is quoted from the Swift file's own header comment, and the file was never merged. Rewording to state that honestly:",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 1600,
+   "text": "All work streams are armed and the remaining risk is capacity, not correctness. Current board: **Landed this hour** - **WIN6 merged** to main (verified PASS, 3/3 mutation arms) plus three gate-fix commits it flushed out: a spec copy alignment, a BARE citation given its tree frame (citation gate gree",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 1683,
+   "text": "The Stop-gate triad is now down to its honest mid-fleet core, and everything remaining is in motion: **Landed** - **WIN8 merged** to main (`0608b625`) \u00e2\u20ac\u201d verified PASS with 242/0 tests, 3/3 mutation arms, a live-router probe. The one merge conflict (WIN6/WIN8 both mount boards in `ShellWindow.xaml.",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 1719,
+   "text": "Everything is staged for the next events: - **Sweep-control gate**: direct rerun running detached with its findings captured \u00e2\u20ac\u201d this decides whether the last lane failure is the load artifact (the WIN8 verifier's exit-0 suggests it is) or a real regression on the WIN8-merged tree. Watcher `bary5j9s",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 1763,
+   "text": "State is healthy and everything has an event path forward: - **Sweep gate diagnosis**: the three failing controls are registry-declared controls that run in ~19s on the Mac but exceed the gate's 120s hang-guard on this Windows machine (spawn-heavy bash). Direct timed measurements of all four control",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  }
+ ],
+ "findings": [
+  {
+   "probe": "T11",
+   "title": "a printed non-zero class (259 skipped) is absent from the report that follows  (\u00d72)",
+   "line": 524,
+   "quote": "scanned 2098 tracked files (259 skipped as non-text, 2 named as this gate's own and not scanned)",
+   "band": 1,
+   "confidence": "observed",
+   "remedy": "report every class the gate printed, summing to its total",
+   "figure": "259",
+   "occurrences": [
+    {
+     "line": 524,
+     "quote": "scanned 2098 tracked files (259 skipped as non-text, 2 named as this gate's own and not scanned)"
+    },
+    {
+     "line": 1366,
+     "quote": "scanned 2167 tracked files (259 skipped as non-text, 2 named as this gate's own and not scanned)"
+    }
+   ],
+   "count": 2,
+   "lines": [
+    524,
+    1366
+   ]
+  },
+  {
+   "probe": "T4",
+   "title": "win-gates.py went red then green with only its own input edited",
+   "line": 919,
+   "quote": "cd /c/Dev/mcp-router git log -1 --format=\"%h %s\" eba40db1 git checkout main git merge --no-ff fleet/windows-resume-20260",
+   "band": 1,
+   "confidence": "observed",
+   "remedy": "revert the edits between 636 and 919, re-run win-gates.py",
+   "red_line": 636,
+   "edited": [],
+   "reverted": true,
+   "occurrences": [
+    {
+     "line": 919,
+     "quote": "cd /c/Dev/mcp-router git log -1 --format=\"%h %s\" eba40db1 git checkout main git merge --no-ff fleet/windows-resume-20260"
+    }
+   ],
+   "count": 1,
+   "lines": [
+    919
+   ]
+  },
+  {
+   "probe": "T11",
+   "title": "a printed non-zero class (unjoined 113) is absent from the report that follows",
+   "line": 29,
+   "quote": "unjoined 113` all reach zero \u00e2\u20ac\u201d 187 rows, of which the 113 `unjoined` are mostly an artifact of a",
+   "band": 1,
+   "confidence": "observed",
+   "remedy": "report every class the gate printed, summing to its total",
+   "figure": "113",
+   "occurrences": [
+    {
+     "line": 29,
+     "quote": "unjoined 113` all reach zero \u00e2\u20ac\u201d 187 rows, of which the 113 `unjoined` are mostly an artifact of a"
+    }
+   ],
+   "count": 1,
+   "lines": [
+    29
+   ]
+  },
+  {
+   "probe": "T12",
+   "title": "ship-fleet:ship-fleet ran with zero spawned agents (18 todo-tool calls are not delegation)",
+   "line": 39,
+   "quote": "ship-fleet:ship-fleet",
+   "band": 1,
+   "confidence": "observed",
+   "remedy": "check the ledger's isolation claims against git branch/worktree state",
+   "occurrences": [
+    {
+     "line": 39,
+     "quote": "ship-fleet:ship-fleet"
+    }
+   ],
+   "count": 1,
+   "lines": [
+    39
+   ]
+  },
+  {
+   "probe": "T3",
+   "title": "a failing command is followed by a clean claim that does not name it  (\u00d76)",
+   "line": 363,
+   "quote": "Mechanical gates: - **WIN17:** `tsc` + `e2e-platform.mjs` \u00e2\u2020\u2019 **56/0, exit 0**. D1/D2/G1/item 7 all PASS in the live harness. - **WIN3:** `dotnet test` **173/0, exit 0**. `MCPRouter.Shell.exe` is on disk from the builder's earlier compile. `build-shell.ps1` failed here because PowerShell's PATH doe",
+   "band": 2,
+   "confidence": "observed",
+   "remedy": "name the failing command and its exit code, or re-run it",
+   "command": "sleep 90 SCRATCH=/c/Users/rhode/AppData/Local/Temp/claude/C--Dev-mcp-router/f62b365d-5561-4939-976d-2960a2f3eae4/scratchpad echo =====WIN17===== tail -20 \"$SCRATCH/gates/win17-gates.txt\" echo =====WIN",
+   "command_line": 355,
+   "occurrences": [
+    {
+     "line": 363,
+     "quote": "Mechanical gates: - **WIN17:** `tsc` + `e2e-platform.mjs` \u00e2\u2020\u2019 **56/0, exit 0**. D1/D2/G1/item 7 all PASS in the live harness. - **WIN3:** `dotnet test` **173/0, exit 0**. `MCPRouter.Shell.exe` is on disk from the builder's earlier compile. `build-shell.ps1` failed here because PowerShell's PATH doe"
+    },
+    {
+     "line": 561,
+     "quote": "Citation gate green (ratchet 0). Now the PHANTOM path in plan-F8.md \u00e2\u20ac\u201d checking what F8 actually landed:"
+    },
+    {
+     "line": 860,
+     "quote": "WIN3 rebase resolved cleanly while retaining both the WIN20 UIA block and WIN3 shell tests. Running the exact post-rebase gates now; if green, I\u00e2\u20ac\u2122ll merge it and then dispatch W3."
+    },
+    {
+     "line": 860,
+     "quote": "WIN3 rebase resolved cleanly while retaining both the WIN20 UIA block and WIN3 shell tests. Running the exact post-rebase gates now; if green, I\u00e2\u20ac\u2122ll merge it and then dispatch W3."
+    },
+    {
+     "line": 927,
+     "quote": "W2 is complete. Starting W3 in three bounded batches (5 + 5 + 2), each item in its own worktree and each builder stopping before verify/merge. Updating the durable ledger to `Queued` before creating slots."
+    },
+    {
+     "line": 995,
+     "quote": "The five builders are alive, but the local perch-router is serving the conductor model (`us.openai.gpt-5.6-luna`) despite the requested `claude-opus-5`; that is recorded as a routing downgrade. Their transcripts show they loaded `ship-feature`. Monitoring for terminal reports or API failures (not ju"
+    }
+   ],
+   "count": 6,
+   "lines": [
+    363,
+    561,
+    860,
+    860,
+    927,
+    995
+   ]
+  },
+  {
+   "probe": "T5",
+   "title": "gate output suppressed and never re-run unsuppressed: worklist-check.sh",
+   "line": 54,
+   "quote": "ls planning/ planning/goals/ 2>/dev/null; echo ===; ls docs/features-to-triage/ 2>/dev/null | head -30; echo ===; tail -40 planning/goals/worklist-check.sh 2>/dev/null; echo ===; cat planning/goals/li",
+   "band": 2,
+   "confidence": "observed",
+   "remedy": "re-run worklist-check.sh and read its exit code",
+   "occurrences": [
+    {
+     "line": 54,
+     "quote": "ls planning/ planning/goals/ 2>/dev/null; echo ===; ls docs/features-to-triage/ 2>/dev/null | head -30; echo ===; tail -40 planning/goals/worklist-check.sh 2>/dev/null; echo ===; cat planning/goals/li"
+    }
+   ],
+   "count": 1,
+   "lines": [
+    54
+   ]
+  },
+  {
+   "probe": "T5",
+   "title": "gate output suppressed and never re-run unsuppressed: preflight.sh",
+   "line": 1020,
+   "quote": "cd /c/Dev/mcp-router SKILL=/c/Users/rhode/.claude/remote/plugins/e14d53b0b86a0da0/skills/better-goal bash \"$SKILL/scripts/preflight.sh\" 2>&1",
+   "band": 2,
+   "confidence": "observed",
+   "remedy": "re-run preflight.sh and read its exit code",
+   "occurrences": [
+    {
+     "line": 1020,
+     "quote": "cd /c/Dev/mcp-router SKILL=/c/Users/rhode/.claude/remote/plugins/e14d53b0b86a0da0/skills/better-goal bash \"$SKILL/scripts/preflight.sh\" 2>&1"
+    }
+   ],
+   "count": 1,
+   "lines": [
+    1020
+   ]
+  },
+  {
+   "probe": "T5",
+   "title": "gate output suppressed and never re-run unsuppressed: watch.sh",
+   "line": 1145,
+   "quote": "SKILL=/c/Users/rhode/.claude/remote/plugins/e14d53b0b86a0da0/skills/better-goal python - <<'PY' from pathlib import Path p = Path(r'C:\\Users\\rhode\\.claude\\remote\\plugins\\e14d53b0b86a0da0\\skills\\better",
+   "band": 2,
+   "confidence": "observed",
+   "remedy": "re-run watch.sh and read its exit code",
+   "occurrences": [
+    {
+     "line": 1145,
+     "quote": "SKILL=/c/Users/rhode/.claude/remote/plugins/e14d53b0b86a0da0/skills/better-goal python - <<'PY' from pathlib import Path p = Path(r'C:\\Users\\rhode\\.claude\\remote\\plugins\\e14d53b0b86a0da0\\skills\\better"
+    }
+   ],
+   "count": 1,
+   "lines": [
+    1145
+   ]
+  },
+  {
+   "probe": "T1",
+   "title": "overlay present and unread: ship-fleet/gemini.md  (\u00d72)",
+   "line": 42,
+   "quote": "C:\\Users\\rhode\\.claude\\remote\\plugins\\2fa63f8e677aac4f\\skills\\ship-fleet",
+   "band": 3,
+   "confidence": "observed",
+   "remedy": "read C:\\Users\\rhode\\.claude\\remote\\plugins\\2fa63f8e677aac4f\\skills\\ship-fleet\\gemini.md and re-check the overrides it names",
+   "occurrences": [
+    {
+     "line": 42,
+     "quote": "C:\\Users\\rhode\\.claude\\remote\\plugins\\2fa63f8e677aac4f\\skills\\ship-fleet"
+    },
+    {
+     "line": 1422,
+     "quote": "C:\\Users\\rhode\\.claude\\remote\\plugins\\fa9755de9cf91915\\skills\\ship-fleet"
+    }
+   ],
+   "count": 2,
+   "lines": [
+    42,
+    1422
+   ]
+  },
+  {
+   "probe": "T1",
+   "title": "overlay present and unread: better-goal/gemini.md",
+   "line": 1002,
+   "quote": "C:\\Users\\rhode\\.claude\\remote\\plugins\\e14d53b0b86a0da0\\skills\\better-goal",
+   "band": 3,
+   "confidence": "observed",
+   "remedy": "read C:\\Users\\rhode\\.claude\\remote\\plugins\\e14d53b0b86a0da0\\skills\\better-goal\\gemini.md and re-check the overrides it names",
+   "occurrences": [
+    {
+     "line": 1002,
+     "quote": "C:\\Users\\rhode\\.claude\\remote\\plugins\\e14d53b0b86a0da0\\skills\\better-goal"
+    }
+   ],
+   "count": 1,
+   "lines": [
+    1002
+   ]
+  },
+  {
+   "probe": "T9",
+   "title": "13 reviewer lane(s) chosen without lane_pick.py",
+   "line": 218,
+   "quote": "claude --version 2>&1; echo ---; cd /c/Dev/mcp-router/.worktrees/WIN3 && timeout 120 claude -p \"Reply with the single word OK.\" --model claude-haiku-4-5-20251001 2>&1 | tail -2; cd /c/Dev/mcp-router;",
+   "band": 3,
+   "confidence": "observed",
+   "remedy": "lane_pick.py --task verification --json",
+   "occurrences": [
+    {
+     "line": 218,
+     "quote": "claude --version 2>&1; echo ---; cd /c/Dev/mcp-router/.worktrees/WIN3 && timeout 120 claude -p \"Reply with the single word OK.\" --model claude-haiku-4-5-20251001 2>&1 | tail -2; cd /c/Dev/mcp-router;"
+    }
+   ],
+   "count": 1,
+   "lines": [
+    218
+   ]
+  }
+ ],
+ "human_corrections": [],
+ "marker": {
+  "applicable": false,
+  "note": "the marker instruction never appeared in this session"
+ },
+ "probes_that_could_not_run": [],
+ "alias_map_size": 45
+}

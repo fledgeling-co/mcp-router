@@ -1,0 +1,40 @@
+﻿2026-09-02T17:22:51.8625965Z session=1 station=WinSta0 user=rhode
+2026-09-02T17:22:52.6737485Z probe binary: C:\Dev\mcp-router\.worktrees\wc4-registry-consistency\app\windows\AutomationProbe\bin\Debug\net8.0-windows10.0.26100.0\win-x64\AutomationProbe.exe (written 2026-09-02T16:42:26.1791188Z)
+2026-09-02T17:22:54.8050802Z foreground before launch: hwnd=1312308 pid=28484 name=WindowsTerminal
+2026-09-02T17:22:55.7764937Z probe started, pid=38064
+2026-09-02T17:23:31.8778617Z the probe's window is on the automation plane
+2026-09-02T17:23:35.5555485Z dump(baseline/control): read 36 elements from 1 top-level window(s) -> C:\Dev\mcp-router\.worktrees\wc4-registry-consistency\planning\evidence\SURF-029\run\baseline-control-view.json
+2026-09-02T17:23:38.2316687Z dump(baseline/raw): read 65 elements from 1 top-level window(s) -> C:\Dev\mcp-router\.worktrees\wc4-registry-consistency\planning\evidence\SURF-029\run\baseline-raw-view.json
+2026-09-02T17:23:38.2539251Z dump(baseline) exits: control=0 raw=0
+2026-09-02T17:23:39.9988149Z actuate(Expand): Expand called on 'probe.commandbar': ExpandCollapseState went Collapsed -> Expanded.
+2026-09-02T17:23:40.0270643Z actuate(Expand) exit=0
+2026-09-02T17:23:41.1744016Z dump(effect/control): read 44 elements from 1 top-level window(s) -> C:\Dev\mcp-router\.worktrees\wc4-registry-consistency\planning\evidence\SURF-029\run\effect-control-view.json
+2026-09-02T17:23:42.7092488Z dump(effect/raw): read 79 elements from 1 top-level window(s) -> C:\Dev\mcp-router\.worktrees\wc4-registry-consistency\planning\evidence\SURF-029\run\effect-raw-view.json
+2026-09-02T17:23:42.7479032Z dump(effect) exits: control=0 raw=0
+2026-09-02T17:23:44.4456185Z actuate(Collapse): Collapse called on 'probe.commandbar': ExpandCollapseState went Expanded -> Collapsed.
+2026-09-02T17:23:44.4762535Z actuate(Collapse) exit=0
+2026-09-02T17:23:45.6814753Z dump(silence/control): read 36 elements from 1 top-level window(s) -> C:\Dev\mcp-router\.worktrees\wc4-registry-consistency\planning\evidence\SURF-029\run\silence-control-view.json
+2026-09-02T17:23:47.1594215Z dump(silence/raw): read 65 elements from 1 top-level window(s) -> C:\Dev\mcp-router\.worktrees\wc4-registry-consistency\planning\evidence\SURF-029\run\silence-raw-view.json
+2026-09-02T17:23:47.1975815Z dump(silence) exits: control=0 raw=0
+2026-09-02T17:23:47.3861366Z assert: SURF-029 overflow assertions against SURF-029
+2026-09-02T17:23:47.3916714Z assert:   subject: MCPRouter.AutomationProbe ΓÇö WIN20's WinUI 3 probe window
+2026-09-02T17:23:47.3967226Z assert:   baseline  36 elements, captured 2026-09-02T17:23:35.0636647Z
+2026-09-02T17:23:47.3997407Z assert:   effect    44 elements, captured 2026-09-02T17:23:41.0970311Z
+2026-09-02T17:23:47.4017408Z assert:   silence   36 elements, captured 2026-09-02T17:23:45.5982395Z
+2026-09-02T17:23:47.4032458Z assert: 
+2026-09-02T17:23:47.4054022Z assert:   passed  25
+2026-09-02T17:23:47.4080360Z assert:   FAILED  0
+2026-09-02T17:23:47.4100408Z assert exit=0
+2026-09-02T17:23:47.4393647Z   probe: 2026-09-02T17:23:28.7128574Z pid=38064 Program.Main entered, args=[]
+2026-09-02T17:23:47.4420125Z   probe: 2026-09-02T17:23:28.7360829Z pid=38064 ComWrappers initialised
+2026-09-02T17:23:47.4441215Z   probe: 2026-09-02T17:23:29.3541777Z pid=38064 App ctor: before InitializeComponent
+2026-09-02T17:23:47.4462338Z   probe: 2026-09-02T17:23:29.4405437Z pid=38064 App ctor: after InitializeComponent
+2026-09-02T17:23:47.4479021Z   probe: 2026-09-02T17:23:29.6331805Z pid=38064 OnLaunched: constructing MainWindow
+2026-09-02T17:23:47.4506002Z   probe: 2026-09-02T17:23:30.8232842Z pid=38064 MainWindow: before InitializeComponent
+2026-09-02T17:23:47.4532761Z   probe: 2026-09-02T17:23:31.3348761Z pid=38064 MainWindow: after InitializeComponent
+2026-09-02T17:23:47.4547803Z   probe: 2026-09-02T17:23:31.3650527Z pid=38064 MainWindow: resized and moved
+2026-09-02T17:23:47.4573914Z   probe: 2026-09-02T17:23:31.3810957Z pid=38064 MainWindow: Servers selected
+2026-09-02T17:23:47.4593245Z   probe: 2026-09-02T17:23:31.3815802Z pid=38064 OnLaunched: MainWindow constructed
+2026-09-02T17:23:47.4624105Z   probe: 2026-09-02T17:23:31.3907982Z pid=38064 OnLaunched: shown without activation, hwnd=13501984
+2026-09-02T17:23:47.5153938Z probe pid 38064 stopped
+2026-09-02T17:23:47.5177971Z pass: both SecondaryCommands are absent with the overflow shut, present with their on-screen names and ControlType when it is opened from the automation plane, and absent again when it is shut. The probe held the foreground at none of the BASELINE samples, and at every EFFECT and SILENCE sample - which is the declared activationCost, not a clean never-activated run. Opening the overflow activates the window; the at-rest lane is where that guarantee still lives.

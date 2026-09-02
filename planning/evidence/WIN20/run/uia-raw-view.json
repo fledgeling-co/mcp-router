@@ -1,23 +1,23 @@
 ﻿{
     "schema":  "win20.uia-dump/1",
-    "capturedAtUtc":  "2026-09-01T21:41:09.0228138Z",
+    "capturedAtUtc":  "2026-09-02T16:54:03.8513617Z",
     "host":  {
                  "osVersion":  "10.0.26220.0",
                  "psVersion":  "5.1.26100.9223",
                  "machine":  "Z13"
              },
     "request":  {
-                    "processId":  35488,
+                    "processId":  35684,
                     "titleContains":  "",
                     "view":  "Raw"
                 },
     "targets":  [
                     {
-                        "hwnd":  4392224,
+                        "hwnd":  2621610,
                         "name":  "Automation probe",
                         "className":  "WinUIDesktopWin32WindowClass",
                         "frameworkId":  "Win32",
-                        "processId":  35488,
+                        "processId":  35684,
                         "isVisible":  true,
                         "isMinimised":  false
                     }
@@ -25,18 +25,18 @@
     "foregroundSamples":  [
                               {
                                   "when":  "before",
-                                  "hwnd":  1574124,
-                                  "processId":  5188
+                                  "hwnd":  1836600,
+                                  "processId":  25080
                               },
                               {
                                   "when":  "midwalk",
-                                  "hwnd":  1574124,
-                                  "processId":  5188
+                                  "hwnd":  1836600,
+                                  "processId":  25080
                               },
                               {
                                   "when":  "after",
-                                  "hwnd":  1574124,
-                                  "processId":  5188
+                                  "hwnd":  1836600,
+                                  "processId":  25080
                               }
                           ],
     "truncated":  false,

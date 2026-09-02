@@ -3,9 +3,9 @@
   "subject": "MCPRouter.AutomationProbe — WIN20's WinUI 3 probe window",
   "subjectIsNotTheProduct": "WIN3 has not landed a drawable Windows shell. Every figure taken against this manifest is a measurement of WinUI 3's automation behaviour on this machine, not of the MCP Router Windows client. When WIN3 lands, point the harness at it and re-take them.",
   "proposedSurfaceId": "SURF-029",
-  "dump": "C:\\Dev\\mcp-router\\planning\\evidence\\WIN20\\run\\uia-control-view.json",
-  "rawDump": "C:\\Dev\\mcp-router\\planning\\evidence\\WIN20\\run\\uia-raw-view.json",
-  "capturedAtUtc": "2026-09-01T21:41:08.1324948Z",
+  "dump": "C:\\Dev\\mcp-router\\.worktrees\\wc4-registry-consistency\\planning\\evidence\\WIN20\\run\\uia-control-view.json",
+  "rawDump": "C:\\Dev\\mcp-router\\.worktrees\\wc4-registry-consistency\\planning\\evidence\\WIN20\\run\\uia-raw-view.json",
+  "capturedAtUtc": "2026-09-02T16:54:02.8387603Z",
   "elementCount": 36,
   "passed": [
     {
@@ -30,7 +30,7 @@
     },
     {
       "check": "foreground.targetNeverFront",
-      "detail": "target hwnd 4392224 / pid 35488 held the foreground at none of the 3 samples"
+      "detail": "target hwnd 2621610 / pid 35684 held the foreground at none of the 3 samples"
     },
     {
       "check": "manifest.minimums.busy",
@@ -47,6 +47,10 @@
     {
       "check": "manifest.minimums.held",
       "detail": "2 held, floor 2"
+    },
+    {
+      "check": "manifest.minimums.overflow",
+      "detail": "2 overflow, floor 2"
     },
     {
       "check": "manifest.minimums.selected",
@@ -375,13 +379,13 @@
       "check": "unoracled.probe.command.exportLog",
       "detail": "'Export log' is absent from the control view and from the raw view, so it is not realised at all",
       "reason": "a CommandBar's SecondaryCommands are not realised while the overflow is closed, so the element does not exist on the automation plane at rest. It is absent from the control view AND the raw view.",
-      "whatWouldOpenARung": "either the harness opens the overflow — which mutates the surface it is measuring and gives up the never-activated guarantee — or the command is also reachable from a surface that is realised at rest. The second is the fix; the first is not."
+      "whatWouldOpenARung": "OPENED. scripts/windows/uia/overflow-lane.ps1 opens the overflow through ExpandCollapsePattern.Expand and reads the command back with its name and ControlType, between a baseline and a silence that both find it absent. The `overflow` block above carries the expectation. The second route named here originally - the command also being reachable from a surface realised at rest - remains the better product fix and is NOT what this arm did; DESIGN.md §11 rule 9 is still unmet by the probe as drawn."
     },
     {
       "check": "unoracled.probe.command.resetRouter",
       "detail": "'Reset router' is absent from the control view and from the raw view, so it is not realised at all",
       "reason": "same as probe.command.exportLog — SecondaryCommands are unrealised while the overflow is closed.",
-      "whatWouldOpenARung": "as above."
+      "whatWouldOpenARung": "OPENED. scripts/windows/uia/overflow-lane.ps1 opens the overflow through ExpandCollapsePattern.Expand and reads the command back with its name and ControlType, between a baseline and a silence that both find it absent. The `overflow` block above carries the expectation. The second route named here originally - the command also being reachable from a surface realised at rest - remains the better product fix and is NOT what this arm did; DESIGN.md §11 rule 9 is still unmet by the probe as drawn."
     }
   ]
 }

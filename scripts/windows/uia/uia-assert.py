@@ -451,6 +451,10 @@ def check_manifest_is_not_vacuous(expectation, findings):
         "selected": len(expectation.get("states", {}).get("selected") or []),
         "held": len(expectation.get("states", {}).get("held") or []),
         "busy": len(expectation.get("states", {}).get("busy") or []),
+        # Graded by overflow-assert.py rather than here, and counted here anyway. The floor
+        # belongs to the manifest, not to whichever reader happens to open it, and a second
+        # oracle reading the same file is a second chance to notice it has been trimmed.
+        "overflow": len(expectation.get("overflow", {}).get("commands") or []),
     }
 
     if not minimums:

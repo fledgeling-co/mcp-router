@@ -1,0 +1,23 @@
+﻿{
+    "schema":  "win20.actuate/1",
+    "action":  "Collapse",
+    "automationId":  "probe.commandbar",
+    "processId":  38064,
+    "capturedAtUtc":  "2026-09-02T17:23:43.2645533Z",
+    "targetHwnd":  13501984,
+    "stateBefore":  "Expanded",
+    "stateAfter":  "Collapsed",
+    "foregroundSamples":  [
+                              {
+                                  "when":  "before",
+                                  "hwnd":  13501984,
+                                  "processId":  38064
+                              },
+                              {
+                                  "when":  "after",
+                                  "hwnd":  13501984,
+                                  "processId":  38064
+                              }
+                          ],
+    "note":  "Collapse called on \u0027probe.commandbar\u0027: ExpandCollapseState went Expanded -\u003e Collapsed."
+}

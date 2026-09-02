@@ -209,6 +209,15 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;tex
 .ev.pass{color:var(--live);border-color:rgba(48,209,88,.35);background:rgba(48,209,88,.1)}
 .ev.fail{color:var(--fail);border-color:rgba(255,66,69,.35);background:rgba(255,66,69,.1)}
 .ev.none{border-style:dashed;color:var(--t3)}
+/* DEF-042. The superseded-drawing marker. Deliberately a plain block: no button, no
+   [role=button], no input, select or summary, so `bin/design-controls.py` and
+   `bin/vocab-differential.py` cannot read it as a control and inflate a surface's
+   denominator. It carries no control name for the same reason the Checks pane's own
+   comment gives - prose naming a removed control puts it back into the in-design set. */
+.sup{margin:0 18px 10px;padding:7px 10px;border:1px dashed var(--t3);border-radius:7px;
+  color:var(--t2);font:500 11px var(--sans);line-height:1.45;opacity:.9}
+.sup b{font-weight:650}
+.pbody .sup{margin:10px 0}
 /* Authored icons where the marketplace ships one, a drawn monogram plate where it
    does not. A gradient rectangle standing in for an icon is the loudest low-fidelity
    tell available, and fledgeling-plugins ships real 512px art for its skills — so
@@ -716,6 +725,40 @@ function sidebarRest(){
     <div class="restfoot">last 60s · peak ${max}</div>
   </div>`;
 }
+/*
+ * DEF-042 - the design of record draws a model-graded evaluation the product does not have.
+ *
+ * Four boards were filed: the graded pills, the run counts and the velocity figure exist in this
+ * mock and in neither shipping app. The build is the correct half - ORCHESTRATOR.md's rule is that
+ * no number is displayed that the router does not observe, and the router observes none of these.
+ * The Checks pane was re-cut to the built board on 2026-08-20 (DEF-031, and its own comment
+ * further down). The rest were left, and the choice between re-cutting them and annotating them
+ * sat open as the owner's call.
+ *
+ * SETTLED 2026-09-02 the second way, and for a reason rather than because it is lighter: re-cutting
+ * would delete the record of what was designed, and the eval board is explicitly NOT withdrawn as
+ * an idea - it is a feature programme waiting on a definition of what a "case" is for a skill.
+ * Deleting the drawing would lose that; marking it keeps both the drawing and the truth about it,
+ * at the point where a reader of the design meets it rather than in a defect register they would
+ * have to already know to open.
+ *
+ * THE DRAWING IS WIDER THAN THE DEFECT RECORDED. DEF-042 came from an eight-pair framing
+ * comparison and named Skills, Discover, Checks and Servers. A census of every site in this file
+ * that draws the graded vocabulary finds NINE constructs, not four: the Mac Inbox board and the
+ * registry and update sheets draw it too, and so do four of the phone's surfaces. Nothing under
+ * app/MCPRouterIOS or app/Sources/MCPRouterUI/Phone carries the vocabulary either, so the phone
+ * diverges the same way the Mac does. All nine are marked.
+ *
+ * `planning/design-divergence-marker-gate.py` is what keeps this true. It censuses the sites,
+ * attributes each to its enclosing top-level construct, and refuses a construct that draws the
+ * vocabulary without the marker - AND a marker on a construct that no longer draws it, because a
+ * marker that cannot go stale is one nobody will notice has.
+ */
+const SUP=`<div class="sup" data-sup="DEF-042"><b>Drawn here, not in the product.</b> The graded
+  figures on this surface exist in this design and in neither shipping app. The router does not
+  observe them, and a number it does not observe is not displayed - so the build is the correct
+  half and this drawing is the divergence. Kept and marked rather than re-cut: DEF-042.</div>`;
+
 const PANES={};
 
 PANES.activity=()=>{
@@ -751,6 +794,7 @@ PANES.servers=()=>{
   <div class="hd"><div><h3>Servers</h3>
     <div class="sb">${totalTools()} tools from ${S.servers.length} servers · ${running()} running</div></div>
     <div class="sp"><button class="btn" data-a="sheet" data-v="addserver">Add server…</button></div></div>
+  ${SUP}
   <div class="seg">
     ${[['all','All'],['running','Running'],['idle','Idle'],['attn','Needs you']].map(([k,t])=>
       `<button class="${S.sfilter===k?'on':''}" data-a="sfilter" data-v="${k}">${t}${C[k]?`<b>${C[k]}</b>`:''}</button>`).join('')}
@@ -794,6 +838,7 @@ PANES.skills=()=>{
   <div class="hd"><div><h3>Skills</h3>
     <div class="sb">${S.skills.length} from ${new Set(S.skills.map(s=>s.mk)).size} marketplaces · ${C.held} held for review</div></div>
     <div class="sp"><button class="btn" data-a="sheet" data-v="addmarket">Add marketplace…</button></div></div>
+  ${SUP}
   <div class="seg">
     ${[['all','All'],['held','Held'],['never','Never run']].map(([k,t])=>
       `<button class="${(S.kfilter||'all')===k?'on':''}" data-a="kfilter" data-v="${k}">${t}${C[k]?`<b>${C[k]}</b>`:''}</button>`).join('')}
@@ -830,6 +875,7 @@ PANES.discover=()=>{
     <div class="sp">
       <button class="btn ${S.dkind==='servers'?'p':''}" data-a="dkind" data-v="servers">Servers</button>
       <button class="btn ${S.dkind==='skills'?'p':''}" data-a="dkind" data-v="skills">Skills</button></div></div>
+  ${SUP}
   <div style="padding:0 18px 10px;display:flex;gap:7px;align-items:center">
     <span class="btn">All</span><span class="btn q">Design</span><span class="btn q">Research</span>
     <span class="btn q">Testing</span>
@@ -875,6 +921,7 @@ PANES.inbox=()=>`
     <div class="sb">${S.inbox.length?`${S.inbox.length} waiting from iPhone`:'Nothing waiting'} ·
       paired with Luke's iPhone</div></div>
     <div class="sp"><button class="btn q" data-a="sheet" data-v="pair">Pairing…</button></div></div>
+  ${SUP}
   <div class="scr">${S.inbox.length?S.inbox.map((it,i)=>{
     const r=S.registry.find(x=>x.n===it.n)||{};
     return `<div class="tr tall ${i===0&&it.fresh?'new':''}">
@@ -1150,6 +1197,7 @@ function renderSheet(){
             '<span style="color:var(--fail)">no licence file</span>':r.lic} ·
             ${r.inst.toLocaleString()} installs</div></div>
         <span class="ev ${r.ev==='none'?'none':'pass'}">${r.ev==='none'?'never evaluated':ic('check','sm')+r.ev.split(' ')[1]}</span></div>
+      ${SUP}
       <div style="font-size:13px;color:var(--t2);margin-top:13px;line-height:1.5">${r.desc}</div>
       <div class="card" style="${risky?'border-color:rgba(255,66,69,.3);background:rgba(255,66,69,.06)':
         'border-color:rgba(255,146,48,.3);background:rgba(255,146,48,.05)'}">
@@ -1183,6 +1231,7 @@ function renderSheet(){
         <div style="flex:1"><h4>${k.n} ${k.v} → ${k.pending}</h4>
           <div class="lede">Held 4 hours ago. Your sessions are still running ${k.v}.</div></div>
         <span class="ev pass" style="margin-top:3px">${ic('check','sm')}evals still pass</span></div>
+      ${SUP}
       <div class="card" style="border-color:rgba(255,146,48,.35);background:rgba(255,146,48,.06)">
         <h5><span style="color:var(--attn)">${ic('bolt','sm')}</span> What this version wants that ${k.v} didn't</h5>
         <div class="chk"><span class="b">+</span><span><b>Shell access.</b> A new
@@ -1382,6 +1431,7 @@ PHONE.discover=()=>{
   <div class="pbody">
     <div class="srch">${ic('search','sm')}<span>Skills and servers</span></div>
     <div><span class="chip on">All</span><span class="chip">Design</span><span class="chip">Research</span><span class="chip">Test</span></div>
+    ${SUP}
     <div class="plbl">Trending · 7 days</div>
     ${trend.map((r,i)=>`<button class="li" data-a="pdetail" data-v="${r.n}">
       <span class="rk" style="font-size:15px;color:var(--t3)">${i+1}</span>
@@ -1413,6 +1463,7 @@ PHONE.detail=()=>{
       <span class="ev ${r.ev==='none'?'none':'pass'}">${r.ev==='none'?'never evaluated':ic('check','sm')+r.ev.split(' ')[1]+' evals'}</span>
       <span class="ev">${r.kind==='skills'?'skill':'server'}</span>
       <span class="ev">${r.inst.toLocaleString()} installs</span></div>
+    ${SUP}
     <div class="wants ${risky?'r':''}"><h5>What it can do once installed</h5>
       ${r.caps.map(([l,t])=>`<div class="wl"><span class="i">›</span><span>${t}</span></div>`).join('')}</div>
     <div style="font-size:13px;color:var(--t2);margin-top:12px;line-height:1.5">${r.desc}</div>
@@ -1476,6 +1527,7 @@ PHONE.triage=()=>{
     ${S.tri==='new'&&undecided.length?`<button class="t2" style="font-size:13px" data-a="tall">${
       picked.length===undecided.length?'Clear':'Select all'}</button>`:''}</div></div>
   <div class="pbody" style="padding-bottom:${picked.length?96:14}px">
+    ${SUP}
     <div class="tsegs">
       <button class="${S.tri==='new'?'on':''}" data-a="tri" data-v="new">Undecided${undecided.length?`<b>${undecided.length}</b>`:''}</button>
       <button class="${S.tri==='queued'?'on':''}" data-a="tri" data-v="queued">Queued${queued.length?`<b>${queued.length}</b>`:''}</button>
@@ -1531,6 +1583,7 @@ PHONE.queue=()=>{
 
 PHONE.library=()=>`<div class="pnav"><h3>Library</h3></div>
   <div class="psub">${S.skills.length} skills · ${S.servers.length} servers · read-only from here</div>
+  ${SUP}
   <div class="pbody">
     <div class="srch">${ic('search','sm')}<span>Filter</span></div>
     ${S.skills.map(k=>`<div class="li">

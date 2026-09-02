@@ -150,4 +150,101 @@ public sealed class ViewAutomationSurfaceTests
                 $"{id} publishes no accessible name");
         }
     }
+
+    // ------------------------------------------------------ DEF-084: the Discover store rows
+
+    /// <summary>
+    /// Both bands hand their realised containers to a handler. This is the assertion that a row's
+    /// accessible name is set on the CONTAINER rather than in the DataTemplate: the template's
+    /// root is a child of the ListViewItem, so naming it leaves the item itself announcing
+    /// ToString() on the item object - which is what published
+    /// "MCPRouter.Shell.Views.DiscoverRow" for every row in the store.
+    /// </summary>
+    [Fact]
+    public void DiscoverBoard_BothBandsNameTheirRowContainers()
+    {
+        var view = View("app/windows/MCPRouter.Shell/Views/DiscoverBoard.xaml");
+        XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
+
+        var bands = view.Descendants()
+            .Where(e => e.Name.LocalName == "ListView")
+            .Where(e => (string?)e.Attribute("ItemTemplate") == "{StaticResource DiscoverRowTemplate}")
+            .ToList();
+
+        Assert.Equal(2, bands.Count);
+        foreach (var band in bands)
+        {
+            var name = (string?)band.Attribute(x + "Name");
+            Assert.Equal("OnRowContainerChanging",
+                (string?)band.Attribute("ContainerContentChanging"));
+            Assert.False(string.IsNullOrWhiteSpace((string?)band.Attribute("AutomationProperties.Name")),
+                $"{name} publishes no accessible name");
+            Assert.False(string.IsNullOrWhiteSpace((string?)band.Attribute("AutomationProperties.AutomationId")),
+                $"{name} carries no automation id");
+        }
+    }
+
+    /// <summary>
+    /// And NOTHING inside the row template carries a Name. The absence is the assertion, the same
+    /// one DEF-075 settled one surface along: each TextBlock in the row publishes its own Text, so
+    /// a static Name would make Narrator read a label where the value belongs, and would give a
+    /// by-name assertion a constant to find.
+    /// </summary>
+    [Fact]
+    public void DiscoverBoard_RowTemplateOverridesNoElementsOwnName()
+    {
+        var view = View("app/windows/MCPRouter.Shell/Views/DiscoverBoard.xaml");
+        XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
+
+        var template = view.Descendants()
+            .Single(e => e.Name.LocalName == "DataTemplate"
+                         && (string?)e.Attribute(x + "Key") == "DiscoverRowTemplate");
+
+        var named = template.Descendants()
+            .Where(e => e.Attribute("AutomationProperties.Name") is not null
+                        || e.Attribute(Automation + "AutomationProperties.Name") is not null)
+            .Select(e => e.Name.LocalName)
+            .ToList();
+
+        Assert.True(named.Count == 0,
+            "these row-template elements override their own accessible name: " + string.Join(", ", named));
+    }
+
+    /// <summary>
+    /// The code half, read as source text rather than as a tree - which is the honest limit of
+    /// this rung: it can say the handler assigns both properties to the container it was handed,
+    /// and it cannot say the handler ever runs. The live rung
+    /// (scripts/windows/uia/shell-lane.ps1, the discover.rows arm) is the one that reads the names
+    /// back off a running shell.
+    /// </summary>
+    [Fact]
+    public void DiscoverBoard_RowContainerHandlerAssignsNameAndIdToTheContainer()
+    {
+        var code = RepoRoot.Read("app/windows/MCPRouter.Shell/Views/DiscoverBoard.xaml.cs");
+        Assert.Contains("private void OnRowContainerChanging(", code);
+        Assert.Contains("AutomationProperties.SetName(container, row.AccessibleName)", code);
+        Assert.Contains("AutomationProperties.SetAutomationId(container, row.AutomationId)", code);
+
+        // The floor under the handler: a row realised by a path that never raises
+        // ContainerContentChanging still announces the capability rather than the class.
+        var model = RepoRoot.Read("app/windows/MCPRouter.Shell/Views/DiscoverRow.cs");
+        Assert.Contains("public override string ToString() => AccessibleName;", model);
+    }
+
+    // ---------------------------------------------------- DEF-089: the navigation pane's name
+
+    [Fact]
+    public void ShellWindow_NavigationPanePublishesAName()
+    {
+        var view = View("app/windows/MCPRouter.Shell/Shell/ShellWindow.xaml");
+        XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
+
+        var nav = view.Descendants()
+            .Single(e => e.Name.LocalName == "NavigationView");
+
+        Assert.Equal("Nav", (string?)nav.Attribute(x + "Name"));
+        Assert.False(string.IsNullOrWhiteSpace((string?)nav.Attribute("AutomationProperties.Name")),
+            "the NavigationView publishes no accessible name; a live dump reads its Name back as "
+            + "the empty string, so nothing else supplies one");
+    }
 }

@@ -5332,5 +5332,101 @@
       "count": 1
     },
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "lane": "windows-glass",
+    "oracle": "structural",
+    "status": "pass",
+    "armed": true,
+    "flow": null,
+    "id": "CASE-0376",
+    "req": "REQ-061",
+    "surface": "SURF-034",
+    "cell": "execution-plane=host - oracle-rung=structural - data-shape=the live shell on WinSta0",
+    "actuates": [
+      "discover.band.recent",
+      "discover.band.used"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/discover-row-names.json"
+    ],
+    "note": "DEF-084, the live rung. The lane actuates Discover through the plane, waits for the registry search to publish rows, scopes a ListItem sweep to each band by its automation id and reads every row's Name and AutomationId out of process. THE ASSERTION IS NOT \"the name is non-empty\": the defect published \"MCPRouter.Shell.Views.DiscoverRow\" for every row, which is non-empty, so a presence check would have passed on it. What is required is that no name is the type name and that the names are pairwise distinct within the band - the two properties that actually failed. Read 2026-09-02: 60 rows in each band, 60 distinct names, 60 distinct ids, none of them the type name. The command the lane ran is scripts/windows/uia/run-shell-lane.ps1; `actuates` carries the two band containers the surface declares, which is what control-census.py counts. WHAT THIS DOES NOT SETTLE: that the sentence is a good one to hear read aloud, and that an id is unique across BOTH bands - an entry in both carries the same id in each.",
+    "armedNote": "ARMED BY OBSERVATION, 2026-09-02: with ContainerContentChanging removed from both bands and DiscoverRow.ToString() reverted, and the shell rebuilt, this case's two lane rows went red together - \"60 of 60 row(s) publish the accessible name 'MCPRouter.Shell.Views.DiscoverRow'\" - while every destination and the navigation-pane row stayed green (planning/evidence/WIN-SHELL/armed-rows/lane.log). Restoring both returned the lane to 0 failures.",
+    "witness": {
+      "recorder": "System.Windows.Automation in scripts/windows/uia/shell-lane.ps1 - a UI Automation client in a DIFFERENT PROCESS from MCPRouter.Shell, reading the accessibility tree the shell publishes to the operating system",
+      "effect": "none",
+      "count": 1
+    }
+  },
+  {
+    "lane": "windows-glass",
+    "oracle": "structural",
+    "status": "pass",
+    "armed": true,
+    "flow": null,
+    "id": "CASE-0377",
+    "req": "REQ-062",
+    "surface": "SURF-030",
+    "cell": "execution-plane=host - oracle-rung=structural - data-shape=the live shell on WinSta0",
+    "actuates": [
+      "Nav"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/assert-report.json"
+    ],
+    "note": "DEF-089, the live rung. The lane finds the element carrying the automation id Nav and reads its Name off the running tree from another process. Read 2026-09-02: \"Destinations\". Addressed by automation id rather than by name for the reason the settings census records - a UIA name search returns the first element carrying that name anywhere in the tree. The command the lane ran is scripts/windows/uia/run-shell-lane.ps1. WHAT THIS DOES NOT SETTLE: the name is on the NavigationView as a whole, which hosts the board content as well as the pane; nothing here reads a name scoped to the pane subtree, because no element of it is reachable from the window's own XAML.",
+    "armedNote": "ARMED BY OBSERVATION, 2026-09-02: deleting AutomationProperties.Name from the NavigationView and rebuilding turned this row alone red - \"the navigation pane publishes an empty accessible name\" - with all ten destinations and both Discover row arms still green (planning/evidence/WIN-SHELL/armed/lane.log). Restoring it returned the lane to 0 failures.",
+    "witness": {
+      "recorder": "System.Windows.Automation in scripts/windows/uia/shell-lane.ps1 - a UI Automation client in a DIFFERENT PROCESS from MCPRouter.Shell, reading the accessibility tree the shell publishes to the operating system",
+      "effect": "none",
+      "count": 1
+    }
+  },
+  {
+    "lane": "windows-glass",
+    "oracle": "source-analysis",
+    "status": "pass",
+    "armed": true,
+    "flow": null,
+    "id": "CASE-0378",
+    "req": "REQ-061",
+    "surface": "SURF-034",
+    "cell": "execution-plane=host - oracle-rung=source-analysis - data-shape=the view as declared",
+    "actuates": [],
+    "evidence": [
+      "app/windows/MCPRouter.Shell.Tests/ViewAutomationSurfaceTests.cs"
+    ],
+    "note": "The structural rung under DEF-084, and the one that still stands on a host with no interactive session and no network - which is where CASE-0376 reports `unoracled`. It requires both bands to declare an accessible name, an automation id and the ContainerContentChanging handler that names each realised row container, and it requires NOTHING inside the row template to carry an AutomationProperties.Name - that absence is load-bearing, because a TextBlock's own Text is its accessible name and a static Name would override it. It also reads DiscoverBoard.xaml.cs and DiscoverRow.cs as source text to confirm the handler assigns both properties to the container and that ToString() returns the accessible name; that half is a text check and is labelled as one in the test. WHAT IT CANNOT SAY: that the handler ever runs, or that a row ever reaches the tree. CASE-0376 makes that claim. The command run is `dotnet test app/windows/MCPRouter.Shell.Tests` - in the note rather than in `actuates`, which control-census.py reads as a control the surface declares.",
+    "armedNote": "ARMED BY OBSERVATION, 2026-09-02: removing ContainerContentChanging from both bands and the ToString override turned this class red in the same state that reddened the live rows; restoring both returned 655 of 655 to green.",
+    "witness": {
+      "recorder": "System.Xml.Linq parsing the XAML as XML in the test process - a different reader and a different vocabulary from the XAML compiler that consumes it",
+      "effect": "none",
+      "count": 1
+    }
+  },
+  {
+    "lane": "windows-glass",
+    "oracle": "source-analysis",
+    "status": "pass",
+    "armed": true,
+    "flow": null,
+    "id": "CASE-0379",
+    "req": "REQ-062",
+    "surface": "SURF-030",
+    "cell": "execution-plane=host - oracle-rung=source-analysis - data-shape=the view as declared",
+    "actuates": [],
+    "evidence": [
+      "app/windows/MCPRouter.Shell.Tests/ViewAutomationSurfaceTests.cs"
+    ],
+    "note": "The structural rung under DEF-089: ShellWindow.xaml is parsed as XML and its single NavigationView must be the one named Nav and must carry a non-empty AutomationProperties.Name. It runs on a host with no interactive session, which is where the live rung cannot. The command run is `dotnet test app/windows/MCPRouter.Shell.Tests`. WHAT IT CANNOT SAY: that the name reaches the live tree - a markup attribute and a published property are different claims, and CASE-0377 makes the second.",
+    "armedNote": "ARMED BY OBSERVATION, 2026-09-02: deleting the attribute failed exactly ShellWindow_NavigationPanePublishesAName, 1 of 655; restoring it returned all 655 to green.",
+    "witness": {
+      "recorder": "System.Xml.Linq parsing the XAML as XML in the test process - a different reader and a different vocabulary from the XAML compiler that consumes it",
+      "effect": "none",
+      "count": 1
+    }
   }
 ]

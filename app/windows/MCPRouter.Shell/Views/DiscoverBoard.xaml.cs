@@ -292,6 +292,28 @@ public sealed partial class DiscoverBoard : UserControl
 
     // ------------------------------------------------------------------ the detail
 
+    /// <summary>
+    /// DEF-084: name the row CONTAINER, not the template.
+    ///
+    /// A ListViewItem whose item is a plain object publishes ToString() on that object as its
+    /// accessible name, so every store row announced "MCPRouter.Shell.Views.DiscoverRow" - the
+    /// same constant for all of them. Narrator read the class name aloud, and an out-of-process
+    /// assertion by name could "find a row" without a single row existing.
+    ///
+    /// The name is set here rather than in the DataTemplate because the template's root is a
+    /// CHILD of the container: naming it leaves the container's own name untouched. This event
+    /// fires for every container the ListView realises, including the recycled ones, so a row
+    /// scrolled into view after a band re-render is named too.
+    /// </summary>
+    private void OnRowContainerChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
+    {
+        if (args.ItemContainer is not { } container) return;
+        if (args.Item is not DiscoverRow row) return;
+
+        AutomationProperties.SetName(container, row.AccessibleName);
+        AutomationProperties.SetAutomationId(container, row.AutomationId);
+    }
+
     private void OnRowClicked(object sender, ItemClickEventArgs e)
     {
         // The row's only action: open the detail. Installation is available only from there -

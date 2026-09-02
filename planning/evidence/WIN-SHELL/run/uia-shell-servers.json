@@ -1,23 +1,23 @@
 ﻿{
     "schema":  "win20.uia-dump/1",
-    "capturedAtUtc":  "2026-09-02T11:45:27.8865893Z",
+    "capturedAtUtc":  "2026-09-02T13:21:53.6438834Z",
     "host":  {
                  "osVersion":  "10.0.26220.0",
                  "psVersion":  "5.1.26100.9223",
                  "machine":  "Z13"
              },
     "request":  {
-                    "processId":  19032,
+                    "processId":  31700,
                     "titleContains":  "",
                     "view":  "Control"
                 },
     "targets":  [
                     {
-                        "hwnd":  1967926,
+                        "hwnd":  2820090,
                         "name":  "Servers",
                         "className":  "WinUIDesktopWin32WindowClass",
                         "frameworkId":  "Win32",
-                        "processId":  19032,
+                        "processId":  31700,
                         "isVisible":  true,
                         "isMinimised":  false
                     }
@@ -25,18 +25,18 @@
     "foregroundSamples":  [
                               {
                                   "when":  "before",
-                                  "hwnd":  1967926,
-                                  "processId":  19032
+                                  "hwnd":  2820090,
+                                  "processId":  31700
                               },
                               {
                                   "when":  "midwalk",
-                                  "hwnd":  1967926,
-                                  "processId":  19032
+                                  "hwnd":  2820090,
+                                  "processId":  31700
                               },
                               {
                                   "when":  "after",
-                                  "hwnd":  1967926,
-                                  "processId":  19032
+                                  "hwnd":  2820090,
+                                  "processId":  31700
                               }
                           ],
     "truncated":  false,
@@ -712,7 +712,7 @@
                          "depth":  3,
                          "path":  "/3/0/2",
                          "automationId":  "Nav",
-                         "name":  "",
+                         "name":  "Destinations",
                          "controlType":  "Custom",
                          "localizedControlType":  "custom",
                          "className":  "",
@@ -874,7 +874,7 @@
                          "depth":  6,
                          "path":  "/3/0/2/1/0/0",
                          "automationId":  "MenuItemsHost",
-                         "name":  "",
+                         "name":  "Destinations",
                          "controlType":  "Group",
                          "localizedControlType":  "group",
                          "className":  "",
@@ -2627,7 +2627,7 @@
                          "depth":  8,
                          "path":  "/3/0/2/2/5/9/0/5",
                          "automationId":  "",
-                         "name":  "1 d ago",
+                         "name":  "2 d ago",
                          "controlType":  "Text",
                          "localizedControlType":  "text",
                          "className":  "TextBlock",

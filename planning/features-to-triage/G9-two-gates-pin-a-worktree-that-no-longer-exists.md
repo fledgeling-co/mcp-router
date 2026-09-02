@@ -1,7 +1,29 @@
 ---
-status: to-triage
+status: retired
+shipped-by: 1ec6859b, 5ed60f6
 found-by: egress's DEF-253 shape, swept for here 2026-08-23
 ---
+
+> **Retired 2026-09-02.** Both gates derive their root — `git -C "$(dirname "$0")" rev-parse
+> --show-toplevel` — from the script's own location, so each answers the same from any cwd; proved
+> here by resolving both from `C:\`, outside the repository, and getting this checkout's root and an
+> existing `app/` back. The citation is corrected: `spec-R2.md` now carries three dated verdicts
+> and says in as many words that the original row recorded a result nobody could have obtained,
+> replaced by measured output. `planning/runnable-path-gate.py` is the standing instrument, wired
+> into `make lint`; it reddens on the defect verbatim (N4 0 → 1, exit 1).
+>
+> **What this retirement adds, and why it was not already covered.** The gate blocked G9 *as it was
+> written* — an absolute home path — and not G9 *as it works*. The identical defect spelled
+> portably against a derived root is dead in exactly the same way and moved N4 not at all. A second
+> blocking class now refuses a runnable file that changes directory into a `.worktrees/<literal
+> name>` it does not itself create, counted apart as N5/N6 and armed by three plants (the pin, an
+> interpolated name, a self-created worktree). Planted on `planning/run-gate.sh`: **N4 stayed 0
+> while N6 went 0 → 1**, which is the measurement that says the arm is not redundant.
+>
+> **Not settled.** Neither gate can be *executed* on this Windows host — no zsh, no Swift, no
+> codex — so the derivation is proved and the run is not; the verdicts in `spec-R2.md` stand on
+> their macOS runs. And the brief's own preference for `run-gate.sh` was **delete**, not repair;
+> this repository repaired it, and that call is still the owner's.
 
 # Two executable gates `cd` into a worktree that was deleted, and one is cited by a spec
 

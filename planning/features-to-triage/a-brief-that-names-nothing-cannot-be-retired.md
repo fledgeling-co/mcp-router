@@ -1,5 +1,6 @@
 ---
 status: to-triage
+reckon-sources: [DEF-090]
 found-by: reckon 1.7.0, 2026-08-29
 ---
 
@@ -53,3 +54,36 @@ mistyped id is indistinguishable from a real finding about the product.
 - Assuming this is the lever `the-reckoning-cannot-see-a-merge` named and deferred — that brief proposed
   a terminal status as the stopgap and called the join rate the real fix. This is that half, not a
   re-filing of it.
+
+---
+
+**PARTLY CLOSED 2026-09-02 on `ai/wa4-registry-vocabulary`, and the part that is not closed is
+named rather than left as a silent gap.**
+
+**The specific brief is retired.** `G9-two-gates-pin-a-worktree-that-no-longer-exists.md` was the
+sole other `unbuilt` row, for an item merged at `5ed60f6` and verified in fresh context. It cited
+`DEF-253` and nothing else, and `DEF-253` is **egress's**, named there as prior art. It now carries
+`status: completed` and `registry-target: none` with its reason — the form 63 other briefs here
+already use. `shipped-by` is left off deliberately: the sha is true and is in the retirement note,
+but `shipped-brief-gate.py` witnesses a different commit off that LEDGER row through its own cell
+parser, and two typed claims that disagree is not evidence. `planning/registry-retirements.json` was read first and is not
+the right instrument: it declares id *renumberings* so a historical citation still resolves, and
+nothing was renumbered.
+
+**This brief is no longer unjoinable, which was its own subject arriving to it.** It cited only
+`DEF-253` too, so a brief about briefs that can never be retired could not itself be retired. It
+now cites `DEF-090`, filed on the same branch and genuinely corresponding: *only 41 of 219 briefs
+name anything the registry holds, so the reckoning withholds retirement across the board.* No
+citation was written to raise a number — `brief-target-gate.py`'s own docstring records a sibling
+project whose join went 6.2% to 100% while every gate stayed green.
+
+**STILL OPEN, and why this stays `to-triage`.** The join is **18.7%**, below the 50% floor at which
+`reckon` withholds retirement, and **78 briefs are `UNDECLARED`**. Each needs a person to read it
+and either name its targets or declare `registry-target: none` with a reason. That is decision work
+and it is deliberately not a bulk write. `DEF-090` carries it.
+
+**Also filed:** `DEF-085`, for a disagreement found while remapping — `defects.in.json` and
+`inventory.json` say different things about `DEF-002`, `DEF-040` and `DEF-063`, and only the second
+of the two is ever read.
+
+Evidence: `planning/evidence/wa4-registry-vocabulary.md`.

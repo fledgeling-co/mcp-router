@@ -1,0 +1,152 @@
+### 1. CLEAN, before any plant
+defect status vocabulary - the words reckon can partition, checked where they are written
+  read 3 file(s), 114 defect row(s)
+
+  HOW EACH WORD IN USE WILL BE COUNTED
+    closed                                      21  verified-done
+    fixed                                       13  verified-done
+    fixed · in-campaign                         23  verified-done
+    fixed · in-test                              6  verified-done
+    open                                        20  broken
+    open · detector                              5  broken
+    open · detector · upstream                   1  broken
+    open · fixed-upstream-awaiting-re-pull       1  broken
+    open · instrument                            1  broken
+    open · measured                             15  broken
+    open · measured · partially fixed            1  broken
+    open · mitigated-in-campaign                 2  broken
+    open · owner-decision                        3  broken
+    partially-fixed                              1  broken
+    superseded                                   1  waived
+
+  every status classifies. No row in the register is placed by this tool's default.
+exit: 0
+exit=0
+
+### 2. PLANT A: a newly minted word, in inventory.json (the file reckon reads)
+planted DEF-011 status -> mostly-sorted
+defect status vocabulary - the words reckon can partition, checked where they are written
+  read 3 file(s), 114 defect row(s)
+
+  HOW EACH WORD IN USE WILL BE COUNTED
+    closed                                      21  verified-done
+    fixed                                       13  verified-done
+    fixed · in-campaign                         23  verified-done
+    fixed · in-test                              6  verified-done
+    mostly-sorted                                1  NOT CLASSIFIED - fail-closed to broken
+    open                                        20  broken
+    open · detector                              5  broken
+    open · detector · upstream                   1  broken
+    open · fixed-upstream-awaiting-re-pull       1  broken
+    open · instrument                            1  broken
+    open · measured                             15  broken
+    open · measured · partially fixed            1  broken
+    open · mitigated-in-campaign                 2  broken
+    open · owner-decision                        3  broken
+    superseded                                   1  waived
+
+  1 row(s) carry a status the reckoning cannot partition:
+    planning/test-campaign/inventory.json  DEF-011  status 'mostly-sorted'
+        no branch of reckon's partition holds this word.
+
+  the words that classify, printed once rather than per row:
+    read as a lead, so a compound like `open - measured` reaches them:
+      answered / closed / confirmed / done / fixed / in progress / new / open / recorded / regressed / reopened / resolved / standing / verified
+    read as a whole status, so they must stand alone:
+      by design / by-design / cannot reproduce / cannot-reproduce / declined / deferred / duplicate / invalid / n/a / not a bug / not a defect / not-a-defect / obsolete / part-fixed / partially fixed / partially-fixed / superseded / vacuous / will not fix / won't fix / wontfix
+
+  A refused word is not a lost distinction. Both rows this gate was written for kept
+  theirs by moving it into `resolution`, which is a field a reader reads and the
+  classifier does not.
+
+exit: 1
+exit=1
+
+### 3. REVERT plant A
+parses; defect rows now 78
+['DEF-083', 'DEF-084', 'DEF-085']
+
+  every status classifies. No row in the register is placed by this tool's default.
+exit: 0
+exit=0
+
+### 4. PLANT B - the discriminating arm: a compound whose LEAD is a word reckon knows
+    (a gate that checked only the leading token would pass this; it is DEF-048's shape)
+planted DEF-048 status -> superseded (dot) by-DEF-055
+  1 row(s) carry a status the reckoning cannot partition:
+    planning/test-campaign/inventory.json  DEF-048  status 'superseded · by-DEF-055'
+        'superseded' is read as a whole status, not as a lead. Write it bare and put the
+        qualifier in `resolution`.
+
+exit=1
+
+### 5. REVERT plant B
+exit=0
+
+### 6. PLANT C - in defects.in.json, the hand-edited SOURCE that reckon does not read
+planted DEF-042 status -> parked
+    parked                                       1  NOT CLASSIFIED - fail-closed to broken
+    planning/test-campaign/defects.in.json  DEF-042  status 'parked'
+exit: 1
+exit=0
+
+### 7. REVERT plant C
+AssertionError: ('      "id": "DEF-011",\n      "title": "Cleanup\'s per-row actions are specified by the design and drawn by nothing",\n      "status": "partially-fixed · in-campaign",\n', 0)
+exit=1
+
+### 6b. PLANT C re-run, with the exit code taken from the gate rather than from a pipe.
+    Step 6 above read $? after a grep, which is this repository's own recorded
+    tail-pipe trap; the 'exit: 1' the gate printed was the verdict. Re-taken here.
+planted DEF-042 status -> parked
+    parked                                       1  NOT CLASSIFIED - fail-closed to broken
+    planning/test-campaign/defects.in.json  DEF-042  status 'parked'
+exit=1
+
+### 7b. REVERT plant C, shape re-applied
+16 reshaped back
+exit=0
+
+### 8. THE ORIGINAL TWO ROWS. The registry as main holds it today, gate run against it.
+warning: in the working copy of 'planning/test-campaign/defects.in.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'planning/test-campaign/inventory.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'planning/test-campaign/defects.in.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'planning/test-campaign/inventory.json', LF will be replaced by CRLF the next time Git touches it
+  18 row(s) carry a status the reckoning cannot partition:
+    planning/test-campaign/inventory.json  DEF-011  status 'partially-fixed · in-campaign'
+        'partially-fixed' is read as a whole status, not as a lead. Write it bare and put the
+  ... 18 rows in total; the 16 in defects.in.json are the pre-2026-08-27 spellings
+exit=1
+restored, exit=0
+
+### 9. selftest
+selftest - 12 case(s) over the classifier
+  ok   'fixed'                                want verified-done  got verified-done   the plainest legal word
+  ok   'open'                                 want broken         got broken          the plainest owing word
+  ok   'fixed · in-campaign'                  want verified-done  got verified-done   a compound whose lead is read as a lead
+  ok   'open · measured · partially fixed'    want broken         got broken          three parts, lead still read
+  ok   'blocked: no credential'               want REFUSED        got REFUSED         a colon-qualified word outside the partition
+  ok   'partially-fixed'                      want broken         got broken          the bare partial word
+  ok   'superseded'                           want waived         got waived          the bare not-owing word
+  ok   'partially-fixed · in-campaign'        want REFUSED        got REFUSED         DEF-011's word: a partial branch reads the WHOLE status, so the compound misses
+  ok   'superseded · by-DEF-055'              want REFUSED        got REFUSED         DEF-048's word: same shape through the not-owing branch
+  ok   'partly-done'                          want REFUSED        got REFUSED         a word nobody taught it
+  ok   ''                                     want REFUSED        got REFUSED         no status at all
+  ok   None                                   want REFUSED        got REFUSED         the field absent
+
+  the two compound cases are the arm that matters: a gate reading only the leading
+  token would pass both, and both are the rows this gate was written for.
+exit: 0
+exit=0
+
+### 10. agreement arm - this gate's vocabulary against reckon.py's own constants
+agreement arm - this gate's vocabulary against the reckon that would actually run
+  reading C:\Users\rhode\.claude\plugins\cache\fledgeling-plugins\reckon\1.9.4\skills\reckon\scripts\reckon.py
+  DEFECT_FIXED       agrees, 6 word(s)
+  DEFECT_OPEN        agrees, 8 word(s)
+  DEFECT_WAIVED      agrees, 8 word(s)
+  DEFECT_NOT_OWING   agrees, 10 word(s)
+  DEFECT_PARTIAL     agrees, 3 word(s)
+
+  no drift. This file mirrors the tool rather than competing with it.
+exit: 0
+exit=0

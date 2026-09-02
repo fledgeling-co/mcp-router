@@ -5455,5 +5455,66 @@
       "planning/test-campaign/bin/win-cases-from-lane.py"
     ],
     "note": "NOT a product measurement. Nothing here is observed on glass and this row must not be read as coverage of any surface -- `surface` is null on purpose, and `actuates` is empty because a case about the `actuates` vocabulary must not put a control in the numerator to say so. The commands the plants ran, which is what `actuates` is NOT for: `python planning/test-campaign/bin/control-census.py` and `python planning/test-campaign/bin/win-surface-reconcile.py`, from the worktree root. WHAT ARM (B) DOES NOT COVER: SURF-047 alone can be moved back under `controls` and the gate stays green, because its four members are not shaped like API calls. DEF-131 carries that floor, and this case is not evidence against it."
+  },
+  {
+    "id": "CASE-0460",
+    "req": null,
+    "surface": "SURF-029",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-029",
+      "state": "the CommandBar overflow shut, then opened through the automation plane, then shut again",
+      "viewport": "the probe's own window as MainWindow sizes itself",
+      "theme": "system",
+      "role": "anything driving this surface through UI Automation",
+      "dataShape": "the probe's static XAML; no data source",
+      "executionPlane": "WinSta0, session 1, scheduled there by scripts/windows/uia/run-overflow-lane.ps1"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": true,
+    "armedBy": "Ten plants against scripts/windows/uia/overflow-assert.py, each run beside a clean control that stayed at exit 0 with 25 passed and 0 failed. (A) `overflow.commands` emptied: exit 1, the manifest floor fires. This is the emptied-oracle hole arriving at a SECOND grader, and without it a trimmed manifest would grade everything correct. (B) `minimums.overflow` lowered to 0: exit 1, a floor below 1 is itself the finding. (C) `activationCost` flipped to `target-stays-back`: exit 1 on four checks. The two-way arm, and the one that keeps the measured cost from going stale. (D) 'Export log' renamed in the manifest: exit 1 on vocabulary. (E) THE ARM THAT MATTERS MOST, the effect dumps replaced with the baseline dumps so the actuation never happened: exit 1, both commands absent where the manifest expects them AND both activationCost checks flip. A lane that read any tree at all would have passed this. (F) the silence reading deleted: exit 3 NO VERDICT, not a pass. A run carrying only the effect has no reading that could have said no. (G) the expand receipt doctored to say the state never moved: exit 1. The writer's own account is graded rather than trusted. (H) a second, DIFFERENT control planted under `probe.command.exportLog`: exit 1, three elements disagreeing on name and bounding rectangle. (I) the baseline tree emptied: exit 3. The empty-tree hole, which would otherwise satisfy both absence assertions for free. (J) 'Export log' planted into the baseline: exit 1. The at-rest absence is asserted, not assumed. The lane itself was watched at exit 1 before it was ever watched at exit 0: its FIRST run, before any plant, failed six checks and two of them were real findings rather than harness faults. See `note`.",
+    "actuates": [],
+    "evidence": [
+      "scripts/windows/uia/run-overflow-lane.ps1",
+      "scripts/windows/uia/overflow-lane.ps1",
+      "scripts/windows/uia/overflow-actuate.ps1",
+      "scripts/windows/uia/overflow-assert.py",
+      "scripts/windows/uia/probe-expectation.json",
+      "planning/evidence/SURF-029/run/lane.json",
+      "planning/evidence/SURF-029/run/assert-report.json"
+    ],
+    "note": "SURF-029's two SecondaryCommands, 'Export log' and 'Reset router', were enumerated and unreached: a CommandBar does not realise its overflow items while the overflow is shut, so the at-rest lane could only record an absence with its reason, and planning/registry-drop-gate.py reported the surface as uncovered for exactly that. This case opens the overflow through ExpandCollapsePattern.Expand and reads both commands back with their names and ControlType.Button, between a BASELINE and a SILENCE that both find them absent from the control view AND the raw view. The writer is not the reader: overflow-actuate.ps1 expands in its own process and writes only the ExpandCollapseState it saw, while every element reading comes from uia-dump.ps1 started separately. TWO FINDINGS FROM THE FIRST RUN, neither planted, both corrected in the manifest rather than in the assertion. (1) probe-expectation.json predicted that opening the overflow would cost the never-activated guarantee, and IT WAS RIGHT: the probe held the foreground at none of the three baseline samples and at all six effect and silence samples, so Expand activates the window and Collapse does not hand the foreground back. That cost is now DECLARED as `overflow.activationCost` and compared both ways, so the day WinUI stops activating, this arm reddens rather than quietly acquiring a guarantee nobody re-checked. Baseline stays a hard assertion. (2) each command resolves to TWO tree paths with the overflow open, because WinUI publishes the OverflowPopup subtree once through a Microsoft.UI.Content.PopupWindowSiteBridge child and once in place beneath the ApplicationBar. Both copies agree on name, controlType, className, isEnabled, isOffscreen, accessKey, patterns and bounding rectangle, so it is one control on two routes; the assertion now permits several matches only while they agree on everything a caller would act on, and plant (H) watches that a genuinely different control under one id still fails. WHAT THIS DOES NOT BUY. It is not at-rest coverage and does not close DESIGN.md section 11 rule 9 for these two commands. The product fix is a surface that realises them without an actuation, and that is DEF-340. Neither command is INVOKED, so both stay outside the actuation census with a stated reason on SURF-029; this arm's subject is realisation and vocabulary, not effect. And the subject is WIN20's probe rather than the MCP Router Windows client: it measures WinUI 3's automation behaviour on this machine."
+  },
+  {
+    "id": "CASE-0461",
+    "req": null,
+    "surface": "SURF-001",
+    "flow": null,
+    "lane": "repo-gate",
+    "cell": {
+      "surface": "SURF-001",
+      "state": "the Mac shell's source as committed, and seven plants against it",
+      "viewport": "n/a",
+      "theme": "n/a",
+      "role": "whoever asks whether DEF-043's two elements are still missing",
+      "dataShape": "app/Sources/MCPRouterUI/Shell/ + app/Sources/MCPRouterKit/Shell/",
+      "executionPlane": "repository"
+    },
+    "oracle": "source-analysis",
+    "status": "pass",
+    "armed": true,
+    "armedBy": "Seven plants against planning/test-campaign/bin/sidebar-foot-arm.py, each beside a control that stayed at exit 0. (Q1) Text(address) removed from the foot's `.address` arm: exit 1, foot.drawn. (Q2) LoopbackAddress.hostPort replaced with a plain description: exit 1, foot.composed, and the message names which of the two sides stopped composing. (Q3) the label's Text() removed while the constant stays: exit 1. (Q4) the constant reverted to the unlabelled build's own wording `Running`: exit 1 - the two halves of the label check are separate for this reason, since a constant nobody draws and a drawn constant with the wrong words are different regressions with one symptom. (Q5) a literal `127.0.0.1:8879` planted inside a DISPLAY file: exit 1, the honesty arm. (Q6) a NEW undeclared literal planted OUTSIDE the display path, beside the one that is declared: exit 1 - this is the arm that stops the allowlist becoming a hole. (Q7) the foot source deleted: exit 2 NO VERDICT, not exit 1 and not exit 0, because a missing file measures nothing. The arm also reddened BEFORE any plant, on its own first run, and the redness was the arm's fault rather than the code's - see `note`.",
+    "actuates": [],
+    "evidence": [
+      "planning/test-campaign/bin/sidebar-foot-arm.py",
+      "app/Sources/MCPRouterUI/Shell/SidebarFoot.swift",
+      "app/Sources/MCPRouterUI/Shell/Readout.swift",
+      "app/Sources/MCPRouterKit/Shell/LoopbackReadout.swift",
+      "app/Sources/MCPRouterKit/Shell/SettingsPresentation.swift",
+      "planning/features-to-triage/M27-sidebar-foot-readout.md"
+    ],
+    "note": "SOURCE-ANALYSIS, AND THAT IS THE CEILING. This case reads Swift. It does not run the Mac app and does not photograph a board, and it cannot on this host: the shell is a SwiftPM target with no Windows build and `swift` is not on LUKESFF. A green means the code that draws DEF-043's two elements is present and composed the way DESIGN.md section 2 requires. It does NOT mean either element reached a screen, and it must not be read as closing DEF-043. M27 asked for on-glass coverage and that is still owed, on a Mac, through the campaign's own capture lane.\n\nWHAT IT ESTABLISHES. SidebarFoot renders the address on its `.address` case; the reading comes from LoopbackAddress.hostPort while the Settings endpoint row comes from LoopbackAddress.controlEndpoint, so the two cannot drift; no literal host:port appears in any of the four files that DISPLAY an address; and ReadoutCopy.childProcessesLabel is \"Child processes\" and Readout draws it - the string DEF-043 measured in 0 of 9 accessibility dumps.\n\nTHE FIRST RUN FAILED AND THE INSTRUMENT WAS THE ONE AT FAULT. The honesty arm originally refused a literal host:port anywhere in either shell tree and reported `ShellClientFactory.shippingEndpoint`. Every reference to that symbol was then read: it is consumed by Choice.live, LiveControlAPIClient, ControlEventStream and the Release guard, and reaches no view. It is a dialled endpoint, not a displayed one, and the honesty rule governs what a user is told. The scope was corrected rather than the finding suppressed, and the sweep was NOT narrowed: it still covers both trees, and a literal outside the display files fails unless its symbol is declared with a reason - which plant Q6 watches.\n\nPLATFORM. macOS, and DEF-043 never said so, which is what the row cost to establish. M27-sidebar-foot-readout.md reads `Category: mac`, the evidence is nine accessibility dumps at 1156x680 against the Mac design of record, and the sidebar-foot specification is in DESIGN.md section 2 rather than in the Windows floor. The Windows shell's NavigationView declares no pane footer content at all and the Windows floor's own owed list names no sidebar foot, so the absence there is not a defect - Windows was never promised it. This case asserts nothing about Windows, because a check demanding Windows never grow a sidebar foot would redden on somebody adding a good thing."
   }
 ]

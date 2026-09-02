@@ -1,0 +1,8 @@
+﻿{
+    "schema":  "surf029.overflow-lane/1",
+    "exitCode":  0,
+    "verdict":  "pass",
+    "why":  "pass: both SecondaryCommands are absent with the overflow shut, present with their on-screen names and ControlType when it is opened from the automation plane, and absent again when it is shut. The probe held the foreground at none of the BASELINE samples, and at every EFFECT and SILENCE sample - which is the declared activationCost, not a clean never-activated run. Opening the overflow activates the window; the at-rest lane is where that guarantee still lives.",
+    "sessionId":  1,
+    "finishedAt":  "2026-09-02T17:23:47.5350296Z"
+}

@@ -209,6 +209,8 @@ def run(paths=None):
         return 2
 
     print()
+    cross = cross_file(paths)
+
     if findings:
         print("  %d row(s) carry a status the reckoning cannot partition:" % len(findings))
         for rel, rid, status, lead in findings:
@@ -238,14 +240,128 @@ def run(paths=None):
         print("  theirs by moving it into `resolution`, which is a field a reader reads and the")
         print("  classifier does not.")
         print()
+        report_cross_file(cross)
+        print()
         print("exit: 1")
         return 1
 
     print("  every status classifies. No row in the register is placed by this tool's default.")
     print()
+    if report_cross_file(cross):
+        print()
+        print("exit: 1  (every status classifies; the registers do not agree about what they say)")
+        return 1
+    print()
     blind_spots()
     print("exit: 0")
     return 0
+
+
+READ_BY_RECKON = "inventory.json"
+
+
+def cross_file(paths):
+    """Two files that both classify may still disagree about the same defect. Now they cannot.
+
+    THE DEFECT THIS ARM IS FOR — DEF-091, and it was written as a limit on this gate's own clean
+    run before it was written as a check. `reckon.read_campaign` reads defects from
+    `inventory.json` and from nowhere else, so every other `defects*.json` is a hand-edited source
+    that no reckoning opens. Three of `defects.in.json`'s 24 rows said something different from
+    the file that is read, and nothing compared them: a reader who opened the source got a
+    different answer about DEF-002, DEF-040 and DEF-063 than the ledger gave.
+
+    ADJUDICATED 2026-09-02 by reading each defect rather than by preferring a file, and two of the
+    three were not what the finding said they were:
+
+      · DEF-002 and DEF-040 were genuine status disagreements, and `inventory.json` was right on
+        both. Its DEF-002 row carries a dated closure naming the two branches that landed it and
+        `parity-gate.sh` at e5755d0 reading 82 of 83, which CASE-0036 passes on; its DEF-040 row
+        carries a corrected cause and the fix, and `campaign.json` does carry the
+        `blindVocabulary` that fix installed. `defects.in.json` held the pre-closure text of each.
+      · DEF-063 WAS NOT A STATUS DISAGREEMENT AT ALL. It was an ID COLLISION: `inventory.json`'s
+        DEF-063 is a stdio child that starts and exits unnoticed, and `defects.in.json`'s DEF-063
+        was an entirely different K3 measurement about the Discover board's two scoping controls.
+        Comparing statuses reported one difference and hid the other, which is why this arm
+        compares TITLE as well and reports the two separately.
+
+    And the arm found what the finding had missed entirely: `DEF-064` and `DEF-065`, two more K3
+    measurements from 2026-08-29, existed in the source file and had NEVER reached the file the
+    reckoning reads. Three defects, measured and written down, that no ledger has ever counted.
+    That is the same shape `registry-drop-gate.py` exists for, one file upstream, so the second
+    half of this arm is a presence check rather than a comparison.
+
+    Both halves are exit 1. A source row that disagrees with the read file is a reader being given
+    a different answer depending on which file they open; a source row missing from the read file
+    is a defect nobody will ever be told about.
+    """
+    read_path = next((p for p in paths if p.name == READ_BY_RECKON), None)
+    if read_path is None:
+        print("  NOT COMPARED — %s is not among the files read, so there is no authority to "
+              "compare the sources against" % READ_BY_RECKON)
+        return None
+
+    authority = {}
+    for row in read(read_path) or []:
+        if isinstance(row, dict) and "id" in row:
+            authority[row["id"]] = row
+
+    disagreements, absences, compared = [], [], 0
+    for path in paths:
+        if path == read_path:
+            continue
+        for row in read(path) or []:
+            if not isinstance(row, dict) or "id" not in row:
+                continue
+            rel = str(path.relative_to(ROOT)).replace("\\", "/")
+            other = authority.get(row["id"])
+            if other is None:
+                absences.append((rel, row["id"], row.get("title")))
+                continue
+            compared += 1
+            fields = [f for f in ("status", "title")
+                      if (other.get(f) or "") != (row.get(f) or "")]
+            if fields:
+                disagreements.append((rel, row["id"], fields,
+                                      row.get("status"), other.get("status"),
+                                      "title" in fields))
+    return compared, disagreements, absences
+
+
+def report_cross_file(result):
+    """Print one cross-file result. Returns True when it found something."""
+    if result is None:
+        return False
+    compared, disagreements, absences = result
+    print("  cross-file: %d source row(s) compared against %s" % (compared, READ_BY_RECKON))
+
+    if not disagreements and not absences:
+        return False
+
+    if disagreements:
+        print()
+        print("  %d source row(s) say something different from the file the reckoning reads:"
+              % len(disagreements))
+        for rel, rid, fields, mine, theirs, title_too in disagreements:
+            print("    %s  %s  disagrees on %s" % (rel, rid, ", ".join(fields)))
+            print("        source says %r, %s says %r" % (mine, READ_BY_RECKON, theirs))
+            if title_too:
+                print("        THE TITLES ALSO DIFFER, so this is very likely two different")
+                print("        defects sharing one id rather than one defect with two verdicts.")
+                print("        Give the source's row a free id in BOTH inventory.json and")
+                print("        defects-windows.json, and carry it into the file that is read.")
+            else:
+                print("        Read the defect and decide which is right, then make them agree.")
+                print("        Preferring a file is not an adjudication.")
+
+    if absences:
+        print()
+        print("  %d source row(s) are absent from %s, so no reckoning has ever counted them:"
+              % (len(absences), READ_BY_RECKON))
+        for rel, rid, title in absences:
+            print("    %s  %s  %s" % (rel, rid, (title or "")[:90]))
+        print("        A defect measured, written down, and never carried into the file the tool")
+        print("        opens is a defect that does not exist as far as any ledger is concerned.")
+    return True
 
 
 def blind_spots():
@@ -260,8 +376,11 @@ def blind_spots():
     print("      reckon's defect branch when its version moves. (Held across 1.9.3 and 1.9.4.)")
     print("    * A status that classifies is not a status that is TRUE. `fixed` on a defect nobody")
     print("      re-measured passes here and is reckon's FIX_UNMEASURED_QUALIFIERS problem.")
-    print("    * Two registry files that both classify may still disagree with each other. They do")
-    print("      today, on DEF-002, DEF-040 and DEF-063 - filed as DEF-091, not caught by this.")
+    print("    * The cross-file arm compares `status`, `title` and presence. Two files agreeing on")
+    print("      all three can still hold different TEXT for the same defect, and this says")
+    print("      nothing about that - a source row whose narrative is a wave behind the read")
+    print("      file's passes here. DEF-002 and DEF-040 were carried across in full for that")
+    print("      reason rather than having their one field patched.")
     print("    * Case statuses are a different vocabulary with a different partition, and are not")
     print("      read here at all.")
 

@@ -4,5 +4,5 @@
     "verdict":  "pass",
     "why":  "pass: the tree was read out of process, the target never held the foreground, and every assertion that could run, passed.",
     "sessionId":  1,
-    "finishedAt":  "2026-09-01T21:41:09.2776904Z"
+    "finishedAt":  "2026-09-02T16:54:04.1671780Z"
 }

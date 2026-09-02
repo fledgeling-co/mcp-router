@@ -1,0 +1,73 @@
+
+  13 case(s) actuating a control their surface never declared — the registry and the case disagree about what the surface carries:
+    · CASE-0308 actuates 2 control(s) on no surface, which declares none
+    · CASE-0339 actuates 2 control(s) on no surface, which declares none
+    · CASE-0341 actuates 4 control(s) on no surface, which declares none
+    · CASE-0325 actuates Skills — not among SURF-033's declared controls
+    · CASE-0326 actuates Servers — not among SURF-031's declared controls
+    · CASE-0327 actuates Activity — not among SURF-032's declared controls
+    · CASE-0328 actuates Harnesses — not among SURF-039's declared controls
+    · CASE-0329 actuates Checks — not among SURF-035's declared controls
+    · CASE-0330 actuates Cleanup — not among SURF-036's declared controls
+    · CASE-0331 actuates Inbox — not among SURF-037's declared controls
+    · CASE-0332 actuates Insights — not among SURF-040's declared controls
+    · CASE-0333 actuates Settings — not among SURF-038's declared controls
+    · CASE-0334 actuates NavigationView pane — not among SURF-030's declared controls
+Cases:      37 of 175 case(s) name a control they actuate; 138 name none and cannot move any number below
+Controls:   38 of 180 declared control(s) actuated by a passing effect-rung case, across 29 surface(s) that declare any
+            86 of the 180 are message-only — the design's whole promised effect is a sheet, a panel or a notification appearing.
+            Of the 142 not actuated, 81 are message-only and 61 promise a state change nothing has driven.
+Disposition: 38 actuated · 81 message-only · 19 with a stated reason · 42 UNDISPOSED — nobody has said anything about these.
+
+  SURF-001   8 of 20 actuated · 12 message-only · fully disposed   Mac shell — sidebar, title, menus
+        actuated: Activity; Checks; Cleanup; Discover; Inbox; Servers; Settings; Skills
+  SURF-002   9 of 23 actuated · 11 message-only · fully disposed   Mac Servers board
+        actuated: Accept the new text; All; Idle; Keep warm; Needs you; Only load in named projects; Remove; Reset; Running
+        stated reason: Context menu → Keep warm; Context menu → Only load in named projects…; Keep serving the old text
+  SURF-003   3 of  3 actuated · 2 message-only · fully disposed   Mac Activity board
+        actuated: Cancel; Reset history; Reset history…
+  SURF-004   2 of 21 actuated · 15 message-only · fully disposed   Mac Skills board
+        actuated: All; Held
+        stated reason: Keep the installed version; Never run; Promote the held update; Reveal repo in Finder
+  SURF-005   1 of  9 actuated · 3 message-only · fully disposed   Mac Discover board
+        actuated: Install
+        stated reason: 24h; 30d; 7d; Servers; Skills
+  SURF-006   4 of  5 actuated · 1 message-only · fully disposed   Mac Checks board
+        actuated: All; Not met; Not observed; Unstamped
+  SURF-007   1 of  9 actuated · 6 message-only · 3 undisposed   Mac Cleanup board
+        actuated: Read first…
+  SURF-008   2 of  6 actuated · 4 message-only · fully disposed   Mac Inbox board and review sheet
+        actuated: Decline; Install
+  SURF-009   0 of  7 actuated · 6 message-only · fully disposed   Mac menu-bar popover and inbox band
+        stated reason: Quit
+  SURF-010   0 of  2 actuated · 1 message-only · fully disposed   Mac Pairing sheet
+        stated reason: Can't scan? Type a code
+  SURF-011   0 of 10 actuated · 7 message-only · fully disposed   Mac Settings board
+        stated reason: Can't scan? Type a code; Reset history; Unpair
+  SURF-025   1 of 11 actuated · 9 message-only · fully disposed   Mac Harnesses board
+        actuated: Rescan
+        stated reason: Scan again
+  SURF-026   4 of  7 actuated · 2 message-only · fully disposed   Mac Insights board
+        actuated: Analyse now; Analyst cadence; Analyst model; Second-opinion model
+        stated reason: Insights window
+  SURF-028   2 of  8 actuated · 7 message-only · 1 undisposed   Mac capability document panel — three tabs over one package
+        actuated: Capabilities; Changelog
+  SURF-029   0 of  2 actuated · 0 message-only · 2 undisposed   Windows automation probe — WIN20's WinUI 3 plane witness
+  SURF-030   0 of  4 actuated · 0 message-only · 4 undisposed   Windows shell — NavigationView, caption band, title, menus
+  SURF-031   0 of  6 actuated · 0 message-only · 6 undisposed   Windows Servers board and the Signal Path
+  SURF-032   0 of  4 actuated · 0 message-only · 4 undisposed   Windows Activity board — the live call log
+  SURF-033   0 of  1 actuated · 0 message-only · 1 undisposed   Windows Skills board
+  SURF-034   1 of  1 actuated · 0 message-only · fully disposed   Windows Discover board
+        actuated: Discover
+  SURF-035   0 of  2 actuated · 0 message-only · 2 undisposed   Windows Checks board
+  SURF-036   0 of  3 actuated · 0 message-only · 3 undisposed   Windows Cleanup board
+  SURF-037   0 of  4 actuated · 0 message-only · 4 undisposed   Windows Inbox board and review sheet
+  SURF-038   0 of  1 actuated · 0 message-only · 1 undisposed   Windows Settings board
+  SURF-039   0 of  1 actuated · 0 message-only · 1 undisposed   Windows Harnesses board
+  SURF-040   0 of  1 actuated · 0 message-only · 1 undisposed   Windows Insights board
+  SURF-041   0 of  3 actuated · 0 message-only · 3 undisposed   Windows ambient surface — notification-area flyout
+  SURF-042   0 of  1 actuated · 0 message-only · 1 undisposed   Windows pairing dialog
+  SURF-043   0 of  5 actuated · 0 message-only · 5 undisposed   Windows capability document panel — three tabs over one package
+
+  17 surface(s) declare controls that no passing effect-rung case actuates: SURF-009, SURF-010, SURF-011, SURF-029, SURF-030, SURF-031, SURF-032, SURF-033, SURF-035, SURF-036, SURF-037, SURF-038, SURF-039, SURF-040, SURF-041, SURF-042, SURF-043
+  Reported, not blocked. The denominator is the finding; a gate that lands permanently red gets switched off.

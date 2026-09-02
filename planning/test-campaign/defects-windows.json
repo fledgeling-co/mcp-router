@@ -157,5 +157,17 @@
     "class": "unbuilt",
     "why-it-matters": "`winget install Fledgeling.MCPRouter` cannot work, and the manifest validates, so nothing in the toolchain says so. The placeholder is deliberate for exactly that reason - a plausible URL would make this a manifest that looks shipped. What it costs is that the Winget member of DistributionChannel is a contract with a builder behind it and no publisher, which is a smaller gap than DEF-073's and still a gap.",
     "next": "Publishing is an outward-facing action nobody has authorised: it needs a code-signing certificate this repository does not hold, a release artifact hosted somewhere, and a pull request into a third-party repository. Route it to the owner rather than closing it here. When it is done, the placeholder assertion in the witness inverts into a resolving-URL check and the two hashes become real."
+  },
+  {
+    "id": "DEF-084",
+    "title": "The shell's NavigationView pane carries no AutomationProperties.Name",
+    "lane": "windows-glass",
+    "severity": "minor",
+    "status": "open",
+    "found": "2026-09-02, by win-surface-reconcile.py R4 while grounding SURF-030's control list",
+    "evidence": "app/windows/MCPRouter.Shell/Shell/ShellWindow.xaml:91 declares the <muxc:NavigationView> with x:Name=\"Nav\" and no AutomationProperties.Name. The ten items INSIDE it are named - ShellWindow.xaml.cs:267 sets each NavigationViewItem's AutomationProperties.Name from DestinationCatalog, and :293 names the pane-footer Settings item - so the omission is the container's alone.",
+    "class": "measured-and-broken",
+    "why-it-matters": "From the automation plane, and from a screen reader, the pane itself has no name: it is addressable by AutomationId and by control type and by nothing a person would say out loud. It surfaced from the census end rather than from an accessibility sweep - CASE-0334 recorded actuating a control the campaign called \"NavigationView pane\", a phrase that appears in no source file, because there was no real name to use. A synthesised label in the registry is what a missing accessible name looks like from inside the denominator.",
+    "resolution": "Not settled. The registry half is done: the control is declared as `Nav`, its x:Name, so its provenance can be checked against ShellWindow.xaml, and win-surface-reconcile.py R4 now refuses any control that appears in no named source. The PRODUCT half is untouched - nobody has added an AutomationProperties.Name to the NavigationView, and this row stays open until somebody does. It is filed rather than fixed here because wa3's scope is the denominator and adding an accessible name is a change to the shell."
   }
 ]

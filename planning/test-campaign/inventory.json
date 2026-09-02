@@ -702,6 +702,28 @@
       "class": "unbuilt",
       "why-it-matters": "`winget install Fledgeling.MCPRouter` cannot work, and the manifest validates, so nothing in the toolchain says so. The placeholder is deliberate for exactly that reason - a plausible URL would make this a manifest that looks shipped. What it costs is that the Winget member of DistributionChannel is a contract with a builder behind it and no publisher, which is a smaller gap than DEF-073's and still a gap.",
       "next": "Publishing is an outward-facing action nobody has authorised: it needs a code-signing certificate this repository does not hold, a release artifact hosted somewhere, and a pull request into a third-party repository. Route it to the owner rather than closing it here. When it is done, the placeholder assertion in the witness inverts into a resolving-URL check and the two hashes become real."
+    },
+    {
+      "id": "DEF-080",
+      "surface": "SURF-045",
+      "severity": "minor",
+      "status": "open",
+      "title": "`actuates` names both a button somebody pressed and an operation a lane called",
+      "detail": "SURF-045, SURF-046 and SURF-047 declare `controls` that nobody can press - LogonTaskSupervisor.Register, MakeAppx pack, Add-AppxPackage. The census has one word for the thing a case drives, so those eight operations are counted in the same denominator as the Mac Servers board's buttons, and the actuated ratio therefore overstates how much GLASS has been driven by however many of the numerator are operations. The alternative was leaving three shipped surfaces unenumerated so that the count stayed pure, which is the failure the campaign exists to catch, so the surfaces were enumerated and this was written down instead.",
+      "resolution": "Not settled. The fix is a second axis on a control - pressable versus invoked - or a separate census for non-glass planes, and either is a change to the shape the registry and control-census.py share rather than a row edit. Filed 2026-09-02 by wa3 so the overstatement is quotable rather than latent."
+    },
+    {
+      "id": "DEF-084",
+      "surface": "SURF-030",
+      "title": "The shell's NavigationView pane carries no AutomationProperties.Name",
+      "lane": "windows-glass",
+      "severity": "minor",
+      "status": "open",
+      "found": "2026-09-02, by win-surface-reconcile.py R4 while grounding SURF-030's control list",
+      "evidence": "app/windows/MCPRouter.Shell/Shell/ShellWindow.xaml:91 declares the <muxc:NavigationView> with x:Name=\"Nav\" and no AutomationProperties.Name. The ten items INSIDE it are named - ShellWindow.xaml.cs:267 sets each NavigationViewItem's AutomationProperties.Name from DestinationCatalog, and :293 names the pane-footer Settings item - so the omission is the container's alone.",
+      "class": "measured-and-broken",
+      "why-it-matters": "From the automation plane, and from a screen reader, the pane itself has no name: it is addressable by AutomationId and by control type and by nothing a person would say out loud. It surfaced from the census end rather than from an accessibility sweep - CASE-0334 recorded actuating a control the campaign called \"NavigationView pane\", a phrase that appears in no source file, because there was no real name to use. A synthesised label in the registry is what a missing accessible name looks like from inside the denominator.",
+      "resolution": "Not settled. The registry half is done: the control is declared as `Nav`, its x:Name, so its provenance can be checked against ShellWindow.xaml, and win-surface-reconcile.py R4 now refuses any control that appears in no named source. The PRODUCT half is untouched - nobody has added an AutomationProperties.Name to the NavigationView, and this row stays open until somebody does. It is filed rather than fixed here because wa3's scope is the denominator and adding an accessible name is a change to the shell."
     }
   ],
   "flow": [
@@ -1824,7 +1846,9 @@
         "Export log",
         "Reset router"
       ],
-      "note": "WIN20's own probe window, not the product. Kept as a surface because it is what proves the automation plane works at all, and because its two SecondaryCommands are the recorded unoracled pair: a CommandBar's overflow items are not realised while the overflow is closed, so they exist on neither the control view nor the raw view."
+      "note": "WIN20's own probe window, not the product. Kept as a surface because it is what proves the automation plane works at all, and because its two SecondaryCommands are the recorded unoracled pair: a CommandBar's overflow items are not realised while the overflow is closed, so they exist on neither the control view nor the raw view.",
+      "controlsSource": "app/windows/AutomationProbe/MainWindow.xaml - the probe's two CommandBar SecondaryCommands, read as literals from its XAML. The probe is WIN20's own witness rather than the product, so its design of record is its source and there is no mock to compare against.",
+      "controlsSourceNote": "The list is a FLOOR, not a census. Only names written as literals in the XAML are here; anything built in a DataTemplate or in code-behind is invisible to a static read, so a board with per-row affordances declares fewer controls than it draws. The UIA control-view dump on the windows-glass lane is what would settle the true count, and until a case reads one per board the denominator here is a lower bound and is quoted as such."
     },
     {
       "id": "SURF-030",
@@ -1833,12 +1857,31 @@
       "lane": "windows-glass",
       "status": "ready",
       "controls": [
+        "Activity",
+        "Checks",
+        "Cleanup",
+        "Discover",
         "File",
-        "View",
+        "Harnesses",
+        "Help",
+        "Inbox",
+        "Insights",
         "Library",
-        "Help"
+        "Nav",
+        "Servers",
+        "Settings",
+        "Skills",
+        "View"
       ],
-      "note": "WIN3. The shell is ONE surface and its ten destinations are ten more, per the destination-collapse rule. Navigation was verified honest 2026-09-02: DestinationCatalog declares 10 destinations and ShellWindow.SelectDestination maps 10 distinct board types, with BoardPlaceholder reachable only as the unknown-id fallback."
+      "note": "WIN3. The shell is ONE surface and its ten destinations are ten more, per the destination-collapse rule. Navigation was verified honest 2026-09-02: DestinationCatalog declares 10 destinations and ShellWindow.SelectDestination maps 10 distinct board types, with BoardPlaceholder reachable only as the unknown-id fallback. Controls declared 2026-09-02 by wa3: the row carried the four MenuBar titles and nothing else, so the ten cases that press a pane item (CASE-0324..0333) actuated a control no surface declared and control-census.py refused all ten as strays. The pane items are the shell's controls and the boards they open are ten other surfaces, which is why those cases carry `actuatesSurface: SURF-030` while staying filed against the board each one proves. The pane control is declared as `Nav`, its x:Name in ShellWindow.xaml, and not as the phrase \"NavigationView pane\" the case generator used to emit: that phrase appeared in no source file, so the row's provenance could not be checked against anything. Recorded while renaming it: the NavigationView carries NO AutomationProperties.Name of its own, unlike the ten items inside it, so from the automation plane the pane itself is addressable by AutomationId alone.",
+      "controlsMessageOnly": [
+        "File",
+        "Help",
+        "Library",
+        "View"
+      ],
+      "controlsSource": "app/windows/MCPRouter.Shell.Model/DestinationCatalog.cs `All` - the ten destination Labels, which app/windows/MCPRouter.Shell/Shell/ShellWindow.xaml.cs:267 sets as each NavigationViewItem's AutomationProperties.Name and :293 sets on the pane-footer Settings item; app/windows/MCPRouter.Shell.Model/CommandCatalog.cs `Menus` for the four MenuBar titles; app/windows/MCPRouter.Shell/Shell/ShellWindow.xaml for the pane toggle.",
+      "controlsSourceNote": "Read out of the shell's own source rather than off a UIA dump of a running build, for the reason G28 gave for the Mac boards: a list harvested from the build cannot contain a control the build failed to draw. DestinationCatalog is the right source specifically because it is the compiler-checked one - ShellWindow builds the pane by iterating it, so a destination cannot reach the pane without appearing there."
     },
     {
       "id": "SURF-031",
@@ -1855,7 +1898,9 @@
         "Start the router",
         "Try again"
       ],
-      "note": "WIN4. The default destination."
+      "note": "WIN4. The default destination.",
+      "controlsSource": "app/windows/MCPRouter.Shell/Views/ServersBoard.xaml - the literal control names declared in the board's own XAML (Content, Header, Text and AutomationProperties.Name attributes). Read out of the source rather than off a UIA dump of a running build: a list harvested from the build cannot contain a control the build failed to draw.",
+      "controlsSourceNote": "The list is a FLOOR, not a census. Only names written as literals in the XAML are here; anything built in a DataTemplate or in code-behind is invisible to a static read, so a board with per-row affordances declares fewer controls than it draws. The UIA control-view dump on the windows-glass lane is what would settle the true count, and until a case reads one per board the denominator here is a lower bound and is quoted as such."
     },
     {
       "id": "SURF-032",
@@ -1869,7 +1914,9 @@
         "Calls",
         "Filters",
         "Harness tallies"
-      ]
+      ],
+      "controlsSource": "app/windows/MCPRouter.Shell/Views/ActivityBoard.xaml - the literal control names declared in the board's own XAML (Content, Header, Text and AutomationProperties.Name attributes). Read out of the source rather than off a UIA dump of a running build: a list harvested from the build cannot contain a control the build failed to draw.",
+      "controlsSourceNote": "The list is a FLOOR, not a census. Only names written as literals in the XAML are here; anything built in a DataTemplate or in code-behind is invisible to a static read, so a board with per-row affordances declares fewer controls than it draws. The UIA control-view dump on the windows-glass lane is what would settle the true count, and until a case reads one per board the denominator here is a lower bound and is quoted as such."
     },
     {
       "id": "SURF-033",
@@ -1881,7 +1928,9 @@
       "controls": [
         "Skills summary"
       ],
-      "note": "WIN6. One literal control name in XAML; the rest are built in DataTemplates and code-behind, so the declared list is a floor and the UIA tree is the census."
+      "note": "WIN6. One literal control name in XAML; the rest are built in DataTemplates and code-behind, so the declared list is a floor and the UIA tree is the census.",
+      "controlsSource": "app/windows/MCPRouter.Shell/Views/SkillsBoard.xaml - the literal control names declared in the board's own XAML (Content, Header, Text and AutomationProperties.Name attributes). Read out of the source rather than off a UIA dump of a running build: a list harvested from the build cannot contain a control the build failed to draw.",
+      "controlsSourceNote": "The list is a FLOOR, not a census. Only names written as literals in the XAML are here; anything built in a DataTemplate or in code-behind is invisible to a static read, so a board with per-row affordances declares fewer controls than it draws. The UIA control-view dump on the windows-glass lane is what would settle the true count, and until a case reads one per board the denominator here is a lower bound and is quoted as such."
     },
     {
       "id": "SURF-034",
@@ -1893,7 +1942,9 @@
       "controls": [
         "Discover"
       ],
-      "note": "WIN7."
+      "note": "WIN7.",
+      "controlsSource": "app/windows/MCPRouter.Shell/Views/DiscoverBoard.xaml - the literal control names declared in the board's own XAML (Content, Header, Text and AutomationProperties.Name attributes). Read out of the source rather than off a UIA dump of a running build: a list harvested from the build cannot contain a control the build failed to draw.",
+      "controlsSourceNote": "The list is a FLOOR, not a census. Only names written as literals in the XAML are here; anything built in a DataTemplate or in code-behind is invisible to a static read, so a board with per-row affordances declares fewer controls than it draws. The UIA control-view dump on the windows-glass lane is what would settle the true count, and until a case reads one per board the denominator here is a lower bound and is quoted as such."
     },
     {
       "id": "SURF-035",
@@ -1906,7 +1957,9 @@
         "Loading",
         "Nothing to check yet"
       ],
-      "note": "WIN8. Both declared names are STATES rather than controls; the board's real affordances are per-row and templated. Recorded as-is so the gap is visible rather than papered over."
+      "note": "WIN8. Both declared names are STATES rather than controls; the board's real affordances are per-row and templated. Recorded as-is so the gap is visible rather than papered over.",
+      "controlsSource": "app/windows/MCPRouter.Shell/Views/ChecksBoard.xaml - the literal control names declared in the board's own XAML (Content, Header, Text and AutomationProperties.Name attributes). Read out of the source rather than off a UIA dump of a running build: a list harvested from the build cannot contain a control the build failed to draw.",
+      "controlsSourceNote": "The list is a FLOOR, not a census. Only names written as literals in the XAML are here; anything built in a DataTemplate or in code-behind is invisible to a static read, so a board with per-row affordances declares fewer controls than it draws. The UIA control-view dump on the windows-glass lane is what would settle the true count, and until a case reads one per board the denominator here is a lower bound and is quoted as such."
     },
     {
       "id": "SURF-036",
@@ -1920,7 +1973,9 @@
         "Remove selected…",
         "Unused for 30 days"
       ],
-      "note": "WIN9. `Remove selected…` is a destructive control — any sweep touching this board runs under the write firewall, never against a live config."
+      "note": "WIN9. `Remove selected…` is a destructive control — any sweep touching this board runs under the write firewall, never against a live config.",
+      "controlsSource": "app/windows/MCPRouter.Shell/Views/CleanupBoard.xaml - the literal control names declared in the board's own XAML (Content, Header, Text and AutomationProperties.Name attributes). Read out of the source rather than off a UIA dump of a running build: a list harvested from the build cannot contain a control the build failed to draw.",
+      "controlsSourceNote": "The list is a FLOOR, not a census. Only names written as literals in the XAML are here; anything built in a DataTemplate or in code-behind is invisible to a static read, so a board with per-row affordances declares fewer controls than it draws. The UIA control-view dump on the windows-glass lane is what would settle the true count, and until a case reads one per board the denominator here is a lower bound and is quoted as such."
     },
     {
       "id": "SURF-037",
@@ -1935,7 +1990,9 @@
         "Not for me · 0",
         "Pair iPhone…"
       ],
-      "note": "WIN10. The three tab labels carry counts, so their accessible names move with the data — a case matching them exactly will be brittle by construction and must match on role plus prefix."
+      "note": "WIN10. The three tab labels carry counts, so their accessible names move with the data — a case matching them exactly will be brittle by construction and must match on role plus prefix.",
+      "controlsSource": "app/windows/MCPRouter.Shell/Views/InboxBoard.xaml - the literal control names declared in the board's own XAML (Content, Header, Text and AutomationProperties.Name attributes). Read out of the source rather than off a UIA dump of a running build: a list harvested from the build cannot contain a control the build failed to draw.",
+      "controlsSourceNote": "The list is a FLOOR, not a census. Only names written as literals in the XAML are here; anything built in a DataTemplate or in code-behind is invisible to a static read, so a board with per-row affordances declares fewer controls than it draws. The UIA control-view dump on the windows-glass lane is what would settle the true count, and until a case reads one per board the denominator here is a lower bound and is quoted as such."
     },
     {
       "id": "SURF-038",
@@ -1947,7 +2004,9 @@
       "controls": [
         "Copy"
       ],
-      "note": "WIN13 claims 7 sections and Fluent ToggleSwitch controls; the XAML declares exactly ONE literal control name. Either the toggles carry no AutomationProperties.Name — which is an accessibility defect and makes them unaddressable from the automation plane — or there are fewer than claimed. The UIA dump settles which, and this note stays until it does."
+      "note": "WIN13 claims 7 sections and Fluent ToggleSwitch controls; the XAML declares exactly ONE literal control name. Either the toggles carry no AutomationProperties.Name — which is an accessibility defect and makes them unaddressable from the automation plane — or there are fewer than claimed. The UIA dump settles which, and this note stays until it does.",
+      "controlsSource": "app/windows/MCPRouter.Shell/Views/SettingsBoard.xaml - the literal control names declared in the board's own XAML (Content, Header, Text and AutomationProperties.Name attributes). Read out of the source rather than off a UIA dump of a running build: a list harvested from the build cannot contain a control the build failed to draw.",
+      "controlsSourceNote": "The list is a FLOOR, not a census. Only names written as literals in the XAML are here; anything built in a DataTemplate or in code-behind is invisible to a static read, so a board with per-row affordances declares fewer controls than it draws. The UIA control-view dump on the windows-glass lane is what would settle the true count, and until a case reads one per board the denominator here is a lower bound and is quoted as such."
     },
     {
       "id": "SURF-039",
@@ -1959,7 +2018,9 @@
       "controls": [
         "Rescan all"
       ],
-      "note": "WIN14."
+      "note": "WIN14.",
+      "controlsSource": "app/windows/MCPRouter.Shell/Views/HarnessesBoard.xaml - the literal control names declared in the board's own XAML (Content, Header, Text and AutomationProperties.Name attributes). Read out of the source rather than off a UIA dump of a running build: a list harvested from the build cannot contain a control the build failed to draw.",
+      "controlsSourceNote": "The list is a FLOOR, not a census. Only names written as literals in the XAML are here; anything built in a DataTemplate or in code-behind is invisible to a static read, so a board with per-row affordances declares fewer controls than it draws. The UIA control-view dump on the windows-glass lane is what would settle the true count, and until a case reads one per board the denominator here is a lower bound and is quoted as such."
     },
     {
       "id": "SURF-040",
@@ -1971,7 +2032,9 @@
       "controls": [
         "Last 7 days"
       ],
-      "note": "WIN15."
+      "note": "WIN15.",
+      "controlsSource": "app/windows/MCPRouter.Shell/Views/InsightsBoard.xaml - the literal control names declared in the board's own XAML (Content, Header, Text and AutomationProperties.Name attributes). Read out of the source rather than off a UIA dump of a running build: a list harvested from the build cannot contain a control the build failed to draw.",
+      "controlsSourceNote": "The list is a FLOOR, not a census. Only names written as literals in the XAML are here; anything built in a DataTemplate or in code-behind is invisible to a static read, so a board with per-row affordances declares fewer controls than it draws. The UIA control-view dump on the windows-glass lane is what would settle the true count, and until a case reads one per board the denominator here is a lower bound and is quoted as such."
     },
     {
       "id": "SURF-041",
@@ -1984,7 +2047,9 @@
         "Review Inbox (0)",
         "View Servers"
       ],
-      "note": "WIN11. Not a destination and not addressable by a route: it is raised from the notification area. Reaching it needs an actuation the self-test driver does not perform, so it is `manual` rather than `ready` — counted, with the reason, rather than absent."
+      "note": "WIN11. Not a destination and not addressable by a route: it is raised from the notification area. Reaching it needs an actuation the self-test driver does not perform, so it is `manual` rather than `ready` — counted, with the reason, rather than absent.",
+      "controlsSource": "app/windows/MCPRouter.Shell/Views/AmbientFlyoutView.xaml - the literal control names declared in the board's own XAML (Content, Header, Text and AutomationProperties.Name attributes). Read out of the source rather than off a UIA dump of a running build: a list harvested from the build cannot contain a control the build failed to draw.",
+      "controlsSourceNote": "The list is a FLOOR, not a census. Only names written as literals in the XAML are here; anything built in a DataTemplate or in code-behind is invisible to a static read, so a board with per-row affordances declares fewer controls than it draws. The UIA control-view dump on the windows-glass lane is what would settle the true count, and until a case reads one per board the denominator here is a lower bound and is quoted as such."
     },
     {
       "id": "SURF-042",
@@ -1995,7 +2060,9 @@
       "controls": [
         "Done"
       ],
-      "note": "WIN12. A ContentDialog reached from the Inbox board's `Pair iPhone…`. One literal control name; the pairing code and countdown are templated."
+      "note": "WIN12. A ContentDialog reached from the Inbox board's `Pair iPhone…`. One literal control name; the pairing code and countdown are templated.",
+      "controlsSource": "app/windows/MCPRouter.Shell/Views/PairingDialog.xaml - the literal control names declared in the board's own XAML (Content, Header, Text and AutomationProperties.Name attributes). Read out of the source rather than off a UIA dump of a running build: a list harvested from the build cannot contain a control the build failed to draw.",
+      "controlsSourceNote": "The list is a FLOOR, not a census. Only names written as literals in the XAML are here; anything built in a DataTemplate or in code-behind is invisible to a static read, so a board with per-row affordances declares fewer controls than it draws. The UIA control-view dump on the windows-glass lane is what would settle the true count, and until a case reads one per board the denominator here is a lower bound and is quoted as such."
     },
     {
       "id": "SURF-043",
@@ -2010,7 +2077,9 @@
         "Approve and promote",
         "Keep current version"
       ],
-      "note": "WIN16. Reached from Skills, Discover or Inbox rather than from the shell's own navigation."
+      "note": "WIN16. Reached from Skills, Discover or Inbox rather than from the shell's own navigation.",
+      "controlsSource": "app/windows/MCPRouter.Shell/Views/CapabilityDocumentPanel.xaml - the literal control names declared in the board's own XAML (Content, Header, Text and AutomationProperties.Name attributes). Read out of the source rather than off a UIA dump of a running build: a list harvested from the build cannot contain a control the build failed to draw.",
+      "controlsSourceNote": "The list is a FLOOR, not a census. Only names written as literals in the XAML are here; anything built in a DataTemplate or in code-behind is invisible to a static read, so a board with per-row affordances declares fewer controls than it draws. The UIA control-view dump on the windows-glass lane is what would settle the true count, and until a case reads one per board the denominator here is a lower bound and is quoted as such."
     },
     {
       "id": "SURF-044",
@@ -2020,6 +2089,50 @@
       "status": "manual",
       "controls": [],
       "note": "WIN7's detail dialog. DiscoverDetailContent.xaml declares NO literal control name and no AutomationProperties.Name at all, so nothing on it is addressable from the automation plane by name. That is a finding, and it is why the control list is empty rather than omitted."
+    },
+    {
+      "id": "SURF-045",
+      "title": "Windows logon-task supervision - the daemon's Scheduled Task",
+      "route": "task://windows/logon/MCPRouter",
+      "lane": "router-daemon",
+      "status": "ready",
+      "controls": [
+        "LogonTaskSupervisor.Register",
+        "LogonTaskSupervisor.Unregister"
+      ],
+      "controlsSource": "app/windows/MCPRouter.Shell.Live/Lifecycle/LogonTaskSupervisor.cs - the two operations the supervisor exposes, named as CASE-0308 drives them.",
+      "enumeratedNote": "Enumerated 2026-09-02 by wa3. WIN23 shipped this plane, REQ-035 states it and CASE-0308 has been passing over it since, and the campaign's surface list had no row for it - the exact shape G14 recorded for Harnesses and Insights, found again on Windows. It surfaced from the other end this time: control-census.py reported CASE-0308 actuating two controls on `no surface`, which is what a case pointing at a surface nobody enumerated looks like from inside the census.",
+      "note": "Not a glass surface. It is a plane the product acts on, in the same class as SURF-015 (router daemon) and SURF-016 (the loopback control API), and its `controls` are operations rather than things a person can press. DEF-080 records that the registry has one word for both and that counting them in the same census is a known overstatement of how much glass has been driven."
+    },
+    {
+      "id": "SURF-046",
+      "title": "Windows toast notification and its COM activator",
+      "route": "shell://windows/notifications/AppNotificationManager",
+      "lane": "windows-glass",
+      "status": "ready",
+      "controls": [
+        "ToastNotifier.Register",
+        "ToastNotifier.Show"
+      ],
+      "controlsSource": "app/windows/MCPRouter.Shell/Notifications/ToastNotifier.cs - the two operations the notifier exposes, named as CASE-0339 drives them. The toast's own two buttons, Review and Dismiss, are NOT declared here: nothing in this repository has pressed one, and REQ-036 is the requirement they belong to.",
+      "enumeratedNote": "Enumerated 2026-09-02 by wa3, for the same reason as SURF-045. WIN22 shipped it, REQ-036 states it, CASE-0339 passes over it and no surface row existed.",
+      "note": "What this row's controls do NOT cover is the half that matters most to a user: CASE-0339 proves the COM activator is registered so that pressing Review an hour later can reach the app, and nobody has pressed Review. That gap is stated here rather than hidden by a denominator of two."
+    },
+    {
+      "id": "SURF-047",
+      "title": "The MSIX package - pack, validate, install, uninstall",
+      "route": "package://windows/Fledgeling.MCPRouter",
+      "lane": "windows-glass",
+      "status": "ready",
+      "controls": [
+        "MakeAppx pack",
+        "winget validate",
+        "Add-AppxPackage",
+        "Remove-AppxPackage"
+      ],
+      "controlsSource": "app/windows/MCPRouter.Shell.Model/Packaging/PackagingPresentation.cs and the lane CASE-0341 runs - the four steps of the package lifecycle, named as that case drives them.",
+      "enumeratedNote": "Enumerated 2026-09-02 by wa3. WIN19 shipped the package, REQ-037 states its identity and its uninstall promise, CASE-0341 passes over all four steps, and the campaign had no row for the surface being measured.",
+      "note": "The least glass-like of the three, and kept as a surface rather than dropped because the alternative is a passing case that belongs to nothing - which is how a measurement stops being reachable from the denominator it should be counted in. DEF-080 carries the vocabulary objection."
     }
   ]
 }

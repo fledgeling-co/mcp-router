@@ -472,6 +472,370 @@ foreach ($d in $destinations) {
     $prev = $obj
 }
 
+# ------------------------------------------------- 3b. the control census on two named surfaces
+# WHY THIS EXISTS. The sweep above grades a destination on whether the board CHANGED. It cannot
+# tell a board carrying seven sections of working switches from one carrying three inert ones, and
+# DEF-076 is exactly that gap: the Settings tree held 60 elements, one of them actuable, while the
+# ledger claimed seven sections of Fluent ToggleSwitch controls. So the sweep gets an arm that
+# names controls and reads their state.
+#
+# TWO THINGS MAKE THIS EVIDENCE RATHER THAN A RESTATEMENT.
+#
+#   It addresses by AutomationId, not by name. A UIA name search returns the first element with
+#   that name ANYWHERE in the tree, and this shell's menu bar already holds a "Router" and a
+#   "Help". Ids are unique and survive a copy edit.
+#
+#   The expected ids and labels are READ OUT OF THE PRODUCT'S OWN SOURCE, the same way the
+#   destination catalogue above is. A list typed into the harness drifts from the one the app
+#   ships, and then the lane measures a product that does not exist. If the reader resolves fewer
+#   than the source declares it stops rather than reporting a plausible number.
+#
+# AND THE TOGGLE TEST IS AN EFFECT TEST. Reading ToggleState back off the switch you just toggled
+# proves the control moved, and nothing else - an unbound switch passes that. So the lane toggles
+# through the plane and then reads a DIFFERENT element, the board's state readout, which the view
+# renders from the model. A switch that fails to write through leaves that line unmoved.
+
+$controls = @()
+
+function Add-ControlRow($id, $status, $detail) {
+    $script:controls += [pscustomobject]@{ id = $id; status = $status; detail = $detail }
+    if ($status -eq 'fail') { $script:controlFailures++ }
+    Say ("  control {0}: {1} - {2}" -f $id, $status.ToUpper(), $detail)
+}
+$script:controlFailures = 0
+
+function Find-ById($root, [string] $automationId) {
+    $cond = New-Object System.Windows.Automation.PropertyCondition(
+        [System.Windows.Automation.AutomationElement]::AutomationIdProperty, $automationId)
+    return $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $cond)
+}
+
+# A board that has just been selected is still being built, and an element that is not yet
+# realised is absent rather than empty. The first run of this census read every id as missing
+# 0.6 s after selecting Settings and the dump taken seconds later held all ten of them - which is
+# the harness's own timing, not a finding about the board. So every lookup polls.
+function Wait-ById($root, [string] $automationId, [int] $seconds = 10) {
+    $until = (Get-Date).AddSeconds($seconds)
+    while ($true) {
+        $el = Find-ById $root $automationId
+        if ($null -ne $el) { return $el }
+        if ((Get-Date) -ge $until) { return $null }
+        Start-Sleep -Milliseconds 400
+    }
+}
+
+# What the census can see at all, when it can see none of what it expected. An id list that comes
+# back entirely absent has two very different causes - the board did not build, or this client is
+# looking at the wrong tree - and without this count they are indistinguishable.
+function Count-AddressableElements($root) {
+    $cond = New-Object System.Windows.Automation.NotCondition(
+        (New-Object System.Windows.Automation.PropertyCondition(
+            [System.Windows.Automation.AutomationElement]::AutomationIdProperty, '')))
+    try {
+        return @($root.FindAll(
+            [System.Windows.Automation.TreeScope]::Descendants, $cond)).Count
+    } catch { return -1 }
+}
+
+function Invoke-Destination($label) {
+    $nameCond = New-Object System.Windows.Automation.PropertyCondition(
+        [System.Windows.Automation.AutomationElement]::NameProperty, $label)
+    $selCond = New-Object System.Windows.Automation.PropertyCondition(
+        [System.Windows.Automation.AutomationElement]::IsSelectionItemPatternAvailableProperty, $true)
+    $both = New-Object System.Windows.Automation.AndCondition($nameCond, $selCond)
+    $current = ''
+    try { $current = $window.Current.Name } catch { }
+    if ($current -eq $label) { return $true }
+    for ($i = 0; $i -lt 3; $i++) {
+        $el = $window.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $both)
+        if ($null -eq $el) { Start-Sleep -Milliseconds 400; continue }
+        try {
+            $el.GetCurrentPattern(
+                [System.Windows.Automation.SelectionItemPattern]::Pattern).Select()
+        } catch { Start-Sleep -Milliseconds 400; continue }
+        $until = (Get-Date).AddSeconds(5)
+        while ((Get-Date) -lt $until) {
+            $now = ''
+            try { $now = $window.Current.Name } catch { }
+            if ($now -eq $label) { return $true }
+            Start-Sleep -Milliseconds 250
+        }
+    }
+    return $false
+}
+
+if (-not (Get-Process -Id $script:ShellProcessId -ErrorAction SilentlyContinue)) {
+    Add-ControlRow 'census' 'unoracled' ('the shell did not survive the destination sweep, so no ' +
+        'control could be read. Neither a pass nor a failure of any control.')
+} else {
+
+    # --------------------------------------------------------- the product's own declarations
+    $settingsSource = Join-Path $repoRoot 'app\windows\MCPRouter.Shell.Model\Settings\SettingsPresentation.cs'
+    $expectSections = @()
+    $expectToggles  = @()
+    if (Test-Path $settingsSource) {
+        $src = Get-Content $settingsSource -Raw
+
+        $orderBlock = [regex]::Match($src, 'SectionOrder\s*=\s*new\[\]\s*\{(.*?)\};',
+            [System.Text.RegularExpressions.RegexOptions]::Singleline)
+        foreach ($m in [regex]::Matches($orderBlock.Groups[1].Value, 'SettingsSection\.(\w+)')) {
+            $expectSections += ('settings.section.' + $m.Groups[1].Value.ToLowerInvariant())
+        }
+
+        $keysBlock = [regex]::Match($src, 'ToggleKeys\s*=\s*new\[\]\s*\{(.*?)\};',
+            [System.Text.RegularExpressions.RegexOptions]::Singleline)
+        $labelBlock = [regex]::Match($src, 'ToggleLabel\(string key\)(.*?)\n    \}',
+            [System.Text.RegularExpressions.RegexOptions]::Singleline)
+        $labels = @{}
+        foreach ($m in [regex]::Matches($labelBlock.Groups[1].Value, '"(\w+)"\s*=>\s*"([^"]+)"')) {
+            $labels[$m.Groups[1].Value] = $m.Groups[2].Value
+        }
+        foreach ($m in [regex]::Matches($keysBlock.Groups[1].Value, '"(\w+)"')) {
+            $key = $m.Groups[1].Value
+            $expectToggles += [pscustomobject]@{
+                Key   = $key
+                Id    = 'settings.toggle.' + $key
+                Label = $labels[$key]
+            }
+        }
+    }
+
+    if ($expectSections.Count -eq 0 -or $expectToggles.Count -eq 0) {
+        Add-ControlRow 'settings.reader' 'unoracled' ('read zero sections or zero toggle keys out ' +
+            'of SettingsPresentation.cs. That is this reader failing, not the board passing.')
+    } elseif (@($expectToggles | Where-Object { -not $_.Label }).Count -gt 0) {
+        Add-ControlRow 'settings.reader' 'unoracled' ('a toggle key resolved no label out of ' +
+            'SettingsPresentation.cs, so the names this lane would assert are not the product''s.')
+    } else {
+        Say ("settings census expects $($expectSections.Count) section(s) and " +
+             "$($expectToggles.Count) toggle(s), read out of SettingsPresentation.cs")
+
+        if (-not (Invoke-Destination 'Settings')) {
+            Add-ControlRow 'settings.board' 'unoracled' ('Settings could not be re-actuated after ' +
+                'the sweep, so its controls were never reached.')
+        } else {
+            Start-Sleep -Milliseconds 600
+
+            # ------------------------------------------------------------- the seven sections
+            $foundSections = @()
+            foreach ($id in $expectSections) {
+                if ($null -ne (Wait-ById $window $id 10)) { $foundSections += $id }
+            }
+            if ($foundSections.Count -eq $expectSections.Count) {
+                Add-ControlRow 'settings.sections' 'pass' ("all $($expectSections.Count) declared " +
+                    "section(s) publish an addressable container: $($foundSections -join ', ')")
+            } else {
+                $missing = @($expectSections | Where-Object { $foundSections -notcontains $_ })
+                $addressable = Count-AddressableElements $window
+                Add-ControlRow 'settings.sections' 'fail' ("$($foundSections.Count) of " +
+                    "$($expectSections.Count) declared section(s) reached the automation plane. " +
+                    "Absent: $($missing -join ', '). This client can see $addressable element(s) " +
+                    "carrying any automation id at all under the window.")
+            }
+
+            # ------------------------------------------- each toggle: named, and its state read
+            foreach ($t in $expectToggles) {
+                $el = Wait-ById $window $t.Id 10
+                if ($null -eq $el) {
+                    Add-ControlRow $t.Id 'fail' ("no element on the automation plane carries this " +
+                        "automation id, so the toggle is unaddressable.")
+                    continue
+                }
+                $publishedName = ''
+                try { $publishedName = $el.Current.Name } catch { }
+                if ($publishedName -ne $t.Label) {
+                    Add-ControlRow $t.Id 'fail' ("publishes the accessible name '$publishedName'; " +
+                        "SettingsPresentation declares '$($t.Label)'.")
+                    continue
+                }
+                $state = $null
+                try {
+                    $state = $el.GetCurrentPattern(
+                        [System.Windows.Automation.TogglePattern]::Pattern).Current.ToggleState
+                } catch {
+                    Add-ControlRow $t.Id 'fail' ("publishes the name '$publishedName' and no " +
+                        "readable toggle state: $($_.Exception.Message)")
+                    continue
+                }
+                Add-ControlRow $t.Id 'pass' ("named '$publishedName', toggle state readable as " +
+                    "'$state'")
+            }
+
+            # ------------------------------------------------------------ THE EFFECT TEST
+            # Toggle the first switch through the plane, then read a DIFFERENT element - the
+            # board's state readout, rendered from the model. This is what separates a bound
+            # control from an inert one, and it is the only half of DEF-076's fix that a
+            # markup check cannot make.
+            $subject = $expectToggles[0]
+            $switch  = Wait-ById $window $subject.Id 10
+            $readout = Wait-ById $window 'settings.state.summary' 10
+            if ($null -eq $switch) {
+                Add-ControlRow 'settings.effect' 'fail' ('the switch under test is unaddressable, ' +
+                    'so no effect could be attempted.')
+            } elseif ($null -eq $readout) {
+                Add-ControlRow 'settings.effect' 'fail' ('the board publishes no state readout at ' +
+                    'settings.state.summary, so a toggle has nothing outside itself to move.')
+            } else {
+                $before = ''
+                try { $before = $readout.Current.Name } catch { }
+                $toggled = $false
+                try {
+                    $switch.GetCurrentPattern(
+                        [System.Windows.Automation.TogglePattern]::Pattern).Toggle()
+                    $toggled = $true
+                } catch { }
+
+                $after = $before
+                if ($toggled) {
+                    $until = (Get-Date).AddSeconds(4)
+                    while ((Get-Date) -lt $until) {
+                        $readout = Find-ById $window 'settings.state.summary'
+                        if ($null -ne $readout) {
+                            try { $after = $readout.Current.Name } catch { }
+                        }
+                        if ($after -ne $before) { break }
+                        Start-Sleep -Milliseconds 250
+                    }
+                }
+
+                if (-not $toggled) {
+                    Add-ControlRow 'settings.effect' 'fail' ('the switch carries TogglePattern and ' +
+                        'Toggle() threw, so it could not be actuated through the plane.')
+                } elseif ($after -eq $before) {
+                    Add-ControlRow 'settings.effect' 'fail' ("INERT: toggling " +
+                        "'$($subject.Label)' through the automation plane left the board's state " +
+                        "readout at '$before'. The switch moved and the model did not.")
+                } else {
+                    Add-ControlRow 'settings.effect' 'pass' ("toggling '$($subject.Label)' through " +
+                        "the plane moved the board's state readout from '$before' to '$after' - an " +
+                        "effect outside the control that was actuated.")
+                    # Put it back, so the dump committed as evidence shows the board at rest.
+                    try {
+                        $switch.GetCurrentPattern(
+                            [System.Windows.Automation.TogglePattern]::Pattern).Toggle()
+                    } catch { }
+                    Start-Sleep -Milliseconds 400
+                }
+            }
+
+            # Re-dump Settings, so the committed evidence is the board these rows describe.
+            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $dumper `
+                -ProcessId $script:ShellProcessId -Out (Join-Path $Out 'uia-shell-settings.json') `
+                -View Control | Out-Null
+        }
+    }
+
+    # ------------------------------------------------------ DEF-075: the Discover detail dialog
+    # The dialog is behind a store row, and the store rows are behind a registry search. On a host
+    # where that search returns nothing the dialog is UNREACHABLE - which is reported as unoracled
+    # rather than passed, because a check that could not run and a check that found nothing are the
+    # same green. The structural rung on this surface is
+    # MCPRouter.Shell.Tests/ViewAutomationSurfaceTests.
+    # A shell that died during the settings census would otherwise skip this whole surface in
+    # silence, which reads as "nothing to report" rather than "never measured". Relaunch, and if
+    # that fails say so on a row.
+    if (-not (Get-Process -Id $script:ShellProcessId -ErrorAction SilentlyContinue)) {
+        Say "  the shell is gone; relaunching before the Discover detail census"
+        $window = Start-Shell
+    }
+    if ($null -eq $window -or -not (Get-Process -Id $script:ShellProcessId -ErrorAction SilentlyContinue)) {
+        Add-ControlRow 'discover.detail' 'unoracled' ('the shell was not running and could not be ' +
+            'relaunched, so the detail dialog was never reached.')
+    } else {
+        $navLabels = @($destinations | ForEach-Object { $_.Label })
+        if (-not (Invoke-Destination 'Discover')) {
+            Add-ControlRow 'discover.detail' 'unoracled' ('Discover could not be re-actuated, so ' +
+                'the detail dialog was never reached.')
+        } else {
+            $itemCond = New-Object System.Windows.Automation.PropertyCondition(
+                [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+                [System.Windows.Automation.ControlType]::ListItem)
+            $row = $null
+            $until = (Get-Date).AddSeconds(45)
+            while ((Get-Date) -lt $until -and $null -eq $row) {
+                $items = $window.FindAll([System.Windows.Automation.TreeScope]::Descendants, $itemCond)
+                foreach ($candidate in $items) {
+                    $n = ''
+                    try { $n = $candidate.Current.Name } catch { }
+                    if ($n -and $navLabels -notcontains $n) { $row = $candidate; break }
+                }
+                if ($null -eq $row) { Start-Sleep -Milliseconds 1500 }
+            }
+
+            if ($null -eq $row) {
+                Add-ControlRow 'discover.detail' 'unoracled' ('the Discover board published no ' +
+                    'store row within 45 s - the registry search returned nothing on this host - ' +
+                    'so the detail dialog could not be opened. Not a finding about the dialog: ' +
+                    'the harness cannot reach it. Its declared surface is checked at the ' +
+                    'structural rung by MCPRouter.Shell.Tests/ViewAutomationSurfaceTests.')
+            } else {
+                $rowName = ''
+                try { $rowName = $row.Current.Name } catch { }
+                $opened = $false
+                foreach ($attempt in 'invoke', 'select') {
+                    try {
+                        if ($attempt -eq 'invoke') {
+                            $row.GetCurrentPattern(
+                                [System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+                        } else {
+                            $row.GetCurrentPattern(
+                                [System.Windows.Automation.SelectionItemPattern]::Pattern).Select()
+                        }
+                    } catch { continue }
+                    $wait = (Get-Date).AddSeconds(6)
+                    while ((Get-Date) -lt $wait) {
+                        if ($null -ne (Find-ById $window 'discover.detail.root')) { $opened = $true; break }
+                        Start-Sleep -Milliseconds 300
+                    }
+                    if ($opened) { break }
+                }
+
+                if (-not $opened) {
+                    Add-ControlRow 'discover.detail' 'unoracled' ("the store row '$rowName' was " +
+                        'found and neither Invoke nor Select opened the detail dialog on the ' +
+                        'automation plane, so its controls were never reached.')
+                } else {
+                    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $dumper `
+                        -ProcessId $script:ShellProcessId `
+                        -Out (Join-Path $Out 'uia-shell-discover-detail.json') -View Control | Out-Null
+
+                    $expectDetail = @(
+                        'discover.detail.root',
+                        'discover.detail.name',
+                        'discover.detail.provenance',
+                        'discover.detail.description',
+                        'discover.detail.statement.headline',
+                        'discover.detail.statement.body',
+                        'discover.detail.statement.derivation',
+                        'discover.detail.argv')
+                    $missingDetail = @()
+                    $unnamed = @()
+                    foreach ($id in $expectDetail) {
+                        $el = Wait-ById $window $id 5
+                        if ($null -eq $el) { $missingDetail += $id; continue }
+                        $n = ''
+                        try { $n = $el.Current.Name } catch { }
+                        if (-not $n) { $unnamed += $id }
+                    }
+                    if ($missingDetail.Count -gt 0) {
+                        Add-ControlRow 'discover.detail' 'fail' ("opened from the row '$rowName'; " +
+                            "these ids are absent from the tree: $($missingDetail -join ', ')")
+                    } elseif ($unnamed.Count -gt 0) {
+                        Add-ControlRow 'discover.detail' 'fail' ("opened from the row '$rowName'; " +
+                            "these controls publish no accessible name: $($unnamed -join ', ')")
+                    } else {
+                        Add-ControlRow 'discover.detail' 'pass' ("opened from the row '$rowName'; " +
+                            "all $($expectDetail.Count) checked control(s) are addressable by id " +
+                            "and publish a name.")
+                    }
+                }
+            }
+        }
+    }
+}
+
+$failed += $script:controlFailures
+
 # ------------------------------------------------------------------ 4. grade
 $measured  = @($results | Where-Object { $_.status -eq 'pass' -or $_.status -eq 'fail' }).Count
 $passed    = @($results | Where-Object { $_.status -eq 'pass' }).Count
@@ -492,6 +856,8 @@ $report = [ordered]@{
     crashed       = $crashed
     unoracled     = $unoracled
     inconclusive  = $inconc
+    controls      = $controls
+    controlsFailed = $script:controlFailures
     results       = $results
 }
 $reportPath = Join-Path $Out 'assert-report.json'
@@ -499,6 +865,7 @@ $report | ConvertTo-Json -Depth 8 | Set-Content -Path $reportPath -Encoding UTF8
 Say "wrote $reportPath"
 Say ("destinations {0} · measured {1} · passed {2} · FAILED {3} · unoracled {4} · inconclusive {5}" -f `
      $destinations.Count, $measured, $passed, $failed, $unoracled, $inconc)
+Say ("controls checked {0} · FAILED {1}" -f $controls.Count, $script:controlFailures)
 
 if ($measured -eq 0) {
     Stop-Lane 3 ("NO VERDICT: not one destination could be actuated and read. A lane that measured " +

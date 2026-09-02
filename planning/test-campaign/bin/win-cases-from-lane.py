@@ -226,6 +226,109 @@ def main():
         "generatedBy": GENERATOR,
     })
 
+    # ---------------------------------------------------------------- the control census
+    # Section 3b of the lane names controls and reads their state, which is the thing the
+    # destination sweep above structurally cannot do: it grades a board on whether the board
+    # CHANGED, so seven sections of working switches and three inert ones are the same pass.
+    # DEF-076 lived in exactly that gap.
+    #
+    # These rows are generated from the report for the same reason every other row here is - a
+    # case written by hand beside the run it describes is a claim about a measurement rather than
+    # the measurement - and a census row that came back `unoracled` becomes an unoracled case
+    # rather than being dropped, because a check that could not run and a check that found
+    # nothing are the same green.
+    census_surface = {"settings": "SURF-038", "discover": "SURF-044"}
+    census_req = {"settings": "REQ-038", "discover": "REQ-039"}
+    for row in report.get("controls", []):
+        control_id = str(row.get("id") or "")
+        family = control_id.split(".", 1)[0]
+        surface = census_surface.get(family)
+        if surface is None:
+            print("  ! the census produced a control row '%s' that belongs to no known surface "
+                  "family. Skipped, and this line is the finding." % control_id)
+            continue
+
+        status = row.get("status")
+        if status in ("pass", "fail"):
+            case_status = status
+        else:
+            case_status = "unoracled: %s" % row.get("detail", "")
+
+        evidence = ["planning/evidence/WIN-SHELL/run/assert-report.json",
+                    "planning/evidence/WIN-SHELL/run/lane.log"]
+        if family == "settings":
+            evidence.append("planning/evidence/WIN-SHELL/run/uia-shell-settings.json")
+        else:
+            evidence.append("planning/evidence/WIN-SHELL/run/uia-shell-discover-detail.json")
+
+        # The effect row is a different rung from the naming rows, and saying so is the point:
+        # reading a name proves the tree publishes one, and only the effect row can tell a bound
+        # control from an inert one.
+        is_effect = control_id.endswith(".effect")
+        note = (
+            "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, "
+            "which runs out of process against the real shell binary in the interactive session. "
+            "The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE "
+            "(SettingsPresentation.cs) rather than restated in the harness, so a rename moves the "
+            "expectation with it instead of leaving the lane measuring a product that does not "
+            "ship. Controls are addressed by AutomationId, never by name: a UIA name search "
+            "returns the first element carrying that name anywhere in the tree, and this shell's "
+            "menu bar already holds a 'Router' and a 'Help'. The lane recorded: %s"
+        ) % (row.get("detail") or "")
+        if is_effect:
+            note += (
+                " THIS IS THE ROW THAT SEPARATES A BOUND CONTROL FROM AN INERT ONE. It toggles "
+                "the switch through TogglePattern and then reads a DIFFERENT element - the "
+                "board's state readout, which the view renders from the model - so a switch that "
+                "moved and wrote through to nothing would leave that line unchanged and fail "
+                "here. It went red for real on the first run, against a readout carrying a static "
+                "AutomationProperties.Name that overrode its own text."
+            )
+        note += (
+            " WHAT NO ROW HERE SETTLES: that any setting persists or reaches the machine. Nothing "
+            "outside the shell process changes when a toggle moves. DEF-085."
+        )
+
+        written.append({
+            "id": allocate("control:" + control_id),
+            "generatedKey": "control:" + control_id,
+            "req": census_req[family],
+            "surface": surface,
+            "flow": None,
+            "lane": "windows-glass",
+            "cell": {
+                "surface": surface, "state": "as-launched", "viewport": "default",
+                "theme": "system", "role": "operator", "dataShape": "no-router-running",
+                "executionPlane": "on-glass",
+            },
+            "oracle": "effect-witness" if is_effect else "structural",
+            "status": case_status,
+            "armed": is_effect,
+            "armedNote": (
+                ("armed by observation rather than by a planted defect: this predicate FAILED on "
+                 "the run of 2026-09-02T08:58Z, against a state readout whose accessible name was "
+                 "a static label instead of its own text, and passed on the next run once the "
+                 "override was removed. The failure is in lane.log verbatim.")
+                if is_effect else
+                ("not armed: no planted defect has been watched to fail this predicate. The "
+                 "settings.sections row did come back red for real on 2026-09-02T08:55Z, when the "
+                 "census read the tree before the board had realised - which arms the id lookup "
+                 "against absence but not against a renamed control.")
+            ),
+            "actuates": ["UIA TogglePattern.Toggle()"] if is_effect else [],
+            "evidence": evidence,
+            "note": note,
+            "witness": {
+                "recorder": ("System.Windows.Automation, in a PowerShell process that is not the "
+                             "shell, reading the shell's published accessibility tree"),
+                "effect": "ui-state",
+                "count": 1,
+            } if is_effect else None,
+            "generatedBy": GENERATOR,
+        })
+        if written[-1]["witness"] is None:
+            del written[-1]["witness"]
+
     # ---------------------------------------------------------------- the unreachable surfaces
     for surface in surfaces:
         if surface.get("status") != "manual":

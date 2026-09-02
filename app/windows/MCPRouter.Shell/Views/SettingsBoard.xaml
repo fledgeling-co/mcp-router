@@ -4,17 +4,49 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:automation="using:Microsoft.UI.Xaml.Automation"
     mc:Ignorable="d">
 
+    <!--
+      SEVEN SECTIONS, AND EVERY ONE OF THEM ADDRESSABLE. DEF-076: this board declared three
+      sections against a WIN13 ledger row claiming seven, and its three ToggleSwitches carried no
+      accessible name at all - so the out-of-process UIA read of the live board found `Copy` and
+      nothing else actuable, and reported "not one ToggleSwitch". Both halves of that were true
+      and neither was the whole story: a WinUI ToggleSwitch publishes as a Button carrying
+      TogglePattern, so the three were in the tree as three anonymous Buttons.
+
+      Two things follow, and they are why this file looks the way it does.
+
+      NAMES ARE NOT DECORATION HERE. A control with no accessible name cannot be asserted against
+      by name, so every case on this surface would stand at `presence`; the same tree serves
+      Narrator, so it is an accessibility defect and a measurability defect in one. Every section
+      container and every toggle carries an AutomationProperties.Name.
+
+      IDS, NOT NAMES, ARE WHAT THE LANE ADDRESSES. A UIA name search returns the first element
+      carrying that name anywhere in the tree, and this shell's menu bar already holds a "Router"
+      and a "Help". So each section and each toggle also carries an AutomationProperties.AutomationId
+      from SettingsPresentation - the view and the lane read the same source for them, rather than
+      both retyping the string.
+
+      AND THE TOGGLES ARE BOUND. `IsOn="True"` on an unbound switch is the inert-UI failure one
+      layer along: it flips and nothing happens. Each one now writes through
+      SettingsBoardModel.UpdateToggle, and the readout at the foot re-renders from the model's
+      state - so flipping a switch changes something OUTSIDE the switch that was flipped, which
+      is the only difference an out-of-process reader can see between a live control and a dead one.
+    -->
     <Grid x:Name="RootGrid" Background="Transparent">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Padding="24,16,24,32" Spacing="20" MaxWidth="800" HorizontalAlignment="Left">
-                <!-- Header -->
+
                 <TextBlock Text="Settings" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="SemiBold" />
 
-                <!-- Section: Router Settings -->
+                <!-- 1. Router -->
                 <TextBlock Text="Router" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" />
-                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                <Border x:Name="RouterSection"
+                        automation:AutomationProperties.Name="Router"
+                        automation:AutomationProperties.AutomationId="settings.section.router"
+                        automation:AutomationProperties.AccessibilityView="Control"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                         BorderThickness="1"
                         CornerRadius="{ThemeResource ControlCornerRadius}"
@@ -27,9 +59,13 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel>
                                 <TextBlock Text="Loopback Endpoint" FontWeight="SemiBold" />
-                                <TextBlock Text="http://127.0.0.1:8879" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <TextBlock x:Name="EndpointText" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             </StackPanel>
-                            <Button Grid.Column="1" Content="Copy" VerticalAlignment="Center" />
+                            <Button Grid.Column="1"
+                                    Content="Copy"
+                                    automation:AutomationProperties.Name="Copy the loopback endpoint"
+                                    automation:AutomationProperties.AutomationId="settings.action.copyEndpoint"
+                                    VerticalAlignment="Center" />
                         </Grid>
 
                         <Grid>
@@ -41,52 +77,161 @@
                                 <TextBlock Text="Launch router daemon at sign-in" FontWeight="SemiBold" />
                                 <TextBlock Text="Starts the background loopback service automatically." Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             </StackPanel>
-                            <ToggleSwitch Grid.Column="1" IsOn="True" VerticalAlignment="Center" />
+                            <ToggleSwitch x:Name="LaunchAtLoginToggle"
+                                          Grid.Column="1"
+                                          Tag="LaunchAtLogin"
+                                          Toggled="OnToggled"
+                                          VerticalAlignment="Center" />
                         </Grid>
                     </StackPanel>
                 </Border>
 
-                <!-- Section: Security -->
+                <!-- 2. Harnesses - governance, not configuration. -->
+                <TextBlock Text="Harnesses" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" />
+                <Border x:Name="HarnessesSection"
+                        automation:AutomationProperties.Name="Harnesses"
+                        automation:AutomationProperties.AutomationId="settings.section.harnesses"
+                        automation:AutomationProperties.AccessibilityView="Control"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="{ThemeResource ControlCornerRadius}"
+                        Padding="16,12">
+                    <TextBlock x:Name="HarnessesGovernanceText"
+                               Style="{ThemeResource BodyTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               TextWrapping="Wrap" />
+                </Border>
+
+                <!-- 3. Session analyst -->
+                <TextBlock Text="Session analyst" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" />
+                <Border x:Name="SessionAnalystSection"
+                        automation:AutomationProperties.Name="Session analyst"
+                        automation:AutomationProperties.AutomationId="settings.section.sessionanalyst"
+                        automation:AutomationProperties.AccessibilityView="Control"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="{ThemeResource ControlCornerRadius}"
+                        Padding="16,12">
+                    <TextBlock x:Name="AnalystGovernanceText"
+                               Style="{ThemeResource BodyTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               TextWrapping="Wrap" />
+                </Border>
+
+                <!-- 4. Updates -->
+                <TextBlock Text="Updates" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" />
+                <Border x:Name="UpdatesSection"
+                        automation:AutomationProperties.Name="Updates"
+                        automation:AutomationProperties.AutomationId="settings.section.updates"
+                        automation:AutomationProperties.AccessibilityView="Control"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="{ThemeResource ControlCornerRadius}"
+                        Padding="16,12">
+                    <TextBlock x:Name="UpdatesGovernanceText"
+                               Style="{ThemeResource BodyTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               TextWrapping="Wrap" />
+                </Border>
+
+                <!-- 5. Security -->
                 <TextBlock Text="Security &amp; Confirmations" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" />
-                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                <Border x:Name="SecuritySection"
+                        automation:AutomationProperties.Name="Security"
+                        automation:AutomationProperties.AutomationId="settings.section.security"
+                        automation:AutomationProperties.AccessibilityView="Control"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                         BorderThickness="1"
                         CornerRadius="{ThemeResource ControlCornerRadius}"
                         Padding="16,12">
-                    <StackPanel Spacing="12">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <StackPanel>
-                                <TextBlock Text="Require confirmation on destructive operations" FontWeight="SemiBold" />
-                                <TextBlock Text="Prompts before removing servers, skills, or deleting stored tokens." Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            </StackPanel>
-                            <ToggleSwitch Grid.Column="1" IsOn="True" VerticalAlignment="Center" />
-                        </Grid>
-                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Require confirmation on destructive operations" FontWeight="SemiBold" />
+                            <TextBlock Text="Prompts before removing servers, skills, or deleting stored tokens." Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                        <ToggleSwitch x:Name="RequireConfirmationToggle"
+                                      Grid.Column="1"
+                                      Tag="RequireConfirmationOnDestructive"
+                                      Toggled="OnToggled"
+                                      VerticalAlignment="Center" />
+                    </Grid>
                 </Border>
 
-                <!-- Section: Ambient Surface -->
+                <!-- 6. Ambient surface -->
                 <TextBlock Text="Ambient Notification Surface" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" />
-                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                <Border x:Name="AmbientSurfaceSection"
+                        automation:AutomationProperties.Name="Ambient surface"
+                        automation:AutomationProperties.AutomationId="settings.section.ambientsurface"
+                        automation:AutomationProperties.AccessibilityView="Control"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                         BorderThickness="1"
                         CornerRadius="{ThemeResource ControlCornerRadius}"
                         Padding="16,12">
-                    <StackPanel Spacing="12">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <StackPanel>
-                                <TextBlock Text="Show status in notification area" FontWeight="SemiBold" />
-                                <TextBlock Text="Displays ambient router status and queued inbox items in the Windows tray." Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            </StackPanel>
-                            <ToggleSwitch Grid.Column="1" IsOn="True" VerticalAlignment="Center" />
-                        </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Show status in notification area" FontWeight="SemiBold" />
+                            <TextBlock Text="Displays ambient router status and queued inbox items in the Windows tray." Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                        <ToggleSwitch x:Name="ShowAmbientIconToggle"
+                                      Grid.Column="1"
+                                      Tag="ShowAmbientIcon"
+                                      Toggled="OnToggled"
+                                      VerticalAlignment="Center" />
+                    </Grid>
+                </Border>
+
+                <!-- 7. Advanced - the router's own facts, and the live readout of the three toggles. -->
+                <TextBlock Text="Advanced" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" />
+                <Border x:Name="AdvancedSection"
+                        automation:AutomationProperties.Name="Advanced"
+                        automation:AutomationProperties.AutomationId="settings.section.advanced"
+                        automation:AutomationProperties.AccessibilityView="Control"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="{ThemeResource ControlCornerRadius}"
+                        Padding="16,12">
+                    <StackPanel Spacing="8">
+                        <StackPanel>
+                            <TextBlock Text="Router home" FontWeight="SemiBold" />
+                            <TextBlock x:Name="HomeDirectoryText" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="Idle reaper" FontWeight="SemiBold" />
+                            <TextBlock x:Name="IdleReaperText" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                        <TextBlock x:Name="FilesHelpText"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   TextWrapping="Wrap" />
+                        <!-- The readout DEF-076's fix is proved by. Its text is rendered from the
+                             model, never from the switches, so a switch that fails to write
+                             through leaves it unmoved. -->
+                        <!-- No AutomationProperties.Name here, deliberately. A TextBlock
+                             publishes its own Text as its accessible name; a static Name would
+                             override it, and the readout would then report the same string
+                             forever however the model moved. The first census run measured
+                             exactly that and called the board inert. Addressing is the
+                             AutomationId's job; the name is the value. -->
+                        <TextBlock x:Name="StateSummaryText"
+                                   automation:AutomationProperties.AutomationId="settings.state.summary"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                   FontFamily="Consolas"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
             </StackPanel>

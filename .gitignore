@@ -144,3 +144,9 @@ app/windows/**/obj/
 # fails a citation to a file the repository does not hold, so an ignored transcript is a citation
 # that resolves only on the machine that wrote it.
 !/planning/evidence/WIN20/**/*.log
+
+# The MSIX the WIN19 witness builds. 69 MB of self-contained WinUI payload, rebuilt from
+# app/windows/packaging on every run of scripts/windows/win19-package-witness.ps1, and worthless as
+# a committed artifact: a package in git is a package nobody re-derives, and the whole point of the
+# lane is that the manifest still packs TODAY. The witness.json beside it is the evidence.
+planning/evidence/WIN19/run/*.msix

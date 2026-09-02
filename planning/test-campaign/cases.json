@@ -4129,6 +4129,32 @@
     "armedNote": "not armed: no planted defect has been watched to fail these predicates. The closed-set and round-trip assertions would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false. The registration half of REQ-036 IS armed - see CASE-0339."
   },
   {
+    "id": "CASE-0341",
+    "req": "REQ-037",
+    "lane": "windows-glass",
+    "oracle": "effect-witness",
+    "cell": "execution-plane=windows-host - data-shape=package not installed",
+    "status": "pass",
+    "armed": true,
+    "actuates": [
+      "MakeAppx pack",
+      "winget validate",
+      "Add-AppxPackage",
+      "Remove-AppxPackage"
+    ],
+    "note": "A real MSIX, built, deployed and removed, with a recorder at each step that is not the thing that wrote it. MakeAppx packs and .NET's ZipArchive reads the OPC container back - so the identity assertion is made against the PACKED ARTIFACT rather than against the file on disk that was handed to the packer. `winget validate` is the winget client applying a schema this repository does not own. Add-AppxPackage deploys and Get-AppxPackage reports: Fledgeling.MCPRouter_0.1.0.0_x64__facmrsw33693e. THE INSTALL ARM IS WHAT TURNS A FILE INTO A PACKAGE. A manifest can pack cleanly, validate cleanly, and be refused at deployment for a capability, an architecture or a signature - and every static check in the world passes right up to that point. 'CLEAN UNINSTALL RULES' IS THE HALF WORTH READING TWICE. UninstallGuidance promises that uninstalling preserves %USERPROFILE%\\.claude\\mcp-router. That is a promise about what SURVIVES, and a promise about survival cannot be checked by any amount of reading - only by an uninstall that actually ran. The lane plants a marker, installs, removes, and requires both that the deployment stack reports the package gone and that the marker is still there. WHAT THE LANE PUTS BACK: a self-signed certificate is added to LocalMachine\\TrustedPeople so an unsigned developer package can deploy at all, and removed in a finally block however the run ends. Verified afterwards: zero Fledgeling.* packages, zero witness certificates. A lane that left a trusted publisher behind would have changed what this machine will install, silently and for every future run. NOT SETTLED: that anyone can obtain the package. Nothing publishes it, the winget InstallerUrl is a deliberate example.invalid placeholder, and this lane asserts the placeholder is PRESENT so the manifest cannot be mistaken for a shipping one. DEF-083 carries the publishing step, which needs a signing certificate and a pull request into a third-party repository.",
+    "evidence": [
+      "planning/evidence/WIN19/run/witness.json",
+      "planning/evidence/WIN19/run/witness-armed.json"
+    ],
+    "armedNote": "`win19-package-witness.ps1 -ProveRed` stages a manifest declaring Fledgeling.MCPRouter.WRONG and requires exactly PACK.identity to break. It did: the package packed cleanly, held a well-formed container, carried its payload, and passed every other arm. That is the point - nothing else in the toolchain notices an identity drift, because an identity is a string in two places and a package under the wrong one installs perfectly while being a different product. THE FIRST ARMING ATTEMPT FAILED AND THE FAILURE IS RECORDED IN THE LANE'S HEADER. It removed the executable from the layout expecting PACK.payload to break; MakeAppx refuses to pack a manifest naming a file the layout does not carry and exits 1. So PACK.payload cannot be armed by removal and is defended by the packer too, which makes it cheap redundancy rather than the load-bearing arm it was written as.",
+    "witness": {
+      "recorder": "System.IO.Compression.ZipArchive over the packed container; `winget validate`; Get-AppxPackage - the Windows deployment stack reporting its own state",
+      "effect": "filesystem-write",
+      "count": 1
+    }
+  },
+  {
     "id": "CASE-0324",
     "generatedKey": "destination:discover",
     "req": "REQ-031",

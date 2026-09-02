@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The MSIX package identity for the Windows client.
+
+  WHY THIS FILE EXISTS. DEF-073 recorded that WIN19's "packaging and distribution" shipped no
+  package: a repository-wide search for *.appxmanifest, any winget manifest and any *.wxs returned
+  nothing, and the only winget and MSIX strings anywhere were WIN19's own three model files - 67
+  added lines under a ledger row reading "winget and MSIX distribution channel contract, SmartScreen
+  disclosure, clean uninstall rules". There was no channel, no package, and nothing to uninstall.
+
+  EVERY VALUE HERE IS TAKEN FROM PackagingPresentation RATHER THAN CHOSEN AGAIN. Name is
+  PackageIdentity, Publisher is PublisherIdentity. scripts/windows/win19-package-witness.ps1 reads
+  both back out of the BUILT PACKAGE and compares them against those constants, so a manifest that
+  drifts from the contract the application states is a red lane rather than a discrepancy nobody
+  looks for.
+
+  Windows.FullTrustApplication, not a UWP entry point: this is an existing Win32 executable being
+  packaged, not an app being rewritten. That is what makes runFullTrust necessary below, and it is
+  a restricted capability - a Store submission needs approval for it, and a sideloaded or
+  winget-distributed package does not. The distinction is worth stating because it is the reason the
+  DirectMsix and Winget channels are reachable today and a Store channel is not.
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap rescap">
+
+  <Identity
+    Name="Fledgeling.MCPRouter"
+    Publisher="CN=Fledgeling"
+    Version="0.1.0.0"
+    ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>MCP Router</DisplayName>
+    <PublisherDisplayName>Fledgeling</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+    <Description>Routes Model Context Protocol servers to the harnesses on this machine.</Description>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="en-us" />
+  </Resources>
+
+  <Applications>
+    <Application Id="Shell" Executable="MCPRouter.Shell.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        DisplayName="MCP Router"
+        Description="Routes Model Context Protocol servers to the harnesses on this machine."
+        BackgroundColor="transparent"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png" />
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <!--
+      The ONLY capability declared, and it is declared because the payload is a full-trust Win32
+      executable rather than because anything wants broad reach. Adding a second one is a decision
+      about what the operator is being asked to permit at install time, and the witness lane asserts
+      the count so that decision cannot be made silently by an editor tidying up a manifest.
+    -->
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>

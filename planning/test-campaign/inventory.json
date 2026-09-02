@@ -578,12 +578,14 @@
       "title": "WIN19's packaging and distribution ships no package: no manifest of any kind exists",
       "lane": "windows-glass",
       "severity": "high",
-      "status": "open",
+      "status": "fixed",
       "found": "2026-09-02, tailings audit of the WIN fleet",
       "evidence": "A repository-wide search for `*.appxmanifest`, `Package.appxmanifest`, any winget manifest and any `*.wxs` returns nothing. The only winget/MSIX strings anywhere are WIN19's own PackagingModels.cs, PackagingPresentation.cs and their test - and their copies inside .worktrees/. The item is 3 source files totalling 67 added lines, with no XAML and no view.",
       "class": "inert",
       "why-it-matters": "The ledger row reads `Merged after verify PASS: 608 tests green, winget and MSIX distribution channel contract, SmartScreen disclosure, clean uninstall rules`. There is no channel, no package and nothing to uninstall. A user cannot install this application by any of the means the item claims to have delivered.",
-      "next": "Build the MSIX packaging project and the winget manifest, or reclassify the item as a distribution DESIGN and say so in the ledger."
+      "next": "Build the MSIX packaging project and the winget manifest, or reclassify the item as a distribution DESIGN and say so in the ledger.",
+      "fixed": "2026-09-02",
+      "resolution": "IMPLEMENTED, and the package is built, deployed and removed by Windows itself inside the lane that measures it. app/windows/packaging/AppxManifest.xml is a real MSIX manifest whose Identity Name and Publisher are PackagingPresentation.PackageIdentity and .PublisherIdentity rather than values chosen again; app/windows/packaging/winget/ holds the three YAML files winget reads (version, defaultLocale, installer); app/windows/packaging/make-placeholder-assets.py generates the three logo PNGs the manifest references, and says in its own docstring that they are placeholders and that design/marketing-src/ holds the real marks. THE EFFECT WITNESS: scripts/windows/win19-package-witness.ps1, 12 arms, run 2026-09-02, evidence at planning/evidence/WIN19/run/witness.json. Four writers and three recorders, none of them the same thing: MakeAppx.exe packs and .NET's ZipArchive reads the OPC container back; `winget validate` is the winget client applying a schema this repository does not own; Add-AppxPackage deploys and Get-AppxPackage reports. THE INSTALL ARM IS THE ONE THAT TURNS A FILE INTO A PACKAGE. A manifest can pack cleanly, validate cleanly and be refused at deployment for a capability, an architecture or a signature, and every static check passes right up to that point. Windows deployed it: PackageFullName=Fledgeling.MCPRouter_0.1.0.0_x64__facmrsw33693e. 'CLEAN UNINSTALL RULES' IS NOW A MEASURED CLAIM RATHER THAN A SENTENCE. UninstallGuidance promises that uninstalling preserves the configuration under %USERPROFILE%\\.claude\\mcp-router. The lane plants a marker there, installs, removes, and requires BOTH that Get-AppxPackage reports the package gone AND that the marker survives. A promise about what SURVIVES can only be settled by an uninstall that actually ran. ARMED: `-ProveRed` stages a manifest declaring Fledgeling.MCPRouter.WRONG and requires exactly PACK.identity to break. It did - the package packed cleanly, held a well-formed container, carried its payload and passed every other arm. Nothing else in the toolchain notices an identity drift: the package installs perfectly and is a different product. THE FIRST ARMING ATTEMPT FAILED USEFULLY AND IS RECORDED IN THE LANE'S OWN HEADER. It removed the executable from the layout expecting PACK.payload to break; MakeAppx refuses to pack a manifest naming a file the layout does not carry and exits 1. So PACK.payload cannot be armed by removal and is defended by the packer as well - which makes it cheap redundancy rather than the load-bearing arm it was written as, and the header now says so. WHAT THE LANE PUTS BACK. It creates a self-signed certificate in LocalMachine\\TrustedPeople so an unsigned developer package can deploy at all, and removes it in a finally block however the run ends, along with the package. Verified after the run: zero Fledgeling.* packages installed, zero witness certificates trusted. A lane that left a trusted publisher behind would have changed what this machine will install. NOT MEASURED, and DEF-083 carries it: nothing publishes the package anywhere. The winget InstallerUrl is a deliberate example.invalid placeholder and the lane asserts that it IS one, because a plausible-looking GitHub release URL would validate, read as finished, and 404 for the first person who ran `winget install`."
     },
     {
       "id": "DEF-074",
@@ -688,6 +690,18 @@
       "class": "unmeasured",
       "why-it-matters": "The two behaviours the operator is promised - a toast appears, and pressing Review opens the review sheet - rest on Windows honouring a registration this repository has confirmed is present. That is a reasonable place to stop. Not saying it is where one stopped is what DEF-072 was, one layer up, so it is filed rather than folded into that fix.",
       "next": "It becomes measurable if WIN19's MSIX packaging lands: a packaged build can hold the userNotificationListener capability, and UserNotificationListener.GetNotificationsAsync would then be an independent recorder for the toast itself. So this is downstream of DEF-073 rather than independent of it."
+    },
+    {
+      "id": "DEF-083",
+      "title": "The winget manifest points at a placeholder URL because nothing publishes the package",
+      "lane": "windows-glass",
+      "severity": "low",
+      "status": "open",
+      "found": "2026-09-02, recorded while fixing DEF-073",
+      "evidence": "app/windows/packaging/winget/Fledgeling.MCPRouter.installer.yaml carries InstallerUrl: https://example.invalid/PLACEHOLDER-no-release-is-published/... with zeroed InstallerSha256 and SignatureSha256. scripts/windows/win19-package-witness.ps1 asserts the placeholder is PRESENT rather than that the URL resolves. No release pipeline exists in this repository: nothing builds a signed package, uploads it, or opens a pull request against microsoft/winget-pkgs.",
+      "class": "unbuilt",
+      "why-it-matters": "`winget install Fledgeling.MCPRouter` cannot work, and the manifest validates, so nothing in the toolchain says so. The placeholder is deliberate for exactly that reason - a plausible URL would make this a manifest that looks shipped. What it costs is that the Winget member of DistributionChannel is a contract with a builder behind it and no publisher, which is a smaller gap than DEF-073's and still a gap.",
+      "next": "Publishing is an outward-facing action nobody has authorised: it needs a code-signing certificate this repository does not hold, a release artifact hosted somewhere, and a pull request into a third-party repository. Route it to the owner rather than closing it here. When it is done, the placeholder assertion in the witness inverts into a resolving-URL check and the two hashes become real."
     }
   ],
   "flow": [
@@ -1221,6 +1235,16 @@
       "effect": "ipc",
       "provider": "app/windows/MCPRouter.Shell/Notifications/ToastNotifier.cs -> AppNotificationManager.Register()/Show(); app/windows/MCPRouter.Shell.Model/Notifications/ToastPayloadCodec.cs; app/windows/MCPRouter.Shell/App.xaml.cs OnToastInvoked -> ShellWindow.SelectDestination(DestinationCatalog.InboxId)",
       "providerNote": "THE REGISTRATION IS OBSERVED; THE TOAST IS NOT. What an instrument on this host can see is the COM activator the notification platform wrote into HKCU, which is what makes a toast able to activate the app at all. What no instrument here can see is the notification being drawn or a button being pressed: that needs UserNotificationListener, whose capability is only grantable to a packaged app, and this one is WindowsPackageType=None. DEF-082 carries it, and it is downstream of DEF-073 packaging rather than independent of it. The safety half of this requirement IS fully observed, and by a different means: it is structural in ToastPayloadCodec, whose parser admits a closed set of two actions and refuses everything else, so 'no toast action installs anything' is checkable without a display."
+    },
+    {
+      "id": "REQ-037",
+      "class": "behaviour",
+      "text": "The Windows client is distributed as an MSIX under the identity Fledgeling.MCPRouter, published by CN=Fledgeling, installable through winget. Uninstalling removes the client binaries and preserves the configuration and credentials under %USERPROFILE%\\.claude\\mcp-router unless explicitly purged.",
+      "source": "app/windows/MCPRouter.Shell.Model/Packaging/PackagingPresentation.cs (PackageIdentity, PublisherIdentity, UninstallGuidance, SmartScreenNotice); planning/features-to-triage/LEDGER.md WIN19",
+      "evidence": "observed",
+      "effect": "filesystem-write",
+      "provider": "app/windows/packaging/AppxManifest.xml; app/windows/packaging/winget/*.yaml; packed by MakeAppx.exe and deployed by Add-AppxPackage in scripts/windows/win19-package-witness.ps1",
+      "providerNote": "THE PACKAGE, THE INSTALL AND THE UNINSTALL ARE ALL OBSERVED; THE DISTRIBUTION IS NOT. Windows deployed the package and reported it, and removing it left the configuration in place - so the identity, the deployability and the uninstall rule are settled by the deployment stack rather than by anything this repository wrote. What is NOT settled is that anyone can obtain it: nothing publishes the artifact, the winget InstallerUrl is a deliberate placeholder, and DEF-083 carries that. The SmartScreen half is also unobserved and in the opposite direction from the claim - the lane self-signs, and the disclosure is about what an UNSIGNED build does on a machine that has never trusted the publisher."
     }
   ],
   "surface": [

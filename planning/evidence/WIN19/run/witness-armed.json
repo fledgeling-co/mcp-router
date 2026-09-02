@@ -1,0 +1,73 @@
+{
+  "lane": "win19-package-witness",
+  "rung": "effect-witness",
+  "subject": "app/windows/packaging (AppxManifest.xml, winget/*.yaml)",
+  "writers": [
+    "MakeAppx.exe pack",
+    "Add-AppxPackage",
+    "Remove-AppxPackage"
+  ],
+  "recorders": [
+    "System.IO.Compression.ZipArchive reading the packed OPC container - not MakeAppx",
+    "winget validate - the winget client, applying a schema this repository does not own",
+    "Get-AppxPackage - the Windows deployment stack reporting its own state"
+  ],
+  "recorderIsNotWriter": true,
+  "arming": true,
+  "verdict": "PASS (armed)",
+  "reason": "a manifest declaring Fledgeling.MCPRouter.WRONG packed cleanly, held a well-formed container, carried its payload and passed every other arm - and exactly PACK.identity broke. So that arm reads the identity OUT OF THE PACKED ARTIFACT and compares it with what the application states, rather than restating either. Nothing else in the toolchain notices this: a package under the wrong identity installs perfectly and is a different product.",
+  "arms": [
+    {
+      "id": "BASELINE",
+      "what": "no package on disk before this run",
+      "held": true,
+      "detail": "so what the arms below read is this build"
+    },
+    {
+      "id": "PACK.container",
+      "what": "the artifact is an OPC container holding a manifest",
+      "held": true,
+      "detail": "517 entries"
+    },
+    {
+      "id": "PACK.identity",
+      "what": "the packed identity is the one PackagingPresentation states",
+      "held": false,
+      "detail": "Name=Fledgeling.MCPRouter.WRONG Publisher=CN=Fledgeling"
+    },
+    {
+      "id": "PACK.capabilities",
+      "what": "exactly one capability is requested, and it is runFullTrust",
+      "held": true,
+      "detail": "1 capability element(s): runFullTrust. More than one is a decision about what the operator is asked to permit at install time, and it should not be made by an editor tidying a manifest."
+    },
+    {
+      "id": "PACK.payload",
+      "what": "the package actually carries the executable it names",
+      "held": true,
+      "detail": "MCPRouter.Shell.exe is inside the container (MakeAppx also refuses to pack without it)"
+    },
+    {
+      "id": "WINGET.validate",
+      "what": "the winget client accepts the manifest",
+      "held": true,
+      "detail": "Manifest validation succeeded."
+    },
+    {
+      "id": "WINGET.placeholder",
+      "what": "the installer URL is still an unmistakable placeholder",
+      "held": true,
+      "detail": "nothing publishes this package, so a plausible-looking URL would be a lie that validates"
+    }
+  ],
+  "armsHeld": 6,
+  "armsTotal": 7,
+  "notMeasured": [
+    "that `winget install Fledgeling.MCPRouter` works - nothing publishes the package anywhere, the InstallerUrl is a deliberate placeholder, and this lane asserts it is one (DEF-083)",
+    "that a code-signed release installs without a SmartScreen prompt - this lane self-signs, which is the opposite of the case the disclosure is about"
+  ],
+  "notes": [
+    "arming run: the install and uninstall arms are skipped. The planted package carries a DIFFERENT identity, so deploying it would register a Fledgeling.MCPRouter.WRONG package that this lane cleanup does not name - and a witness that leaves a stray package behind is the shape of side effect this one refuses to have."
+  ],
+  "host": "Z13"
+}

@@ -1,0 +1,25 @@
+# The installer manifest: what winget downloads and how it hands it to Windows.
+#
+# InstallerType msix, because the MSIX is the artifact this repository can actually produce and
+# witness - app/windows/packaging/AppxManifest.xml is packed by
+# scripts/windows/win19-package-witness.ps1 and read back out of the built package. The other two
+# members of DistributionChannel are NOT declared here: ZipPortable has no builder in this tree, and
+# declaring a channel with nothing behind it is what DEF-073 was about.
+#
+# THE URL AND THE HASH ARE PLACEHOLDERS AND THIS FILE SAYS SO. There is no release to point at:
+# nothing here publishes an artifact anywhere, and inventing a plausible github.com release URL
+# would produce a manifest that validates, reads as finished, and 404s for the first person who
+# runs `winget install`. The witness lane asserts that this placeholder is PRESENT rather than
+# resolving, so the manifest cannot be mistaken for a shipping one - and DEF-083 carries the
+# publishing step, which is an outward-facing action nobody has authorised.
+PackageIdentifier: Fledgeling.MCPRouter
+PackageVersion: 0.1.0
+MinimumOSVersion: 10.0.19041.0
+Installers:
+- Architecture: x64
+  InstallerType: msix
+  InstallerUrl: https://example.invalid/PLACEHOLDER-no-release-is-published/MCPRouter.Shell.msix
+  InstallerSha256: 0000000000000000000000000000000000000000000000000000000000000000
+  SignatureSha256: 0000000000000000000000000000000000000000000000000000000000000000
+ManifestType: installer
+ManifestVersion: 1.6.0

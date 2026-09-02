@@ -280,6 +280,42 @@ if (-not (Test-Path $win22Witness)) {
     }
 }
 
+# ---------------------------------------------------------------- WIN19's package
+# The heaviest row here and the only one that needs elevation, because it does the whole cycle:
+# packs an MSIX with MakeAppx, validates the winget manifest with the winget client, self-signs,
+# deploys with Add-AppxPackage, reads it back with Get-AppxPackage, removes it, and requires the
+# configuration UninstallGuidance promises to preserve to still be there. It puts the certificate
+# and the package back in a finally block however it ends.
+#
+# WHY IT IS ENROLLED RATHER THAN RECORDED, given what it mutates: the claim it settles - that this
+# manifest still packs, still validates and still deploys - is exactly the claim that rots without
+# anybody noticing. A packaging manifest is edited rarely and by people who cannot easily tell
+# whether their edit still deploys, and DEF-073 is what the alternative looked like.
+#
+# NOT elevated -> the lane reserves exit 3 and this is a NO VERDICT, never a pass: the install and
+# uninstall arms are the ones that need the certificate store, and they are the ones that carry it.
+Write-Host "`nWindows packaging (WIN19)" -ForegroundColor Cyan
+$win19Witness = Join-Path $root 'scripts/windows/win19-package-witness.ps1'
+if (-not (Test-Path $win19Witness)) {
+    Skip-Check 'msix package effect witness' 'scripts/windows/win19-package-witness.ps1 absent'
+} elseif ($null -eq $pwshExe) {
+    Skip-Check 'msix package effect witness' 'pwsh (PowerShell 7) is absent'
+} else {
+    Write-Host ("  {0,-44} " -f 'msix package effect witness') -NoNewline
+    & $pwshExe.Source -NoProfile -File $win19Witness 2>&1 | Out-Null
+    $w19 = $LASTEXITCODE
+    if ($w19 -eq 0) {
+        Write-Host "pass" -ForegroundColor Green
+        $passed.Add('msix package effect witness')
+    } elseif ($w19 -eq 3) {
+        Write-Host "NO VERDICT (exit 3) - it measured nothing" -ForegroundColor DarkYellow
+        $notrun.Add('msix package effect witness - the lane reserves exit 3 for "could not run"')
+    } else {
+        Write-Host ("FAIL (exit {0})" -f $w19) -ForegroundColor Red
+        $failed.Add('msix package effect witness')
+    }
+}
+
 # ---------------------------------------------------------------- the portable repo gates
 Write-Host "`nPortable gates" -ForegroundColor Cyan
 

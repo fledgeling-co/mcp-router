@@ -204,8 +204,66 @@ if (-not (Test-Path $uiaSelftest)) {
 }
 Skip-Check 'uia live lane (run-probe-lane.ps1)' 'needs WinSta0; run it directly and read planning/evidence/WIN20/run/lane.json'
 
+# The shell destination lane. It actuates all ten NavigationView destinations against the real
+# MCPRouter.Shell binary and reads the tree AFTER each actuation, so it needs a drawn window and
+# WinSta0 exactly as the probe lane does. Recorded rather than run, for the same reason: from
+# session 0 its "could not start the app" and its "every board opened" would be the same green.
+# It is named here because until now this file did not know the lane existed, and a verifier that
+# does not name a lane is a verifier nobody consults before deciding coverage.
+Skip-Check 'shell destination lane (run-shell-lane.ps1)' 'needs WinSta0; run it directly and read planning/evidence/WIN-SHELL/run/assert-report.json'
+
+# ---------------------------------------------------------------- WIN23's supervision effect
+# The one Windows lane here that mutates the machine, and it is enrolled rather than recorded
+# because it can run from any station and it cleans up after itself. It registers a scheduled task
+# under a name of its own - never the shipped one - drives it through the product's own supervisor,
+# reads the result back through Get-ScheduledTask (a different API from the schtasks.exe that wrote
+# it), and deletes it. WIN23 shipped a supervision "mode" that was a switch statement returning the
+# sentence describing itself; this is the check that would notice that shape returning.
+#
+# Graded by EXIT CODE and never by its prose, for the reason recorded in the WIN20 block above.
+Write-Host "`nWindows daemon supervision (WIN23)" -ForegroundColor Cyan
+$win23Witness = Join-Path $root 'scripts/windows/win23-logon-task-witness.ps1'
+$pwshExe = (Get-Command pwsh -ErrorAction SilentlyContinue)
+if (-not (Test-Path $win23Witness)) {
+    Skip-Check 'logon task effect witness' 'scripts/windows/win23-logon-task-witness.ps1 absent'
+} elseif ($null -eq $pwshExe) {
+    # NOT a pass. The lane loads the net8.0 assembly the product ships, which Windows PowerShell 5.1
+    # cannot do, so without pwsh there is no measurement rather than a clean one.
+    Skip-Check 'logon task effect witness' 'pwsh (PowerShell 7) is absent; the lane loads a net8.0 assembly'
+} else {
+    Write-Host ("  {0,-44} " -f 'logon task effect witness') -NoNewline
+    & $pwshExe.Source -NoProfile -File $win23Witness 2>&1 | Out-Null
+    $w23 = $LASTEXITCODE
+    if ($w23 -eq 0) {
+        Write-Host "pass" -ForegroundColor Green
+        $passed.Add('logon task effect witness')
+    } elseif ($w23 -eq 3) {
+        Write-Host "NO VERDICT (exit 3) - it measured nothing" -ForegroundColor DarkYellow
+        $notrun.Add('logon task effect witness - the lane reserves exit 3 for "could not run"')
+    } else {
+        Write-Host ("FAIL (exit {0})" -f $w23) -ForegroundColor Red
+        $failed.Add('logon task effect witness')
+    }
+}
+
 # ---------------------------------------------------------------- the portable repo gates
 Write-Host "`nPortable gates" -ForegroundColor Cyan
+
+# THE ONE ENVIRONMENT DECLARATION THIS LANE MAKES, and it is a budget rather than a behaviour.
+# planning/sweep-control-gate.py runs each declared control under SWEEP_CONTROL_TIMEOUT, defaulting
+# to 120s - the macOS measurement, and its own comment says so and says the variable exists because
+# the budget is a property of the machine. On this Windows clone it is not enough: bash process
+# spawn here costs almost all of the wall clock (measured 2026-09-02, nothing else running:
+# no-telemetry-egress-selftest.sh exit 0 in 161s, acceptance-lanes-selftest.sh exit 0 in 119s;
+# measured 2026-08-31 under eight fleet runners, 5m22s and 2m30s). BOTH CONTROLS HOLD. What the
+# 120s default produced was two findings reading 'its declared control does not pass', which is the
+# gate reporting the host's shell as a rotted control - a false finding, and the direction that
+# gets a gate switched off.
+#
+# 600 rather than unbounded: a control that genuinely hangs must still be caught, and the finding
+# text prints the budget it failed, so a run under this declaration cannot be mistaken for a run
+# under the default.
+$env:SWEEP_CONTROL_TIMEOUT = '600'
 #
 # ALL 24 python members of `make lint`, with the Makefile's own flags. The first version ran
 # EIGHT of them and named none of the rest. WIN18's verifier ran the other thirteen: eight would

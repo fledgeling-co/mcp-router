@@ -37,6 +37,9 @@ import sys
 import tempfile
 from pathlib import Path
 
+# scripts/windows/ps-parse-gate.py -> the repository root, derived rather than assumed.
+ROOT = Path(__file__).resolve().parents[2]
+
 # The target arrives through the environment, not as an argument. `powershell.exe -Command "..."`
 # does NOT bind trailing arguments to $args - it appends them to the command as further statements
 # - so a snippet reading $args[0] parses a null path and reports EVERY file as broken. The control
@@ -91,11 +94,52 @@ def inspect(path):
     return has_bom, non_ascii
 
 
+def shown(path):
+    """Print a corpus path relative to the root, so the output does not move with the caller."""
+    try:
+        return Path(path).resolve().relative_to(ROOT).as_posix()
+    except ValueError:
+        return str(path)
+
+
 def tracked_scripts():
-    run = subprocess.run(["git", "ls-files", "*.ps1"], capture_output=True, text=True)
+    """Every tracked .ps1, enumerated from the repo root rather than the caller's directory.
+
+    ANCHORED, and the anchor is the point. `git ls-files` lists the tracked files under the
+    working directory, so an unanchored call makes this gate's denominator a property of where
+    somebody stood when they ran it: from `scripts/windows/` it reports clean over six files and
+    from the root over eleven, and both print the same green. The subject here is the
+    repository's PowerShell, which does not change when the caller moves.
+
+    The filter's drops are RECORDED rather than silent. A path git tracks that is not a file on
+    disk is a staged deletion or a submodule pointer, and it is exactly the shape that would
+    shrink the denominator without shrinking the green - the gate would report clean over fewer
+    scripts and say nothing about the ones it stopped reading.
+    """
+    run = subprocess.run(["git", "-C", str(ROOT), "ls-files", "*.ps1"],
+                         capture_output=True, text=True)
     if run.returncode != 0:
         return None
-    return [Path(p) for p in run.stdout.split() if Path(p).is_file()]
+    # Every line git emitted is classed, and nothing is filtered away on the way in. A blank
+    # line and a tracked-but-missing path are different facts and both are counted, because the
+    # only cheap way for this corpus to shrink without anybody noticing is for a line to be
+    # dropped by a comprehension nobody reads.
+    listed, kept, blank, absent = 0, [], 0, []
+    for line in run.stdout.splitlines():
+        listed += 1
+        rel = line.strip()
+        if not rel:
+            blank += 1
+        elif (ROOT / rel).is_file():
+            kept.append(rel)
+        else:
+            absent.append(rel)
+    print("ps-parse-gate: corpus read %d line(s) from `git -C %s ls-files -- *.ps1`; "
+          "kept %d; dropped %d (blank %d, tracked but not a file on disk %d)"
+          % (listed, ROOT, len(kept), blank + len(absent), blank, len(absent)))
+    for rel in absent:
+        print("    not read (tracked but not a file on disk): %s" % rel)
+    return [ROOT / rel for rel in kept]
 
 
 def check(paths, shell, label="tracked"):
@@ -124,7 +168,7 @@ def report(findings):
         return 0
     print("             %d finding(s):" % len(findings))
     for path, kind, detail in findings:
-        print("  * %-9s %s" % (kind, path))
+        print("  * %-9s %s" % (kind, shown(path)))
         for line in detail.splitlines():
             print("               %s" % line)
     print("")

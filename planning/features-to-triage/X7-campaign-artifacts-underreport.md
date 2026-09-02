@@ -33,9 +33,18 @@ editing two existing defects left `evidence.html` byte-identical at 124,100.
 `by_surface.setdefault(c.get("surface", "—"), [])`, then emits
 `for s in inventory["surface"]: for c in by_surface.get(s["id"], [])`. `"—"` is not a
 surface id, so that bucket is never visited. The header says `80 cases`; the table carries
-72 rows. The eight absent are CASE-0145–0148 and CASE-0151–0154, all passing. The first
-four are the campaign's entire `effect-witness` rung, so a reader of `ledger.md` cannot
-learn the campaign has its most expensive evidence.
+72 rows. The eight absent are CASE-0145–0148 and CASE-0151–0154 as they were numbered
+when this was measured on 2026-08-21, all passing. The first four are the campaign's entire
+`effect-witness` rung, so a reader of `ledger.md` cannot learn the campaign has its most
+expensive evidence.
+
+THE SECOND FOUR HAVE MOVED, and the old numbers are kept above rather than overwritten
+because they are what the measurement was of. `3189d028` renumbered `CASE-0151..0161 ->
+CASE-0184..0194` when four runners allocated registry ids in parallel off the same `main`
+and the earliest claimant kept the number. So CASE-0151–0154 are **CASE-0184–0187** today,
+and a reader resolving this paragraph against the current `cases.json` should look there.
+Rewriting the sentence to the new ids would have made the citation resolve while quietly
+claiming the audit had read rows that did not exist under those names on the day it ran.
 
 **DEF-051 — a denominator built from captures rather than from enumeration.**
 `witness-worklist.py` reports 17 judgeable pairs; `capture-lineage.py --gate` reports

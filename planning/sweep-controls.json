@@ -1376,6 +1376,21 @@
       ],
       "since": "2026-08-28",
       "reason": "Registry control is `./scripts/worktree-preflight-selftest.sh` — same shebang-as-exe WinError 193. Additionally the selftest uses `mktemp -d -t g32-preflight`, which Git Bash's mktemp rejects (`cd: null directory`). Two Windows incompatibilities; waived rather than ported here."
+    },
+    {
+      "path": "scripts/windows/ps-parse-gate.py",
+      "disposition": "control",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "since": "2026-09-02",
+      "control": [
+        "python3",
+        "scripts/windows/ps-parse-gate.py",
+        "--control"
+      ],
+      "proves": "Four fixtures, and the gate's two checks must answer each one exactly - so a rule that fired on everything and a rule that fired on nothing both fail. ASCII with no BOM must stay silent, because most of the tree is that shape and a gate that reddened on it would be banning nothing in particular. Non-ASCII WITH a BOM must stay silent, or the gate is just banning non-ASCII rather than measuring the decoding rule it claims to. Non-ASCII with NO BOM, inside a double-quoted string, must fire PARSE and ONLY parse: this is the measured failure that cost this repository a scheduled-task run - Windows PowerShell 5.1 decodes a mark-less file as cp1252, an em dash's third byte 0x94 becomes a right curly quote, the string ends early and the rest of the file parses against the wrong grammar - and DECODING alongside it would be noise, because one cause owes one finding. THE FOURTH IS THE ONE THE DECODING CHECK EXISTS FOR: the same bytes in a COMMENT, where an early-terminated string harms nothing. It parses perfectly under 5.1 today, it is the exact shape several tracked scripts carry, and it breaks the moment somebody moves that character inside a string - an edit that will look like prose and read like a parser bug. Only the byte-level check can see it, so a fixture asserting DECODING and NOT parse is what stops the byte check being quietly reduced to a slower parse check. The control also caught a real defect in this gate's own harness on its first run: `powershell.exe -Command` does not bind trailing arguments to $args, so the snippet read a null path and reported ALL THREE fixtures - including the two healthy ones - as PARSE. A one-way control would have shown three findings and looked like a working gate."
     }
   ]
 }

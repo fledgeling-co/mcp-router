@@ -124,7 +124,7 @@ costs its slowest member — measured wall-clock ÷ slowest member was 1.05 at t
 | `BRIEF-R33-four-features-shipped-to-the-router-that-does-not-run` R33 — Four merged features shipped into the router that does not run | evidence-work | M | 7 min – 56 min | REQ-020 | unmeasured work defaults to M |
 | `BRIEF-R4-C1-installer-points-at-swift` R4-C1 — the installer points at Swift, and the TypeScript tree stays | product-work | M | 7 min – 56 min | DEF-033 | broken work defaults to M |
 | `BRIEF-X2-ios-on-glass` X2 — the iOS on-glass instrument, and the six cases it takes off `n/a` | product-work | M | 7 min – 56 min | CASE-0020, CASE-0120, DEF-001, DEF-013… | broken work defaults to M |
-| `BRIEF-X7-campaign-artifacts-underreport` X7 — the campaign's published artifacts under-report what the campaign | product-work | M | 7 min – 56 min | CASE-0145, CASE-0151, DEF-051, DEF-052… | broken work defaults to M |
+| `BRIEF-X7-campaign-artifacts-underreport` X7 — the campaign's published artifacts under-report what the campaign | product-work | M | 7 min – 56 min | CASE-0145, CASE-0151, CASE-0184, DEF-051… | broken work defaults to M |
 | `BRIEF-X8-detectors-misattribute` X8 — two campaign detectors report findings they cannot support | product-work | M | 7 min – 56 min | DEF-054, DEF-055, DEF-057, DEF-061… | broken work defaults to M |
 | `BRIEF-a-refusal-that-cannot-say-which-capability-it-refused` A too-large refusal names the file and the cap but never the capabilit | product-work | M | 7 min – 56 min | DEF-060 | broken work defaults to M |
 | `BRIEF-a-status-word-nobody-taught-the-gate-lands-pessimistic` A defect status nobody taught the gate is still classified by a guess | product-work | M | 7 min – 56 min | DEF-011, DEF-048 | broken work defaults to M |

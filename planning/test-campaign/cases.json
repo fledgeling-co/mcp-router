@@ -4066,7 +4066,31 @@
     "armedBy": "ARMED and watched red twice. Once by discovery — C5 recorded `(untokened.status → 200) == 401` against the PUT route, which is how the defect was found rather than reasoned about. Once deliberately, by restoring `case \"POST\", \"PUT\"` after the fix: C6 records the issue on the PUT argument alone and passes on HEAD, OPTIONS and TRACE, so the assertion is about the gate's set and not about the handler refusing everything."
   },
   {
-    "id": "CASE-0293",
+    "id": "CASE-0308",
+    "req": "REQ-035",
+    "lane": "router-daemon",
+    "oracle": "effect-witness",
+    "cell": "execution-plane=windows-host - data-shape=no task registered",
+    "status": "pass",
+    "armed": true,
+    "actuates": [
+      "LogonTaskSupervisor.Register",
+      "LogonTaskSupervisor.Unregister"
+    ],
+    "note": "The Windows task scheduler holding a task the product registered, read by an API that did not write it. The writer is MCPRouter.Shell.Live's LogonTaskSupervisor driving schtasks.exe with the Task Scheduler XML it builds; the recorder is Get-ScheduledTask, the ScheduledTasks module over the scheduler's WMI provider - a different API, a different process and a different vocabulary for the same facts. The XML says RunLevel LeastPrivilege and the recorder answers RunLevel Limited, and nothing in this repository translates between them. The scheduler also normalised the interval this run asked for, PT60S, into PT1M, which is the plainest available evidence that the read did not come back through anything this code wrote. EIGHT ARMS, AND TWO ARE ABOUT THE INSTRUMENT. BASELINE requires the recorder to report the task ABSENT before registration - without it, a task left behind by an interrupted run makes every other arm pass over a run that registered nothing. SILENCE requires it to report absence again after removal, which is what separates a reader from an echo: a recorder that always answered yes would satisfy the six product arms by construction. The other six read the three claims LifecyclePresentation prints to the operator - triggered at logon, un-elevated, restarting on failure - plus the executable and port this run asked for, plus presence and removal. WHAT IT DOES NOT SETTLE, and the reason it is one case rather than the whole of REQ-035: nothing here logs the user out, so the trigger has never been watched to fire, and nothing here starts or kills a daemon, so the restart has never been watched to happen. DEF-081 carries those two. This case settles that the registration the product performs produces, in the Windows task scheduler, a task carrying the properties the product's own UI describes - which before 2026-09-02 was unmeasured entirely, and which DEF-074 recorded as a supervision model nothing performed.",
+    "evidence": [
+      "planning/evidence/WIN23/run/witness.json",
+      "planning/evidence/WIN23/run/witness-armed.json"
+    ],
+    "armedNote": "`win23-logon-task-witness.ps1 -ProveRed` registers with RestartOnCrash false and requires EXACTLY EFFECT.restart to break. It did: RestartCount fell from 3 to 0, RestartInterval emptied, and all seven other arms held. Requiring exactly one arm to move is the half that matters - an arm that reddened on any change whatsoever would prove the lane noisy rather than watching. The planted defect is one the product can genuinely have (an operator turning supervision off) rather than a synthetic edit, so what the arming shows is that this lane would notice that setting being ignored.",
+    "witness": {
+      "recorder": "Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider), in a process that is not the writer and through an API that is not schtasks.exe",
+      "effect": "ipc",
+      "count": 1
+    }
+  },
+  {
+    "id": "CASE-0309",
     "req": "REQ-031",
     "surface": "SURF-034",
     "flow": null,
@@ -4096,7 +4120,7 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0294",
+    "id": "CASE-0310",
     "req": "REQ-031",
     "surface": "SURF-033",
     "flow": null,
@@ -4126,7 +4150,7 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0295",
+    "id": "CASE-0311",
     "req": "REQ-031",
     "surface": "SURF-031",
     "flow": null,
@@ -4156,7 +4180,7 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0296",
+    "id": "CASE-0312",
     "req": "REQ-031",
     "surface": "SURF-032",
     "flow": null,
@@ -4186,7 +4210,7 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0297",
+    "id": "CASE-0313",
     "req": "REQ-031",
     "surface": "SURF-039",
     "flow": null,
@@ -4216,7 +4240,7 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0298",
+    "id": "CASE-0314",
     "req": "REQ-031",
     "surface": "SURF-035",
     "flow": null,
@@ -4246,7 +4270,7 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0299",
+    "id": "CASE-0315",
     "req": "REQ-031",
     "surface": "SURF-036",
     "flow": null,
@@ -4276,7 +4300,7 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0300",
+    "id": "CASE-0316",
     "req": "REQ-031",
     "surface": "SURF-037",
     "flow": null,
@@ -4306,7 +4330,7 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0301",
+    "id": "CASE-0317",
     "req": "REQ-031",
     "surface": "SURF-040",
     "flow": null,
@@ -4336,7 +4360,7 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0302",
+    "id": "CASE-0318",
     "req": "REQ-031",
     "surface": "SURF-038",
     "flow": null,
@@ -4366,7 +4390,7 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0303",
+    "id": "CASE-0319",
     "req": "REQ-031",
     "surface": "SURF-030",
     "flow": null,
@@ -4394,7 +4418,7 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0304",
+    "id": "CASE-0320",
     "req": "REQ-031",
     "surface": "SURF-041",
     "flow": null,
@@ -4418,7 +4442,7 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0305",
+    "id": "CASE-0321",
     "req": "REQ-031",
     "surface": "SURF-042",
     "flow": null,
@@ -4442,7 +4466,7 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0306",
+    "id": "CASE-0322",
     "req": "REQ-031",
     "surface": "SURF-043",
     "flow": null,
@@ -4466,7 +4490,7 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0307",
+    "id": "CASE-0323",
     "req": "REQ-031",
     "surface": "SURF-044",
     "flow": null,

@@ -1,30 +1,39 @@
 ﻿
-2026-09-02T13:21:24.5614748Z shell binary: C:\Dev\mcp-router\.worktrees\wb2-automation-names\app\windows\MCPRouter.Shell\bin\Debug\net8.0-windows10.0.19041.0\win-x64\MCPRouter.Shell.exe (written 2026-09-02T13:21:20.2893111Z)
-2026-09-02T13:21:33.2530414Z   bound to the shell's own window: class 'WinUIDesktopWin32WindowClass', title 'Servers'
-2026-09-02T13:21:33.2604054Z shell pid 31700 is on the automation plane: 'Servers'
-2026-09-02T13:21:33.3443437Z catalogue: 10 destination(s) — discover, skills, servers, activity, harnesses, checks, cleanup, inbox, insights, settings
-2026-09-02T13:21:49.4182891Z   discover: PASS — title 'Discover', 905 element(s), fp F81FDF86D5B99815
-2026-09-02T13:21:51.5040833Z   skills: PASS — title 'Skills', 57 element(s), fp 0743C4CF46FC55AA
-2026-09-02T13:21:53.7875132Z   servers: PASS — title 'Servers', 84 element(s), fp AAE7AB453F79E828
-2026-09-02T13:21:56.5412806Z   activity: PASS — title 'Activity', 114 element(s), fp 7FC9D409D6716BEC
-2026-09-02T13:21:58.5988983Z   harnesses: PASS — title 'Harnesses', 70 element(s), fp AB9917EA6177D835
-2026-09-02T13:22:00.8456374Z   checks: PASS — title 'Checks', 70 element(s), fp 5A2EDC420621D497
-2026-09-02T13:22:03.2334002Z   cleanup: PASS — title 'Cleanup', 90 element(s), fp 755176E67F0A1EF6
-2026-09-02T13:22:05.4717929Z   inbox: PASS — title 'Inbox', 79 element(s), fp 26AC49C06AEFF87F
-2026-09-02T13:22:07.7228359Z   insights: PASS — title 'Insights', 74 element(s), fp 77AE189C8AB8673C
-2026-09-02T13:22:10.0324199Z   settings: PASS — title 'Settings', 82 element(s), fp 7772401EEC5AC436
-2026-09-02T13:22:10.1080373Z settings census expects 7 section(s) and 3 toggle(s), read out of SettingsPresentation.cs
-2026-09-02T13:22:10.8761113Z   control settings.sections: PASS - all 7 declared section(s) publish an addressable container: settings.section.router, settings.section.harnesses, settings.section.sessionanalyst, settings.section.updates, settings.section.security, settings.section.ambientsurface, settings.section.advanced
-2026-09-02T13:22:10.9051523Z   control settings.toggle.LaunchAtLogin: PASS - named 'Launch router daemon at sign-in', toggle state readable as 'On'
-2026-09-02T13:22:10.9270545Z   control settings.toggle.RequireConfirmationOnDestructive: PASS - named 'Require confirmation on destructive operations', toggle state readable as 'On'
-2026-09-02T13:22:10.9537618Z   control settings.toggle.ShowAmbientIcon: PASS - named 'Show status in notification area', toggle state readable as 'On'
-2026-09-02T13:22:11.0339267Z   control settings.effect: PASS - toggling 'Launch router daemon at sign-in' through the plane moved the board's state readout from 'LaunchAtLogin=on · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' to 'LaunchAtLogin=off · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' - an effect outside the control that was actuated.
-2026-09-02T13:22:14.9721387Z   control discover.rows.recent: PASS - 60 row(s) in 'discover.band.recent' each publish a distinct accessible name, none of them the type name, and a distinct automation id. First three: sap-mcp, 34,350 sessions on Smithery, added 13 Jul 2026, On Smithery | Framesail, 11,533 sessions on Smithery, added 9 Jul 2026, On Smithery | LMK.today MCP, 8,243 sessions on Smithery, added 6 Jul 2026, On Smithery
-2026-09-02T13:22:15.2578601Z   control discover.rows.used: PASS - 60 row(s) in 'discover.band.used' each publish a distinct accessible name, none of them the type name, and a distinct automation id. First three: pipeworx gateway, 419,019 sessions on Smithery, added 22 Apr 2026, On Smithery | Brave Search, 87,579 sessions on Smithery, added 5 Sep 2025, On Smithery, verified by Smithery | uk-due-diligence, 60,881 sessions on Smithery, added 29 Apr 2026, On Smithery
-2026-09-02T13:22:25.3645261Z   control discover.detail: PASS - opened from the row 'sap-mcp, 34,350 sessions on Smithery, added 13 Jul 2026, On Smithery'; all 8 checked control(s) are addressable by id and publish a name.
-2026-09-02T13:22:25.3900373Z   control shell.navigationPane: PASS - the navigation pane publishes the accessible name 'Destinations'.
-2026-09-02T13:22:25.5265150Z wrote C:\Dev\mcp-router\.worktrees\wb2-automation-names\planning\evidence\WIN-SHELL\run\assert-report.json
-2026-09-02T13:22:25.5285178Z destinations 10 · measured 10 · passed 10 · FAILED 0 · unoracled 0 · inconclusive 0
-2026-09-02T13:22:25.5295228Z controls checked 9 · FAILED 0
-2026-09-02T13:22:26.1792593Z shell pid 31700 stopped
-2026-09-02T13:22:26.7239239Z pass: 10 of 10 destination(s) were actuated through the automation plane and read back distinct, correctly-titled trees, out of process, without the target ever being foregrounded. 0 unreachable and 0 unactuable are reported, not counted as passes.
+2026-09-02T14:30:26.5930371Z shell binary: C:\Dev\mcp-router\app\windows\MCPRouter.Shell\bin\Debug\net8.0-windows10.0.19041.0\win-x64\MCPRouter.Shell.exe (written 2026-09-02T14:21:11.7265377Z)
+2026-09-02T14:30:26.9892612Z shell binary is current: none of 203 tracked source file(s) under app\windows is newer than it
+2026-09-02T14:30:28.4162266Z   bound to the shell's own window: class 'WinUIDesktopWin32WindowClass', title 'Servers'
+2026-09-02T14:30:28.4212254Z shell pid 27720 is on the automation plane: 'Servers'
+2026-09-02T14:30:28.4641786Z catalogue: 10 destination(s) — discover, skills, servers, activity, harnesses, checks, cleanup, inbox, insights, settings
+2026-09-02T14:30:36.2716781Z   discover: PASS — title 'Discover', 905 element(s), fp F81FDF86D5B99815
+2026-09-02T14:30:37.9170713Z   skills: PASS — title 'Skills', 57 element(s), fp 0743C4CF46FC55AA
+2026-09-02T14:30:39.6087740Z   servers: PASS — title 'Servers', 84 element(s), fp 8387AF8463C7244B
+2026-09-02T14:30:41.5702899Z   activity: PASS — title 'Activity', 114 element(s), fp 7FC9D409D6716BEC
+2026-09-02T14:30:43.2113480Z   harnesses: PASS — title 'Harnesses', 70 element(s), fp AB9917EA6177D835
+2026-09-02T14:30:44.9950974Z   checks: PASS — title 'Checks', 70 element(s), fp 5A2EDC420621D497
+2026-09-02T14:30:46.7260898Z   cleanup: PASS — title 'Cleanup', 90 element(s), fp 755176E67F0A1EF6
+2026-09-02T14:30:48.3802405Z   inbox: PASS — title 'Inbox', 79 element(s), fp 26AC49C06AEFF87F
+2026-09-02T14:30:50.6749672Z   insights: PASS — title 'Insights', 74 element(s), fp 77AE189C8AB8673C
+2026-09-02T14:30:52.7593243Z   settings: PASS — title 'Settings', 85 element(s), fp 7772401EEC5AC436
+2026-09-02T14:30:52.7874643Z settings census expects 7 section(s) and 3 toggle(s), read out of SettingsPresentation.cs
+2026-09-02T14:30:53.5541340Z   control settings.sections: PASS - all 7 declared section(s) publish an addressable container: settings.section.router, settings.section.harnesses, settings.section.sessionanalyst, settings.section.updates, settings.section.security, settings.section.ambientsurface, settings.section.advanced
+2026-09-02T14:30:53.5806866Z   control settings.toggle.LaunchAtLogin: PASS - named 'Launch router daemon at sign-in', toggle state readable as 'Off'
+2026-09-02T14:30:53.5999235Z   control settings.toggle.RequireConfirmationOnDestructive: PASS - named 'Require confirmation on destructive operations', toggle state readable as 'On'
+2026-09-02T14:30:53.6193123Z   control settings.toggle.ShowAmbientIcon: PASS - named 'Show status in notification area', toggle state readable as 'On'
+2026-09-02T14:30:53.8814592Z   control settings.effect: PASS - toggling 'Launch router daemon at sign-in' through the plane moved the board's state readout from 'LaunchAtLogin=off · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' to 'LaunchAtLogin=on · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' - an effect outside the control that was actuated.
+2026-09-02T14:30:56.9121856Z   control settings.launchAtLogin.baseline: PASS - Get-ScheduledTask reports no task at '\MCPRouter\WIN-SHELL Settings Witness (transient)' before the switch is driven, so the arms below measure THIS run's registration.
+2026-09-02T14:30:59.3389549Z   control settings.launchAtLogin.effect: PASS - driving the switch to On through the automation plane registered '\MCPRouter\WIN-SHELL Settings Witness (transient)' in the Windows task scheduler: state=Ready, logon trigger present, RunLevel=Limited (the recorder's word for the XML's LeastPrivilege), Execute=C:\Dev\mcp-router\app\windows\MCPRouter.Shell\win-shell-witness-daemon.exe. Read by an API that did not write it.
+2026-09-02T14:30:59.3465639Z   control settings.persistence.store: PASS - C:\Dev\mcp-router\planning\evidence\WIN-SHELL\run\shell-state\shell-settings.json holds LaunchAtLogin=true, read off the disk by this script. The file is the recorder; the shell is not asked what it saved.
+2026-09-02T14:30:59.3490679Z   closing the shell to measure whether the setting survives it
+2026-09-02T14:31:01.6635628Z   bound to the shell's own window: class 'WinUIDesktopWin32WindowClass', title 'Servers'
+2026-09-02T14:31:02.6431715Z   control settings.persistence: PASS - the shell was terminated and launched again as a new process, and the switch reads On in the new one. Closing the shell no longer forgets the setting.
+2026-09-02T14:31:04.0798955Z   control settings.copyEndpoint: PASS - the clipboard held this lane's sentinel before the button was invoked and holds 'http://127.0.0.1:8879' after, read out of a separate PowerShell process. It matches the endpoint the board displays at settings.state.endpoint.
+2026-09-02T14:31:06.4606654Z   control settings.launchAtLogin.silence: PASS - driving the switch back to Off removed '\MCPRouter\WIN-SHELL Settings Witness (transient)': Get-ScheduledTask reports absence again, so its yes above was a reading rather than an echo.
+2026-09-02T14:31:08.9606037Z   control discover.rows.recent: PASS - 60 row(s) in 'discover.band.recent' each publish a distinct accessible name, none of them the type name, and a distinct automation id. First three: sap-mcp, 34,350 sessions on Smithery, added 13 Jul 2026, On Smithery | Framesail, 11,533 sessions on Smithery, added 9 Jul 2026, On Smithery | LMK.today MCP, 8,243 sessions on Smithery, added 6 Jul 2026, On Smithery
+2026-09-02T14:31:09.1410934Z   control discover.rows.used: PASS - 60 row(s) in 'discover.band.used' each publish a distinct accessible name, none of them the type name, and a distinct automation id. First three: pipeworx gateway, 419,019 sessions on Smithery, added 22 Apr 2026, On Smithery | Brave Search, 87,579 sessions on Smithery, added 5 Sep 2025, On Smithery, verified by Smithery | uk-due-diligence, 60,881 sessions on Smithery, added 29 Apr 2026, On Smithery
+2026-09-02T14:31:15.1801567Z   control discover.detail: PASS - opened from the row 'sap-mcp, 34,350 sessions on Smithery, added 13 Jul 2026, On Smithery'; all 8 checked control(s) are addressable by id and publish a name.
+2026-09-02T14:31:15.2073710Z   control shell.navigationPane: PASS - the navigation pane publishes the accessible name 'Destinations'.
+2026-09-02T14:31:15.2396650Z wrote C:\Dev\mcp-router\planning\evidence\WIN-SHELL\run\assert-report.json
+2026-09-02T14:31:15.2412529Z destinations 10 · measured 10 · passed 10 · FAILED 0 · unoracled 0 · inconclusive 0
+2026-09-02T14:31:15.2428451Z controls checked 15 · FAILED 0
+2026-09-02T14:31:15.2667189Z shell pid 1288 stopped
+2026-09-02T14:31:15.2728621Z pass: 10 of 10 destination(s) were actuated through the automation plane and read back distinct, correctly-titled trees, out of process, without the target ever being foregrounded. 0 unreachable and 0 unactuable are reported, not counted as passes.

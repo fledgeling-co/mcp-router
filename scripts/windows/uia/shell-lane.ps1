@@ -123,6 +123,58 @@ if (-not (Test-Path $ExePath)) {
 }
 Say "shell binary: $ExePath (written $((Get-Item $ExePath).LastWriteTimeUtc.ToString('o')))"
 
+# ------------------------------------------------- 0. is this binary the tree it is being read against?
+# MEASURED 2026-09-03, and this lane fabricated twelve failures before the check existed. The
+# integration pass built the merged shell with `MSBuild -p:Platform=x64`, which writes
+# bin\x64\Debug\...; this lane reads bin\Debug\..., which nothing had written for twelve hours.
+# Every control both runners had added came back "unaddressable" - a coherent, specific, entirely
+# false report, indistinguishable from a real regression except by the exe's timestamp.
+#
+# That is BRIEF-a-stale-build-can-fabricate-a-failure-and-as-easily-a-pass, in this lane, on the
+# day it was scheduled. The 'as easily a pass' half is the reason this stops the run rather than
+# warning: a stale binary that still HAPPENS to satisfy every arm publishes a green about a build
+# nobody is shipping, and nothing downstream can tell that green from an earned one.
+#
+# NO VERDICT rather than FAIL. A stale build is not a defect in the product; it is the lane being
+# unable to speak about the product at all, and exit 3 is what this lane reserves for that.
+# The comparand is the newest of the product's OWN assemblies beside the exe, not the exe.
+# MCPRouter.Shell.exe is the apphost: an incremental build that changes only
+# MCPRouter.Shell.Model relinks that project's dll, copies it here, and leaves the apphost
+# untouched. Measured 2026-09-03: after a clean, successful build-shell.ps1 the exe still
+# carried a timestamp seven minutes older than the source, and a guard reading the exe alone
+# refused a tree that was in fact current. A guard that cries wolf gets switched off, which
+# ends in the same place as one that fails open.
+$builtFiles = @(Get-Item $ExePath) + @(Get-ChildItem -Path (Split-Path -Parent $ExePath) -Filter 'MCPRouter.*.dll' -File -ErrorAction SilentlyContinue)
+$exeWritten = ($builtFiles | Measure-Object -Property LastWriteTimeUtc -Maximum).Maximum
+$sourceRoot = Join-Path $repoRoot 'app\windows'
+# -notlike over two literal fragments rather than a regex, deliberately. The first version of this
+# guard used -notmatch with an escaped pattern, PowerShell rejected the pattern at runtime, the
+# exception left $newerSource empty, and the guard printed 'shell binary is current' over a source
+# file that was demonstrably newer. A broken filter returns nothing and nothing reads exactly like
+# 'no finding' - which is the failure this whole rung exists to prevent, reproduced inside the
+# check written to prevent it. The enumeration is now counted, and a count of zero FILES is itself
+# refused: this tree has hundreds, so zero means the walk failed rather than that nothing changed.
+$srcFiles = @(Get-ChildItem -Path $sourceRoot -Recurse -File -Include *.cs,*.xaml,*.csproj -ErrorAction SilentlyContinue |
+    Where-Object { ($_.FullName -notlike '*in\*') -and ($_.FullName -notlike '*\obj\*') })
+if ($srcFiles.Count -eq 0) {
+    Stop-Lane 3 ("NO VERDICT: the freshness walk over $sourceRoot found NO source files at all. " +
+        "That is the walk failing, not the tree being empty, and a guard that cannot see the source " +
+        "cannot say the binary is current.")
+}
+$newerSource = @($srcFiles | Where-Object { $_.LastWriteTimeUtc -gt $exeWritten } |
+    Sort-Object LastWriteTimeUtc -Descending)
+if ($newerSource.Count -gt 0) {
+    $lead = ($newerSource | Select-Object -First 3 | ForEach-Object { $_.FullName.Substring($repoRoot.Length + 1) }) -join ', '
+    Stop-Lane 3 ("NO VERDICT: the shell binary is OLDER than the source it would be read against - " +
+        "$($newerSource.Count) of $($srcFiles.Count) tracked file(s) under app\windows have changed " +
+        "since the newest of its $($builtFiles.Count) build output(s) was written " +
+        "($($exeWritten.ToString('o'))). Newest source: $lead. Run " +
+        "scripts/windows/build-shell.ps1 and try again. Note that MSBuild -p:Platform=x64 writes " +
+        "bin\x64\Debug while this lane reads bin\Debug, which is how a twelve-hour-old binary once " +
+        "produced twelve specific, coherent and entirely false failures here.")
+}
+Say ("shell binary is current: none of $($srcFiles.Count) tracked source file(s) under app\windows is newer than it")
+
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
 

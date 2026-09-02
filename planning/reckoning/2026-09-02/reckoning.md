@@ -1,14 +1,14 @@
 # Reckoning — mcp-router
 
-202 piece(s) of work remain — 57 product, 16 evidence, 129 decision — across 544 ledger rows. This reckoning speaks for 161/171 (94%) of the campaign's designed cases and 18/32 (56%) of its stated requirements; the rest is not known to be done, it is simply not known. 109 brief(s) could not be tied to the registry at all; they are listed as `unjoined` and counted as decision work, rather than assumed unbuilt.
+202 piece(s) of work remain — 57 product, 16 evidence, 129 decision — across 554 ledger rows. This reckoning speaks for 165/175 (94%) of the campaign's designed cases and 21/35 (60%) of its stated requirements; the rest is not known to be done, it is simply not known. 109 brief(s) could not be tied to the registry at all; they are listed as `unjoined` and counted as decision work, rather than assumed unbuilt.
 
 ## What it can speak for
 
 | Axis | Measured | Of | % | What the number means |
 |---|---:|---:|---:|---|
-| Cases adjudicated | 161 | 171 | 94.2% | an instrument returned a verdict on the product — pass or fail. A fail is knowledge; this is not a pass rate. |
-| Cases ruled out by decision | 9 | 171 | 5.3% | somebody ruled the cell out of scope or not applicable. A decision, not a measurement, and it is kept out of the line above on purpose. |
-| Requirements observed | 18 | 32 | 56.2% | somebody watched it happen, rather than the project reporting it of itself. |
+| Cases adjudicated | 165 | 175 | 94.3% | an instrument returned a verdict on the product — pass or fail. A fail is knowledge; this is not a pass rate. |
+| Cases ruled out by decision | 9 | 175 | 5.1% | somebody ruled the cell out of scope or not applicable. A decision, not a measurement, and it is kept out of the line above on purpose. |
+| Requirements observed | 21 | 35 | 60.0% | somebody watched it happen, rather than the project reporting it of itself. |
 | Surfaces spoken for | 38 | 44 | 86.4% | at least one case on this surface reached a verdict. |
 | Briefs joined to evidence | 52 | 224 | 23.2% | the brief could be tied to something in the registry at all. |
 
@@ -27,7 +27,7 @@ Two counts, because they answer different questions. **Rows** is every entity on
 | `unnamed` | 1 | 1 | decision-work | the campaign found it; no document claims it |
 | `undecided` | 19 | 19 | decision-work | the documents and the evidence disagree; needs a person |
 | `waived` | 0 | 77 | exception | somebody decided not to — an exception, and it stays visible |
-| `verified-done` | 0 | 253 | none | not remaining; kept so the denominator is honest |
+| `verified-done` | 0 | 263 | none | not remaining; kept so the denominator is honest |
 
 ## What unblocks the most
 
@@ -35,7 +35,7 @@ Blocked cases cluster: a handful of causes usually account for most of them. Res
 
 | Blocker | Cases it unblocks | Coverage returned | Cause |
 |---|---:|---:|---|
-| `BLOCK-0001` | 1 | +1/171 (+0.6 pts) | unoracled: the drawn badge on the app's own menu has no channel. SwiftUI does not publish an NSMenuItem's badge to the accessibility plane; AXSize is  |
+| `BLOCK-0001` | 1 | +1/175 (+0.6 pts) | unoracled: the drawn badge on the app's own menu has no channel. SwiftUI does not publish an NSMenuItem's badge to the accessibility plane; AXSize is  |
 
 ## The schedule
 
@@ -85,18 +85,18 @@ costs its slowest member — measured wall-clock ÷ slowest member was 1.05 at t
 | `DEF-043` the sidebar foot's loopback readout is absent from the build on every  | product-work | S | 3 min – 25 min | — | broken work defaults to M; wording suggests a contained change |
 | `BRIEF-G9-two-gates-pin-a-worktree-that-no-longer-exists` Two executable gates `cd` into a worktree that was deleted, and one is | product-work | L | 14 min – 68 min | DEF-253 | unbuilt work defaults to L |
 | `BRIEF-a-brief-that-names-nothing-cannot-be-retired` A brief that names nothing the registry holds can never leave the rema | product-work | L | 14 min – 68 min | DEF-253 | unbuilt work defaults to L |
-| `DEF-072` WIN22's Action Center toasts cannot fire: nothing in product source ra | product-work | L | 14 min – 68 min | — | broken work defaults to M; severity high |
-| `DEF-073` WIN19's packaging and distribution ships no package: no manifest of an | product-work | L | 14 min – 68 min | — | broken work defaults to M; severity high |
 | `DEF-079` The shell's unhandled-exception log never fires, including for a crash | product-work | L | 14 min – 68 min | — | broken work defaults to M; wording suggests it spans more than one surface |
+| `DEF-083` The winget manifest points at a placeholder URL because nothing publis | product-work | L | 14 min – 68 min | — | broken work defaults to M; wording suggests it spans more than one surface |
 | `BRIEF-R9-sdk-drops-upstream-message` R9 — the upstream's own words survive the SDK that drops them | evidence-work | M | 7 min – 56 min | DEF-047 | unmeasured work defaults to M |
 | `BRIEF-X1-ios-a11y-harness` X1 — the iOS accessibility-tree harness, and the two surfaces that wer | evidence-work | M | 7 min – 56 min | DEF-029 | unmeasured work defaults to M |
 | `BRIEF-eleven-surfaces-declare-controls-that-nothing-drives` Eleven surfaces declare their controls and no passing case drives one  | product-work | M | 7 min – 56 min | SURF-001, SURF-002, SURF-004 | broken work defaults to M |
 | `BRIEF-three-captures-name-a-route-they-were-not-pointed-at` Three captures name a route they were not pointed at, and one manifest | product-work | M | 7 min – 56 min | SURF-001, SURF-002, SURF-003, SURF-011… | broken work defaults to M |
 | `DEF-062` The Skills board's held-update sheet offers no decision — its only con | product-work | M | 7 min – 56 min | — | broken work defaults to M |
 | `DEF-070` GET /servers discloses every stdio upstream's full argv to an unauthen | product-work | M | 7 min – 56 min | — | broken work defaults to M |
-| `DEF-074` WIN23's logon-task supervision registers no task: the model describes  | product-work | M | 7 min – 56 min | — | broken work defaults to M |
 | `DEF-075` The Discover detail dialog is unaddressable from the automation plane: | product-work | M | 7 min – 56 min | — | broken work defaults to M |
 | `DEF-076` The Settings board declares one addressable control against a claim of | product-work | M | 7 min – 56 min | — | broken work defaults to M |
+| `DEF-081` WIN23's logon trigger has never been watched to fire, and the restart  | product-work | M | 7 min – 56 min | — | broken work defaults to M |
+| `DEF-082` No instrument on this host can see a toast in the Action Center, or a  | product-work | M | 7 min – 56 min | — | broken work defaults to M |
 | `REQ-002` The tool cache is keyed on each server's command/args/env identity and | evidence-work | M | 7 min – 56 min | — | unmeasured work defaults to M |
 | `REQ-004` The Servers board reflects live server states from ServerStateTracker  | evidence-work | M | 7 min – 56 min | — | unmeasured work defaults to M |
 | `REQ-005` When the tracker is stale or the router is not running, live counts go | evidence-work | M | 7 min – 56 min | — | unmeasured work defaults to M |
@@ -498,13 +498,13 @@ Not remaining work, and not done either. Each of these was ruled out by somebody
   - n/a: status item not pressable in background; SURF-009 popover uncaptured. Raster-visual of the popover is unreachable under the no-activate constraint
 - **CASE-0210** — SURF-002 · ?
   - n/a: the frame was refused. A live launch that is behind everything never finishes laying out, so screencapture returns an unpainted surface and bin/paint-check.py withholds it
-- **CASE-0304** — SURF-041 · ?
+- **CASE-0335** — SURF-041 · ?
   - n/a: not reachable from the shell's navigation, so the destination sweep never opens it. WIN11. Not a destination and not addressable by a route: it is raised from the notification area. Reaching it needs an actuation th
-- **CASE-0305** — SURF-042 · ?
+- **CASE-0336** — SURF-042 · ?
   - n/a: not reachable from the shell's navigation, so the destination sweep never opens it. WIN12. A ContentDialog reached from the Inbox board's `Pair iPhone…`. One literal control name; the pairing code and countdown are 
-- **CASE-0306** — SURF-043 · ?
+- **CASE-0337** — SURF-043 · ?
   - n/a: not reachable from the shell's navigation, so the destination sweep never opens it. WIN16. Reached from Skills, Discover or Inbox rather than from the shell's own navigation.
-- **CASE-0307** — SURF-044 · ?
+- **CASE-0338** — SURF-044 · ?
   - n/a: not reachable from the shell's navigation, so the destination sweep never opens it. WIN7's detail dialog. DiscoverDetailContent.xaml declares NO literal control name and no AutomationProperties.Name at all, so nothi
 - **BRIEF-D1-deferred-router** — D1 — The deferred register: router side
   - the brief declares status 'completed' — a decision, not a measurement. It stays on the ledger because the reason for it may stop being true.

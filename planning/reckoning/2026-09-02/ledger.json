@@ -5,12 +5,12 @@
  "campaign_present": true,
  "campaign_dir": "planning/test-campaign",
  "briefs_dir": "planning/features-to-triage",
- "headline": "202 piece(s) of work remain — 57 product, 16 evidence, 129 decision — across 544 ledger rows. This reckoning speaks for 161/171 (94%) of the campaign's designed cases and 18/32 (56%) of its stated requirements; the rest is not known to be done, it is simply not known. 109 brief(s) could not be tied to the registry at all; they are listed as `unjoined` and counted as decision work, rather than assumed unbuilt.",
+ "headline": "202 piece(s) of work remain — 57 product, 16 evidence, 129 decision — across 554 ledger rows. This reckoning speaks for 165/175 (94%) of the campaign's designed cases and 21/35 (60%) of its stated requirements; the rest is not known to be done, it is simply not known. 109 brief(s) could not be tied to the registry at all; they are listed as `unjoined` and counted as decision work, rather than assumed unbuilt.",
  "summary": {
   "counts": {
    "broken": 62,
    "waived": 77,
-   "verified-done": 253,
+   "verified-done": 263,
    "unmeasured": 21,
    "undecided": 19,
    "unnamed": 1,
@@ -31,25 +31,25 @@
    "decision-work": 129,
    "product-work": 57
   },
-  "rows": 544
+  "rows": 554
  },
  "denominators": {
   "cases_adjudicated": {
-   "n": 161,
-   "of": 171,
-   "pct": 94.2,
+   "n": 165,
+   "of": 175,
+   "pct": 94.3,
    "means": "an instrument returned a verdict on the product — pass or fail. A fail is knowledge; this is not a pass rate."
   },
   "decisions_taken": {
    "n": 9,
-   "of": 171,
-   "pct": 5.3,
+   "of": 175,
+   "pct": 5.1,
    "means": "somebody ruled the cell out of scope or not applicable. A decision, not a measurement, and it is kept out of the line above on purpose."
   },
   "requirements_observed": {
-   "n": 18,
-   "of": 32,
-   "pct": 56.2,
+   "n": 21,
+   "of": 35,
+   "pct": 60.0,
    "means": "somebody watched it happen, rather than the project reporting it of itself."
   },
   "surfaces_spoken_for": {
@@ -1140,7 +1140,7 @@
    "surfaces": [
     "SURF-001"
    ],
-   "total_cases": 171,
+   "total_cases": 175,
    "coverage_gain_pct": 0.6,
    "kind": "evidence-work",
    "estimate": {
@@ -1184,18 +1184,18 @@
      "DEF-043",
      "BRIEF-G9-two-gates-pin-a-worktree-that-no-longer-exists",
      "BRIEF-a-brief-that-names-nothing-cannot-be-retired",
-     "DEF-072",
-     "DEF-073",
      "DEF-079",
+     "DEF-083",
      "BRIEF-R9-sdk-drops-upstream-message",
      "BRIEF-X1-ios-a11y-harness",
      "BRIEF-eleven-surfaces-declare-controls-that-nothing-drives",
      "BRIEF-three-captures-name-a-route-they-were-not-pointed-at",
      "DEF-062",
      "DEF-070",
-     "DEF-074",
      "DEF-075",
      "DEF-076",
+     "DEF-081",
+     "DEF-082",
      "REQ-002",
      "REQ-004",
      "REQ-005",
@@ -1211,9 +1211,9 @@
     "n": 48,
     "slots": 8,
     "batches": 6,
-    "low_min": 199,
-    "high_min": 342,
-    "serial_min": 796,
+    "low_min": 197,
+    "high_min": 340,
+    "serial_min": 786,
     "bound_by": "observed-speedup-ceiling",
     "note": "costs its slowest member — measured wall-clock ÷ slowest member was 1.05 at the median and 1.8 at p90 across 253 real waves; with 48 item(s) the slowest-member figure would imply a speedup better than the 4.0x p90 ever measured here, so the low end is held to that instead; 48 members is above the observed concurrency ceiling of 8, where the slowest-member property degrades, so the upper bound is widened",
     "has_cycle": false
@@ -1709,9 +1709,9 @@
   ],
   "bookkeeping": [],
   "project": {
-   "low_min": 296,
-   "high_min": 607,
-   "serial_min": 1164,
+   "low_min": 294,
+   "high_min": 605,
+   "serial_min": 1154,
    "speedup": 3.9,
    "speedup_exceeds_measured": false,
    "basis": "wall-clock for 3 wave(s) at up to 8 concurrent agents, summed. The implied speedup over running the same work serially is 3.9x, within the 2.2x median / 4.0x p90 measured on this corpus."
@@ -4444,7 +4444,84 @@
    "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to its surface."
   },
   {
-   "id": "CASE-0293",
+   "id": "CASE-0308",
+   "entity": "case",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "? · ?",
+   "status": "pass",
+   "oracle": "effect-witness",
+   "armed": true,
+   "note": "The Windows task scheduler holding a task the product registered, read by an API that did not write it. The writer is MCPRouter.Shell.Live's LogonTaskSupervisor driving schtasks.exe with the Task Scheduler XML it builds; the recorder is Get-ScheduledTask, the ScheduledTasks module over the scheduler's WMI provider - a different API, a different process and a different vocabulary for the same facts. The XML says RunLevel LeastPrivilege and the recorder answers RunLevel Limited, and nothing in this repository translates between them. The scheduler also normalised the interval this run asked for, PT60S, into PT1M, which is the plainest available evidence that the read did not come back through anything this code wrote. EIGHT ARMS, AND TWO ARE ABOUT THE INSTRUMENT. BASELINE requires the recorder to report the task ABSENT before registration - without it, a task left behind by an interrupted run makes every other arm pass over a run that registered nothing. SILENCE requires it to report absence again after removal, which is what separates a reader from an echo: a recorder that always answered yes would satisfy the six product arms by construction. The other six read the three claims LifecyclePresentation prints to the operator - triggered at logon, un-elevated, restarting on failure - plus the executable and port this run asked for, plus presence and removal. WHAT IT DOES NOT SETTLE, and the reason it is one case rather than the whole of REQ-035: nothing here logs the user out, so the trigger has never been watched to fire, and nothing here starts or kills a daemon, so the restart has never been watched to happen. DEF-081 carries those two. This case settles that the registration the product performs produces, in the Windows task scheduler, a task carrying the properties the product's own UI describes - which before 2026-09-02 was unmeasured entirely, and which DEF-074 recorded as a supervision model nothing performed.",
+   "surface": null,
+   "lane": "router-daemon",
+   "is_work_item": false,
+   "remedy": null,
+   "rolls_up_to": [
+    "DEF-074",
+    "DEF-081"
+   ],
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-074, DEF-081."
+  },
+  {
+   "id": "CASE-0339",
+   "entity": "case",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "? · ?",
+   "status": "pass",
+   "oracle": "effect-witness",
+   "armed": true,
+   "note": "The COM activator the Windows notification platform wrote, read out of the registry by a process that did not write it. The writer is AppNotificationManager.Register() inside the shell; the recorder is HKCU through PowerShell's registry provider, and nothing of this repository's sits between them. Four arms. BASELINE requires the AUMID key to be ABSENT before the shell launches, so what the other three read is this launch. The three EFFECT arms read the key, the CustomActivator CLSID it names, and that CLSID's LocalServer32 - which came back as MCPRouter.Shell.exe carrying the platform's own ----AppNotificationActivated: argument, a string this repository does not write anywhere. THE ACTIVATOR IS THE ARM THAT CARRIES THE ITEM. A toast outlives the process that raised it; when somebody presses Review an hour later, Windows COM-activates the LocalServer32 registered for that CLSID. Without it the toast still appears and pressing it does nothing, which is the failure that looks most like success and exactly what a screenshot of a notification would have certified. WHAT THIS CASE DOES NOT SETTLE: that a toast is drawn, and that a press re-activates the app. Both need UserNotificationListener, whose capability is only grantable to a packaged application; DEF-082 carries them and is downstream of DEF-073. The shell's own report that the platform accepted a Show is carried in the evidence as writerSelfReport and is graded by nothing, because a process reporting its own effect is the shape of claim DEF-072 was about.",
+   "surface": null,
+   "lane": "windows-glass",
+   "is_work_item": false,
+   "remedy": null,
+   "rolls_up_to": [
+    "DEF-072",
+    "DEF-073",
+    "DEF-082"
+   ],
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-072, DEF-073, DEF-082."
+  },
+  {
+   "id": "CASE-0340",
+   "entity": "case",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "? · ?",
+   "status": "pass",
+   "oracle": "outcome",
+   "armed": false,
+   "note": "The toast's wire format, on both sides of the trip, checkable with no display. ToastPayloadCodecTests parses the XML the platform will parse - it is a toast, it carries the title and the 'Nothing has been installed' line, it offers exactly Review and Dismiss - and then drives every argument string in that document back through the reader a real click goes through, requiring Review to come back as OpenReviewSheet FOR THAT CAPABILITY. Without the capability travelling, the action is a navigation to a list and the operator has to go and find the item the toast was about. THE SAFETY RULE IS ASSERTED OF THE DOCUMENT RATHER THAN OF ITS OWN SENTENCE. WIN22 tested ToastSafetyRule by asserting the string contained its own words. Here every action's arguments must parse into a closed set of two, and six refusal rows require the reader to return null - not a default - for an empty string, a bare form with no scheme, another application's scheme, our scheme with no action, and an action outside the set. That last row is the one that matters: this process does not control what sits in the Action Center, and a reader that fell back to something that ACTS would be the defect the safety rule names arriving through the parser.",
+   "surface": null,
+   "lane": "windows-model",
+   "is_work_item": false,
+   "remedy": null,
+   "rolls_up_to": null,
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to its surface."
+  },
+  {
+   "id": "CASE-0341",
+   "entity": "case",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "? · ?",
+   "status": "pass",
+   "oracle": "effect-witness",
+   "armed": true,
+   "note": "A real MSIX, built, deployed and removed, with a recorder at each step that is not the thing that wrote it. MakeAppx packs and .NET's ZipArchive reads the OPC container back - so the identity assertion is made against the PACKED ARTIFACT rather than against the file on disk that was handed to the packer. `winget validate` is the winget client applying a schema this repository does not own. Add-AppxPackage deploys and Get-AppxPackage reports: Fledgeling.MCPRouter_0.1.0.0_x64__facmrsw33693e. THE INSTALL ARM IS WHAT TURNS A FILE INTO A PACKAGE. A manifest can pack cleanly, validate cleanly, and be refused at deployment for a capability, an architecture or a signature - and every static check in the world passes right up to that point. 'CLEAN UNINSTALL RULES' IS THE HALF WORTH READING TWICE. UninstallGuidance promises that uninstalling preserves %USERPROFILE%\\.claude\\mcp-router. That is a promise about what SURVIVES, and a promise about survival cannot be checked by any amount of reading - only by an uninstall that actually ran. The lane plants a marker, installs, removes, and requires both that the deployment stack reports the package gone and that the marker is still there. WHAT THE LANE PUTS BACK: a self-signed certificate is added to LocalMachine\\TrustedPeople so an unsigned developer package can deploy at all, and removed in a finally block however the run ends. Verified afterwards: zero Fledgeling.* packages, zero witness certificates. A lane that left a trusted publisher behind would have changed what this machine will install, silently and for every future run. NOT SETTLED: that anyone can obtain the package. Nothing publishes it, the winget InstallerUrl is a deliberate example.invalid placeholder, and this lane asserts the placeholder is PRESENT so the manifest cannot be mistaken for a shipping one. DEF-083 carries the publishing step, which needs a signing certificate and a pull request into a third-party repository.",
+   "surface": null,
+   "lane": "windows-glass",
+   "is_work_item": false,
+   "remedy": null,
+   "rolls_up_to": [
+    "DEF-083"
+   ],
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-083."
+  },
+  {
+   "id": "CASE-0324",
    "entity": "case",
    "class": "verified-done",
    "kind": "none",
@@ -4461,7 +4538,7 @@
    "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to its surface."
   },
   {
-   "id": "CASE-0294",
+   "id": "CASE-0325",
    "entity": "case",
    "class": "verified-done",
    "kind": "none",
@@ -4478,7 +4555,7 @@
    "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to its surface."
   },
   {
-   "id": "CASE-0295",
+   "id": "CASE-0326",
    "entity": "case",
    "class": "verified-done",
    "kind": "none",
@@ -4495,7 +4572,7 @@
    "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to its surface."
   },
   {
-   "id": "CASE-0296",
+   "id": "CASE-0327",
    "entity": "case",
    "class": "verified-done",
    "kind": "none",
@@ -4512,7 +4589,7 @@
    "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to its surface."
   },
   {
-   "id": "CASE-0297",
+   "id": "CASE-0328",
    "entity": "case",
    "class": "verified-done",
    "kind": "none",
@@ -4529,7 +4606,7 @@
    "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to its surface."
   },
   {
-   "id": "CASE-0298",
+   "id": "CASE-0329",
    "entity": "case",
    "class": "verified-done",
    "kind": "none",
@@ -4546,7 +4623,7 @@
    "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to its surface."
   },
   {
-   "id": "CASE-0299",
+   "id": "CASE-0330",
    "entity": "case",
    "class": "verified-done",
    "kind": "none",
@@ -4563,7 +4640,7 @@
    "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to its surface."
   },
   {
-   "id": "CASE-0300",
+   "id": "CASE-0331",
    "entity": "case",
    "class": "verified-done",
    "kind": "none",
@@ -4580,7 +4657,7 @@
    "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to its surface."
   },
   {
-   "id": "CASE-0301",
+   "id": "CASE-0332",
    "entity": "case",
    "class": "verified-done",
    "kind": "none",
@@ -4597,7 +4674,7 @@
    "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to its surface."
   },
   {
-   "id": "CASE-0302",
+   "id": "CASE-0333",
    "entity": "case",
    "class": "verified-done",
    "kind": "none",
@@ -4614,7 +4691,7 @@
    "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to its surface."
   },
   {
-   "id": "CASE-0303",
+   "id": "CASE-0334",
    "entity": "case",
    "class": "verified-done",
    "kind": "none",
@@ -4631,7 +4708,7 @@
    "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to its surface."
   },
   {
-   "id": "CASE-0304",
+   "id": "CASE-0335",
    "entity": "case",
    "class": "waived",
    "kind": "exception",
@@ -4648,7 +4725,7 @@
    "why": "a measurement, not a task: status 'n/a' may only be waived. It rolls up to its surface."
   },
   {
-   "id": "CASE-0305",
+   "id": "CASE-0336",
    "entity": "case",
    "class": "waived",
    "kind": "exception",
@@ -4665,7 +4742,7 @@
    "why": "a measurement, not a task: status 'n/a' may only be waived. It rolls up to its surface."
   },
   {
-   "id": "CASE-0306",
+   "id": "CASE-0337",
    "entity": "case",
    "class": "waived",
    "kind": "exception",
@@ -4682,7 +4759,7 @@
    "why": "a measurement, not a task: status 'n/a' may only be waived. It rolls up to its surface."
   },
   {
-   "id": "CASE-0307",
+   "id": "CASE-0338",
    "entity": "case",
    "class": "waived",
    "kind": "exception",
@@ -5404,17 +5481,17 @@
    "note": null,
    "provider": null,
    "backed_by": [
-    "CASE-0293",
-    "CASE-0294",
-    "CASE-0295",
-    "CASE-0296",
-    "CASE-0297",
-    "CASE-0298",
-    "CASE-0299",
-    "CASE-0300",
-    "CASE-0301",
-    "CASE-0302",
-    "CASE-0303"
+    "CASE-0324",
+    "CASE-0325",
+    "CASE-0326",
+    "CASE-0327",
+    "CASE-0328",
+    "CASE-0329",
+    "CASE-0330",
+    "CASE-0331",
+    "CASE-0332",
+    "CASE-0333",
+    "CASE-0334"
    ],
    "remedy": null,
    "is_work_item": false,
@@ -5430,6 +5507,61 @@
    "note": "R26. It inherits R27's rule (REQ-029) and meets it by not needing it: a health probe of a stdio upstream IS a child process, so R27 defaults background probing off and never lets a scheduled sweep cold-start. An expiry needs no probe at all, so this feature arms no task, holds no timer and spawns nothing — which is why it is ON by default where health probing is off. The vacuity rule is `warnWithinMs`'s floor of 60000 with zero REFUSED: at zero a token passes straight from valid to expired, `expiring` is unreachable, and the promise 'you are told before it stops working' would hold only because nothing can enter the state it names. R27's tripAfter floor of 2 is the same rule one item earlier. The `mobbin` lesson is carried into the notification rather than rediscovered: with a refresh token held, no command is offered, because telling its owner to re-authorise sends them round a loop that cannot succeed.",
    "provider": "app/Sources/RouterCore/AuthExpiry/AuthExpiryRecord.swift derives the state and app/Sources/RouterCore/AuthExpiry/AuthExpiryMonitor.swift holds the throttle; app/Sources/RouterCore/Control/ControlAuthExpiry.swift serves both routes on the loopback control listener bound by RouterService, which is the inbound socket this row names. Witnessed by scripts/acceptance/r26-auth-expiry.sh, which plants credential records on disk in a scratch home, drives the routes over the daemon's own socket, and PAIRS every zero-children reading with a reading that moves when the planted file moves — an absence asserted alone is satisfied by a feature that does nothing.",
    "backed_by": null,
+   "remedy": null,
+   "is_work_item": false,
+   "why": "requirement observed"
+  },
+  {
+   "id": "REQ-035",
+   "entity": "requirement",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "On Windows the router daemon is supervised by a Scheduled Task registered against the user's own logon: it starts in the interactive user session so it can reach local browser instances for OAuth and ",
+   "evidence": "observed",
+   "note": null,
+   "provider": "app/windows/MCPRouter.Shell.Live/Lifecycle/LogonTaskSupervisor.cs -> app/windows/MCPRouter.Shell.Live/Lifecycle/TaskSchedulerCli.cs -> schtasks.exe /Create /XML",
+   "backed_by": [
+    "CASE-0270",
+    "CASE-0271",
+    "CASE-0272",
+    "CASE-0273",
+    "CASE-0274",
+    "CASE-0275",
+    "CASE-0308"
+   ],
+   "remedy": null,
+   "is_work_item": false,
+   "why": "requirement observed"
+  },
+  {
+   "id": "REQ-036",
+   "entity": "requirement",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "A capability queued from a paired phone raises a Windows toast that names it and says nothing has been installed, offering Review and Dismiss. Review opens the review sheet for that capability. No toa",
+   "evidence": "observed",
+   "note": null,
+   "provider": "app/windows/MCPRouter.Shell/Notifications/ToastNotifier.cs -> AppNotificationManager.Register()/Show(); app/windows/MCPRouter.Shell.Model/Notifications/ToastPayloadCodec.cs; app/windows/MCPRouter.Shell/App.xaml.cs OnToastInvoked -> ShellWindow.SelectDestination(DestinationCatalog.InboxId)",
+   "backed_by": [
+    "CASE-0339",
+    "CASE-0340"
+   ],
+   "remedy": null,
+   "is_work_item": false,
+   "why": "requirement observed"
+  },
+  {
+   "id": "REQ-037",
+   "entity": "requirement",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "The Windows client is distributed as an MSIX under the identity Fledgeling.MCPRouter, published by CN=Fledgeling, installable through winget. Uninstalling removes the client binaries and preserves the",
+   "evidence": "observed",
+   "note": null,
+   "provider": "app/windows/packaging/AppxManifest.xml; app/windows/packaging/winget/*.yaml; packed by MakeAppx.exe and deployed by Add-AppxPackage in scripts/windows/win19-package-witness.ps1",
+   "backed_by": [
+    "CASE-0341"
+   ],
    "remedy": null,
    "is_work_item": false,
    "why": "requirement observed"
@@ -6474,65 +6606,41 @@
   {
    "id": "DEF-072",
    "entity": "defect",
-   "class": "broken",
-   "kind": "product-work",
+   "class": "verified-done",
+   "kind": "none",
    "title": "WIN22's Action Center toasts cannot fire: nothing in product source raises a notification",
    "severity": "high",
-   "status": "open",
+   "status": "fixed",
    "surface": null,
    "note": "`ToastNotificationManager` has 0 hits in product source. `AppNotification` has 0 - all 26 raw hits are under obj/ and bin/, generated Windows App SDK projection code. The only real `ToastNotification` hits are WIN22's own two files, where it is the type name of a plain record. The item ships NotificationModels.cs (17 lines), NotificationPresentation.cs (22) and a unit test (23), with no XAML and n",
-   "is_work_item": true,
-   "why": "a defect is a measured negative result — the unit of product work behind every failing case that cites it",
-   "estimate": {
-    "tier": "L",
-    "low_min": 14,
-    "median_min": 25,
-    "high_min": 68,
-    "basis": "broken work defaults to M; severity high",
-    "shape": "eight to nineteen files, or crosses a seam"
-   }
+   "is_work_item": false,
+   "why": "the registry records this defect as 'fixed'. That is the same registry, speaking about the same run, as the `pass` that retires a case."
   },
   {
    "id": "DEF-073",
    "entity": "defect",
-   "class": "broken",
-   "kind": "product-work",
+   "class": "verified-done",
+   "kind": "none",
    "title": "WIN19's packaging and distribution ships no package: no manifest of any kind exists",
    "severity": "high",
-   "status": "open",
+   "status": "fixed",
    "surface": null,
    "note": "A repository-wide search for `*.appxmanifest`, `Package.appxmanifest`, any winget manifest and any `*.wxs` returns nothing. The only winget/MSIX strings anywhere are WIN19's own PackagingModels.cs, PackagingPresentation.cs and their test - and their copies inside .worktrees/. The item is 3 source files totalling 67 added lines, with no XAML and no view.",
-   "is_work_item": true,
-   "why": "a defect is a measured negative result — the unit of product work behind every failing case that cites it",
-   "estimate": {
-    "tier": "L",
-    "low_min": 14,
-    "median_min": 25,
-    "high_min": 68,
-    "basis": "broken work defaults to M; severity high",
-    "shape": "eight to nineteen files, or crosses a seam"
-   }
+   "is_work_item": false,
+   "why": "the registry records this defect as 'fixed'. That is the same registry, speaking about the same run, as the `pass` that retires a case."
   },
   {
    "id": "DEF-074",
    "entity": "defect",
-   "class": "broken",
-   "kind": "product-work",
+   "class": "verified-done",
+   "kind": "none",
    "title": "WIN23's logon-task supervision registers no task: the model describes a mechanism nothing performs",
    "severity": "medium",
-   "status": "open",
+   "status": "fixed",
    "surface": null,
    "note": "`TaskService`, `schtasks`, `ServiceBase` and `StartupTask` appear in exactly two files, scripts/windows/run-shell-selftest.ps1 and scripts/windows/uia/run-probe-lane.ps1 - both WIN18/WIN20 harness scripts, neither WIN23's. LifecyclePresentation.cs maps DaemonSupervisionKind.LogonTask to the string `Scheduled Task at user logon (restarts on crash, un-elevated)`. Its test asserts that this function ",
-   "is_work_item": true,
-   "why": "a defect is a measured negative result — the unit of product work behind every failing case that cites it",
-   "estimate": {
-    "tier": "M",
-    "low_min": 7,
-    "median_min": 15,
-    "high_min": 56,
-    "basis": "broken work defaults to M",
-    "shape": "three to seven files, one subsystem"
-   }
+   "is_work_item": false,
+   "why": "the registry records this defect as 'fixed'. That is the same registry, speaking about the same run, as the `pass` that retires a case."
   },
   {
    "id": "DEF-075",
@@ -6612,6 +6720,69 @@
    "status": "open",
    "surface": null,
    "note": "App.xaml.cs registers `UnhandledException += (_, e) => StartupLog.Write($\"unhandled: {e.Message}\n{e.Exception}\")`, whose comment says it is \"the only trace a session that cannot see the desktop will ever have\". shell-startup.log holds 16 launches across 2026-09-02 and not one `unhandled:` line - including the eight runs in which selecting Skills terminated the process with exception code 0xC000027",
+   "is_work_item": true,
+   "why": "a defect is a measured negative result — the unit of product work behind every failing case that cites it",
+   "estimate": {
+    "tier": "L",
+    "low_min": 14,
+    "median_min": 25,
+    "high_min": 68,
+    "basis": "broken work defaults to M; wording suggests it spans more than one surface",
+    "shape": "eight to nineteen files, or crosses a seam"
+   }
+  },
+  {
+   "id": "DEF-081",
+   "entity": "defect",
+   "class": "broken",
+   "kind": "product-work",
+   "title": "WIN23's logon trigger has never been watched to fire, and the restart has never been watched to happen",
+   "severity": "low",
+   "status": "open",
+   "surface": null,
+   "note": "scripts/windows/win23-logon-task-witness.ps1 measures the REGISTRATION and says so in its own notMeasured[]: it does not log the user out and it does not start or kill a daemon. So the two behaviours the operator is actually promised - that the daemon comes up at logon, and that a crashed one comes back - rest on the Windows task scheduler honouring a LogonTrigger and a RestartOnFailure block that",
+   "is_work_item": true,
+   "why": "a defect is a measured negative result — the unit of product work behind every failing case that cites it",
+   "estimate": {
+    "tier": "M",
+    "low_min": 7,
+    "median_min": 15,
+    "high_min": 56,
+    "basis": "broken work defaults to M",
+    "shape": "three to seven files, one subsystem"
+   }
+  },
+  {
+   "id": "DEF-082",
+   "entity": "defect",
+   "class": "broken",
+   "kind": "product-work",
+   "title": "No instrument on this host can see a toast in the Action Center, or a click on one",
+   "severity": "low",
+   "status": "open",
+   "surface": null,
+   "note": "scripts/windows/win22-toast-witness.ps1 witnesses the REGISTRATION and says so in its own notMeasured[]. Enumerating what is in the Action Center requires Windows.UI.Notifications.Management.UserNotificationListener, whose userNotificationListener capability is only grantable to a packaged application; MCPRouter.Shell.csproj is WindowsPackageType=None. Nothing here can press a notification button ",
+   "is_work_item": true,
+   "why": "a defect is a measured negative result — the unit of product work behind every failing case that cites it",
+   "estimate": {
+    "tier": "M",
+    "low_min": 7,
+    "median_min": 15,
+    "high_min": 56,
+    "basis": "broken work defaults to M",
+    "shape": "three to seven files, one subsystem"
+   }
+  },
+  {
+   "id": "DEF-083",
+   "entity": "defect",
+   "class": "broken",
+   "kind": "product-work",
+   "title": "The winget manifest points at a placeholder URL because nothing publishes the package",
+   "severity": "low",
+   "status": "open",
+   "surface": null,
+   "note": "app/windows/packaging/winget/Fledgeling.MCPRouter.installer.yaml carries InstallerUrl: https://example.invalid/PLACEHOLDER-no-release-is-published/... with zeroed InstallerSha256 and SignatureSha256. scripts/windows/win19-package-witness.ps1 asserts the placeholder is PRESENT rather than that the URL resolves. No release pipeline exists in this repository: nothing builds a signed package, uploads ",
    "is_work_item": true,
    "why": "a defect is a measured negative result — the unit of product work behind every failing case that cites it",
    "estimate": {
@@ -11332,9 +11503,9 @@
      "score": 0.084
     },
     {
-     "target": "REQ-016",
+     "target": "REQ-036",
      "kind": "requirement",
-     "score": 0.077
+     "score": 0.08
     }
    ],
    "id_scan": {
@@ -11912,14 +12083,14 @@
      "score": 0.079
     },
     {
+     "target": "REQ-036",
+     "kind": "requirement",
+     "score": 0.078
+    },
+    {
      "target": "REQ-034",
      "kind": "requirement",
      "score": 0.073
-    },
-    {
-     "target": "DEF-078",
-     "kind": "defect",
-     "score": 0.07
     }
    ],
    "id_scan": {
@@ -15656,6 +15827,11 @@
    "edges": [],
    "near_misses": [
     {
+     "target": "REQ-035",
+     "kind": "requirement",
+     "score": 0.044
+    },
+    {
      "target": "REQ-034",
      "kind": "requirement",
      "score": 0.041
@@ -15664,11 +15840,6 @@
      "target": "REQ-030",
      "kind": "requirement",
      "score": 0.04
-    },
-    {
-     "target": "REQ-021",
-     "kind": "requirement",
-     "score": 0.039
     }
    ],
    "id_scan": {
@@ -15746,6 +15917,11 @@
    "edges": [],
    "near_misses": [
     {
+     "target": "REQ-035",
+     "kind": "requirement",
+     "score": 0.051
+    },
+    {
      "target": "DEF-041",
      "kind": "defect",
      "score": 0.048
@@ -15754,11 +15930,6 @@
      "target": "REQ-015",
      "kind": "requirement",
      "score": 0.047
-    },
-    {
-     "target": "DEF-048",
-     "kind": "defect",
-     "score": 0.045
     }
    ],
    "id_scan": {
@@ -15891,9 +16062,9 @@
      "score": 0.042
     },
     {
-     "target": "SURF-009",
-     "kind": "surface",
-     "score": 0.037
+     "target": "REQ-035",
+     "kind": "requirement",
+     "score": 0.04
     }
    ],
    "id_scan": {

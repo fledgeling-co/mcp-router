@@ -3692,3 +3692,91 @@ by a board that had not been built. Three destinations went FAIL → PASS on the
 better error state. The lane now keys on the card's own automation id, and a mutation run that
 renames `SubtleButtonStyle` turns exactly those three red again — which is what proves the new
 check, and not the old ones, is what catches them.
+
+---
+
+## 2026-09-02 · WIN19, WIN22 and WIN23 built for real
+
+The tailings audit found three items whose ledger rows described mechanisms that did not exist.
+Each is now implemented, and each carries an effect-witness lane whose recorder is a Windows
+subsystem rather than the product's own report. **All three witnesses are armed**, and one of the
+arming runs failed in a way worth more than its pass.
+
+| item | was | is | witness | armed by |
+|---|---|---|---|---|
+| **WIN23** DEF-074 | a switch returning `"Scheduled Task at user logon (restarts on crash, un-elevated)"`, tested by asserting the string contained a substring of itself | `LogonTaskSupervisor` builds Task Scheduler XML and drives `schtasks.exe` | `Get-ScheduledTask`, the WMI provider — 8 arms | registering with `RestartOnCrash:false`; exactly `EFFECT.restart` broke |
+| **WIN22** DEF-072 | a payload record and a builder; `AppNotificationManager` at 0 hits in product source | explicit AUMID + `Register()` + a handler routing `Review` to the Inbox | HKCU, read by the registry provider — 4 arms | pointing every read at an AUMID nothing registers; all three EFFECT arms broke |
+| **WIN19** DEF-073 | no `*.appxmanifest`, no winget manifest, no `*.wxs` anywhere | a real MSIX manifest, three winget YAMLs, packed → signed → deployed → removed | `ZipArchive` + `winget validate` + `Get-AppxPackage` — 12 arms | a manifest declaring `Fledgeling.MCPRouter.WRONG`; exactly `PACK.identity` broke |
+
+**The recorder is never the writer, and that is the only reason these mean anything.** The clearest
+proof is accidental: WIN23's lane asked for `PT60S` and the scheduler answered `PT1M`. Nothing in
+this repository normalises that, so the read demonstrably did not come back through anything we
+wrote. WIN22's LocalServer32 carries `----AppNotificationActivated:`, a string we never write.
+
+**Two arms in every lane are about the instrument rather than the product.** A BASELINE arm requires
+the recorder to report absence *before* the effect, without which a leftover task, registration or
+package makes every other arm pass over a run that did nothing. A SILENCE arm requires it to report
+absence again afterwards — which is what separates a reader from an echo, because a recorder that
+always answered yes would satisfy the product arms by construction.
+
+**The arming run that failed usefully.** WIN19's first planted defect removed the executable from the
+layout, expecting `PACK.payload` to break on the reasoning that MakeAppx would happily pack a
+manifest naming a file the layout did not carry. It will not — it validates payload presence and
+exits 1. So that arm cannot be armed by removal and is *defended by the packer as well*, which makes
+it cheap redundancy rather than the load-bearing check it was written as. The load-bearing one is the
+identity cross-check, and re-aiming the arm there found that a package under the wrong identity packs,
+validates and installs perfectly. The lane's header records the failed attempt rather than only the
+arm that worked.
+
+**What each lane deliberately does not settle**, filed rather than folded into the fix — because
+folding a narrower measurement into a wider claim is exactly what DEF-072/073/074 were:
+
+- **DEF-081** — WIN23's trigger has never been watched to *fire*, and the restart never watched to
+  *happen*. Nothing here logs the user out or kills a daemon.
+- **DEF-082** — no instrument on this host can see a toast in the Action Center or a click on one.
+  `UserNotificationListener` needs a capability only a *packaged* app can hold, so this is downstream
+  of DEF-073 rather than independent of it.
+- **DEF-083** — nothing publishes the package. The winget `InstallerUrl` is a deliberate
+  `example.invalid` placeholder and the lane asserts it *is* one, because a plausible GitHub release
+  URL would validate, read as finished, and 404 for the first person who ran `winget install`.
+  Publishing needs a signing certificate this repository does not hold and a PR into a third-party
+  repository: the owner's call, not this fleet's.
+
+**What the WIN19 lane mutates, and puts back.** A self-signed certificate in
+`LocalMachine\TrustedPeople`, so an unsigned developer package can deploy at all. It is removed in a
+`finally` block however the run ends, with the package. Verified after: zero `Fledgeling.*` packages,
+zero witness certificates. A lane that left a trusted publisher behind would have changed what this
+machine installs — silently, and for every future run.
+
+All three witnesses are enrolled as graded rows in `scripts/windows/verify.ps1`, so they run rather
+than waiting to be remembered. The shell destination lane is named there too; until now that file did
+not know it existed.
+
+### Five gate failures cleared, all of them this session's own debris
+
+Worth listing because four of the five were introduced by the instruments written to *find* the
+defects above, which is the ordinary way a verification pass pays for itself twice.
+
+- **`ps-parse-gate.py` enumerated from the caller's directory.** Its denominator was 6 files from
+  `scripts/windows/` and 9 from the root, and both printed the same green. Anchored to the root, and
+  every dropped line now counted and named rather than filtered away in a comprehension.
+- **`instrument-census.tsv` had not moved** for two new instruments. Rewritten.
+- **The `ai/p4` landing carried no `carriers.tsv` row.** R26 auth expiry is swift-only; the row now
+  says so, and says plainly that the Swift half was not re-verified here.
+- **`CASE-0151` named no row.** `3189d028` renumbered `CASE-0151..0161 → CASE-0184..0194`, and brief
+  X7 cites the old numbers *because that is what it measured on 2026-08-21*. The whole block is
+  declared in `registry-retirements.json` rather than the sentence being rewritten — rewriting would
+  have made the citation resolve while claiming the audit read rows that did not exist under those
+  names on the day it ran.
+- **`sweep-control-gate` reported two controls as failing** when both hold and merely exceed a 120s
+  budget measured on macOS. `verify.ps1` now declares `SWEEP_CONTROL_TIMEOUT=600`, with today's
+  measurements in the comment: 161s and 119s with nothing else running, and bash process spawn is
+  almost all of it.
+
+**And one defect found in an instrument I wrote earlier this session.** `win-cases-from-lane.py`
+allocated case ids from `max(hand-written) + 1`, so the generated block sat immediately above the
+highest hand-written id and *every* generated id slid up by one whenever a case was added by hand.
+Two cases authored here against `CASE-0309`/`CASE-0310` were silently taken over by the Discover and
+Skills rows. Ids are now allocated once per subject and remembered on a `generatedKey`, above every
+id in the file. It was reproducing, every run, the exact defect `3189d028` left behind as a dangling
+`CASE-0151` — which the same session had just spent an hour declaring retirements for.

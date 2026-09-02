@@ -1,8 +1,8 @@
 ---
 status: to-triage
 found-by: `campaign.py check` (test-campaign 0.14.1, full scope), 2026-08-29
+reckon-sources: [REQ-016]
 ---
-
 # An effect class the census cannot name reads as no effect at all
 
 - origin: test-campaign 0.14.1 run against `planning/test-campaign`, full scope · 2026-08-29

@@ -1,3 +1,7 @@
+---
+reckon-sources: [DEF-002, REQ-014, REQ-021, SURF-021]
+---
+
 # P7 — `control-auth-post-http` needs a real OAuth client
 
 **Category:** router · parity **Parent:** D-p1-a (triage verified by P5, not inherited)

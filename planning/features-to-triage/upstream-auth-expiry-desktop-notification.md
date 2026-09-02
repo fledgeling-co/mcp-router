@@ -1,3 +1,7 @@
+---
+reckon-sources: [REQ-034]
+---
+
 # Proactive Desktop Notification for Upstream Authentication Expiry
 
 - origin: test-campaign and reckoning ideation · 2026-08-25

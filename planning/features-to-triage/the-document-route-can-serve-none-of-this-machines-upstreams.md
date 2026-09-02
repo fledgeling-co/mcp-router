@@ -1,3 +1,7 @@
+---
+reckon-sources: [REQ-026, SURF-027, CASE-0179]
+---
+
 # The document route can serve none of this machine's twenty-one upstreams
 
 **Raised by:** M30's gap-fix, 2026-08-27, from a measurement rather than a design idea.

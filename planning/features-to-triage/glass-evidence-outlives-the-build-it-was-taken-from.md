@@ -1,8 +1,8 @@
 ---
 status: in-progress
 found-by: reckon 1.7.0, 2026-08-29
+checked-2026-09-03-wc1: the work IS on main - e5e5f59d, merged at df40b0aa; `planning/test-campaign/bin/glass-build-gate.py` exists and its selftest runs in `make lint`. It stays in-progress CORRECTLY: CASE-0353 - does every committed piece of macos-glass evidence name the build it was taken from - is `fail`, because the gate is red over all 56 artifacts on the tree it shipped on and the finding is true. The instrument landed; the condition it measures has not been fixed. A terminal word here would be R6's exact failure.
 ---
-
 # Committed glass evidence outlives the build it was taken from, and nothing goes red when it does
 
 - origin: reckon 1.7.0, `DEF-058` and `DEF-059` with `CASE-0001`, `CASE-0016`, `CASE-0101`,

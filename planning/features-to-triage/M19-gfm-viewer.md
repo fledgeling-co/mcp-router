@@ -1,3 +1,7 @@
+---
+reckon-sources: [REQ-027, SURF-028, CASE-0292]
+---
+
 # M19 — the in-app GitHub-flavoured Markdown viewer
 
 **Depends on:** M4. **Delivers:** PRD §7.2.

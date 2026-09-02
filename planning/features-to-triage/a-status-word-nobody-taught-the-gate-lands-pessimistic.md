@@ -3,8 +3,8 @@ status: in-progress
 delivered-on: ai/wa4-registry-vocabulary
 reckon-sources: [REQ-040, CASE-0355, CASE-0356, DEF-011, DEF-048]
 found-by: reckon 1.7.0, 2026-08-29
+checked-2026-09-03-wc1: the work IS on main - cae59b10, merged at 8828d0ee, `defect-status-vocabulary-gate.py` in `make lint` and exit 0 here. It stays in-progress for two separate reasons and neither is an oversight. (1) NO LEDGER ROW NAMES THIS BRIEF, so `shipped-brief-gate.py` has no witness to read and the merge is invisible to it - R5 cannot report it either. (2) Even with a row, R6 would refuse a terminal word: the brief cites DEF-011, which is `partially-fixed`, and reckon reads a declared status ahead of the evidence. Writing `completed` here would take a still-broken row off the total.
 ---
-
 # A defect status nobody taught the gate is still classified by a guess
 
 - origin: reckon 1.7.0, `DEF-011` and `DEF-048` · 2026-08-29

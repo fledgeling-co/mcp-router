@@ -3852,3 +3852,72 @@ member: **the Swift half is written and not run on this host.** Bucket C is writ
 as parked with its reason and its owner. Phase 6 closes on *reconciliation* — re-anchor the campaign,
 re-run `reckon.py build` and `check`, and either land `unbuilt`/`broken`/`unmeasured`/`undecided` at
 zero or name the class the run stopped on and how many rows it held.
+
+## 2026-09-02 · Wave A landed: ten items, and the seven defects they uncovered
+
+Six runners, opus-5 at medium effort, each in its own worktree, merged serially. All ten Wave A
+items were worked; five of six runners reported first time and `wa4` reported through a transport
+error after committing.
+
+### What each runner settled
+
+| Runner | Items | Settled by |
+|---|---|---|
+| `wa1` | DEF-076, DEF-075 | An out-of-process UIA census. Seven Settings sections now publish addressable containers, three toggles publish names and toggle state, and an EFFECT arm toggles through `TogglePattern` then reads a **different** element, so a switch bound to nothing fails. The Discover detail dialog's controls carry ids. 651 tests pass. |
+| `wa2` | DEF-079 | The three top-level handlers each made to fire on purpose, and the line each wrote read back out of `shell-startup.log` by a process that is not the shell. Four arms, plus a `-ProveRed` that unregisters one handler and requires exactly that arm to break. |
+| `wa3` | 2 briefs | The denominator. `Controls: 38 of 180` became `56 of 199`, surfaces `44 enumerated` became `47`, and the three shipped surfaces that had no row to be uncovered in now have one — uncovered, which is the honest state. |
+| `wa4` | 2 briefs | A closed status vocabulary the reckoning can partition, with a gate that refuses a word outside it, proved red four times and reverted each time. |
+| `wa5` | 2 briefs | Glass evidence stamped with the build it came from, and a gate that reddens when it outlives it. Four arms, each watched to fail. |
+| `wa6` | 1 brief | The worktree arm the machine-path gate was missing, planted and reverted. |
+
+### The false-green Wave A found, and it is the one worth reading twice
+
+DEF-076's row offered an either/or — the toggles carry no `AutomationProperties.Name`, or there are
+fewer than seven sections. **The answer was neither.** A WinUI `ToggleSwitch` publishes as
+`AutomationControlType.Button` carrying `TogglePattern`, so a census looking for a control whose
+*type* is ToggleSwitch could never have found one however many existed. The recorded dump's eight
+Buttons were the window chrome, `Copy`, and three anonymous toggles nobody could name. A measurement
+can be taken correctly, against the running product, by an independent recorder, and still answer a
+question nobody asked.
+
+### Four gates the merge broke that no branch could have seen
+
+Serialized finalization earned its cost here. Each branch was green alone and the combination was
+not: `actuates` meant *a control the surface declares* to one runner and *the command the lane ran*
+to two others (DEF-080, which wa3 filed in the same wave); SURF-044 arrived declaring eight controls
+with no `controlsSource` because wa1 added the controls and wa3 added the gate requiring the field;
+and my own merge of the G9 brief kept a `shipped-by` the LEDGER row contradicts.
+
+**Six independent runners allocated `CASE-0342`.** Off one `main`, in one wave. That is the
+id-allocation defect this session already fixed once inside `win-cases-from-lane.py`, arriving from
+a level the generator cannot see. Worse, `inventory.json` and `defects-windows.json` share one
+`DEF-` space and merge separately, so `DEF-085` left the wave meaning two different things in two
+files — caught by comparing the registers afterwards, by no gate.
+
+### The honest arithmetic
+
+Seven rows left the schedule; nine arrived; it went **72 → 74**. None of the nine is new breakage.
+Seven are defects Wave A found *by making the layer above them work* — settings that move a boolean
+and reach nothing, a `Copy` button that is named and does nothing, Discover rows publishing their
+class name as their accessible name. Two are defects that always existed and that `reckon` could not
+see, because it reads `inventory.json` alone and they had been filed only into `defects-windows.json`.
+
+reckon 1.9.4: 584 rows, gate clean, ratchet clean. `branches`, `liveness`, `wincoverage` and
+`winlive` are green; `waves` is correctly red at 74.
+
+### Wave A′ — the layer underneath, and it is provable here
+
+The seven discoveries are Windows-local, which means they are closable *and* witnessable on this
+host. That makes them worth more per token than writing Swift nobody here can run, so they go next.
+
+| Runner | Items |
+|---|---|
+| `wb1-settings-persistence` | DEF-087 (no setting persists or reaches the machine), DEF-088 (`Copy` is named and does nothing) |
+| `wb2-automation-names` | DEF-084 (Discover rows publish `ToString()`), DEF-089 (the NavigationView pane carries no name) |
+| `wb3-dispatcher-handler` | DEF-085 (a `DispatcherQueue` callback throw reaches no handler), DEF-086 (whether a real stowed exception is caught — likely stays open with a stated reason) |
+| `wb4-actuates-vocabulary` | DEF-080 (`actuates` names two different things in one field) |
+
+Concurrency is **two**, not five. Six concurrent opus-5 runners all died inside one window on
+`400 upstream_error`, each after roughly 25 working turns; two ran the whole wave without a
+transport failure. That is a property of the proxy rather than of this machine, and the only lever
+here is how many agents are in flight.

@@ -1,0 +1,25 @@
+# glass-build-gate.py --emit exercised against a fabricated bundle, 2026-09-02T10:38:07Z
+#
+# The emit path is macOS code and cannot run for real on the Windows host this campaign half
+# was done from - there is no Xcode, no built MCPRouter.app and no display server. What is
+# exercised here is the CODE PATH, against a stand-in bundle carrying an Info.plist and a
+# .mcprouter-build-stamp of the shape the Makefile writes. It proves the reader parses both and
+# writes a capture-channel row; it proves NOTHING about a real capture, and the row it wrote was
+# reverted immediately afterwards. The two artifacts named below are NOT stamped in the tree.
+
+$ glass-build-gate.py --emit <bundle> evidence/ax/SURF-001.menu.txt evidence/shots/SURF-011.build.png
+  stamped 2 artifact(s) with build c2dd5589ec38 (bundle 0.9.0 build 417)
+  exit 0
+
+the row it wrote:
+  provenance        capture-channel
+  buildIdentity     c2dd5589ec38bb02da823e0e6db1da482b30b3f81cf514daf0196bd5ffcd3fa0
+  bundleVersion     0.9.0        (CFBundleShortVersionString, out of the bundle)
+  bundleBuild       417          (CFBundleVersion, out of the bundle)
+  buildStampSources deadbeef01   (from .mcprouter-build-stamp, which the Makefile writes
+  buildStampBinary  cafebabe02    only after xcodebuild exits 0)
+  worktreeDirty     false        (scoped to the Mac build inputs, which this branch does not touch)
+
+and what the gate then said about those two artifacts, with the other 54 unchanged:
+  56 artifact(s) cited by the lane, 56 carrying a build record (capture-channel)
+  the two stamped rows dropped out of STALE; the other 54 stayed in it.

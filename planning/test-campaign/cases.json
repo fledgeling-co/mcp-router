@@ -22,9 +22,11 @@
       "evidence/ax/SURF-002.title.txt",
       "evidence/ax/SURF-003.title.txt",
       "evidence/ax/SURF-008.title.txt",
-      "evidence/runs/glass-assert.json"
+      "evidence/runs/glass-assert.json",
+      "evidence/ax/glass-build.json",
+      "evidence/runs/glass-build-gate.log"
     ],
-    "note": "Sidebar AXPress selected Activity, Servers, Skills, Discover, Inbox, Checks, Cleanup, Settings; window titles matched. Cmd+1–7 not part of this case. ARMED: predicate watched to fail under the SURF-001 decoy.  ---  RE-MEASURED 2026-08-27 by G15 and independently by G16, and now FAILING against a fresh capture. This case passed over evidence captured on 20 Aug from a build that predates M22. Re-running bin/capture-mac-glass.sh against the current build turns it red, and the product is right: see DEF-058 (the stale pre-M22 evidence) and DEF-059 (the `Settings` select that stopped taking). Not chased here — editing the stale assertion to restore green is the one move this campaign forbids, and the stale assertion is the instrument that found it.",
+    "note": "Sidebar AXPress selected Activity, Servers, Skills, Discover, Inbox, Checks, Cleanup, Settings; window titles matched. Cmd+1–7 not part of this case. ARMED: predicate watched to fail under the SURF-001 decoy.  ---  RE-MEASURED 2026-08-27 by G15 and independently by G16, and now FAILING against a fresh capture. This case passed over evidence captured on 20 Aug from a build that predates M22. Re-running bin/capture-mac-glass.sh against the current build turns it red, and the product is right: see DEF-058 (the stale pre-M22 evidence) and DEF-059 (the `Settings` select that stopped taking). Not chased here — editing the stale assertion to restore green is the one move this campaign forbids, and the stale assertion is the instrument that found it.  ---  STANDING ON STALE EVIDENCE, 2026-09-02 (wa5). This case's artifacts are stamped with the Mac build they were taken from, and that build is not the one this tree would produce: `planning/test-campaign/bin/glass-build-gate.py` reports them STALE against `evidence/ax/glass-build.json`, exit 2, and names which of the Mac build inputs moved. The case stays `fail` and its assertion stays as it is -- the stale assertion is the instrument that found DEF-058, and editing it to restore a green is the move this campaign forbids. OWED: a re-capture through `bin/capture-mac-glass.sh`, which now calls `glass-build-gate.py --emit` in the run that takes the pictures, so the replacement evidence carries a capture-time stamp rather than a reconstructed one. OWNER: a macOS host with Xcode and a display server. It cannot happen on the Windows host this row was written from, and nothing here claims otherwise.",
     "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-001's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
     "actuates": [
       "Activity",
@@ -36,7 +38,15 @@
       "Cleanup",
       "Settings"
     ],
-    "actuatesNote": "AXPress on each sidebar row of the running app, with the window title read back after each. Recorded although this case is FAILING: the census counts only a passing effect-rung case, so these eight move nothing until DEF-058 and DEF-059 are closed. Recording the drive on a red case is the point — it is what makes the count fall when a control stops taking, which is precisely what DEF-059 is."
+    "actuatesNote": "AXPress on each sidebar row of the running app, with the window title read back after each. Recorded although this case is FAILING: the census counts only a passing effect-rung case, so these eight move nothing until DEF-058 and DEF-059 are closed. Recording the drive on a red case is the point — it is what makes the count fall when a control stops taking, which is precisely what DEF-059 is.",
+    "evidenceStaleness": "stale: stamped with a build this tree has moved past",
+    "owed": {
+      "what": "re-capture the macos-glass evidence this case rests on, through bin/capture-mac-glass.sh",
+      "why": "the committed artifacts are stamped with a Mac build this tree has moved past (DEF-058); glass-build-gate.py reports them STALE",
+      "owner": "macOS host with Xcode and a display server",
+      "blockedOn": "no Swift toolchain, no xcodebuild and no display server on the host this row was written from",
+      "instrument": "planning/test-campaign/bin/glass-build-gate.py (exit 2), evidence/runs/glass-build-gate.log"
+    }
   },
   {
     "id": "CASE-0002",
@@ -415,10 +425,20 @@
     "evidence": [
       "evidence/ax/SURF-011.title.txt",
       "evidence/ax/SURF-011.window.txt",
-      "evidence/runs/glass-assert.json"
+      "evidence/runs/glass-assert.json",
+      "evidence/ax/glass-build.json",
+      "evidence/runs/glass-build-gate.log"
     ],
     "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-011's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
-    "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-011 decoy.  ---  RE-MEASURED 2026-08-27 by G15 and independently by G16, and now FAILING against a fresh capture. This case passed over evidence captured on 20 Aug from a build that predates M22. Re-running bin/capture-mac-glass.sh against the current build turns it red, and the product is right: see DEF-058 (the stale pre-M22 evidence) and DEF-059 (the `Settings` select that stopped taking). Not chased here — editing the stale assertion to restore green is the one move this campaign forbids, and the stale assertion is the instrument that found it."
+    "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-011 decoy.  ---  RE-MEASURED 2026-08-27 by G15 and independently by G16, and now FAILING against a fresh capture. This case passed over evidence captured on 20 Aug from a build that predates M22. Re-running bin/capture-mac-glass.sh against the current build turns it red, and the product is right: see DEF-058 (the stale pre-M22 evidence) and DEF-059 (the `Settings` select that stopped taking). Not chased here — editing the stale assertion to restore green is the one move this campaign forbids, and the stale assertion is the instrument that found it.  ---  STANDING ON STALE EVIDENCE, 2026-09-02 (wa5). This case's artifacts are stamped with the Mac build they were taken from, and that build is not the one this tree would produce: `planning/test-campaign/bin/glass-build-gate.py` reports them STALE against `evidence/ax/glass-build.json`, exit 2, and names which of the Mac build inputs moved. The case stays `fail` and its assertion stays as it is -- the stale assertion is the instrument that found DEF-058, and editing it to restore a green is the move this campaign forbids. OWED: a re-capture through `bin/capture-mac-glass.sh`, which now calls `glass-build-gate.py --emit` in the run that takes the pictures, so the replacement evidence carries a capture-time stamp rather than a reconstructed one. OWNER: a macOS host with Xcode and a display server. It cannot happen on the Windows host this row was written from, and nothing here claims otherwise.",
+    "evidenceStaleness": "stale: stamped with a build this tree has moved past",
+    "owed": {
+      "what": "re-capture the macos-glass evidence this case rests on, through bin/capture-mac-glass.sh",
+      "why": "the committed artifacts are stamped with a Mac build this tree has moved past (DEF-058); glass-build-gate.py reports them STALE",
+      "owner": "macOS host with Xcode and a display server",
+      "blockedOn": "no Swift toolchain, no xcodebuild and no display server on the host this row was written from",
+      "instrument": "planning/test-campaign/bin/glass-build-gate.py (exit 2), evidence/runs/glass-build-gate.log"
+    }
   },
   {
     "id": "CASE-0017",
@@ -896,15 +916,25 @@
     "status": "fail",
     "armed": true,
     "evidence": [
-      "evidence/shots/SURF-001.shell.png"
+      "evidence/shots/SURF-001.shell.png",
+      "evidence/ax/glass-build.json",
+      "evidence/runs/glass-build-gate.log"
     ],
     "capture": {
       "channel": "display-server-window",
       "method": "screencapture -x -l<CGWindowID>, cropped to the window chrome (derivedFrom SURF-002.build.png)",
       "frameStatus": "complete"
     },
-    "note": "The shell has no board of its own, so its raster is the titlebar and source list cropped from the Servers capture, with the parent named in derivedFrom.  ---  RE-MEASURED 2026-08-27 by G15 and independently by G16, and now FAILING against a fresh capture. This case passed over evidence captured on 20 Aug from a build that predates M22. Re-running bin/capture-mac-glass.sh against the current build turns it red, and the product is right: see DEF-058 (the stale pre-M22 evidence) and DEF-059 (the `Settings` select that stopped taking). Not chased here — editing the stale assertion to restore green is the one move this campaign forbids, and the stale assertion is the instrument that found it.",
-    "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-001's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106."
+    "note": "The shell has no board of its own, so its raster is the titlebar and source list cropped from the Servers capture, with the parent named in derivedFrom.  ---  RE-MEASURED 2026-08-27 by G15 and independently by G16, and now FAILING against a fresh capture. This case passed over evidence captured on 20 Aug from a build that predates M22. Re-running bin/capture-mac-glass.sh against the current build turns it red, and the product is right: see DEF-058 (the stale pre-M22 evidence) and DEF-059 (the `Settings` select that stopped taking). Not chased here — editing the stale assertion to restore green is the one move this campaign forbids, and the stale assertion is the instrument that found it.  ---  STANDING ON STALE EVIDENCE, 2026-09-02 (wa5). This case's artifacts are stamped with the Mac build they were taken from, and that build is not the one this tree would produce: `planning/test-campaign/bin/glass-build-gate.py` reports them STALE against `evidence/ax/glass-build.json`, exit 2, and names which of the Mac build inputs moved. The case stays `fail` and its assertion stays as it is -- the stale assertion is the instrument that found DEF-058, and editing it to restore a green is the move this campaign forbids. OWED: a re-capture through `bin/capture-mac-glass.sh`, which now calls `glass-build-gate.py --emit` in the run that takes the pictures, so the replacement evidence carries a capture-time stamp rather than a reconstructed one. OWNER: a macOS host with Xcode and a display server. It cannot happen on the Windows host this row was written from, and nothing here claims otherwise.",
+    "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-001's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
+    "evidenceStaleness": "stale: stamped with a build this tree has moved past",
+    "owed": {
+      "what": "re-capture the macos-glass evidence this case rests on, through bin/capture-mac-glass.sh",
+      "why": "the committed artifacts are stamped with a Mac build this tree has moved past (DEF-058); glass-build-gate.py reports them STALE",
+      "owner": "macOS host with Xcode and a display server",
+      "blockedOn": "no Swift toolchain, no xcodebuild and no display server on the host this row was written from",
+      "instrument": "planning/test-campaign/bin/glass-build-gate.py (exit 2), evidence/runs/glass-build-gate.log"
+    }
   },
   {
     "id": "CASE-0102",
@@ -1170,7 +1200,9 @@
     "status": "fail",
     "armed": true,
     "evidence": [
-      "evidence/shots/SURF-011.build.png"
+      "evidence/shots/SURF-011.build.png",
+      "evidence/ax/glass-build.json",
+      "evidence/runs/glass-build-gate.log"
     ],
     "capture": {
       "channel": "display-server-window",
@@ -1178,7 +1210,15 @@
       "frameStatus": "unavailable: screencapture reports no per-frame status"
     },
     "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-011's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
-    "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-011 decoy.  ---  RE-MEASURED 2026-08-27 by G15 and independently by G16, and now FAILING against a fresh capture. This case passed over evidence captured on 20 Aug from a build that predates M22. Re-running bin/capture-mac-glass.sh against the current build turns it red, and the product is right: see DEF-058 (the stale pre-M22 evidence) and DEF-059 (the `Settings` select that stopped taking). Not chased here — editing the stale assertion to restore green is the one move this campaign forbids, and the stale assertion is the instrument that found it."
+    "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-011 decoy.  ---  RE-MEASURED 2026-08-27 by G15 and independently by G16, and now FAILING against a fresh capture. This case passed over evidence captured on 20 Aug from a build that predates M22. Re-running bin/capture-mac-glass.sh against the current build turns it red, and the product is right: see DEF-058 (the stale pre-M22 evidence) and DEF-059 (the `Settings` select that stopped taking). Not chased here — editing the stale assertion to restore green is the one move this campaign forbids, and the stale assertion is the instrument that found it.  ---  STANDING ON STALE EVIDENCE, 2026-09-02 (wa5). This case's artifacts are stamped with the Mac build they were taken from, and that build is not the one this tree would produce: `planning/test-campaign/bin/glass-build-gate.py` reports them STALE against `evidence/ax/glass-build.json`, exit 2, and names which of the Mac build inputs moved. The case stays `fail` and its assertion stays as it is -- the stale assertion is the instrument that found DEF-058, and editing it to restore a green is the move this campaign forbids. OWED: a re-capture through `bin/capture-mac-glass.sh`, which now calls `glass-build-gate.py --emit` in the run that takes the pictures, so the replacement evidence carries a capture-time stamp rather than a reconstructed one. OWNER: a macOS host with Xcode and a display server. It cannot happen on the Windows host this row was written from, and nothing here claims otherwise.",
+    "evidenceStaleness": "stale: stamped with a build this tree has moved past",
+    "owed": {
+      "what": "re-capture the macos-glass evidence this case rests on, through bin/capture-mac-glass.sh",
+      "why": "the committed artifacts are stamped with a Mac build this tree has moved past (DEF-058); glass-build-gate.py reports them STALE",
+      "owner": "macOS host with Xcode and a display server",
+      "blockedOn": "no Swift toolchain, no xcodebuild and no display server on the host this row was written from",
+      "instrument": "planning/test-campaign/bin/glass-build-gate.py (exit 2), evidence/runs/glass-build-gate.log"
+    }
   },
   {
     "id": "CASE-0120",
@@ -4912,6 +4952,63 @@
     ],
     "note": "Seven arms, each removing exactly one fact and requiring the exit code to move: the Harnesses surface row deleted (R1 red), `Insights` removed from the shell's controls (R2 red), CASE-0341 stripped of its surface link (R3 red), SURF-036's controlsSource removed (R4 red), SURF-031's source path misspelt (R4 red), a control invented on SURF-039 (R4 red), and DestinationCatalog.cs emptied - which must exit 2 and REFUSE a verdict rather than reporting a clean registry, because a reader that finds nothing must not report a pass. 7/7 moved. The arm restores every file in a finally, and its last act is to re-run the reader and require green, so a half-applied mutation cannot be left behind as a passing run.",
     "recorder": "the exit code of a separate process, per mutation, compared against a baseline measured in the same run",
+    "renumberedFrom": "CASE-0343",
+    "renumberNote": "Allocated as CASE-0343 by a concurrent Wave A runner and renumbered at merge: another runner in the same wave had already published a DIFFERENT row under CASE-0343. The id is the only thing that changed."
+  },
+  {
+    "id": "CASE-0353",
+    "req": "REQ-003",
+    "surface": "SURF-001",
+    "flow": null,
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-001",
+      "state": "populated",
+      "viewport": "n/a",
+      "theme": "n/a",
+      "role": "operator",
+      "dataShape": "typical",
+      "executionPlane": "registry"
+    },
+    "oracle": "metamorphic",
+    "status": "fail",
+    "armed": true,
+    "evidence": [
+      "evidence/ax/glass-build.json",
+      "evidence/runs/glass-build-gate.log",
+      "evidence/runs/glass-build-gate.selftest.log",
+      "evidence/runs/glass-build-gate.emit-path.log"
+    ],
+    "armedBy": "differential arm, watched both ways and committed at `evidence/runs/glass-build-gate.selftest.log`. Four arms, all on in-memory copies so nothing on disk moves: (1) GREEN -- every glass artifact restamped with the tree the lane is read against reports stale=0 unstamped=0 ordering=0; (2) RED -- one Mac source file's blob id changed and nothing else, 7 stale findings; (3) RED -- a record that has stopped covering one artifact, 7 unstamped; (4) RED -- a manifest row with its `capturedAt` removed, 1 ordering. The green arm carries as much weight as the red ones here, because the gate is RED on the tree it ships on and its green cannot be observed by running it. The capture-time writer, `--emit`, is macOS code and cannot run for real on the Windows host this row was produced from; its CODE PATH is exercised against a stand-in bundle at `evidence/runs/glass-build-gate.emit-path.log` and the row it wrote was reverted. That log proves the reader parses an Info.plist and a `.mcprouter-build-stamp` and writes a `capture-channel` row. It proves nothing about a real capture, and does not stand in for one.",
+    "note": "Does every committed piece of macos-glass evidence name the build it was taken from, and is that build the one this lane is being read against? `bin/glass-build-gate.py` binds each artifact to the git blob identity of the Mac app's own build inputs -- the set `scripts/acceptance/build-freshness.sh` compiles from, read out of that file rather than copied, so a Mac input added there and missed here fails as INPUT DRIFT instead of quietly narrowing every verdict below it. Blob ids are line-ending normalised, so the verdict is identical on macOS and on Windows for one commit; this row was produced on Windows.  ---  FAILING, and the finding is true: all 56 artifacts the lane cites are stale, in 7 capture groups spanning 20-29 Aug, and `app/Sources/MCPRouterKit`, `app/Sources/MCPRouterUI` and `app/Package.swift` have all moved since the newest of them. This is DEF-058 with an instrument on it. It goes green when a macOS host re-runs `bin/capture-mac-glass.sh`, and not before -- there is no edit to this repository that should turn it green.",
+    "renumberedFrom": "CASE-0342",
+    "renumberNote": "Allocated as CASE-0342 by a concurrent Wave A runner and renumbered at merge: another runner in the same wave had already published a DIFFERENT row under CASE-0342. The id is the only thing that changed."
+  },
+  {
+    "id": "CASE-0354",
+    "req": "REQ-003",
+    "surface": "SURF-001",
+    "flow": null,
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-001",
+      "state": "populated",
+      "viewport": "n/a",
+      "theme": "n/a",
+      "role": "operator",
+      "dataShape": "typical",
+      "executionPlane": "registry"
+    },
+    "oracle": "metamorphic",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/shots/captures.json",
+      "evidence/runs/glass-build-gate.selftest.log",
+      "evidence/runs/capture-lineage.wa5.log"
+    ],
+    "armedBy": "differential arm, `evidence/runs/glass-build-gate.selftest.log` arm 4: removing `capturedAt` from one published row turns this check red on that row and on no other. The pass is over 21 published glass captures, every one of which carries a capture timestamp, a window-title readback and the CGWindowID the shutter used.",
+    "note": "Can every published glass capture be shown to have been written AT THE SHUTTER rather than afterwards? A manifest that post-dates its capture records what somebody believed, not what the channel did, so it is not lineage -- which is the finding `capture-lineage.py`'s RECONSTRUCTED pass raised against SURF-028 and which `bin/capture-manifest.py` closed on the derivation side. This is the ordering side: the gate requires each published row to carry `capturedAt`, `conditions.windowTitleReadback` and `conditions.cgWindowID`, none of which can be recovered after the fact, or an explicit `provenanceGap` saying that it cannot. WHAT IT DOES NOT PROVE, stated rather than folded in: it establishes that the row COULD only have been written by something standing at the shutter, not that it was. Only the capture channel writing its own row does that, which `bin/capture-mac-glass.sh` does and which no reader can verify from the artifact alone.",
     "renumberedFrom": "CASE-0343",
     "renumberNote": "Allocated as CASE-0343 by a concurrent Wave A runner and renumbered at merge: another runner in the same wave had already published a DIFFERENT row under CASE-0343. The id is the only thing that changed."
   }

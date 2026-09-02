@@ -1012,6 +1012,7 @@ lint: tools
 	python3 planning/foreign-path-gate.py --quiet || fail=1; \
 	python3 planning/target-resolution-gate.py --quiet || fail=1; \
 	python3 planning/test-campaign/bin/capture-manifest.py || fail=1; \
+	python3 planning/test-campaign/bin/glass-build-gate.py --selftest || fail=1; \
 	python3 planning/test-campaign/bin/raster-claim-gate.py || fail=1; \
 	python3 planning/test-campaign/bin/forced-state-assert.py --control || fail=1; \
 	python3 planning/test-campaign/bin/effect-class-census.py --control || fail=1; \
@@ -1025,6 +1026,30 @@ lint: tools
 	python3 planning/carrier-parity-gate.py || fail=1; \
 	zsh app/Scripts/pool-mutation-gate-selftest.sh || fail=1; \
 	exit $$fail
+
+## Does the committed glass evidence still depict the build this tree would produce?
+##
+## `macos-glass` was green for seven days over pictures taken from a build that predates M22,
+## because a committed capture recorded everything about itself except WHICH BUILD IT CAME FROM.
+## `glass-build-gate.py` binds each artifact to the git blob identity of the Mac app's own build
+## inputs -- the set `scripts/acceptance/build-freshness.sh` compiles from -- and goes red when
+## that identity is not the one the lane is being read against. Blob ids are line-ending
+## normalised, so the verdict is the same on macOS and on Windows.
+##
+## OUT OF `lint` AND OUT OF `all`, for the same reason `role-intersection` is: it is standing red
+## on this tree and the finding is true. Every glass artifact was captured before M22, the
+## re-capture needs a macOS host with Xcode and a display server, and wiring a permanent red into
+## `all` would mean softening it inside a week. What IS in `lint` is `--selftest`, which watches
+## all four arms move: green over a capture stamped with the current tree, red over a stale one,
+## red over one no record covers, and red over a row that cannot be shown to predate its own
+## manifest. The gate joins `all` when `bin/capture-mac-glass.sh` has re-run on a macOS host and
+## its `--emit` has replaced the reconstructed stamps with capture-time ones.
+##
+## Exit codes: 0 every artifact names the build it depicts and that build is this one, 2 findings.
+glass-build:
+	@python3 planning/test-campaign/bin/glass-build-gate.py; ec=$$?; \
+	echo "glass-build: exit $$ec  (0 current · 2 evidence outlived its build)"; \
+	exit 0
 
 ## The cross-branch role-intersection check (`G8`). Not in `all` — see the note above `all` for
 ## why a standing exit 3 stays out of it. Two controls run on every invocation and print above the

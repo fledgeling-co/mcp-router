@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    A harness binary, not a product one, and named so nobody has to guess.
+
+    WHY IT EXISTS. DEF-081 recorded that WIN23's two operator-facing promises - the daemon comes
+    up at logon, and a crashed one comes back - had never been watched to happen, and gave the
+    reason: measuring the restart half needs a real process for the Windows task scheduler to
+    start and for somebody to kill, and this tree's router daemon is TypeScript run under Node
+    rather than a Windows executable a Task Scheduler action can name directly.
+
+    So this is the process under supervision, and nothing else. It takes the same port flag the
+    shipped LogonTaskSupervisor writes into every action's Arguments, it records each start in an
+    append-only log beside itself, and it then does nothing at all until something kills it. What
+    scripts/windows/win23-restart-witness.ps1 measures is the SCHEDULER's behaviour around it -
+    whether a RestartOnFailure block the product wrote is honoured - so the payload deliberately
+    has no behaviour to confuse that with.
+
+    It is not referenced by any product project and ships in nothing.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>mcprouter-witness-daemon</AssemblyName>
+    <RootNamespace>MCPRouter.Witness.Daemon</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+</Project>

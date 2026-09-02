@@ -5455,5 +5455,57 @@
       "planning/test-campaign/bin/win-cases-from-lane.py"
     ],
     "note": "NOT a product measurement. Nothing here is observed on glass and this row must not be read as coverage of any surface -- `surface` is null on purpose, and `actuates` is empty because a case about the `actuates` vocabulary must not put a control in the numerator to say so. The commands the plants ran, which is what `actuates` is NOT for: `python planning/test-campaign/bin/control-census.py` and `python planning/test-campaign/bin/win-surface-reconcile.py`, from the worktree root. WHAT ARM (B) DOES NOT COVER: SURF-047 alone can be moved back under `controls` and the gate stays green, because its four members are not shaped like API calls. DEF-131 carries that floor, and this case is not evidence against it."
+  },
+  {
+    "id": "CASE-0440",
+    "req": "REQ-035",
+    "lane": "router-daemon",
+    "oracle": "effect-witness",
+    "cell": "execution-plane=windows-host - data-shape=a supervised process that dies",
+    "status": "pass",
+    "armed": true,
+    "actuates": [
+      "LogonTaskSupervisor.BuildTaskXml",
+      "LogonTaskSupervisor.Register"
+    ],
+    "note": "The half of WIN23's supervision promise that had never been watched: a daemon the Windows task scheduler starts, loses, and starts again. DEF-081 filed it as unmeasurable and named the blocker as a missing Windows daemon binary; the blocker was real and is gone - app/windows/MCPRouter.Witness.Daemon is a harness process that starts, records its own start and waits to be killed, so there is something for the scheduler to supervise. WHAT THE MEASUREMENT FOUND IS NOT WHAT THE ROW EXPECTED. The registration the product wrote carried RestartOnFailure with a 60-second interval and a count of 3, and it did not restart the daemon at all. Killed, watched 150 seconds, on the unified scheduling engine and the legacy one, for a run started by a trigger and one started on demand: four registrations, no restart. The same block DID restart, three times at exactly 60 seconds, a task whose Command named a file that does not exist - so the instrument can see a restart, and RestartOnFailure governs a task that fails to LAUNCH rather than one whose action launched and later died. DEF-320 carries that, and the product now writes a Repetition on the trigger alongside MultipleInstancesPolicy IgnoreNew. THE RECORDERS ARE TWO AND NEITHER WROTE ANYTHING: Get-ScheduledTaskInfo for the scheduler's own account of its runs, and Get-CimInstance Win32_Process for the process identity, which is what makes 'it came back' a different process id rather than a report from the thing that came back. The daemon's own run log is carried and graded by nothing. EIGHT ARMS, THREE OF THEM ABOUT THE INSTRUMENT: BASELINE requires both tasks absent and no daemon running, so nothing below is inherited from an interrupted run; CLAIM.repetition and CLAIM.ignorenew read the product's own unmodified logon registration back through the WMI provider; SILENCE requires both recorders to say no once the tasks are gone. ONE SUBSTITUTION, SAID OUT LOUD: a trigger repetition does not apply to an on-demand start - measured, twice - so the live task carries a TimeTrigger where the product writes a LogonTrigger, because this lane must not log the machine out. Every Setting, the repetition interval, the principal, the action and the instances policy are the product's own document. That the trigger fires AT LOGON is still unwitnessed and DEF-081 keeps it.",
+    "evidence": [
+      "planning/evidence/WIN23/run/restart-witness.json",
+      "planning/evidence/WIN23/run/restart-witness-armed.json"
+    ],
+    "armedNote": "`win23-restart-witness.ps1 -ProveRed` strips the Repetition block from the live document, leaving exactly the RestartOnFailure-only task the product registered until 2026-09-03, and requires EXACTLY LIVE.restarted to break. It did: the daemon started (pid 3488), was killed, the scheduler recorded LastTaskResult 0xFFFFFFFF, and 210 seconds of polling found no replacement process and no advance in LastRunTime, while the other seven arms held. The plant is the product's own history rather than an invented edit, which is what makes the green afterwards worth something: the same lane, unchanged, watched pid 35668 killed at 03:25:41 and pid 32992 appear at 03:26:36 with LastRunTime moved from 03:25:35 to 03:26:36.",
+    "witness": {
+      "recorder": "Get-ScheduledTaskInfo (Task Scheduler WMI provider) for LastRunTime and LastTaskResult, and Get-CimInstance Win32_Process for the process identity - two APIs, neither of them the writer, in a process that is not the daemon",
+      "effect": "process",
+      "count": 1
+    },
+    "surface": "SURF-045",
+    "actuatesSurface": "SURF-045"
+  },
+  {
+    "id": "CASE-0441",
+    "req": "REQ-036",
+    "lane": "windows-glass",
+    "oracle": "effect-witness",
+    "cell": "execution-plane=windows-host - data-shape=one capability queued",
+    "status": "pass",
+    "armed": true,
+    "actuates": [
+      "ToastNotifier.Show",
+      "NotificationPresentation.ForQueuedItem"
+    ],
+    "note": "The toast itself, in the Action Center, read by a process that cannot raise one. DEF-082 filed this as unmeasurable and gave a reason: UserNotificationListener's userNotificationListener capability is only grantable to a packaged application, and MCPRouter.Shell is WindowsPackageType=None, so the row was said to be downstream of WIN19's MSIX. THE REASON WAS WRONG, AND IT WAS WRONG BEFORE WIN19 LANDED. Measured on this host from an ordinary unpackaged Win32 console process with no package identity at all - Package.Current throws InvalidOperationException, which the lane asserts rather than assumes - UserNotificationListener.Current resolves, RequestAccessAsync returns Allowed with no consent prompt, and GetNotificationsAsync returns the toasts that are really there. On the first run those included three raised by win22-toast-witness the day before, carrying the exact strings NotificationPresentation writes. No MSIX, no capability, no packaged identity. WHAT IS STILL NOT AVAILABLE UNPACKAGED, and it bounds this case: every member of UserNotification.AppInfo throws NotImplementedException 0x80004001 for a caller with no package identity, so the listener can say what a notification SAYS and when it arrived and cannot say who raised it. Attribution here is the payload text, which the product owns, inside a time window this run opened - weaker than a publisher identity, and recorded as such. THE RECORDER IS NOT THE WRITER AND IS NOT EVEN THE SAME PROCESS: app/windows/MCPRouter.Witness.ActionCenter shares no code with the shell and cannot raise a notification. The shell's toast-probe.json is carried as the writer's self-report and graded by nothing. THE PRESENCE CONTROL is a removal: the matched notification is taken back out through the listener and the Action Center is read a third time, and the recorder is required to say no about it.",
+    "evidence": [
+      "planning/evidence/WIN22/run/toast-effect.json",
+      "planning/evidence/WIN22/run/toast-effect-armed.json"
+    ],
+    "armedNote": "`win22-toast-effect-witness.ps1 -ProveRed` never launches the shell, so nothing raises a toast, and requires EXACTLY EFFECT.toast to break. It did, with eight toasts in the Action Center including three of identical text from earlier runs - which is the point of this particular plant. A lane matching on payload text alone would have found one of those and passed while the product did nothing at all, so the arming run is what shows the time window is load-bearing rather than decoration. It was re-run after the matcher was fixed, because a fix that widens a match can turn an arming green into a green that means nothing.",
+    "witness": {
+      "recorder": "Windows.UI.Notifications.Management.UserNotificationListener, read by app/windows/MCPRouter.Witness.ActionCenter - a separate unpackaged executable that shares no code with the shell and cannot raise a notification",
+      "effect": "notification",
+      "count": 1
+    },
+    "surface": "SURF-046",
+    "actuatesSurface": "SURF-046"
   }
 ]

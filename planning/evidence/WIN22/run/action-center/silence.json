@@ -1,0 +1,83 @@
+{
+  "schema": "mcprouter.action-center-witness/1",
+  "ok": true,
+  "failure": null,
+  "access": "Allowed",
+  "packaged": false,
+  "readAtUtc": "2026-09-02T17:38:12.4170435Z",
+  "count": 8,
+  "notifications": [
+    {
+      "id": 2360,
+      "createdUtc": "2026-09-01T09:50:12.8605933Z",
+      "text": [
+        "Docker Desktop Update",
+        "Docker Desktop 4.89.0 is ready to install, click to view update details."
+      ],
+      "appUserModelId": "UNREADABLE: NotImplementedException 0x80004001"
+    },
+    {
+      "id": 2382,
+      "createdUtc": "2026-09-01T22:57:37.1803655Z",
+      "text": [
+        "Look back at your memories",
+        "September 2"
+      ],
+      "appUserModelId": "UNREADABLE: NotImplementedException 0x80004001"
+    },
+    {
+      "id": 2385,
+      "createdUtc": "2026-09-02T02:15:18.3250392Z",
+      "text": [
+        "postgres-mcp is waiting for review",
+        "Queued from win22-toast-witness. Nothing has been installed."
+      ],
+      "appUserModelId": "UNREADABLE: NotImplementedException 0x80004001"
+    },
+    {
+      "id": 2386,
+      "createdUtc": "2026-09-02T02:15:30.1324856Z",
+      "text": [
+        "postgres-mcp is waiting for review",
+        "Queued from win22-toast-witness. Nothing has been installed."
+      ],
+      "appUserModelId": "UNREADABLE: NotImplementedException 0x80004001"
+    },
+    {
+      "id": 2387,
+      "createdUtc": "2026-09-02T02:44:52.0562263Z",
+      "text": [
+        "postgres-mcp is waiting for review",
+        "Queued from win22-toast-witness. Nothing has been installed."
+      ],
+      "appUserModelId": "UNREADABLE: NotImplementedException 0x80004001"
+    },
+    {
+      "id": 2388,
+      "createdUtc": "2026-09-02T03:00:54.4170615Z",
+      "text": [
+        "Resonance: A Plague Tale Legacy",
+        "Play as Sophia and face the Minotaur. Can you survive the trials of the island, or will you join those who never came back?"
+      ],
+      "appUserModelId": "UNREADABLE: NotImplementedException 0x80004001"
+    },
+    {
+      "id": 2411,
+      "createdUtc": "2026-09-02T14:32:46.2736596Z",
+      "text": [
+        "postgres-mcp is waiting for review",
+        "Queued from win22-toast-witness. Nothing has been installed."
+      ],
+      "appUserModelId": "UNREADABLE: NotImplementedException 0x80004001"
+    },
+    {
+      "id": 2442,
+      "createdUtc": "2026-09-02T17:36:44.3399697Z",
+      "text": [
+        "postgres-mcp is waiting for review",
+        "Queued from win22-toast-witness. Nothing has been installed."
+      ],
+      "appUserModelId": "UNREADABLE: NotImplementedException 0x80004001"
+    }
+  ]
+}

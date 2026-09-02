@@ -93,6 +93,25 @@ public sealed class LogonTaskSupervisorTests
         Assert.Contains("<RestartOnFailure>", xml, StringComparison.Ordinal);
         Assert.Contains("<Interval>PT90S</Interval>", xml, StringComparison.Ordinal);
         Assert.Contains("<Count>3</Count>", xml, StringComparison.Ordinal);
+
+        // And the part that actually restarts a crashed daemon. The repetition floor is 60 seconds
+        // because the scheduler refuses anything shorter, so a 90-second delay gives a 90-second
+        // repetition and a 5-second one would still give 60.
+        Assert.Contains("<Repetition>", xml, StringComparison.Ordinal);
+        Assert.Contains("<StopAtDurationEnd>false</StopAtDurationEnd>", xml, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Xml_FloorsTheRepetitionAtTheShortestIntervalTheSchedulerAccepts()
+    {
+        // A repetition under a minute is refused by the scheduler at registration, so a config
+        // asking for five seconds must not produce a document that cannot be registered at all.
+        // The RestartOnFailure interval keeps the five, because that one has no such floor and it
+        // covers a different failure.
+        var xml = Supervisor(new FakeTaskSchedulerCli()).BuildTaskXml(Config(delay: 5));
+
+        Assert.Contains("<Repetition>\n        <Interval>PT60S</Interval>", xml, StringComparison.Ordinal);
+        Assert.Contains("<RestartOnFailure>\n      <Interval>PT5S</Interval>", xml, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -105,6 +124,7 @@ public sealed class LogonTaskSupervisorTests
         var xml = Supervisor(new FakeTaskSchedulerCli()).BuildTaskXml(Config(restart: false));
 
         Assert.DoesNotContain("<RestartOnFailure>", xml, StringComparison.Ordinal);
+        Assert.DoesNotContain("<Repetition>", xml, StringComparison.Ordinal);
         Assert.Contains("<LogonTrigger>", xml, StringComparison.Ordinal);
     }
 
@@ -221,6 +241,7 @@ public sealed class LogonTaskSupervisorTests
         Assert.Equal("InteractiveToken", state.LogonType);
         Assert.Equal(3, state.RestartCount);
         Assert.Equal("PT1M", state.RestartInterval);
+        Assert.Equal("PT1M", state.RepetitionInterval);
         Assert.True(state.Enabled);
         Assert.True(state.MatchesLogonTaskClaim);
     }
@@ -272,7 +293,7 @@ public sealed class LogonTaskSupervisorTests
         var state = new LogonTaskState(
             Registered: true, Command: "x.exe", Arguments: "--port 1", HasLogonTrigger: true,
             RunLevel: runLevel, LogonType: "InteractiveToken", RestartCount: restartCount,
-            RestartInterval: "PT1M", Enabled: enabled);
+            RestartInterval: "PT1M", Enabled: enabled, RepetitionInterval: "PT1M");
 
         Assert.True(state.MatchesLogonTaskClaim == expected, why);
     }
@@ -286,7 +307,26 @@ public sealed class LogonTaskSupervisorTests
         var state = new LogonTaskState(
             Registered: true, Command: "x.exe", Arguments: "--port 1", HasLogonTrigger: false,
             RunLevel: "LeastPrivilege", LogonType: "InteractiveToken", RestartCount: 3,
-            RestartInterval: "PT1M", Enabled: true);
+            RestartInterval: "PT1M", Enabled: true, RepetitionInterval: "PT1M");
+
+        Assert.False(state.MatchesLogonTaskClaim);
+    }
+
+    [Fact]
+    public void MatchesLogonTaskClaim_RejectsATaskThatCarriesRestartOnFailureAndNothingElse()
+    {
+        // THIS IS THE SHAPE THE PRODUCT SHIPPED UNTIL 2026-09-03, and it satisfied every other
+        // term: registered, at logon, un-elevated, enabled, RestartCount 3. It was registered for
+        // real, started, and its process was killed, and the Windows task scheduler never brought
+        // it back - scripts/windows/win23-restart-witness.ps1 is the lane that watched it, and its
+        // arming mode still points at this document and still goes red.
+        //
+        // So this row is not a hypothetical. It is the exact registration the operator was told
+        // restarts on crash, and the reason the predicate above needed a sixth term.
+        var state = new LogonTaskState(
+            Registered: true, Command: "x.exe", Arguments: "--port 1", HasLogonTrigger: true,
+            RunLevel: "LeastPrivilege", LogonType: "InteractiveToken", RestartCount: 3,
+            RestartInterval: "PT1M", Enabled: true, RepetitionInterval: null);
 
         Assert.False(state.MatchesLogonTaskClaim);
     }
@@ -321,6 +361,7 @@ public sealed class LogonTaskSupervisorTests
         Assert.True(state.MatchesLogonTaskClaim);
         Assert.Equal("--port 8890", state.Arguments);
         Assert.Equal("PT60S", state.RestartInterval);
+        Assert.Equal("PT60S", state.RepetitionInterval);
     }
 
     // ------------------------------------------------------------------ the decoder
@@ -358,6 +399,10 @@ public sealed class LogonTaskSupervisorTests
         + "    <LogonTrigger>\n"
         + "      <Enabled>true</Enabled>\n"
         + "      <UserId>TESTHOST\\operator</UserId>\n"
+        + "      <Repetition>\n"
+        + "        <Interval>PT1M</Interval>\n"
+        + "        <StopAtDurationEnd>false</StopAtDurationEnd>\n"
+        + "      </Repetition>\n"
         + "    </LogonTrigger>\n"
         + "  </Triggers>\n"
         + "  <Principals>\n"

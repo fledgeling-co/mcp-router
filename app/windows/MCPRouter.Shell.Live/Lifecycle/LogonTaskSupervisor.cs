@@ -26,10 +26,13 @@ public sealed record LogonTaskState(
     string? LogonType,
     int RestartCount,
     string? RestartInterval,
-    bool Enabled)
+    bool Enabled,
+    // Last and defaulted so that adding it did not have to touch every construction site, which
+    // would have made a behavioural change look like a mechanical one in review.
+    string? RepetitionInterval = null)
 {
     public static LogonTaskState Absent { get; } =
-        new(false, null, null, false, null, null, 0, null, false);
+        new(false, null, null, false, null, null, 0, null, false, null);
 
     /// <summary>Whether the scheduler holds what DaemonSupervisionKind.LogonTask claims.</summary>
     /// <remarks>
@@ -39,12 +42,22 @@ public sealed record LogonTaskState(
     /// of them are read rather than the presence of the task alone. A task that exists and runs
     /// elevated on a schedule satisfies "registered" and satisfies none of what the operator was
     /// told.
+    ///
+    /// RepetitionInterval is a term of this predicate and RestartCount is not enough on its own,
+    /// because MEASUREMENT said so. A task carrying RestartOnFailure and nothing else was started,
+    /// its process was killed, and the Windows task scheduler never brought it back - watched for
+    /// 150 seconds against a 60-second interval, on both scheduling engines, for a trigger-started
+    /// run and an on-demand one. RestartOnFailure governs a task that fails to LAUNCH; the
+    /// repetition is what covers one that launched and then died. A predicate that read
+    /// RestartCount alone would report "restarts on crash" as satisfied by a registration this
+    /// repository has watched fail to do it.
     /// </remarks>
     public bool MatchesLogonTaskClaim =>
         Registered
         && HasLogonTrigger
         && string.Equals(RunLevel, "LeastPrivilege", StringComparison.Ordinal)
         && RestartCount > 0
+        && !string.IsNullOrWhiteSpace(RepetitionInterval)
         && Enabled;
 }
 
@@ -68,21 +81,57 @@ public sealed record LogonTaskState(
 ///                           which fires before the user session exists, and the daemon must run IN
 ///                           that session - LifecyclePresentation.UserSessionRequirement says why:
 ///                           local browser instances for OAuth and per-user harness configuration.
-///   "restarts on crash"  -> RestartOnFailure with an interval and a count. This is the one that
-///                           cannot be expressed through schtasks' flag form at all, and it is why
-///                           registration goes through /XML rather than /SC ONLOGON. A flag-form
-///                           registration would have shipped a task that starts the daemon once and
-///                           never notices it died, under a description promising the opposite.
+///   "restarts on crash"  -> a Repetition on the trigger PLUS RestartOnFailure, because MEASUREMENT
+///                           showed the second one alone does not do what its name says. Neither
+///                           can be expressed through schtasks' flag form, which is why
+///                           registration goes through /XML rather than /SC ONLOGON.
+///
+///                           MEASURED 2026-09-03 on the reference machine, four registrations, each
+///                           started and then killed, with the scheduler read back through
+///                           Get-ScheduledTaskInfo and the process table read through CIM:
+///
+///                             RestartOnFailure alone, run started by a trigger, action process
+///                             killed  ->  LastTaskResult became 0xFFFFFFFF and the daemon was
+///                             NEVER restarted. Watched for 150 seconds against a 60-second
+///                             interval and a count of 3. Same with the legacy scheduling engine,
+///                             and same for an on-demand start.
+///
+///                             RestartOnFailure alone, action that could not be LAUNCHED at all -
+///                             a Command naming a file that does not exist  ->  restarted three
+///                             times at 60-second intervals, exactly as configured.
+///
+///                           So RestartOnFailure governs a task that FAILS TO START and says
+///                           nothing about an action that started and later died, which is the only
+///                           case "restarts on crash" was ever about. It is kept, because the
+///                           launch-failure case is real and nothing else covers it.
+///
+///                           The repetition is what covers the crash. The trigger re-fires every
+///                           interval for as long as the session lasts; MultipleInstancesPolicy
+///                           IgnoreNew makes the scheduler discard a re-fire while the daemon is
+///                           alive - LastTaskResult 0x8004131F, "an instance is already running" -
+///                           and start it again once it is not. Measured the same day: killed at
+///                           03:04:2x, a new process at 03:04:37, and the repetitions after that
+///                           refused as duplicates for as long as it lived.
+///
+///                           WHAT IT COSTS, said here because it is not free: the scheduler
+///                           evaluates the trigger once a minute for the life of the session, and
+///                           the daemon can be down for up to one whole interval before it comes
+///                           back. Restarting within a second needs a supervising process, which is
+///                           the InAppSupervised model this tree does not implement.
 ///   "un-elevated"        -> RunLevel LeastPrivilege, with LogonType InteractiveToken. The default
 ///                           for a task created by an elevated caller is HighestAvailable, so this
 ///                           is a thing to set and not a thing to leave alone.
 ///
-/// WHAT THIS CLASS CANNOT ESTABLISH. That the scheduler accepted the XML, that the trigger fires,
-/// or that a killed daemon comes back. The first is measured by the effect-witness lane
-/// (scripts/windows/win23-logon-task-witness.ps1), which registers for real and reads the result
-/// back through the Task Scheduler WMI provider rather than through schtasks. The second and third
-/// are not measured anywhere yet, and DEF-074 stays open against them rather than being closed on
-/// the strength of this file existing.
+/// WHAT THIS CLASS CANNOT ESTABLISH. That the scheduler accepted the XML, that the trigger fires at
+/// logon, or that a killed daemon comes back. The first is measured by
+/// scripts/windows/win23-logon-task-witness.ps1, which registers for real and reads the result back
+/// through the Task Scheduler WMI provider rather than through schtasks. The THIRD is measured by
+/// scripts/windows/win23-restart-witness.ps1, which starts a real process under a real trigger,
+/// kills it, and watches the scheduler bring it back. That lane is where the repetition above came
+/// from: it went red against the RestartOnFailure-only document this method used to write, and the
+/// same lane's arming mode still points at that document and still goes red. The SECOND is measured
+/// nowhere - proving the trigger fires at logon needs a logon - and DEF-081 carries it rather than
+/// it being closed on the strength of the registration being right.
 /// </remarks>
 public sealed class LogonTaskSupervisor
 {
@@ -153,14 +202,33 @@ public sealed class LogonTaskSupervisor
         }
 
         var restartSeconds = Math.Max(config.RestartDelaySeconds, 1);
+
+        // The scheduler refuses a repetition interval under a minute, so 60 is a floor rather than
+        // a preference. It is kept separate from restartSeconds deliberately: a caller asking for a
+        // 5-second restart delay gets a 5-second RestartOnFailure interval, which is honoured for
+        // the launch-failure case, and a 60-second repetition, which is the fastest the crash case
+        // can be covered at all. Rounding both to the same number would hide that difference.
+        var repetitionSeconds = Math.Max(restartSeconds, 60);
         var user = Escape(_userId);
         var command = Escape(config.ExecutablePath);
         var arguments = Escape(ArgumentsFor(config));
 
-        // RestartOnFailure is emitted only when the config asks for it, so a config declaring
-        // RestartOnCrash false produces a task that genuinely does not restart. The alternative -
-        // always emitting it - would make the flag decorative, and a decorative flag on a
-        // supervision setting is the same defect one layer down.
+        // THE REPETITION IS THE PART THAT ACTUALLY RESTARTS A CRASHED DAEMON. It is emitted only
+        // when the config asks for supervision, for the same reason RestartOnFailure is: an
+        // operator who turns supervision off must get a task that genuinely does not come back.
+        // It sits after UserId because that is the document the scheduler was measured to accept
+        // and to honour - element order inside a trigger is schema-checked, and a wrong one is
+        // refused at registration rather than quietly ignored.
+        var repetition = config.RestartOnCrash
+            ? "      <Repetition>\n"
+              + $"        <Interval>PT{repetitionSeconds.ToString(CultureInfo.InvariantCulture)}S</Interval>\n"
+              + "        <StopAtDurationEnd>false</StopAtDurationEnd>\n"
+              + "      </Repetition>\n"
+            : string.Empty;
+
+        // RestartOnFailure is emitted on the same condition, and covers a different failure: a task
+        // the scheduler could not LAUNCH at all. Measured, it does nothing whatever for an action
+        // that started and later died, which is why it is no longer alone up there.
         var restart = config.RestartOnCrash
             ? "    <RestartOnFailure>\n"
               + $"      <Interval>PT{restartSeconds.ToString(CultureInfo.InvariantCulture)}S</Interval>\n"
@@ -181,6 +249,7 @@ public sealed class LogonTaskSupervisor
         builder.Append("    <LogonTrigger>\n");
         builder.Append("      <Enabled>true</Enabled>\n");
         builder.Append($"      <UserId>{user}</UserId>\n");
+        builder.Append(repetition);
         builder.Append("    </LogonTrigger>\n");
         builder.Append("  </Triggers>\n");
         builder.Append("  <Principals>\n");
@@ -338,7 +407,9 @@ public sealed class LogonTaskSupervisor
         var principal = root.Element(ns + "Principals")?.Elements(ns + "Principal").FirstOrDefault();
         var settings = root.Element(ns + "Settings");
         var restart = settings?.Element(ns + "RestartOnFailure");
-        var hasLogon = root.Element(ns + "Triggers")?.Elements(ns + "LogonTrigger").Any() == true;
+        var logonTrigger = root.Element(ns + "Triggers")?.Elements(ns + "LogonTrigger").FirstOrDefault();
+        var hasLogon = logonTrigger is not null;
+        var repetitionInterval = Value(logonTrigger?.Element(ns + "Repetition"), "Interval");
 
         var count = 0;
         var countText = Value(restart, "Count");
@@ -365,6 +436,7 @@ public sealed class LogonTaskSupervisor
             LogonType: Value(principal, "LogonType"),
             RestartCount: count,
             RestartInterval: Value(restart, "Interval"),
-            Enabled: enabled);
+            Enabled: enabled,
+            RepetitionInterval: repetitionInterval);
     }
 }

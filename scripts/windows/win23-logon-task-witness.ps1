@@ -34,11 +34,15 @@
                  from an echo.
 
     WHAT THIS DOES NOT ESTABLISH, said here rather than left to be inferred from a green: that the
-    trigger fires at the next logon, and that a killed daemon is actually restarted. Both need a
-    logon and a kill, neither of which this lane performs, and DEF-074 stays open against them.
-    What this lane settles is narrower and was previously unmeasured entirely: that the
-    registration this product performs produces, in the Windows task scheduler, a task with the
-    properties the product's own UI describes.
+    trigger fires at the next logon. That needs a logon, which this lane does not perform, and
+    DEF-081 keeps it.
+
+    THE KILL IS NO LONGER ON THAT LIST. scripts/windows/win23-restart-witness.ps1 starts a real
+    process from a real trigger, kills it, and watches the scheduler bring it back. It is also where
+    the EFFECT.restart arm below got its second term: measured 2026-09-03, a task carrying
+    RestartOnFailure and nothing else was never restarted after its process was killed, on either
+    scheduling engine, so RestartCount alone reads as "restarts on crash" for a registration that
+    demonstrably does not. DEF-320 carries the finding.
 
 .PARAMETER TaskName
     Deliberately its own name, never the shipped one. A witness that registered and deleted the
@@ -105,8 +109,8 @@ function Write-Verdict {
         armsHeld    = @($Arms | Where-Object { $_.held }).Count
         armsTotal   = $Arms.Count
         notMeasured = @(
-            'that the trigger fires at the next logon - this lane does not log the user out',
-            'that a killed daemon is restarted - this lane does not start or kill one'
+            'that the trigger fires at the next logon - this lane does not log the user out, and DEF-081 keeps it',
+            'that a killed daemon is restarted - this lane does not start or kill one; scripts/windows/win23-restart-witness.ps1 does, and does'
         )
         notes       = $Notes
         host        = $env:COMPUTERNAME
@@ -160,6 +164,15 @@ function Read-Effect {
         logonType       = [string] $task.Principal.LogonType
         restartCount    = [int] $task.Settings.RestartCount
         restartInterval = [string] $task.Settings.RestartInterval
+        # The repetition on the LOGON trigger, which is the half that actually restarts a crashed
+        # daemon. Read off the trigger rather than off Settings: RestartOnFailure lives in Settings
+        # and covers a different failure entirely.
+        repetition      = $(
+            $logon = @($task.Triggers) | Where-Object {
+                $null -ne $_.CimClass -and $_.CimClass.CimClassName -eq 'MSFT_TaskLogonTrigger' } |
+                Select-Object -First 1
+            if ($null -ne $logon -and $null -ne $logon.Repetition) { [string] $logon.Repetition.Interval }
+            else { '' })
         executionLimit  = [string] $task.Settings.ExecutionTimeLimit
         execute         = if ($null -ne $action) { [string] $action.Execute } else { $null }
         arguments       = if ($null -ne $action) { [string] $action.Arguments } else { $null }
@@ -259,9 +272,15 @@ try {
         ("triggers: {0}" -f ($after.triggerClasses -join ', '))
     Add-Arm 'EFFECT.unelevated' 'the principal runs un-elevated' `
         ($after.runLevel -eq 'Limited') ("RunLevel={0}, LogonType={1}" -f $after.runLevel, $after.logonType)
-    Add-Arm 'EFFECT.restart' 'the task restarts on failure' `
-        ($after.restartCount -gt 0 -and -not [string]::IsNullOrWhiteSpace($after.restartInterval)) `
-        ("RestartCount={0}, RestartInterval={1}" -f $after.restartCount, $after.restartInterval)
+    # BOTH terms, because measurement showed the first one alone does not mean what it says. A task
+    # with RestartOnFailure and no trigger repetition was watched, four times, not to come back after
+    # its process was killed.
+    Add-Arm 'EFFECT.restart' 'the task carries both halves of the restart claim' `
+        ($after.restartCount -gt 0 -and -not [string]::IsNullOrWhiteSpace($after.restartInterval) `
+            -and -not [string]::IsNullOrWhiteSpace($after.repetition)) `
+        ("RestartCount={0}, RestartInterval={1}, trigger Repetition={2}" -f
+            $after.restartCount, $after.restartInterval,
+            $(if ($after.repetition) { $after.repetition } else { '<none>' }))
     Add-Arm 'EFFECT.action' 'the action is the executable and port this run asked for' `
         ($after.execute -eq $ExePath -and $after.arguments -eq ("--port {0}" -f $Port)) `
         ("Execute={0} Arguments={1}" -f $after.execute, $after.arguments)

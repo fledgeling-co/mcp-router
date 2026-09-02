@@ -82,7 +82,7 @@ project whose join went 6.2% to 100% while every gate stayed green.
 and either name its targets or declare `registry-target: none` with a reason. That is decision work
 and it is deliberately not a bulk write. `DEF-090` carries it.
 
-**Also filed:** `DEF-085`, for a disagreement found while remapping — `defects.in.json` and
+**Also filed:** `DEF-091`, for a disagreement found while remapping — `defects.in.json` and
 `inventory.json` say different things about `DEF-002`, `DEF-040` and `DEF-063`, and only the second
 of the two is ever read.
 

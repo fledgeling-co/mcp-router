@@ -146,7 +146,7 @@ project whose join went from 6.2% to 100% while every gate stayed green, because
 to satisfy a tool join nothing. Two briefs gained a target here; both targets are rows that exist
 and say what the brief says.
 
-`DEF-085` was filed for something found by arming rather than by reading: the first version of the
+`DEF-091` was filed for something found by arming rather than by reading: the first version of the
 status remap synced `defects.in.json` to `inventory.json` wholesale and moved three rows that have
 nothing to do with vocabulary — `DEF-002` `open`→`closed`, `DEF-040`
 `open-instrument`→`fixed · in-campaign`, `DEF-063` `open · measured`→`open`. Those are
@@ -159,7 +159,7 @@ rather than a silent difference between a file that is read and a file that is n
 * **78 briefs still name nothing**, and the join is 18.7%. That is `DEF-090`, open, and the remedy
   is deliberately not a bulk write.
 * **Which of the two registry files is right about `DEF-002`, `DEF-040` and `DEF-063`** is an
-  adjudication somebody has to make by reading each defect. `DEF-085`, open.
+  adjudication somebody has to make by reading each defect. `DEF-091`, open.
 * **`target-resolution-gate.py` exits 1 on `main` today**, on two case ids in `ORCHESTRATOR.md`
   that no registry row holds — the gate names them; they are not repeated here, because writing
   them into this file made it a second offender at `2, floor 0` on the first attempt.
@@ -184,7 +184,7 @@ directory as the project's reckoning, and a branch-local run must not become tha
 |---|---|---|---|
 | `unbuilt` | 2 | **0** | both rows were the DEF-253 citation |
 | `unjoined` | 109 | 108 | `defect-vocabulary-blocks-the-reckoning-gate` joined |
-| `broken` | 62 | 63 | −1 `DEF-048`, −1 `G5-gapfix`, +2 `DEF-090`/`DEF-085`, +1 net |
+| `broken` | 62 | 63 | −1 `DEF-048`, −1 `G5-gapfix`, +2 `DEF-090`/`DEF-091`, +1 net |
 | `unmeasured` | 21 | 21 | |
 | `undecided` | 19 | 21 | the two briefs below |
 | `unnamed` | 1 | 1 | |
@@ -205,7 +205,7 @@ directory as the project's reckoning, and a branch-local run must not become tha
 | `DEF-048` | `broken` | `waived` | `superseded`, read from the register instead of guessed |
 | `BRIEF-G5-gapfix` | `broken` | `undecided` | it cites `CASE-0145` and `DEF-048`; with `DEF-048` no longer open, nothing in the registry says no against it, and the weak join stops it retiring outright |
 | `BRIEF-defect-vocabulary-blocks-the-reckoning-gate` | `unjoined` | `undecided` | joined for the first time, to `REQ-040` |
-| `DEF-090`, `DEF-085` | — | `broken` | filed here, open |
+| `DEF-090`, `DEF-091` | — | `broken` | filed here, open |
 | `REQ-040`, `CASE-0355`, `CASE-0356` | — | `verified-done` | the property and its two observations |
 | `DEF-011` | `broken` | `broken` | **deliberately unmoved** — same class, now from the register |
 

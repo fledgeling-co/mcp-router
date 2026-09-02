@@ -280,6 +280,42 @@ if (-not (Test-Path $win22Witness)) {
     }
 }
 
+# ---------------------------------------------------------------- DEF-079's unhandled handlers
+# The lane that makes each of the shell's three top-level exception handlers fire on purpose and
+# reads the line it wrote back out of shell-startup.log, in this process, after the shell that
+# wrote it exited. DEF-079 was never a broken handler: it was three handlers nobody had seen fire,
+# registered and then trusted, under a log whose silence read as "no exception occurred" when it
+# meant "nothing was recorded". This is the check that would notice a handler quietly stopping.
+#
+# It launches the shell four times and needs the BINARY, so it sits with the other launch lanes
+# after the client build.
+#
+# Graded by EXIT CODE and never by its prose, for the reason recorded in the WIN20 block above.
+Write-Host "`nWindows shell diagnostics (DEF-079)" -ForegroundColor Cyan
+$defUnhandled = Join-Path $root 'scripts/windows/win-shell-unhandled-witness.ps1'
+if (-not (Test-Path $defUnhandled)) {
+    Skip-Check 'unhandled-exception effect witness' 'scripts/windows/win-shell-unhandled-witness.ps1 absent'
+} elseif ($null -eq $pwshExe) {
+    Skip-Check 'unhandled-exception effect witness' 'pwsh (PowerShell 7) is absent'
+} else {
+    Write-Host ("  {0,-44} " -f 'unhandled-exception effect witness') -NoNewline
+    & $pwshExe.Source -NoProfile -File $defUnhandled 2>&1 | Out-Null
+    $wUn = $LASTEXITCODE
+    if ($wUn -eq 0) {
+        Write-Host "pass" -ForegroundColor Green
+        $passed.Add('unhandled-exception effect witness')
+    } elseif ($wUn -eq 3) {
+        # Reserved for "could not run" - no shell binary on disk, no interactive session to reach,
+        # or a launch that never got as far as injecting. NOT a pass: a handler that was never
+        # asked to fire has not been observed firing, which is the whole of DEF-079.
+        Write-Host "NO VERDICT (exit 3) - it measured nothing" -ForegroundColor DarkYellow
+        $notrun.Add('unhandled-exception effect witness - the lane reserves exit 3 for "could not run"')
+    } else {
+        Write-Host ("FAIL (exit {0})" -f $wUn) -ForegroundColor Red
+        $failed.Add('unhandled-exception effect witness')
+    }
+}
+
 # ---------------------------------------------------------------- WIN19's package
 # The heaviest row here and the only one that needs elevation, because it does the whole cycle:
 # packs an MSIX with MakeAppx, validates the winget manifest with the winget client, self-signs,

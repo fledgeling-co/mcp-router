@@ -564,12 +564,14 @@
       "title": "WIN22's Action Center toasts cannot fire: nothing in product source raises a notification",
       "lane": "windows-glass",
       "severity": "high",
-      "status": "open",
+      "status": "fixed",
       "found": "2026-09-02, tailings audit of the WIN fleet",
       "evidence": "`ToastNotificationManager` has 0 hits in product source. `AppNotification` has 0 - all 26 raw hits are under obj/ and bin/, generated Windows App SDK projection code. The only real `ToastNotification` hits are WIN22's own two files, where it is the type name of a plain record. The item ships NotificationModels.cs (17 lines), NotificationPresentation.cs (22) and a unit test (23), with no XAML and no view.",
       "class": "inert",
       "why-it-matters": "The merge subject reads `WIN22: Windows toast notifications for waiting decisions - review-only actions, safe payloads, 621 tests` and the ledger row reads `Merged after verify PASS: 621 tests green, Action Center toast notifications`. The tests pass because they assert that a function building a payload record builds that payload record. No toast can reach the Action Center.",
-      "next": "Either build the notification path - AppNotificationManager registration, an AppUserModelID, and the COM activator that makes a toast action reach the review sheet - or withdraw the claim from the ledger and the design of record."
+      "next": "Either build the notification path - AppNotificationManager registration, an AppUserModelID, and the COM activator that makes a toast action reach the review sheet - or withdraw the claim from the ledger and the design of record.",
+      "fixed": "2026-09-02",
+      "resolution": "IMPLEMENTED, and the registration it produces is measured by an instrument outside the product. Three files: MCPRouter.Shell.Model/Notifications/ToastPayloadCodec.cs renders the payload to AppNotification XML and reads a click's arguments back; MCPRouter.Shell/Notifications/ToastNotifier.cs claims an explicit AppUserModelID (Fledgeling.MCPRouter.Shell) through SetCurrentProcessExplicitAppUserModelID and then calls AppNotificationManager.Register(), which for an unpackaged app writes the COM activator; App.OnToastInvoked routes an OpenReviewSheet invocation to SelectDestination(DestinationCatalog.InboxId), which is the review sheet. THE ORDER IS LOAD-BEARING: the AUMID must be in force before Register writes under it, or the activator lands under an identity derived from the executable's path and every notification becomes unattributable the moment the install directory moves. THE SAFETY RULE IS NOW A PROPERTY OF THE WIRE. ToastSafetyRule says no toast action installs, approves or grants anything directly, and WIN22's test asserted that the sentence contained its own words. ToastPayloadCodec.Parse admits a closed set of two actions and returns null - not a default - for anything else, and a test parses every argument string in the generated document back through that reader and requires each to land in the set. A button added with an install argument fails there whether or not the sentence was updated. THE EFFECT WITNESS: scripts/windows/win22-toast-witness.ps1, 4 arms, run 2026-09-02, evidence at planning/evidence/WIN22/run/witness.json. The writer is the Windows App SDK notification platform inside the shell process; the recorder is HKCU read by PowerShell's registry provider in a different process, with nothing of this repository's between them. It found the AUMID key, a CustomActivator CLSID {388ED0B3-2D79-49E7-927B-0BFE880FC898}, and that CLSID's LocalServer32 naming MCPRouter.Shell.exe with the platform's own ----AppNotificationActivated: argument. BASELINE requires the key to be ABSENT first, so the run is measuring this launch. ARMED: `-ProveRed` points every read at an AUMID nothing registers and requires all three EFFECT arms to break while BASELINE holds. They did - so the reads are keyed on this application's identity and are not finding whatever registration happens to be nearby, which is the specific way a registry check can be vacuous. Evidence at planning/evidence/WIN22/run/witness-armed.json. THE SHELL'S OWN REPORT IS COLLECTED AND GRADED BY NOTHING. `--toast-probe` writes toast-probe.json saying the platform accepted a Show; the witness carries it as `writerSelfReport` with a field saying it is not evidence, because a process reporting its own effect is exactly the shape of claim this defect was about. WHAT IS STILL NOT MEASURED: that a toast is DRAWN in the Action Center, and that pressing a button re-activates the process through the registered activator. Enumerating the Action Center needs UserNotificationListener, whose capability is only grantable to a packaged app, and this one is WindowsPackageType=None. DEF-082 carries both."
     },
     {
       "id": "DEF-073",
@@ -674,6 +676,18 @@
       "class": "unmeasured",
       "why-it-matters": "This is a much smaller claim than DEF-074's was, and it is filed rather than folded into the fix because folding it in is exactly how DEF-074 happened: a narrower thing was measured and a wider thing was reported. Trusting the scheduler to honour its own manifest is a reasonable place to stop; not saying that is where one stopped is not.",
       "next": "Either measure it - a lane that starts the registered task, kills the process and watches the scheduler's LastTaskResult and NumberOfMissedRuns move, which needs a real daemon binary this tree does not yet build for Windows - or record the two behaviours as resting on the Windows task scheduler's own contract and close this on that basis."
+    },
+    {
+      "id": "DEF-082",
+      "title": "No instrument on this host can see a toast in the Action Center, or a click on one",
+      "lane": "windows-glass",
+      "severity": "low",
+      "status": "open",
+      "found": "2026-09-02, recorded while fixing DEF-072",
+      "evidence": "scripts/windows/win22-toast-witness.ps1 witnesses the REGISTRATION and says so in its own notMeasured[]. Enumerating what is in the Action Center requires Windows.UI.Notifications.Management.UserNotificationListener, whose userNotificationListener capability is only grantable to a packaged application; MCPRouter.Shell.csproj is WindowsPackageType=None. Nothing here can press a notification button either.",
+      "class": "unmeasured",
+      "why-it-matters": "The two behaviours the operator is promised - a toast appears, and pressing Review opens the review sheet - rest on Windows honouring a registration this repository has confirmed is present. That is a reasonable place to stop. Not saying it is where one stopped is what DEF-072 was, one layer up, so it is filed rather than folded into that fix.",
+      "next": "It becomes measurable if WIN19's MSIX packaging lands: a packaged build can hold the userNotificationListener capability, and UserNotificationListener.GetNotificationsAsync would then be an independent recorder for the toast itself. So this is downstream of DEF-073 rather than independent of it."
     }
   ],
   "flow": [
@@ -1197,6 +1211,16 @@
       "effect": "ipc",
       "provider": "app/windows/MCPRouter.Shell.Live/Lifecycle/LogonTaskSupervisor.cs -> app/windows/MCPRouter.Shell.Live/Lifecycle/TaskSchedulerCli.cs -> schtasks.exe /Create /XML",
       "providerNote": "REGISTRATION is observed; FIRING is not. The effect is registration in the Windows task scheduler, and it is witnessed by Get-ScheduledTask, which reaches the scheduler through its WMI provider rather than through the schtasks.exe that wrote it. That the trigger fires at a real logon and that a killed daemon is actually restarted are NOT measured anywhere and are carried as DEF-081, because the alternative - letting 'supervision is observed' stand on a registration - is the shape DEF-074 recorded, one layer up."
+    },
+    {
+      "id": "REQ-036",
+      "class": "behaviour",
+      "text": "A capability queued from a paired phone raises a Windows toast that names it and says nothing has been installed, offering Review and Dismiss. Review opens the review sheet for that capability. No toast action installs, approves or grants anything.",
+      "source": "app/windows/MCPRouter.Shell.Model/Notifications/NotificationPresentation.cs (ToastSafetyRule, ForQueuedItem); planning/features-to-triage/LEDGER.md WIN22",
+      "evidence": "observed",
+      "effect": "ipc",
+      "provider": "app/windows/MCPRouter.Shell/Notifications/ToastNotifier.cs -> AppNotificationManager.Register()/Show(); app/windows/MCPRouter.Shell.Model/Notifications/ToastPayloadCodec.cs; app/windows/MCPRouter.Shell/App.xaml.cs OnToastInvoked -> ShellWindow.SelectDestination(DestinationCatalog.InboxId)",
+      "providerNote": "THE REGISTRATION IS OBSERVED; THE TOAST IS NOT. What an instrument on this host can see is the COM activator the notification platform wrote into HKCU, which is what makes a toast able to activate the app at all. What no instrument here can see is the notification being drawn or a button being pressed: that needs UserNotificationListener, whose capability is only grantable to a packaged app, and this one is WindowsPackageType=None. DEF-082 carries it, and it is downstream of DEF-073 packaging rather than independent of it. The safety half of this requirement IS fully observed, and by a different means: it is structural in ToastPayloadCodec, whose parser admits a closed set of two actions and refuses everything else, so 'no toast action installs anything' is checkable without a display."
     }
   ],
   "surface": [

@@ -4090,7 +4090,47 @@
     }
   },
   {
-    "id": "CASE-0309",
+    "id": "CASE-0339",
+    "req": "REQ-036",
+    "lane": "windows-glass",
+    "oracle": "effect-witness",
+    "cell": "execution-plane=windows-host - data-shape=one capability queued",
+    "status": "pass",
+    "armed": true,
+    "actuates": [
+      "ToastNotifier.Register",
+      "ToastNotifier.Show"
+    ],
+    "note": "The COM activator the Windows notification platform wrote, read out of the registry by a process that did not write it. The writer is AppNotificationManager.Register() inside the shell; the recorder is HKCU through PowerShell's registry provider, and nothing of this repository's sits between them. Four arms. BASELINE requires the AUMID key to be ABSENT before the shell launches, so what the other three read is this launch. The three EFFECT arms read the key, the CustomActivator CLSID it names, and that CLSID's LocalServer32 - which came back as MCPRouter.Shell.exe carrying the platform's own ----AppNotificationActivated: argument, a string this repository does not write anywhere. THE ACTIVATOR IS THE ARM THAT CARRIES THE ITEM. A toast outlives the process that raised it; when somebody presses Review an hour later, Windows COM-activates the LocalServer32 registered for that CLSID. Without it the toast still appears and pressing it does nothing, which is the failure that looks most like success and exactly what a screenshot of a notification would have certified. WHAT THIS CASE DOES NOT SETTLE: that a toast is drawn, and that a press re-activates the app. Both need UserNotificationListener, whose capability is only grantable to a packaged application; DEF-082 carries them and is downstream of DEF-073. The shell's own report that the platform accepted a Show is carried in the evidence as writerSelfReport and is graded by nothing, because a process reporting its own effect is the shape of claim DEF-072 was about.",
+    "evidence": [
+      "planning/evidence/WIN22/run/witness.json",
+      "planning/evidence/WIN22/run/witness-armed.json"
+    ],
+    "armedNote": "win22-toast-witness.ps1 -ProveRed points every registry read at Fledgeling.MCPRouter.Shell.NOTREGISTERED - an identity nothing registers - and requires all three EFFECT arms to break while BASELINE holds. They did. That is the specific way a registry check goes vacuous: the registry is full of AppUserModelId keys and CLSIDs, and a read that found any of them would pass forever. This shows the reads are keyed on this application's identity.",
+    "witness": {
+      "recorder": "HKCU\\Software\\Classes\\AppUserModelId and HKCU\\Software\\Classes\\CLSID, read by PowerShell's registry provider in a process that is not the shell",
+      "effect": "ipc",
+      "count": 1
+    }
+  },
+  {
+    "id": "CASE-0340",
+    "req": "REQ-036",
+    "lane": "windows-model",
+    "oracle": "outcome",
+    "cell": "execution-plane=off-glass - data-shape=one queued capability",
+    "status": "pass",
+    "armed": false,
+    "actuates": [],
+    "note": "The toast's wire format, on both sides of the trip, checkable with no display. ToastPayloadCodecTests parses the XML the platform will parse - it is a toast, it carries the title and the 'Nothing has been installed' line, it offers exactly Review and Dismiss - and then drives every argument string in that document back through the reader a real click goes through, requiring Review to come back as OpenReviewSheet FOR THAT CAPABILITY. Without the capability travelling, the action is a navigation to a list and the operator has to go and find the item the toast was about. THE SAFETY RULE IS ASSERTED OF THE DOCUMENT RATHER THAN OF ITS OWN SENTENCE. WIN22 tested ToastSafetyRule by asserting the string contained its own words. Here every action's arguments must parse into a closed set of two, and six refusal rows require the reader to return null - not a default - for an empty string, a bare form with no scheme, another application's scheme, our scheme with no action, and an action outside the set. That last row is the one that matters: this process does not control what sits in the Action Center, and a reader that fell back to something that ACTS would be the defect the safety rule names arriving through the parser.",
+    "evidence": [
+      "app/windows/MCPRouter.Shell.Tests/ToastPayloadCodecTests.cs"
+    ],
+    "armedNote": "not armed: no planted defect has been watched to fail these predicates. The closed-set and round-trip assertions would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false. The registration half of REQ-036 IS armed - see CASE-0339."
+  },
+  {
+    "id": "CASE-0324",
+    "generatedKey": "destination:discover",
     "req": "REQ-031",
     "surface": "SURF-034",
     "flow": null,
@@ -4120,7 +4160,8 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0310",
+    "id": "CASE-0325",
+    "generatedKey": "destination:skills",
     "req": "REQ-031",
     "surface": "SURF-033",
     "flow": null,
@@ -4150,7 +4191,8 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0311",
+    "id": "CASE-0326",
+    "generatedKey": "destination:servers",
     "req": "REQ-031",
     "surface": "SURF-031",
     "flow": null,
@@ -4180,7 +4222,8 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0312",
+    "id": "CASE-0327",
+    "generatedKey": "destination:activity",
     "req": "REQ-031",
     "surface": "SURF-032",
     "flow": null,
@@ -4210,7 +4253,8 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0313",
+    "id": "CASE-0328",
+    "generatedKey": "destination:harnesses",
     "req": "REQ-031",
     "surface": "SURF-039",
     "flow": null,
@@ -4240,7 +4284,8 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0314",
+    "id": "CASE-0329",
+    "generatedKey": "destination:checks",
     "req": "REQ-031",
     "surface": "SURF-035",
     "flow": null,
@@ -4270,7 +4315,8 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0315",
+    "id": "CASE-0330",
+    "generatedKey": "destination:cleanup",
     "req": "REQ-031",
     "surface": "SURF-036",
     "flow": null,
@@ -4300,7 +4346,8 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0316",
+    "id": "CASE-0331",
+    "generatedKey": "destination:inbox",
     "req": "REQ-031",
     "surface": "SURF-037",
     "flow": null,
@@ -4330,7 +4377,8 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0317",
+    "id": "CASE-0332",
+    "generatedKey": "destination:insights",
     "req": "REQ-031",
     "surface": "SURF-040",
     "flow": null,
@@ -4360,7 +4408,8 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0318",
+    "id": "CASE-0333",
+    "generatedKey": "destination:settings",
     "req": "REQ-031",
     "surface": "SURF-038",
     "flow": null,
@@ -4390,7 +4439,8 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0319",
+    "id": "CASE-0334",
+    "generatedKey": "shell",
     "req": "REQ-031",
     "surface": "SURF-030",
     "flow": null,
@@ -4418,7 +4468,8 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0320",
+    "id": "CASE-0335",
+    "generatedKey": "manual:SURF-041",
     "req": "REQ-031",
     "surface": "SURF-041",
     "flow": null,
@@ -4442,7 +4493,8 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0321",
+    "id": "CASE-0336",
+    "generatedKey": "manual:SURF-042",
     "req": "REQ-031",
     "surface": "SURF-042",
     "flow": null,
@@ -4466,7 +4518,8 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0322",
+    "id": "CASE-0337",
+    "generatedKey": "manual:SURF-043",
     "req": "REQ-031",
     "surface": "SURF-043",
     "flow": null,
@@ -4490,7 +4543,8 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
-    "id": "CASE-0323",
+    "id": "CASE-0338",
+    "generatedKey": "manual:SURF-044",
     "req": "REQ-031",
     "surface": "SURF-044",
     "flow": null,

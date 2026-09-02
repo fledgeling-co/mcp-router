@@ -246,6 +246,40 @@ if (-not (Test-Path $win23Witness)) {
     }
 }
 
+# ---------------------------------------------------------------- WIN22's notification activator
+# Enrolled for the same reason the WIN23 row is: it can run from any station - it bridges itself
+# into the interactive session when it needs a drawn window - and it cleans up after itself. What
+# it grades is the COM activator the Windows notification platform writes into HKCU, read back out
+# of the registry by a process that did not write it. WIN22 shipped a payload record, a builder and
+# a test asserting the builder built the record; this is the check that would notice that shape
+# returning.
+#
+# It needs the shell BINARY, which this lane has already built above, and it launches it. That is
+# why it sits after the client build rather than beside the model tests.
+Write-Host "`nWindows notifications (WIN22)" -ForegroundColor Cyan
+$win22Witness = Join-Path $root 'scripts/windows/win22-toast-witness.ps1'
+if (-not (Test-Path $win22Witness)) {
+    Skip-Check 'toast activator effect witness' 'scripts/windows/win22-toast-witness.ps1 absent'
+} elseif ($null -eq $pwshExe) {
+    Skip-Check 'toast activator effect witness' 'pwsh (PowerShell 7) is absent'
+} else {
+    Write-Host ("  {0,-44} " -f 'toast activator effect witness') -NoNewline
+    & $pwshExe.Source -NoProfile -File $win22Witness 2>&1 | Out-Null
+    $w22 = $LASTEXITCODE
+    if ($w22 -eq 0) {
+        Write-Host "pass" -ForegroundColor Green
+        $passed.Add('toast activator effect witness')
+    } elseif ($w22 -eq 3) {
+        # Reserved for "could not run" - no shell binary on disk, no interactive session to reach.
+        # NOT a pass: the registration it looks for is written by a launch that did not happen.
+        Write-Host "NO VERDICT (exit 3) - it measured nothing" -ForegroundColor DarkYellow
+        $notrun.Add('toast activator effect witness - the lane reserves exit 3 for "could not run"')
+    } else {
+        Write-Host ("FAIL (exit {0})" -f $w22) -ForegroundColor Red
+        $failed.Add('toast activator effect witness')
+    }
+}
+
 # ---------------------------------------------------------------- the portable repo gates
 Write-Host "`nPortable gates" -ForegroundColor Cyan
 

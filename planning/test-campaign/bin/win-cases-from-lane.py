@@ -41,16 +41,52 @@ def write_json(path, doc):
         json.dumps(doc, ensure_ascii=False, indent=2) + "\n")
 
 
-def next_case_id(cases):
-    highest = 0
-    for case in cases:
+def stable_ids(all_cases, kept):
+    """Give each generated subject an id that does NOT move when somebody adds a case by hand.
+
+    THE DEFECT THIS FIXES, measured 2026-09-02. The first version allocated from `max(kept) + 1`,
+    where `kept` is everything this generator did not write. So the generated block sat immediately
+    above the highest hand-written id, and adding ONE case by hand slid all fifteen generated ids up
+    by one. Two hand-written cases were authored against CASE-0309 and CASE-0310, the generator ran,
+    and those numbers became the Discover and Skills rows instead - a silent collision that would
+    have put two different claims under one id.
+
+    It is also the exact shape this repository already paid for: `3189d028` renumbered
+    CASE-0151..0161 and left brief X7 citing rows that no longer existed, which
+    `target-resolution-gate` found and `registry-retirements.json` now has to carry.
+
+    So an id is allocated ONCE per subject and then remembered, keyed on `generatedKey` - the
+    destination or surface the row is about, which is what the row IS rather than where it landed.
+    A new subject takes the next number above EVERY id in the file, generated ones included, so a
+    number is never handed to a second claim even after its first one is deleted.
+    """
+    reserved = set()
+    for case in all_cases:
         match = re.match(r"CASE-(\d+)$", str(case.get("id") or ""))
         if match:
-            highest = max(highest, int(match.group(1)))
-    n = highest
-    while True:
-        n += 1
-        yield "CASE-%04d" % n
+            reserved.add(int(match.group(1)))
+
+    remembered = {}
+    for case in all_cases:
+        key = case.get("generatedKey")
+        if key and case.get("generatedBy") == GENERATOR:
+            remembered[key] = case["id"]
+
+    highest = max(reserved) if reserved else 0
+    taken = {case["id"] for case in kept}
+
+    def allocate(key):
+        existing = remembered.get(key)
+        if existing and existing not in taken:
+            return existing
+        nonlocal highest
+        while True:
+            highest += 1
+            candidate = "CASE-%04d" % highest
+            if candidate not in taken:
+                return candidate
+
+    return allocate
 
 
 def main():
@@ -80,7 +116,9 @@ def main():
 
     kept = [c for c in cases if c.get("generatedBy") != GENERATOR]
     dropped = len(cases) - len(kept)
-    ids = next_case_id(kept)
+    # `cases` and not `kept`: the allocator has to see the ids it wrote last time, or it
+    # cannot remember them and cannot avoid re-issuing them.
+    allocate = stable_ids(cases, kept)
     written = []
 
     # ---------------------------------------------------------------- the measured destinations
@@ -129,7 +167,8 @@ def main():
                      "property of the board." % row["attempts"])
 
         written.append({
-            "id": next(ids),
+            "id": allocate("destination:" + row["id"]),
+            "generatedKey": "destination:" + row["id"],
             "req": WIN_REQ,
             "surface": surface,
             "flow": None,
@@ -159,7 +198,8 @@ def main():
     measured = [r for r in report.get("results", []) if r.get("status") in ("pass", "fail")]
     distinct = {r.get("fingerprint") for r in measured if r.get("fingerprint")}
     written.append({
-        "id": next(ids),
+        "id": allocate("shell"),
+        "generatedKey": "shell",
         "req": WIN_REQ,
         "surface": shell_surface,
         "flow": None,
@@ -191,7 +231,8 @@ def main():
         if surface.get("status") != "manual":
             continue
         written.append({
-            "id": next(ids),
+            "id": allocate("manual:" + surface["id"]),
+            "generatedKey": "manual:" + surface["id"],
             "req": WIN_REQ,
             "surface": surface["id"],
             "flow": None,

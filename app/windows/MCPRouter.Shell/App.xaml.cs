@@ -8,6 +8,7 @@ namespace MCPRouter.Shell;
 public partial class App : Application
 {
     private ShellWindow? _window;
+    private Notifications.ToastNotifier? _toasts;
 
     /// <summary>
     /// Where the self-test writes, when <c>--selftest &lt;dir&gt;</c> was passed. Null for a
@@ -68,7 +69,93 @@ public partial class App : Application
         StartupLog.Write($"launched, selftest={SelfTestDirectory ?? "(no)"}, skills-fixture={UseSkillsFixture}");
 
         _window = new ShellWindow(UseSkillsFixture ? new FixtureSkillsControlClient() : null);
+
+        // WIN22. Registered at launch rather than on first use, because the registration is what
+        // makes a toast raised LATER able to activate this application at all - and because the
+        // registration is the only part of the notification path an instrument on this host can
+        // witness. A false here is logged and the window still opens: a shell that refused to run
+        // because notifications could not be registered would trade a missing convenience for a
+        // missing application.
+        _toasts = new Notifications.ToastNotifier(OnToastInvoked);
+        StartupLog.Write($"toast registration: {(_toasts.Register() ? "registered" : "FAILED")}");
+
         _window.Activate();
+
+        if (HasFlag(argv, ToastProbeFlag))
+        {
+            RunToastProbe(argv);
+        }
+    }
+
+    /// <summary>Where a toast click lands: the Inbox, which is the review sheet.</summary>
+    /// <remarks>
+    /// THIS METHOD IS THE CLAIM WIN22 MAKES. The toast says an item is waiting for review and
+    /// offers a Review button; if pressing it did not select the destination that holds the item,
+    /// the notification would be an announcement rather than a route. `Dismiss` deliberately does
+    /// nothing here - the toast leaves the Action Center on activation, which IS the dismissal, and
+    /// a Dismiss that also navigated would drag the operator into the app they just declined to
+    /// open.
+    /// </remarks>
+    private void OnToastInvoked(MCPRouter.Shell.Model.Notifications.ToastInvocation invocation)
+    {
+        if (invocation.Action != MCPRouter.Shell.Model.Notifications.ToastActionKind.OpenReviewSheet)
+        {
+            return;
+        }
+        _window?.DispatcherQueue.TryEnqueue(() =>
+        {
+            _window.Activate();
+            _window.SelectDestination(MCPRouter.Shell.Model.DestinationCatalog.InboxId);
+        });
+    }
+
+    /// <summary>
+    /// `--toast-probe &lt;dir&gt;`: raise one toast and write what the platform said about it.
+    /// </summary>
+    /// <remarks>
+    /// Exists for scripts/windows/win22-toast-witness.ps1, which cannot press a button on a
+    /// notification and must not pretend it did. What this writes is this side's account - "the
+    /// platform accepted a Show" - and the witness treats it as exactly that: the file the WITNESS
+    /// grades is the registry, written by the notification platform and read back by a different
+    /// API, and this one is recorded beside it as the writer's own report rather than as evidence.
+    /// </remarks>
+    private void RunToastProbe(IReadOnlyList<string> argv)
+    {
+        var directory = ValueAfter(argv, ToastProbeFlag)
+            ?? throw new ArgumentException($"{ToastProbeFlag} needs a directory to write to");
+        Directory.CreateDirectory(directory);
+
+        var payload = MCPRouter.Shell.Model.Notifications.NotificationPresentation.ForQueuedItem(
+            "postgres-mcp", "win22-toast-witness", "postgres-mcp");
+        var shown = _toasts is not null && _toasts.Show(payload);
+
+        File.WriteAllText(Path.Combine(directory, "toast-probe.json"),
+            "{\n"
+            + $"  \"appUserModelId\": \"{Notifications.ToastNotifier.AppUserModelId}\",\n"
+            + $"  \"executable\": {System.Text.Json.JsonSerializer.Serialize(Environment.ProcessPath ?? "")},\n"
+            + $"  \"registered\": {(_toasts is not null).ToString().ToLowerInvariant()},\n"
+            + $"  \"showAccepted\": {shown.ToString().ToLowerInvariant()},\n"
+            + "  \"whatThisIs\": \"the writer's own account of raising one toast. It is NOT the "
+            + "witness: nothing here reads the Action Center, and this process cannot see whether "
+            + "the notification was drawn. The graded evidence is the registry the platform wrote.\"\n"
+            + "}\n");
+        StartupLog.Write($"toast probe: shown={shown}, wrote {directory}");
+    }
+
+    internal const string ToastProbeFlag = "--toast-probe";
+
+    private static string? ValueAfter(IReadOnlyList<string> argv, string flag)
+    {
+        for (var i = 0; i < argv.Count; i++)
+        {
+            if (!string.Equals(argv[i], flag, StringComparison.OrdinalIgnoreCase)) continue;
+            if (i + 1 >= argv.Count || argv[i + 1].StartsWith("--", StringComparison.Ordinal))
+            {
+                return null;
+            }
+            return argv[i + 1];
+        }
+        return null;
     }
 
     /// <summary>

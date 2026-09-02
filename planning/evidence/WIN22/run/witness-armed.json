@@ -1,0 +1,55 @@
+{
+  "lane": "win22-toast-witness",
+  "rung": "effect-witness",
+  "subject": "MCPRouter.Shell.Notifications.ToastNotifier",
+  "writer": "AppNotificationManager.Register(), inside the shell process",
+  "recorder": "the Windows registry under HKCU, read by PowerShell in a different process",
+  "recorderIsNotWriter": true,
+  "appUserModelId": "Fledgeling.MCPRouter.Shell.NOTREGISTERED",
+  "arming": true,
+  "verdict": "PASS (armed)",
+  "reason": "pointed at an AUMID nothing registers, every EFFECT arm broke and BASELINE held. So the registry reads are keyed on this application's identity and are not finding whatever registration happens to be nearby.",
+  "arms": [
+    {
+      "id": "BASELINE",
+      "what": "no registration under this AUMID before the shell runs",
+      "held": true,
+      "detail": "the arms below measure this launch"
+    },
+    {
+      "id": "EFFECT.aumid",
+      "what": "the notification platform wrote a key under this AUMID",
+      "held": false,
+      "detail": "no key at HKCU:\\Software\\Classes\\AppUserModelId\\Fledgeling.MCPRouter.Shell.NOTREGISTERED"
+    },
+    {
+      "id": "EFFECT.activator",
+      "what": "that key names a CustomActivator CLSID",
+      "held": false,
+      "detail": "no CustomActivator value - a toast under this identity could appear and activate nothing"
+    },
+    {
+      "id": "EFFECT.localserver",
+      "what": "the CLSID has a LocalServer32 naming this executable",
+      "held": false,
+      "detail": "no LocalServer32 for that CLSID - Windows would have nothing to launch"
+    }
+  ],
+  "armsHeld": 1,
+  "armsTotal": 4,
+  "writerSelfReport": {
+    "appUserModelId": "Fledgeling.MCPRouter.Shell",
+    "executable": "C:\\Dev\\mcp-router\\app\\windows\\MCPRouter.Shell\\bin\\x64\\Debug\\net8.0-windows10.0.19041.0\\win-x64\\MCPRouter.Shell.exe",
+    "registered": true,
+    "showAccepted": true,
+    "whatThisIs": "the writer's own account of raising one toast. It is NOT the witness: nothing here reads the Action Center, and this process cannot see whether the notification was drawn. The graded evidence is the registry the platform wrote."
+  },
+  "writerSelfReportIsNotEvidence": "the shell process reporting that it raised a toast. Graded by nothing here: a process reporting its own effect is the shape of claim DEF-072 was about. It is carried so a reader can see the two accounts side by side.",
+  "notMeasured": [
+    "that a toast is drawn in the Action Center - enumerating it needs UserNotificationListener, whose capability is only grantable to a packaged app, and this one is WindowsPackageType=None (DEF-082)",
+    "that pressing a toast button re-activates the process through the registered activator - nothing here can press one"
+  ],
+  "notes": [],
+  "host": "Z13",
+  "psVersion": "7.6.5"
+}

@@ -7,6 +7,16 @@ public static class DestinationCatalog
 {
     public const string SettingsId = "settings";
 
+    /// <summary>The review sheet, and the destination a toast's Review action routes to.</summary>
+    /// <remarks>
+    /// A named constant for the same reason SettingsId is one: it now has a caller outside the
+    /// catalogue. App.OnToastInvoked selects this destination when somebody presses Review on a
+    /// notification, and a magic string there would let a rename in this file leave that
+    /// navigation pointing at a destination that no longer exists - which SelectDestination
+    /// answers by throwing, from a handler running on a COM activation.
+    /// </remarks>
+    public const string InboxId = "inbox";
+
     /// <summary>The four pane headers, in order, as the design of record spells them.</summary>
     public static IReadOnlyList<string> Groups { get; } =
         new[] { "Store", "Routing", "Maintenance", "Attention" };
@@ -61,7 +71,7 @@ public static class DestinationCatalog
             "WIN9"),
 
         new Destination(
-            "inbox", "Inbox", "Attention", "Mail",
+            InboxId, "Inbox", "Attention", "Mail",
             Model.Accelerator.Control("8"), "I",
             "What the phone queued for review here. The phone queues; it never installs.",
             "WIN10"),

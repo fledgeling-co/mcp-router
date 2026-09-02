@@ -1,23 +1,23 @@
 ﻿{
     "schema":  "win20.uia-dump/1",
-    "capturedAtUtc":  "2026-09-01T23:39:17.7089530Z",
+    "capturedAtUtc":  "2026-09-02T08:59:40.3249424Z",
     "host":  {
                  "osVersion":  "10.0.26220.0",
                  "psVersion":  "5.1.26100.9223",
                  "machine":  "Z13"
              },
     "request":  {
-                    "processId":  15392,
+                    "processId":  26760,
                     "titleContains":  "",
                     "view":  "Control"
                 },
     "targets":  [
                     {
-                        "hwnd":  3147682,
+                        "hwnd":  1180892,
                         "name":  "Skills",
                         "className":  "WinUIDesktopWin32WindowClass",
                         "frameworkId":  "Win32",
-                        "processId":  15392,
+                        "processId":  26760,
                         "isVisible":  true,
                         "isMinimised":  false
                     }
@@ -25,18 +25,18 @@
     "foregroundSamples":  [
                               {
                                   "when":  "before",
-                                  "hwnd":  3147682,
-                                  "processId":  15392
+                                  "hwnd":  1180892,
+                                  "processId":  26760
                               },
                               {
                                   "when":  "midwalk",
-                                  "hwnd":  3147682,
-                                  "processId":  15392
+                                  "hwnd":  1180892,
+                                  "processId":  26760
                               },
                               {
                                   "when":  "after",
-                                  "hwnd":  3147682,
-                                  "processId":  15392
+                                  "hwnd":  1180892,
+                                  "processId":  26760
                               }
                           ],
     "truncated":  false,

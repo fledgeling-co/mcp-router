@@ -2,7 +2,8 @@
 <UserControl
     x:Class="MCPRouter.Shell.Views.DiscoverDetailContent"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:automation="using:Microsoft.UI.Xaml.Automation">
 
     <!--
       The content of the Discover detail dialog: everything the entry can honestly say about
@@ -14,23 +15,44 @@
       The capability statement is a READING of the entry's install block, labelled as such - no
       registry format carries a capability manifest, and a statement that read as declared would
       be a claim the entry never made.
+
+      NAMES ON THE AUTOMATION PLANE (DEF-075). This file declared no literal Content and no
+      AutomationProperties at all, so nothing in it could be addressed by name out of process -
+      every case on this surface would have stood at `presence`, and the same tree serves
+      Narrator. Two different properties are used here and the difference matters:
+
+        - AutomationProperties.AutomationId is set on every element. It is a STABLE ADDRESS that
+          survives a copy edit, and it is what the UIA lane looks the element up by.
+        - AutomationProperties.Name is set only where the element does not already publish one.
+          A TextBlock publishes its own Text as its accessible name, and overriding that with a
+          static label would make Narrator read "provenance" instead of the provenance - trading
+          an accessibility defect for a different accessibility defect. So the containers and the
+          argv list, which publish nothing, get names; the text elements keep theirs.
     -->
-    <ScrollViewer MaxHeight="480" VerticalScrollBarVisibility="Auto" Padding="0,4,0,0">
+    <ScrollViewer
+        x:Name="DetailRoot"
+        automation:AutomationProperties.AutomationId="discover.detail.root"
+        automation:AutomationProperties.Name="Capability detail"
+        automation:AutomationProperties.AccessibilityView="Control"
+        MaxHeight="480" VerticalScrollBarVisibility="Auto" Padding="0,4,0,0">
         <StackPanel Spacing="12">
 
             <!-- Who this is, and where each index says it came from. -->
             <StackPanel Spacing="2">
                 <TextBlock
                     x:Name="NameText"
+                    automation:AutomationProperties.AutomationId="discover.detail.name"
                     Style="{StaticResource BodyStrongTextBlockStyle}"
                     TextWrapping="Wrap" />
                 <TextBlock
                     x:Name="ProvenanceText"
+                    automation:AutomationProperties.AutomationId="discover.detail.provenance"
                     Style="{StaticResource CaptionTextBlockStyle}"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     TextWrapping="Wrap" />
                 <TextBlock
                     x:Name="FigureText"
+                    automation:AutomationProperties.AutomationId="discover.detail.figure"
                     Style="{StaticResource CaptionTextBlockStyle}"
                     FontFamily="Consolas"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -38,12 +60,14 @@
                     Visibility="Collapsed" />
                 <TextBlock
                     x:Name="DateText"
+                    automation:AutomationProperties.AutomationId="discover.detail.date"
                     Style="{StaticResource CaptionTextBlockStyle}"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     TextWrapping="Wrap"
                     Visibility="Collapsed" />
                 <TextBlock
                     x:Name="ArchivedText"
+                    automation:AutomationProperties.AutomationId="discover.detail.archived"
                     Style="{StaticResource CaptionTextBlockStyle}"
                     Foreground="{ThemeResource SystemFillColorCautionBrush}"
                     TextWrapping="Wrap"
@@ -52,6 +76,7 @@
 
             <TextBlock
                 x:Name="DescriptionText"
+                automation:AutomationProperties.AutomationId="discover.detail.description"
                 Style="{StaticResource BodyTextBlockStyle}"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                 TextWrapping="Wrap" />
@@ -60,17 +85,22 @@
             <StackPanel Spacing="4">
                 <TextBlock
                     x:Name="StatementHeadline"
+                    automation:AutomationProperties.AutomationId="discover.detail.statement.headline"
                     Style="{StaticResource BodyStrongTextBlockStyle}"
                     TextWrapping="Wrap" />
                 <TextBlock
                     x:Name="StatementBody"
+                    automation:AutomationProperties.AutomationId="discover.detail.statement.body"
                     Style="{StaticResource BodyTextBlockStyle}"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     TextWrapping="Wrap" />
                 <!-- Argv in the instrument face, one token per TextBlock: a joined line reads as
                      a shell command, and an entry whose args contain spaces or quotes would
                      render as a different command from the one that will run. -->
-                <ItemsControl x:Name="ArgvList">
+                <ItemsControl
+                    x:Name="ArgvList"
+                    automation:AutomationProperties.AutomationId="discover.detail.argv"
+                    automation:AutomationProperties.Name="Command line that will run">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="x:String">
                             <Border
@@ -90,21 +120,32 @@
                 </ItemsControl>
                 <TextBlock
                     x:Name="DerivationNote"
+                    automation:AutomationProperties.AutomationId="discover.detail.statement.derivation"
                     Style="{StaticResource CaptionTextBlockStyle}"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     TextWrapping="Wrap" />
             </StackPanel>
 
             <!-- What the entry asks for before it can start. -->
-            <StackPanel x:Name="RequirementsPanel" Spacing="6" Visibility="Collapsed">
+            <StackPanel
+                x:Name="RequirementsPanel"
+                automation:AutomationProperties.AutomationId="discover.detail.requirements"
+                automation:AutomationProperties.Name="Required values"
+                Spacing="6" Visibility="Collapsed">
                 <TextBlock
                     x:Name="RequirementsSummary"
+                    automation:AutomationProperties.AutomationId="discover.detail.requirements.summary"
                     Style="{StaticResource CaptionTextBlockStyle}"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     TextWrapping="Wrap" />
-                <StackPanel x:Name="RequirementFields" Spacing="8" />
+                <StackPanel
+                    x:Name="RequirementFields"
+                    automation:AutomationProperties.AutomationId="discover.detail.requirements.fields"
+                    automation:AutomationProperties.Name="Requirement fields"
+                    Spacing="8" />
                 <TextBlock
                     x:Name="SecretDestinationNote"
+                    automation:AutomationProperties.AutomationId="discover.detail.requirements.secretNote"
                     Style="{StaticResource CaptionTextBlockStyle}"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     TextWrapping="Wrap" />
@@ -113,6 +154,7 @@
             <!-- Why the Add is unavailable, next to the thing that is unavailable. -->
             <TextBlock
                 x:Name="BlockedReasonText"
+                automation:AutomationProperties.AutomationId="discover.detail.blockedReason"
                 Style="{StaticResource CaptionTextBlockStyle}"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                 TextWrapping="Wrap"
@@ -121,6 +163,7 @@
             <!-- An install refusal, next to the button that was refused. -->
             <TextBlock
                 x:Name="ErrorText"
+                automation:AutomationProperties.AutomationId="discover.detail.error"
                 Style="{StaticResource CaptionTextBlockStyle}"
                 Foreground="{ThemeResource SystemFillColorCriticalBrush}"
                 TextWrapping="Wrap"

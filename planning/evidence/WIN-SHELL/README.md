@@ -7,12 +7,27 @@ Written by `scripts/windows/uia/shell-lane.ps1`, run through
 
 ## What is here
 
-- `run/assert-report.json` — the graded result, one row per destination. This is the file
+- `run/assert-report.json` — the graded result, one row per destination, plus a `controls` array
+  from the lane's section 3b **control census**: the arm that names controls and reads their
+  state. The destination sweep grades a board on whether the board CHANGED, which cannot tell
+  seven sections of working switches from three inert ones — DEF-076 lived in exactly that gap.
+  The census addresses controls by `AutomationId` (a name search returns the first element with
+  that name anywhere in the tree, and the menu bar already holds a `Router`), reads the ids and
+  labels it expects out of `SettingsPresentation.cs` rather than restating them, and finishes by
+  toggling a switch through the plane and reading a *different* element — the board's state
+  readout, rendered from the model — because that is the only difference an out-of-process reader
+  can see between a bound control and an inert one. This is the file
   `planning/goals/completion-gates.py winlive` reads and the one the campaign cases are
   generated from by `planning/test-campaign/bin/win-cases-from-lane.py`.
 - `run/lane.log`, `run/lane.json` — the transcript and the one-line verdict.
 - `run/uia-shell-<destination>.json` — the control-view tree as it stood *after* that
   destination was actuated. `uia-shell-settings.json` is the evidence behind DEF-076.
+- `run/uia-shell-discover-detail.json` — the tree with the Discover **detail dialog** open, which
+  is the evidence behind DEF-075. It is the only dump here that the lane cannot always produce:
+  the dialog opens behind a store row, and a store row exists only when the registry search
+  returns something. When it does not, the census row reads `unoracled` and this file is whatever
+  the last reachable run wrote. A stale one is worse than an absent one, so its `capturedAtUtc`
+  is the field to check against `assert-report.json`'s before believing it.
 
 ## A note on `uia-shell-discover.json`
 

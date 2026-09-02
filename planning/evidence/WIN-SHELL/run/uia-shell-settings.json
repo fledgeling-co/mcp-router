@@ -1,23 +1,23 @@
 ﻿{
     "schema":  "win20.uia-dump/1",
-    "capturedAtUtc":  "2026-09-01T23:39:29.8795991Z",
+    "capturedAtUtc":  "2026-09-02T08:59:55.4739014Z",
     "host":  {
                  "osVersion":  "10.0.26220.0",
                  "psVersion":  "5.1.26100.9223",
                  "machine":  "Z13"
              },
     "request":  {
-                    "processId":  15392,
+                    "processId":  26760,
                     "titleContains":  "",
                     "view":  "Control"
                 },
     "targets":  [
                     {
-                        "hwnd":  3147682,
+                        "hwnd":  1180892,
                         "name":  "Settings",
                         "className":  "WinUIDesktopWin32WindowClass",
                         "frameworkId":  "Win32",
-                        "processId":  15392,
+                        "processId":  26760,
                         "isVisible":  true,
                         "isMinimised":  false
                     }
@@ -25,22 +25,22 @@
     "foregroundSamples":  [
                               {
                                   "when":  "before",
-                                  "hwnd":  3147682,
-                                  "processId":  15392
+                                  "hwnd":  1180892,
+                                  "processId":  26760
                               },
                               {
                                   "when":  "midwalk",
-                                  "hwnd":  3147682,
-                                  "processId":  15392
+                                  "hwnd":  1180892,
+                                  "processId":  26760
                               },
                               {
                                   "when":  "after",
-                                  "hwnd":  3147682,
-                                  "processId":  15392
+                                  "hwnd":  1180892,
+                                  "processId":  26760
                               }
                           ],
     "truncated":  false,
-    "elementCount":  55,
+    "elementCount":  81,
     "elements":  [
                      {
                          "depth":  0,
@@ -78,6 +78,162 @@
                          "depth":  1,
                          "path":  "/0",
                          "automationId":  "",
+                         "name":  "PopupHost",
+                         "controlType":  "Pane",
+                         "localizedControlType":  "pane",
+                         "className":  "Microsoft.UI.Content.PopupWindowSiteBridge",
+                         "frameworkId":  "Win32",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  -2,
+                                                   "width":  62,
+                                                   "height":  63,
+                                                   "x":  1248
+                                               },
+                         "patterns":  [
+
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  2,
+                         "path":  "/0/0",
+                         "automationId":  "",
+                         "name":  "",
+                         "controlType":  "Pane",
+                         "localizedControlType":  "pane",
+                         "className":  "InputSiteWindowClass",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  0,
+                                                   "width":  2560,
+                                                   "height":  1528,
+                                                   "x":  0
+                                               },
+                         "patterns":  [
+                                          "TransformPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  3,
+                         "path":  "/0/0/0",
+                         "automationId":  "",
+                         "name":  "Popup",
+                         "controlType":  "Window",
+                         "localizedControlType":  "window",
+                         "className":  "Popup",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  true,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  Infinity,
+                                                   "width":  -Infinity,
+                                                   "height":  -Infinity,
+                                                   "x":  Infinity
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/0/0/0/0",
+                         "automationId":  "",
+                         "name":  "F6",
+                         "controlType":  "ToolTip",
+                         "localizedControlType":  "tool tip",
+                         "className":  "ToolTip",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  0,
+                                                   "width":  50,
+                                                   "height":  49,
+                                                   "x":  1254
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/0/0/0/0/0",
+                         "automationId":  "",
+                         "name":  "F6",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  11,
+                                                   "width":  19,
+                                                   "height":  24,
+                                                   "x":  1269
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  1,
+                         "path":  "/1",
+                         "automationId":  "",
                          "name":  "Non Client Input Sink Window",
                          "controlType":  "Pane",
                          "localizedControlType":  "pane",
@@ -107,7 +263,7 @@
                      },
                      {
                          "depth":  1,
-                         "path":  "/1",
+                         "path":  "/2",
                          "automationId":  "",
                          "name":  "AppWindow Custom Title Bar",
                          "controlType":  "Pane",
@@ -138,7 +294,7 @@
                      },
                      {
                          "depth":  2,
-                         "path":  "/1/0",
+                         "path":  "/2/0",
                          "automationId":  "Minimize",
                          "name":  "Minimize",
                          "controlType":  "Button",
@@ -169,7 +325,7 @@
                      },
                      {
                          "depth":  2,
-                         "path":  "/1/1",
+                         "path":  "/2/1",
                          "automationId":  "Restore",
                          "name":  "Restore",
                          "controlType":  "Button",
@@ -200,7 +356,7 @@
                      },
                      {
                          "depth":  2,
-                         "path":  "/1/2",
+                         "path":  "/2/2",
                          "automationId":  "Close",
                          "name":  "Close",
                          "controlType":  "Button",
@@ -231,7 +387,7 @@
                      },
                      {
                          "depth":  1,
-                         "path":  "/2",
+                         "path":  "/3",
                          "automationId":  "",
                          "name":  "",
                          "controlType":  "Pane",
@@ -262,7 +418,7 @@
                      },
                      {
                          "depth":  2,
-                         "path":  "/2/0",
+                         "path":  "/3/0",
                          "automationId":  "",
                          "name":  "",
                          "controlType":  "Pane",
@@ -293,7 +449,7 @@
                      },
                      {
                          "depth":  3,
-                         "path":  "/2/0/0",
+                         "path":  "/3/0/0",
                          "automationId":  "Commands",
                          "name":  "",
                          "controlType":  "MenuBar",
@@ -324,7 +480,7 @@
                      },
                      {
                          "depth":  4,
-                         "path":  "/2/0/0/0",
+                         "path":  "/3/0/0/0",
                          "automationId":  "",
                          "name":  "File",
                          "controlType":  "MenuItem",
@@ -357,7 +513,7 @@
                      },
                      {
                          "depth":  4,
-                         "path":  "/2/0/0/1",
+                         "path":  "/3/0/0/1",
                          "automationId":  "",
                          "name":  "Edit",
                          "controlType":  "MenuItem",
@@ -390,7 +546,7 @@
                      },
                      {
                          "depth":  4,
-                         "path":  "/2/0/0/2",
+                         "path":  "/3/0/0/2",
                          "automationId":  "",
                          "name":  "View",
                          "controlType":  "MenuItem",
@@ -423,7 +579,7 @@
                      },
                      {
                          "depth":  4,
-                         "path":  "/2/0/0/3",
+                         "path":  "/3/0/0/3",
                          "automationId":  "",
                          "name":  "Router",
                          "controlType":  "MenuItem",
@@ -456,7 +612,7 @@
                      },
                      {
                          "depth":  4,
-                         "path":  "/2/0/0/4",
+                         "path":  "/3/0/0/4",
                          "automationId":  "",
                          "name":  "Library",
                          "controlType":  "MenuItem",
@@ -489,7 +645,7 @@
                      },
                      {
                          "depth":  4,
-                         "path":  "/2/0/0/5",
+                         "path":  "/3/0/0/5",
                          "automationId":  "",
                          "name":  "Help",
                          "controlType":  "MenuItem",
@@ -522,7 +678,7 @@
                      },
                      {
                          "depth":  3,
-                         "path":  "/2/0/1",
+                         "path":  "/3/0/1",
                          "automationId":  "BoardTitle",
                          "name":  "Settings",
                          "controlType":  "Text",
@@ -554,7 +710,7 @@
                      },
                      {
                          "depth":  3,
-                         "path":  "/2/0/2",
+                         "path":  "/3/0/2",
                          "automationId":  "Nav",
                          "name":  "",
                          "controlType":  "Custom",
@@ -589,7 +745,7 @@
                      },
                      {
                          "depth":  4,
-                         "path":  "/2/0/2/0",
+                         "path":  "/3/0/2/0",
                          "automationId":  "TogglePaneButton",
                          "name":  "Close Navigation",
                          "controlType":  "Button",
@@ -621,7 +777,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/2/0/2/0/0",
+                         "path":  "/3/0/2/0/0",
                          "automationId":  "PaneTitleTextBlock",
                          "name":  "",
                          "controlType":  "Text",
@@ -653,7 +809,7 @@
                      },
                      {
                          "depth":  4,
-                         "path":  "/2/0/2/1",
+                         "path":  "/3/0/2/1",
                          "automationId":  "PaneRoot",
                          "name":  "",
                          "controlType":  "Window",
@@ -684,7 +840,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/2/0/2/1/0",
+                         "path":  "/3/0/2/1/0",
                          "automationId":  "MenuItemsScrollViewer",
                          "name":  "",
                          "controlType":  "Pane",
@@ -716,7 +872,7 @@
                      },
                      {
                          "depth":  6,
-                         "path":  "/2/0/2/1/0/0",
+                         "path":  "/3/0/2/1/0/0",
                          "automationId":  "MenuItemsHost",
                          "name":  "",
                          "controlType":  "Group",
@@ -747,7 +903,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/2/0/2/1/0/0/0",
+                         "path":  "/3/0/2/1/0/0/0",
                          "automationId":  "HeaderText",
                          "name":  "Store",
                          "controlType":  "Text",
@@ -779,7 +935,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/2/0/2/1/0/0/1",
+                         "path":  "/3/0/2/1/0/0/1",
                          "automationId":  "",
                          "name":  "Discover",
                          "controlType":  "ListItem",
@@ -811,7 +967,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/2/0/2/1/0/0/2",
+                         "path":  "/3/0/2/1/0/0/2",
                          "automationId":  "",
                          "name":  "Skills",
                          "controlType":  "ListItem",
@@ -843,7 +999,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/2/0/2/1/0/0/3",
+                         "path":  "/3/0/2/1/0/0/3",
                          "automationId":  "HeaderText",
                          "name":  "Routing",
                          "controlType":  "Text",
@@ -875,7 +1031,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/2/0/2/1/0/0/4",
+                         "path":  "/3/0/2/1/0/0/4",
                          "automationId":  "",
                          "name":  "Servers",
                          "controlType":  "ListItem",
@@ -907,7 +1063,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/2/0/2/1/0/0/5",
+                         "path":  "/3/0/2/1/0/0/5",
                          "automationId":  "",
                          "name":  "Activity",
                          "controlType":  "ListItem",
@@ -939,7 +1095,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/2/0/2/1/0/0/6",
+                         "path":  "/3/0/2/1/0/0/6",
                          "automationId":  "",
                          "name":  "Harnesses",
                          "controlType":  "ListItem",
@@ -971,7 +1127,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/2/0/2/1/0/0/7",
+                         "path":  "/3/0/2/1/0/0/7",
                          "automationId":  "HeaderText",
                          "name":  "Maintenance",
                          "controlType":  "Text",
@@ -1003,7 +1159,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/2/0/2/1/0/0/8",
+                         "path":  "/3/0/2/1/0/0/8",
                          "automationId":  "",
                          "name":  "Checks",
                          "controlType":  "ListItem",
@@ -1035,7 +1191,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/2/0/2/1/0/0/9",
+                         "path":  "/3/0/2/1/0/0/9",
                          "automationId":  "",
                          "name":  "Cleanup",
                          "controlType":  "ListItem",
@@ -1067,7 +1223,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/2/0/2/1/0/0/10",
+                         "path":  "/3/0/2/1/0/0/10",
                          "automationId":  "HeaderText",
                          "name":  "Attention",
                          "controlType":  "Text",
@@ -1099,7 +1255,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/2/0/2/1/0/0/11",
+                         "path":  "/3/0/2/1/0/0/11",
                          "automationId":  "",
                          "name":  "Inbox",
                          "controlType":  "ListItem",
@@ -1131,7 +1287,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/2/0/2/1/0/0/12",
+                         "path":  "/3/0/2/1/0/0/12",
                          "automationId":  "",
                          "name":  "Insights",
                          "controlType":  "ListItem",
@@ -1163,7 +1319,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/2/0/2/1/1",
+                         "path":  "/3/0/2/1/1",
                          "automationId":  "FooterItemsScrollViewer",
                          "name":  "",
                          "controlType":  "Pane",
@@ -1195,7 +1351,7 @@
                      },
                      {
                          "depth":  6,
-                         "path":  "/2/0/2/1/1/0",
+                         "path":  "/3/0/2/1/1/0",
                          "automationId":  "FooterMenuItemsHost",
                          "name":  "",
                          "controlType":  "Group",
@@ -1226,7 +1382,7 @@
                      },
                      {
                          "depth":  7,
-                         "path":  "/2/0/2/1/1/0/0",
+                         "path":  "/3/0/2/1/1/0/0",
                          "automationId":  "SettingsItem",
                          "name":  "Settings",
                          "controlType":  "ListItem",
@@ -1236,7 +1392,7 @@
                          "isEnabled":  true,
                          "isOffscreen":  false,
                          "isKeyboardFocusable":  true,
-                         "hasKeyboardFocus":  true,
+                         "hasKeyboardFocus":  false,
                          "isContentElement":  true,
                          "isControlElement":  true,
                          "accessKey":  "",
@@ -1258,7 +1414,7 @@
                      },
                      {
                          "depth":  4,
-                         "path":  "/2/0/2/2",
+                         "path":  "/3/0/2/2",
                          "automationId":  "",
                          "name":  "",
                          "controlType":  "Pane",
@@ -1290,7 +1446,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/2/0/2/2/0",
+                         "path":  "/3/0/2/2/0",
                          "automationId":  "",
                          "name":  "Settings",
                          "controlType":  "Text",
@@ -1308,7 +1464,7 @@
                          "helpText":  "",
                          "boundingRectangle":  {
                                                    "y":  88,
-                                                   "width":  903,
+                                                   "width":  1127,
                                                    "height":  56,
                                                    "x":  424
                                                },
@@ -1322,7 +1478,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/2/0/2/2/1",
+                         "path":  "/3/0/2/2/1",
                          "automationId":  "",
                          "name":  "Router",
                          "controlType":  "Text",
@@ -1340,7 +1496,7 @@
                          "helpText":  "",
                          "boundingRectangle":  {
                                                    "y":  174,
-                                                   "width":  903,
+                                                   "width":  1127,
                                                    "height":  39,
                                                    "x":  424
                                                },
@@ -1354,7 +1510,38 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/2/0/2/2/2",
+                         "path":  "/3/0/2/2/2",
+                         "automationId":  "settings.section.router",
+                         "name":  "Router",
+                         "controlType":  "Group",
+                         "localizedControlType":  "group",
+                         "className":  "NamedContainerAutomationPeer",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  false,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  244,
+                                                   "width":  1127,
+                                                   "height":  170,
+                                                   "x":  424
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/2/2/0",
                          "automationId":  "",
                          "name":  "Loopback Endpoint",
                          "controlType":  "Text",
@@ -1372,7 +1559,7 @@
                          "helpText":  "",
                          "boundingRectangle":  {
                                                    "y":  263,
-                                                   "width":  766,
+                                                   "width":  989,
                                                    "height":  28,
                                                    "x":  450
                                                },
@@ -1385,9 +1572,9 @@
                                           }
                      },
                      {
-                         "depth":  5,
-                         "path":  "/2/0/2/2/3",
-                         "automationId":  "",
+                         "depth":  6,
+                         "path":  "/3/0/2/2/2/1",
+                         "automationId":  "EndpointText",
                          "name":  "http://127.0.0.1:8879",
                          "controlType":  "Text",
                          "localizedControlType":  "text",
@@ -1404,7 +1591,7 @@
                          "helpText":  "",
                          "boundingRectangle":  {
                                                    "y":  292,
-                                                   "width":  766,
+                                                   "width":  989,
                                                    "height":  24,
                                                    "x":  450
                                                },
@@ -1417,10 +1604,10 @@
                                           }
                      },
                      {
-                         "depth":  5,
-                         "path":  "/2/0/2/2/4",
-                         "automationId":  "",
-                         "name":  "Copy",
+                         "depth":  6,
+                         "path":  "/3/0/2/2/2/2",
+                         "automationId":  "settings.action.copyEndpoint",
+                         "name":  "Copy the loopback endpoint",
                          "controlType":  "Button",
                          "localizedControlType":  "button",
                          "className":  "Button",
@@ -1436,9 +1623,9 @@
                          "helpText":  "",
                          "boundingRectangle":  {
                                                    "y":  266,
-                                                   "width":  84,
+                                                   "width":  85,
                                                    "height":  47,
-                                                   "x":  1216
+                                                   "x":  1439
                                                },
                          "patterns":  [
                                           "InvokePatternIdentifiers.Pattern",
@@ -1449,8 +1636,8 @@
                                           }
                      },
                      {
-                         "depth":  5,
-                         "path":  "/2/0/2/2/5",
+                         "depth":  6,
+                         "path":  "/3/0/2/2/2/3",
                          "automationId":  "",
                          "name":  "Launch router daemon at sign-in",
                          "controlType":  "Text",
@@ -1468,7 +1655,7 @@
                          "helpText":  "",
                          "boundingRectangle":  {
                                                    "y":  334,
-                                                   "width":  620,
+                                                   "width":  844,
                                                    "height":  28,
                                                    "x":  450
                                                },
@@ -1481,8 +1668,8 @@
                                           }
                      },
                      {
-                         "depth":  5,
-                         "path":  "/2/0/2/2/6",
+                         "depth":  6,
+                         "path":  "/3/0/2/2/2/4",
                          "automationId":  "",
                          "name":  "Starts the background loopback service automatically.",
                          "controlType":  "Text",
@@ -1500,7 +1687,7 @@
                          "helpText":  "",
                          "boundingRectangle":  {
                                                    "y":  362,
-                                                   "width":  620,
+                                                   "width":  844,
                                                    "height":  23,
                                                    "x":  450
                                                },
@@ -1513,10 +1700,10 @@
                                           }
                      },
                      {
-                         "depth":  5,
-                         "path":  "/2/0/2/2/7",
-                         "automationId":  "",
-                         "name":  "",
+                         "depth":  6,
+                         "path":  "/3/0/2/2/2/5",
+                         "automationId":  "settings.toggle.LaunchAtLogin",
+                         "name":  "Launch router daemon at sign-in",
                          "controlType":  "Button",
                          "localizedControlType":  "toggle switch",
                          "className":  "ToggleSwitch",
@@ -1524,7 +1711,7 @@
                          "isEnabled":  true,
                          "isOffscreen":  false,
                          "isKeyboardFocusable":  true,
-                         "hasKeyboardFocus":  false,
+                         "hasKeyboardFocus":  true,
                          "isContentElement":  true,
                          "isControlElement":  true,
                          "accessKey":  "",
@@ -1532,9 +1719,9 @@
                          "helpText":  "",
                          "boundingRectangle":  {
                                                    "y":  334,
-                                                   "width":  107,
+                                                   "width":  106,
                                                    "height":  60,
-                                                   "x":  1070
+                                                   "x":  1294
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1546,7 +1733,292 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/2/0/2/2/8",
+                         "path":  "/3/0/2/2/3",
+                         "automationId":  "",
+                         "name":  "Harnesses",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  444,
+                                                   "width":  1127,
+                                                   "height":  40,
+                                                   "x":  424
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/2/4",
+                         "automationId":  "settings.section.harnesses",
+                         "name":  "Harnesses",
+                         "controlType":  "Group",
+                         "localizedControlType":  "group",
+                         "className":  "NamedContainerAutomationPeer",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  false,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  514,
+                                                   "width":  1127,
+                                                   "height":  152,
+                                                   "x":  424
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/2/4/0",
+                         "automationId":  "HarnessesGovernanceText",
+                         "name":  "Set from the command line, not here. Which harnesses this router fronts, whether a new stdio server is adopted, and whether a drifted configuration is reconciled are decided by mcp-router harnesses and mcp-router watch. The app reaches the router over one loopback channel and that channel serves no harness settings at all, so there is nothing here it could read or write.",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  534,
+                                                   "width":  1075,
+                                                   "height":  111,
+                                                   "x":  450
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/2/5",
+                         "automationId":  "",
+                         "name":  "Session analyst",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  696,
+                                                   "width":  1127,
+                                                   "height":  39,
+                                                   "x":  424
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/2/6",
+                         "automationId":  "settings.section.sessionanalyst",
+                         "name":  "Session analyst",
+                         "controlType":  "Group",
+                         "localizedControlType":  "group",
+                         "className":  "NamedContainerAutomationPeer",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  false,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  766,
+                                                   "width":  1127,
+                                                   "height":  124,
+                                                   "x":  424
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/2/6/0",
+                         "automationId":  "AnalystGovernanceText",
+                         "name":  "This build has no session analyst. Nothing reads your agent logs, no model is called on your behalf, and no finding is ever generated — so there is no model to pick, no schedule to set and nothing to be notified about yet. The pane is here because the window\u0027s areas are fixed; what would go in it is not built.",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  786,
+                                                   "width":  1075,
+                                                   "height":  83,
+                                                   "x":  450
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/2/7",
+                         "automationId":  "",
+                         "name":  "Updates",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  920,
+                                                   "width":  1127,
+                                                   "height":  40,
+                                                   "x":  424
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/2/8",
+                         "automationId":  "settings.section.updates",
+                         "name":  "Updates",
+                         "controlType":  "Group",
+                         "localizedControlType":  "group",
+                         "className":  "NamedContainerAutomationPeer",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  false,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  989,
+                                                   "width":  1127,
+                                                   "height":  124,
+                                                   "x":  424
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/2/8/0",
+                         "automationId":  "UpdatesGovernanceText",
+                         "name":  "This build checks for nothing. It does not look for new versions of itself, and a capability you have installed stays the version you installed until you install another. There is no interval, no channel and no unattended-install rule, because there is no check to configure.",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  1009,
+                                                   "width":  1075,
+                                                   "height":  84,
+                                                   "x":  450
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/2/9",
                          "automationId":  "",
                          "name":  "Security \u0026 Confirmations",
                          "controlType":  "Text",
@@ -1563,8 +2035,8 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  444,
-                                                   "width":  903,
+                                                   "y":  1144,
+                                                   "width":  1127,
                                                    "height":  40,
                                                    "x":  424
                                                },
@@ -1578,7 +2050,38 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/2/0/2/2/9",
+                         "path":  "/3/0/2/2/10",
+                         "automationId":  "settings.section.security",
+                         "name":  "Security",
+                         "controlType":  "Group",
+                         "localizedControlType":  "group",
+                         "className":  "NamedContainerAutomationPeer",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  false,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  1214,
+                                                   "width":  1127,
+                                                   "height":  100,
+                                                   "x":  424
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/2/10/0",
                          "automationId":  "",
                          "name":  "Require confirmation on destructive operations",
                          "controlType":  "Text",
@@ -1595,9 +2098,9 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  534,
-                                                   "width":  620,
-                                                   "height":  27,
+                                                   "y":  1234,
+                                                   "width":  844,
+                                                   "height":  28,
                                                    "x":  450
                                                },
                          "patterns":  [
@@ -1609,8 +2112,8 @@
                                           }
                      },
                      {
-                         "depth":  5,
-                         "path":  "/2/0/2/2/10",
+                         "depth":  6,
+                         "path":  "/3/0/2/2/10/1",
                          "automationId":  "",
                          "name":  "Prompts before removing servers, skills, or deleting stored tokens.",
                          "controlType":  "Text",
@@ -1627,8 +2130,8 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  562,
-                                                   "width":  620,
+                                                   "y":  1262,
+                                                   "width":  844,
                                                    "height":  24,
                                                    "x":  450
                                                },
@@ -1641,10 +2144,10 @@
                                           }
                      },
                      {
-                         "depth":  5,
-                         "path":  "/2/0/2/2/11",
-                         "automationId":  "",
-                         "name":  "",
+                         "depth":  6,
+                         "path":  "/3/0/2/2/10/2",
+                         "automationId":  "settings.toggle.RequireConfirmationOnDestructive",
+                         "name":  "Require confirmation on destructive operations",
                          "controlType":  "Button",
                          "localizedControlType":  "toggle switch",
                          "className":  "ToggleSwitch",
@@ -1659,10 +2162,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  534,
-                                                   "width":  107,
+                                                   "y":  1234,
+                                                   "width":  106,
                                                    "height":  60,
-                                                   "x":  1070
+                                                   "x":  1294
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1674,7 +2177,7 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/2/0/2/2/12",
+                         "path":  "/3/0/2/2/11",
                          "automationId":  "",
                          "name":  "Ambient Notification Surface",
                          "controlType":  "Text",
@@ -1691,8 +2194,8 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  644,
-                                                   "width":  903,
+                                                   "y":  1343,
+                                                   "width":  1127,
                                                    "height":  40,
                                                    "x":  424
                                                },
@@ -1706,7 +2209,38 @@
                      },
                      {
                          "depth":  5,
-                         "path":  "/2/0/2/2/13",
+                         "path":  "/3/0/2/2/12",
+                         "automationId":  "settings.section.ambientsurface",
+                         "name":  "Ambient surface",
+                         "controlType":  "Group",
+                         "localizedControlType":  "group",
+                         "className":  "NamedContainerAutomationPeer",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  false,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  1414,
+                                                   "width":  1127,
+                                                   "height":  100,
+                                                   "x":  424
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/2/12/0",
                          "automationId":  "",
                          "name":  "Show status in notification area",
                          "controlType":  "Text",
@@ -1723,8 +2257,8 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  734,
-                                                   "width":  620,
+                                                   "y":  1433,
+                                                   "width":  844,
                                                    "height":  28,
                                                    "x":  450
                                                },
@@ -1737,8 +2271,8 @@
                                           }
                      },
                      {
-                         "depth":  5,
-                         "path":  "/2/0/2/2/14",
+                         "depth":  6,
+                         "path":  "/3/0/2/2/12/1",
                          "automationId":  "",
                          "name":  "Displays ambient router status and queued inbox items in the Windows tray.",
                          "controlType":  "Text",
@@ -1755,9 +2289,9 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  762,
-                                                   "width":  620,
-                                                   "height":  23,
+                                                   "y":  1462,
+                                                   "width":  844,
+                                                   "height":  24,
                                                    "x":  450
                                                },
                          "patterns":  [
@@ -1769,10 +2303,10 @@
                                           }
                      },
                      {
-                         "depth":  5,
-                         "path":  "/2/0/2/2/15",
-                         "automationId":  "",
-                         "name":  "",
+                         "depth":  6,
+                         "path":  "/3/0/2/2/12/2",
+                         "automationId":  "settings.toggle.ShowAmbientIcon",
+                         "name":  "Show status in notification area",
                          "controlType":  "Button",
                          "localizedControlType":  "toggle switch",
                          "className":  "ToggleSwitch",
@@ -1787,10 +2321,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  734,
-                                                   "width":  107,
+                                                   "y":  1433,
+                                                   "width":  106,
                                                    "height":  60,
-                                                   "x":  1070
+                                                   "x":  1294
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1798,6 +2332,296 @@
                                       ],
                          "patternState":  {
                                               "toggleState":  "On"
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/2/13",
+                         "automationId":  "",
+                         "name":  "Advanced",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  true,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  Infinity,
+                                                   "width":  -Infinity,
+                                                   "height":  -Infinity,
+                                                   "x":  Infinity
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/2/14",
+                         "automationId":  "settings.section.advanced",
+                         "name":  "Advanced",
+                         "controlType":  "Group",
+                         "localizedControlType":  "group",
+                         "className":  "NamedContainerAutomationPeer",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  true,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  false,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  Infinity,
+                                                   "width":  -Infinity,
+                                                   "height":  -Infinity,
+                                                   "x":  Infinity
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/2/14/0",
+                         "automationId":  "",
+                         "name":  "Router home",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  true,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  Infinity,
+                                                   "width":  -Infinity,
+                                                   "height":  -Infinity,
+                                                   "x":  Infinity
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/2/14/1",
+                         "automationId":  "HomeDirectoryText",
+                         "name":  "%USERPROFILE%\\.claude\\mcp-router",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  true,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  Infinity,
+                                                   "width":  -Infinity,
+                                                   "height":  -Infinity,
+                                                   "x":  Infinity
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/2/14/2",
+                         "automationId":  "",
+                         "name":  "Idle reaper",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  true,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  Infinity,
+                                                   "width":  -Infinity,
+                                                   "height":  -Infinity,
+                                                   "x":  Infinity
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/2/14/3",
+                         "automationId":  "IdleReaperText",
+                         "name":  "300 s (5 min)",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  true,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  Infinity,
+                                                   "width":  -Infinity,
+                                                   "height":  -Infinity,
+                                                   "x":  Infinity
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/2/14/4",
+                         "automationId":  "FilesHelpText",
+                         "name":  "Both files are the router\u0027s own. The app reads neither: it reaches the router over the loopback control API and nothing else, which is what lets the router be replaced underneath it.",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  true,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  Infinity,
+                                                   "width":  -Infinity,
+                                                   "height":  -Infinity,
+                                                   "x":  Infinity
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/2/14/5",
+                         "automationId":  "settings.state.summary",
+                         "name":  "LaunchAtLogin=on · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  true,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  Infinity,
+                                                   "width":  -Infinity,
+                                                   "height":  -Infinity,
+                                                   "x":  Infinity
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/2/15",
+                         "automationId":  "VerticalScrollBar",
+                         "name":  "Vertical",
+                         "controlType":  "ScrollBar",
+                         "localizedControlType":  "scroll bar",
+                         "className":  "ScrollBar",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  true,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  false,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  Infinity,
+                                                   "width":  -Infinity,
+                                                   "height":  -Infinity,
+                                                   "x":  Infinity
+                                               },
+                         "patterns":  [
+                                          "RangeValuePatternIdentifiers.Pattern",
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "rangeValue":  0,
+                                              "rangeMinimum":  0,
+                                              "rangeMaximum":  256,
+                                              "rangeReadOnly":  false
                                           }
                      }
                  ]

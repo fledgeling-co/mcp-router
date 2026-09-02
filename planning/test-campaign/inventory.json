@@ -607,23 +607,25 @@
       "surface": "SURF-044",
       "lane": "windows-glass",
       "severity": "medium",
-      "status": "open",
+      "status": "fixed",
       "found": "2026-09-02, test-campaign phase 3 control census",
       "evidence": "DiscoverDetailContent.xaml declares no literal Content on any control and no AutomationProperties.Name at all - it is one of only two view files in MCPRouter.Shell/Views with neither (the other is BoardPlaceholder.xaml, which is a placeholder by design).",
       "why-it-matters": "UI Automation is the only out-of-process channel this lane has. A surface whose controls carry no name cannot be asserted against by name, so every case on it would stand at `presence` at best. The same tree serves Narrator, so this is an accessibility defect and a measurability defect in one, exactly as WIN20's brief predicted.",
-      "next": "Set AutomationProperties.Name on the dialog's controls, then register cases at the structural rung against them."
+      "next": "Closed. Two rungs stand behind it: the live census in shell-lane.ps1 section 3b, and the structural check in MCPRouter.Shell.Tests/ViewAutomationSurfaceTests, which reads the XAML as XML and fails if any x:Named element loses its automation id.",
+      "resolution": "FIXED. Every x:Named element in DiscoverDetailContent.xaml now carries an AutomationProperties.AutomationId, and the four containers that publish nothing of their own - the content root, the argv list, the requirements panel and the requirement fields - carry an AutomationProperties.Name as well.\n\nWHY NOT A NAME ON EVERY ELEMENT, which is what this defect's `next` asked for. A TextBlock already publishes its own Text as its accessible name; an AutomationProperties.Name overrides that, so Narrator would read the label `provenance` instead of the provenance, and an assertion by name would read a constant. That is not a hypothetical - the first run of the settings census reported the board INERT for exactly this reason, because the state readout carried a static Name that never moved however the model did. So the addressing is the AutomationId's job and the name stays the value. The defect's requirement - that the surface be addressable from the automation plane - is met by ids; the accessibility half is met by leaving the text elements' own names intact.\n\nMEASURED, out of process, against the live dialog: shell-lane.ps1 section 3b actuates Discover, waits for a store row, opens the detail dialog through the plane and asserts eight controls by id. It found all eight, each publishing a name. Evidence: planning/evidence/WIN-SHELL/run/uia-shell-discover-detail.json.\n\nNOT SETTLED: the dialog is only reachable when the registry search returns a row, which needs network. On a host where it does not, that census row reports `unoracled` rather than passing, and the structural rung (app/windows/MCPRouter.Shell.Tests/ViewAutomationSurfaceTests.cs) is what still runs."
     },
     {
       "id": "DEF-076",
       "title": "The Settings board declares one addressable control against a claim of seven sections of toggles",
       "surface": "SURF-038",
       "lane": "windows-glass",
-      "severity": "medium",
-      "status": "open",
+      "severity": "high",
+      "status": "fixed",
       "found": "2026-09-02, test-campaign phase 3 control census",
-      "evidence": "SettingsBoard.xaml yields exactly one literal control name, `Copy`, under a scan for Button/ToggleSwitch/CheckBox/ComboBox Content plus AutomationProperties.Name. The WIN13 ledger row claims `7 settings sections, Fluent ToggleSwitch controls`.",
-      "mechanism": "NOT ESTABLISHED. Either the toggles carry no accessible name - an accessibility defect that also makes them unaddressable - or there are fewer of them than claimed. The two have different remedies and the UIA dump of the running board settles which.",
-      "next": "Dump the Settings board's UIA tree with scripts/windows/uia/uia-dump.ps1 and compare the realised control count against the claim. Blocked behind DEF-071 for the in-process channel; the out-of-process channel can answer it now."
+      "evidence": "SettingsBoard.xaml yields exactly one literal control name, `Copy`, under a scan for Button/ToggleSwitch/CheckBox/ComboBox Content plus AutomationProperties.Name. The WIN13 ledger row claims `7 settings sections, Fluent ToggleSwitch controls`. MEASURED 2026-09-02: planning/evidence/WIN-SHELL/run/uia-shell-settings.json, captured after the destination was actuated through the automation plane, so this is the board as a user sees it rather than as the markup declares it.",
+      "mechanism": "SETTLED 2026-09-02 against the running board, then settled again against the XAML. Both readings were true and neither was complete. The UIA control view held 60 elements and no element whose control TYPE is ToggleSwitch - but a WinUI ToggleSwitch does not publish as one: its automation peer reports AutomationControlType.Button carrying TogglePattern. The eight Buttons in that dump were Minimize, Restore, Close, Close Navigation, `Copy` and THREE ANONYMOUS TOGGLES. So the board had three of the seven sections WIN13 claims, and its three switches were in the tree the whole time, unnamed and therefore unaddressable. The count and the naming were both wrong, which is why the original either/or resolved to neither branch.",
+      "next": "Closed. The lane regenerates planning/evidence/WIN-SHELL/run/uia-shell-settings.json every run and the census fails if any section, name or toggle state goes missing. Persistence is DEF-087, the Copy handler is DEF-088.",
+      "resolution": "FIXED. SettingsBoard.xaml now renders all seven sections SettingsPresentation.SectionOrder declares - Router, Harnesses, Session analyst, Updates, Security, Ambient surface, Advanced - each on a container carrying an AutomationProperties.Name and an AutomationProperties.AutomationId, and its three switches carry the names SettingsPresentation.ToggleLabel declares. The switches are no longer inert: each writes through SettingsBoardModel.UpdateToggle and the board's state readout re-renders from the MODEL, so a switch that stopped writing through would move and leave the readout unmoved.\n\nMEASURED, out of process, by scripts/windows/uia/shell-lane.ps1 section 3b against the live shell: all 7 sections addressable, all 3 toggles named with a readable toggle state, and TogglePattern.Toggle() on `Launch router daemon at sign-in` moved the readout from `LaunchAtLogin=on - RequireConfirmationOnDestructive=on - ShowAmbientIcon=on` to `LaunchAtLogin=off - ...`. That last read is the one that matters: it is an effect on a DIFFERENT element from the one actuated, taken by a different process.\n\nNOT SETTLED, and deliberately not folded into the green. (1) Nothing PERSISTS a setting. SettingsBoardModel holds state in memory for the life of the board; closing the shell forgets it, and no toggle here reaches the router, the registry or a logon task. The three switches are honest about the model and say nothing about the machine - DEF-087 carries that. (2) Four of the seven sections carry governance prose rather than controls, because this build has no harness settings, no session analyst and no update check; that is WIN13's own design and the sections are addressable so a future control lands in a named place. (3) The `Copy` button is named but its Click is still unhandled - it was unhandled before this change too, and DEF-088 carries it."
     },
     {
       "id": "DEF-077",
@@ -702,6 +704,42 @@
       "class": "unbuilt",
       "why-it-matters": "`winget install Fledgeling.MCPRouter` cannot work, and the manifest validates, so nothing in the toolchain says so. The placeholder is deliberate for exactly that reason - a plausible URL would make this a manifest that looks shipped. What it costs is that the Winget member of DistributionChannel is a contract with a builder behind it and no publisher, which is a smaller gap than DEF-073's and still a gap.",
       "next": "Publishing is an outward-facing action nobody has authorised: it needs a code-signing certificate this repository does not hold, a release artifact hosted somewhere, and a pull request into a third-party repository. Route it to the owner rather than closing it here. When it is done, the placeholder assertion in the witness inverts into a resolving-URL check and the two hashes become real."
+    },
+    {
+      "id": "DEF-084",
+      "title": "Discover store rows publish their class name as their accessible name",
+      "surface": "SURF-034",
+      "lane": "windows-glass",
+      "severity": "medium",
+      "status": "open",
+      "found": "2026-09-02, while proving DEF-075 against the live dialog",
+      "evidence": "The UIA census in scripts/windows/uia/shell-lane.ps1 opened the Discover detail dialog from a store row whose accessible name read `MCPRouter.Shell.Views.DiscoverRow` - the type's ToString(). Recorded verbatim in planning/evidence/WIN-SHELL/run/assert-report.json under the control row `discover.detail`.",
+      "why-it-matters": "A ListViewItem with no DataTemplate-supplied name falls back to ToString() on its item. Narrator therefore announces the class name of every entry in the store instead of the capability's own name, and no out-of-process check can address a particular row - the census had to take whichever row was not a navigation label. It is the same defect shape as DEF-075 one surface along, and it was invisible until something actually drove the board rather than reading its markup.",
+      "next": "Set AutomationProperties.Name on the Discover row template from the entry's display name, or give DiscoverRow a ToString() that returns it. Then the census can name the row it opened rather than describing how it picked one."
+    },
+    {
+      "id": "DEF-087",
+      "title": "No Windows setting persists, and none of them reaches the machine",
+      "surface": "SURF-038",
+      "lane": "windows-glass",
+      "severity": "medium",
+      "status": "open",
+      "found": "2026-09-02, recorded while fixing DEF-076",
+      "evidence": "SettingsBoardModel holds RouterSettingsState in memory and has no store: no file, no registry key, no control-API call. The three switches on the Settings board write through to it and nowhere else, so closing the shell forgets every change. `Launch router daemon at sign-in` in particular does not register or remove the logon task that WIN23 builds - it moves a boolean.",
+      "why-it-matters": "This is the inert-UI failure one layer further along than DEF-076's, and it is the layer the census cannot see: the toggle moves, the model moves, the readout moves, and nothing outside the process changes. A user who turns off launch-at-sign-in has been told something that is not true. Filed separately rather than folded into DEF-076's fix, because DEF-076's green covers the board and the model and must not be read as covering the machine.",
+      "next": "Decide what each toggle actually owns - the logon task for LaunchAtLogin (WIN23 already registers one), the tray surface for ShowAmbientIcon, a confirmation policy the boards read for RequireConfirmationOnDestructive - then persist the state and give each one an out-of-process witness in its own vocabulary, the way the toast witness reads the registry rather than asking the shell."
+    },
+    {
+      "id": "DEF-088",
+      "title": "The Settings board's Copy button is named and does nothing",
+      "surface": "SURF-038",
+      "lane": "windows-glass",
+      "severity": "low",
+      "status": "open",
+      "found": "2026-09-02, recorded while fixing DEF-076",
+      "evidence": "SettingsBoard.xaml declares the endpoint Copy button with no Click handler. It was unhandled before DEF-076's fix and still is; the fix gave it an accessible name (`Copy the loopback endpoint`) and an automation id, which makes it addressable and no more functional.",
+      "why-it-matters": "It was the ONE actuable control the census found on this board, so it is the control most likely to be mistaken for evidence that the board works. Invoking it copies nothing to the clipboard.",
+      "next": "Wire the Click to a DataPackage carrying RouterSettingsState.Endpoint, then witness it with a clipboard read taken by a process that is not the shell."
     }
   ],
   "flow": [
@@ -1245,6 +1283,24 @@
       "effect": "filesystem-write",
       "provider": "app/windows/packaging/AppxManifest.xml; app/windows/packaging/winget/*.yaml; packed by MakeAppx.exe and deployed by Add-AppxPackage in scripts/windows/win19-package-witness.ps1",
       "providerNote": "THE PACKAGE, THE INSTALL AND THE UNINSTALL ARE ALL OBSERVED; THE DISTRIBUTION IS NOT. Windows deployed the package and reported it, and removing it left the configuration in place - so the identity, the deployability and the uninstall rule are settled by the deployment stack rather than by anything this repository wrote. What is NOT settled is that anyone can obtain it: nothing publishes the artifact, the winget InstallerUrl is a deliberate placeholder, and DEF-083 carries that. The SmartScreen half is also unobserved and in the opposite direction from the claim - the lane self-signs, and the disclosure is about what an UNSIGNED build does on a machine that has never trusted the publisher."
+    },
+    {
+      "id": "REQ-038",
+      "class": "affordance",
+      "text": "The Windows Settings board presents seven sections - Router, Harnesses, Session analyst, Updates, Security, Ambient surface and Advanced - each addressable from the automation plane, and the three settings this build can change are Fluent ToggleSwitch controls that publish their label, publish a readable toggle state, and write through to the board's model.",
+      "source": "planning/specs/spec-WIN13.md 1-2; app/windows/MCPRouter.Shell.Model/Settings/SettingsPresentation.cs; app/windows/MCPRouter.Shell/Views/SettingsBoard.xaml",
+      "evidence": "observed",
+      "effect": "none",
+      "providerNote": "Settings state is in-process. Measured out of process by scripts/windows/uia/shell-lane.ps1 section 3b, which reads the expected ids and labels out of SettingsPresentation.cs rather than restating them, addresses the controls by AutomationId, and then TOGGLES one through the plane and reads a different element - the board's state readout, rendered from the model - to tell a bound control from an inert one. What no arm here reaches is the machine: nothing persists a setting and nothing outside the process changes. DEF-087."
+    },
+    {
+      "id": "REQ-039",
+      "class": "affordance",
+      "text": "Every control on the Windows Discover detail dialog is addressable from the automation plane by a stable automation id, and the containers that publish no text of their own publish an accessible name.",
+      "source": "app/windows/MCPRouter.Shell/Views/DiscoverDetailContent.xaml; DEF-075",
+      "evidence": "observed",
+      "effect": "none",
+      "providerNote": "Two rungs. STRUCTURAL: MCPRouter.Shell.Tests/ViewAutomationSurfaceTests reads the XAML as XML and fails if any x:Named element loses its id. LIVE: shell-lane.ps1 section 3b opens the dialog through the plane from a real store row and reads the ids back out of the tree - which needs the registry search to return something, so on a host where it does not that row reports unoracled rather than passing."
     }
   ],
   "surface": [
@@ -1945,9 +2001,12 @@
       "status": "ready",
       "destinationOf": "SURF-030",
       "controls": [
-        "Copy"
+        "Copy the loopback endpoint",
+        "Launch router daemon at sign-in",
+        "Require confirmation on destructive operations",
+        "Show status in notification area"
       ],
-      "note": "WIN13 claims 7 sections and Fluent ToggleSwitch controls; the XAML declares exactly ONE literal control name. Either the toggles carry no AutomationProperties.Name — which is an accessibility defect and makes them unaddressable from the automation plane — or there are fewer than claimed. The UIA dump settles which, and this note stays until it does."
+      "note": "Seven sections, measured on the automation plane rather than counted in the markup: settings.section.router, .harnesses, .sessionanalyst, .updates, .security, .ambientsurface, .advanced, each publishing a name. Three of them carry a switch; the other four carry WIN13's governance prose because this build has no harness settings, no session analyst and no update check. The switches publish as Button carrying TogglePattern - which is what a WinUI ToggleSwitch is on the plane, and what made DEF-076's first reading say there were none. They write through to SettingsBoardModel and NOT to the machine: DEF-087 carries persistence, DEF-088 carries the dead Copy."
     },
     {
       "id": "SURF-039",
@@ -2017,9 +2076,18 @@
       "title": "Windows Discover detail dialog",
       "route": "app://windows/discover-detail",
       "lane": "windows-glass",
-      "status": "manual",
-      "controls": [],
-      "note": "WIN7's detail dialog. DiscoverDetailContent.xaml declares NO literal control name and no AutomationProperties.Name at all, so nothing on it is addressable from the automation plane by name. That is a finding, and it is why the control list is empty rather than omitted."
+      "status": "ready",
+      "controls": [
+        "discover.detail.root",
+        "discover.detail.name",
+        "discover.detail.provenance",
+        "discover.detail.description",
+        "discover.detail.statement.headline",
+        "discover.detail.statement.body",
+        "discover.detail.statement.derivation",
+        "discover.detail.argv"
+      ],
+      "note": "WIN7's detail dialog, addressable since DEF-075's fix: every x:Named element carries an AutomationProperties.AutomationId, and the containers that publish no text of their own carry a Name. The text elements deliberately do not - a TextBlock's own Text IS its accessible name and a static Name would overwrite it, so the controls listed here are ids. Opened by shell-lane.ps1 section 3b, which needs the registry search to return a store row first; where it does not, that census row reads `unoracled` rather than passing."
     }
   ]
 }

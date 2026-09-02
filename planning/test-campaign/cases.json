@@ -4619,5 +4619,237 @@
       "count": 3
     },
     "reqNote": "REQ-031 is the Windows shell itself - ten destinations, each drawing its board. This case does not assert that behaviour; it grades the diagnostic that says whether the shell reached it, which is the only account an agent session that cannot see the desktop has when a board does not draw. No requirement states the diagnostic, and inventing one to hold this case would read as coverage of a promise nobody made. DEF-079 is the row it closes."
+  },
+  {
+    "id": "CASE-0343",
+    "generatedKey": "control:settings.toggle.LaunchAtLogin",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "structural",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The settings.sections row did come back red for real on 2026-09-02T08:55Z, when the census read the tree before the board had realised - which arms the id lookup against absence but not against a renamed control.",
+    "actuates": [],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: named 'Launch router daemon at sign-in', toggle state readable as 'On' WHAT NO ROW HERE SETTLES: that any setting persists or reaches the machine. Nothing outside the shell process changes when a toggle moves. DEF-087.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0344",
+    "generatedKey": "control:settings.toggle.RequireConfirmationOnDestructive",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "structural",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The settings.sections row did come back red for real on 2026-09-02T08:55Z, when the census read the tree before the board had realised - which arms the id lookup against absence but not against a renamed control.",
+    "actuates": [],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: named 'Require confirmation on destructive operations', toggle state readable as 'On' WHAT NO ROW HERE SETTLES: that any setting persists or reaches the machine. Nothing outside the shell process changes when a toggle moves. DEF-087.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0345",
+    "generatedKey": "control:settings.toggle.ShowAmbientIcon",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "structural",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The settings.sections row did come back red for real on 2026-09-02T08:55Z, when the census read the tree before the board had realised - which arms the id lookup against absence but not against a renamed control.",
+    "actuates": [],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: named 'Show status in notification area', toggle state readable as 'On' WHAT NO ROW HERE SETTLES: that any setting persists or reaches the machine. Nothing outside the shell process changes when a toggle moves. DEF-087.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0346",
+    "generatedKey": "control:settings.effect",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": true,
+    "armedNote": "armed by observation rather than by a planted defect: this predicate FAILED on the run of 2026-09-02T08:58Z, against a state readout whose accessible name was a static label instead of its own text, and passed on the next run once the override was removed. The failure is in lane.log verbatim.",
+    "actuates": [
+      "UIA TogglePattern.Toggle()"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: toggling 'Launch router daemon at sign-in' through the plane moved the board's state readout from 'LaunchAtLogin=on · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' to 'LaunchAtLogin=off · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' - an effect outside the control that was actuated. THIS IS THE ROW THAT SEPARATES A BOUND CONTROL FROM AN INERT ONE. It toggles the switch through TogglePattern and then reads a DIFFERENT element - the board's state readout, which the view renders from the model - so a switch that moved and wrote through to nothing would leave that line unchanged and fail here. It went red for real on the first run, against a readout carrying a static AutomationProperties.Name that overrode its own text. WHAT NO ROW HERE SETTLES: that any setting persists or reaches the machine. Nothing outside the shell process changes when a toggle moves. DEF-087.",
+    "witness": {
+      "recorder": "System.Windows.Automation, in a PowerShell process that is not the shell, reading the shell's published accessibility tree",
+      "effect": "ui-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0347",
+    "generatedKey": "control:discover.detail",
+    "req": "REQ-039",
+    "surface": "SURF-044",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-044",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "structural",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The settings.sections row did come back red for real on 2026-09-02T08:55Z, when the census read the tree before the board had realised - which arms the id lookup against absence but not against a renamed control.",
+    "actuates": [],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-discover-detail.json"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: opened from the row 'MCPRouter.Shell.Views.DiscoverRow'; all 8 checked control(s) are addressable by id and publish a name. WHAT NO ROW HERE SETTLES: that any setting persists or reaches the machine. Nothing outside the shell process changes when a toggle moves. DEF-087.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "lane": "windows-glass",
+    "oracle": "source-analysis",
+    "status": "pass",
+    "armed": true,
+    "flow": null,
+    "id": "CASE-0348",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "cell": "execution-plane=host - oracle-rung=structural - data-shape=the view as declared",
+    "actuates": [
+      "dotnet test app/windows/MCPRouter.Shell.Tests"
+    ],
+    "evidence": [
+      "app/windows/MCPRouter.Shell.Tests/ViewAutomationSurfaceTests.cs",
+      "app/windows/MCPRouter.Shell.Tests/SettingsStateSummaryTests.cs"
+    ],
+    "note": "The structural rung under DEF-076, and the arm that runs on a host with no interactive session - which is most of them, since the live census needs WinSta0. ViewAutomationSurfaceTests parses SettingsBoard.xaml as XML and requires one addressable section container per section SettingsPresentation.SectionOrder declares, each with an accessible name; one ToggleSwitch per SettingsPresentation.ToggleKeys entry, each tagged with its key and each carrying a Toggled handler; and no literal IsOn, because a switch seeded from markup can start out disagreeing with the model it claims to show. It also requires the state readout to carry an automation id and NO AutomationProperties.Name - that absence is load-bearing, because a name would override the TextBlock's own text and the out-of-process effect check would then read a constant forever. WHAT IT CANNOT SAY: that any of it reaches the live tree, or that a toggle is bound to anything. Markup and a running control are different claims; CASE-0342 to CASE-0346 make the second one.",
+    "armedNote": "ARMED BY OBSERVATION, 2026-09-02: deleting the settings.section.advanced automation id and every Toggled=\"OnToggled\" attribute from SettingsBoard.xaml turned 3 of the 6 tests in this class red (Failed: 3, Passed: 3); restoring them returned all 6 to green. So the section count, the section naming and the binding check each fail on a real regression rather than passing vacuously.",
+    "witness": {
+      "recorder": "System.Xml.Linq parsing the XAML as XML in the test process - a different reader and a different vocabulary from the XAML compiler that consumes it",
+      "effect": "none",
+      "count": 1
+    }
+  },
+  {
+    "lane": "windows-glass",
+    "oracle": "source-analysis",
+    "status": "pass",
+    "armed": false,
+    "flow": null,
+    "id": "CASE-0349",
+    "req": "REQ-039",
+    "surface": "SURF-044",
+    "cell": "execution-plane=host - oracle-rung=structural - data-shape=the view as declared",
+    "actuates": [
+      "dotnet test app/windows/MCPRouter.Shell.Tests"
+    ],
+    "evidence": [
+      "app/windows/MCPRouter.Shell.Tests/ViewAutomationSurfaceTests.cs"
+    ],
+    "note": "The structural rung under DEF-075, and the one that still stands when the live one cannot run. The detail dialog opens only behind a store row, and a store row exists only when the registry search returns something, so CASE-0347 reports `unoracled` on a host with no network while this case still fails if a name is dropped. It requires every x:Named element in DiscoverDetailContent.xaml to carry an AutomationProperties.AutomationId, and the four containers that publish no text of their own - the content root, the argv list, the requirements panel and the requirement fields - to carry an AutomationProperties.Name as well. IT DELIBERATELY DOES NOT REQUIRE A NAME ON THE TEXT ELEMENTS. A TextBlock publishes its own Text as its accessible name; a static Name would override it, so Narrator would read the label instead of the content and an assertion by name would read a constant. That is measured rather than assumed - it is exactly how the settings census first reported a live board inert.",
+    "armedNote": "not armed by a planted defect on this file specifically. The same predicate in the same test class was watched to fail on SettingsBoard.xaml (CASE-0348's arming), which shows the reader and the assertion work; it does not show this file's rows are watched, so this stays a smaller claim than CASE-0348's.",
+    "witness": {
+      "recorder": "System.Xml.Linq parsing the XAML as XML in the test process - a different reader and a different vocabulary from the XAML compiler that consumes it",
+      "effect": "none",
+      "count": 1
+    }
+  },
+  {
+    "id": "CASE-0350",
+    "generatedKey": "control:settings.sections",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "structural",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The settings.sections row did come back red for real on 2026-09-02T08:55Z, when the census read the tree before the board had realised - which arms the id lookup against absence but not against a renamed control.",
+    "actuates": [],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: all 7 declared section(s) publish an addressable container: settings.section.router, settings.section.harnesses, settings.section.sessionanalyst, settings.section.updates, settings.section.security, settings.section.ambientsurface, settings.section.advanced WHAT NO ROW HERE SETTLES: that any setting persists or reaches the machine. Nothing outside the shell process changes when a toggle moves. DEF-087.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
+    "renumberedFrom": "CASE-0342",
+    "renumberNote": "Allocated as CASE-0342 by a concurrent Wave A runner and renumbered at merge: another runner in the same wave had already published a DIFFERENT row under CASE-0342. The id is the only thing that changed."
   }
 ]

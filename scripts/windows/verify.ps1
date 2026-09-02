@@ -280,18 +280,24 @@ if (-not (Test-Path $win22Witness)) {
     }
 }
 
-# ---------------------------------------------------------------- DEF-079's unhandled handlers
+# ------------------------------------------------- DEF-079's handlers and DEF-085's guard
 # The lane that makes each of the shell's three top-level exception handlers fire on purpose and
 # reads the line it wrote back out of shell-startup.log, in this process, after the shell that
 # wrote it exited. DEF-079 was never a broken handler: it was three handlers nobody had seen fire,
 # registered and then trusted, under a log whose silence read as "no exception occurred" when it
 # meant "nothing was recorded". This is the check that would notice a handler quietly stopping.
 #
-# It launches the shell four times and needs the BINARY, so it sits with the other launch lanes
+# A fourth arm was added when DEF-085 was fixed. A throw from a DispatcherQueue callback reaches
+# none of those three handlers - measured, in the same binary and the same run in which all three
+# of them fired - so the shell now guards its own posting sites and the arm grades the line that
+# guard writes. It ran here as an ungraded probe until there was something of this product's own
+# to grade.
+#
+# It launches the shell five times and needs the BINARY, so it sits with the other launch lanes
 # after the client build.
 #
 # Graded by EXIT CODE and never by its prose, for the reason recorded in the WIN20 block above.
-Write-Host "`nWindows shell diagnostics (DEF-079)" -ForegroundColor Cyan
+Write-Host "`nWindows shell diagnostics (DEF-079, DEF-085)" -ForegroundColor Cyan
 $defUnhandled = Join-Path $root 'scripts/windows/win-shell-unhandled-witness.ps1'
 if (-not (Test-Path $defUnhandled)) {
     Skip-Check 'unhandled-exception effect witness' 'scripts/windows/win-shell-unhandled-witness.ps1 absent'

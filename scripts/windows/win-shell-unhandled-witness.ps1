@@ -1,8 +1,8 @@
 <#
 .SYNOPSIS
-    DEF-079 effect witness: each of the shell's three top-level unhandled-exception handlers is
-    made to fire on purpose, and the line it wrote is read back out of shell-startup.log by a
-    different process.
+    DEF-079 and DEF-085 effect witness: each of the four routes an exception can take out of this
+    shell is made to fire on purpose, and the line the handler or guard wrote is read back out of
+    shell-startup.log by a different process.
 
 .DESCRIPTION
     WHY THIS LANE EXISTS. DEF-079 is not a broken handler. It is a handler nobody has seen fire.
@@ -22,14 +22,20 @@
       appdomain   thrown on a non-UI foreground thread     -> AppDomain.CurrentDomain.UnhandledException
       task        a faulted task nobody awaits, then a
                   collection and WaitForPendingFinalizers  -> TaskScheduler.UnobservedTaskException
-      dispatcher  thrown from a DispatcherQueue callback   -> NOTHING, measured. Ungraded probe; DEF-085
+      dispatcher  thrown from a DispatcherQueue callback   -> the guard at the posting site, DEF-085
 
-    Each of the first three handlers writes a line naming itself, and this script requires that
-    specific line. The fourth is run and reported and graded by nothing, because on this host it
-    reaches no handler at all: the process disappears having written `fault: injecting` and nothing
-    after it, which is the silence DEF-079 was raised about, arriving by a second route. That is
-    DEF-085's, and a lane whose verdict flipped when somebody fixed DEF-085 would stop meaning what
-    its name says.
+    Each route writes a line naming itself, and this script requires that specific line.
+
+    THE FOURTH ARM MOVED, and this is why. It ran here as an UNGRADED PROBE while DEF-085 was open:
+    a throw from a DispatcherQueue callback reached NO handler at all - the process disappeared
+    having written `fault: injecting` and nothing after it, in the same binary and the same run in
+    which the other three each wrote their handler's line - and grading it then would have made this
+    lane's verdict depend on a different defect being fixed. DEF-085 is now fixed: the shell posts
+    through GuardedDispatch.TryEnqueueGuarded, which catches at the site that owns the callback,
+    writes `unhandled: [dispatcher site=<who>]` through StartupLog and deliberately degrades rather
+    than taking the window down. So the route now has something of this product's own to grade, the
+    probe is a fourth EFFECT arm, and the silence it used to report is what -ProveRed reproduces on
+    purpose.
 
     THE RECORDER IS NOT THE WRITER. The lines are written by handlers running inside the shell
     process, through Microsoft.UI.Xaml and the CLR. They are read here out of a file on disk, by
@@ -43,21 +49,38 @@
     and no `unhandled:` line: it proves the flag is inert when absent, and that the lines the EFFECT
     arms find were produced by the injection rather than by ordinary startup.
 
-    WHAT IS NOT MEASURED, said here rather than left to a green: a real stowed exception at
-    0xC000027B below the managed dispatch boundary. The injected UI-thread fault is an ordinary
-    managed exception inside XAML dispatch, which is the route the XAML handler exists for; it does
-    not reproduce the CoreMessagingXP failure DEF-079 was found through, and nothing on this host
-    can. notMeasured[] carries it and DEF-086 was filed for it.
+    THE STOWED EXCEPTION, which this lane once said it could not raise. DEF-086 recorded that a
+    real 0xC000027B could not be produced on demand. It can, and this lane produces one every time
+    it is armed on `dispatcher`: an UNGUARDED throw from a DispatcherQueue callback terminates the
+    process with `Exception code: 0xc000027b`, `Faulting module name: CoreMessagingXP.dll`, at the
+    same fault offset as the Skills crash of 2026-09-02 that DEF-077 and DEF-079 were found
+    through. So every run here also reads the Windows Application log for a WER Application Error
+    1000 raised by MCPRouter.Shell.exe inside that run's own window, and carries it in runs[] as
+    `werCrash`. The recorder is again not the writer: WER is written by the operating system after
+    the process is gone, and read here through a different API than the log.
+
+    That is what settles DEF-086 in the negative: on the armed run the process fail-fasts at
+    0xC000027B and NO `unhandled:` line is written, so Microsoft.UI.Xaml.Application.UnhandledException
+    does not see this class. It is why DEF-085's remedy is a guard at the posting site rather than
+    another top-level handler.
+
+    WHAT IS STILL NOT MEASURED: that the ORIGINAL Skills crash took this identical path. The
+    identity here is the exception code, the faulting module and the fault offset, which is strong
+    and is not the same as a stack. notMeasured[] carries it.
 
 .PARAMETER ProveRed
     Arming. Launches the run for one handler with `--fault-unregister <handler>` as well, so that
     handler is genuinely never attached - a defect this product can have - and requires exactly that
-    arm to break while BASELINE and the other two EFFECT arms hold.
+    arm to break while BASELINE and the other EFFECT arms hold. `dispatcher` is the one value that
+    unregisters nothing: it posts the same callback with NO guard around it, which is precisely the
+    state DEF-085 recorded, and the arm then breaks because nothing writes a line.
 
 .PARAMETER ArmHandler
-    Which handler -ProveRed leaves unregistered. Defaults to `task`, the one route whose fault does
-    not terminate the process, so an arming run cannot leave a Windows Error Reporting dialog on a
-    station this lane cannot see.
+    Which handler -ProveRed leaves unregistered - `xaml`, `appdomain`, `task` or `dispatcher`.
+    Defaults to `task`, the one route whose fault does not terminate the process, so an arming run
+    cannot leave a Windows Error Reporting dialog on a station this lane cannot see. `dispatcher`
+    arming DOES terminate the process, the same way the unguarded callback did before DEF-085 was
+    fixed, which is the point of it.
 
 .NOTES
     Exit 0 pass, 1 fail, 3 NO VERDICT.
@@ -67,7 +90,7 @@ param(
     [string] $Out = 'planning/evidence/WIN-SHELL/run',
     [string] $ExePath = '',
     [int]    $PerRunTimeoutSeconds = 90,
-    [ValidateSet('xaml', 'appdomain', 'task')]
+    [ValidateSet('xaml', 'appdomain', 'task', 'dispatcher')]
     [string] $ArmHandler = 'task',
     [switch] $ProveRed
 )
@@ -96,9 +119,9 @@ function Write-Verdict {
     $doc = [ordered]@{
         lane        = 'win-shell-unhandled-witness'
         rung        = 'effect-witness'
-        defect      = 'DEF-079'
-        subject     = 'MCPRouter.Shell.App top-level unhandled-exception handlers'
-        writer      = 'the three handlers, running inside the shell process'
+        defect      = 'DEF-079, DEF-085'
+        subject     = 'MCPRouter.Shell.App top-level unhandled-exception handlers, and the DEF-085 dispatcher guard'
+        writer      = 'the three handlers and the dispatcher guard, running inside the shell process'
         recorder    = 'shell-startup.log on disk, read by PowerShell in a different process after the writer exited'
         recorderIsNotWriter = $true
         arming      = [bool] $ProveRed
@@ -115,7 +138,8 @@ function Write-Verdict {
             'shape of claim DEF-079 is about. What is graded is the line each handler wrote.'
         notMeasured = @(
             'a real stowed exception at 0xC000027B below the managed dispatch boundary - the route DEF-079 was found through. The injected UI fault is an ordinary managed exception in XAML dispatch; nothing on this host can raise the other (DEF-086)',
-            'a throw from a DispatcherQueue callback: run here as an UNGRADED probe because it reaches no handler at all, which is DEF-085 rather than a fault in the three handlers this lane grades. notes[] records what the probe saw on this run',
+            'that an UNGUARDED DispatcherQueue callback still reaches no handler - the DEF-085 finding is not re-measured on a normal run. -ProveRed dispatcher is where that state is reproduced, and EFFECT.dispatcher grades the guard rather than the framework',
+            'that the ORIGINAL Skills crash of 2026-09-02 took the same path as the stowed exception this lane now raises when armed on dispatcher. What matches is the exception code, the faulting module and the fault offset in WER; nothing here compares stacks (DEF-086)',
             'that a handler fires in a RELEASE build - the injection is compiled out outside DEBUG, so this lane grades the Debug binary only',
             'that the log survives a process kill mid-write - StartupLog appends synchronously per line, which is assumed rather than witnessed here'
         )
@@ -123,7 +147,11 @@ function Write-Verdict {
         host        = $env:COMPUTERNAME
         psVersion   = $PSVersionTable.PSVersion.ToString()
     }
-    $path = Join-Path $OutDir $(if ($ProveRed) { 'unhandled-witness-armed.json' } else { 'unhandled-witness.json' })
+    # One file per arming subject, so a dispatcher arming cannot overwrite the record of a task
+    # arming. `task` keeps the original name because CASE-0342 cites that path.
+    $armedName = if ($ArmHandler -eq 'task') { 'unhandled-witness-armed.json' }
+                 else { "unhandled-witness-armed-$ArmHandler.json" }
+    $path = Join-Path $OutDir $(if ($ProveRed) { $armedName } else { 'unhandled-witness.json' })
     [System.IO.File]::WriteAllText($path, ($doc | ConvertTo-Json -Depth 6),
         (New-Object System.Text.UTF8Encoding($false)))
     Write-Host ''
@@ -182,6 +210,53 @@ function Read-LogRegion {
     return ''
 }
 
+function Get-WerCrash {
+    <#
+      The operating system's own record of a process that died, read after it died. Application
+      Error 1000 carries the exception code, the faulting module and the fault offset, which is
+      what makes a 0xC000027B stowed exception nameable rather than inferred from a process that
+      simply vanished (DEF-086).
+    #>
+    param([datetime] $Since)
+    for ($attempt = 0; $attempt -lt 2; $attempt++) {
+        try {
+            $events = Get-WinEvent -FilterHashtable @{
+                LogName = 'Application'; Id = 1000; StartTime = $Since
+            } -MaxEvents 20 -ErrorAction Stop |
+                Where-Object { $_.Message -match 'MCPRouter\.Shell\.exe' }
+            $event = @($events) | Select-Object -First 1
+            if ($null -ne $event) {
+                $text = $event.Message
+                $code = if ($text -match 'Exception code:\s*(\S+)') { $Matches[1] } else { '' }
+                $module = if ($text -match 'Faulting module name:\s*([^,]+)') { $Matches[1] } else { '' }
+                $offset = if ($text -match 'Fault offset:\s*(\S+)') { $Matches[1] } else { '' }
+                return [pscustomobject]@{
+                    when          = $event.TimeCreated.ToString('o')
+                    exceptionCode = $code
+                    module        = $module
+                    faultOffset   = $offset
+                    isStowed      = ($code -eq '0xc000027b')
+                    readBy        = 'Get-WinEvent over the Windows Application log, after the process exited'
+                }
+            }
+        } catch {
+            # Get-WinEvent THROWS when a filter matches nothing, so an empty result and a broken
+            # read arrive the same way. Told apart here, because "no crash" is a finding and "the
+            # log could not be read" is the absence of one.
+            if ($_.Exception.Message -match 'No events were found') {
+                return [pscustomobject]@{ when = ''; exceptionCode = ''; module = ''; faultOffset = ''
+                                          isStowed = $false
+                                          readBy = 'the Application log was read and holds no Application Error for this run - the process did not crash' }
+            }
+            return [pscustomobject]@{ when = ''; exceptionCode = ''; module = ''; faultOffset = ''
+                                      isStowed = $false
+                                      readBy = "the Application log could not be read: $($_.Exception.Message)" }
+        }
+        Start-Sleep -Seconds 2
+    }
+    return $null
+}
+
 function Stop-Shell {
     Get-Process -Name 'MCPRouter.Shell' -ErrorAction SilentlyContinue |
         Stop-Process -Force -ErrorAction SilentlyContinue
@@ -200,6 +275,7 @@ function Invoke-ShellRun {
         [int]      $SettleSeconds = 5
     )
     Stop-Shell
+    $runStart = (Get-Date).AddSeconds(-2)
     $offset = Get-LogLength
     $taskName = 'MCPRouter-DEF079-' + $Label
 
@@ -249,6 +325,7 @@ function Invoke-ShellRun {
         reachedInjection = [bool] ($region -match 'fault: injecting')
         writerSelfReport = $self
         region           = $region.Trim()
+        werCrash         = (Get-WerCrash -Since $runStart)
         failure          = $null
     }
     $script:Runs += $result
@@ -256,7 +333,7 @@ function Invoke-ShellRun {
 }
 
 Write-Host ''
-Write-Host  'win-shell unhandled witness: DEF-079, the three top-level handlers'
+Write-Host  'win-shell unhandled witness: DEF-079 three top-level handlers, DEF-085 dispatcher guard'
 Write-Host ("               exe      {0}" -f $ExePath)
 Write-Host ("               log      {0}" -f $LogPath)
 Write-Host ("               station  {0}" -f $Station)
@@ -294,6 +371,11 @@ $cases = @(
     [pscustomobject]@{ arm = 'EFFECT.task';      kind = 'task';      handler = 'task'
                        pattern = 'unhandled:\s*\[unobserved-task\]'
                        what = 'TaskScheduler.UnobservedTaskException wrote its line for a faulted task nobody awaits' }
+    # Promoted from an ungraded probe when DEF-085 was fixed. It grades a guard rather than a
+    # framework handler, and it is the only arm whose subject is code this repository owns.
+    [pscustomobject]@{ arm = 'EFFECT.dispatcher'; kind = 'dispatcher'; handler = 'dispatcher'
+                       pattern = 'unhandled:\s*\[dispatcher'
+                       what = 'the DEF-085 guard wrote its line for a throw inside a DispatcherQueue callback' }
 )
 
 foreach ($case in $cases) {
@@ -315,6 +397,8 @@ foreach ($case in $cases) {
     $held = [bool] ($run.region -match $case.pattern)
     $detail = if ($held) {
         (($run.region -split "`r?`n" | Where-Object { $_ -match $case.pattern } | Select-Object -First 1)).Trim()
+    } elseif ($armedHere -and $case.handler -eq 'dispatcher') {
+        'ARMED: the callback was posted with no guard, and nothing wrote its line - DEF-085 as found'
     } elseif ($armedHere) {
         'ARMED: this handler was never attached, and nothing wrote its line'
     } else {
@@ -323,34 +407,46 @@ foreach ($case in $cases) {
     Add-Arm $case.arm $case.what $held $detail
 }
 
-# --------------------------------------------------------------------- an ungraded probe
-# NOT an arm, and deliberately not one. `--fault dispatcher` throws on the same UI thread from a
-# callback posted to the DispatcherQueue, and on this host that reaches NO handler at all: the
-# process disappears having written `fault: injecting` and nothing after it, which is precisely the
-# silence DEF-079 was raised about. It is carried here as a probe rather than as a failing arm
-# because it is a second defect (DEF-085) rather than a fault in the three handlers this lane
-# grades, and because a lane whose verdict flips on somebody fixing a different defect is a lane
-# that stops meaning what it says.
-$probe = Invoke-ShellRun -Label 'dispatcher' -Arguments @('--fault', 'dispatcher') -SettleOn 'unhandled:'
-$probeCaught = [bool] ($probe.region -match 'unhandled:')
-$Notes += ('ungraded probe, --fault dispatcher: a throw from a DispatcherQueue callback on the UI ' +
-    'thread was caught by {0}. DEF-085 carries it.') -f
-    $(if ($probeCaught) { 'a handler, which the arms above do not require' }
-      else { 'NO handler - the process vanished after `fault: injecting` with nothing appended' })
-Write-Host ("  {0,-18} {1,-6} {2}" -f 'PROBE.dispatcher', $(if ($probeCaught) { 'caught' } else { 'silent' }),
-    'a DispatcherQueue callback throw (ungraded, DEF-085)')
+# --------------------------------------------- what WER says about the dispatcher run
+# Recorded rather than graded, and deliberately so: an arm here would break on the -ProveRed
+# dispatcher run as well as EFFECT.dispatcher, and the arming contract is that EXACTLY one arm
+# breaks. The values are in runs[].werCrash either way.
+$dispatcherRun = @($Runs | Where-Object { $_.label -eq 'dispatcher' }) | Select-Object -First 1
+if ($null -ne $dispatcherRun -and $null -ne $dispatcherRun.werCrash) {
+    $Notes += if ($dispatcherRun.werCrash.isStowed) {
+        ('WER, read out of the Windows Application log after the process was gone: the dispatcher ' +
+         'run ended in Application Error 1000, exception code {0}, faulting module {1}, fault ' +
+         'offset {2}. That is a REAL STATUS_STOWED_EXCEPTION raised on demand, which DEF-086 said ' +
+         'this repository could not do.') -f $dispatcherRun.werCrash.exceptionCode,
+            $dispatcherRun.werCrash.module, $dispatcherRun.werCrash.faultOffset
+    } else {
+        'WER, read out of the Windows Application log after the process was gone: the dispatcher ' +
+        'run left NO Application Error. The guard caught the throw, so the process did not ' +
+        'fail-fast at 0xC000027B the way the unguarded callback does - which is a second effect ' +
+        'of DEF-085''s fix, recorded by the operating system rather than by the shell.'
+    }
+}
+
+# ------------------------------------------------------- where the fourth arm came from
+$Notes += ('EFFECT.dispatcher was an ungraded probe until DEF-085 was fixed: the route reached no ' +
+    'handler and the process vanished after `fault: injecting` with nothing appended. It is graded ' +
+    'now because the shell guards its own posting sites, so the line it requires is written by this ' +
+    'product rather than by the framework. -ProveRed dispatcher removes that guard and reproduces ' +
+    'the silence.')
 
 # --------------------------------------------------------------------------- the verdict
 $broke = @($Arms | Where-Object { -not $_.held })
 $brokeIds = ($broke | ForEach-Object { $_.id }) -join ', '
 
 if ($ProveRed) {
-    $expected = 'EFFECT.' + $(if ($ArmHandler -eq 'xaml') { 'xaml' } elseif ($ArmHandler -eq 'appdomain') { 'appdomain' } else { 'task' })
+    $expected = 'EFFECT.' + $ArmHandler
     $onlyExpectedBroke = ($broke.Count -eq 1) -and ($broke[0].id -eq $expected)
     if ($onlyExpectedBroke) {
-        Write-Verdict 0 'PASS (armed)' (("left the {0} handler unregistered and {1} broke while " +
-            'BASELINE and the other two EFFECT arms held. So each arm reads the line its own ' +
-            'handler wrote, and none of them is satisfied by another handler''s.') -f $ArmHandler, $expected)
+        $how = if ($ArmHandler -eq 'dispatcher') { 'posted the callback with no guard around it' }
+               else { "left the $ArmHandler handler unregistered" }
+        Write-Verdict 0 'PASS (armed)' (('{0} and {1} broke while BASELINE and the other EFFECT ' +
+            'arms held. So each arm reads the line its own handler or guard wrote, and none of ' +
+            'them is satisfied by another''s.') -f $how, $expected)
     }
     Write-Verdict 1 'FAIL (arming)' ("expected {0} alone to break; broke: {1}" -f $expected,
         $(if ($brokeIds) { $brokeIds } else { 'nothing - unregistering a handler changed no arm, so the arms are not reading what they claim' }))
@@ -360,7 +456,9 @@ if ($broke.Count -gt 0) {
     Write-Verdict 1 'FAIL' ("{0} of {1} arm(s) broke: {2}" -f $broke.Count, $Arms.Count, $brokeIds)
 }
 $reason = ('all {0} arm(s) held: a control launch wrote no `unhandled:` line, and each of the ' +
-    'three top-level handlers was then made to fire on purpose and was observed writing the line ' +
-    'naming it, read out of the log by a process that did not write it. The 0xC000027B stowed ' +
-    'exception DEF-079 was found through is NOT reproduced here and notMeasured[] says so.') -f $Arms.Count
+    'three top-level handlers and the DEF-085 dispatcher guard was then made to fire on purpose ' +
+    'and was observed writing the line naming it, read out of the log by a process that did not ' +
+    'write it. On this run the dispatcher throw was GUARDED, so WER holds no Application Error ' +
+    'for it; the 0xC000027B stowed exception DEF-079 was found through is what -ProveRed ' +
+    'dispatcher raises instead, and notes[] carries what WER said either way.') -f $Arms.Count
 Write-Verdict 0 'PASS' $reason

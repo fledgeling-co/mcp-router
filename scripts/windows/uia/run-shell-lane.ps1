@@ -64,7 +64,24 @@ if ($station -eq 'WinSta0') {
 
 Write-Host "window station is '$station'; scheduling the shell lane into the interactive session"
 
-$taskName = 'MCPRouter-WINSHELL-AutomationPlaneLane'
+# ONE TASK NAME PER WORKTREE, not one for the machine.
+#
+# Measured 2026-09-02: two delivery runners in the same wave, each in its own worktree, each
+# calling this wrapper, registered the SAME task name seconds apart. `schtasks /Create /F`
+# overwrites, so the second registration replaced the first runner's command line and both
+# wrappers then sat waiting for a lane.json that only one of them would ever get - one of them
+# forever, because its lane never ran. The wrapper reported NO VERDICT after fifteen minutes with
+# nothing in lane.log, which reads like the shell failing to start rather than like the task
+# having been taken away.
+#
+# The suffix is a hash of the output directory, so two checkouts of this repository never share a
+# task and a second run against the same -Out still replaces its own predecessor.
+$outKey = [System.BitConverter]::ToString(
+    [System.Security.Cryptography.SHA256]::Create().ComputeHash(
+        [System.Text.Encoding]::UTF8.GetBytes(
+            (Resolve-Path $Out).Path.ToLowerInvariant()))).Replace('-', '').Substring(0, 8)
+$taskName = "MCPRouter-WINSHELL-AutomationPlaneLane-$outKey"
+Write-Host "task name: $taskName"
 $laneJson = Join-Path $Out 'lane.json'
 Remove-Item $laneJson -ErrorAction SilentlyContinue
 

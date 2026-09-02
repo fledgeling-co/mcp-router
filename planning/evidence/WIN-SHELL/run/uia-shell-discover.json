@@ -1,23 +1,23 @@
 ﻿{
     "schema":  "win20.uia-dump/1",
-    "capturedAtUtc":  "2026-09-02T08:59:38.2646635Z",
+    "capturedAtUtc":  "2026-09-02T13:21:47.2596594Z",
     "host":  {
                  "osVersion":  "10.0.26220.0",
                  "psVersion":  "5.1.26100.9223",
                  "machine":  "Z13"
              },
     "request":  {
-                    "processId":  26760,
+                    "processId":  31700,
                     "titleContains":  "",
                     "view":  "Control"
                 },
     "targets":  [
                     {
-                        "hwnd":  1180892,
+                        "hwnd":  2820090,
                         "name":  "Discover",
                         "className":  "WinUIDesktopWin32WindowClass",
                         "frameworkId":  "Win32",
-                        "processId":  26760,
+                        "processId":  31700,
                         "isVisible":  true,
                         "isMinimised":  false
                     }
@@ -25,18 +25,18 @@
     "foregroundSamples":  [
                               {
                                   "when":  "before",
-                                  "hwnd":  1180892,
-                                  "processId":  26760
+                                  "hwnd":  2820090,
+                                  "processId":  31700
                               },
                               {
                                   "when":  "midwalk",
-                                  "hwnd":  1180892,
-                                  "processId":  26760
+                                  "hwnd":  2820090,
+                                  "processId":  31700
                               },
                               {
                                   "when":  "after",
-                                  "hwnd":  1180892,
-                                  "processId":  26760
+                                  "hwnd":  2820090,
+                                  "processId":  31700
                               }
                           ],
     "truncated":  false,
@@ -712,7 +712,7 @@
                          "depth":  3,
                          "path":  "/3/0/2",
                          "automationId":  "Nav",
-                         "name":  "",
+                         "name":  "Destinations",
                          "controlType":  "Custom",
                          "localizedControlType":  "custom",
                          "className":  "",
@@ -874,7 +874,7 @@
                          "depth":  6,
                          "path":  "/3/0/2/1/0/0",
                          "automationId":  "MenuItemsHost",
-                         "name":  "",
+                         "name":  "Destinations",
                          "controlType":  "Group",
                          "localizedControlType":  "group",
                          "className":  "",
@@ -1877,8 +1877,8 @@
                      {
                          "depth":  5,
                          "path":  "/3/0/2/4/9",
-                         "automationId":  "RecentList",
-                         "name":  "",
+                         "automationId":  "discover.band.recent",
+                         "name":  "Recently changed capabilities",
                          "controlType":  "List",
                          "localizedControlType":  "list",
                          "className":  "ListView",
@@ -1914,8 +1914,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/0",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.oobe.protocol.sap.mcp",
+                         "name":  "sap-mcp, 34,350 sessions on Smithery, added 13 Jul 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -2030,7 +2030,7 @@
                          "boundingRectangle":  {
                                                    "y":  540,
                                                    "width":  1473,
-                                                   "height":  24,
+                                                   "height":  23,
                                                    "x":  511
                                                },
                          "patterns":  [
@@ -2062,7 +2062,7 @@
                          "boundingRectangle":  {
                                                    "y":  524,
                                                    "width":  224,
-                                                   "height":  25,
+                                                   "height":  24,
                                                    "x":  2002
                                                },
                          "patterns":  [
@@ -2094,7 +2094,7 @@
                          "boundingRectangle":  {
                                                    "y":  511,
                                                    "width":  210,
-                                                   "height":  24,
+                                                   "height":  23,
                                                    "x":  2245
                                                },
                          "patterns":  [
@@ -2140,8 +2140,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/1",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.framesail.framesail",
+                         "name":  "Framesail, 11,533 sessions on Smithery, added 9 Jul 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -2158,7 +2158,7 @@
                          "boundingRectangle":  {
                                                    "y":  573,
                                                    "width":  2097,
-                                                   "height":  73,
+                                                   "height":  72,
                                                    "x":  424
                                                },
                          "patterns":  [
@@ -2224,7 +2224,7 @@
                          "boundingRectangle":  {
                                                    "y":  582,
                                                    "width":  1473,
-                                                   "height":  28,
+                                                   "height":  27,
                                                    "x":  511
                                                },
                          "patterns":  [
@@ -2288,7 +2288,7 @@
                          "boundingRectangle":  {
                                                    "y":  597,
                                                    "width":  224,
-                                                   "height":  25,
+                                                   "height":  24,
                                                    "x":  2002
                                                },
                          "patterns":  [
@@ -2366,8 +2366,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/2",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.lmktoday.commerce",
+                         "name":  "LMK.today MCP, 8,243 sessions on Smithery, added 6 Jul 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -2592,8 +2592,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/3",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.listentosadhu.corpus",
+                         "name":  "Listen to Sadhu, 8,356 sessions on Smithery, added 4 Jul 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -2804,7 +2804,7 @@
                          "boundingRectangle":  {
                                                    "y":  757,
                                                    "width":  210,
-                                                   "height":  23,
+                                                   "height":  24,
                                                    "x":  2245
                                                },
                          "patterns":  [
@@ -2818,8 +2818,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/4",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.entia.entity.verification",
+                         "name":  "entity-verification, 16,045 sessions on Smithery, added 3 Jul 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -2870,7 +2870,7 @@
                          "boundingRectangle":  {
                                                    "y":  817,
                                                    "width":  22,
-                                                   "height":  24,
+                                                   "height":  23,
                                                    "x":  459
                                                },
                          "patterns":  [
@@ -2902,7 +2902,7 @@
                          "boundingRectangle":  {
                                                    "y":  801,
                                                    "width":  1473,
-                                                   "height":  27,
+                                                   "height":  28,
                                                    "x":  511
                                                },
                          "patterns":  [
@@ -2932,7 +2932,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  832,
+                                                   "y":  831,
                                                    "width":  1473,
                                                    "height":  24,
                                                    "x":  511
@@ -3044,8 +3044,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/5",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.vivaldoeuropes.vivaldo.product.discovery",
+                         "name":  "Vivaldo Product Discovery, 7,716 sessions on Smithery, added 25 Jun 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -3060,7 +3060,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  865,
+                                                   "y":  864,
                                                    "width":  2097,
                                                    "height":  72,
                                                    "x":  424
@@ -3094,7 +3094,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  890,
+                                                   "y":  889,
                                                    "width":  22,
                                                    "height":  24,
                                                    "x":  460
@@ -3126,7 +3126,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  874,
+                                                   "y":  873,
                                                    "width":  1473,
                                                    "height":  27,
                                                    "x":  511
@@ -3158,7 +3158,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  905,
+                                                   "y":  904,
                                                    "width":  1473,
                                                    "height":  24,
                                                    "x":  511
@@ -3190,7 +3190,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  889,
+                                                   "y":  888,
                                                    "width":  224,
                                                    "height":  24,
                                                    "x":  2002
@@ -3222,7 +3222,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  876,
+                                                   "y":  875,
                                                    "width":  210,
                                                    "height":  24,
                                                    "x":  2245
@@ -3254,7 +3254,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  903,
+                                                   "y":  902,
                                                    "width":  210,
                                                    "height":  24,
                                                    "x":  2245
@@ -3270,8 +3270,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/6",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.pinksaltlamp75.your.echo.agent",
+                         "name":  "Your-Echo-Agent-, 10,070 sessions on Smithery, added 20 Jun 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -3286,7 +3286,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  938,
+                                                   "y":  937,
                                                    "width":  2097,
                                                    "height":  73,
                                                    "x":  424
@@ -3320,7 +3320,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  963,
+                                                   "y":  962,
                                                    "width":  24,
                                                    "height":  24,
                                                    "x":  459
@@ -3352,7 +3352,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  947,
+                                                   "y":  946,
                                                    "width":  1473,
                                                    "height":  28,
                                                    "x":  511
@@ -3384,7 +3384,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  978,
+                                                   "y":  977,
                                                    "width":  1473,
                                                    "height":  24,
                                                    "x":  511
@@ -3496,8 +3496,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/7",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.moodtrip.moodtrip.hotel.search",
+                         "name":  "moodtrip-hotel-search, 8,332 sessions on Smithery, added 11 Jun 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -3722,8 +3722,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/8",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.primitivedotdev.primitive",
+                         "name":  "primitive.dev, 8,352 sessions on Smithery, added 9 Jun 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -3948,8 +3948,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/9",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.malinoto.tracepass.mcp.server",
+                         "name":  "tracepass-mcp-server, 7,835 sessions on Smithery, added 9 Jun 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -4174,8 +4174,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/10",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.bissell.skyler.cityparity",
+                         "name":  "cityparity, 12,406 sessions on Smithery, added 1 Jun 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -4400,8 +4400,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/11",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.industrylens.mcp",
+                         "name":  "IndustryLens, 8,023 sessions on Smithery, added 31 May 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -4626,8 +4626,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/12",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.zachary.royals.devmatch",
+                         "name":  "DevMatch, 6,937 sessions on Smithery, added 24 May 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -4852,8 +4852,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/13",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.getgapup.gapup.mcp",
+                         "name":  " Gapup MCP — 270+ Agent-payable AI Tools, 10,042 sessions on Smithery, added 23 May 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -5078,8 +5078,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/14",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.friso.compliancecheckup",
+                         "name":  "ComplianceCheckup, 11,175 sessions on Smithery, added 19 May 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -5304,8 +5304,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/15",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.quelvio.mcp.server",
+                         "name":  "Quelvio, 5,904 sessions on Smithery, added 18 May 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -5530,8 +5530,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/16",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.naver.search",
+                         "name":  "Naver Search, 13,327 sessions on Smithery, added 18 May 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -5756,8 +5756,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/17",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.google.news",
+                         "name":  "Google News, 6,379 sessions on Smithery, added 17 May 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -5982,8 +5982,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/18",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.deficlow.zipp",
+                         "name":  "Zipp, 16,317 sessions on Smithery, added 13 May 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -6208,8 +6208,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/19",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.emblemai.emblem.mcp",
+                         "name":  "emblem-mcp, 25,084 sessions on Smithery, added 11 May 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -6434,8 +6434,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/20",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.favcrm.favcrm",
+                         "name":  "FavCRM — Agentic CRM, 8,514 sessions on Smithery, added 8 May 2026, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -6660,8 +6660,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/21",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.pkobielak.social.superpowers",
+                         "name":  "social-superpowers, 9,761 sessions on Smithery, added 3 May 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -6886,8 +6886,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/22",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.vbhjckfd.lad.lviv.ua",
+                         "name":  "lad-lviv-ua, 9,780 sessions on Smithery, added 29 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -7112,8 +7112,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/23",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.bouch.uk.due.diligence",
+                         "name":  "uk-due-diligence, 60,881 sessions on Smithery, added 29 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -7338,8 +7338,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/24",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.pipeworx.gateway",
+                         "name":  "pipeworx gateway, 419,019 sessions on Smithery, added 22 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -7564,8 +7564,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/25",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.cyanheads.pubmed.mcp.server",
+                         "name":  "pubmed-mcp-server, 13,948 sessions on Smithery, added 19 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -7790,8 +7790,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/26",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.jordan.s648.polymarketscan",
+                         "name":  "Polymarket Data by PolymarketScan, 39,483 sessions on Smithery, added 13 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -8016,8 +8016,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/27",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.segellfosc.dev.ayfx.menjometre",
+                         "name":  "menjometre, 9,534 sessions on Smithery, added 11 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -8242,8 +8242,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/28",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.xqb.vibe.pay",
+                         "name":  "vibe-pay, 8,540 sessions on Smithery, added 5 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -8468,8 +8468,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/29",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.nutribalance.nutribalance.mcp",
+                         "name":  "nutribalance-mcp, 12,688 sessions on Smithery, added 5 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -8694,8 +8694,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/30",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.sincetomorrow.cultural.intelligence",
+                         "name":  "cultural-intelligence, 6,429 sessions on Smithery, added 4 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -8920,8 +8920,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/31",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.nexgendata.apify.github.mcp.server",
+                         "name":  "GitHub Analytics MCP — Repo \u0026 Trend Research, 8,233 sessions on Smithery, added 3 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -9146,8 +9146,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/32",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.boar.network.blockchain.basic",
+                         "name":  "Boar blockchain MCP (basic), 6,463 sessions on Smithery, added 2 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -9372,8 +9372,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/33",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.ia.qa.api",
+                         "name":  "ia-qa.com/mcp llm and RAG testing - Dev/QA toolbox, 12,266 sessions on Smithery, added 1 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -9598,8 +9598,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/34",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.subwayinfo",
+                         "name":  "SubwayInfo NYC, 16,873 sessions on Smithery, added 29 Mar 2026, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -9824,8 +9824,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/35",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.bigquery",
+                         "name":  "Google BigQuery, 6,986 sessions on Smithery, added 27 Mar 2026, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -10050,8 +10050,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/36",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.aiwyn",
+                         "name":  "Aiwyn Tax, 6,395 sessions on Smithery, added 27 Mar 2026, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -10276,8 +10276,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/37",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.pubmed",
+                         "name":  "PubMed, 42,137 sessions on Smithery, added 27 Mar 2026, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -10502,8 +10502,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/38",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.j4th.mtg.mcp.server",
+                         "name":  "MTG MCP Server, 6,124 sessions on Smithery, added 24 Mar 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -10728,8 +10728,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/39",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.secureship.docs",
+                         "name":  "Multi-Carrier Shipping API — powered by Secureship, 6,130 sessions on Smithery, added 18 Mar 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -10954,8 +10954,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/40",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.virtualsms.virtualsms.mcp",
+                         "name":  "VirtualSMS, 7,933 sessions on Smithery, added 15 Mar 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -11180,8 +11180,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/41",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.onesignal.onesignal",
+                         "name":  "OneSignal, 22,491 sessions on Smithery, added 10 Mar 2026, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -11406,8 +11406,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/42",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.theagenttimes.news",
+                         "name":  "Agent News, 43,392 sessions on Smithery, added 9 Feb 2026, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -11632,8 +11632,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/43",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.gmail",
+                         "name":  "Gmail, 57,738 sessions on Smithery, added 26 Nov 2025, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -11858,8 +11858,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/44",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.googledrive",
+                         "name":  "Google Drive, 8,102 sessions on Smithery, added 19 Nov 2025, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -12084,8 +12084,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/45",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.slack",
+                         "name":  "Slack, 12,110 sessions on Smithery, added 19 Nov 2025, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -12310,8 +12310,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/46",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.googlesheets",
+                         "name":  "Google Sheets, 56,138 sessions on Smithery, added 19 Nov 2025, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -12536,8 +12536,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/47",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.github",
+                         "name":  "GitHub, 5,908 sessions on Smithery, added 19 Nov 2025, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -12762,8 +12762,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/48",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.googlecalendar",
+                         "name":  "Google Calendar, 15,718 sessions on Smithery, added 19 Nov 2025, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -12988,8 +12988,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/49",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.aryankeluskar.polymarket.mcp",
+                         "name":  "Polymarket, 10,102 sessions on Smithery, added 8 Nov 2025, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -13214,8 +13214,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/50",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.titansneaker.paper.search.mcp.openai.v2",
+                         "name":  "paper-search-mcp-openai-v2, 7,042 sessions on Smithery, added 31 Oct 2025, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -13440,8 +13440,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/51",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.hjsh200219.fortuneteller",
+                         "name":  "Saju Insights, 5,994 sessions on Smithery, added 3 Oct 2025, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -13666,8 +13666,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/52",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.pinkpixel.dev.web.scout.mcp",
+                         "name":  "Web Scout, 19,558 sessions on Smithery, added 20 Sep 2025, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -13892,8 +13892,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/53",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.adamamer20.paper.search.mcp.openai",
+                         "name":  "Paper Search, 59,106 sessions on Smithery, added 18 Sep 2025, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -14118,8 +14118,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/54",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.brave",
+                         "name":  "Brave Search, 87,579 sessions on Smithery, added 5 Sep 2025, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -14344,8 +14344,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/55",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.hamid.vakilzadeh.mcpsemanticscholar",
+                         "name":  "AI Research Assistant, 10,296 sessions on Smithery, added 30 May 2025, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -14570,8 +14570,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/56",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.smithery.ai.national.weather.service",
+                         "name":  "United States Weather, 17,177 sessions on Smithery, added 29 May 2025, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -14796,8 +14796,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/57",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.nekzus.npm.sentinel.mcp",
+                         "name":  "NPM Sentinel MCP, 13,278 sessions on Smithery, added 19 Apr 2025, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -15022,8 +15022,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/58",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.isdaniel.mcp.weather.server",
+                         "name":  "Weather MCP Server, 9,970 sessions on Smithery, added 17 Mar 2025, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -15248,8 +15248,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/9/59",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.exa",
+                         "name":  "Exa Search, 9,181 sessions on Smithery, added 13 Dec 2024, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -15538,8 +15538,8 @@
                      {
                          "depth":  5,
                          "path":  "/3/0/2/4/12",
-                         "automationId":  "UsedList",
-                         "name":  "",
+                         "automationId":  "discover.band.used",
+                         "name":  "Most used capabilities",
                          "controlType":  "List",
                          "localizedControlType":  "list",
                          "className":  "ListView",
@@ -15575,8 +15575,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/0",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.pipeworx.gateway",
+                         "name":  "pipeworx gateway, 419,019 sessions on Smithery, added 22 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -15801,8 +15801,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/1",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.brave",
+                         "name":  "Brave Search, 87,579 sessions on Smithery, added 5 Sep 2025, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -16027,8 +16027,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/2",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.bouch.uk.due.diligence",
+                         "name":  "uk-due-diligence, 60,881 sessions on Smithery, added 29 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -16253,8 +16253,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/3",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.adamamer20.paper.search.mcp.openai",
+                         "name":  "Paper Search, 59,106 sessions on Smithery, added 18 Sep 2025, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -16479,8 +16479,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/4",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.gmail",
+                         "name":  "Gmail, 57,738 sessions on Smithery, added 26 Nov 2025, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -16705,8 +16705,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/5",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.googlesheets",
+                         "name":  "Google Sheets, 56,138 sessions on Smithery, added 19 Nov 2025, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -16931,8 +16931,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/6",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.theagenttimes.news",
+                         "name":  "Agent News, 43,392 sessions on Smithery, added 9 Feb 2026, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -17157,8 +17157,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/7",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.pubmed",
+                         "name":  "PubMed, 42,137 sessions on Smithery, added 27 Mar 2026, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -17383,8 +17383,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/8",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.jordan.s648.polymarketscan",
+                         "name":  "Polymarket Data by PolymarketScan, 39,483 sessions on Smithery, added 13 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -17609,8 +17609,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/9",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.oobe.protocol.sap.mcp",
+                         "name":  "sap-mcp, 34,350 sessions on Smithery, added 13 Jul 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -17835,8 +17835,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/10",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.emblemai.emblem.mcp",
+                         "name":  "emblem-mcp, 25,084 sessions on Smithery, added 11 May 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -18061,8 +18061,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/11",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.onesignal.onesignal",
+                         "name":  "OneSignal, 22,491 sessions on Smithery, added 10 Mar 2026, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -18287,8 +18287,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/12",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.pinkpixel.dev.web.scout.mcp",
+                         "name":  "Web Scout, 19,558 sessions on Smithery, added 20 Sep 2025, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -18513,8 +18513,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/13",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.smithery.ai.national.weather.service",
+                         "name":  "United States Weather, 17,177 sessions on Smithery, added 29 May 2025, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -18739,8 +18739,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/14",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.subwayinfo",
+                         "name":  "SubwayInfo NYC, 16,873 sessions on Smithery, added 29 Mar 2026, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -18965,8 +18965,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/15",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.deficlow.zipp",
+                         "name":  "Zipp, 16,317 sessions on Smithery, added 13 May 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -19191,8 +19191,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/16",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.entia.entity.verification",
+                         "name":  "entity-verification, 16,045 sessions on Smithery, added 3 Jul 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -19417,8 +19417,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/17",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.googlecalendar",
+                         "name":  "Google Calendar, 15,718 sessions on Smithery, added 19 Nov 2025, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -19643,8 +19643,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/18",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.cyanheads.pubmed.mcp.server",
+                         "name":  "pubmed-mcp-server, 13,948 sessions on Smithery, added 19 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -19869,8 +19869,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/19",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.naver.search",
+                         "name":  "Naver Search, 13,327 sessions on Smithery, added 18 May 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -20095,8 +20095,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/20",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.nekzus.npm.sentinel.mcp",
+                         "name":  "NPM Sentinel MCP, 13,278 sessions on Smithery, added 19 Apr 2025, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -20321,8 +20321,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/21",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.nutribalance.nutribalance.mcp",
+                         "name":  "nutribalance-mcp, 12,688 sessions on Smithery, added 5 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -20547,8 +20547,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/22",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.bissell.skyler.cityparity",
+                         "name":  "cityparity, 12,406 sessions on Smithery, added 1 Jun 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -20773,8 +20773,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/23",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.ia.qa.api",
+                         "name":  "ia-qa.com/mcp llm and RAG testing - Dev/QA toolbox, 12,266 sessions on Smithery, added 1 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -20999,8 +20999,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/24",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.slack",
+                         "name":  "Slack, 12,110 sessions on Smithery, added 19 Nov 2025, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -21225,8 +21225,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/25",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.framesail.framesail",
+                         "name":  "Framesail, 11,533 sessions on Smithery, added 9 Jul 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -21451,8 +21451,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/26",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.friso.compliancecheckup",
+                         "name":  "ComplianceCheckup, 11,175 sessions on Smithery, added 19 May 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -21677,8 +21677,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/27",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.hamid.vakilzadeh.mcpsemanticscholar",
+                         "name":  "AI Research Assistant, 10,296 sessions on Smithery, added 30 May 2025, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -21903,8 +21903,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/28",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.aryankeluskar.polymarket.mcp",
+                         "name":  "Polymarket, 10,102 sessions on Smithery, added 8 Nov 2025, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -22129,8 +22129,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/29",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.pinksaltlamp75.your.echo.agent",
+                         "name":  "Your-Echo-Agent-, 10,070 sessions on Smithery, added 20 Jun 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -22355,8 +22355,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/30",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.getgapup.gapup.mcp",
+                         "name":  " Gapup MCP — 270+ Agent-payable AI Tools, 10,042 sessions on Smithery, added 23 May 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -22581,8 +22581,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/31",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.isdaniel.mcp.weather.server",
+                         "name":  "Weather MCP Server, 9,970 sessions on Smithery, added 17 Mar 2025, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -22807,8 +22807,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/32",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.vbhjckfd.lad.lviv.ua",
+                         "name":  "lad-lviv-ua, 9,780 sessions on Smithery, added 29 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -23033,8 +23033,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/33",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.pkobielak.social.superpowers",
+                         "name":  "social-superpowers, 9,761 sessions on Smithery, added 3 May 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -23259,8 +23259,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/34",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.segellfosc.dev.ayfx.menjometre",
+                         "name":  "menjometre, 9,534 sessions on Smithery, added 11 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -23485,8 +23485,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/35",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.exa",
+                         "name":  "Exa Search, 9,181 sessions on Smithery, added 13 Dec 2024, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -23711,8 +23711,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/36",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.xqb.vibe.pay",
+                         "name":  "vibe-pay, 8,540 sessions on Smithery, added 5 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -23937,8 +23937,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/37",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.favcrm.favcrm",
+                         "name":  "FavCRM — Agentic CRM, 8,514 sessions on Smithery, added 8 May 2026, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -24163,8 +24163,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/38",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.listentosadhu.corpus",
+                         "name":  "Listen to Sadhu, 8,356 sessions on Smithery, added 4 Jul 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -24389,8 +24389,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/39",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.primitivedotdev.primitive",
+                         "name":  "primitive.dev, 8,352 sessions on Smithery, added 9 Jun 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -24615,8 +24615,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/40",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.moodtrip.moodtrip.hotel.search",
+                         "name":  "moodtrip-hotel-search, 8,332 sessions on Smithery, added 11 Jun 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -24841,8 +24841,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/41",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.lmktoday.commerce",
+                         "name":  "LMK.today MCP, 8,243 sessions on Smithery, added 6 Jul 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -25067,8 +25067,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/42",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.nexgendata.apify.github.mcp.server",
+                         "name":  "GitHub Analytics MCP — Repo \u0026 Trend Research, 8,233 sessions on Smithery, added 3 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -25293,8 +25293,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/43",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.googledrive",
+                         "name":  "Google Drive, 8,102 sessions on Smithery, added 19 Nov 2025, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -25519,8 +25519,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/44",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.industrylens.mcp",
+                         "name":  "IndustryLens, 8,023 sessions on Smithery, added 31 May 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -25745,8 +25745,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/45",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.virtualsms.virtualsms.mcp",
+                         "name":  "VirtualSMS, 7,933 sessions on Smithery, added 15 Mar 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -25971,8 +25971,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/46",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.malinoto.tracepass.mcp.server",
+                         "name":  "tracepass-mcp-server, 7,835 sessions on Smithery, added 9 Jun 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -26197,8 +26197,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/47",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.vivaldoeuropes.vivaldo.product.discovery",
+                         "name":  "Vivaldo Product Discovery, 7,716 sessions on Smithery, added 25 Jun 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -26423,8 +26423,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/48",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.titansneaker.paper.search.mcp.openai.v2",
+                         "name":  "paper-search-mcp-openai-v2, 7,042 sessions on Smithery, added 31 Oct 2025, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -26649,8 +26649,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/49",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.bigquery",
+                         "name":  "Google BigQuery, 6,986 sessions on Smithery, added 27 Mar 2026, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -26875,8 +26875,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/50",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.zachary.royals.devmatch",
+                         "name":  "DevMatch, 6,937 sessions on Smithery, added 24 May 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -27101,8 +27101,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/51",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.boar.network.blockchain.basic",
+                         "name":  "Boar blockchain MCP (basic), 6,463 sessions on Smithery, added 2 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -27327,8 +27327,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/52",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.sincetomorrow.cultural.intelligence",
+                         "name":  "cultural-intelligence, 6,429 sessions on Smithery, added 4 Apr 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -27553,8 +27553,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/53",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.aiwyn",
+                         "name":  "Aiwyn Tax, 6,395 sessions on Smithery, added 27 Mar 2026, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -27779,8 +27779,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/54",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.google.news",
+                         "name":  "Google News, 6,379 sessions on Smithery, added 17 May 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -28005,8 +28005,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/55",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.secureship.docs",
+                         "name":  "Multi-Carrier Shipping API — powered by Secureship, 6,130 sessions on Smithery, added 18 Mar 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -28231,8 +28231,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/56",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.j4th.mtg.mcp.server",
+                         "name":  "MTG MCP Server, 6,124 sessions on Smithery, added 24 Mar 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -28457,8 +28457,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/57",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.hjsh200219.fortuneteller",
+                         "name":  "Saju Insights, 5,994 sessions on Smithery, added 3 Oct 2025, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -28683,8 +28683,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/58",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.github",
+                         "name":  "GitHub, 5,908 sessions on Smithery, added 19 Nov 2025, On Smithery, verified by Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",
@@ -28909,8 +28909,8 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/4/12/59",
-                         "automationId":  "",
-                         "name":  "MCPRouter.Shell.Views.DiscoverRow",
+                         "automationId":  "discover.row.smithery.quelvio.mcp.server",
+                         "name":  "Quelvio, 5,904 sessions on Smithery, added 18 May 2026, On Smithery",
                          "controlType":  "ListItem",
                          "localizedControlType":  "list item",
                          "className":  "ListViewItem",

@@ -88,8 +88,19 @@
         </Grid>
 
         <!-- ============================================================ the destinations -->
+        <!--
+          DEF-089: the pane's own accessible name.
+
+          The ten items INSIDE it are named in code from DestinationCatalog; the container that
+          holds them was not, and a live UIA dump reads its Name back as the empty string - a
+          NavigationView publishes nothing of its own here, so this ADDS a name rather than
+          overriding a better one. Without it the pane is addressable by automation id and by
+          control type and by nothing a person would say out loud, which is how the campaign came
+          to record a control called "NavigationView pane", a phrase in no source file.
+        -->
         <muxc:NavigationView
             x:Name="Nav"
+            AutomationProperties.Name="Destinations"
             Grid.Row="1"
             IsBackButtonVisible="Collapsed"
             IsPaneToggleButtonVisible="True"

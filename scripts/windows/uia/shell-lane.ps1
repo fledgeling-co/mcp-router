@@ -123,11 +123,33 @@ function Start-Shell {
             Say "  the shell exited before publishing a window"
             return $null
         }
+        # A WinUI process publishes MORE THAN ONE top-level window, and taking the first one that
+        # matches the pid is how this lane once measured a tooltip.
+        #
+        # Measured 2026-09-02 while arming the DEF-089 arm: the run bound to a
+        # Microsoft.UI.Content.PopupWindowSiteBridge - the host for a tooltip that happened to be
+        # up when the search ran - and from then on every read was scoped to that popup's subtree.
+        # The window title read as the empty string, no element carried the name of any
+        # destination and no element carried the automation id "Nav", so eight destinations came
+        # back `unoracled` and three rows failed. The dump taken in the same second, which walks
+        # by process id rather than through this handle, holds a complete and healthy tree with
+        # all ten pane items in it. Every one of those rows was a statement about the harness's
+        # handle and none of them was about the product.
+        #
+        # So the shell's own window is identified by its class, and a run that cannot find that
+        # class keeps waiting rather than settling for whichever window answered first.
         $root   = [System.Windows.Automation.AutomationElement]::RootElement
         $walker = [System.Windows.Automation.TreeWalker]::ControlViewWalker
         $child  = $walker.GetFirstChild($root)
         while ($null -ne $child) {
-            try { if ($child.Current.ProcessId -eq $proc.Id) { return $child } } catch { }
+            try {
+                if ($child.Current.ProcessId -eq $proc.Id -and
+                    $child.Current.ClassName -eq 'WinUIDesktopWin32WindowClass') {
+                    Say ("  bound to the shell's own window: class " +
+                         "'$($child.Current.ClassName)', title '$($child.Current.Name)'")
+                    return $child
+                }
+            } catch { }
             $child = $walker.GetNextSibling($child)
         }
         Start-Sleep -Milliseconds 500
@@ -725,6 +747,128 @@ if (-not (Get-Process -Id $script:ShellProcessId -ErrorAction SilentlyContinue))
         }
     }
 
+    # ------------------------------------------------------- DEF-084: the Discover store rows
+    # WHAT THIS ARM ASSERTS, AND WHY IT IS NOT "the name is non-empty". Every row on this board
+    # already published a non-empty name: "MCPRouter.Shell.Views.DiscoverRow", the item type's
+    # ToString(), which is what a ListViewItem falls back to when nothing names the container. A
+    # non-empty check would have passed on the defect. So the two properties asserted here are the
+    # two that actually failed - that no row's name is the type name, and that no two rows in a
+    # band share one.
+    #
+    # It is scoped to a band by automation id rather than sweeping every ListItem under the
+    # window: the navigation items are ListItems too, and the previous census had to take
+    # "whichever list item was not a navigation label", which is a description of how a row was
+    # picked rather than of which row it was. Both bands are read, on their own rows.
+    #
+    # Where the registry search returns nothing - no network on this host - this arm reports
+    # `unoracled`, never a pass. A check that could not run and a check that found nothing are the
+    # same green otherwise. The structural rung is
+    # MCPRouter.Shell.Tests/ViewAutomationSurfaceTests.
+    if (-not (Get-Process -Id $script:ShellProcessId -ErrorAction SilentlyContinue)) {
+        Add-ControlRow 'discover.rows' 'unoracled' ('the shell was not running, so no store row ' +
+            'was read in either band.')
+    } elseif (-not (Invoke-Destination 'Discover')) {
+        Add-ControlRow 'discover.rows' 'unoracled' ('Discover could not be actuated, so its store ' +
+            'rows were never reached in either band.')
+    } else {
+        # Both bands, not one. The recently-changed band and the most-used band render through the
+        # same template and the same handler, and a check on one of them would leave the other's
+        # rows unmeasured while reading as "the rows are named". A band the registry left empty is
+        # reported `unoracled` on its own row rather than folded into the other band's pass.
+        $typeName = 'MCPRouter.Shell.Views.DiscoverRow'
+        $bandSpecs = @(
+            [pscustomobject]@{ Row = 'discover.rows.recent'; Id = 'discover.band.recent' },
+            [pscustomobject]@{ Row = 'discover.rows.used';   Id = 'discover.band.used'   })
+        $rowEvidence = @()
+
+        foreach ($spec in $bandSpecs) {
+            $band = Wait-ById $window $spec.Id 15
+            if ($null -eq $band) {
+                Add-ControlRow $spec.Row 'fail' ("the Discover board publishes no element with the " +
+                    "automation id '$($spec.Id)', so this band cannot be addressed and its rows " +
+                    "cannot be scoped to it.")
+                continue
+            }
+
+            $itemCond2 = New-Object System.Windows.Automation.PropertyCondition(
+                [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+                [System.Windows.Automation.ControlType]::ListItem)
+            $rows = @()
+            $until2 = (Get-Date).AddSeconds(45)
+            while ((Get-Date) -lt $until2) {
+                $rows = @($band.FindAll(
+                    [System.Windows.Automation.TreeScope]::Descendants, $itemCond2))
+                if ($rows.Count -gt 0) { break }
+                Start-Sleep -Milliseconds 1500
+            }
+
+            if ($rows.Count -eq 0) {
+                Add-ControlRow $spec.Row 'unoracled' ("the band '$($spec.Id)' published no row " +
+                    'within 45 s - the registry search returned nothing for it on this host - so ' +
+                    'no row name could be read. Not a finding about the rows: the harness cannot ' +
+                    'reach them. Their declared surface is checked at the structural rung by ' +
+                    'MCPRouter.Shell.Tests/ViewAutomationSurfaceTests.')
+                continue
+            }
+
+            $rowNames = @()
+            $rowIds   = @()
+            foreach ($r in $rows) {
+                $n = ''; $a = ''
+                try { $n = $r.Current.Name } catch { }
+                try { $a = $r.Current.AutomationId } catch { }
+                $rowNames += $n
+                $rowIds   += $a
+            }
+
+            $classNamed = @($rowNames | Where-Object { $_ -eq $typeName })
+            $blank      = @($rowNames | Where-Object { [string]::IsNullOrWhiteSpace($_) })
+            $distinct   = @($rowNames | Sort-Object -Unique)
+            $idBlank    = @($rowIds | Where-Object { [string]::IsNullOrWhiteSpace($_) })
+            $idDistinct = @($rowIds | Sort-Object -Unique)
+
+            if ($classNamed.Count -gt 0) {
+                Add-ControlRow $spec.Row 'fail' ("$($classNamed.Count) of $($rows.Count) row(s) " +
+                    "publish the accessible name '$typeName' - the item type's ToString(). " +
+                    'Narrator reads the class name aloud and every row answers to the same string.')
+            } elseif ($blank.Count -gt 0) {
+                Add-ControlRow $spec.Row 'fail' ("$($blank.Count) of $($rows.Count) row(s) publish " +
+                    'an empty accessible name.')
+            } elseif ($distinct.Count -ne $rows.Count) {
+                Add-ControlRow $spec.Row 'fail' ("$($rows.Count) row(s) publish only " +
+                    "$($distinct.Count) distinct accessible name(s), so an assertion by name " +
+                    'addresses more than one row.')
+            } elseif ($idBlank.Count -gt 0) {
+                Add-ControlRow $spec.Row 'fail' ("$($idBlank.Count) of $($rows.Count) row(s) carry " +
+                    'no automation id, so they have no stable address.')
+            } elseif ($idDistinct.Count -ne $rows.Count) {
+                Add-ControlRow $spec.Row 'fail' ("$($rows.Count) row(s) carry only " +
+                    "$($idDistinct.Count) distinct automation id(s).")
+            } else {
+                Add-ControlRow $spec.Row 'pass' ("$($rows.Count) row(s) in '$($spec.Id)' each " +
+                    'publish a distinct accessible name, none of them the type name, and a ' +
+                    "distinct automation id. First three: " +
+                    "$(($rowNames | Select-Object -First 3) -join ' | ')")
+            }
+
+            $rowEvidence += [pscustomobject]@{
+                band  = $spec.Id
+                rows  = $rows.Count
+                names = $rowNames
+                ids   = $rowIds
+            }
+        }
+
+        # The names as read, committed beside the verdict: a grader can see what the tree actually
+        # said rather than only what this arm concluded about it.
+        @{
+            schema = 'win-shell.discover-rows/1'
+            bands  = $rowEvidence
+            readAt = (Get-Date).ToUniversalTime().ToString('o')
+        } | ConvertTo-Json -Depth 5 |
+            Set-Content -Path (Join-Path $Out 'discover-row-names.json') -Encoding UTF8
+    }
+
     # ------------------------------------------------------ DEF-075: the Discover detail dialog
     # The dialog is behind a store row, and the store rows are behind a registry search. On a host
     # where that search returns nothing the dialog is UNREACHABLE - which is reported as unoracled
@@ -832,6 +976,35 @@ if (-not (Get-Process -Id $script:ShellProcessId -ErrorAction SilentlyContinue))
             }
         }
     }
+
+    # ------------------------------------------------------ DEF-089: the navigation pane's name
+    # The cheapest read in this file, and it is here rather than in the destination sweep because
+    # the sweep grades what selecting an item DOES. Whether the container those items live in says
+    # anything a person could say out loud is a different claim, and the sweep passed all ten
+    # destinations while the pane holding them published the empty string.
+    if (-not (Get-Process -Id $script:ShellProcessId -ErrorAction SilentlyContinue)) {
+        Add-ControlRow 'shell.navigationPane' 'unoracled' ('the shell was not running when the ' +
+            'pane was to be read, so its accessible name was never fetched.')
+    } else {
+        $nav = Wait-ById $window 'Nav' 10
+        if ($null -eq $nav) {
+            Add-ControlRow 'shell.navigationPane' 'fail' ('no element on the automation plane ' +
+                'carries the automation id "Nav", so the navigation pane is unaddressable.')
+        } else {
+            $navName = ''
+            try { $navName = $nav.Current.Name } catch { }
+            if ([string]::IsNullOrWhiteSpace($navName)) {
+                Add-ControlRow 'shell.navigationPane' 'fail' ('the navigation pane publishes an ' +
+                    'empty accessible name. Its ten items are named and the container holding ' +
+                    'them is not, so a screen reader announces the destinations without ever ' +
+                    'saying what they are a list of.')
+            } else {
+                Add-ControlRow 'shell.navigationPane' 'pass' ("the navigation pane publishes the " +
+                    "accessible name '$navName'.")
+            }
+        }
+    }
+
 }
 
 $failed += $script:controlFailures

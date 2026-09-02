@@ -4592,5 +4592,57 @@
     "evidence": [],
     "note": "Registered as a case so this surface appears in the denominator with its reason attached. A surface left out of the registry is invisible to a coverage figure; a surface in it with an `n/a:` status is counted against one. The second is the honest shape and it is the whole reason this row exists rather than being omitted.",
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0342",
+    "req": "REQ-038",
+    "surface": null,
+    "flow": null,
+    "lane": "repo-gate",
+    "cell": {
+      "surface": null,
+      "state": "the campaign registry as committed",
+      "viewport": "n/a",
+      "theme": "n/a",
+      "role": "whoever schedules from the broken list",
+      "dataShape": "planning/test-campaign/inventory.json + defects*.json",
+      "executionPlane": "repository"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "armedBy": "Four plants, each reverted and re-run. (A) a newly minted word, DEF-011 -> `mostly-sorted`: exit 1, the word named with its row count. (B) THE DISCRIMINATING ARM - DEF-048 restored to `superseded (dot) by-DEF-055`, a compound whose LEADING token is a word reckon knows: exit 1. A gate reading only the leading token passes this, and it is the exact shape of both rows this gate was written for, so the arm is what separates a gate that works from one that cannot fail. (C) DEF-042 -> `parked` in defects.in.json, proving the SOURCE file is read and not only the file reckon reads: exit 1. (D) the registry as `main` holds it today, restored under `git stash`: exit 1 over 18 rows, DEF-011 and DEF-048 among them. Clean run either side of every plant at exit 0. `--selftest` covers the same partition at the function level, 12 cases, and the two compound cases are the same arm as (B).",
+    "actuates": [],
+    "evidence": [
+      "planning/evidence/wa4-registry-vocabulary.md",
+      "planning/defect-status-vocabulary-gate.py"
+    ],
+    "note": "Enrolled in `make lint` beside `registry-drop-gate.py`, both the check and its `--selftest`. NOT a product measurement: nothing here is observed on glass, and this row must not be read as coverage of any surface - `surface` is null on purpose. The gate prints its own blind spots on every clean run rather than keeping them here."
+  },
+  {
+    "id": "CASE-0343",
+    "req": "REQ-038",
+    "surface": null,
+    "flow": null,
+    "lane": "repo-gate",
+    "cell": {
+      "surface": null,
+      "state": "this gate's mirrored vocabulary against reckon.py's own constants",
+      "viewport": "n/a",
+      "theme": "n/a",
+      "role": "whoever reads the remaining-work ledger",
+      "dataShape": "the reckon.py that would actually run, off RECKON_PY or the plugin cache",
+      "executionPlane": "repository"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "armedBy": "The arm is that the recorder is not the writer: `--agree` imports the reckon.py that would actually run and compares DEFECT_FIXED, DEFECT_OPEN, DEFECT_WAIVED, DEFECT_NOT_OWING and DEFECT_PARTIAL tuple for tuple, so this gate cannot become the third vocabulary it exists to prevent. It fired for real DURING this run: the cache moved from reckon 1.9.3 to 1.9.4 between the first and last invocation and the arm re-read the newer file and still reported no drift, which is the version bump it is for. A comparison that could not happen exits 2 with NOT COMPARED rather than 0.",
+    "actuates": [],
+    "evidence": [
+      "planning/evidence/wa4-registry-vocabulary.md",
+      "planning/defect-status-vocabulary-gate.py"
+    ],
+    "note": "HOST-CONDITIONAL, and deliberately NOT in `make lint`. The plugin cache belongs to a machine and not to this repository, so on a clean checkout this arm exits 2 - not compared - and a gate whose verdict depends on what is installed would red for the wrong reason. This `pass` is therefore a reading taken on LUKESFF on 2026-09-02 against reckon 1.9.4, not a property of the checkout. WHAT IT DOES NOT COVER, and it is the gap that matters: only the five word lists are compared, never the BRANCH STRUCTURE that reads some of them as a leading token and others as a whole status. That asymmetry is the whole of DEF-011's and DEF-048's defect and it is modelled by hand. It held across 1.9.3 and 1.9.4, both read."
   }
 ]

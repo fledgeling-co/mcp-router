@@ -1,5 +1,7 @@
 ---
-status: to-triage
+status: completed
+registry-target: none
+no-target-reason: the fix is a repository gate rather than a product surface, so no case, requirement or defect in the campaign registry observes it; the only id this brief cites, DEF-253, is egress's and is declared foreign
 found-by: egress's DEF-253 shape, swept for here 2026-08-23
 ---
 
@@ -62,3 +64,33 @@ is the right shape for the family they belong to.
 **Not filed as urgent**: nothing is destructive and nothing is silently wrong at runtime. Filed
 because a spec cites an instrument that cannot run, and because the sweep that found it was one this
 session had scoped too narrowly the first time.
+
+
+---
+
+**RETIRED 2026-08-27, recorded here rather than deleted, and the frontmatter is the retirement.**
+
+The work landed and was graded. `pool-mutation-gate.sh` and `planning/run-gate.sh` derive the
+repository root through `git rev-parse --show-toplevel` instead of pinning `.worktrees/R2`;
+`planning/runnable-path-gate.py` is a `lint:` recipe step rather than a target, which is what makes
+it visible to the goal's lint reader; the pre-commit hook refuses `GIT_WORK_TREE`; and the control
+arm that could not fire now returns a full result and exits 2 on all three plants. Merged to `main`
+at `5ed60f6`, verified in fresh context by an agent that did not write the closing commits.
+`planning/features-to-triage/LEDGER.md` carries the full account.
+
+**Why this brief needed retiring rather than citing.** It sat in the reckoning's `unbuilt` class —
+*somebody wrote down what should exist and it is not there* — for a shipped, verified item. The
+cause was the one id it cites: `DEF-253` is **egress's** defect, named here as prior art for the
+shape (a destructive git call whose target is established somewhere other than immediately before
+it). `planning/target-resolution-gate.py` already declares that registry foreign and
+`brief-target-gate.py` classes this brief `FOREIGN_ONLY`, so both gates read it correctly; `reckon`
+joins on citations alone and had nothing else to join to, so the brief could never leave the
+remaining set however much shipped. That is exactly the mechanism
+`a-brief-that-names-nothing-cannot-be-retired.md` describes, and this is the specific brief it is
+about.
+
+**Not settled by this retirement.** The G9 ledger row records two residuals that are still open and
+belong to their own items rather than to this one: the 40-file absolute-path sweep, and the fact
+that `planning/hooks/pre-commit` is tracked but deliberately **not installed** on this machine —
+`install.sh --check` reports DRIFTED by design, and installing it is the orchestrator's call
+because `.git/hooks` is shared by every worktree.

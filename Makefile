@@ -1008,6 +1008,8 @@ lint: tools
 	python3 planning/runnable-path-gate.py || fail=1; \
 	bash planning/hooks/install.sh --gate || fail=1; \
 	python3 planning/registry-drop-gate.py || fail=1; \
+	python3 planning/defect-status-vocabulary-gate.py || fail=1; \
+	python3 planning/defect-status-vocabulary-gate.py --selftest || fail=1; \
 	python3 planning/evidence-citation-gate.py || fail=1; \
 	python3 planning/foreign-path-gate.py --quiet || fail=1; \
 	python3 planning/target-resolution-gate.py --quiet || fail=1; \

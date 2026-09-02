@@ -1,8 +1,8 @@
 ---
 status: completed
-shipped-by: 1ec6859b, 5ed60f6
 registry-target: none
 no-target-reason: the fix is a repository gate rather than a product surface, so no case, requirement or defect in the campaign registry observes it; the only id this brief cites, DEF-253, is egress's and is declared foreign
+shipped-by-note: wa6 wrote `shipped-by: 1ec6859b, 5ed60f6` and both shas are real - 1ec6859b is `fix(G9): derive the repo root in two gates that pinned a deleted worktree` and 5ed60f65 is its merge. The field is removed anyway, because shipped-brief-gate.py refused it against the LEDGER row's `03c34c3` and the two typed claims disagreeing IS the thing that gate exists to catch. The disagreement is not a lie on either side: `03c34c3` appears in the LEDGER row as the commit at which the defect was SIGHTED (`app/Scripts/pool-mutation-gate.sh:15` at `03c34c3`), and the gate reads the row's first sha as a shipping witness. So the row witnesses nothing, the brief may not claim a witness the row does not carry, and the true shas live here in prose where nothing machine-reads them as one.
 status-note: wa6 wrote `retired` and wa4 wrote `completed` in the same wave. `completed` is the correct word and the gate says why - `retired` requires at least one PASSING case at or above the retirement oracle rung, and wa6's own report records that it added no registry row and invented no requirement to hold one. The shas are wa6's and both resolve.
 found-by: egress's DEF-253 shape, swept for here 2026-08-23
 ---

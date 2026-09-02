@@ -95,8 +95,17 @@ SOURCES = [
 
 
 def read_ref(ref, path):
-    """Ids at a git ref, or None when the ref cannot supply the file."""
-    r = subprocess.run(['git', 'show', f'{ref}:{path}'], capture_output=True, text=True, encoding="utf-8")
+    """Ids at a git ref, or None when the ref cannot supply the file.
+
+    The separator is forced to `/` because git speaks one path syntax on every platform and
+    `os.path.join` does not. On Windows this built `planning/test-campaign\\cases.json`, which
+    `os.path.exists` accepts happily and `git show <ref>:<path>` refuses - so the working-tree
+    read succeeded, all four ref reads returned None, and the gate reported every view as
+    NOT COMPARED. It exits 2 there rather than 0, which is the only reason this was ever
+    visible: a gate whose whole subject is a row going missing had itself gone blind, and it
+    said so instead of printing a clean count over nothing.
+    """
+    r = subprocess.run(['git', 'show', f'{ref}:{path}'.replace(chr(92), '/')], capture_output=True, text=True, encoding="utf-8")
     if r.returncode != 0:
         return None
     try:

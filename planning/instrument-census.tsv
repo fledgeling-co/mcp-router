@@ -301,6 +301,7 @@ planning/brief-target-gate.py	gate	planning/brief-target-gate.py	static	no route
 planning/carrier-parity-gate.py	gate	planning/carrier-parity-gate.py	static	no router invocation matched	make:lint
 planning/citation-gate.py	gate	planning/citation-gate.py	static	no router invocation matched	make:lint,planning/goals/citations-blocking-check.sh
 planning/claim-sweep.py	gate	planning/claim-sweep.py	static	no router invocation matched	-
+planning/defect-status-vocabulary-gate.py	gate	planning/defect-status-vocabulary-gate.py	static	no router invocation matched	make:lint
 planning/evidence-citation-gate.py	gate	planning/evidence-citation-gate.py	static	no router invocation matched	make:lint
 planning/evidence/F6/measure-update-surface.py	gate	planning/evidence/F6/measure-update-surface.py	static	no router invocation matched	-
 planning/evidence/F6/red-green.py	gate	planning/evidence/F6/red-green.py	swift	argv ["swift", …]	-

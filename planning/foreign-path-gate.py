@@ -433,11 +433,16 @@ def read_corpus(root=ROOT, rev="HEAD", worktree=False):
         if blobs_to_read:
             proc = subprocess.Popen(["git", "-C", str(root), "cat-file", "--batch"],
                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            # Lockstep: one request written and flushed, its answer read, then the next. The
+            # first version queued every sha into git's stdin before reading a byte back, which
+            # deadlocks as soon as the answers outgrow the stdout pipe buffer - git blocks
+            # writing, this process blocks writing, and neither will read. Measured 2026-09-03:
+            # 1,673 blobs against a 64 KiB Windows pipe, hung with 0.17s of CPU after nine
+            # minutes. It was invisible until now only because the presence control above was
+            # failing first and the gate never reached this code.
             for path, sha in blobs_to_read:
                 proc.stdin.write(f"{sha}\n".encode())
-            proc.stdin.flush()
-
-            for path, sha in blobs_to_read:
+                proc.stdin.flush()
                 header = proc.stdout.readline().decode("utf-8", errors="replace").strip()
                 parts = header.split()
                 if len(parts) >= 3 and parts[1] == "blob":
@@ -612,10 +617,24 @@ def run_control(verbose=True):
                      file_kind("planning/reckoning/2026-08-25/ledger.json"),
                      "fired" if gen_ok else "MISSED", "the GENERATED globs are live"))
 
-        live_ok = exists_now("/tmp") is True and exists_now("/tmp/control-definitely-absent-9f3a") is False
+        # The positive half of this control asks the HOST for a directory it certainly has,
+        # not for `/tmp`. Windows has no `/tmp`, so the original control asserted False is
+        # True and MISSED - and because the control missing makes the whole gate refuse to
+        # report, foreign-path-gate returned exit 2 on this machine over a probe that was
+        # working perfectly. A control that cannot pass on a platform the repo is developed on
+        # does not measure the instrument, it measures the platform.
+        #
+        # The reported live/dead split below IS platform-dependent, and correctly so: a record
+        # citing `/tmp/x.log` resolves on the Mac and does not resolve here, and both readings
+        # are true of the host that took them. It annotates the blocking set and feeds no exit
+        # code, so a Windows run reporting every scratch citation dead is a fact about this
+        # machine rather than a verdict about the record.
+        here = tempfile.gettempdir().rstrip("/" + os.sep) or os.getcwd()
+        absent = os.path.join(here, "control-definitely-absent-9f3a").replace(os.sep, "/")
+        live_ok = exists_now(here.replace(os.sep, "/")) is True and exists_now(absent) is False
         ok &= live_ok
         rows.append(("(probe) exists_now", "True / False",
-                     "%s / %s" % (exists_now("/tmp"), exists_now("/tmp/control-definitely-absent-9f3a")),
+                     "%s / %s" % (exists_now(here.replace(os.sep, "/")), exists_now(absent)),
                      "fired" if live_ok else "MISSED",
                      "the host filesystem probe resolves live paths"))
 

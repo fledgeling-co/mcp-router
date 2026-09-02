@@ -625,11 +625,29 @@ def fire(arm: Arm) -> tuple[str, str]:
             if shell is None:
                 return "blocked", f"{script.name} needs a POSIX shell and this machine has none"
             runner = [shell]
+        # The child is MADE to speak utf-8 rather than hoped to. On Windows a Python child
+        # whose stdout is a pipe encodes with the console codepage, so an em dash leaves it as
+        # cp1252 0x97 and this call's utf-8 decode fails inside subprocess's reader THREAD.
+        # That thread's exception is printed and swallowed, `run()` returns normally, and
+        # `proc.stdout` comes back None while `stderr` is a string. Measured 2026-09-03: the
+        # BASE-reconciler arm did exactly this. It crashed on the concatenation below, which
+        # was luck - had the read been `(proc.stdout or "")`, every arm would have reported
+        # HELD for want of its expected string, and a null-run gate reporting its own arms as
+        # failing to fire is the worst available answer. It passed under scripts/windows/
+        # verify.ps1 the whole time, because that script exports PYTHONIOENCODING at line 22.
+        # A gate that is green only inside one wrapper is not a gate.
+        child_env = dict(os.environ, PYTHONIOENCODING="utf-8", PYTHONUTF8="1")
         try:
             proc = subprocess.run(runner + [str(script)], cwd=root, capture_output=True,
-                                  text=True, timeout=180, encoding="utf-8")
+                                  text=True, timeout=180, encoding="utf-8",
+                                  errors="replace", env=child_env)
         except (OSError, subprocess.SubprocessError) as exc:
             return "blocked", f"could not run {script.name}: {exc}"
+        if proc.stdout is None or proc.stderr is None:
+            return "blocked", (f"{script.name} produced output this gate could not read back "
+                               f"(stdout={proc.stdout is not None}, "
+                               f"stderr={proc.stderr is not None}); an unreadable arm is not a "
+                               "passing arm")
         out = proc.stdout + proc.stderr
         wrong = []
         if proc.returncode != arm.exit_code:

@@ -50,6 +50,22 @@ ARMED_BY_PLANT = {
     "settings.persistence.store",
 }
 
+# Which DECLARED control each lane row drives, keyed by the lane's own control id.
+#
+# This table exists because of DEF-080. This generator used to write the COMMAND into `actuates`
+# -- literally `["UIA TogglePattern.Toggle()"]` -- and `actuates` names a control the SURFACE
+# declares, not the call the lane made. control-census.py refused those rows as strays, the
+# integration pass corrected them by hand in cases.json, and the next run of this generator would
+# have written them straight back. It is a table rather than something derived because the lane's
+# report carries no label at all (`assert-report.json` rows have `"label": null`), so there is
+# nothing to derive from: the binding between an AutomationId the lane addresses and the name the
+# surface declares is a fact somebody has to state. A control id absent from this table actuates
+# NOTHING, which is the honest default -- a naming row reads a name and has not driven anything.
+# The command the lane ran belongs in the case's `note`, and is written there.
+CONTROL_ACTUATES = {
+    "settings.effect": ["Launch router daemon at sign-in"],
+}
+
 
 def read_json(path, encoding="utf-8"):
     return json.loads(io.open(path, encoding=encoding).read())
@@ -356,6 +372,15 @@ def main():
                 "reached no file and no scheduler passes it. The rows carrying a `recorder` are "
                 "the ones that leave the process."
             )
+        if is_effect:
+            # DEF-080: the CALL is not the control. Named here because the field
+            # above carries the control SURF-038 declares, and a reader of this row
+            # is entitled to know what was actually invoked.
+            note += (
+                " THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was "
+                "driven through System.Windows.Automation's TogglePattern.Toggle() from "
+                "shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080."
+            )
 
         written.append({
             "id": allocate("control:" + control_id),
@@ -395,13 +420,16 @@ def main():
                  "census read the tree before the board had realised - which arms the id lookup "
                  "against absence but not against a renamed control.")
             ),
-            # A CONTROL THE SURFACE DECLARES, taken from the lane's own row. It is not the
-            # command the lane ran: control-census.py takes its denominator from the surface's
-            # `controls` array, so a row naming "UIA TogglePattern.Toggle()" counts against
-            # nothing and reads as a control the registry has never heard of. That was written
-            # here as a literal until 2026-09-02 and had to be corrected by hand in the registry
-            # afterwards, which the next run silently reverted.
-            "actuates": list(row.get("actuates") or []),
+            # A CONTROL THE SURFACE DECLARES, never the command the lane ran (DEF-080).
+            # Two runners fixed this in the same wave and differently: wb1 made the LANE
+            # emit `actuates` per row, and wb4 wrote CONTROL_ACTUATES here because
+            # assert-report.json rows carried `"label": null` and there was nothing to
+            # derive from. wb1's change makes that premise false, so the lane is the
+            # source of record and the table is the fallback for a row emitted before it.
+            # A control id in neither actuates NOTHING, which is the honest default: a
+            # naming row reads a name and has not driven anything.
+            "actuates": (list(row.get("actuates") or [])
+                         or list(CONTROL_ACTUATES.get(control_id, []))),
             "evidence": evidence,
             "note": note,
             "witness": {

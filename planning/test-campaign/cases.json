@@ -5428,5 +5428,32 @@
       "effect": "none",
       "count": 1
     }
+  },
+  {
+    "id": "CASE-0396",
+    "req": "REQ-080",
+    "surface": null,
+    "flow": null,
+    "lane": "repo-gate",
+    "cell": {
+      "surface": null,
+      "state": "the campaign registry as committed, and two plants against it",
+      "viewport": "n/a",
+      "theme": "n/a",
+      "role": "whoever quotes the actuation census",
+      "dataShape": "planning/test-campaign/inventory.json + cases.json",
+      "executionPlane": "repository"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "armedBy": "Three plants, each reverted and re-run, clean at exit 0 either side of every one. (A) THE LAUNDERING ARM, and the one that separates this gate from the stray check that already existed. `dotnet test app/windows/MCPRouter.Shell.Tests` added to BOTH CASE-0346's `actuates` AND SURF-038's `controls`, plus `UIA TogglePattern.Toggle()` added to `actuates` alone: exit 1, four findings. The two strings behave differently and that is the measurement -- the undeclared one produced a stray line AND a command line, the DECLARED one produced a command line and no stray at all. Before this arm the declared command was invisible: adding it to the surface's list is all it took to make the old gate count a command line as a proven button. (B) THE DENOMINATOR ARM. SURF-045, SURF-046 and SURF-047 moved back from `operations` to `controls`: exit 1, four findings, and the headline returns to `57 of 210 ... across 33 surface(s)` from `49 of 202 ... across 30`, with `Operations: none declared`. So the separation is not cosmetic -- undoing it moves the published number by eight in the numerator and eight in the denominator, and the gate refuses the state that produces it. (C) `operationsSource` removed from SURF-047: `win-surface-reconcile.py` exits 1, R4. That arm exists because the rename's likeliest failure is silent -- R4 read `controls` and would have skipped all three rows, dropping a provenance check while reporting green. (D) THE GENERATOR'S OUTPUT, run rather than reasoned about. `bin/win-cases-from-lane.py` was run over a copy of `planning/` in a scratch tree and the census run against what it wrote: exit 0 after this branch's change, nine stray findings before it. That is the arm that matters most for whether the class stays fixed, because the rows the integration pass corrected by hand last wave were about to be regenerated.",
+    "actuates": [],
+    "evidence": [
+      "planning/test-campaign/bin/control-census.py",
+      "planning/test-campaign/bin/win-surface-reconcile.py",
+      "planning/test-campaign/bin/win-cases-from-lane.py"
+    ],
+    "note": "NOT a product measurement. Nothing here is observed on glass and this row must not be read as coverage of any surface -- `surface` is null on purpose, and `actuates` is empty because a case about the `actuates` vocabulary must not put a control in the numerator to say so. The commands the plants ran, which is what `actuates` is NOT for: `python planning/test-campaign/bin/control-census.py` and `python planning/test-campaign/bin/win-surface-reconcile.py`, from the worktree root. WHAT ARM (B) DOES NOT COVER: SURF-047 alone can be moved back under `controls` and the gate stays green, because its four members are not shaped like API calls. DEF-131 carries that floor, and this case is not evidence against it."
   }
 ]

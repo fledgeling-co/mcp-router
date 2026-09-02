@@ -29,7 +29,8 @@ So this reads the same question off the C# instead, statically, with no build:
       surface row - the same shape as G14, found on Windows from the census end rather than by
       counting.
 
-  R4  Every Windows surface that declares `controls` also declares a `controlsSource` saying where
+  R4  Every Windows surface that declares `controls` (or, on the non-glass planes, `operations`)
+      also declares a `controlsSource` / `operationsSource` saying where
       the list came from, and where that source names a `.xaml` file, every control it declares
       appears verbatim in one of those files. This is the other half of G28's brief: a denominator
       is only as good as its provenance, and fourteen Windows rows carried a control list with
@@ -56,11 +57,14 @@ WHAT IT DOES NOT CHECK, said here rather than implied by a green
     is real in the source; it cannot check that every control in the source is declared, because
     a board's affordances built in a DataTemplate or in code-behind carry no literal name a static
     reader can see. Every such row says so in its `controlsSourceNote`, and the number is a floor.
-  * A surface whose `controlsSource` names only `.cs` files. SURF-045..047's controls are
-    operations rather than literals, so R4 checks the presence of the source sentence and stops
-    there rather than pretending to verify the names.
-  * The non-glass planes' controls. SURF-045..047 declare operations rather than pressable
-    controls; DEF-080 records that objection.
+  * A surface whose provenance names only `.cs` files. SURF-045..047 declare `operations` rather
+    than literals anything renders, so R4 checks the presence of the source sentence and stops
+    there rather than pretending to verify the names. Which rows those are is now read off the
+    field the row declares (`operations` / `operationsSource`) rather than guessed from the route.
+  * That an operation name is real. R4 can see that SURF-047 says where `MakeAppx pack` came from;
+    nothing static can see that the packer is called that. `control-census.py` counts operations
+    against their own denominator so a reader is never shown that number added to the buttons -
+    DEF-080, closed 2026-09-02.
 
 EXITS
 -----
@@ -181,31 +185,41 @@ def main() -> int:
                                                                             "shell://windows/",
                                                                             "package://windows/")):
             continue
-        controls = s.get("controls") or []
+        # Two populations, two field names, one provenance rule. DEF-080 split the non-glass
+        # planes' `controls` into `operations` because the census cannot add buttons to API calls;
+        # the provenance question is identical for both, so it is asked of whichever list the row
+        # declares rather than of the field name `controls` alone. Reading only `controls` here
+        # would have let SURF-045..047 lose their provenance check silently at the moment of the
+        # split, which is the failure mode a rename most often causes.
+        kind = "control" if s.get("controls") else "operation"
+        field = kind + "s"
+        controls = s.get("controls") or s.get("operations") or []
         if not controls:
             continue  # an empty list is itself a finding, and SURF-044 states why in its note
-        src = (s.get("controlsSource") or "").strip()
+        src = (s.get("controlsSource") or s.get("operationsSource") or "").strip()
         if not src:
             findings.append(
-                "R4  %s declares %d control(s) and no `controlsSource`. Nothing says whether the "
+                "R4  %s declares %d %s(s) and no `%sSource`. Nothing says whether the "
                 "list was read off the design, off the source, or off a UIA dump of the build, so "
-                "nothing says whether a control the build never drew could appear in it."
-                % (s.get("id"), len(controls)))
+                "nothing says whether one the build never drew could appear in it."
+                % (s.get("id"), len(controls), kind, field))
             continue
         named = [ROOT / q for q in dict.fromkeys(SRC_PATH.findall(src))]
         missing = [q for q in named if not q.is_file()]
         if missing:
             findings.append(
-                "R4  %s's `controlsSource` names %s, which does not exist. A provenance pointing "
+                "R4  %s's `%sSource` names %s, which does not exist. A provenance pointing "
                 "at nothing is worse than none, because it reads as checked."
-                % (s.get("id"), ", ".join(q.as_posix() for q in missing)))
+                % (s.get("id"), field, ", ".join(q.as_posix() for q in missing)))
             continue
-        # The literal check runs on the glass routes only. SURF-045..047 are the non-glass planes
-        # and their `controls` are operations a lane calls rather than names anything renders, so
-        # asking whether `MakeAppx pack` appears verbatim in a .cs file would redden a row that is
-        # honest. Their provenance sentence is checked; their names are not, and DEF-080 is the
-        # standing record that the registry has one word for two different things.
-        if not route.startswith("app://windows/") or not named:
+        # The literal check runs on DECLARED CONTROLS only. An operation is a call a lane makes
+        # -- `MakeAppx pack`, `Add-AppxPackage` -- and asking whether that string appears verbatim
+        # in a .cs file would redden three honest rows. Their provenance sentence is checked and
+        # their names are not. Before DEF-080 closed, this exemption was inferred from the route
+        # prefix, which meant a glass surface given a `task://` route would have escaped the check
+        # for a reason nobody wrote down; it now reads the registry's own declaration of which kind
+        # the row carries.
+        if kind != "control" or not route.startswith("app://windows/") or not named:
             continue
         blob = "\n".join(q.read_text(encoding="utf-8-sig") for q in named)
         for c in controls:

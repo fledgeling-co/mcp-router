@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using MCPRouter.Shell.Live;
 using MCPRouter.Shell.Model;
+using MCPRouter.Shell.Shell;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
@@ -176,7 +177,7 @@ public sealed partial class ActivityBoard : UserControl
         try
         {
             var snapshot = await _client!.SnapshotAsync(cancellationToken);
-            _dispatcher.TryEnqueue(() =>
+            _dispatcher.TryEnqueueGuarded("ActivityBoard.BackfillApplied", () =>
             {
                 if (_stopped) return;
                 _model.Load(snapshot.Records);
@@ -199,7 +200,7 @@ public sealed partial class ActivityBoard : UserControl
             // its phases draw what is true meanwhile; when the stream reaches Live, the backfill
             // is retried from there rather than here, because a retry loop in this catch would
             // hammer a router that is merely slow to bind its port.
-            _dispatcher.TryEnqueue(() =>
+            _dispatcher.TryEnqueueGuarded("ActivityBoard.BackfillFailed", () =>
             {
                 if (_stopped) return;
                 _backfillFailed = true;
@@ -210,7 +211,7 @@ public sealed partial class ActivityBoard : UserControl
 
     private void OnPhase(StreamPhase phase)
     {
-        _dispatcher.TryEnqueue(() =>
+        _dispatcher.TryEnqueueGuarded("ActivityBoard.OnPhase", () =>
         {
             if (_stopped) return;
             _model.Phase = phase;
@@ -235,7 +236,7 @@ public sealed partial class ActivityBoard : UserControl
             return;
         }
 
-        _dispatcher.TryEnqueue(() =>
+        _dispatcher.TryEnqueueGuarded("ActivityBoard.OnRecord", () =>
         {
             if (_stopped) return;
             if (!_model.Prepend(record)) return;

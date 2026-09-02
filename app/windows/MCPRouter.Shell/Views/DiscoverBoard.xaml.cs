@@ -1,4 +1,5 @@
 using MCPRouter.Shell.Model.Registry;
+using MCPRouter.Shell.Shell;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
@@ -34,7 +35,11 @@ public sealed partial class DiscoverBoard : UserControl
         _debounce = DispatcherQueue.GetForCurrentThread().CreateTimer();
         _debounce.Interval = TimeSpan.FromMilliseconds(400);
         _debounce.IsRepeating = false;
-        _debounce.Tick += async (_, _) => await SearchAsync();
+        // Guarded: a Tick handler is `async void`, so a throw inside SearchAsync would fault a
+        // task nobody awaits and surface - if at all - only when a collection runs its finalizer.
+        // DEF-085's guard reports it at the moment it happens instead.
+        var guardedSearch = GuardedDispatch.GuardedAsync("DiscoverBoard.DebounceTick", SearchAsync);
+        _debounce.Tick += async (_, _) => await guardedSearch();
 
         BuildFilterItems();
         AssignStaticCopy();

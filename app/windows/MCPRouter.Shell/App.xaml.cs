@@ -102,11 +102,35 @@ public partial class App : Application
         // - but an arming run that suppressed nothing would otherwise be indistinguishable from one
         // that did.
         StartupLog.Write($"handlers: xaml={!IsSuppressed("xaml")}, appdomain={!IsSuppressed("appdomain")}, "
-            + $"unobserved-task={!IsSuppressed("task")}, fault={FaultKind ?? "(none)"}");
+            + $"unobserved-task={!IsSuppressed("task")}, dispatcher-guard={!IsSuppressed("dispatcher")}, "
+            + $"fault={FaultKind ?? "(none)"}");
     }
 
     private static bool IsSuppressed(string handler) =>
         string.Equals(_suppressedHandler, handler, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Where a failure inside a DispatcherQueue callback is recorded - DEF-085, and the fourth
+    /// route beside the three handlers above.
+    /// </summary>
+    /// <remarks>
+    /// It is not a handler and cannot be: a callback posted to a DispatcherQueue runs below XAML's
+    /// own dispatch, so no top-level event sees an exception escaping one. Measured, in the same
+    /// binary and the same run in which the other three routes each wrote their handler's line:
+    /// the dispatcher route wrote nothing and the process vanished. So the guard is at the posting
+    /// site instead, through <see cref="Shell.GuardedDispatch"/>, and this is its sink.
+    ///
+    /// The <see cref="ExitAfterInjectedFault"/> call is inert on every launch that did not pass
+    /// <c>--fault</c>: a real failure is reported and the window stays up, which is the deliberate
+    /// degradation <see cref="MCPRouter.Shell.Model.Diagnostics.DispatcherGuard"/> documents. On an
+    /// injected-fault launch it ends the run the way the other three routes do, so the witness lane
+    /// is not left with a live process on a station it cannot see.
+    /// </remarks>
+    internal static void ReportDispatcherFailure(string line)
+    {
+        StartupLog.Write(line);
+        ExitAfterInjectedFault(74);
+    }
 
     /// <summary>
     /// Ends a launch that asked for a fault, once its handler has written its line.
@@ -175,7 +199,10 @@ public partial class App : Application
         {
             return;
         }
-        _window?.DispatcherQueue.TryEnqueue(() =>
+        // Guarded, because this is the shape DEF-085 is about: the toast fires on the platform's
+        // thread and the navigation has to marshal back, so an exception here is exactly the one
+        // that used to end the shell with an empty log.
+        _window?.DispatcherQueue.TryEnqueueGuarded("App.OnToastInvoked", () =>
         {
             _window.Activate();
             _window.SelectDestination(MCPRouter.Shell.Model.DestinationCatalog.InboxId);
@@ -218,8 +245,8 @@ public partial class App : Application
     internal const string ToastProbeFlag = "--toast-probe";
 
     /// <summary>
-    /// `--fault &lt;ui|appdomain|task&gt;`: take one deliberate escape route so the top-level
-    /// handler that catches it writes its line, and a witness in another process can read that line
+    /// `--fault &lt;ui|appdomain|task|dispatcher&gt;`: take one deliberate escape route so the
+    /// handler or guard that catches it writes its line, and a witness in another process can read that line
     /// back out of shell-startup.log.
     /// </summary>
     /// <remarks>
@@ -235,7 +262,9 @@ public partial class App : Application
     /// </remarks>
     internal const string FaultFlag = "--fault";
 
-    /// <summary>`--fault-unregister &lt;xaml|appdomain|task&gt;`: see <see cref="_suppressedHandler"/>.</summary>
+    /// <summary>`--fault-unregister &lt;xaml|appdomain|task|dispatcher&gt;`: see <see cref="_suppressedHandler"/>.
+    /// `dispatcher` is not a handler and leaves no handler unattached; it removes the guard at the
+    /// posting site, which is the same shape of defect one level down.</summary>
     internal const string FaultUnregisterFlag = "--fault-unregister";
 
     private void InjectFault(string kind)
@@ -252,10 +281,25 @@ public partial class App : Application
 
             case "dispatcher":
                 // The same thread, reached a different way: a callback posted to the
-                // DispatcherQueue and running after OnLaunched returned. Kept as its own kind
-                // because it does NOT behave like the case above - see DEF-085.
-                _window!.DispatcherQueue.TryEnqueue(
-                    () => throw new InvalidOperationException("DEF-079 fault injection: unhandled in a DispatcherQueue callback"));
+                // DispatcherQueue and running after OnLaunched returned. It does NOT reach any of
+                // the three top-level handlers - that was DEF-085 - so what catches it is the
+                // guard at this posting site, and the line it writes is what EFFECT.dispatcher
+                // grades.
+                //
+                // `--fault-unregister dispatcher` posts the SAME callback with no guard around it,
+                // which is the defect this product had until DEF-085 was fixed. That is the arming
+                // run: with the guard gone nothing writes a line and exactly that arm breaks.
+                if (IsSuppressed("dispatcher"))
+                {
+                    _window!.DispatcherQueue.TryEnqueue(
+                        () => throw new InvalidOperationException("DEF-085 fault injection: unhandled in an UNGUARDED DispatcherQueue callback"));
+                }
+                else
+                {
+                    _window!.DispatcherQueue.TryEnqueueGuarded(
+                        "App.InjectFault",
+                        () => throw new InvalidOperationException("DEF-085 fault injection: unhandled in a DispatcherQueue callback"));
+                }
                 break;
 
             case "appdomain":

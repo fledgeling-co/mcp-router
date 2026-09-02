@@ -261,7 +261,7 @@ def blind_spots():
     print("    * A status that classifies is not a status that is TRUE. `fixed` on a defect nobody")
     print("      re-measured passes here and is reckon's FIX_UNMEASURED_QUALIFIERS problem.")
     print("    * Two registry files that both classify may still disagree with each other. They do")
-    print("      today, on DEF-002, DEF-040 and DEF-063 - filed as DEF-085, not caught by this.")
+    print("      today, on DEF-002, DEF-040 and DEF-063 - filed as DEF-091, not caught by this.")
     print("    * Case statuses are a different vocabulary with a different partition, and are not")
     print("      read here at all.")
 

@@ -1,3 +1,9 @@
+---
+status: completed
+shipped-by: 03c34c3
+reckon-sources: [REQ-026, REQ-027, SURF-027, SURF-028]
+---
+
 # M30 — where a capability's documentation actually comes from
 
 **Depends on:** M19 (built the renderer and the panel). **Blocks:** nothing that ships today.

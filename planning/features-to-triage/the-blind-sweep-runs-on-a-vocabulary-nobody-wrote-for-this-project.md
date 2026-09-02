@@ -1,8 +1,8 @@
 ---
 status: to-triage
 found-by: `vacuity-check.py --gate` (test-campaign 0.14.1), 2026-08-29
+reckon-sources: [DEF-048, DEF-055]
 ---
-
 # The blind-mutation sweep runs on borrowed vocabulary, so its three findings settle nothing
 
 - origin: test-campaign 0.14.1 run against `planning/test-campaign`, full scope · 2026-08-29

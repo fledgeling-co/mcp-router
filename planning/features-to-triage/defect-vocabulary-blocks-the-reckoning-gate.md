@@ -1,3 +1,7 @@
+---
+reckon-sources: [REQ-040, DEF-011, DEF-048, CASE-0355, CASE-0356]
+---
+
 # The remaining-work gate fails every run on words nobody taught it
 
 - origin: reckon exit 4, reproduced on every run this session · 2026-08-26

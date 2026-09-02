@@ -1,3 +1,7 @@
+---
+reckon-sources: [CASE-0270, CASE-0271, CASE-0272, CASE-0273, CASE-0274, CASE-0275]
+---
+
 # Single Action Router Daemon Diagnostics Bundle Export
 
 - origin: test-campaign and reckoning ideation · 2026-08-25

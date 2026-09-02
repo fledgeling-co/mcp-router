@@ -1,5 +1,6 @@
 ---
-status: to-triage
+status: completed
+shipped-by: 0d59545
 found-by: the remaining-backlog fleet, 2026-08-27, checking `make lint` whole rather than gate by gate
 ---
 

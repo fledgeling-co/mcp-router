@@ -1,3 +1,7 @@
+---
+reckon-sources: [SURF-015, REQ-011, REQ-014, REQ-020, DEF-002]
+---
+
 # R2-R — Swift router: the process that actually serves
 
 **Category:** router · **Depends on:** R2 (merged), R3 (merged), R5 (merged) · **Blocks:** R4's cutover

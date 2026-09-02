@@ -1,3 +1,7 @@
+---
+reckon-sources: [REQ-007, DEF-042]
+---
+
 # Design of Record Parity Alignment with Honesty Guardrails
 
 - origin: test-campaign differential review and reckoning findings · 2026-08-25

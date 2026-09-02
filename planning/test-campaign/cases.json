@@ -4592,5 +4592,32 @@
     "evidence": [],
     "note": "Registered as a case so this surface appears in the denominator with its reason attached. A surface left out of the registry is invisible to a coverage figure; a surface in it with an `n/a:` status is counted against one. The second is the honest shape and it is the whole reason this row exists rather than being omitted.",
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0342",
+    "req": "REQ-031",
+    "lane": "windows-glass",
+    "oracle": "effect-witness",
+    "cell": "execution-plane=windows-host - modality=process diagnostics - data-shape=one injected fault per launch",
+    "status": "pass",
+    "armed": true,
+    "actuates": [
+      "App.UnhandledException",
+      "AppDomain.CurrentDomain.UnhandledException",
+      "TaskScheduler.UnobservedTaskException"
+    ],
+    "note": "Each of the shell's three top-level unhandled-exception handlers made to fire on purpose, and the line it wrote read back out of shell-startup.log by a process that did not write it, after the process that did had exited. THIS CASE EXISTS BECAUSE REGISTRATION IS NOT FIRING. DEF-079 was raised on sixteen launches that wrote no `unhandled:` line including eight that terminated at 0xC000027B, and it stayed open through the fix - two more handlers registered - because none of the three had been observed catching anything. App.xaml.cs takes `--fault <ui|appdomain|task|dispatcher>`, compiled out outside DEBUG and inert unless passed; win-shell-unhandled-witness.ps1 launches the shell once per kind. FOUR ARMS. BASELINE is a launch with NO --fault and requires its region of the log to hold `launched` and no `unhandled:` line, which is what makes the three EFFECT lines the injection's rather than startup's; and every arm reads only the bytes appended after its own launch, so a line an earlier run left behind cannot satisfy one. The three EFFECT arms then require, each after its own fault, `unhandled: [xaml]` for a throw on the UI thread inside XAML's dispatch of OnLaunched, `unhandled: [appdomain terminating=True]` for a throw on a non-UI foreground thread, and `unhandled: [unobserved-task]` for a faulted task nobody awaits after a collection and WaitForPendingFinalizers. All four held. WHAT THIS CASE DOES NOT SETTLE. A throw from a DispatcherQueue callback on that same UI thread reaches NO handler at all - the process vanishes after `fault: injecting` with nothing appended - and it is run here as an UNGRADED probe rather than a fifth arm, because it is DEF-085 rather than a fault in the three handlers this case grades and a verdict that flipped when somebody fixed DEF-085 would stop meaning what it says. The 0xC000027B stowed exception DEF-079 was found through is still not reproduced - the injected UI fault is an ordinary managed exception - so whether any of these three would have caught the Skills crash is unmeasured; DEF-086 carries it. And the injection is compiled out outside DEBUG, so this grades the Debug binary only. The shell's own `handlers:` line saying which handlers it attached is carried in runs[] as writerSelfReport and is graded by nothing.",
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/unhandled-witness.json",
+      "planning/evidence/WIN-SHELL/run/unhandled-witness-armed.json",
+      "scripts/windows/win-shell-unhandled-witness.ps1"
+    ],
+    "armedNote": "win-shell-unhandled-witness.ps1 -ProveRed plants a defect the product can genuinely have: it passes `--fault-unregister task` on that handler's run only, so TaskScheduler.UnobservedTaskException is never attached. EFFECT.task broke and BASELINE, EFFECT.xaml and EFFECT.appdomain held - exactly one arm, which is what shows each arm reads the line its OWN handler wrote and is not satisfied by another's. `task` is the armed handler by default because it is the one route whose fault does not terminate the process, so an arming run cannot strand a Windows Error Reporting dialog on a station this lane cannot see.",
+    "witness": {
+      "recorder": "shell-startup.log on disk, read by PowerShell in a process that is not the shell, after the shell that wrote it exited",
+      "effect": "file",
+      "count": 3
+    },
+    "reqNote": "REQ-031 is the Windows shell itself - ten destinations, each drawing its board. This case does not assert that behaviour; it grades the diagnostic that says whether the shell reached it, which is the only account an agent session that cannot see the desktop has when a board does not draw. No requirement states the diagnostic, and inventing one to hold this case would read as coverage of a promise nobody made. DEF-079 is the row it closes."
   }
 ]

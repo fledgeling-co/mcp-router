@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using MCPRouter.Shell.Model.Control;
 using MCPRouter.Shell.Shell;
 using Microsoft.UI.Xaml;
@@ -23,22 +24,51 @@ public partial class App : Application
     /// </summary>
     internal static bool UseSkillsFixture { get; private set; }
 
+    /// <summary>
+    /// `--fault &lt;kind&gt;`: which escape route this launch is to take, or null for every launch
+    /// that did not ask for one. Read once in the constructor because two handlers consult it.
+    /// </summary>
+    internal static string? FaultKind { get; private set; }
+
+    /// <summary>
+    /// `--fault-unregister &lt;handler&gt;`: the arming switch, and the ONLY thing in this file
+    /// that can leave a top-level handler unregistered.
+    /// </summary>
+    /// <remarks>
+    /// It exists so scripts/windows/win-shell-unhandled-witness.ps1 can plant a defect the product
+    /// can genuinely have - one handler never attached - and require that handler's arm, and only
+    /// that handler's arm, to break. Without it the three EFFECT arms could be reading lines some
+    /// other handler wrote.
+    /// </remarks>
+    private static string? _suppressedHandler;
+
     public App()
     {
         InitializeComponent();
 
-        UnhandledException += (_, e) =>
+        // Read before any handler is attached: the arming switch decides which ones are.
+        var bootArgv = Environment.GetCommandLineArgs();
+        FaultKind = ValueAfter(bootArgv, FaultFlag);
+#if DEBUG
+        _suppressedHandler = ValueAfter(bootArgv, FaultUnregisterFlag);
+#endif
+
+        if (!IsSuppressed("xaml"))
         {
-            // A stowed exception with no record is how a WinUI process becomes "it just exits".
-            // Writing it beside the executable costs nothing and is the only trace a session that
-            // cannot see the desktop will ever have.
-            StartupLog.Write($"unhandled: {e.Message}\n{e.Exception}");
-            if (SelfTestDirectory is not null)
+            UnhandledException += (_, e) =>
             {
-                // In self-test the exception is the result, so fail loudly rather than limping on.
-                Environment.Exit(70);
-            }
-        };
+                // A stowed exception with no record is how a WinUI process becomes "it just exits".
+                // Writing it beside the executable costs nothing and is the only trace a session that
+                // cannot see the desktop will ever have.
+                StartupLog.Write($"unhandled: [xaml] {e.Message}\n{e.Exception}");
+                if (SelfTestDirectory is not null)
+                {
+                    // In self-test the exception is the result, so fail loudly rather than limping on.
+                    Environment.Exit(70);
+                }
+                ExitAfterInjectedFault(71);
+            };
+        }
 
         // The XAML handler above is NOT enough, and DEF-079 is the proof: sixteen launches on
         // 2026-09-02 wrote not one `unhandled:` line, including eight in which selecting Skills
@@ -47,16 +77,52 @@ public partial class App : Application
         // and a fault on a thread-pool thread, both reach neither this event nor the log, so the
         // log's silence has been reading as "no exception occurred" when it meant "nothing was
         // recorded". These two cover the gap.
-        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
-            StartupLog.Write($"unhandled (appdomain, terminating={e.IsTerminating}): {e.ExceptionObject}");
+        if (!IsSuppressed("appdomain"))
+        {
+            AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+            {
+                StartupLog.Write($"unhandled: [appdomain terminating={e.IsTerminating}] {e.ExceptionObject}");
+                ExitAfterInjectedFault(72);
+            };
+        }
 
         // An `async void` handler whose exception nobody observes faults its task and is collected
         // silently. SkillsBoard.OnLoaded is exactly that shape.
-        TaskScheduler.UnobservedTaskException += (_, e) =>
+        if (!IsSuppressed("task"))
         {
-            StartupLog.Write($"unobserved task exception: {e.Exception}");
-            e.SetObserved();
-        };
+            TaskScheduler.UnobservedTaskException += (_, e) =>
+            {
+                StartupLog.Write($"unhandled: [unobserved-task] {e.Exception}");
+                e.SetObserved();
+            };
+        }
+
+        // The writer's own account of which handlers it attached. It is NOT the witness's evidence
+        // - the witness grades the lines the handlers wrote, read out of the log by another process
+        // - but an arming run that suppressed nothing would otherwise be indistinguishable from one
+        // that did.
+        StartupLog.Write($"handlers: xaml={!IsSuppressed("xaml")}, appdomain={!IsSuppressed("appdomain")}, "
+            + $"unobserved-task={!IsSuppressed("task")}, fault={FaultKind ?? "(none)"}");
+    }
+
+    private static bool IsSuppressed(string handler) =>
+        string.Equals(_suppressedHandler, handler, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Ends a launch that asked for a fault, once its handler has written its line.
+    /// </summary>
+    /// <remarks>
+    /// Only ever reached on a launch that passed <c>--fault</c>. A normal crash is left to behave
+    /// exactly as it always has; this exists because the witness runs the shell through a scheduled
+    /// task on a station nobody can see, and a Windows Error Reporting dialog behind an unhandled
+    /// exception there would hang the lane on a window with no one to dismiss it.
+    /// </remarks>
+    private static void ExitAfterInjectedFault(int code)
+    {
+        if (FaultKind is not null)
+        {
+            Environment.Exit(code);
+        }
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
@@ -84,6 +150,13 @@ public partial class App : Application
         if (HasFlag(argv, ToastProbeFlag))
         {
             RunToastProbe(argv);
+        }
+
+        // Last, and only when asked for by name. Everything above has already happened, so the
+        // fault reaches a shell that is fully up rather than one still assembling itself.
+        if (FaultKind is not null)
+        {
+            InjectFault(FaultKind);
         }
     }
 
@@ -143,6 +216,103 @@ public partial class App : Application
     }
 
     internal const string ToastProbeFlag = "--toast-probe";
+
+    /// <summary>
+    /// `--fault &lt;ui|appdomain|task&gt;`: take one deliberate escape route so the top-level
+    /// handler that catches it writes its line, and a witness in another process can read that line
+    /// back out of shell-startup.log.
+    /// </summary>
+    /// <remarks>
+    /// WHY THIS EXISTS. DEF-079 is not a bug in a handler; it is a handler nobody has seen fire.
+    /// Sixteen launches wrote no `unhandled:` line including eight that terminated at 0xC000027B,
+    /// and the two handlers added in response were registered and then never observed catching
+    /// anything, because every exception since has been caught at a site that logs it directly.
+    /// A registered handler is a claim; a handler observed writing its line is a measurement, and
+    /// closing DEF-079 on the first would repeat the error DEF-079 records.
+    ///
+    /// It is INERT unless `--fault` is passed with a kind, and it is compiled out entirely outside
+    /// DEBUG, so no shipped launch can reach any of these paths however it is started.
+    /// </remarks>
+    internal const string FaultFlag = "--fault";
+
+    /// <summary>`--fault-unregister &lt;xaml|appdomain|task&gt;`: see <see cref="_suppressedHandler"/>.</summary>
+    internal const string FaultUnregisterFlag = "--fault-unregister";
+
+    private void InjectFault(string kind)
+    {
+#if DEBUG
+        StartupLog.Write($"fault: injecting {kind}");
+        switch (kind.ToLowerInvariant())
+        {
+            case "ui":
+                // Thrown on the UI thread, synchronously, inside XAML's own dispatch of
+                // OnLaunched. That is the route Microsoft.UI.Xaml.Application.UnhandledException
+                // exists for.
+                throw new InvalidOperationException("DEF-079 fault injection: unhandled on the UI thread");
+
+            case "dispatcher":
+                // The same thread, reached a different way: a callback posted to the
+                // DispatcherQueue and running after OnLaunched returned. Kept as its own kind
+                // because it does NOT behave like the case above - see DEF-085.
+                _window!.DispatcherQueue.TryEnqueue(
+                    () => throw new InvalidOperationException("DEF-079 fault injection: unhandled in a DispatcherQueue callback"));
+                break;
+
+            case "appdomain":
+                // A dedicated foreground thread rather than the pool: a pool thread's escape is a
+                // faulted task, which is the OTHER handler's route.
+                new Thread(() => throw new InvalidOperationException(
+                    "DEF-079 fault injection: unhandled on a non-UI thread")).Start();
+                break;
+
+            case "task":
+                new Thread(RaiseUnobservedTaskFault).Start();
+                break;
+
+            default:
+                StartupLog.Write($"fault: unknown kind '{kind}' - nothing injected");
+                break;
+        }
+#else
+        // Said out loud rather than ignored: a witness that got silence here would read a build
+        // without fault injection as a handler that failed to fire.
+        StartupLog.Write($"fault: refused, this build has no fault injection compiled in (kind '{kind}')");
+#endif
+    }
+
+#if DEBUG
+    /// <summary>
+    /// Faults a task nobody awaits and then drops every reference to it, off the UI thread so the
+    /// sleeps below do not stall the message loop.
+    /// </summary>
+    private static void RaiseUnobservedTaskFault()
+    {
+        FaultATaskNobodyObserves();
+        Thread.Sleep(500);
+        // TaskScheduler.UnobservedTaskException is raised from the task's finalizer, so the
+        // collection is the trigger and not a tidy-up after it.
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+        Thread.Sleep(500);
+        StartupLog.Write("fault: unobserved-task injection complete");
+        // This route does not terminate the process the way the other two do, and the shell would
+        // otherwise sit on an unwatched station until the lane's cleanup found it.
+        Environment.Exit(73);
+    }
+
+    /// <summary>
+    /// Its own method, not inlined: a Debug build keeps a local alive to the end of the frame that
+    /// declared it, so a task faulted inline would still be rooted when the collection ran.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void FaultATaskNobodyObserves()
+    {
+        _ = Task.Run(() => throw new InvalidOperationException(
+            "DEF-079 fault injection: faulted task nobody awaits"));
+    }
+#endif
+
 
     private static string? ValueAfter(IReadOnlyList<string> argv, string flag)
     {

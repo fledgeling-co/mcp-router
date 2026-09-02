@@ -44,10 +44,56 @@ WIN_REQ = "REQ-031"
 # settings.launchAtLogin.baseline, settings.launchAtLogin.silence and settings.copyEndpoint HELD
 # through both, which shows they are independent of those two defects and says nothing at all about
 # whether they can go red. They stay unarmed until something has been watched to break them.
+#
+# Two more plants, 2026-09-02, both reverted, transcripts in the same directory:
+#   the icon placed without calling Shell_NotifyIcon, and the removal taken with the setting never
+#     read, broke settings.ambientIcon.effect, settings.requireConfirmation.effect and
+#     settings.requireConfirmation.accepted
+#   the icon never removed, and the confirmation raised unconditionally with its answer discarded,
+#     broke settings.ambientIcon.baseline, settings.ambientIcon.silence,
+#     settings.requireConfirmation.effect and settings.requireConfirmation.silence
+#
+# A DICT rather than a set, because the note has to say WHICH plant broke this row. One shared
+# sentence over four plants would put the sign-in switch's arming prose on the notification-area
+# icon's row, which is a citation to a run that never touched it.
+LAUNCH_PLANT_NOTE = (
+    "armed by a planted defect, watched on 2026-09-02. Removing the call that carries the sign-in "
+    "switch to the supervisor broke settings.launchAtLogin.effect and settings.persistence; making "
+    "the store's Save report success without writing broke settings.persistence.store alone. Both "
+    "transcripts are in planning/evidence/WIN-SHELL/arming/.")
+
+ICON_PLANT_NOTE = (
+    "armed by two planted defects, watched on 2026-09-02, transcripts in "
+    "planning/evidence/WIN-SHELL/arming/. Making NotificationAreaIcon.Apply(true) report success "
+    "without calling Shell_NotifyIcon - DEF-101 exactly as it was filed - broke "
+    "settings.ambientIcon.effect: the switch read On through the plane and a separate process asked "
+    "the shell for the icon and was told there was none. Making Apply(false) report success without "
+    "removing it broke settings.ambientIcon.baseline and settings.ambientIcon.silence, the second "
+    "of them with 'turning the setting off told the user something untrue'. The two plants are "
+    "opposite directions of the same wire, so neither arm is riding on the other's evidence.")
+
+CONFIRM_PLANT_NOTE = (
+    "armed by two planted defects, watched on 2026-09-02, transcripts in "
+    "planning/evidence/WIN-SHELL/arming/. Having the Servers board stop reading the setting and "
+    "remove without asking - DEF-102 exactly as it was filed - broke "
+    "settings.requireConfirmation.effect and, in its wake, settings.requireConfirmation.accepted. "
+    "Raising the confirmation unconditionally and then discarding its answer broke "
+    "settings.requireConfirmation.effect again from the other side ('the dialog was a decoration "
+    "over an operation that had already been decided') and settings.requireConfirmation.silence "
+    "('with the setting Off, pressing Remove still produced a confirmation'). What is graded in "
+    "every case is the router's own server list, read over the control API by the lane rather than "
+    "reported by the app.")
+
 ARMED_BY_PLANT = {
-    "settings.launchAtLogin.effect",
-    "settings.persistence",
-    "settings.persistence.store",
+    "settings.launchAtLogin.effect": LAUNCH_PLANT_NOTE,
+    "settings.persistence": LAUNCH_PLANT_NOTE,
+    "settings.persistence.store": LAUNCH_PLANT_NOTE,
+    "settings.ambientIcon.baseline": ICON_PLANT_NOTE,
+    "settings.ambientIcon.effect": ICON_PLANT_NOTE,
+    "settings.ambientIcon.silence": ICON_PLANT_NOTE,
+    "settings.requireConfirmation.effect": CONFIRM_PLANT_NOTE,
+    "settings.requireConfirmation.accepted": CONFIRM_PLANT_NOTE,
+    "settings.requireConfirmation.silence": CONFIRM_PLANT_NOTE,
 }
 
 # Which DECLARED control each lane row drives, keyed by the lane's own control id.
@@ -64,6 +110,18 @@ ARMED_BY_PLANT = {
 # The command the lane ran belongs in the case's `note`, and is written there.
 CONTROL_ACTUATES = {
     "settings.effect": ["Launch router daemon at sign-in"],
+    "settings.ambientIcon.baseline": ["Show status in notification area"],
+    "settings.ambientIcon.effect": ["Show status in notification area"],
+    "settings.ambientIcon.silence": ["Show status in notification area"],
+    # The switch, not the button. These four rows drive "Remove server..." on the Servers board as
+    # the means; what they are ABOUT is whether the Settings switch decides that a press asks first,
+    # and `actuates` names the control the row is a claim about.
+    "settings.requireConfirmation.baseline": ["Confirm before removing a server"],
+    # These three press the Servers board's button as well as reading the switch, so they name
+    # both. The baseline above names only the switch: it drives nothing at all.
+    "settings.requireConfirmation.effect": ["Confirm before removing a server", "Remove server…"],
+    "settings.requireConfirmation.accepted": ["Confirm before removing a server", "Remove server…"],
+    "settings.requireConfirmation.silence": ["Confirm before removing a server", "Remove server…"],
 }
 
 
@@ -321,6 +379,10 @@ def main():
             # evidence in the same sense the green one is.
             evidence.append("planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt")
             evidence.append("planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt")
+            evidence.append(
+                "planning/evidence/WIN-SHELL/arming/icon-inert-and-no-confirmation-lane.txt")
+            evidence.append(
+                "planning/evidence/WIN-SHELL/arming/icon-never-removed-and-answer-ignored-lane.txt")
 
         # The effect row is a different rung from the naming rows, and saying so is the point:
         # reading a name proves the tree publishes one, and only the effect row can tell a bound
@@ -399,15 +461,11 @@ def main():
             "armed": control_id in ARMED_BY_PLANT or (
                 control_id.endswith(".effect") and not recorder),
             "armedNote": (
-                ("armed by a planted defect, watched on 2026-09-02. Removing the call that "
-                 "carries the sign-in switch to the supervisor broke "
-                 "settings.launchAtLogin.effect and settings.persistence; making the store's Save "
-                 "report success without writing broke settings.persistence.store alone. Both "
-                 "transcripts are in planning/evidence/WIN-SHELL/arming/.")
+                ARMED_BY_PLANT[control_id]
                 if control_id in ARMED_BY_PLANT else
-                ("NOT armed. This row HELD through both plants of 2026-09-02 - see "
+                ("NOT armed. This row HELD through every plant taken so far - see "
                  "planning/evidence/WIN-SHELL/arming/ - which establishes that it is independent "
-                 "of those two defects and says nothing about whether it can go red at all. It "
+                 "of those defects and says nothing about whether it can go red at all. It "
                  "stays unarmed until something has been watched to break it.")
                 if recorder else
                 ("armed by observation rather than by a planted defect: this predicate FAILED on "

@@ -1,23 +1,23 @@
 ﻿{
     "schema":  "win20.uia-dump/1",
-    "capturedAtUtc":  "2026-09-02T14:31:14.7959560Z",
+    "capturedAtUtc":  "2026-09-02T16:36:36.4322673Z",
     "host":  {
                  "osVersion":  "10.0.26220.0",
                  "psVersion":  "5.1.26100.9223",
                  "machine":  "Z13"
              },
     "request":  {
-                    "processId":  1288,
+                    "processId":  9728,
                     "titleContains":  "",
                     "view":  "Control"
                 },
     "targets":  [
                     {
-                        "hwnd":  2360610,
+                        "hwnd":  1443674,
                         "name":  "Discover",
                         "className":  "WinUIDesktopWin32WindowClass",
                         "frameworkId":  "Win32",
-                        "processId":  1288,
+                        "processId":  9728,
                         "isVisible":  true,
                         "isMinimised":  false
                     }
@@ -25,18 +25,18 @@
     "foregroundSamples":  [
                               {
                                   "when":  "before",
-                                  "hwnd":  2360610,
-                                  "processId":  1288
+                                  "hwnd":  1443674,
+                                  "processId":  9728
                               },
                               {
                                   "when":  "midwalk",
-                                  "hwnd":  2360610,
-                                  "processId":  1288
+                                  "hwnd":  1443674,
+                                  "processId":  9728
                               },
                               {
                                   "when":  "after",
-                                  "hwnd":  2360610,
-                                  "processId":  1288
+                                  "hwnd":  1443674,
+                                  "processId":  9728
                               }
                           ],
     "truncated":  false,

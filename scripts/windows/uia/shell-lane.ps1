@@ -99,10 +99,16 @@ function Say($text) {
     Add-Content -Path $laneLog -Value $line -Encoding UTF8
 }
 
+$script:RouterProcessId = 0
+
 function Stop-Lane([int] $code, [string] $why) {
     if ($script:ShellProcessId -ne 0) {
         Stop-Process -Id $script:ShellProcessId -Force -ErrorAction SilentlyContinue
         Say "shell pid $($script:ShellProcessId) stopped"
+    }
+    if ($script:RouterProcessId -ne 0) {
+        Stop-Process -Id $script:RouterProcessId -Force -ErrorAction SilentlyContinue
+        Say "lane router pid $($script:RouterProcessId) stopped"
     }
     $verdict = if ($code -eq 0) { 'pass' } elseif ($code -eq 3) { 'no-verdict' } else { 'fail' }
     Say $why
@@ -115,6 +121,92 @@ function Stop-Lane([int] $code, [string] $why) {
         finishedAt = (Get-Date).ToUniversalTime().ToString('o')
     } | ConvertTo-Json -Depth 6 | Set-Content -Path $laneJson -Encoding UTF8
     exit $code
+}
+
+# ------------------------------------------------- the lane's OWN router (DEF-102)
+# Section 3e drives "Remove server..." for real, and a removal is not a thing to try out on
+# somebody's machine: the router deletes the entry from servers.json, reloads, and tells every
+# attached agent its tool list changed. So the lane brings its own router, on its own port, over
+# its own home, holding two servers that exist for no other purpose.
+#
+# MCP_ROUTER_HOME is set BEFORE the shell is launched because the shell resolves the control
+# endpoint and the control token from it at startup; setting it afterwards would leave the board
+# polling the operator's router while this script measured its own. The port is taken from the
+# OS - bind to 0, read what was assigned, release - rather than picked, because a hardcoded one
+# either collides with the operator's real router or silently measures it.
+$routerHome = Join-Path $Out 'router-home'
+$routerEntry = Join-Path $repoRoot 'dist\index.js'
+$laneServerAlpha = 'lane-witness-alpha'
+$laneServerBeta  = 'lane-witness-beta'
+$env:MCP_ROUTER_HOME = $routerHome
+New-Item -ItemType Directory -Force -Path $routerHome | Out-Null
+Remove-Item (Join-Path $routerHome 'control.token') -ErrorAction SilentlyContinue
+
+$probe = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, 0)
+$probe.Start()
+$routerPort = ([System.Net.IPEndPoint] $probe.LocalEndpoint).Port
+$probe.Stop()
+$routerBase = "http://127.0.0.1:$routerPort"
+
+# `cmd /c exit` is a command that exists on every Windows and does nothing. The router adopts a
+# stdio server from its declaration and does not spawn the child until something calls a tool, so
+# these two never run; what they are is two names in a list this lane can watch appear and go.
+@{
+    port       = $routerPort
+    mcpServers = @{
+        $laneServerAlpha = @{ command = 'cmd'; args = @('/c', 'exit') }
+        $laneServerBeta  = @{ command = 'cmd'; args = @('/c', 'exit') }
+    }
+} | ConvertTo-Json -Depth 6 |
+    ForEach-Object {
+        # NOT Set-Content -Encoding UTF8. Windows PowerShell 5.1 writes a BOM under that name, and
+        # node's JSON.parse rejects a leading U+FEFF - measured here, and the router died at
+        # startup with `Unexpected token, "{" is not valid JSON` while every symptom pointed at the
+        # config's contents. WriteAllText writes UTF-8 with no BOM.
+        [System.IO.File]::WriteAllText((Join-Path $routerHome 'servers.json'), $_)
+    }
+
+# The reader for every DEF-102 arm below. It is the ROUTER's account of its own server list, taken
+# over the loopback control API by this script - a different process from the one that pressed the
+# button, and one with no view of the dialog at all. What the app says it asked is not evidence
+# here; what the router lists is.
+function Read-RouterServers {
+    try {
+        $answer = Invoke-RestMethod -Uri "$routerBase/servers" -TimeoutSec 5 -ErrorAction Stop
+        # `,@(...)` rather than `@(...)`. PowerShell unrolls a returned collection, and an EMPTY
+        # one unrolls to nothing at all - so a router that had answered correctly with an empty
+        # list came back as $null, indistinguishable from a router that never answered. Measured
+        # here on the last removal, where the list is legitimately empty: the silence arm reported
+        # `unoracled` over a removal the router's own log shows it had performed.
+        return ,@(@($answer.servers) | ForEach-Object { [string] $_.name })
+    } catch {
+        return $null
+    }
+}
+
+$routerLog = Join-Path $Out 'lane-router.log'
+$nodeExe = Get-Command node -ErrorAction SilentlyContinue
+$routerUp = $false
+if ($null -eq $nodeExe) {
+    Say "no node on PATH; the lane's router will not be started (DEF-102 arms report unoracled)"
+} elseif (-not (Test-Path $routerEntry)) {
+    Say "no built router at $routerEntry; run 'npx tsc -p tsconfig.json' (DEF-102 arms report unoracled)"
+} else {
+    $routerProc = Start-Process -FilePath $nodeExe.Source -ArgumentList @($routerEntry) `
+        -PassThru -WindowStyle Hidden `
+        -RedirectStandardOutput $routerLog -RedirectStandardError "$routerLog.err"
+    $script:RouterProcessId = $routerProc.Id
+    Say "lane router: pid $($routerProc.Id) on $routerBase, home $routerHome"
+    $until = (Get-Date).AddSeconds(40)
+    while ((Get-Date) -lt $until) {
+        if ($null -ne (Read-RouterServers)) { $routerUp = $true; break }
+        Start-Sleep -Milliseconds 500
+    }
+    if (-not $routerUp) {
+        Say "  the lane's router never answered /servers within 40s; see $routerLog"
+    } else {
+        Say "  the lane's router answers /servers: $((Read-RouterServers) -join ', ')"
+    }
 }
 
 if (-not (Test-Path $ExePath)) {
@@ -627,6 +719,22 @@ function Find-ById($root, [string] $automationId) {
 # realised is absent rather than empty. The first run of this census read every id as missing
 # 0.6 s after selecting Settings and the dump taken seconds later held all ten of them - which is
 # the harness's own timing, not a finding about the board. So every lookup polls.
+# A dialog's buttons are named, not identified: ContentDialog builds them from PrimaryButtonText
+# and CloseButtonText and stamps no automation id on either. Finding them by name is therefore not
+# a shortcut around an id - there is no id to use - and the names come from ServersCopy, which is
+# the same file the dialog is built from.
+function Wait-ByName($root, [string] $name, [int] $seconds = 8) {
+    $cond = New-Object System.Windows.Automation.PropertyCondition(
+        [System.Windows.Automation.AutomationElement]::NameProperty, $name)
+    $until = (Get-Date).AddSeconds($seconds)
+    while ($true) {
+        $el = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $cond)
+        if ($null -ne $el) { return $el }
+        if ((Get-Date) -ge $until) { return $null }
+        Start-Sleep -Milliseconds 400
+    }
+}
+
 function Wait-ById($root, [string] $automationId, [int] $seconds = 10) {
     $until = (Get-Date).AddSeconds($seconds)
     while ($true) {
@@ -1114,7 +1222,311 @@ if (-not (Get-Process -Id $script:ShellProcessId -ErrorAction SilentlyContinue))
                 Say "  cleaning up the witness task after the arms"
                 & schtasks.exe /Delete /TN $witnessTaskName /F 2>&1 | Out-Null
             }
+
+            # ------------------------------------------------- DEF-101: the notification-area icon
+            # THE RECORDER IS NOT THE WRITER, and here that is the whole exercise. DEF-101 was a
+            # switch with nothing behind it, and the tempting fix - place an icon and read it back
+            # through the handle that placed it - is the same defect wearing a proof. So the icon is
+            # registered by GUID, which is a name another program can hold, and every read below is
+            # a separate powershell.exe calling Shell_NotifyIconGetRect. That API is answered by the
+            # shell's notification area. Neither this script nor that process ever asks the app.
+            #
+            # WHY THE BASELINE IS DRIVEN RATHER THAN OBSERVED. The shell places the icon at launch
+            # from the stored setting, whose default is on, so by the time this section runs the
+            # icon is already there. An arm that read "present" first and "present" again would be
+            # measuring nothing. Driving the switch OFF first is what makes the baseline mean
+            # something: the shell's own NIM_DELETE clears the record under that GUID - including a
+            # record a killed earlier run left behind - so a later "present" cannot be somebody
+            # else's leftover.
+            $iconProbe = Join-Path $PSScriptRoot 'notification-icon-probe.ps1'
+            $iconRecorder = 'Shell_NotifyIconGetRect in a separate powershell.exe process'
+            $ambientId = 'settings.toggle.ShowAmbientIcon'
+
+            function Read-NotificationIcon {
+                # $null means the question could not be asked at all, which is neither yes nor no.
+                $raw = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $iconProbe 2>$null |
+                    Out-String
+                if (-not $raw.Trim()) { return $null }
+                try { $answer = $raw | ConvertFrom-Json } catch { return $null }
+                if (-not $answer.asked) { return $null }
+                return $answer
+            }
+
+            # -------------------------------------------------------------------- BASELINE
+            $droveIconOff = Set-ToggleThroughPlane $window $ambientId $false
+            Start-Sleep -Milliseconds 900
+            $iconBefore = Read-NotificationIcon
+            Add-ControlRow 'settings.ambientIcon.baseline' `
+                $(if ($null -eq $iconBefore) { 'unoracled' }
+                  elseif ($droveIconOff -ne 'ok') { 'unoracled' }
+                  elseif (-not $iconBefore.found) { 'pass' } else { 'fail' }) `
+                $(if ($null -eq $iconBefore) {
+                    "Shell_NotifyIconGetRect could not be called at all, so nothing was read about " +
+                    "the notification area. Not a pass and not a failure."
+                } elseif ($droveIconOff -ne 'ok') {
+                    "the switch could not be driven to Off through the plane ($droveIconOff), so " +
+                    "the baseline was never established."
+                } elseif (-not $iconBefore.found) {
+                    "with the switch driven Off, a separate process asks the shell for the icon at " +
+                    "$($iconBefore.guid) and is told there is none (HRESULT $($iconBefore.hresult)). " +
+                    "The recorder is capable of saying no, and any yes below is this run's."
+                } else {
+                    "the switch reads Off and the notification area still holds the icon at " +
+                    "$($iconBefore.guid), so the arms below would be about a leftover."
+                }) @('Show status in notification area') $iconRecorder
+
+            # -------------------------------------------------------------------- EFFECT
+            $droveIconOn = Set-ToggleThroughPlane $window $ambientId $true
+            Start-Sleep -Milliseconds 1200
+            $iconAfter = Read-NotificationIcon
+            Add-ControlRow 'settings.ambientIcon.effect' `
+                $(if ($null -eq $iconAfter) { 'unoracled' }
+                  elseif ($droveIconOn -ne 'ok') { 'fail' }
+                  elseif ($iconAfter.found) { 'pass' } else { 'fail' }) `
+                $(if ($null -eq $iconAfter) {
+                    "Shell_NotifyIconGetRect could not be called, so whether the icon appeared was " +
+                    "never read."
+                } elseif ($droveIconOn -ne 'ok') {
+                    "the switch could not be driven to On through the plane: $droveIconOn"
+                } elseif ($iconAfter.found) {
+                    "driving the switch to On through the automation plane put an icon in the " +
+                    "Windows notification area at $($iconAfter.guid): a separate process asked the " +
+                    "shell for its rectangle and got $($iconAfter.rect.left),$($iconAfter.rect.top) " +
+                    "to $($iconAfter.rect.right),$($iconAfter.rect.bottom) (HRESULT " +
+                    "$($iconAfter.hresult)). Read by an API this application never called."
+                } else {
+                    "INERT BEYOND THE PROCESS: the switch reads On through the plane and the " +
+                    "notification area reports no icon at $($iconAfter.guid) (HRESULT " +
+                    "$($iconAfter.hresult)). The control moved and the shell heard nothing."
+                }) @('Show status in notification area') $iconRecorder
+
+            # -------------------------------------------------------------------- SILENCE
+            $droveIconBack = Set-ToggleThroughPlane $window $ambientId $false
+            Start-Sleep -Milliseconds 1200
+            $iconGone = Read-NotificationIcon
+            Add-ControlRow 'settings.ambientIcon.silence' `
+                $(if ($null -eq $iconGone) { 'unoracled' }
+                  elseif ($droveIconBack -ne 'ok') { 'unoracled' }
+                  elseif (-not $iconGone.found) { 'pass' } else { 'fail' }) `
+                $(if ($null -eq $iconGone) {
+                    "Shell_NotifyIconGetRect could not be called, so removal was never read."
+                } elseif ($droveIconBack -ne 'ok') {
+                    "the switch could not be driven back to Off through the plane " +
+                    "($droveIconBack), so removal was never attempted."
+                } elseif (-not $iconGone.found) {
+                    "driving the switch back to Off took the icon out of the notification area: " +
+                    "the same reader that found it a moment ago now answers HRESULT " +
+                    "$($iconGone.hresult). Its yes above was a reading rather than an echo, and " +
+                    "turning the setting off tells the user something true."
+                } else {
+                    "the switch reads Off and the notification area still holds the icon. Turning " +
+                    "the setting off told the user something untrue."
+                }) @('Show status in notification area') $iconRecorder
         }
+    }
+
+    # ------------------------------------------------------- DEF-102: the destructive confirmation
+    # "Require confirmation on destructive operations" was a switch no board consulted, over a build
+    # with no destructive path in it at all. Both halves landed together: the Servers board can now
+    # ask the router to remove a server - the one irreversible verb this app sends - and it reads
+    # the setting at the moment the button is pressed. The label was narrowed with it, from a class
+    # of operations the build does not have to the one it does.
+    #
+    # WHAT THE ARMS BELOW REFUSE TO ACCEPT AS EVIDENCE. Not that a dialog appeared: a dialog is the
+    # app's account of having asked. Not that the row vanished from the table: the table is drawn by
+    # the same process. What is graded is the ROUTER's own list of servers, taken over the control
+    # API by this script. The EFFECT arm is a removal that was DECLINED, and the router still
+    # holding the server is the only thing that can tell a gate from a decoration.
+    $confirmId = 'settings.toggle.RequireConfirmationOnDestructive'
+    $routerRecorder = "the router's own /servers listing, read over the control API by this script"
+
+    if (-not $routerUp) {
+        foreach ($arm in @('baseline', 'effect', 'silence')) {
+            Add-ControlRow "settings.requireConfirmation.$arm" 'unoracled' `
+                ("the lane's own router was never started (no node, no dist/index.js, or it did not " +
+                 "answer), so no removal was attempted and nothing was read back from it. Not a " +
+                 "pass and not a failure.") @('Confirm before removing a server') $routerRecorder
+        }
+    } elseif (-not (Get-Process -Id $script:ShellProcessId -ErrorAction SilentlyContinue)) {
+        foreach ($arm in @('baseline', 'effect', 'silence')) {
+            Add-ControlRow "settings.requireConfirmation.$arm" 'unoracled' `
+                ('the shell was not running, so the removal path was never driven.') `
+                @('Confirm before removing a server') $routerRecorder
+        }
+    } else {
+        # A helper rather than three copies: select the row, press Remove, and say what the surface
+        # did - whether a confirmation was raised, and which way it was answered.
+        function Invoke-RemoveThroughPlane {
+            param($Root, [string] $Server, [string] $Answer)
+            $row = Wait-ById $Root ('servers.row.' + $Server) 15
+            if ($null -eq $row) { return "no row for $Server" }
+            try {
+                $row.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+            } catch { return "the row would not invoke: $($_.Exception.Message)" }
+            Start-Sleep -Milliseconds 500
+
+            $remove = Wait-ById $Root 'servers.action.remove' 10
+            if ($null -eq $remove) { return 'the Remove button is unaddressable' }
+            try {
+                if (-not $remove.Current.IsEnabled) { return 'the Remove button is disabled' }
+                $remove.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+            } catch { return "the Remove button would not invoke: $($_.Exception.Message)" }
+            Start-Sleep -Milliseconds 700
+
+            $wanted = if ($Answer -eq 'commit') { 'Remove permanently' } else { 'Keep it' }
+            $button = Wait-ByName $Root $wanted 6
+            if ($null -eq $button) { return 'no confirmation was raised' }
+            try {
+                $button.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+            } catch { return "the '$wanted' button would not invoke: $($_.Exception.Message)" }
+            Start-Sleep -Milliseconds 1200
+            return "confirmed:$Answer"
+        }
+
+        # Driving this pair means moving between two boards: the switch lives on Settings and the
+        # button on Servers. The first version of this section drove the switch while the Servers
+        # board was up - where it is not in the tree at all - and all three arms reported
+        # `unaddressable`, which is a statement about where this script was looking and not about
+        # the product. Every drive now navigates to Settings first and back afterwards.
+        function Set-ConfirmSetting {
+            param($Root, [bool] $On)
+            if (-not (Invoke-Destination 'Settings')) { return 'Settings could not be actuated' }
+            Start-Sleep -Milliseconds 800
+            return (Set-ToggleThroughPlane $Root $confirmId $On)
+        }
+
+        $listedAtStart = Read-RouterServers
+
+        # -------------------------------------------------------------------- BASELINE
+        Add-ControlRow 'settings.requireConfirmation.baseline' `
+            $(if ($null -eq $listedAtStart) { 'unoracled' }
+              elseif (($listedAtStart -contains $laneServerAlpha) -and
+                      ($listedAtStart -contains $laneServerBeta)) { 'pass' } else { 'fail' }) `
+            $(if ($null -eq $listedAtStart) {
+                "the router stopped answering /servers before anything was driven."
+            } elseif (($listedAtStart -contains $laneServerAlpha) -and
+                      ($listedAtStart -contains $laneServerBeta)) {
+                "the router lists both servers this lane declared - " +
+                "$($listedAtStart -join ', ') - before any removal is attempted, so the arms below " +
+                "measure removals rather than absences that were already there."
+            } else {
+                "the router lists $($listedAtStart -join ', '), which does not hold both of this " +
+                "lane's servers, so a later absence would prove nothing."
+            }) @('Confirm before removing a server') $routerRecorder
+
+        # -------------------------------------------------------------------- EFFECT
+        # The setting ON, the removal DECLINED, and the server read back out of the router. This is
+        # the arm the row exists for: a confirmation that is merely displayed and then ignored looks
+        # exactly like one that gates, right up until the moment somebody presses Keep it.
+        $droveConfirmOn = Set-ConfirmSetting $window $true
+        $onServers = $false
+        if ($droveConfirmOn -eq 'ok') {
+            $onServers = Invoke-Destination 'Servers'
+            Start-Sleep -Milliseconds 1500
+        }
+        $declined = 'not attempted'
+        $afterDecline = $null
+        if ($onServers) {
+            $declined = Invoke-RemoveThroughPlane $window $laneServerAlpha 'decline'
+            $afterDecline = Read-RouterServers
+        }
+        Add-ControlRow 'settings.requireConfirmation.effect' `
+            $(if ($droveConfirmOn -ne 'ok' -or -not $onServers) { 'unoracled' }
+              elseif ($declined -ne 'confirmed:decline') { 'fail' }
+              elseif ($null -eq $afterDecline) { 'unoracled' }
+              elseif ($afterDecline -contains $laneServerAlpha) { 'pass' } else { 'fail' }) `
+            $(if ($droveConfirmOn -ne 'ok') {
+                "the confirmation switch could not be driven to On through the plane " +
+                "($droveConfirmOn), so no removal was attempted."
+            } elseif (-not $onServers) {
+                "the Servers destination could not be actuated, so the removal path was never reached."
+            } elseif ($declined -ne 'confirmed:decline') {
+                "with the setting On, pressing Remove did not produce a confirmation this lane " +
+                "could decline: $declined. A destructive button that acts without asking is the " +
+                "defect this setting is supposed to prevent."
+            } elseif ($null -eq $afterDecline) {
+                "the router stopped answering after the removal was declined, so what it holds was " +
+                "never read."
+            } elseif ($afterDecline -contains $laneServerAlpha) {
+                "with the setting On, Remove raised a confirmation, this lane pressed 'Keep it', " +
+                "and the router still lists $laneServerAlpha (now: $($afterDecline -join ', ')). " +
+                "The refusal is read out of the router, not out of the dialog: the app's account of " +
+                "having asked is not evidence that it obeyed the answer."
+            } else {
+                "the confirmation was declined and the router no longer lists $laneServerAlpha " +
+                "(now: $($afterDecline -join ', ')). The dialog was a decoration over an operation " +
+                "that had already been decided."
+            }) @('Confirm before removing a server') $routerRecorder
+
+        # A confirmation that can only ever refuse is not a gate either, so the same path is driven
+        # once more and ACCEPTED. Its own row, because "declining stops it" and "accepting lets it
+        # through" are two facts and folding them into one green loses whichever failed.
+        $committed = 'not attempted'
+        $afterCommit = $null
+        if ($onServers) {
+            $committed = Invoke-RemoveThroughPlane $window $laneServerAlpha 'commit'
+            $afterCommit = Read-RouterServers
+        }
+        Add-ControlRow 'settings.requireConfirmation.accepted' `
+            $(if ($droveConfirmOn -ne 'ok' -or -not $onServers) { 'unoracled' }
+              elseif ($committed -ne 'confirmed:commit') { 'fail' }
+              elseif ($null -eq $afterCommit) { 'unoracled' }
+              elseif ($afterCommit -notcontains $laneServerAlpha) { 'pass' } else { 'fail' }) `
+            $(if ($droveConfirmOn -ne 'ok' -or -not $onServers) {
+                "the setting or the board was not reachable, so acceptance was never driven."
+            } elseif ($committed -ne 'confirmed:commit') {
+                "the confirmation could not be accepted through the plane: $committed"
+            } elseif ($null -eq $afterCommit) {
+                "the router stopped answering after the removal was accepted."
+            } elseif ($afterCommit -notcontains $laneServerAlpha) {
+                "pressing 'Remove permanently' removed $laneServerAlpha from the ROUTER - it now " +
+                "lists $(if ($afterCommit.Count) { $afterCommit -join ', ' } else { 'nothing' }). " +
+                "The gate opens as well as closes."
+            } else {
+                "the confirmation was accepted and the router still lists $laneServerAlpha, so the " +
+                "button asks a question whose yes it does not act on."
+            }) @('Confirm before removing a server') $routerRecorder
+
+        # -------------------------------------------------------------------- SILENCE
+        # The setting OFF. The recorder has to be able to report the operation going through
+        # UNASKED, or its yes above was never a reading of the setting - it would pass identically
+        # over a board that always confirms and never consults anything.
+        $droveConfirmOff = Set-ConfirmSetting $window $false
+        $onServersAgain = $false
+        if ($droveConfirmOff -eq 'ok') {
+            $onServersAgain = Invoke-Destination 'Servers'
+            Start-Sleep -Milliseconds 1500
+        }
+        $unasked = 'not attempted'
+        $afterSilence = $null
+        if ($onServersAgain) {
+            $unasked = Invoke-RemoveThroughPlane $window $laneServerBeta 'decline'
+            $afterSilence = Read-RouterServers
+        }
+        Add-ControlRow 'settings.requireConfirmation.silence' `
+            $(if ($droveConfirmOff -ne 'ok' -or -not $onServersAgain) { 'unoracled' }
+              elseif ($unasked -ne 'no confirmation was raised') { 'fail' }
+              elseif ($null -eq $afterSilence) { 'unoracled' }
+              elseif ($afterSilence -notcontains $laneServerBeta) { 'pass' } else { 'fail' }) `
+            $(if ($droveConfirmOff -ne 'ok' -or -not $onServersAgain) {
+                "the setting could not be driven to Off ($droveConfirmOff), or the board was " +
+                "unreachable, so the " +
+                "unconfirmed path was never driven."
+            } elseif ($unasked -ne 'no confirmation was raised') {
+                "with the setting Off, pressing Remove still produced a confirmation ($unasked). " +
+                "The switch is not being read: turning it off removes no prompt."
+            } elseif ($null -eq $afterSilence) {
+                "the router stopped answering, so the unconfirmed removal was never read back."
+            } elseif ($afterSilence -notcontains $laneServerBeta) {
+                "with the setting Off, Remove raised no confirmation at all and the router no " +
+                "longer lists $laneServerBeta (now: " +
+                "$(if ($afterSilence.Count) { $afterSilence -join ', ' } else { 'nothing' })). The " +
+                "prompt above was the setting being obeyed rather than a dialog this board always " +
+                "shows."
+            } else {
+                "no confirmation was raised and the router still lists $laneServerBeta, so the " +
+                "button did nothing at all with the setting off."
+            }) @('Confirm before removing a server') $routerRecorder
     }
 
     # ------------------------------------------------------- DEF-084: the Discover store rows

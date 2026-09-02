@@ -1,7 +1,7 @@
 {
   "schema": "mcprouter.shell-settings/1",
   "LaunchAtLogin": false,
-  "RequireConfirmationOnDestructive": true,
-  "ShowAmbientIcon": true,
-  "savedAtUtc": "2026-09-02T14:31:04.1353899Z"
+  "RequireConfirmationOnDestructive": false,
+  "ShowAmbientIcon": false,
+  "savedAtUtc": "2026-09-02T16:36:19.9341901Z"
 }

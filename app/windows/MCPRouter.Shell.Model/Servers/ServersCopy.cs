@@ -86,6 +86,36 @@ public static class ServersCopy
     public const string AddUrlHelper = "For a server reached over HTTP or SSE, instead of a command.";
     public const string AddAnywayLabel = "Add it anyway";
 
+    // ---------------------------------------------------------------- removing a server (DEF-102)
+    //
+    // The one irreversible thing this app asks the router to do. "Confirm before removing a
+    // server" in Settings governs whether the dialog below is raised at all, so this copy and that
+    // switch have to agree about what is being confirmed: the dialog names the server, says what
+    // the router does, and says what it does not do.
+    public const string RemoveLabel = "Remove server…";
+    public const string RemoveDisabledReason = "Select a server in the table below, and this removes it from the router.";
+    public const string RemoveCommitLabel = "Remove permanently";
+    public const string RemoveCancelLabel = "Keep it";
+    public const string RemoveDialogBody =
+        "The router drops it from the server list and every attached agent loses its tools. " +
+        "Its call history is kept, and adding it again means entering its command afresh.";
+
+    public static string RemoveDialogTitle(string server) => $"Remove {server}?";
+
+    /// <summary>What the board says when the router refused the removal.</summary>
+    public static string RemoveFailed(string server, string detail) =>
+        $"{server} was not removed: {detail}";
+
+    /// <summary>
+    /// What the board says when the removal went through WITHOUT a confirmation, because the
+    /// setting that would have asked is off. Said out loud rather than left silent: a destructive
+    /// action taken with no prompt should still leave a mark on the surface that took it.
+    /// </summary>
+    public static string RemovedWithoutAsking(string server) =>
+        $"Removed {server} without asking - confirmation is off in Settings.";
+
+    public static string Removed(string server) => $"Removed {server}.";
+
     /// <summary>The topology line's endpoint word, as the design of record writes it.</summary>
     public const string TopologyEndpointWord = "1 endpoint";
 }

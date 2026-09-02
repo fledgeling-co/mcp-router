@@ -150,3 +150,9 @@ app/windows/**/obj/
 # a committed artifact: a package in git is a package nobody re-derives, and the whole point of the
 # lane is that the manifest still packs TODAY. The witness.json beside it is the evidence.
 planning/evidence/WIN19/run/*.msix
+
+# The shell lane brings its own router so a removal is never tried on the operator's real server
+# list (DEF-102), and that router mints a control token into its home on startup. The home is a
+# throwaway under the evidence directory; the token in it is still a credential and never belongs
+# in a commit.
+planning/evidence/WIN-SHELL/run/router-home/

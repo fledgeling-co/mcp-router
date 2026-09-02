@@ -101,6 +101,15 @@
             </StackPanel>
             <StackPanel Grid.Column="1" VerticalAlignment="Top" Spacing="4">
                 <StackPanel Orientation="Horizontal" Spacing="8">
+                    <!-- DEF-102: the one destructive verb this app sends the router. It stays
+                         disabled until a row is selected, and whether it asks first is
+                         "Confirm before removing a server" in Settings - read at the moment it is
+                         pressed, off the same file the Settings board writes. -->
+                    <Button
+                        x:Name="RemoveButton"
+                        Content="Remove server…"
+                        IsEnabled="False"
+                        Click="OnRemoveServerClicked" />
                     <Button
                         x:Name="ReapButton"
                         Content="Reap idle"
@@ -125,6 +134,18 @@
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     FontSize="12"
                     TextWrapping="Wrap" />
+                <!-- What the removal did, in the board's own words. A destructive action that
+                     leaves no mark on the surface that took it is indistinguishable from one that
+                     never happened - and when confirmation is off, this line is the only trace. -->
+                <TextBlock
+                    x:Name="RemoveOutcomeText"
+                    MaxWidth="420"
+                    HorizontalAlignment="Right"
+                    TextAlignment="Right"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    FontSize="12"
+                    TextWrapping="Wrap"
+                    Visibility="Collapsed" />
             </StackPanel>
         </Grid>
 

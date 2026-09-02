@@ -1,0 +1,12 @@
+2026-09-02T16:35:26.037Z warn  2 upstream(s) not in the manifest (lane-witness-beta, lane-witness-alpha); their tools will be missing until `mcp-router index` runs.
+2026-09-02T16:35:26.040Z info  wrote a new control token -> C:\Dev\mcp-router\.worktrees\wc2-tray-and-confirm\planning\evidence\WIN-SHELL\run\router-home\control.token
+2026-09-02T16:35:26.055Z info  mcp-router listening on http://127.0.0.1:63651/mcp
+2026-09-02T16:35:26.056Z info  serving 0 tools from 2 upstreams; 0 open, idle window 300s
+2026-09-02T16:35:26.057Z warn  supervision: no supervisor on win32: nothing restarts this process when it exits, so an exit is a stop. WIN23 decides what supervises the router here.
+2026-09-02T16:35:26.057Z warn  config watcher: nothing watches ~/.claude.json on win32: a server added there is NOT adopted on its own, so run `mcpr watch` yourself after `claude mcp add`. WIN23 decides what runs it here.
+2026-09-02T16:36:18.190Z info  config reloaded: 1 upstreams
+2026-09-02T16:36:18.196Z info  removed upstream "lane-witness-alpha"
+2026-09-02T16:36:18.197Z info  live-reload: removed the server "lane-witness-alpha" -> notified 0/0 attached session(s)
+2026-09-02T16:36:22.634Z info  config reloaded: 0 upstreams
+2026-09-02T16:36:22.637Z info  removed upstream "lane-witness-beta"
+2026-09-02T16:36:22.639Z info  live-reload: removed the server "lane-witness-beta" -> notified 0/0 attached session(s)

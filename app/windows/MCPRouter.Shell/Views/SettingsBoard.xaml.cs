@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MCPRouter.Shell.Live.Ambient;
 using MCPRouter.Shell.Live.Lifecycle;
 using MCPRouter.Shell.Model.Settings;
 using Microsoft.UI.Xaml;
@@ -36,7 +37,13 @@ public sealed partial class SettingsBoard : UserControl
         // built by the shell's navigation and has no composition root to be handed them by. Both
         // are seams for the suites: SettingsBoardModel takes null for either and stays in memory,
         // which is what the unit tests use so they never touch %APPDATA% or schtasks.
-        _model = new SettingsBoardModel(new SettingsStore(), new LogonTaskLaunchAgent());
+        // The notification-area host is the APP's, not this board's: see App.NotificationIcon.
+        // Null when this control is built outside a running shell, and then the switch says it has
+        // no host rather than moving a boolean.
+        _model = new SettingsBoardModel(
+            new SettingsStore(),
+            new LogonTaskLaunchAgent(),
+            App.NotificationIcon is null ? null : new NotificationAreaAgent(App.NotificationIcon));
 
         _reasonLines = new Dictionary<string, TextBlock>(StringComparer.Ordinal)
         {
@@ -126,7 +133,8 @@ public sealed partial class SettingsBoard : UserControl
         StateSummaryText.Text = SettingsPresentation.StateSummary(_model.CurrentState);
 
         var durability = "Stored at " + (_model.StorePath ?? "nowhere - this session only")
-            + " - sign-in state read from " + _model.LaunchAtLoginSource + ".";
+            + " - sign-in state read from " + _model.LaunchAtLoginSource
+            + ", notification-area state read from " + _model.AmbientIconSource + ".";
         if (_model.LastEffect is not null)
         {
             durability += " Last change: " + _model.LastEffect.Detail;

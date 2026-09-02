@@ -244,26 +244,48 @@ public sealed class SettingsBoardModelEffectTests : IDisposable
 public sealed class SettingsUnavailabilityTests
 {
     /// <summary>
-    /// The two switches this build cannot honour say so, and the sentence names the defect that
-    /// carries what they need. DEF-087's rule: a switch that moves and reaches nothing is the
-    /// defect; a switch that states it cannot act is honest.
+    /// No switch on this board is declared unavailable any more, and this test is what stops that
+    /// sentence being a claim. It held two rows until DEF-101 and DEF-102 landed - ShowAmbientIcon
+    /// over a build that drew no icon, RequireConfirmationOnDestructive over a build in which
+    /// nothing asked it - and inverting it rather than deleting it is deliberate: a switch that
+    /// outruns its implementation again fails here rather than passing quietly.
     /// </summary>
     [Theory]
-    [InlineData("ShowAmbientIcon", "DEF-101")]
-    [InlineData("RequireConfirmationOnDestructive", "DEF-102")]
-    public void UnownedToggles_CarryAReasonNamingTheirDefect(string key, string defect)
+    [InlineData("LaunchAtLogin")]
+    [InlineData("ShowAmbientIcon")]
+    [InlineData("RequireConfirmationOnDestructive")]
+    public void NoToggleIsBlanketUnavailable(string key)
     {
-        var reason = SettingsPresentation.ToggleUnavailableReason(key);
-        Assert.NotNull(reason);
-        Assert.StartsWith("Unavailable:", reason);
-        Assert.Contains(defect, reason);
+        Assert.Null(SettingsPresentation.ToggleUnavailableReason(key));
+        Assert.Contains(key, SettingsPresentation.ActuableToggleKeys);
     }
 
-    [Fact]
-    public void LaunchAtLogin_IsNotDeclaredUnavailable_BecauseItOwnsTheLogonTask()
+    /// <summary>
+    /// The two switches whose owner is handed in at construction report through the BOARD MODEL,
+    /// not through the static table: a board built with no host must still say it cannot act. This
+    /// is the half <see cref="NoToggleIsBlanketUnavailable"/> cannot see.
+    /// </summary>
+    [Theory]
+    [InlineData("LaunchAtLogin")]
+    [InlineData("ShowAmbientIcon")]
+    public void ASwitchWithNoOwnerSaysSo(string key)
     {
-        Assert.Null(SettingsPresentation.ToggleUnavailableReason("LaunchAtLogin"));
-        Assert.Contains("LaunchAtLogin", SettingsPresentation.ActuableToggleKeys);
+        var reason = new SettingsBoardModel().UnavailableReason(key);
+        Assert.NotNull(reason);
+        Assert.StartsWith("Unavailable:", reason);
+    }
+
+    /// <summary>
+    /// DEF-102's narrowing, as UI text. The old caption promised a policy over a class of
+    /// operations; the build asks the router to destroy exactly one kind of thing, and the label
+    /// has to name that rather than the class.
+    /// </summary>
+    [Fact]
+    public void TheConfirmationLabelNamesTheOperationItGoverns()
+    {
+        var label = SettingsPresentation.ToggleLabel("RequireConfirmationOnDestructive");
+        Assert.Equal("Confirm before removing a server", label);
+        Assert.DoesNotContain("destructive operations", label, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

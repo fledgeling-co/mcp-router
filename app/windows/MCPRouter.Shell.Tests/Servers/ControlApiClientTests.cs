@@ -296,6 +296,14 @@ public sealed class ServersCopyTests
             ServersCopy.AddUrlLabel,
             ServersCopy.AddUrlHelper,
             ServersCopy.AddAnywayLabel,
+            ServersCopy.RemoveLabel,
+            ServersCopy.RemoveDisabledReason,
+            ServersCopy.RemoveCommitLabel,
+            ServersCopy.RemoveCancelLabel,
+            ServersCopy.RemoveDialogBody,
+            ServersCopy.RemoveDialogTitle("postgres-mcp"),
+            ServersCopy.Removed("postgres-mcp"),
+            ServersCopy.RemovedWithoutAsking("postgres-mcp"),
         };
 
         foreach (var sentence in sentences)

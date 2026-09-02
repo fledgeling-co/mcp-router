@@ -17,15 +17,20 @@ public sealed class SettingsBoardModel
 {
     private readonly SettingsStore? _store;
     private readonly ILaunchAtLoginAgent? _launchAgent;
+    private readonly INotificationAreaAgent? _iconAgent;
 
     public SettingsBoardModel()
     {
     }
 
-    public SettingsBoardModel(SettingsStore? store, ILaunchAtLoginAgent? launchAgent = null)
+    public SettingsBoardModel(
+        SettingsStore? store,
+        ILaunchAtLoginAgent? launchAgent = null,
+        INotificationAreaAgent? iconAgent = null)
     {
         _store = store;
         _launchAgent = launchAgent;
+        _iconAgent = iconAgent;
 
         if (_store is not null)
         {
@@ -52,6 +57,21 @@ public sealed class SettingsBoardModel
         {
             LaunchAtLoginSource = "the stored settings - the task scheduler could not be read";
         }
+
+        // The NOTIFICATION AREA, not the stored boolean, and for the same reason: DEF-101's fix
+        // is only worth anything if the switch shows what the shell holds. An icon Explorer
+        // dropped, or one a previous run left behind, is a fact about the machine and the board
+        // reports it rather than its own memory.
+        var placed = _iconAgent?.CurrentlyShown();
+        if (placed.HasValue)
+        {
+            CurrentState = CurrentState with { ShowAmbientIcon = placed.Value };
+            AmbientIconSource = "the Windows notification area";
+        }
+        else if (_iconAgent is not null)
+        {
+            AmbientIconSource = "the stored settings - the notification area could not be read";
+        }
     }
 
     public SettingsSection ActiveSection { get; set; } = SettingsSection.Router;
@@ -60,6 +80,9 @@ public sealed class SettingsBoardModel
 
     /// <summary>Where the launch-at-sign-in switch's displayed value came from.</summary>
     public string LaunchAtLoginSource { get; private set; } = "this session only - no agent";
+
+    /// <summary>Where the notification-area switch's displayed value came from.</summary>
+    public string AmbientIconSource { get; private set; } = "this session only - no host";
 
     /// <summary>The outcome of the last toggle that tried to reach outside the process.</summary>
     public ToggleEffectResult? LastEffect { get; private set; }
@@ -78,6 +101,12 @@ public sealed class SettingsBoardModel
                 ? SettingsPresentation.NoLaunchAgentReason
                 : _launchAgent.UnavailableReason;
         }
+        if (key == "ShowAmbientIcon")
+        {
+            return _iconAgent is null
+                ? SettingsPresentation.NoNotificationHostReason
+                : _iconAgent.UnavailableReason;
+        }
         return SettingsPresentation.ToggleUnavailableReason(key);
     }
 
@@ -95,6 +124,16 @@ public sealed class SettingsBoardModel
         if (key == "LaunchAtLogin" && _launchAgent is not null)
         {
             var result = _launchAgent.Apply(value);
+            LastEffect = result;
+            if (!result.Applied)
+            {
+                return;
+            }
+        }
+
+        if (key == "ShowAmbientIcon" && _iconAgent is not null)
+        {
+            var result = _iconAgent.Apply(value);
             LastEffect = result;
             if (!result.Applied)
             {

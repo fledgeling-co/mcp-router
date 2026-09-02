@@ -36,6 +36,7 @@
       "Add server…",
       "Add one by hand…",
       "Reap idle",
+      "Remove server…",
       "Review changes…",
       "Start the router",
       "Try again"
@@ -132,10 +133,10 @@
     "controls": [
       "Copy the loopback endpoint",
       "Launch router daemon at sign-in",
-      "Require confirmation on destructive operations",
+      "Confirm before removing a server",
       "Show status in notification area"
     ],
-    "note": "Seven sections, measured on the automation plane rather than counted in the markup: settings.section.router, .harnesses, .sessionanalyst, .updates, .security, .ambientsurface, .advanced, each publishing a name. Three of them carry a switch; the other four carry WIN13's governance prose because this build has no harness settings, no session analyst and no update check. The switches publish as Button carrying TogglePattern - which is what a WinUI ToggleSwitch is on the plane, and what made DEF-076's first reading say there were none.\n\nSINCE DEF-087 ONE OF THE THREE REACHES THE MACHINE AND TWO ARE DISABLED. `Launch router daemon at sign-in` registers and removes WIN23's logon task, and the board seeds it from the Windows task scheduler rather than from its own memory; the state persists to %APPDATA%\\MCPRouter\\shell-settings.json. `Show status in notification area` and `Require confirmation on destructive operations` own nothing on this build, so each is DISABLED and publishes its reason at settings.toggle.<key>.reason naming DEF-101 and DEF-102 - a switch that moves and reaches nothing is the defect this surface has already been caught by twice. `Copy the loopback endpoint` copies (DEF-088). The two disabled switches still publish a readable toggle state, so the census rows over them are unchanged."
+    "note": "Seven sections, measured on the automation plane rather than counted in the markup: settings.section.router, .harnesses, .sessionanalyst, .updates, .security, .ambientsurface, .advanced, each publishing a name. Three of them carry a switch; the other four carry WIN13's governance prose because this build has no harness settings, no session analyst and no update check. The switches publish as Button carrying TogglePattern - which is what a WinUI ToggleSwitch is on the plane, and what made DEF-076's first reading say there were none.\n\nSINCE DEF-087 ONE OF THE THREE REACHES THE MACHINE AND TWO ARE DISABLED. `Launch router daemon at sign-in` registers and removes WIN23's logon task, and the board seeds it from the Windows task scheduler rather than from its own memory; the state persists to %APPDATA%\\MCPRouter\\shell-settings.json. `Show status in notification area` places and removes a real notification-area icon (DEF-101), registered by GUID so that something other than this application can ask the shell whether it is there. `Confirm before removing a server` - narrowed from `Require confirmation on destructive operations`, which named a class of operations this build does not have - decides whether the Servers board asks before it sends the router the one destructive verb the shell speaks (DEF-102). Both were DISABLED with a reason until those two landed, and neither is any more: nothing on this board now moves a boolean that reaches nothing. `Copy the loopback endpoint` copies (DEF-088). The two disabled switches still publish a readable toggle state, so the census rows over them are unchanged."
   },
   {
     "id": "SURF-039",

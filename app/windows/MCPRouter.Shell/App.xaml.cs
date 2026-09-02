@@ -12,6 +12,17 @@ public partial class App : Application
     private Notifications.ToastNotifier? _toasts;
 
     /// <summary>
+    /// The shell's notification-area icon, or null before <see cref="OnLaunched"/> has run.
+    /// </summary>
+    /// <remarks>
+    /// PROCESS-WIDE ON PURPOSE (DEF-101). The notification area holds one icon for this
+    /// application, and the Settings board that switches it is built and discarded by navigation.
+    /// A board that owned its own host would place an icon on the way in and orphan it on the way
+    /// out, and the switch would be reporting a host that no longer exists.
+    /// </remarks>
+    internal static MCPRouter.Shell.Live.Ambient.NotificationAreaIcon? NotificationIcon { get; private set; }
+
+    /// <summary>
     /// Where the self-test writes, when <c>--selftest &lt;dir&gt;</c> was passed. Null for a
     /// normal launch.
     /// </summary>
@@ -168,6 +179,30 @@ public partial class App : Application
         // missing application.
         _toasts = new Notifications.ToastNotifier(OnToastInvoked);
         StartupLog.Write($"toast registration: {(_toasts.Register() ? "registered" : "FAILED")}");
+
+        // DEF-101. Placed from the STORED setting before the window is shown, so the icon is
+        // there for a launch the user never takes to Settings. The icon is what
+        // "Show status in notification area" owns; until this, the switch moved a boolean and the
+        // words "notification area" appeared nowhere else in the build.
+        NotificationIcon = new MCPRouter.Shell.Live.Ambient.NotificationAreaIcon(
+            () => MCPRouter.Shell.Model.Ambient.AmbientPresentation.FlyoutTitle,
+            () => _window?.DispatcherQueue.TryEnqueueGuarded(
+                "App.NotificationIconActivated", () => _window!.Activate()));
+        var storedSettings = new MCPRouter.Shell.Model.Settings.SettingsStore()
+            .Load(new MCPRouter.Shell.Model.Settings.RouterSettingsState());
+        if (storedSettings.ShowAmbientIcon)
+        {
+            var placed = NotificationIcon.Apply(true);
+            StartupLog.Write($"notification icon: {(placed ? "placed" : "FAILED")} - {NotificationIcon.LastDetail}");
+        }
+        else
+        {
+            StartupLog.Write("notification icon: not placed, the stored setting is off");
+        }
+
+        // An icon whose owner has gone lingers in the notification area until Explorer prunes it,
+        // and a lingering icon is a false yes for anything reading the area afterwards.
+        _window.Closed += (_, _) => NotificationIcon?.Dispose();
 
         _window.Activate();
 

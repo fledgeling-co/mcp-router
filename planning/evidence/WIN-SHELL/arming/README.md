@@ -1,11 +1,11 @@
 # Arming transcripts for the Settings board's out-of-process arms
 
-A predicate nobody has watched fail is indistinguishable from one that cannot fail. These two files
-are the runs where `scripts/windows/uia/shell-lane.ps1` section 3c went red under a defect planted
-on purpose, and they are what `armed: true` on CASE-0366..CASE-0371 stands on.
+A predicate nobody has watched fail is indistinguishable from one that cannot fail. These files are
+the runs where `scripts/windows/uia/shell-lane.ps1` went red under a defect planted on purpose, and
+they are what `armed: true` on the Settings board's effect rows stands on.
 
-Both plants are defects the product could genuinely have, not synthetic ones, and each was reverted
-immediately afterwards.
+Every plant here is a defect the product could genuinely have, not a synthetic one, and each was
+reverted immediately afterwards.
 
 ## `unbind-supervisor-lane.txt`
 
@@ -35,3 +35,48 @@ back from the scheduler rather than from the store.
 
 Taken together the two runs separate the two recorders: the task arm and the store arm can each go
 red without the other, so neither is riding on the other's evidence.
+
+## `icon-inert-and-no-confirmation-lane.txt` (DEF-101, DEF-102)
+
+**Planted:** two defects at once, each the one its row was filed against. `NotificationAreaIcon.Apply(true)`
+returned success without calling `Shell_NotifyIcon`, so the switch moved and the notification area
+never heard about it. `ServersBoard.RemoveSelectedAsync` stopped reading
+`RequireConfirmationOnDestructive` and never raised a confirmation, so the destructive button acted
+straight away.
+
+**Broke:** `settings.ambientIcon.effect` — "INERT BEYOND THE PROCESS: the switch reads On through
+the plane and the notification area reports no icon". `settings.requireConfirmation.effect` — "with
+the setting On, pressing Remove did not produce a confirmation this lane could decline".
+`settings.requireConfirmation.accepted`, as a consequence: the server the accept arm would have
+removed had already gone in the arm above it.
+
+**Also observed, and kept rather than engineered away:** `settings.ambientIcon.silence` reported
+`unoracled` — "the switch could not be driven back to Off (stuck at On)". With no icon in place,
+`NIM_DELETE` fails, `UpdateToggle` refuses to move the state, and the switch snaps back. The arm
+declined to call that either a pass or a failure of removal, which is the correct answer.
+
+**Held:** `settings.ambientIcon.baseline`, `settings.requireConfirmation.baseline` and
+`settings.requireConfirmation.silence` — the silence arm passes under this plant precisely because
+the plant removes the prompt, which is what that arm is looking for.
+
+## `icon-never-removed-and-answer-ignored-lane.txt` (DEF-101, DEF-102)
+
+**Planted:** the mirror of the first, and the subtler direction in both cases.
+`NotificationAreaIcon.Apply(false)` returned success without removing the icon. `RemoveSelectedAsync`
+raised the confirmation unconditionally and then threw the answer away.
+
+**Broke:** `settings.ambientIcon.baseline` — "the switch reads Off and the notification area still
+holds the icon, so the arms below would be about a leftover", which is the leftover guard doing the
+only job it has. `settings.ambientIcon.silence` — "Turning the setting off told the user something
+untrue". `settings.requireConfirmation.effect` — "the confirmation was declined and the router no
+longer lists lane-witness-alpha. The dialog was a decoration over an operation that had already been
+decided". `settings.requireConfirmation.silence` — "with the setting Off, pressing Remove still
+produced a confirmation. The switch is not being read".
+
+**Held:** `settings.ambientIcon.effect` passed here over an icon the plant had left behind rather
+than one the run placed, which is exactly what the baseline arm exists to catch and did.
+
+Between the two runs every arm added for DEF-101 and DEF-102 has been watched red except
+`settings.requireConfirmation.baseline`, which is a precondition guard over the lane's own router;
+it was watched report `unoracled` on 2026-09-02T16:06Z when a router that had answered correctly
+with an empty list came back as no answer at all.

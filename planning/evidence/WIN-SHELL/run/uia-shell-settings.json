@@ -1,23 +1,23 @@
 ﻿{
     "schema":  "win20.uia-dump/1",
-    "capturedAtUtc":  "2026-09-02T14:30:55.3891524Z",
+    "capturedAtUtc":  "2026-09-02T16:35:53.6858908Z",
     "host":  {
                  "osVersion":  "10.0.26220.0",
                  "psVersion":  "5.1.26100.9223",
                  "machine":  "Z13"
              },
     "request":  {
-                    "processId":  27720,
+                    "processId":  36980,
                     "titleContains":  "",
                     "view":  "Control"
                 },
     "targets":  [
                     {
-                        "hwnd":  3212922,
+                        "hwnd":  984960,
                         "name":  "Settings",
                         "className":  "WinUIDesktopWin32WindowClass",
                         "frameworkId":  "Win32",
-                        "processId":  27720,
+                        "processId":  36980,
                         "isVisible":  true,
                         "isMinimised":  false
                     }
@@ -25,22 +25,22 @@
     "foregroundSamples":  [
                               {
                                   "when":  "before",
-                                  "hwnd":  3212922,
-                                  "processId":  27720
+                                  "hwnd":  984960,
+                                  "processId":  36980
                               },
                               {
                                   "when":  "midwalk",
-                                  "hwnd":  3212922,
-                                  "processId":  27720
+                                  "hwnd":  984960,
+                                  "processId":  36980
                               },
                               {
                                   "when":  "after",
-                                  "hwnd":  3212922,
-                                  "processId":  27720
+                                  "hwnd":  984960,
+                                  "processId":  36980
                               }
                           ],
     "truncated":  false,
-    "elementCount":  84,
+    "elementCount":  82,
     "elements":  [
                      {
                          "depth":  0,
@@ -2069,7 +2069,7 @@
                          "boundingRectangle":  {
                                                    "y":  1214,
                                                    "width":  1127,
-                                                   "height":  140,
+                                                   "height":  100,
                                                    "x":  424
                                                },
                          "patterns":  [
@@ -2146,47 +2146,15 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/2/10/2",
-                         "automationId":  "settings.toggle.RequireConfirmationOnDestructive.reason",
-                         "name":  "Unavailable: no operation in this build asks this setting before it acts, so turning it off would remove no prompt. DEF-102.",
-                         "controlType":  "Text",
-                         "localizedControlType":  "text",
-                         "className":  "TextBlock",
-                         "frameworkId":  "XAML",
-                         "isEnabled":  true,
-                         "isOffscreen":  false,
-                         "isKeyboardFocusable":  false,
-                         "hasKeyboardFocus":  false,
-                         "isContentElement":  true,
-                         "isControlElement":  true,
-                         "accessKey":  "",
-                         "acceleratorKey":  "",
-                         "helpText":  "",
-                         "boundingRectangle":  {
-                                                   "y":  1286,
-                                                   "width":  844,
-                                                   "height":  48,
-                                                   "x":  450
-                                               },
-                         "patterns":  [
-                                          "ScrollItemPatternIdentifiers.Pattern",
-                                          "TextPatternIdentifiers.Pattern"
-                                      ],
-                         "patternState":  {
-
-                                          }
-                     },
-                     {
-                         "depth":  6,
-                         "path":  "/3/0/2/2/10/3",
                          "automationId":  "settings.toggle.RequireConfirmationOnDestructive",
-                         "name":  "Require confirmation on destructive operations",
+                         "name":  "Confirm before removing a server",
                          "controlType":  "Button",
                          "localizedControlType":  "toggle switch",
                          "className":  "ToggleSwitch",
                          "frameworkId":  "XAML",
-                         "isEnabled":  false,
+                         "isEnabled":  true,
                          "isOffscreen":  false,
-                         "isKeyboardFocusable":  false,
+                         "isKeyboardFocusable":  true,
                          "hasKeyboardFocus":  false,
                          "isContentElement":  true,
                          "isControlElement":  true,
@@ -2194,7 +2162,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1254,
+                                                   "y":  1234,
                                                    "width":  106,
                                                    "height":  60,
                                                    "x":  1294
@@ -2226,7 +2194,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1384,
+                                                   "y":  1343,
                                                    "width":  1127,
                                                    "height":  40,
                                                    "x":  424
@@ -2258,9 +2226,9 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1454,
+                                                   "y":  1414,
                                                    "width":  1127,
-                                                   "height":  74,
+                                                   "height":  100,
                                                    "x":  424
                                                },
                          "patterns":  [
@@ -2289,7 +2257,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1474,
+                                                   "y":  1433,
                                                    "width":  844,
                                                    "height":  28,
                                                    "x":  450
@@ -2321,7 +2289,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1502,
+                                                   "y":  1462,
                                                    "width":  844,
                                                    "height":  24,
                                                    "x":  450
@@ -2337,47 +2305,15 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/2/12/2",
-                         "automationId":  "settings.toggle.ShowAmbientIcon.reason",
-                         "name":  "Unavailable: this build draws no notification-area icon, so there is nothing for this switch to show or hide. DEF-101.",
-                         "controlType":  "Text",
-                         "localizedControlType":  "text",
-                         "className":  "TextBlock",
-                         "frameworkId":  "XAML",
-                         "isEnabled":  true,
-                         "isOffscreen":  false,
-                         "isKeyboardFocusable":  false,
-                         "hasKeyboardFocus":  false,
-                         "isContentElement":  true,
-                         "isControlElement":  true,
-                         "accessKey":  "",
-                         "acceleratorKey":  "",
-                         "helpText":  "",
-                         "boundingRectangle":  {
-                                                   "y":  1526,
-                                                   "width":  844,
-                                                   "height":  2,
-                                                   "x":  450
-                                               },
-                         "patterns":  [
-                                          "ScrollItemPatternIdentifiers.Pattern",
-                                          "TextPatternIdentifiers.Pattern"
-                                      ],
-                         "patternState":  {
-
-                                          }
-                     },
-                     {
-                         "depth":  6,
-                         "path":  "/3/0/2/2/12/3",
                          "automationId":  "settings.toggle.ShowAmbientIcon",
                          "name":  "Show status in notification area",
                          "controlType":  "Button",
                          "localizedControlType":  "toggle switch",
                          "className":  "ToggleSwitch",
                          "frameworkId":  "XAML",
-                         "isEnabled":  false,
+                         "isEnabled":  true,
                          "isOffscreen":  false,
-                         "isKeyboardFocusable":  false,
+                         "isKeyboardFocusable":  true,
                          "hasKeyboardFocus":  false,
                          "isContentElement":  true,
                          "isControlElement":  true,
@@ -2385,9 +2321,9 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1494,
+                                                   "y":  1433,
                                                    "width":  106,
-                                                   "height":  34,
+                                                   "height":  60,
                                                    "x":  1294
                                                },
                          "patterns":  [
@@ -2657,7 +2593,7 @@
                          "depth":  6,
                          "path":  "/3/0/2/2/14/6",
                          "automationId":  "settings.state.durability",
-                         "name":  "Stored at C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\shell-state\\shell-settings.json - sign-in state read from the Windows task scheduler. Last change: Removed \\MCPRouter\\WIN-SHELL Settings Witness (transient) in the Windows task scheduler.",
+                         "name":  "Stored at C:\\Dev\\mcp-router\\.worktrees\\wc2-tray-and-confirm\\planning\\evidence\\WIN-SHELL\\run\\shell-state\\shell-settings.json - sign-in state read from the Windows task scheduler, notification-area state read from the Windows notification area. Last change: Removed \\MCPRouter\\WIN-SHELL Settings Witness (transient) in the Windows task scheduler.",
                          "controlType":  "Text",
                          "localizedControlType":  "text",
                          "className":  "TextBlock",
@@ -2716,7 +2652,7 @@
                          "patternState":  {
                                               "rangeValue":  0,
                                               "rangeMinimum":  0,
-                                              "rangeMaximum":  349.3333740234375,
+                                              "rangeMaximum":  312,
                                               "rangeReadOnly":  false
                                           }
                      }

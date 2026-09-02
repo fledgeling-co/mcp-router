@@ -35,15 +35,15 @@
     },
     {
       "id": "EFFECT.restart",
-      "what": "the task restarts on failure",
+      "what": "the task carries both halves of the restart claim",
       "held": true,
-      "detail": "RestartCount=3, RestartInterval=PT1M"
+      "detail": "RestartCount=3, RestartInterval=PT1M, trigger Repetition=PT1M"
     },
     {
       "id": "EFFECT.action",
       "what": "the action is the executable and port this run asked for",
       "held": true,
-      "detail": "Execute=C:\\Dev\\mcp-router\\app\\windows\\MCPRouter.Shell.Live\\win23-witness-daemon.exe Arguments=--port 8890"
+      "detail": "Execute=C:\\Dev\\mcp-router\\.worktrees\\wc3-witness-blockers\\app\\windows\\MCPRouter.Shell.Live\\win23-witness-daemon.exe Arguments=--port 8890"
     },
     {
       "id": "REMOVAL",
@@ -61,8 +61,8 @@
   "armsHeld": 8,
   "armsTotal": 8,
   "notMeasured": [
-    "that the trigger fires at the next logon - this lane does not log the user out",
-    "that a killed daemon is restarted - this lane does not start or kill one"
+    "that the trigger fires at the next logon - this lane does not log the user out, and DEF-081 keeps it",
+    "that a killed daemon is restarted - this lane does not start or kill one; scripts/windows/win23-restart-witness.ps1 does, and does"
   ],
   "notes": [],
   "host": "Z13",

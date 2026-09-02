@@ -39,14 +39,14 @@
   "armsTotal": 4,
   "writerSelfReport": {
     "appUserModelId": "Fledgeling.MCPRouter.Shell",
-    "executable": "C:\\Dev\\mcp-router\\app\\windows\\MCPRouter.Shell\\bin\\x64\\Debug\\net8.0-windows10.0.19041.0\\win-x64\\MCPRouter.Shell.exe",
+    "executable": "C:\\Dev\\mcp-router\\.worktrees\\wc3-witness-blockers\\app\\windows\\MCPRouter.Shell\\bin\\Debug\\net8.0-windows10.0.19041.0\\win-x64\\MCPRouter.Shell.exe",
     "registered": true,
     "showAccepted": true,
     "whatThisIs": "the writer's own account of raising one toast. It is NOT the witness: nothing here reads the Action Center, and this process cannot see whether the notification was drawn. The graded evidence is the registry the platform wrote."
   },
   "writerSelfReportIsNotEvidence": "the shell process reporting that it raised a toast. Graded by nothing here: a process reporting its own effect is the shape of claim DEF-072 was about. It is carried so a reader can see the two accounts side by side.",
   "notMeasured": [
-    "that a toast is drawn in the Action Center - enumerating it needs UserNotificationListener, whose capability is only grantable to a packaged app, and this one is WindowsPackageType=None (DEF-082)",
+    "that a toast is drawn in the Action Center - scripts/windows/win22-toast-effect-witness.ps1 measures that, from a separate unpackaged process reading UserNotificationListener; this lane measures the registration only",
     "that pressing a toast button re-activates the process through the registered activator - nothing here can press one"
   ],
   "notes": [],

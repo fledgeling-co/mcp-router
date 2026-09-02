@@ -22,10 +22,15 @@
                              without it the toast appears and pressing it does nothing - the
                              failure that looks most like success. WITNESSED, and this is the arm
                              that carries the item.
-      the toast itself       NOT WITNESSED, and said here rather than left to a green. Enumerating
-                             what is in the Action Center needs UserNotificationListener, whose
-                             capability is only grantable to a PACKAGED application, and this one
-                             is WindowsPackageType=None. DEF-082 carries it.
+      the toast itself       NOT WITNESSED HERE, and witnessed next door. This lane once said the
+                             Action Center could not be read at all without a packaged application
+                             holding the userNotificationListener capability. That was measured on
+                             2026-09-03 and is false on this host: an unpackaged process with no
+                             package identity gets Allowed from RequestAccessAsync and enumerates
+                             the real toasts. scripts/windows/win22-toast-effect-witness.ps1 is the
+                             lane that does it, and it found this lane's own toasts from the day
+                             before. DEF-082 keeps only what is still true - that nothing here can
+                             press a notification button.
 
     THE RECORDER IS NOT THE WRITER. The registration is written by the Windows App SDK's
     notification platform, inside the shell process, through an API this repository does not
@@ -99,7 +104,7 @@ function Write-Verdict {
             'reporting its own effect is the shape of claim DEF-072 was about. It is carried so a ' +
             'reader can see the two accounts side by side.'
         notMeasured = @(
-            'that a toast is drawn in the Action Center - enumerating it needs UserNotificationListener, whose capability is only grantable to a packaged app, and this one is WindowsPackageType=None (DEF-082)',
+            'that a toast is drawn in the Action Center - scripts/windows/win22-toast-effect-witness.ps1 measures that, from a separate unpackaged process reading UserNotificationListener; this lane measures the registration only',
             'that pressing a toast button re-activates the process through the registered activator - nothing here can press one'
         )
         notes       = $Notes
@@ -151,11 +156,20 @@ function Read-Registration {
 
 # --------------------------------------------------------------------------- the writer
 if (-not $ExePath) {
-    $ExePath = Join-Path $RepoRoot 'app\windows\MCPRouter.Shell\bin\x64\Debug\net8.0-windows10.0.19041.0\win-x64\MCPRouter.Shell.exe'
+    # bin\Debug, not bin\x64\Debug. MEASURED 2026-09-03: this lane defaulted to the x64 path, which
+    # is what `MSBuild -p:Platform=x64` writes and NOT what scripts/windows/build-shell.ps1 writes,
+    # so a freshly and correctly built tree gave this lane NO VERDICT and told the reader to go and
+    # build a shell that was already there. It is the same split that let a twelve-hour-old binary
+    # fabricate twelve control failures for the UIA lane, arriving here as the harmless-looking half:
+    # the lane refuses to speak instead of speaking falsely. DEF-321.
+    $ExePath = Join-Path $RepoRoot 'app\windows\MCPRouter.Shell\bin\Debug\net8.0-windows10.0.19041.0\win-x64\MCPRouter.Shell.exe'
 }
 if (-not (Test-Path $ExePath)) {
-    Write-Verdict 3 'NO VERDICT' ("the shell binary is not on disk at {0}. Build it with the " +
-        'Visual Studio MSBuild - dotnet build cannot build WinUI here - and run this again.' -f $ExePath)
+    # The -f binds to the whole parenthesised expression rather than to the second string alone.
+    # Without the brackets this message printed a literal {0} where the path should be, which is a
+    # NO VERDICT that does not say what is missing.
+    Write-Verdict 3 'NO VERDICT' (("the shell binary is not on disk at {0}. Build it with " +
+        'scripts/windows/build-shell.ps1 - dotnet build cannot build WinUI here - and run this again.') -f $ExePath)
 }
 
 Write-Host ''

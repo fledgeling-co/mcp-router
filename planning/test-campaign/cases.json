@@ -4201,465 +4201,6 @@
     "actuatesSurface": "SURF-047"
   },
   {
-    "id": "CASE-0324",
-    "generatedKey": "destination:discover",
-    "req": "REQ-031",
-    "surface": "SURF-034",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-034",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": false,
-    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
-    "actuates": [
-      "Discover"
-    ],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-discover.json"
-    ],
-    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Discover' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
-    "actuatesSurface": "SURF-030",
-    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control."
-  },
-  {
-    "id": "CASE-0325",
-    "generatedKey": "destination:skills",
-    "req": "REQ-031",
-    "surface": "SURF-033",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-033",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": false,
-    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
-    "actuates": [
-      "Skills"
-    ],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-skills.json"
-    ],
-    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Skills' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
-    "actuatesSurface": "SURF-030",
-    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control."
-  },
-  {
-    "id": "CASE-0326",
-    "generatedKey": "destination:servers",
-    "req": "REQ-031",
-    "surface": "SURF-031",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-031",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": false,
-    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
-    "actuates": [
-      "Servers"
-    ],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-servers.json"
-    ],
-    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Servers' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
-    "actuatesSurface": "SURF-030",
-    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control."
-  },
-  {
-    "id": "CASE-0327",
-    "generatedKey": "destination:activity",
-    "req": "REQ-031",
-    "surface": "SURF-032",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-032",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": false,
-    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
-    "actuates": [
-      "Activity"
-    ],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-activity.json"
-    ],
-    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Activity' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
-    "actuatesSurface": "SURF-030",
-    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control."
-  },
-  {
-    "id": "CASE-0328",
-    "generatedKey": "destination:harnesses",
-    "req": "REQ-031",
-    "surface": "SURF-039",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-039",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": false,
-    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
-    "actuates": [
-      "Harnesses"
-    ],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-harnesses.json"
-    ],
-    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Harnesses' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
-    "actuatesSurface": "SURF-030",
-    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control."
-  },
-  {
-    "id": "CASE-0329",
-    "generatedKey": "destination:checks",
-    "req": "REQ-031",
-    "surface": "SURF-035",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-035",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": false,
-    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
-    "actuates": [
-      "Checks"
-    ],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-checks.json"
-    ],
-    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Checks' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
-    "actuatesSurface": "SURF-030",
-    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control."
-  },
-  {
-    "id": "CASE-0330",
-    "generatedKey": "destination:cleanup",
-    "req": "REQ-031",
-    "surface": "SURF-036",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-036",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": false,
-    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
-    "actuates": [
-      "Cleanup"
-    ],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-cleanup.json"
-    ],
-    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Cleanup' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
-    "actuatesSurface": "SURF-030",
-    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control."
-  },
-  {
-    "id": "CASE-0331",
-    "generatedKey": "destination:inbox",
-    "req": "REQ-031",
-    "surface": "SURF-037",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-037",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": false,
-    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
-    "actuates": [
-      "Inbox"
-    ],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-inbox.json"
-    ],
-    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Inbox' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
-    "actuatesSurface": "SURF-030",
-    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control."
-  },
-  {
-    "id": "CASE-0332",
-    "generatedKey": "destination:insights",
-    "req": "REQ-031",
-    "surface": "SURF-040",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-040",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": false,
-    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
-    "actuates": [
-      "Insights"
-    ],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-insights.json"
-    ],
-    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Insights' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
-    "actuatesSurface": "SURF-030",
-    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control."
-  },
-  {
-    "id": "CASE-0333",
-    "generatedKey": "destination:settings",
-    "req": "REQ-031",
-    "surface": "SURF-038",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-038",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": false,
-    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
-    "actuates": [
-      "Settings"
-    ],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
-    ],
-    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Settings' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
-    "actuatesSurface": "SURF-030",
-    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control."
-  },
-  {
-    "id": "CASE-0334",
-    "generatedKey": "shell",
-    "req": "REQ-031",
-    "surface": "SURF-030",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-030",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": false,
-    "armedNote": "not armed; see the destination rows.",
-    "actuates": [
-      "Nav"
-    ],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json"
-    ],
-    "note": "The shell's own row, and it asserts the one thing no per-destination case can: that the destinations are DISTINCT. 10 destination(s) were measured and produced 10 distinct control-view fingerprint(s). Counting the shell as one surface and stopping there is how an application whose six sidebar items opened a single placeholder view reported 8 of 8 surfaces covered.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
-  },
-  {
-    "id": "CASE-0335",
-    "generatedKey": "manual:SURF-041",
-    "req": "REQ-031",
-    "surface": "SURF-041",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-041",
-      "state": "unreached",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "presence",
-    "status": "n/a: not reachable from the shell's navigation, so the destination sweep never opens it. WIN11. Not a destination and not addressable by a route: it is raised from the notification area. Reaching it needs an actuation the self-test driver does not perform, so it is `manual` rather than `ready` — counted, with the reason, rather than absent.",
-    "armed": false,
-    "armedNote": "not armed: nothing was measured, so there is no predicate to arm.",
-    "actuates": [],
-    "evidence": [],
-    "note": "Registered as a case so this surface appears in the denominator with its reason attached. A surface left out of the registry is invisible to a coverage figure; a surface in it with an `n/a:` status is counted against one. The second is the honest shape and it is the whole reason this row exists rather than being omitted.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
-  },
-  {
-    "id": "CASE-0336",
-    "generatedKey": "manual:SURF-042",
-    "req": "REQ-031",
-    "surface": "SURF-042",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-042",
-      "state": "unreached",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "presence",
-    "status": "n/a: not reachable from the shell's navigation, so the destination sweep never opens it. WIN12. A ContentDialog reached from the Inbox board's `Pair iPhone…`. One literal control name; the pairing code and countdown are templated.",
-    "armed": false,
-    "armedNote": "not armed: nothing was measured, so there is no predicate to arm.",
-    "actuates": [],
-    "evidence": [],
-    "note": "Registered as a case so this surface appears in the denominator with its reason attached. A surface left out of the registry is invisible to a coverage figure; a surface in it with an `n/a:` status is counted against one. The second is the honest shape and it is the whole reason this row exists rather than being omitted.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
-  },
-  {
-    "id": "CASE-0337",
-    "generatedKey": "manual:SURF-043",
-    "req": "REQ-031",
-    "surface": "SURF-043",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-043",
-      "state": "unreached",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "presence",
-    "status": "n/a: not reachable from the shell's navigation, so the destination sweep never opens it. WIN16. Reached from Skills, Discover or Inbox rather than from the shell's own navigation.",
-    "armed": false,
-    "armedNote": "not armed: nothing was measured, so there is no predicate to arm.",
-    "actuates": [],
-    "evidence": [],
-    "note": "Registered as a case so this surface appears in the denominator with its reason attached. A surface left out of the registry is invisible to a coverage figure; a surface in it with an `n/a:` status is counted against one. The second is the honest shape and it is the whole reason this row exists rather than being omitted.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
-  },
-  {
-    "id": "CASE-0338",
-    "generatedKey": "manual:SURF-044",
-    "req": "REQ-031",
-    "surface": "SURF-044",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-044",
-      "state": "unreached",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "presence",
-    "status": "n/a: not reachable from the shell's navigation, so the destination sweep never opens it. WIN7's detail dialog. DiscoverDetailContent.xaml declares NO literal control name and no AutomationProperties.Name at all, so nothing on it is addressable from the automation plane by name. That is a finding, and it is why the control list is empty rather than omitted.",
-    "armed": false,
-    "armedNote": "not armed: nothing was measured, so there is no predicate to arm.",
-    "actuates": [],
-    "evidence": [],
-    "note": "Registered as a case so this surface appears in the denominator with its reason attached. A surface left out of the registry is invisible to a coverage figure; a surface in it with an `n/a:` status is counted against one. The second is the honest shape and it is the whole reason this row exists rather than being omitted.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
-  },
-  {
     "id": "CASE-0342",
     "req": "REQ-031",
     "lane": "windows-glass",
@@ -4730,158 +4271,6 @@
     "reqNote": "REQ-031 is the Windows shell itself. This case grades no shell behaviour: it answers a question about the diagnostic, which is whether the framework handler covers the class of failure the shell was found dying of. DEF-086 is the row it closes, and it closes it in the negative, which is why DEF-085's remedy is a guard at the posting site."
   },
   {
-    "id": "CASE-0343",
-    "generatedKey": "control:settings.toggle.LaunchAtLogin",
-    "req": "REQ-038",
-    "surface": "SURF-038",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-038",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "structural",
-    "status": "pass",
-    "armed": false,
-    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The settings.sections row did come back red for real on 2026-09-02T08:55Z, when the census read the tree before the board had realised - which arms the id lookup against absence but not against a renamed control.",
-    "actuates": [],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
-    ],
-    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: named 'Launch router daemon at sign-in', toggle state readable as 'Off' WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
-  },
-  {
-    "id": "CASE-0344",
-    "generatedKey": "control:settings.toggle.RequireConfirmationOnDestructive",
-    "req": "REQ-038",
-    "surface": "SURF-038",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-038",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "structural",
-    "status": "pass",
-    "armed": false,
-    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The settings.sections row did come back red for real on 2026-09-02T08:55Z, when the census read the tree before the board had realised - which arms the id lookup against absence but not against a renamed control.",
-    "actuates": [],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
-    ],
-    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: named 'Require confirmation on destructive operations', toggle state readable as 'On' WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
-  },
-  {
-    "id": "CASE-0345",
-    "generatedKey": "control:settings.toggle.ShowAmbientIcon",
-    "req": "REQ-038",
-    "surface": "SURF-038",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-038",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "structural",
-    "status": "pass",
-    "armed": false,
-    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The settings.sections row did come back red for real on 2026-09-02T08:55Z, when the census read the tree before the board had realised - which arms the id lookup against absence but not against a renamed control.",
-    "actuates": [],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
-    ],
-    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: named 'Show status in notification area', toggle state readable as 'On' WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
-  },
-  {
-    "id": "CASE-0346",
-    "generatedKey": "control:settings.effect",
-    "req": "REQ-038",
-    "surface": "SURF-038",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-038",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "effect-witness",
-    "status": "pass",
-    "armed": true,
-    "armedNote": "armed by observation rather than by a planted defect: this predicate FAILED on the run of 2026-09-02T08:58Z, against a state readout whose accessible name was a static label instead of its own text, and passed on the next run once the override was removed. The failure is in lane.log verbatim.",
-    "actuates": [
-      "Launch router daemon at sign-in"
-    ],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
-    ],
-    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: toggling 'Launch router daemon at sign-in' through the plane moved the board's state readout from 'LaunchAtLogin=off · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' to 'LaunchAtLogin=on · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' - an effect outside the control that was actuated. THIS IS THE ROW THAT SEPARATES A BOUND CONTROL FROM AN INERT ONE. It toggles the switch through TogglePattern and then reads a DIFFERENT element - the board's state readout, which the view renders from the model - so a switch that moved and wrote through to nothing would leave that line unchanged and fail here. It went red for real on the first run, against a readout carrying a static AutomationProperties.Name that overrode its own text. WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
-    "witness": {
-      "recorder": "System.Windows.Automation, in a PowerShell process that is not the shell, reading the shell's published accessibility tree",
-      "effect": "ui-state",
-      "count": 1
-    },
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
-  },
-  {
-    "id": "CASE-0347",
-    "generatedKey": "control:discover.detail",
-    "req": "REQ-039",
-    "surface": "SURF-044",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-044",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "structural",
-    "status": "pass",
-    "armed": false,
-    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The settings.sections row did come back red for real on 2026-09-02T08:55Z, when the census read the tree before the board had realised - which arms the id lookup against absence but not against a renamed control.",
-    "actuates": [],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-discover-detail.json"
-    ],
-    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: opened from the row 'MCPRouter.Shell.Views.DiscoverRow'; all 8 checked control(s) are addressable by id and publish a name. WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
-  },
-  {
     "lane": "windows-glass",
     "oracle": "source-analysis",
     "status": "pass",
@@ -4925,35 +4314,6 @@
       "effect": "none",
       "count": 1
     }
-  },
-  {
-    "id": "CASE-0350",
-    "generatedKey": "control:settings.sections",
-    "req": "REQ-038",
-    "surface": "SURF-038",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-038",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "structural",
-    "status": "pass",
-    "armed": false,
-    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The settings.sections row did come back red for real on 2026-09-02T08:55Z, when the census read the tree before the board had realised - which arms the id lookup against absence but not against a renamed control.",
-    "actuates": [],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
-    ],
-    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: all 7 declared section(s) publish an addressable container: settings.section.router, settings.section.harnesses, settings.section.sessionanalyst, settings.section.updates, settings.section.security, settings.section.ambientsurface, settings.section.advanced WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
     "id": "CASE-0351",
@@ -5106,234 +4466,6 @@
     "renumberNote": "Allocated as CASE-0343 by a concurrent Wave A runner and renumbered at merge: another runner in the same wave had already published a DIFFERENT row under CASE-0343. The id is the only thing that changed."
   },
   {
-    "id": "CASE-0366",
-    "generatedKey": "control:settings.launchAtLogin.baseline",
-    "req": "REQ-038",
-    "surface": "SURF-038",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-038",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "effect-witness",
-    "status": "pass",
-    "armed": false,
-    "armedNote": "NOT armed. This row HELD through both plants of 2026-09-02 - see planning/evidence/WIN-SHELL/arming/ - which establishes that it is independent of those two defects and says nothing about whether it can go red at all. It stays unarmed until something has been watched to break it.",
-    "actuates": [
-      "Launch router daemon at sign-in"
-    ],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
-      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
-      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt"
-    ],
-    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: Get-ScheduledTask reports no task at '\\MCPRouter\\WIN-SHELL Settings Witness (transient)' before the switch is driven, so the arms below measure THIS run's registration. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider). That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green.",
-    "witness": {
-      "recorder": "Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)",
-      "effect": "machine-state",
-      "count": 1
-    },
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
-  },
-  {
-    "id": "CASE-0367",
-    "generatedKey": "control:settings.launchAtLogin.effect",
-    "req": "REQ-038",
-    "surface": "SURF-038",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-038",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "effect-witness",
-    "status": "pass",
-    "armed": true,
-    "armedNote": "armed by a planted defect, watched on 2026-09-02. Removing the call that carries the sign-in switch to the supervisor broke settings.launchAtLogin.effect and settings.persistence; making the store's Save report success without writing broke settings.persistence.store alone. Both transcripts are in planning/evidence/WIN-SHELL/arming/.",
-    "actuates": [
-      "Launch router daemon at sign-in"
-    ],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
-      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
-      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt"
-    ],
-    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: driving the switch to On through the automation plane registered '\\MCPRouter\\WIN-SHELL Settings Witness (transient)' in the Windows task scheduler: state=Ready, logon trigger present, RunLevel=Limited (the recorder's word for the XML's LeastPrivilege), Execute=C:\\Dev\\mcp-router\\.worktrees\\wb1-settings-persistence\\app\\windows\\MCPRouter.Shell\\win-shell-witness-daemon.exe. Read by an API that did not write it. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider). That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green.",
-    "witness": {
-      "recorder": "Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)",
-      "effect": "machine-state",
-      "count": 1
-    },
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
-  },
-  {
-    "id": "CASE-0368",
-    "generatedKey": "control:settings.persistence.store",
-    "req": "REQ-038",
-    "surface": "SURF-038",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-038",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "effect-witness",
-    "status": "pass",
-    "armed": true,
-    "armedNote": "armed by a planted defect, watched on 2026-09-02. Removing the call that carries the sign-in switch to the supervisor broke settings.launchAtLogin.effect and settings.persistence; making the store's Save report success without writing broke settings.persistence.store alone. Both transcripts are in planning/evidence/WIN-SHELL/arming/.",
-    "actuates": [
-      "Launch router daemon at sign-in"
-    ],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
-      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
-      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt"
-    ],
-    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: C:\\Dev\\mcp-router\\.worktrees\\wb1-settings-persistence\\planning\\evidence\\WIN-SHELL\\run\\shell-state\\shell-settings.json holds LaunchAtLogin=true, read off the disk by this script. The file is the recorder; the shell is not asked what it saved. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: a read of the settings file by this script. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green.",
-    "witness": {
-      "recorder": "a read of the settings file by this script",
-      "effect": "machine-state",
-      "count": 1
-    },
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
-  },
-  {
-    "id": "CASE-0369",
-    "generatedKey": "control:settings.persistence",
-    "req": "REQ-038",
-    "surface": "SURF-038",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-038",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "effect-witness",
-    "status": "pass",
-    "armed": true,
-    "armedNote": "armed by a planted defect, watched on 2026-09-02. Removing the call that carries the sign-in switch to the supervisor broke settings.launchAtLogin.effect and settings.persistence; making the store's Save report success without writing broke settings.persistence.store alone. Both transcripts are in planning/evidence/WIN-SHELL/arming/.",
-    "actuates": [
-      "Launch router daemon at sign-in"
-    ],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
-      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
-      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt"
-    ],
-    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: the shell was terminated and launched again as a new process, and the switch reads On in the new one. Closing the shell no longer forgets the setting. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: a second MCPRouter.Shell process, launched after the first was terminated. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green.",
-    "witness": {
-      "recorder": "a second MCPRouter.Shell process, launched after the first was terminated",
-      "effect": "machine-state",
-      "count": 1
-    },
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
-  },
-  {
-    "id": "CASE-0370",
-    "generatedKey": "control:settings.copyEndpoint",
-    "req": "REQ-038",
-    "surface": "SURF-038",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-038",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "effect-witness",
-    "status": "pass",
-    "armed": false,
-    "armedNote": "NOT armed. This row HELD through both plants of 2026-09-02 - see planning/evidence/WIN-SHELL/arming/ - which establishes that it is independent of those two defects and says nothing about whether it can go red at all. It stays unarmed until something has been watched to break it.",
-    "actuates": [
-      "Copy the loopback endpoint"
-    ],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
-      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
-      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt"
-    ],
-    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: the clipboard held this lane's sentinel before the button was invoked and holds 'http://127.0.0.1:8879' after, read out of a separate PowerShell process. It matches the endpoint the board displays at settings.state.endpoint. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Get-Clipboard in a separate PowerShell process. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green.",
-    "witness": {
-      "recorder": "Get-Clipboard in a separate PowerShell process",
-      "effect": "machine-state",
-      "count": 1
-    },
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
-  },
-  {
-    "id": "CASE-0371",
-    "generatedKey": "control:settings.launchAtLogin.silence",
-    "req": "REQ-038",
-    "surface": "SURF-038",
-    "flow": null,
-    "lane": "windows-glass",
-    "cell": {
-      "surface": "SURF-038",
-      "state": "as-launched",
-      "viewport": "default",
-      "theme": "system",
-      "role": "operator",
-      "dataShape": "no-router-running",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "effect-witness",
-    "status": "pass",
-    "armed": false,
-    "armedNote": "NOT armed. This row HELD through both plants of 2026-09-02 - see planning/evidence/WIN-SHELL/arming/ - which establishes that it is independent of those two defects and says nothing about whether it can go red at all. It stays unarmed until something has been watched to break it.",
-    "actuates": [
-      "Launch router daemon at sign-in"
-    ],
-    "evidence": [
-      "planning/evidence/WIN-SHELL/run/assert-report.json",
-      "planning/evidence/WIN-SHELL/run/lane.log",
-      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
-      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
-      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt"
-    ],
-    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: driving the switch back to Off removed '\\MCPRouter\\WIN-SHELL Settings Witness (transient)': Get-ScheduledTask reports absence again, so its yes above was a reading rather than an echo. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider). That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green.",
-    "witness": {
-      "recorder": "Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)",
-      "effect": "machine-state",
-      "count": 1
-    },
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
-  },
-  {
     "lane": "windows-glass",
     "oracle": "structural",
     "status": "pass",
@@ -5455,5 +4587,1198 @@
       "planning/test-campaign/bin/win-cases-from-lane.py"
     ],
     "note": "NOT a product measurement. Nothing here is observed on glass and this row must not be read as coverage of any surface -- `surface` is null on purpose, and `actuates` is empty because a case about the `actuates` vocabulary must not put a control in the numerator to say so. The commands the plants ran, which is what `actuates` is NOT for: `python planning/test-campaign/bin/control-census.py` and `python planning/test-campaign/bin/win-surface-reconcile.py`, from the worktree root. WHAT ARM (B) DOES NOT COVER: SURF-047 alone can be moved back under `controls` and the gate stays green, because its four members are not shaped like API calls. DEF-131 carries that floor, and this case is not evidence against it."
+  },
+  {
+    "id": "CASE-0324",
+    "generatedKey": "destination:discover",
+    "req": "REQ-031",
+    "surface": "SURF-034",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-034",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
+    "actuates": [
+      "Discover"
+    ],
+    "actuatesSurface": "SURF-030",
+    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control.",
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-discover.json"
+    ],
+    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Discover' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0325",
+    "generatedKey": "destination:skills",
+    "req": "REQ-031",
+    "surface": "SURF-033",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-033",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
+    "actuates": [
+      "Skills"
+    ],
+    "actuatesSurface": "SURF-030",
+    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control.",
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-skills.json"
+    ],
+    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Skills' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0326",
+    "generatedKey": "destination:servers",
+    "req": "REQ-031",
+    "surface": "SURF-031",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-031",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
+    "actuates": [
+      "Servers"
+    ],
+    "actuatesSurface": "SURF-030",
+    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control.",
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-servers.json"
+    ],
+    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Servers' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0327",
+    "generatedKey": "destination:activity",
+    "req": "REQ-031",
+    "surface": "SURF-032",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-032",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
+    "actuates": [
+      "Activity"
+    ],
+    "actuatesSurface": "SURF-030",
+    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control.",
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-activity.json"
+    ],
+    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Activity' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0328",
+    "generatedKey": "destination:harnesses",
+    "req": "REQ-031",
+    "surface": "SURF-039",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-039",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
+    "actuates": [
+      "Harnesses"
+    ],
+    "actuatesSurface": "SURF-030",
+    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control.",
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-harnesses.json"
+    ],
+    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Harnesses' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0329",
+    "generatedKey": "destination:checks",
+    "req": "REQ-031",
+    "surface": "SURF-035",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-035",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
+    "actuates": [
+      "Checks"
+    ],
+    "actuatesSurface": "SURF-030",
+    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control.",
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-checks.json"
+    ],
+    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Checks' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0330",
+    "generatedKey": "destination:cleanup",
+    "req": "REQ-031",
+    "surface": "SURF-036",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-036",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
+    "actuates": [
+      "Cleanup"
+    ],
+    "actuatesSurface": "SURF-030",
+    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control.",
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-cleanup.json"
+    ],
+    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Cleanup' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0331",
+    "generatedKey": "destination:inbox",
+    "req": "REQ-031",
+    "surface": "SURF-037",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-037",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
+    "actuates": [
+      "Inbox"
+    ],
+    "actuatesSurface": "SURF-030",
+    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control.",
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-inbox.json"
+    ],
+    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Inbox' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0332",
+    "generatedKey": "destination:insights",
+    "req": "REQ-031",
+    "surface": "SURF-040",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-040",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
+    "actuates": [
+      "Insights"
+    ],
+    "actuatesSurface": "SURF-030",
+    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control.",
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-insights.json"
+    ],
+    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Insights' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0333",
+    "generatedKey": "destination:settings",
+    "req": "REQ-031",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The collapse and title checks would each fail on a real regression, but that has been reasoned rather than demonstrated, so this stays false.",
+    "actuates": [
+      "Settings"
+    ],
+    "actuatesSurface": "SURF-030",
+    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control.",
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
+    ],
+    "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Settings' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0334",
+    "generatedKey": "shell",
+    "req": "REQ-031",
+    "surface": "SURF-030",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-030",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed; see the destination rows.",
+    "actuates": [
+      "Nav"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json"
+    ],
+    "note": "The shell's own row, and it asserts the one thing no per-destination case can: that the destinations are DISTINCT. 10 destination(s) were measured and produced 10 distinct control-view fingerprint(s). Counting the shell as one surface and stopping there is how an application whose six sidebar items opened a single placeholder view reported 8 of 8 surfaces covered.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0350",
+    "generatedKey": "control:settings.sections",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "structural",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The settings.sections row did come back red for real on 2026-09-02T08:55Z, when the census read the tree before the board had realised - which arms the id lookup against absence but not against a renamed control.",
+    "actuates": [],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: all 7 declared section(s) publish an addressable container: settings.section.router, settings.section.harnesses, settings.section.sessionanalyst, settings.section.updates, settings.section.security, settings.section.ambientsurface, settings.section.advanced WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0343",
+    "generatedKey": "control:settings.toggle.LaunchAtLogin",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "structural",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The settings.sections row did come back red for real on 2026-09-02T08:55Z, when the census read the tree before the board had realised - which arms the id lookup against absence but not against a renamed control.",
+    "actuates": [],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: named 'Launch router daemon at sign-in', toggle state readable as 'Off' WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0344",
+    "generatedKey": "control:settings.toggle.RequireConfirmationOnDestructive",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "structural",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The settings.sections row did come back red for real on 2026-09-02T08:55Z, when the census read the tree before the board had realised - which arms the id lookup against absence but not against a renamed control.",
+    "actuates": [],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: named 'Confirm before removing a server', toggle state readable as 'On' WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0345",
+    "generatedKey": "control:settings.toggle.ShowAmbientIcon",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "structural",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The settings.sections row did come back red for real on 2026-09-02T08:55Z, when the census read the tree before the board had realised - which arms the id lookup against absence but not against a renamed control.",
+    "actuates": [],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: named 'Show status in notification area', toggle state readable as 'On' WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0346",
+    "generatedKey": "control:settings.effect",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": true,
+    "armedNote": "armed by observation rather than by a planted defect: this predicate FAILED on the run of 2026-09-02T08:58Z, against a state readout whose accessible name was a static label instead of its own text, and passed on the next run once the override was removed. The failure is in lane.log verbatim.",
+    "actuates": [
+      "Launch router daemon at sign-in"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: toggling 'Launch router daemon at sign-in' through the plane moved the board's state readout from 'LaunchAtLogin=off · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' to 'LaunchAtLogin=on · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' - an effect outside the control that was actuated. THIS IS THE ROW THAT SEPARATES A BOUND CONTROL FROM AN INERT ONE. It toggles the switch through TogglePattern and then reads a DIFFERENT element - the board's state readout, which the view renders from the model - so a switch that moved and wrote through to nothing would leave that line unchanged and fail here. It went red for real on the first run, against a readout carrying a static AutomationProperties.Name that overrode its own text. WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "System.Windows.Automation, in a PowerShell process that is not the shell, reading the shell's published accessibility tree",
+      "effect": "ui-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0366",
+    "generatedKey": "control:settings.launchAtLogin.baseline",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "NOT armed. This row HELD through every plant taken so far - see planning/evidence/WIN-SHELL/arming/ - which establishes that it is independent of those defects and says nothing about whether it can go red at all. It stays unarmed until something has been watched to break it.",
+    "actuates": [
+      "Launch router daemon at sign-in"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-inert-and-no-confirmation-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-never-removed-and-answer-ignored-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: Get-ScheduledTask reports no task at '\\MCPRouter\\WIN-SHELL Settings Witness (transient)' before the switch is driven, so the arms below measure THIS run's registration. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider). That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0367",
+    "generatedKey": "control:settings.launchAtLogin.effect",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": true,
+    "armedNote": "armed by a planted defect, watched on 2026-09-02. Removing the call that carries the sign-in switch to the supervisor broke settings.launchAtLogin.effect and settings.persistence; making the store's Save report success without writing broke settings.persistence.store alone. Both transcripts are in planning/evidence/WIN-SHELL/arming/.",
+    "actuates": [
+      "Launch router daemon at sign-in"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-inert-and-no-confirmation-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-never-removed-and-answer-ignored-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: driving the switch to On through the automation plane registered '\\MCPRouter\\WIN-SHELL Settings Witness (transient)' in the Windows task scheduler: state=Ready, logon trigger present, RunLevel=Limited (the recorder's word for the XML's LeastPrivilege), Execute=C:\\Dev\\mcp-router\\.worktrees\\wc2-tray-and-confirm\\app\\windows\\MCPRouter.Shell\\win-shell-witness-daemon.exe. Read by an API that did not write it. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider). That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0368",
+    "generatedKey": "control:settings.persistence.store",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": true,
+    "armedNote": "armed by a planted defect, watched on 2026-09-02. Removing the call that carries the sign-in switch to the supervisor broke settings.launchAtLogin.effect and settings.persistence; making the store's Save report success without writing broke settings.persistence.store alone. Both transcripts are in planning/evidence/WIN-SHELL/arming/.",
+    "actuates": [
+      "Launch router daemon at sign-in"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-inert-and-no-confirmation-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-never-removed-and-answer-ignored-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: C:\\Dev\\mcp-router\\.worktrees\\wc2-tray-and-confirm\\planning\\evidence\\WIN-SHELL\\run\\shell-state\\shell-settings.json holds LaunchAtLogin=true, read off the disk by this script. The file is the recorder; the shell is not asked what it saved. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: a read of the settings file by this script. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "a read of the settings file by this script",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0369",
+    "generatedKey": "control:settings.persistence",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": true,
+    "armedNote": "armed by a planted defect, watched on 2026-09-02. Removing the call that carries the sign-in switch to the supervisor broke settings.launchAtLogin.effect and settings.persistence; making the store's Save report success without writing broke settings.persistence.store alone. Both transcripts are in planning/evidence/WIN-SHELL/arming/.",
+    "actuates": [
+      "Launch router daemon at sign-in"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-inert-and-no-confirmation-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-never-removed-and-answer-ignored-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: the shell was terminated and launched again as a new process, and the switch reads On in the new one. Closing the shell no longer forgets the setting. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: a second MCPRouter.Shell process, launched after the first was terminated. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "a second MCPRouter.Shell process, launched after the first was terminated",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0370",
+    "generatedKey": "control:settings.copyEndpoint",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "NOT armed. This row HELD through every plant taken so far - see planning/evidence/WIN-SHELL/arming/ - which establishes that it is independent of those defects and says nothing about whether it can go red at all. It stays unarmed until something has been watched to break it.",
+    "actuates": [
+      "Copy the loopback endpoint"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-inert-and-no-confirmation-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-never-removed-and-answer-ignored-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: the clipboard held this lane's sentinel before the button was invoked and holds 'http://127.0.0.1:8879' after, read out of a separate PowerShell process. It matches the endpoint the board displays at settings.state.endpoint. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Get-Clipboard in a separate PowerShell process. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "Get-Clipboard in a separate PowerShell process",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0371",
+    "generatedKey": "control:settings.launchAtLogin.silence",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "NOT armed. This row HELD through every plant taken so far - see planning/evidence/WIN-SHELL/arming/ - which establishes that it is independent of those defects and says nothing about whether it can go red at all. It stays unarmed until something has been watched to break it.",
+    "actuates": [
+      "Launch router daemon at sign-in"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-inert-and-no-confirmation-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-never-removed-and-answer-ignored-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: driving the switch back to Off removed '\\MCPRouter\\WIN-SHELL Settings Witness (transient)': Get-ScheduledTask reports absence again, so its yes above was a reading rather than an echo. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider). That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0420",
+    "generatedKey": "control:settings.ambientIcon.baseline",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": true,
+    "armedNote": "armed by two planted defects, watched on 2026-09-02, transcripts in planning/evidence/WIN-SHELL/arming/. Making NotificationAreaIcon.Apply(true) report success without calling Shell_NotifyIcon - DEF-101 exactly as it was filed - broke settings.ambientIcon.effect: the switch read On through the plane and a separate process asked the shell for the icon and was told there was none. Making Apply(false) report success without removing it broke settings.ambientIcon.baseline and settings.ambientIcon.silence, the second of them with 'turning the setting off told the user something untrue'. The two plants are opposite directions of the same wire, so neither arm is riding on the other's evidence.",
+    "actuates": [
+      "Show status in notification area"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-inert-and-no-confirmation-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-never-removed-and-answer-ignored-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: with the switch driven Off, a separate process asks the shell for the icon at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90} and is told there is none (HRESULT 0x80004005). The recorder is capable of saying no, and any yes below is this run's. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Shell_NotifyIconGetRect in a separate powershell.exe process. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "Shell_NotifyIconGetRect in a separate powershell.exe process",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0421",
+    "generatedKey": "control:settings.ambientIcon.effect",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": true,
+    "armedNote": "armed by two planted defects, watched on 2026-09-02, transcripts in planning/evidence/WIN-SHELL/arming/. Making NotificationAreaIcon.Apply(true) report success without calling Shell_NotifyIcon - DEF-101 exactly as it was filed - broke settings.ambientIcon.effect: the switch read On through the plane and a separate process asked the shell for the icon and was told there was none. Making Apply(false) report success without removing it broke settings.ambientIcon.baseline and settings.ambientIcon.silence, the second of them with 'turning the setting off told the user something untrue'. The two plants are opposite directions of the same wire, so neither arm is riding on the other's evidence.",
+    "actuates": [
+      "Show status in notification area"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-inert-and-no-confirmation-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-never-removed-and-answer-ignored-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: driving the switch to On through the automation plane put an icon in the Windows notification area at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90}: a separate process asked the shell for its rectangle and got 2109,1528 to 2157,1600 (HRESULT 0x00000000). Read by an API this application never called. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Shell_NotifyIconGetRect in a separate powershell.exe process. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "Shell_NotifyIconGetRect in a separate powershell.exe process",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0422",
+    "generatedKey": "control:settings.ambientIcon.silence",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": true,
+    "armedNote": "armed by two planted defects, watched on 2026-09-02, transcripts in planning/evidence/WIN-SHELL/arming/. Making NotificationAreaIcon.Apply(true) report success without calling Shell_NotifyIcon - DEF-101 exactly as it was filed - broke settings.ambientIcon.effect: the switch read On through the plane and a separate process asked the shell for the icon and was told there was none. Making Apply(false) report success without removing it broke settings.ambientIcon.baseline and settings.ambientIcon.silence, the second of them with 'turning the setting off told the user something untrue'. The two plants are opposite directions of the same wire, so neither arm is riding on the other's evidence.",
+    "actuates": [
+      "Show status in notification area"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-inert-and-no-confirmation-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-never-removed-and-answer-ignored-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: driving the switch back to Off took the icon out of the notification area: the same reader that found it a moment ago now answers HRESULT 0x80004005. Its yes above was a reading rather than an echo, and turning the setting off tells the user something true. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Shell_NotifyIconGetRect in a separate powershell.exe process. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "Shell_NotifyIconGetRect in a separate powershell.exe process",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0423",
+    "generatedKey": "control:settings.requireConfirmation.baseline",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "NOT armed. This row HELD through every plant taken so far - see planning/evidence/WIN-SHELL/arming/ - which establishes that it is independent of those defects and says nothing about whether it can go red at all. It stays unarmed until something has been watched to break it.",
+    "actuates": [
+      "Confirm before removing a server"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-inert-and-no-confirmation-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-never-removed-and-answer-ignored-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: the router lists both servers this lane declared - lane-witness-beta, lane-witness-alpha - before any removal is attempted, so the arms below measure removals rather than absences that were already there. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: the router's own /servers listing, read over the control API by this script. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "the router's own /servers listing, read over the control API by this script",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0424",
+    "generatedKey": "control:settings.requireConfirmation.effect",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": true,
+    "armedNote": "armed by two planted defects, watched on 2026-09-02, transcripts in planning/evidence/WIN-SHELL/arming/. Having the Servers board stop reading the setting and remove without asking - DEF-102 exactly as it was filed - broke settings.requireConfirmation.effect and, in its wake, settings.requireConfirmation.accepted. Raising the confirmation unconditionally and then discarding its answer broke settings.requireConfirmation.effect again from the other side ('the dialog was a decoration over an operation that had already been decided') and settings.requireConfirmation.silence ('with the setting Off, pressing Remove still produced a confirmation'). What is graded in every case is the router's own server list, read over the control API by the lane rather than reported by the app.",
+    "actuates": [
+      "Confirm before removing a server"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-inert-and-no-confirmation-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-never-removed-and-answer-ignored-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: with the setting On, Remove raised a confirmation, this lane pressed 'Keep it', and the router still lists lane-witness-alpha (now: lane-witness-beta, lane-witness-alpha). The refusal is read out of the router, not out of the dialog: the app's account of having asked is not evidence that it obeyed the answer. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: the router's own /servers listing, read over the control API by this script. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "the router's own /servers listing, read over the control API by this script",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0425",
+    "generatedKey": "control:settings.requireConfirmation.accepted",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": true,
+    "armedNote": "armed by two planted defects, watched on 2026-09-02, transcripts in planning/evidence/WIN-SHELL/arming/. Having the Servers board stop reading the setting and remove without asking - DEF-102 exactly as it was filed - broke settings.requireConfirmation.effect and, in its wake, settings.requireConfirmation.accepted. Raising the confirmation unconditionally and then discarding its answer broke settings.requireConfirmation.effect again from the other side ('the dialog was a decoration over an operation that had already been decided') and settings.requireConfirmation.silence ('with the setting Off, pressing Remove still produced a confirmation'). What is graded in every case is the router's own server list, read over the control API by the lane rather than reported by the app.",
+    "actuates": [
+      "Confirm before removing a server"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-inert-and-no-confirmation-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-never-removed-and-answer-ignored-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: pressing 'Remove permanently' removed lane-witness-alpha from the ROUTER - it now lists lane-witness-beta. The gate opens as well as closes. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: the router's own /servers listing, read over the control API by this script. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "the router's own /servers listing, read over the control API by this script",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0426",
+    "generatedKey": "control:settings.requireConfirmation.silence",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": true,
+    "armedNote": "armed by two planted defects, watched on 2026-09-02, transcripts in planning/evidence/WIN-SHELL/arming/. Having the Servers board stop reading the setting and remove without asking - DEF-102 exactly as it was filed - broke settings.requireConfirmation.effect and, in its wake, settings.requireConfirmation.accepted. Raising the confirmation unconditionally and then discarding its answer broke settings.requireConfirmation.effect again from the other side ('the dialog was a decoration over an operation that had already been decided') and settings.requireConfirmation.silence ('with the setting Off, pressing Remove still produced a confirmation'). What is graded in every case is the router's own server list, read over the control API by the lane rather than reported by the app.",
+    "actuates": [
+      "Confirm before removing a server"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-inert-and-no-confirmation-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/icon-never-removed-and-answer-ignored-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: with the setting Off, Remove raised no confirmation at all and the router no longer lists lane-witness-beta (now: nothing). The prompt above was the setting being obeyed rather than a dialog this board always shows. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: the router's own /servers listing, read over the control API by this script. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "the router's own /servers listing, read over the control API by this script",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0404",
+    "generatedKey": "control:discover.rows.recent",
+    "req": "REQ-039",
+    "surface": "SURF-044",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-044",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "structural",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The settings.sections row did come back red for real on 2026-09-02T08:55Z, when the census read the tree before the board had realised - which arms the id lookup against absence but not against a renamed control.",
+    "actuates": [],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-discover-detail.json"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: 60 row(s) in 'discover.band.recent' each publish a distinct accessible name, none of them the type name, and a distinct automation id. First three: sap-mcp, 34,350 sessions on Smithery, added 13 Jul 2026, On Smithery | Framesail, 11,533 sessions on Smithery, added 9 Jul 2026, On Smithery | LMK.today MCP, 8,243 sessions on Smithery, added 6 Jul 2026, On Smithery WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0405",
+    "generatedKey": "control:discover.rows.used",
+    "req": "REQ-039",
+    "surface": "SURF-044",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-044",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "structural",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The settings.sections row did come back red for real on 2026-09-02T08:55Z, when the census read the tree before the board had realised - which arms the id lookup against absence but not against a renamed control.",
+    "actuates": [],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-discover-detail.json"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: 60 row(s) in 'discover.band.used' each publish a distinct accessible name, none of them the type name, and a distinct automation id. First three: pipeworx gateway, 419,019 sessions on Smithery, added 22 Apr 2026, On Smithery | Brave Search, 87,579 sessions on Smithery, added 5 Sep 2025, On Smithery, verified by Smithery | uk-due-diligence, 60,881 sessions on Smithery, added 29 Apr 2026, On Smithery WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0347",
+    "generatedKey": "control:discover.detail",
+    "req": "REQ-039",
+    "surface": "SURF-044",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-044",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "structural",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "not armed: no planted defect has been watched to fail this predicate. The settings.sections row did come back red for real on 2026-09-02T08:55Z, when the census read the tree before the board had realised - which arms the id lookup against absence but not against a renamed control.",
+    "actuates": [],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-discover-detail.json"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: opened from the row 'sap-mcp, 34,350 sessions on Smithery, added 13 Jul 2026, On Smithery'; all 8 checked control(s) are addressable by id and publish a name. WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0335",
+    "generatedKey": "manual:SURF-041",
+    "req": "REQ-031",
+    "surface": "SURF-041",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-041",
+      "state": "unreached",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "presence",
+    "status": "n/a: not reachable from the shell's navigation, so the destination sweep never opens it. WIN11. Not a destination and not addressable by a route: it is raised from the notification area. Reaching it needs an actuation the self-test driver does not perform, so it is `manual` rather than `ready` — counted, with the reason, rather than absent.",
+    "armed": false,
+    "armedNote": "not armed: nothing was measured, so there is no predicate to arm.",
+    "actuates": [],
+    "evidence": [],
+    "note": "Registered as a case so this surface appears in the denominator with its reason attached. A surface left out of the registry is invisible to a coverage figure; a surface in it with an `n/a:` status is counted against one. The second is the honest shape and it is the whole reason this row exists rather than being omitted.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0336",
+    "generatedKey": "manual:SURF-042",
+    "req": "REQ-031",
+    "surface": "SURF-042",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-042",
+      "state": "unreached",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "presence",
+    "status": "n/a: not reachable from the shell's navigation, so the destination sweep never opens it. WIN12. A ContentDialog reached from the Inbox board's `Pair iPhone…`. One literal control name; the pairing code and countdown are templated.",
+    "armed": false,
+    "armedNote": "not armed: nothing was measured, so there is no predicate to arm.",
+    "actuates": [],
+    "evidence": [],
+    "note": "Registered as a case so this surface appears in the denominator with its reason attached. A surface left out of the registry is invisible to a coverage figure; a surface in it with an `n/a:` status is counted against one. The second is the honest shape and it is the whole reason this row exists rather than being omitted.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0337",
+    "generatedKey": "manual:SURF-043",
+    "req": "REQ-031",
+    "surface": "SURF-043",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-043",
+      "state": "unreached",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "presence",
+    "status": "n/a: not reachable from the shell's navigation, so the destination sweep never opens it. WIN16. Reached from Skills, Discover or Inbox rather than from the shell's own navigation.",
+    "armed": false,
+    "armedNote": "not armed: nothing was measured, so there is no predicate to arm.",
+    "actuates": [],
+    "evidence": [],
+    "note": "Registered as a case so this surface appears in the denominator with its reason attached. A surface left out of the registry is invisible to a coverage figure; a surface in it with an `n/a:` status is counted against one. The second is the honest shape and it is the whole reason this row exists rather than being omitted.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   }
 ]

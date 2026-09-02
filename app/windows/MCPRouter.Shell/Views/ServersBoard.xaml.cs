@@ -1,4 +1,6 @@
+using MCPRouter.Shell.Model.Registry;
 using MCPRouter.Shell.Model.Servers;
+using MCPRouter.Shell.Model.Settings;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
@@ -46,7 +48,14 @@ public sealed partial class ServersBoard : UserControl
     private const double PlugDiameter = 16;
     private const double PlugRing = 3;
     private const double SignalPathPadding = 12;
-    private const int ClientPort = 8879;
+
+    /// <summary>
+    /// The control port this board is actually talking to, resolved the way the router resolves
+    /// it: the <c>port</c> key of <c>servers.json</c> under <c>MCP_ROUTER_HOME</c>, falling back
+    /// to the published default. It used to be a literal 8879 in this file, which made the
+    /// disconnected banner name a port the client might never have called.
+    /// </summary>
+    private static int ClientPort => ControlEndpoint.Port();
 
     /// <summary>§13's motion table, as §12's restated row carries it: a plug lighting or going
     /// dark is a direct entrance — 167ms, cubic-bezier(0, 0, 0, 1), on the fill and the ring —
@@ -55,7 +64,21 @@ public sealed partial class ServersBoard : UserControl
     /// <see cref="KeySpline"/>: the same two control points, therefore the same curve.</summary>
     private static readonly Duration PlugTransition = new(TimeSpan.FromMilliseconds(167));
 
-    private readonly ControlApiClient _client = new();
+    /// <summary>
+    /// Pointed at the router this machine is configured for, not at a literal. The default
+    /// constructor hardcodes 127.0.0.1:8879; a home with a different <c>port</c> in its
+    /// servers.json would have had the board polling one router while the config described
+    /// another.
+    /// </summary>
+    private readonly ControlApiClient _client = new(new Uri(ControlEndpoint.BaseUrl() + "/"));
+
+    /// <summary>The row the Remove button acts on, by name, or null when nothing is selected.</summary>
+    /// <remarks>
+    /// By NAME rather than by element: the table is rebuilt from scratch on every poll, so a
+    /// remembered Button is an orphan five seconds later while the server it stood for is still
+    /// there.
+    /// </remarks>
+    private string? _selectedServer;
 
     /// <summary>The jack word labels and the row state cells that a tick re-renders, so a
     /// countdown update costs two TextBlocks rather than a rebuilt tree — and so focus and
@@ -99,6 +122,15 @@ public sealed partial class ServersBoard : UserControl
         AutomationProperties.SetHelpText(ReapButton, ServersCopy.ReapIdleReason);
         ToolTipService.SetToolTip(ReapButton, ServersCopy.ReapIdleReason);
         ReapReasonText.Text = ServersCopy.ReapIdleReason;
+
+        // DEF-102: the removal affordance, disabled with its reason on the same three channels
+        // the Reap button uses. It is the only control on this board that destroys anything.
+        RemoveButton.Content = ServersCopy.RemoveLabel;
+        AutomationProperties.SetAutomationId(RemoveButton, "servers.action.remove");
+        AutomationProperties.SetName(RemoveButton, ServersCopy.RemoveLabel);
+        AutomationProperties.SetHelpText(RemoveButton, ServersCopy.RemoveDisabledReason);
+        ToolTipService.SetToolTip(RemoveButton, ServersCopy.RemoveDisabledReason);
+        AutomationProperties.SetAutomationId(RemoveOutcomeText, "servers.state.removeOutcome");
 
         ActualThemeChanged += (_, _) =>
         {
@@ -227,6 +259,7 @@ public sealed partial class ServersBoard : UserControl
         ContentPanel.Visibility = _lastAnswered is not null && !empty ? Visibility.Visible : Visibility.Collapsed;
         StaleBanner.Visibility = stale ? Visibility.Visible : Visibility.Collapsed;
         AddButton.IsEnabled = _lastAnswered is not null;
+        UpdateRemoveAffordance();
 
         if (failed)
         {
@@ -483,6 +516,10 @@ public sealed partial class ServersBoard : UserControl
             HorizontalContentAlignment = HorizontalAlignment.Stretch,
             Tag = server.Name,
         };
+        // Addressable by name from outside the process, and selectable: the Remove button acts on
+        // whatever the last click here left selected.
+        AutomationProperties.SetAutomationId(row, "servers.row." + server.Name);
+        row.Click += OnServerRowClicked;
 
         var grid = new Grid { ColumnSpacing = 12 };
         for (var i = 0; i < 6; i++)
@@ -723,7 +760,110 @@ public sealed partial class ServersBoard : UserControl
         // day the verb lands.
     }
 
+    private void OnServerRowClicked(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string name })
+        {
+            _selectedServer = name;
+            UpdateRemoveAffordance();
+        }
+    }
+
+    /// <summary>
+    /// Keeps the Remove button honest about what it would act on. Called after every poll as well
+    /// as after a click, because a server removed underneath us - by the CLI, or by another copy
+    /// of this app - must not leave a button armed over a name the router no longer knows.
+    /// </summary>
+    private void UpdateRemoveAffordance()
+    {
+        if (_selectedServer is not null
+            && _lastAnswered is not null
+            && !_lastAnswered.Servers.Any(s => s.Name == _selectedServer))
+        {
+            _selectedServer = null;
+        }
+
+        RemoveButton.IsEnabled = _selectedServer is not null;
+        var reason = _selectedServer is null
+            ? ServersCopy.RemoveDisabledReason
+            : "Removes " + _selectedServer + " from the router.";
+        AutomationProperties.SetHelpText(RemoveButton, reason);
+        ToolTipService.SetToolTip(RemoveButton, reason);
+    }
+
     private void OnAddServerClicked(object sender, RoutedEventArgs e) => _ = ShowAddDialogAsync();
+
+    private void OnRemoveServerClicked(object sender, RoutedEventArgs e) => _ = RemoveSelectedAsync();
+
+    /// <summary>
+    /// DEF-102. The destructive path, and the only reader of
+    /// <c>RequireConfirmationOnDestructive</c> in the build.
+    /// </summary>
+    /// <remarks>
+    /// THE SETTING IS READ AT THE MOMENT OF THE ACTION, off the file the Settings board writes,
+    /// rather than cached when this board was built. A board constructed before the user turned
+    /// the switch off would otherwise keep asking, and one constructed before they turned it on
+    /// would keep not asking - and the second of those is the dangerous direction.
+    ///
+    /// The confirmation is a GATE, not a report: declining returns before
+    /// <see cref="ControlApiClient.RemoveServerAsync"/> is called at all, so what proves it worked
+    /// is the router's own server list, read by something that is not this process. That is the
+    /// arm <c>settings.requireConfirmation.effect</c> in scripts/windows/uia/shell-lane.ps1.
+    /// </remarks>
+    private async Task RemoveSelectedAsync()
+    {
+        var server = _selectedServer;
+        if (server is null) return;
+
+        var confirmationRequired = new SettingsStore()
+            .Load(new RouterSettingsState())
+            .RequireConfirmationOnDestructive;
+
+        if (confirmationRequired)
+        {
+            var dialog = new ContentDialog
+            {
+                XamlRoot = XamlRoot,
+                Title = ServersCopy.RemoveDialogTitle(server),
+                Content = new TextBlock
+                {
+                    Text = ServersCopy.RemoveDialogBody,
+                    TextWrapping = TextWrapping.Wrap,
+                    MaxWidth = 380,
+                },
+                PrimaryButtonText = ServersCopy.RemoveCommitLabel,
+                CloseButtonText = ServersCopy.RemoveCancelLabel,
+                DefaultButton = ContentDialogButton.Close,
+            };
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            {
+                ShowRemoveOutcome(server + " was kept.");
+                return;
+            }
+        }
+
+        try
+        {
+            await _client.RemoveServerAsync(server);
+            ShowRemoveOutcome(confirmationRequired
+                ? ServersCopy.Removed(server)
+                : ServersCopy.RemovedWithoutAsking(server));
+            _selectedServer = null;
+            await PollAsync();
+        }
+        catch (ControlApiException ex)
+        {
+            ShowRemoveOutcome(ServersCopy.RemoveFailed(server, ex.UserFacingDescription));
+        }
+        UpdateRemoveAffordance();
+    }
+
+    private void ShowRemoveOutcome(string line)
+    {
+        RemoveOutcomeText.Text = line;
+        RemoveOutcomeText.Visibility = Visibility.Visible;
+        AutomationProperties.SetName(RemoveOutcomeText, line);
+    }
 
     /// <summary>
     /// The add dialog: a name and either a command line or a URL, exactly the members

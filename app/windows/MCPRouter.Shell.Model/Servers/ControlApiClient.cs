@@ -196,6 +196,31 @@ public sealed class ControlApiClient : IDisposable
         return await DecodeAsync<AddedServer>(response, cancellation);
     }
 
+    /// <summary>
+    /// Remove a server from the router's list. The one destructive verb this client speaks.
+    /// </summary>
+    /// <remarks>
+    /// DEF-102. The router deletes the entry from <c>servers.json</c>, reloads, tells every
+    /// attached session the tool list changed, clears any stored authorization, and - unless
+    /// <c>?keepHistory=1</c> - forgets the server's usage history (src/control.ts, the DELETE
+    /// branch of <c>/servers/{name}</c>). None of that is undoable from this app, which is why the
+    /// board asks first and why "Confirm before removing a server" is a setting rather than a
+    /// hardcoded prompt.
+    ///
+    /// History is KEPT. A confirmation the user gave to removing a server is not consent to
+    /// discarding months of call counts, and the two decisions are not offered together anywhere
+    /// in this build; taking the narrower one is the only reading that does not assume an answer
+    /// nobody was asked for.
+    /// </remarks>
+    public async Task RemoveServerAsync(string name, CancellationToken cancellation = default)
+    {
+        using var response = await SendAsync(
+            HttpMethod.Delete,
+            $"servers/{Uri.EscapeDataString(name)}?keepHistory=1",
+            write: true,
+            cancellation);
+    }
+
     // ------------------------------------------------------------------ the one send
 
     private async Task<HttpResponseMessage> SendAsync(

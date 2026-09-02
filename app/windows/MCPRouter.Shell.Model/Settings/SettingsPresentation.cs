@@ -85,7 +85,13 @@ public static class SettingsPresentation
         {
             "LaunchAtLogin" => "Launch router daemon at sign-in",
             "ShowAmbientIcon" => "Show status in notification area",
-            "RequireConfirmationOnDestructive" => "Require confirmation on destructive operations",
+            // NARROWED, DEF-102. It used to read "Require confirmation on destructive
+            // operations", which promised a policy over a class of operations this build does not
+            // have: the shell speaks four verbs to the router and exactly one of them destroys
+            // anything, which is DELETE /servers/{name}. A label naming the class would still be
+            // claiming the rest of it on the day the switch started working, so the label names
+            // the operation it actually governs and grows when the class does.
+            "RequireConfirmationOnDestructive" => "Confirm before removing a server",
             _ => key
         };
     }
@@ -123,17 +129,30 @@ public static class SettingsPresentation
     /// cannot act yet is honest. Both sentences here are statements about THIS BUILD, checked
     /// against the tree by <c>MCPRouter.Shell.Tests.SettingsUnavailabilityTests</c> - the day a
     /// notification-area icon or a confirmation-policy reader lands, that test fails and this
-    /// sentence has to be removed rather than left standing over a working feature.
+    /// sentence has to be removed rather than left standing over a working feature. Both landed:
+    /// DEF-101 placed the icon, DEF-102 put the confirmation in front of the one destructive verb
+    /// the shell can send, and both sentences came out on the day their feature arrived.
     /// </summary>
     public static string? ToggleUnavailableReason(string key)
     {
         return key switch
         {
-            "ShowAmbientIcon" => "Unavailable: this build draws no notification-area icon, so there is nothing for this switch to show or hide. DEF-101.",
-            "RequireConfirmationOnDestructive" => "Unavailable: no operation in this build asks this setting before it acts, so turning it off would remove no prompt. DEF-102.",
+            // EMPTY, and deliberately still here. It held two entries until DEF-101 and DEF-102
+            // landed: ShowAmbientIcon over a build that drew no icon, and
+            // RequireConfirmationOnDestructive over a build in which no operation asked it
+            // anything. Both switches now own something outside this process - the shell's
+            // notification area and the router's server list - so the sentences came out. The
+            // method stays because it is where the next switch that outruns its implementation
+            // says so, and because two keys whose owners are supplied at construction
+            // (LaunchAtLogin, ShowAmbientIcon) answer through the BOARD MODEL rather than here.
             _ => null
         };
     }
+
+    /// <summary>Why the notification-area switch cannot act when the board was built without a
+    /// host - which is every construction outside the running shell, the unit suite included.</summary>
+    public const string NoNotificationHostReason =
+        "Unavailable: this board was built without a notification-area host, so nothing here can place or remove the icon.";
 
     /// <summary>Why launch-at-sign-in cannot act when the board was built without an agent.</summary>
     public const string NoLaunchAgentReason =

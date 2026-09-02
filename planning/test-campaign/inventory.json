@@ -752,10 +752,10 @@
       "id": "DEF-080",
       "surface": "SURF-045",
       "severity": "minor",
-      "status": "open",
+      "status": "fixed",
       "title": "`actuates` names both a button somebody pressed and an operation a lane called",
       "detail": "SURF-045, SURF-046 and SURF-047 declare `controls` that nobody can press - LogonTaskSupervisor.Register, MakeAppx pack, Add-AppxPackage. The census has one word for the thing a case drives, so those eight operations are counted in the same denominator as the Mac Servers board's buttons, and the actuated ratio therefore overstates how much GLASS has been driven by however many of the numerator are operations. The alternative was leaving three shipped surfaces unenumerated so that the count stayed pure, which is the failure the campaign exists to catch, so the surfaces were enumerated and this was written down instead.",
-      "resolution": "Not settled. The fix is a second axis on a control - pressable versus invoked - or a separate census for non-glass planes, and either is a change to the shape the registry and control-census.py share rather than a row edit. Filed 2026-09-02 by wa3 so the overstatement is quotable rather than latent."
+      "resolution": "Settled 2026-09-02 by wb4, in three parts. (1) THE POPULATIONS ARE SEPARATE. SURF-045, SURF-046 and SURF-047 declare `operations` / `operationsSource` rather than `controls` / `controlsSource`, and `bin/control-census.py` keys every one of its dictionaries on (kind, surface) so there is no structure in the file whose values span both. It prints `Controls:` and `Operations:` as separate lines, each with its own denominator and its own disposition partition, and says in the output that the two are never added. `message-only` stays a control-side class, because \"the whole promised effect is a panel appearing\" has no meaning for a call a lane makes. (2) THE FIELD REFUSES A COMMAND. `command_shape()` refuses an invocation-with-arguments -- a path separator between two words, a `-x`/`--xx` flag, a script or assembly extension, a `foo(` call, a shell operator, or a known runner followed by arguments -- wherever it appears, in a case's `actuates` AND in a surface's own declared list. Declaring the command was the laundering route the pre-existing stray check could not see, and that is now the arm that catches it. (3) BOTH REDDEN, planted and reverted; CASE-0396 carries the plants. (4) THE MACHINE THAT WROTE THE COMMAND NO LONGER DOES. `bin/win-cases-from-lane.py` generated `\"actuates\": [\"UIA TogglePattern.Toggle()\"]` for every effect row and omitted `actuatesSurface` on all ten destination rows; the last wave's integration pass corrected both by hand in cases.json and the next run of the generator would have written them straight back. It now carries a CONTROL_ACTUATES table binding a lane control id to the control the surface declares - empty by default, because a naming row has driven nothing - and sets `actuatesSurface` to the shell on the destination rows. Measured by running the generator over a copy of `planning/` in a scratch tree and running the census against its output: exit 0, where the same run before this change produced nine stray findings. WHAT MOVED, said plainly because it is a published figure: the headline fell from `57 of 210 declared control(s) actuated ... across 33 surface(s)` to `49 of 202 ... across 30 surface(s)`, 27.1% to 24.3%. Every one of the eight names that left was in the numerator, which is exactly the overstatement this row described; they are now reported as `Operations: 8 of 8 ... across 3 surface(s)`. No case changed and no measurement was withdrawn. WHAT IT DOES NOT SETTLE: `command_shape()` cannot tell a bare two-word command name (`winget validate`, `MakeAppx pack`) from an operation name, and the misfiled-shape check only recognises a PascalCase `Foo.Bar`, so SURF-047's four members could be moved back under `controls` without the gate noticing. DEF-131 carries that."
     },
     {
       "id": "DEF-089",
@@ -817,6 +817,19 @@
       "next": "It needs a reproducible stowed exception, which means either the original Skills crash back (DEF-077 and DEF-078 removed it) or a deliberate cross-ABI fault in a WinUI callback. Neither is cheap and neither is this defect's to spend. Until then the honest position is the one recorded here.",
       "resolution": "",
       "mirroredFrom": "planning/test-campaign/defects-windows.json"
+    },
+    {
+      "id": "DEF-131",
+      "title": "The command-shape check cannot see a bare command NAME, so a two-word operation could still be filed as a control",
+      "lane": "repo-gate",
+      "severity": "minor",
+      "status": "open",
+      "found": "2026-09-02 by wb4, while closing DEF-080 -- found from inside the fix rather than reported against it",
+      "evidence": "`control-census.py`'s `command_shape()` refuses an invocation with ARGUMENTS and nothing else, and its misfiled-operation check matches only a PascalCase `Foo.Bar`. Measured by plant: moving SURF-045 and SURF-046 back from `operations` to `controls` reddens the census with four findings, and moving SURF-047 back reddens with none -- `MakeAppx pack`, `winget validate`, `Add-AppxPackage` and `Remove-AppxPackage` are indistinguishable, to any string rule this file could carry, from a button somebody labelled that.",
+      "class": "measured-and-broken",
+      "why-it-matters": "The half of DEF-080 that is now defended by a gate is the half whose names happen to look like API calls. The other half is defended by a person reading the row. So the guarantee REQ-080 states is a floor: the census cannot be made to add a `Foo.Bar` to the buttons, and it can still be made to add `MakeAppx pack` to them. Saying so here is the point -- a gate that half-covers a class and is described as covering it is how the class comes back.",
+      "next": "The shape rules cannot be widened without reddening honest rows (`winget validate` is a legitimate operation name and `Reset history` is a legitimate control name, and no string rule separates them). The fix is not a better regex: it is a declared property of the SURFACE -- a `plane` or `kind` field saying whether this row has glass at all -- from which the field a member belongs in follows. That is a schema change across every surface row and a change to what `bin/design-controls.py` writes, which is why it is filed rather than done inside DEF-080's scope.",
+      "resolution": "Not settled. Filed 2026-09-02 by wb4 so the floor is quotable rather than latent."
     }
   ],
   "flow": [
@@ -1390,6 +1403,16 @@
       "note": "STATED PLAINLY BECAUSE IT MOVES A DENOMINATOR. This is a repository-hygiene guardrail about the project's own reporting, not a product behaviour a user meets, and it is the 38th requirement rather than the 37th - `requirements_observed` reads over 36 rather than 35 from this branch on. It is written as a requirement rather than left as a bare gate because the same reconciliation has now been done twice by hand (2026-08-27 and 2026-09-02) and neither time was there anything a reader could point at to say a requirement had gone unmet. Observed by CASE-0342 and CASE-0343.",
       "renumberedFrom": "REQ-038",
       "renumberNote": "Allocated as REQ-038 by a concurrent Wave A runner and renumbered twice at merge: another runner had already published a different REQ-038, and the first free-looking number REQ-039 turned out to be a third runner's. Allocated above every id in the file instead, which is what the first pass should have done."
+    },
+    {
+      "id": "REQ-080",
+      "class": "honesty-guardrail",
+      "text": "The actuation census reports a denominator per kind of thing actuated -- controls a person presses on glass, operations a lane calls on a plane with no glass -- and never one headline over both. `actuates` names something the surface declares, and a command line written there is refused where it is written, including when it has also been added to the surface's own list.",
+      "source": "planning/test-campaign/defects-windows.json DEF-080, filed 2026-09-02 by wa3 after three shipped non-glass planes were enumerated into the same denominator as the Mac boards' buttons",
+      "evidence": "observed",
+      "effect": "`bin/control-census.py` prints `Controls:` and `Operations:` with separate denominators and exits 1 on a command-shaped string in `actuates` or in a declared list",
+      "provider": "planning/test-campaign/bin/control-census.py",
+      "note": "STATED PLAINLY BECAUSE IT MOVES A DENOMINATOR, on the same grounds as REQ-040. This is a repository-hygiene guardrail about the campaign's own reporting rather than a product behaviour a user meets, and it is the 39th requirement rather than the 38th, so `requirements_observed` reads over 25 rather than 24 from this branch on. It is written as a requirement rather than left as a bare gate because DEF-080's previous correction -- the integration pass fixing four stray rows in the last wave -- fixed the rows and left the class untouched, and there was nothing a reader could point at to say a rule had gone unmet. Observed by CASE-0396."
     }
   ],
   "surface": [
@@ -2233,13 +2256,13 @@
       "route": "task://windows/logon/MCPRouter",
       "lane": "router-daemon",
       "status": "ready",
-      "controls": [
+      "operations": [
         "LogonTaskSupervisor.Register",
         "LogonTaskSupervisor.Unregister"
       ],
-      "controlsSource": "app/windows/MCPRouter.Shell.Live/Lifecycle/LogonTaskSupervisor.cs - the two operations the supervisor exposes, named as CASE-0308 drives them.",
+      "operationsSource": "app/windows/MCPRouter.Shell.Live/Lifecycle/LogonTaskSupervisor.cs - the two operations the supervisor exposes, named as CASE-0308 drives them.",
       "enumeratedNote": "Enumerated 2026-09-02 by wa3. WIN23 shipped this plane, REQ-035 states it and CASE-0308 has been passing over it since, and the campaign's surface list had no row for it - the exact shape G14 recorded for Harnesses and Insights, found again on Windows. It surfaced from the other end this time: control-census.py reported CASE-0308 actuating two controls on `no surface`, which is what a case pointing at a surface nobody enumerated looks like from inside the census.",
-      "note": "Not a glass surface. It is a plane the product acts on, in the same class as SURF-015 (router daemon) and SURF-016 (the loopback control API), and its `controls` are operations rather than things a person can press. DEF-080 records that the registry has one word for both and that counting them in the same census is a known overstatement of how much glass has been driven."
+      "note": "Not a glass surface. It is a plane the product acts on, in the same class as SURF-015 (router daemon) and SURF-016 (the loopback control API), and its `controls` are operations rather than things a person can press. DEF-080 records that the registry has one word for both and that counting them in the same census is a known overstatement of how much glass has been driven. DEF-080 CLOSED 2026-09-02 by wb4: this list moved from `controls` to `operations`, and `bin/control-census.py` now counts operations against their own denominator and prints it on its own line. The census no longer adds this row's members to the Mac boards' buttons in one headline."
     },
     {
       "id": "SURF-046",
@@ -2247,13 +2270,13 @@
       "route": "shell://windows/notifications/AppNotificationManager",
       "lane": "windows-glass",
       "status": "ready",
-      "controls": [
+      "operations": [
         "ToastNotifier.Register",
         "ToastNotifier.Show"
       ],
-      "controlsSource": "app/windows/MCPRouter.Shell/Notifications/ToastNotifier.cs - the two operations the notifier exposes, named as CASE-0339 drives them. The toast's own two buttons, Review and Dismiss, are NOT declared here: nothing in this repository has pressed one, and REQ-036 is the requirement they belong to.",
+      "operationsSource": "app/windows/MCPRouter.Shell/Notifications/ToastNotifier.cs - the two operations the notifier exposes, named as CASE-0339 drives them. The toast's own two buttons, Review and Dismiss, are NOT declared here: nothing in this repository has pressed one, and REQ-036 is the requirement they belong to.",
       "enumeratedNote": "Enumerated 2026-09-02 by wa3, for the same reason as SURF-045. WIN22 shipped it, REQ-036 states it, CASE-0339 passes over it and no surface row existed.",
-      "note": "What this row's controls do NOT cover is the half that matters most to a user: CASE-0339 proves the COM activator is registered so that pressing Review an hour later can reach the app, and nobody has pressed Review. That gap is stated here rather than hidden by a denominator of two."
+      "note": "What this row's controls do NOT cover is the half that matters most to a user: CASE-0339 proves the COM activator is registered so that pressing Review an hour later can reach the app, and nobody has pressed Review. That gap is stated here rather than hidden by a denominator of two. DEF-080 CLOSED 2026-09-02 by wb4: this list moved from `controls` to `operations`, and `bin/control-census.py` now counts operations against their own denominator and prints it on its own line. The census no longer adds this row's members to the Mac boards' buttons in one headline."
     },
     {
       "id": "SURF-047",
@@ -2261,15 +2284,15 @@
       "route": "package://windows/Fledgeling.MCPRouter",
       "lane": "windows-glass",
       "status": "ready",
-      "controls": [
+      "operations": [
         "MakeAppx pack",
         "winget validate",
         "Add-AppxPackage",
         "Remove-AppxPackage"
       ],
-      "controlsSource": "app/windows/MCPRouter.Shell.Model/Packaging/PackagingPresentation.cs and the lane CASE-0341 runs - the four steps of the package lifecycle, named as that case drives them.",
+      "operationsSource": "app/windows/MCPRouter.Shell.Model/Packaging/PackagingPresentation.cs and the lane CASE-0341 runs - the four steps of the package lifecycle, named as that case drives them.",
       "enumeratedNote": "Enumerated 2026-09-02 by wa3. WIN19 shipped the package, REQ-037 states its identity and its uninstall promise, CASE-0341 passes over all four steps, and the campaign had no row for the surface being measured.",
-      "note": "The least glass-like of the three, and kept as a surface rather than dropped because the alternative is a passing case that belongs to nothing - which is how a measurement stops being reachable from the denominator it should be counted in. DEF-080 carries the vocabulary objection."
+      "note": "The least glass-like of the three, and kept as a surface rather than dropped because the alternative is a passing case that belongs to nothing - which is how a measurement stops being reachable from the denominator it should be counted in. DEF-080 carries the vocabulary objection. DEF-080 CLOSED 2026-09-02 by wb4: this list moved from `controls` to `operations`, and `bin/control-census.py` now counts operations against their own denominator and prints it on its own line. The census no longer adds this row's members to the Mac boards' buttons in one headline."
     }
   ]
 }

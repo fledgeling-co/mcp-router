@@ -31,6 +31,22 @@ REPORT = Path("planning/evidence/WIN-SHELL/run/assert-report.json")
 GENERATOR = "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
 WIN_REQ = "REQ-031"
 
+# Which DECLARED control each lane row drives, keyed by the lane's own control id.
+#
+# This table exists because of DEF-080. This generator used to write the COMMAND into `actuates`
+# -- literally `["UIA TogglePattern.Toggle()"]` -- and `actuates` names a control the SURFACE
+# declares, not the call the lane made. control-census.py refused those rows as strays, the
+# integration pass corrected them by hand in cases.json, and the next run of this generator would
+# have written them straight back. It is a table rather than something derived because the lane's
+# report carries no label at all (`assert-report.json` rows have `"label": null`), so there is
+# nothing to derive from: the binding between an AutomationId the lane addresses and the name the
+# surface declares is a fact somebody has to state. A control id absent from this table actuates
+# NOTHING, which is the honest default -- a naming row reads a name and has not driven anything.
+# The command the lane ran belongs in the case's `note`, and is written there.
+CONTROL_ACTUATES = {
+    "settings.effect": ["Launch router daemon at sign-in"],
+}
+
 
 def read_json(path, encoding="utf-8"):
     return json.loads(io.open(path, encoding=encoding).read())
@@ -189,6 +205,14 @@ def main():
                           "The collapse and title checks would each fail on a real regression, but "
                           "that has been reasoned rather than demonstrated, so this stays false."),
             "actuates": [row.get("label", row["id"])],
+            # The pane item pressed is the SHELL's control; the case is filed against the board it
+            # opened. That is K3's `actuatesSurface`, and omitting it is not cosmetic: without it
+            # control-census.py reads ten passing cases as actuating a control their own surface
+            # never declares and refuses all ten as strays. The integration pass added these by
+            # hand in cases.json after the last run of this generator, and the generator would have
+            # written them straight back out - the same shape as the command in `actuates` that
+            # DEF-080 is about, in the same file.
+            "actuatesSurface": shell_surface,
             "evidence": evidence,
             "note": note,
             "generatedBy": GENERATOR,
@@ -290,6 +314,12 @@ def main():
                 "AutomationProperties.Name that overrode its own text."
             )
         note += (
+            " THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven "
+            "through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1 "
+            "section 3b. `actuates` carries the control SURF-038 declares - DEF-080."
+            if is_effect else ""
+        )
+        note += (
             " WHAT NO ROW HERE SETTLES: that any setting persists or reaches the machine. Nothing "
             "outside the shell process changes when a toggle moves. DEF-087."
         )
@@ -320,7 +350,7 @@ def main():
                  "census read the tree before the board had realised - which arms the id lookup "
                  "against absence but not against a renamed control.")
             ),
-            "actuates": ["UIA TogglePattern.Toggle()"] if is_effect else [],
+            "actuates": list(CONTROL_ACTUATES.get(control_id, [])),
             "evidence": evidence,
             "note": note,
             "witness": {

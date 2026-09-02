@@ -1,23 +1,23 @@
 ﻿{
     "schema":  "win20.uia-dump/1",
-    "capturedAtUtc":  "2026-09-02T08:59:38.2646635Z",
+    "capturedAtUtc":  "2026-09-02T11:45:23.0098156Z",
     "host":  {
                  "osVersion":  "10.0.26220.0",
                  "psVersion":  "5.1.26100.9223",
                  "machine":  "Z13"
              },
     "request":  {
-                    "processId":  26760,
+                    "processId":  19032,
                     "titleContains":  "",
                     "view":  "Control"
                 },
     "targets":  [
                     {
-                        "hwnd":  1180892,
+                        "hwnd":  1967926,
                         "name":  "Discover",
                         "className":  "WinUIDesktopWin32WindowClass",
                         "frameworkId":  "Win32",
-                        "processId":  26760,
+                        "processId":  19032,
                         "isVisible":  true,
                         "isMinimised":  false
                     }
@@ -25,18 +25,18 @@
     "foregroundSamples":  [
                               {
                                   "when":  "before",
-                                  "hwnd":  1180892,
-                                  "processId":  26760
+                                  "hwnd":  1967926,
+                                  "processId":  19032
                               },
                               {
                                   "when":  "midwalk",
-                                  "hwnd":  1180892,
-                                  "processId":  26760
+                                  "hwnd":  1967926,
+                                  "processId":  19032
                               },
                               {
                                   "when":  "after",
-                                  "hwnd":  1180892,
-                                  "processId":  26760
+                                  "hwnd":  1967926,
+                                  "processId":  19032
                               }
                           ],
     "truncated":  false,
@@ -2030,7 +2030,7 @@
                          "boundingRectangle":  {
                                                    "y":  540,
                                                    "width":  1473,
-                                                   "height":  24,
+                                                   "height":  23,
                                                    "x":  511
                                                },
                          "patterns":  [
@@ -2062,7 +2062,7 @@
                          "boundingRectangle":  {
                                                    "y":  524,
                                                    "width":  224,
-                                                   "height":  25,
+                                                   "height":  24,
                                                    "x":  2002
                                                },
                          "patterns":  [
@@ -2094,7 +2094,7 @@
                          "boundingRectangle":  {
                                                    "y":  511,
                                                    "width":  210,
-                                                   "height":  24,
+                                                   "height":  23,
                                                    "x":  2245
                                                },
                          "patterns":  [
@@ -2158,7 +2158,7 @@
                          "boundingRectangle":  {
                                                    "y":  573,
                                                    "width":  2097,
-                                                   "height":  73,
+                                                   "height":  72,
                                                    "x":  424
                                                },
                          "patterns":  [
@@ -2224,7 +2224,7 @@
                          "boundingRectangle":  {
                                                    "y":  582,
                                                    "width":  1473,
-                                                   "height":  28,
+                                                   "height":  27,
                                                    "x":  511
                                                },
                          "patterns":  [
@@ -2288,7 +2288,7 @@
                          "boundingRectangle":  {
                                                    "y":  597,
                                                    "width":  224,
-                                                   "height":  25,
+                                                   "height":  24,
                                                    "x":  2002
                                                },
                          "patterns":  [
@@ -2804,7 +2804,7 @@
                          "boundingRectangle":  {
                                                    "y":  757,
                                                    "width":  210,
-                                                   "height":  23,
+                                                   "height":  24,
                                                    "x":  2245
                                                },
                          "patterns":  [
@@ -2870,7 +2870,7 @@
                          "boundingRectangle":  {
                                                    "y":  817,
                                                    "width":  22,
-                                                   "height":  24,
+                                                   "height":  23,
                                                    "x":  459
                                                },
                          "patterns":  [
@@ -2902,7 +2902,7 @@
                          "boundingRectangle":  {
                                                    "y":  801,
                                                    "width":  1473,
-                                                   "height":  27,
+                                                   "height":  28,
                                                    "x":  511
                                                },
                          "patterns":  [
@@ -2932,7 +2932,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  832,
+                                                   "y":  831,
                                                    "width":  1473,
                                                    "height":  24,
                                                    "x":  511
@@ -3060,7 +3060,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  865,
+                                                   "y":  864,
                                                    "width":  2097,
                                                    "height":  72,
                                                    "x":  424
@@ -3094,7 +3094,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  890,
+                                                   "y":  889,
                                                    "width":  22,
                                                    "height":  24,
                                                    "x":  460
@@ -3126,7 +3126,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  874,
+                                                   "y":  873,
                                                    "width":  1473,
                                                    "height":  27,
                                                    "x":  511
@@ -3158,7 +3158,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  905,
+                                                   "y":  904,
                                                    "width":  1473,
                                                    "height":  24,
                                                    "x":  511
@@ -3190,7 +3190,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  889,
+                                                   "y":  888,
                                                    "width":  224,
                                                    "height":  24,
                                                    "x":  2002
@@ -3222,7 +3222,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  876,
+                                                   "y":  875,
                                                    "width":  210,
                                                    "height":  24,
                                                    "x":  2245
@@ -3254,7 +3254,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  903,
+                                                   "y":  902,
                                                    "width":  210,
                                                    "height":  24,
                                                    "x":  2245
@@ -3286,7 +3286,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  938,
+                                                   "y":  937,
                                                    "width":  2097,
                                                    "height":  73,
                                                    "x":  424
@@ -3320,7 +3320,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  963,
+                                                   "y":  962,
                                                    "width":  24,
                                                    "height":  24,
                                                    "x":  459
@@ -3352,7 +3352,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  947,
+                                                   "y":  946,
                                                    "width":  1473,
                                                    "height":  28,
                                                    "x":  511
@@ -3384,7 +3384,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  978,
+                                                   "y":  977,
                                                    "width":  1473,
                                                    "height":  24,
                                                    "x":  511

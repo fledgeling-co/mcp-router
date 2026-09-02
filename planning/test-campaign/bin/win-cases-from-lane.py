@@ -31,6 +31,25 @@ REPORT = Path("planning/evidence/WIN-SHELL/run/assert-report.json")
 GENERATOR = "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
 WIN_REQ = "REQ-031"
 
+# The census rows whose predicate has actually been WATCHED TO FAIL under a planted defect, and
+# nothing else. `armed` used to be set for every effect-rung row, which reads as "this was proved
+# falsifiable" over rows nobody has ever seen go red - and an assertion nobody has watched fail is
+# indistinguishable from one that cannot.
+#
+# Two plants, 2026-09-02, both reverted, transcripts in planning/evidence/WIN-SHELL/arming/:
+#   removing the call that carries the sign-in switch to the supervisor broke
+#     settings.launchAtLogin.effect and settings.persistence
+#   making SettingsStore.Save report success without writing broke settings.persistence.store alone
+#
+# settings.launchAtLogin.baseline, settings.launchAtLogin.silence and settings.copyEndpoint HELD
+# through both, which shows they are independent of those two defects and says nothing at all about
+# whether they can go red. They stay unarmed until something has been watched to break them.
+ARMED_BY_PLANT = {
+    "settings.launchAtLogin.effect",
+    "settings.persistence",
+    "settings.persistence.store",
+}
+
 
 def read_json(path, encoding="utf-8"):
     return json.loads(io.open(path, encoding=encoding).read())
@@ -189,6 +208,21 @@ def main():
                           "The collapse and title checks would each fail on a real regression, but "
                           "that has been reasoned rather than demonstrated, so this stays false."),
             "actuates": [row.get("label", row["id"])],
+            # THE CONTROL PRESSED IS THE SHELL'S, AND THE CLAIM IS THE BOARD'S. The pane item lives
+            # on the shell surface; the case is filed against the board it opens. control-census.py
+            # takes `actuates` names from the surface a case is FILED against unless the case says
+            # otherwise, so without this the row names a control SURF-03x has never declared and
+            # the census exits 1.
+            #
+            # This pair was added to the registry BY HAND after a previous run and silently
+            # reverted by the next one, which cost the census ten actuated controls and a red exit.
+            # It belongs in the generator for the same reason every other field here does: a row
+            # this tool writes is a row this tool must write completely.
+            "actuatesSurface": shell_surface,
+            "actuatesSurfaceNote": (
+                "The control pressed is the shell's pane item; the claim is the board's. Filed "
+                "against the board it proves, counted against the surface that carries the "
+                "control."),
             "evidence": evidence,
             "note": note,
             "generatedBy": GENERATOR,
@@ -265,11 +299,26 @@ def main():
             evidence.append("planning/evidence/WIN-SHELL/run/uia-shell-settings.json")
         else:
             evidence.append("planning/evidence/WIN-SHELL/run/uia-shell-discover-detail.json")
+        if row.get("recorder"):
+            # The two arming transcripts. A predicate nobody has watched fail is
+            # indistinguishable from one that cannot, so the runs where these went red are
+            # evidence in the same sense the green one is.
+            evidence.append("planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt")
+            evidence.append("planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt")
 
         # The effect row is a different rung from the naming rows, and saying so is the point:
         # reading a name proves the tree publishes one, and only the effect row can tell a bound
         # control from an inert one.
-        is_effect = control_id.endswith(".effect")
+        #
+        # `recorder`, added for DEF-087, is what the lane names when the thing that read the effect
+        # is NOT this process at all - the Windows task scheduler through Get-ScheduledTask, a read
+        # of the settings file off the disk, a clipboard read from a separate PowerShell host. A
+        # row carrying one is an effect-witness whose recorder is not the writer; a row without one
+        # was read off the shell's own accessibility tree, which is out of process and still only
+        # ever a read of the shell.
+        recorder = row.get("recorder")
+        is_effect = control_id.endswith(".effect") or bool(recorder)
+        reaches_the_machine = bool(recorder)
         note = (
             "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, "
             "which runs out of process against the real shell binary in the interactive session. "
@@ -280,7 +329,7 @@ def main():
             "returns the first element carrying that name anywhere in the tree, and this shell's "
             "menu bar already holds a 'Router' and a 'Help'. The lane recorded: %s"
         ) % (row.get("detail") or "")
-        if is_effect:
+        if control_id.endswith(".effect") and not recorder:
             note += (
                 " THIS IS THE ROW THAT SEPARATES A BOUND CONTROL FROM AN INERT ONE. It toggles "
                 "the switch through TogglePattern and then reads a DIFFERENT element - the "
@@ -289,10 +338,24 @@ def main():
                 "here. It went red for real on the first run, against a readout carrying a static "
                 "AutomationProperties.Name that overrode its own text."
             )
-        note += (
-            " WHAT NO ROW HERE SETTLES: that any setting persists or reaches the machine. Nothing "
-            "outside the shell process changes when a toggle moves. DEF-087."
-        )
+        if recorder:
+            note += (
+                " THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: %s. "
+                "That is what makes this row a claim about the MACHINE rather than about the "
+                "application's own report of itself, which is the whole of DEF-087. WHAT IT DOES "
+                "NOT SETTLE: that the registration fires at a real logon, and that a daemon "
+                "executable resolves on an operator's machine - the lane points the shipped "
+                "resolution at a witness task name and a witness executable of its own so it "
+                "cannot disturb the operator's real registration. Both limits stay on DEF-087's "
+                "resolution rather than being folded into this green."
+            ) % recorder
+        else:
+            note += (
+                " WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read "
+                "of the application's own accessibility tree, so a control that moved a model and "
+                "reached no file and no scheduler passes it. The rows carrying a `recorder` are "
+                "the ones that leave the process."
+            )
 
         written.append({
             "id": allocate("control:" + control_id),
@@ -308,8 +371,20 @@ def main():
             },
             "oracle": "effect-witness" if is_effect else "structural",
             "status": case_status,
-            "armed": is_effect,
+            "armed": control_id in ARMED_BY_PLANT or (
+                control_id.endswith(".effect") and not recorder),
             "armedNote": (
+                ("armed by a planted defect, watched on 2026-09-02. Removing the call that "
+                 "carries the sign-in switch to the supervisor broke "
+                 "settings.launchAtLogin.effect and settings.persistence; making the store's Save "
+                 "report success without writing broke settings.persistence.store alone. Both "
+                 "transcripts are in planning/evidence/WIN-SHELL/arming/.")
+                if control_id in ARMED_BY_PLANT else
+                ("NOT armed. This row HELD through both plants of 2026-09-02 - see "
+                 "planning/evidence/WIN-SHELL/arming/ - which establishes that it is independent "
+                 "of those two defects and says nothing about whether it can go red at all. It "
+                 "stays unarmed until something has been watched to break it.")
+                if recorder else
                 ("armed by observation rather than by a planted defect: this predicate FAILED on "
                  "the run of 2026-09-02T08:58Z, against a state readout whose accessible name was "
                  "a static label instead of its own text, and passed on the next run once the "
@@ -320,13 +395,20 @@ def main():
                  "census read the tree before the board had realised - which arms the id lookup "
                  "against absence but not against a renamed control.")
             ),
-            "actuates": ["UIA TogglePattern.Toggle()"] if is_effect else [],
+            # A CONTROL THE SURFACE DECLARES, taken from the lane's own row. It is not the
+            # command the lane ran: control-census.py takes its denominator from the surface's
+            # `controls` array, so a row naming "UIA TogglePattern.Toggle()" counts against
+            # nothing and reads as a control the registry has never heard of. That was written
+            # here as a literal until 2026-09-02 and had to be corrected by hand in the registry
+            # afterwards, which the next run silently reverted.
+            "actuates": list(row.get("actuates") or []),
             "evidence": evidence,
             "note": note,
             "witness": {
-                "recorder": ("System.Windows.Automation, in a PowerShell process that is not the "
-                             "shell, reading the shell's published accessibility tree"),
-                "effect": "ui-state",
+                "recorder": recorder or (
+                    "System.Windows.Automation, in a PowerShell process that is not the "
+                    "shell, reading the shell's published accessibility tree"),
+                "effect": "machine-state" if reaches_the_machine else "ui-state",
                 "count": 1,
             } if is_effect else None,
             "generatedBy": GENERATOR,

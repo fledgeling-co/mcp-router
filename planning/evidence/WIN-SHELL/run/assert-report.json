@@ -1,9 +1,9 @@
 ﻿{
     "schema":  "win-shell.uia-assert/1",
     "subject":  "MCPRouter.Shell - the Windows client, driven through the automation plane",
-    "capturedAtUtc":  "2026-09-02T09:00:01.9090704Z",
-    "exePath":  "C:\\Dev\\mcp-router\\.worktrees\\wa1-shell-controls\\app\\windows\\MCPRouter.Shell\\bin\\Debug\\net8.0-windows10.0.19041.0\\win-x64\\MCPRouter.Shell.exe",
-    "processId":  26760,
+    "capturedAtUtc":  "2026-09-02T11:46:14.0572123Z",
+    "exePath":  "C:\\Dev\\mcp-router\\.worktrees\\wb1-settings-persistence\\app\\windows\\MCPRouter.Shell\\bin\\Debug\\net8.0-windows10.0.19041.0\\win-x64\\MCPRouter.Shell.exe",
+    "processId":  14812,
     "destinations":  10,
     "measured":  10,
     "passed":  10,
@@ -20,7 +20,7 @@
                      {
                          "id":  "settings.toggle.LaunchAtLogin",
                          "status":  "pass",
-                         "detail":  "named \u0027Launch router daemon at sign-in\u0027, toggle state readable as \u0027On\u0027"
+                         "detail":  "named \u0027Launch router daemon at sign-in\u0027, toggle state readable as \u0027Off\u0027"
                      },
                      {
                          "id":  "settings.toggle.RequireConfirmationOnDestructive",
@@ -35,7 +35,64 @@
                      {
                          "id":  "settings.effect",
                          "status":  "pass",
-                         "detail":  "toggling \u0027Launch router daemon at sign-in\u0027 through the plane moved the board\u0027s state readout from \u0027LaunchAtLogin=on · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on\u0027 to \u0027LaunchAtLogin=off · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on\u0027 - an effect outside the control that was actuated."
+                         "detail":  "toggling \u0027Launch router daemon at sign-in\u0027 through the plane moved the board\u0027s state readout from \u0027LaunchAtLogin=off · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on\u0027 to \u0027LaunchAtLogin=on · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on\u0027 - an effect outside the control that was actuated.",
+                         "actuates":  [
+                                          "Launch router daemon at sign-in"
+                                      ]
+                     },
+                     {
+                         "id":  "settings.launchAtLogin.baseline",
+                         "status":  "pass",
+                         "detail":  "Get-ScheduledTask reports no task at \u0027\\MCPRouter\\WIN-SHELL Settings Witness (transient)\u0027 before the switch is driven, so the arms below measure THIS run\u0027s registration.",
+                         "actuates":  [
+                                          "Launch router daemon at sign-in"
+                                      ],
+                         "recorder":  "Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)"
+                     },
+                     {
+                         "id":  "settings.launchAtLogin.effect",
+                         "status":  "pass",
+                         "detail":  "driving the switch to On through the automation plane registered \u0027\\MCPRouter\\WIN-SHELL Settings Witness (transient)\u0027 in the Windows task scheduler: state=Ready, logon trigger present, RunLevel=Limited (the recorder\u0027s word for the XML\u0027s LeastPrivilege), Execute=C:\\Dev\\mcp-router\\.worktrees\\wb1-settings-persistence\\app\\windows\\MCPRouter.Shell\\win-shell-witness-daemon.exe. Read by an API that did not write it.",
+                         "actuates":  [
+                                          "Launch router daemon at sign-in"
+                                      ],
+                         "recorder":  "Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)"
+                     },
+                     {
+                         "id":  "settings.persistence.store",
+                         "status":  "pass",
+                         "detail":  "C:\\Dev\\mcp-router\\.worktrees\\wb1-settings-persistence\\planning\\evidence\\WIN-SHELL\\run\\shell-state\\shell-settings.json holds LaunchAtLogin=true, read off the disk by this script. The file is the recorder; the shell is not asked what it saved.",
+                         "actuates":  [
+                                          "Launch router daemon at sign-in"
+                                      ],
+                         "recorder":  "a read of the settings file by this script"
+                     },
+                     {
+                         "id":  "settings.persistence",
+                         "status":  "pass",
+                         "detail":  "the shell was terminated and launched again as a new process, and the switch reads On in the new one. Closing the shell no longer forgets the setting.",
+                         "actuates":  [
+                                          "Launch router daemon at sign-in"
+                                      ],
+                         "recorder":  "a second MCPRouter.Shell process, launched after the first was terminated"
+                     },
+                     {
+                         "id":  "settings.copyEndpoint",
+                         "status":  "pass",
+                         "detail":  "the clipboard held this lane\u0027s sentinel before the button was invoked and holds \u0027http://127.0.0.1:8879\u0027 after, read out of a separate PowerShell process. It matches the endpoint the board displays at settings.state.endpoint.",
+                         "actuates":  [
+                                          "Copy the loopback endpoint"
+                                      ],
+                         "recorder":  "Get-Clipboard in a separate PowerShell process"
+                     },
+                     {
+                         "id":  "settings.launchAtLogin.silence",
+                         "status":  "pass",
+                         "detail":  "driving the switch back to Off removed \u0027\\MCPRouter\\WIN-SHELL Settings Witness (transient)\u0027: Get-ScheduledTask reports absence again, so its yes above was a reading rather than an echo.",
+                         "actuates":  [
+                                          "Launch router daemon at sign-in"
+                                      ],
+                         "recorder":  "Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)"
                      },
                      {
                          "id":  "discover.detail",
@@ -57,7 +114,7 @@
                         "selected":  true,
                         "windowTitle":  "Discover",
                         "elements":  905,
-                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wa1-shell-controls\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-discover.json",
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wb1-settings-persistence\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-discover.json",
                         "dumpExit":  0,
                         "fingerprint":  "92CAA03DEF686BEC",
                         "status":  "pass"
@@ -74,7 +131,7 @@
                         "selected":  true,
                         "windowTitle":  "Skills",
                         "elements":  57,
-                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wa1-shell-controls\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-skills.json",
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wb1-settings-persistence\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-skills.json",
                         "dumpExit":  0,
                         "fingerprint":  "DEDEAFDEC9C3888C",
                         "status":  "pass"
@@ -91,7 +148,7 @@
                         "selected":  true,
                         "windowTitle":  "Servers",
                         "elements":  84,
-                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wa1-shell-controls\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-servers.json",
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wb1-settings-persistence\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-servers.json",
                         "dumpExit":  0,
                         "fingerprint":  "ABCC3298987ED66C",
                         "status":  "pass"
@@ -108,7 +165,7 @@
                         "selected":  true,
                         "windowTitle":  "Activity",
                         "elements":  114,
-                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wa1-shell-controls\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-activity.json",
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wb1-settings-persistence\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-activity.json",
                         "dumpExit":  0,
                         "fingerprint":  "51733BF04FA671D7",
                         "status":  "pass"
@@ -124,10 +181,10 @@
                         "titleBefore":  "Activity",
                         "selected":  true,
                         "windowTitle":  "Harnesses",
-                        "elements":  65,
-                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wa1-shell-controls\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-harnesses.json",
+                        "elements":  70,
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wb1-settings-persistence\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-harnesses.json",
                         "dumpExit":  0,
-                        "fingerprint":  "EF2FC884E42FC340",
+                        "fingerprint":  "2A3115E6E0D528F4",
                         "status":  "pass"
                     },
                     {
@@ -142,7 +199,7 @@
                         "selected":  true,
                         "windowTitle":  "Checks",
                         "elements":  70,
-                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wa1-shell-controls\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-checks.json",
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wb1-settings-persistence\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-checks.json",
                         "dumpExit":  0,
                         "fingerprint":  "48B098BE235A4C4B",
                         "status":  "pass"
@@ -159,7 +216,7 @@
                         "selected":  true,
                         "windowTitle":  "Cleanup",
                         "elements":  90,
-                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wa1-shell-controls\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-cleanup.json",
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wb1-settings-persistence\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-cleanup.json",
                         "dumpExit":  0,
                         "fingerprint":  "B6796B528F29ED00",
                         "status":  "pass"
@@ -176,7 +233,7 @@
                         "selected":  true,
                         "windowTitle":  "Inbox",
                         "elements":  79,
-                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wa1-shell-controls\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-inbox.json",
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wb1-settings-persistence\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-inbox.json",
                         "dumpExit":  0,
                         "fingerprint":  "1CB7BEE9F677C99A",
                         "status":  "pass"
@@ -193,7 +250,7 @@
                         "selected":  true,
                         "windowTitle":  "Insights",
                         "elements":  74,
-                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wa1-shell-controls\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-insights.json",
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wb1-settings-persistence\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-insights.json",
                         "dumpExit":  0,
                         "fingerprint":  "CD918463BB25FA47",
                         "status":  "pass"
@@ -209,8 +266,8 @@
                         "titleBefore":  "Insights",
                         "selected":  true,
                         "windowTitle":  "Settings",
-                        "elements":  82,
-                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wa1-shell-controls\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-settings.json",
+                        "elements":  85,
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wb1-settings-persistence\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-settings.json",
                         "dumpExit":  0,
                         "fingerprint":  "3FCFA70A3D7DC1B1",
                         "status":  "pass"

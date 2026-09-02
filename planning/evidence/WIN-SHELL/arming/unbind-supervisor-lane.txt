@@ -1,0 +1,33 @@
+﻿
+2026-09-02T11:41:29.8587855Z shell binary: C:\Dev\mcp-router\.worktrees\wb1-settings-persistence\app\windows\MCPRouter.Shell\bin\Debug\net8.0-windows10.0.19041.0\win-x64\MCPRouter.Shell.exe (written 2026-09-02T11:39:01.5537839Z)
+2026-09-02T11:41:33.7949413Z shell pid 41392 is on the automation plane: 'Servers'
+2026-09-02T11:41:33.9651211Z catalogue: 10 destination(s) — discover, skills, servers, activity, harnesses, checks, cleanup, inbox, insights, settings
+2026-09-02T11:41:42.3975540Z   discover: PASS — title 'Discover', 905 element(s), fp 92CAA03DEF686BEC
+2026-09-02T11:41:44.3195808Z   skills: PASS — title 'Skills', 57 element(s), fp DEDEAFDEC9C3888C
+2026-09-02T11:41:46.3993033Z   servers: PASS — title 'Servers', 84 element(s), fp ABCC3298987ED66C
+2026-09-02T11:41:48.8353288Z   activity: PASS — title 'Activity', 114 element(s), fp 51733BF04FA671D7
+2026-09-02T11:41:51.2362041Z   harnesses: PASS — title 'Harnesses', 70 element(s), fp 2A3115E6E0D528F4
+2026-09-02T11:41:53.3617566Z   checks: PASS — title 'Checks', 70 element(s), fp 48B098BE235A4C4B
+2026-09-02T11:41:55.6811572Z   cleanup: PASS — title 'Cleanup', 90 element(s), fp B6796B528F29ED00
+2026-09-02T11:41:58.9532327Z   inbox: PASS — title 'Inbox', 79 element(s), fp 1CB7BEE9F677C99A
+2026-09-02T11:42:01.6053281Z   insights: PASS — title 'Insights', 74 element(s), fp CD918463BB25FA47
+2026-09-02T11:42:04.5213378Z   settings: PASS — title 'Settings', 85 element(s), fp 3FCFA70A3D7DC1B1
+2026-09-02T11:42:04.5507792Z settings census expects 7 section(s) and 3 toggle(s), read out of SettingsPresentation.cs
+2026-09-02T11:42:05.3046001Z   control settings.sections: PASS - all 7 declared section(s) publish an addressable container: settings.section.router, settings.section.harnesses, settings.section.sessionanalyst, settings.section.updates, settings.section.security, settings.section.ambientsurface, settings.section.advanced
+2026-09-02T11:42:05.3282681Z   control settings.toggle.LaunchAtLogin: PASS - named 'Launch router daemon at sign-in', toggle state readable as 'Off'
+2026-09-02T11:42:05.3508795Z   control settings.toggle.RequireConfirmationOnDestructive: PASS - named 'Require confirmation on destructive operations', toggle state readable as 'On'
+2026-09-02T11:42:05.3722415Z   control settings.toggle.ShowAmbientIcon: PASS - named 'Show status in notification area', toggle state readable as 'On'
+2026-09-02T11:42:05.4436991Z   control settings.effect: PASS - toggling 'Launch router daemon at sign-in' through the plane moved the board's state readout from 'LaunchAtLogin=off · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' to 'LaunchAtLogin=on · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' - an effect outside the control that was actuated.
+2026-09-02T11:42:09.0171756Z   control settings.launchAtLogin.baseline: PASS - Get-ScheduledTask reports no task at '\MCPRouter\WIN-SHELL Settings Witness (transient)' before the switch is driven, so the arms below measure THIS run's registration.
+2026-09-02T11:42:11.3261526Z   control settings.launchAtLogin.effect: FAIL - INERT BEYOND THE PROCESS: the switch reads On through the plane and Get-ScheduledTask reports no task at '\MCPRouter\WIN-SHELL Settings Witness (transient)'. The control moved and the machine did not.
+2026-09-02T11:42:11.3352183Z   control settings.persistence.store: PASS - C:\mcprouter-armed-run\shell-state\shell-settings.json holds LaunchAtLogin=true, read off the disk by this script. The file is the recorder; the shell is not asked what it saved.
+2026-09-02T11:42:11.3372100Z   closing the shell to measure whether the setting survives it
+2026-09-02T11:42:15.0960170Z   control settings.persistence: FAIL - the switch reads 'Off' in a freshly launched shell after being driven to On in the previous one, so the setting did not survive the process.
+2026-09-02T11:42:17.1032439Z   control settings.copyEndpoint: PASS - the clipboard held this lane's sentinel before the button was invoked and holds 'http://127.0.0.1:8879' after, read out of a separate PowerShell process. It matches the endpoint the board displays at settings.state.endpoint.
+2026-09-02T11:42:18.8729419Z   control settings.launchAtLogin.silence: PASS - driving the switch back to Off removed '\MCPRouter\WIN-SHELL Settings Witness (transient)': Get-ScheduledTask reports absence again, so its yes above was a reading rather than an echo.
+2026-09-02T11:42:30.7824521Z   control discover.detail: PASS - opened from the row 'MCPRouter.Shell.Views.DiscoverRow'; all 8 checked control(s) are addressable by id and publish a name.
+2026-09-02T11:42:30.8064030Z wrote C:\mcprouter-armed-run\assert-report.json
+2026-09-02T11:42:30.8094091Z destinations 10 · measured 10 · passed 10 · FAILED 2 · unoracled 0 · inconclusive 0
+2026-09-02T11:42:30.8115386Z controls checked 12 · FAILED 2
+2026-09-02T11:42:30.8329475Z shell pid 40384 stopped
+2026-09-02T11:42:30.8414131Z 2 destination(s) failed against the real shell on the automation plane.

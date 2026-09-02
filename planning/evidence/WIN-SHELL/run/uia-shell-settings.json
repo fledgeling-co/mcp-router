@@ -1,23 +1,23 @@
 ﻿{
     "schema":  "win20.uia-dump/1",
-    "capturedAtUtc":  "2026-09-02T08:59:55.4739014Z",
+    "capturedAtUtc":  "2026-09-02T11:45:46.6013827Z",
     "host":  {
                  "osVersion":  "10.0.26220.0",
                  "psVersion":  "5.1.26100.9223",
                  "machine":  "Z13"
              },
     "request":  {
-                    "processId":  26760,
+                    "processId":  19032,
                     "titleContains":  "",
                     "view":  "Control"
                 },
     "targets":  [
                     {
-                        "hwnd":  1180892,
+                        "hwnd":  1967926,
                         "name":  "Settings",
                         "className":  "WinUIDesktopWin32WindowClass",
                         "frameworkId":  "Win32",
-                        "processId":  26760,
+                        "processId":  19032,
                         "isVisible":  true,
                         "isMinimised":  false
                     }
@@ -25,22 +25,22 @@
     "foregroundSamples":  [
                               {
                                   "when":  "before",
-                                  "hwnd":  1180892,
-                                  "processId":  26760
+                                  "hwnd":  1967926,
+                                  "processId":  19032
                               },
                               {
                                   "when":  "midwalk",
-                                  "hwnd":  1180892,
-                                  "processId":  26760
+                                  "hwnd":  1967926,
+                                  "processId":  19032
                               },
                               {
                                   "when":  "after",
-                                  "hwnd":  1180892,
-                                  "processId":  26760
+                                  "hwnd":  1967926,
+                                  "processId":  19032
                               }
                           ],
     "truncated":  false,
-    "elementCount":  81,
+    "elementCount":  84,
     "elements":  [
                      {
                          "depth":  0,
@@ -1574,7 +1574,7 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/2/2/1",
-                         "automationId":  "EndpointText",
+                         "automationId":  "settings.state.endpoint",
                          "name":  "http://127.0.0.1:8879",
                          "controlType":  "Text",
                          "localizedControlType":  "text",
@@ -1728,7 +1728,7 @@
                                           "TogglePatternIdentifiers.Pattern"
                                       ],
                          "patternState":  {
-                                              "toggleState":  "On"
+                                              "toggleState":  "Off"
                                           }
                      },
                      {
@@ -2069,7 +2069,7 @@
                          "boundingRectangle":  {
                                                    "y":  1214,
                                                    "width":  1127,
-                                                   "height":  100,
+                                                   "height":  140,
                                                    "x":  424
                                                },
                          "patterns":  [
@@ -2146,15 +2146,15 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/2/10/2",
-                         "automationId":  "settings.toggle.RequireConfirmationOnDestructive",
-                         "name":  "Require confirmation on destructive operations",
-                         "controlType":  "Button",
-                         "localizedControlType":  "toggle switch",
-                         "className":  "ToggleSwitch",
+                         "automationId":  "settings.toggle.RequireConfirmationOnDestructive.reason",
+                         "name":  "Unavailable: no operation in this build asks this setting before it acts, so turning it off would remove no prompt. DEF-093.",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
                          "frameworkId":  "XAML",
                          "isEnabled":  true,
                          "isOffscreen":  false,
-                         "isKeyboardFocusable":  true,
+                         "isKeyboardFocusable":  false,
                          "hasKeyboardFocus":  false,
                          "isContentElement":  true,
                          "isControlElement":  true,
@@ -2162,7 +2162,39 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1234,
+                                                   "y":  1286,
+                                                   "width":  844,
+                                                   "height":  48,
+                                                   "x":  450
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/2/10/3",
+                         "automationId":  "settings.toggle.RequireConfirmationOnDestructive",
+                         "name":  "Require confirmation on destructive operations",
+                         "controlType":  "Button",
+                         "localizedControlType":  "toggle switch",
+                         "className":  "ToggleSwitch",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  false,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  1254,
                                                    "width":  106,
                                                    "height":  60,
                                                    "x":  1294
@@ -2194,7 +2226,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1343,
+                                                   "y":  1384,
                                                    "width":  1127,
                                                    "height":  40,
                                                    "x":  424
@@ -2226,9 +2258,9 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1414,
+                                                   "y":  1454,
                                                    "width":  1127,
-                                                   "height":  100,
+                                                   "height":  74,
                                                    "x":  424
                                                },
                          "patterns":  [
@@ -2257,7 +2289,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1433,
+                                                   "y":  1474,
                                                    "width":  844,
                                                    "height":  28,
                                                    "x":  450
@@ -2289,7 +2321,7 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1462,
+                                                   "y":  1502,
                                                    "width":  844,
                                                    "height":  24,
                                                    "x":  450
@@ -2305,15 +2337,15 @@
                      {
                          "depth":  6,
                          "path":  "/3/0/2/2/12/2",
-                         "automationId":  "settings.toggle.ShowAmbientIcon",
-                         "name":  "Show status in notification area",
-                         "controlType":  "Button",
-                         "localizedControlType":  "toggle switch",
-                         "className":  "ToggleSwitch",
+                         "automationId":  "settings.toggle.ShowAmbientIcon.reason",
+                         "name":  "Unavailable: this build draws no notification-area icon, so there is nothing for this switch to show or hide. DEF-092.",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
                          "frameworkId":  "XAML",
                          "isEnabled":  true,
                          "isOffscreen":  false,
-                         "isKeyboardFocusable":  true,
+                         "isKeyboardFocusable":  false,
                          "hasKeyboardFocus":  false,
                          "isContentElement":  true,
                          "isControlElement":  true,
@@ -2321,9 +2353,41 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1433,
+                                                   "y":  1526,
+                                                   "width":  844,
+                                                   "height":  2,
+                                                   "x":  450
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/2/12/3",
+                         "automationId":  "settings.toggle.ShowAmbientIcon",
+                         "name":  "Show status in notification area",
+                         "controlType":  "Button",
+                         "localizedControlType":  "toggle switch",
+                         "className":  "ToggleSwitch",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  false,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  1494,
                                                    "width":  106,
-                                                   "height":  60,
+                                                   "height":  34,
                                                    "x":  1294
                                                },
                          "patterns":  [
@@ -2561,7 +2625,39 @@
                          "depth":  6,
                          "path":  "/3/0/2/2/14/5",
                          "automationId":  "settings.state.summary",
-                         "name":  "LaunchAtLogin=on · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on",
+                         "name":  "LaunchAtLogin=off · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  true,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  Infinity,
+                                                   "width":  -Infinity,
+                                                   "height":  -Infinity,
+                                                   "x":  Infinity
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/2/14/6",
+                         "automationId":  "settings.state.durability",
+                         "name":  "Stored at C:\\Dev\\mcp-router\\.worktrees\\wb1-settings-persistence\\planning\\evidence\\WIN-SHELL\\run\\shell-state\\shell-settings.json - sign-in state read from the Windows task scheduler. Last change: Removed \\MCPRouter\\WIN-SHELL Settings Witness (transient) in the Windows task scheduler.",
                          "controlType":  "Text",
                          "localizedControlType":  "text",
                          "className":  "TextBlock",
@@ -2620,7 +2716,7 @@
                          "patternState":  {
                                               "rangeValue":  0,
                                               "rangeMinimum":  0,
-                                              "rangeMaximum":  256,
+                                              "rangeMaximum":  365.3333740234375,
                                               "rangeReadOnly":  false
                                           }
                      }

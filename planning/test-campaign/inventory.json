@@ -885,6 +885,43 @@
       "why-it-matters": "The half of DEF-080 that is now defended by a gate is the half whose names happen to look like API calls. The other half is defended by a person reading the row. So the guarantee REQ-080 states is a floor: the census cannot be made to add a `Foo.Bar` to the buttons, and it can still be made to add `MakeAppx pack` to them. Saying so here is the point -- a gate that half-covers a class and is described as covering it is how the class comes back.",
       "next": "The shape rules cannot be widened without reddening honest rows (`winget validate` is a legitimate operation name and `Reset history` is a legitimate control name, and no string rule separates them). The fix is not a better regex: it is a declared property of the SURFACE -- a `plane` or `kind` field saying whether this row has glass at all -- from which the field a member belongs in follows. That is a schema change across every surface row and a change to what `bin/design-controls.py` writes, which is why it is filed rather than done inside DEF-080's scope.",
       "resolution": "Not settled. Filed 2026-09-02 by wb4 so the floor is quotable rather than latent."
+    },
+    {
+      "id": "DEF-360",
+      "title": "A merge sha cited in both trackers resolves to no object in this repository",
+      "lane": "repo-gate",
+      "severity": "low",
+      "status": "fixed",
+      "found": "2026-09-03 by wc5, while reconciling ledger-reconcile.py check I -- found by resolving every sha the reconciliation cited rather than by any gate",
+      "evidence": "`ORCHESTRATOR.md:1544` and `LEDGER.md`'s R19-INT row both read \"**Merged** `920ff96`\". `git cat-file -t 920ff96` returns `fatal: Not a valid object name`, and `git log --all` has no such object. The R19-INT merge that did happen is `ff05efd4`, 2026-08-24, \"Merge R19-INT: Stale manifest snapshot clobbers concurrent write (gap-fix 4 verified at 79d40ee)\".",
+      "class": "measured-and-broken",
+      "why-it-matters": "Both trackers state a landing by quoting a sha, and every reconciliation done by hand -- including this one -- treats that sha as the arbiter. One that resolves to nothing is a citation that reads exactly like evidence and answers no question, and nothing in `ledger-reconcile.py` or in `citation-gate.py` resolves a sha in a tracker row: `citation-gate.py` reads anchors and trees for source citations, not commit ids in prose.",
+      "next": "Corrected in both files to `ff05efd4`. NOT closed by a gate: the general defect -- a tracker may cite any sha and nothing checks it exists -- stands, and a check that resolves every sha in a tracker row is a small addition to `ledger-reconcile.py` (it already shells out to git for `merged_branches`). Left unwritten deliberately rather than added blind, because a bad sha in a superseded narrative is not the same finding as a bad sha in a live status, and which of those to fail on is a decision for whoever owns the reconciliation gate.",
+      "resolution": "The two citations are corrected; the missing check is filed here and owned by the reconciliation gate's maintainer."
+    },
+    {
+      "id": "DEF-361",
+      "title": "Twelve wave-slot landings merged to main with no verify verdict recorded anywhere",
+      "lane": "repo-gate",
+      "severity": "medium",
+      "status": "open",
+      "found": "2026-09-03 by wc5, while reconciling check I -- the merges are on main and the verdicts are absent",
+      "evidence": "Wave slots L3-L6 and N1-N8 merged into `main` between 2026-08-29 and 2026-08-30 carrying M32, G8, M37, R27, F5, F6, F7, F8, M38, M39, R22 and M19's gap-fix. `git log --format=%s main --since=2026-08-28 | grep -iE 'verif|verdict'` returns twenty-nine lines and every one of them is a WIN-fleet item; not one names an `ai/l*` or `ai/n*` branch. The merge subjects themselves are bare -- \"merge ai/n5\", \"merge ai/l3\" -- against the WIN fleet's \"Merge ai/win15: ... (verified, 592 tests)\". `ORCHESTRATOR.md` records all twelve as **Merged**, and after this reconciliation `LEDGER.md` does too.",
+      "class": "never-measured",
+      "why-it-matters": "Check I is satisfied the moment the two files agree, and they now agree on `shipped` for all twelve. `shipped` is a claim about git and it is true. It is not a claim that anybody graded the work, and a reconciliation that makes both files say Merged is exactly the move that turns an ungraded landing into a settled one. Recorded here so the word Merged in those rows does not quietly absorb it.",
+      "next": "Someone with the verification authority decides whether these twelve need a retrospective verdict or whether the wave integration counted as one. That is not a reconciliation runner's call: the losing option (re-verifying twelve merged items) is cheaper in confidence and dearer in time, and which side of that to land on is the owner's."
+    },
+    {
+      "id": "DEF-362",
+      "title": "M18 and R19 carry a standing Needs More Work verdict and their gap-fixes have since merged ungraded",
+      "lane": "repo-gate",
+      "severity": "medium",
+      "status": "open",
+      "found": "2026-09-03 by wc5, reconciling the two ids where LEDGER read needs-more-work and ORCHESTRATOR read Merged",
+      "evidence": "`LEDGER.md`'s heads for both were written 2026-08-23 at `9d4da76` and named an owed gap-fix: M18 \"verified `8354a63`, gap-fix 3 owed\", R19 \"verified `a40351d`, gap-fix 3 owed\". Both owed gap-fixes shipped -- M18's gap-fix 3 at `planning/evidence/M18-gapfix-3/`, gap-fix 4 in wave slot K1 merged `afe6b6d6`; R19's gap-fix 5 in wave slot K2 merged `6250d8b2`, with its evidence at `planning/evidence/R19-gapfix-5/`. No verify verdict exists for either after `8354a63` / `a40351d`.",
+      "class": "never-measured",
+      "why-it-matters": "These are the two ids where the honest state is neither of the two the files carried. `Needs More Work` was stale on its own terms -- it named work that has since been done. `Merged` is true about git and silent about the verdict. Both rows now lead with Merged and name this defect in the same cell, so the standing verdict is not lost in the word.",
+      "next": "A verifier re-grades M18 and R19 against their original requirements, in fresh context, and either closes the 2026-08-23 verdicts or reopens them with what still holds. Until then neither is Done."
     }
   ],
   "flow": [

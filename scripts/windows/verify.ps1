@@ -377,7 +377,9 @@ Write-Host "`nPortable gates" -ForegroundColor Cyan
 # under the default.
 $env:SWEEP_CONTROL_TIMEOUT = '600'
 #
-# ALL 24 python members of `make lint`, with the Makefile's own flags. The first version ran
+# ALL 25 python members of `make lint`, with the Makefile's own flags. The count went 24 to 25
+# on 2026-09-03, when `ledger-reconcile.py` joined this list and the Makefile's recipe together;
+# it was in neither, which is why it stayed red for weeks with nobody reading it. The first version ran
 # EIGHT of them and named none of the rest. WIN18's verifier ran the other thirteen: eight would
 # have passed for free, and THREE were red on genuine findings - two of those against files this
 # fleet itself authored. A lane that selects the gates it runs, and does not say which it left
@@ -390,6 +392,15 @@ $gates = @(
     @{ Cmd = 'planning/null-run-gate.py' },
     @{ Cmd = 'planning/py39-annotation-gate.py' },
     @{ Cmd = 'planning/citation-gate.py' },
+    # Added 2026-09-03 by wc5. It had never been in this list, and that is the whole reason it
+    # sat red for weeks: 5 of its 10 checks were finding something, including eight ids where
+    # ORCHESTRATOR.md said an item had shipped and LEDGER.md said it was still To Do, on the
+    # file the fleet fills its slots from. It reserves exit 2 for a usage error - a missing
+    # file, or a reader that measured nothing - which is a NoVerdict rather than a pass, on the
+    # same rule the gate applies to itself. It shells out to `git branch --merged main` for
+    # check E; in a clone with no `ai/*` branches that check simply finds nothing, which is a
+    # narrower run rather than a false green, and the branch count prints on every run.
+    @{ Cmd = 'planning/ledger-reconcile.py';                         NoVerdict = @(2) },
     @{ Cmd = 'planning/sweep-control-gate.py';                       NoVerdict = @(4) },
     @{ Cmd = 'planning/scope-invariance-gate.py'; Args = @('--quiet') },
     @{ Cmd = 'planning/instrument-census.py' },

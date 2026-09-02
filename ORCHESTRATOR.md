@@ -3921,3 +3921,102 @@ Concurrency is **two**, not five. Six concurrent opus-5 runners all died inside 
 `400 upstream_error`, each after roughly 25 working turns; two ran the whole wave without a
 transport failure. That is a property of the proxy rather than of this machine, and the only lever
 here is how many agents are in flight.
+
+
+## 2026-09-03 · Wave A′ landed, and five instruments that could not have failed
+
+Four runners, opus-5 at medium effort, concurrency two. All four reported. Every id offset held:
+zero collisions, against six runners allocating the same `CASE-0342` the wave before. The offsets
+were the whole fix, and they were cheap.
+
+| Runner | Items | Settled by |
+|---|---|---|
+| `wb1-settings-persistence` | DEF-087, DEF-088 | A setting that reaches the machine and survives the process. Driving `Launch router daemon at sign-in` through the automation plane registers a real scheduled task, `Get-ScheduledTask` reports it, driving it back Off removes it, and the shell is terminated and relaunched to prove the switch still reads On. `Copy` puts the endpoint on the clipboard, read back by a different PowerShell process against a sentinel planted first. |
+| `wb2-automation-names` | DEF-084, DEF-089 | 120 Discover rows publishing distinct accessible names and distinct automation ids, none of them a type name, and a navigation pane that answers to `Destinations`. |
+| `wb3-dispatcher-handler` | DEF-085, DEF-086 | A `DispatcherQueue` callback throw that now reaches a handler, observed writing its line into `shell-startup.log` and read back out by a process that is not the shell. |
+| `wb4-actuates-vocabulary` | DEF-080 | Two denominators printed separately — `Controls: 50 of 204` and `Operations: 8 of 8` — where one field had been answering two questions. |
+
+675 shell-model tests and 132 live tests pass; the lane closes at 10 of 10 destinations and 15 of
+15 control arms.
+
+### The stale build, which is the finding worth reading twice
+
+The merged lane run reported **12 of 15 control arms FAILED**, every control both runners had added
+"unaddressable". Twelve specific, coherent, mutually consistent failures, and an exit code to match.
+None of it was true.
+
+The lane's default `ExePath` is `bin\Debug\…`. `MSBuild -p:Platform=x64` writes `bin\x64\Debug\…`.
+The binary the lane read was twelve hours old and predated every control it was looking for.
+Rebuilding through `scripts/windows/build-shell.ps1` turned all fifteen green with no change to the
+product whatsoever.
+
+That is `BRIEF-a-stale-build-can-fabricate-a-failure-and-as-easily-a-pass`, live, in this repository,
+on the day after it was written. The false FAIL cost an afternoon. **The false PASS is the one that
+matters**, because nothing in the run says which binary answered, and a green over a stale build is
+indistinguishable from a green over the product.
+
+So the lane now establishes freshness before anything else and stops with NO VERDICT rather than
+FAIL — a stale build is not a defect in the product, it is the lane being unable to speak about the
+product at all. Both arms were watched: with one source file newer than the build it stops at exit 3
+naming the file, and rebuilt it returns exit 0.
+
+The guard needed fixing twice, and both bugs were the failure it exists to prevent wearing its
+clothes. It first filtered with a regex PowerShell rejected at runtime; the exception left the result
+empty, empty read as *nothing is newer*, and it printed "shell binary is current" over a file that
+demonstrably was. **It failed open.** Then, comparing against the exe, it refused a tree that was
+current — an incremental build relinks the changed project's dll and leaves the apphost alone, so a
+clean successful build left the exe seven minutes older than the source. A guard that cries wolf gets
+switched off, which ends in the same place as one that fails open. It now counts what it walked, and
+refuses a walk that found zero files at all.
+
+### Four gates that were green because they were blind
+
+Wave A was finalized on a green I did not earn: I ran the reckoning gates and the build, not the
+portable set. Four of the fourteen had been red on `main` since that merge, and **three could only
+ever have returned a pass**.
+
+- `registry-drop-gate` built its paths with `os.path.join`, giving `planning/test-campaign\cases.json`.
+  `os.path.exists` accepts that; `git show <ref>:<path>` does not. The working-tree read worked, all
+  four ref reads returned `None`, and the gate whose entire subject is a row going missing compared
+  nothing at all. It exits 2 on that rather than 0, which is the only reason it was ever visible.
+- `null-run-gate` spawns each gate and decodes utf-8. A Python child on Windows writes its pipe in
+  the console codepage, so an em dash arrives as cp1252 `0x97`, the decode fails inside subprocess's
+  reader *thread*, that exception is printed and swallowed, `run()` returns 0, and `proc.stdout`
+  comes back `None`. It crashed on the concatenation, which was luck: written defensively as
+  `(proc.stdout or "")`, every arm would have reported HELD for want of its expected string — a
+  null-run gate declaring its own arms unable to fire. It passed under `verify.ps1` throughout,
+  because that script exports `PYTHONIOENCODING` at line 22. **A gate green only inside one wrapper
+  is not a gate.**
+- `foreign-path-gate` asserted `/tmp` exists. Windows has none, the presence control missed, and a
+  missed control makes the gate refuse to report — exit 2 over a probe that was working perfectly.
+  Fixing the control then exposed what it had been hiding for as long as it had been failing: past
+  it, the gate queued all 1,673 blob shas into `git cat-file --batch` before reading a byte, which
+  deadlocks the moment the answers outgrow the pipe buffer. It hung with 0.17s of CPU after nine
+  minutes.
+- `reader-accounting` was red on four unaccounted drops `glass-build-gate.py` arrived with in Wave A.
+
+The shape is the same one this campaign keeps finding, one level up: **an instrument that cannot fail
+reports the same word as an instrument that passed.** Wave A′ did not find these by looking for them.
+It found them because somebody ran the gates.
+
+### The arithmetic
+
+74 → **71** scheduled members. reckon 1.9.4 at `planning/reckoning/2026-09-03`: 605 rows, gate clean,
+ratchet clean, `broken 63 · unmeasured 20 · undecided 21 · unjoined 108 · waived 80 · verified-done 312`.
+`wincoverage`, `winlive`, `branches` and `liveness` are green; `waves` is correctly red.
+
+Two rows came back with the drop gate's sight restored, and neither is closed:
+
+- **SURF-029** — WIN20's probe window and its two CommandBar overflow controls, enumerated with no
+  case reaching them. Provable on this host, so it goes to the next Windows wave.
+- **REQ-034** — the upstream-auth-expiry behaviour, carrying `evidence: observed` with nothing
+  backing it. That is precisely the re-label reckon's `backed_by` rule exists to refuse, and it is
+  Swift, so it is provable nowhere on this machine.
+
+### What is left, and what a finish can mean for it
+
+The remaining 71 are the partition this fleet started from, now with Bucket A empty. What follows is
+Bucket B — Swift, macOS and iOS, where `swift test` and `xcodebuild` do not run on this host — and
+Bucket C, parked with a stated reason and an owner. Every Bucket B member ships with one standing
+disclosure that is not negotiable: **the Swift half is written and not run here.** A brief that says
+so is worth more than a green that does not.

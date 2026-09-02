@@ -472,6 +472,30 @@ if examined == 0:
 sys.exit(1 if over else 0)
 OVERFLOW
 
+# STAMP EVERY ARTIFACT THIS RUN WROTE WITH THE BUILD IT CAME FROM, in the run that took the
+# pictures rather than afterwards.
+#
+# This is DEF-058. Until now a committed capture carried a subject, a target, a channel, a digest
+# of its own bytes and a window-title readback, and NO TIE TO THE BUILD IT DEPICTS — so when M22
+# added two destinations and renumbered four accelerators, the lane went on passing over pictures
+# of a shell that no longer shipped, and nothing could go red. `glass-build-gate.py` is the reader;
+# this is the writer, and the ordering between them is the whole point. A stamp reconstructed
+# afterwards can only say what a picture cannot be NEWER than; a stamp written here says what it
+# is. What it records comes out of the build — the bundle's own `CFBundleShortVersionString` and
+# `CFBundleVersion`, and the `sources`/`binary` digests from `.mcprouter-build-stamp`, which the
+# Makefile writes only after `xcodebuild` exits 0 — beside a git blob identity that makes the
+# record comparable from another checkout and another operating system.
+STAMPED=()
+while IFS= read -r f; do STAMPED+=("evidence/ax/${f}"); done < <(cd "$AX" && ls *.txt *.tsv 2>/dev/null || true)
+while IFS= read -r f; do STAMPED+=("evidence/shots/${f}"); done < <(cd "$SHOTS" && ls SURF-*.png 2>/dev/null || true)
+if [ "${#STAMPED[@]}" -gt 0 ]; then
+  python3 "$CAMPAIGN/bin/glass-build-gate.py" --emit "$MAC_APP" "${STAMPED[@]}" || {
+    echo "FAIL: this run's pictures could not be stamped with the build they came from."
+    echo "      An unstamped capture is one nothing can date, which is DEF-058 exactly."
+    exit 1
+  }
+fi
+
 FRONT_AFTER="$("$AXKIT" front)"
 echo "frontmost after: $FRONT_AFTER"
 # The per-shutter check above is the gate, because it names MCPRouter. This one compares the

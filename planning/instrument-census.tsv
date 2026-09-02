@@ -277,6 +277,7 @@ make:acceptance-r6	make-target	Makefile	both	npm run	-
 make:build-ios	make-target	Makefile	swift	xcodebuild	-
 make:build-mac	make-target	Makefile	swift	xcodebuild	-
 make:build-mac-release	make-target	Makefile	swift	xcodebuild	-
+make:glass-build	make-target	Makefile	static	no router invocation matched	-
 make:green-streak	make-target	Makefile	both	via scripts/acceptance/green-streak.sh (via scripts/acceptance/parity-gate.sh ($MCP_ROUTER_DIST))	-
 make:install-default	make-target	Makefile	static	no router invocation matched	-
 make:lint	make-target	Makefile	node	via planning/instrument-census.py (argv ["node", …])	-
@@ -375,6 +376,7 @@ planning/test-campaign/bin/forced-state.sh	gate	planning/test-campaign/bin/force
 planning/test-campaign/bin/g17-document-flow.sh	gate	planning/test-campaign/bin/g17-document-flow.sh	both	node <path> + swift build	-
 planning/test-campaign/bin/g17_document_assert.py	gate	planning/test-campaign/bin/g17_document_assert.py	static	no router invocation matched	-
 planning/test-campaign/bin/glass-assert.py	gate	planning/test-campaign/bin/glass-assert.py	static	no router invocation matched	-
+planning/test-campaign/bin/glass-build-gate.py	gate	planning/test-campaign/bin/glass-build-gate.py	static	no router invocation matched	make:glass-build,make:lint
 planning/test-campaign/bin/harnesses-live-probe.py	gate	planning/test-campaign/bin/harnesses-live-probe.py	static	no router invocation matched	-
 planning/test-campaign/bin/insights-live-probe.py	gate	planning/test-campaign/bin/insights-live-probe.py	static	no router invocation matched	-
 planning/test-campaign/bin/paint-check.py	gate	planning/test-campaign/bin/paint-check.py	static	no router invocation matched	-

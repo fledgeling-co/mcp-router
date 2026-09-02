@@ -403,7 +403,16 @@ $gates = @(
     @{ Cmd = 'planning/test-campaign/bin/effect-class-census.py' },
     @{ Cmd = 'planning/test-campaign/bin/blind-vocabulary-arm.py' },
     @{ Cmd = 'planning/test-campaign/bin/vocab-differential.py';  Args = @('--control') },
-    @{ Cmd = 'planning/test-campaign/bin/vocab-differential.py' }
+    @{ Cmd = 'planning/test-campaign/bin/vocab-differential.py' },
+    # The Windows half of the surface denominator. surface-reconcile.py below is xcodebuild-gated
+    # and cannot run here at all, so until wa3 nothing reconciled the ten shipped destinations or
+    # the three non-glass Windows planes against the registry. This one is a static read of the
+    # C# and the XAML and needs no build.
+    @{ Cmd = 'planning/test-campaign/bin/win-surface-reconcile.py' },
+    @{ Cmd = 'planning/test-campaign/bin/arm-win-surface-reconcile.py' },
+    # The control census reads the registry this repository pins rather than the vendored
+    # campaign.py, whose 0.9.2 pin has no census at all. It reports and does not block.
+    @{ Cmd = 'planning/test-campaign/bin/control-census.py' }
 )
 foreach ($g in $gates) {
     $path = Join-Path $root $g.Cmd
@@ -430,7 +439,7 @@ Write-Host "What this lane does NOT cover" -ForegroundColor Yellow
  'the iOS app, its simulator lanes and every glass/capture lane',
  'swiftlint and swiftformat over 793 Swift files',
  'the parity harness against the TypeScript reference (needs the built macOS binary)',
- 'mock-fidelity, acceptance lanes and surface-reconcile - all xcodebuild-gated',
+ 'mock-fidelity, acceptance lanes and surface-reconcile - all xcodebuild-gated (the WINDOWS half of surface-reconcile DOES run here: win-surface-reconcile.py, above)',
  'campaign.py / strict-check / reckon - they measure an app that cannot be launched here'
 ) | ForEach-Object { Write-Host "  - $_" }
 Write-Host "A green run here is NOT a green repository." -ForegroundColor Yellow

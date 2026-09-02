@@ -359,6 +359,7 @@ planning/test-campaign/bin/arm-r26-auth-expiry.py	gate	planning/test-campaign/bi
 planning/test-campaign/bin/arm-r27-health.sh	gate	planning/test-campaign/bin/arm-r27-health.sh	swift	swift test	-
 planning/test-campaign/bin/arm-suites.py	gate	planning/test-campaign/bin/arm-suites.py	swift	argv ["swift", …]	-
 planning/test-campaign/bin/arm-surface-reconcile.py	gate	planning/test-campaign/bin/arm-surface-reconcile.py	static	no router invocation matched	make:surface-reconcile-arm
+planning/test-campaign/bin/arm-win-surface-reconcile.py	gate	planning/test-campaign/bin/arm-win-surface-reconcile.py	static	no router invocation matched	-
 planning/test-campaign/bin/blind-vocabulary-arm.py	gate	planning/test-campaign/bin/blind-vocabulary-arm.py	static	no router invocation matched	make:lint
 planning/test-campaign/bin/capture-mac-design-size.sh	gate	planning/test-campaign/bin/capture-mac-design-size.sh	static	no router invocation matched	-
 planning/test-campaign/bin/capture-mac-glass.sh	gate	planning/test-campaign/bin/capture-mac-glass.sh	static	no router invocation matched	-
@@ -387,6 +388,7 @@ planning/test-campaign/bin/surface-oracle.swift	gate	planning/test-campaign/bin/
 planning/test-campaign/bin/surface-reconcile.py	gate	planning/test-campaign/bin/surface-reconcile.py	static	no router invocation matched	make:surface-reconcile
 planning/test-campaign/bin/vocab-differential.py	gate	planning/test-campaign/bin/vocab-differential.py	static	no router invocation matched	make:lint
 planning/test-campaign/bin/win-cases-from-lane.py	gate	planning/test-campaign/bin/win-cases-from-lane.py	static	no router invocation matched	-
+planning/test-campaign/bin/win-surface-reconcile.py	gate	planning/test-campaign/bin/win-surface-reconcile.py	static	no router invocation matched	-
 planning/test-campaign/bin/wire-document-arm.py	gate	planning/test-campaign/bin/wire-document-arm.py	static	no router invocation matched	-
 planning/test-campaign/bin/wire-document-fixture/seed.py	gate	planning/test-campaign/bin/wire-document-fixture/seed.py	static	no router invocation matched	-
 planning/test-campaign/bin/wire-document.py	gate	planning/test-campaign/bin/wire-document.py	static	no router invocation matched	-

@@ -1,0 +1,25 @@
+mcp-router · lanes: macos-glass, ios-glass, swiftui, router-daemon, parity-wire
+Requirements: 35 inventoried, 1 with no case
+Surfaces:   44 enumerated, 1 with no case
+Cases:      158 pass · 7 fail · 0 skip · 9 n/a · 0 carried · 0 inconclusive · 0 blocked · 1 open  (of 175)
+Observed:   165/175 cases produced a measurement · 9 could not be measured · 1 not attempted
+On glass:   ios-glass → /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug-iphonesimulator/MCPRouterIOS.app (XCUITest runner attached out-of-process to app.fledgeling.mcprouter.ios on MCPRouter-Glass (995BEF6F-101F-4D8A-ACE5-38724A13689A, iPhone 17 Pro, iOS 26.5), a device this lane creates and owns. Six green runs on 20 Aug 2026, 5 of 5 tests each; the last two were on the final source state and the four before them each carried one fewer fix. The four red runs between them were deliberate mutation arms, listed on CASE-0024, CASE-0122, CASE-0124 and CASE-0125. Simulator.app never opened and Ghostty stayed frontmost throughout. The device is lane-owned because a shared one was not: DEF-020 was another project's VPN app holding the foreground and receiving this lane's taps, and five runs failed on a different tab each time before anyone photographed the device itself.)
+On glass:   macos-glass → /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app (axkit attached pid=72421 owns CGWindowID 191539 title Activity; frontmost before/after = Relay)
+On glass:   swiftui → NOT attached: ?
+On glass:   windows-glass → app\windows\MCPRouter.Shell\bin\Debug\net8.0-windows10.0.19041.0\win-x64\MCPRouter.Shell.exe (2026-09-02T08:09:47Z shell-startup.log: 'launched, selftest=...' then 'loaded at rasterization scale 1.5', hosted by scheduled task MCPRouter_WIN3_SelfTest with /it into session 1 / WinSta0; the agent shell is Session 0 and a WinUI process started there dies at 0xC000027B before App's ctor. Independently, 2026-09-01T21:41:05Z the WIN20 UIA lane recorded 'probe started, pid=35488' then 'the probe's window is on the automation plane' and read 36 control-view elements out of process.)
+Oracles:    presence 4 · structural 1 · structural-visual 1 · outcome 104 · metamorphic 13 · raster-visual 32 · unrated 20
+Armed:      146/158 passing cases have been watched to fail
+Scope:      FULL — every case in the campaign was run
+Sample:     pairwise floor; 3-way on theme×viewport×surface (Mac boards) and role×state×network (honesty); oversample honesty-guardrails; drop high-contrast (no authored tokens); drop RTL (no localisation); pairing-transport cells blocked (I5: unimplemented)
+
+Not ready to report:
+  · 1 case(s) still open
+  · 1 surface(s) with no case at all
+  · 1 requirement(s) no case traces to
+
+  Requirements nothing checks: REQ-034
+  Each is something the project says it does. Write the case, or mark the requirement `deferred` with its citation.
+  Surfaces with no case: SURF-029
+  Open: CASE-0197
+
+Finish them, resolve each to skip:/n-a: with a reason, or declare the stop with its resume point — in the reply, the verdict line and the report. Never silently.

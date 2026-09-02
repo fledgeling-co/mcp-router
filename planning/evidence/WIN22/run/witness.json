@@ -26,7 +26,7 @@
       "id": "EFFECT.activator",
       "what": "that key names a CustomActivator CLSID",
       "held": true,
-      "detail": "{388ED0B3-2D79-49E7-927B-0BFE880FC898}"
+      "detail": "{8D353BC6-EAD4-4D18-986F-CAFFE27AB6F9}"
     },
     {
       "id": "EFFECT.localserver",
@@ -49,7 +49,9 @@
     "that a toast is drawn in the Action Center - enumerating it needs UserNotificationListener, whose capability is only grantable to a packaged app, and this one is WindowsPackageType=None (DEF-082)",
     "that pressing a toast button re-activates the process through the registered activator - nothing here can press one"
   ],
-  "notes": [],
+  "notes": [
+    "a registration for 'Fledgeling.MCPRouter.Shell' existed before this run and was removed so the baseline could be taken. It is written again by the launch below."
+  ],
   "host": "Z13",
   "psVersion": "7.6.5"
 }

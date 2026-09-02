@@ -97,8 +97,26 @@ def passed(status: str) -> bool:
 
 
 def main() -> int:
-    inventory = json.loads((CAMPAIGN / "inventory.json").read_text())
-    cases = json.loads((CAMPAIGN / "cases.json").read_text())
+    # The other half of the same Windows fix. A console handle on this host encodes as cp1252, so
+    # the arrow in a `controlsUnactuatable` reason raised UnicodeEncodeError AFTER the census had
+    # printed four correct lines -- a gate that reports most of its finding and then dies with a
+    # non-zero exit that has nothing to do with the registry. `errors="replace"` rather than a
+    # hard utf-8: a mangled glyph in a prose reason is a cosmetic loss, and a crash is not.
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):  # a pipe or a capture that is already text
+            pass
+
+    # `utf-8-sig` rather than the platform default, and it is not a tidy-up. `read_text()` with
+    # no encoding decodes as cp1252 on Windows, so this file raised UnicodeDecodeError on the
+    # first curly quote in `cases.json` and printed no census at all on the host that runs
+    # `scripts/windows/verify.ps1`. A gate that cannot be read on half the machines that own it
+    # reports nothing and looks like it was never wired up. `-sig` because the Windows lanes
+    # write BOM-led JSON (`planning/evidence/WIN-SHELL/run/*.json` all carry one) and a BOM is
+    # not a decode error, it is a byte order mark this reader should eat.
+    inventory = json.loads((CAMPAIGN / "inventory.json").read_text(encoding="utf-8-sig"))
+    cases = json.loads((CAMPAIGN / "cases.json").read_text(encoding="utf-8-sig"))
 
     declared: dict[str, list[str]] = {}
     message_only: dict[str, set[str]] = {}

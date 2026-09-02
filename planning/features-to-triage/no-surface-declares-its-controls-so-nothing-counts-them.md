@@ -1,5 +1,34 @@
 ---
 status: to-triage
+merged-as: 88918d4
+settled: |
+  NOT marked `completed`, and the refusal is the finding rather than an oversight.
+  `planning/shipped-brief-gate.py` R6 declines a terminal word on a brief whose subject the
+  registry still says no against - DEF-008 is open and DEF-011 is partially-fixed - and `reckon`
+  reads a declared word AHEAD of the evidence, so the word would take those failing rows off the
+  total. The census this brief asked for exists and is quoted below; the defects it was filed
+  beside do not close because a denominator now counts them.
+  2026-09-02, wa3. The Mac half was already done when this was read again: G28 declared controls
+  on every Mac board and built `planning/test-campaign/bin/control-census.py`, which prints the
+  census this brief asked `campaign.py check` for. It is not `campaign.py check` because
+  `vendor/test-campaign/` pins 0.9.2 and the census landed upstream in 0.11.0, so on the pinned
+  instrument declaring controls produces no visible line at all - that reasoning is in the file's
+  own header and the pin was left alone.
+
+  What was NOT done and is now: PROVENANCE on the Windows side. Fourteen Windows surface rows
+  (SURF-029, SURF-031..SURF-043) carried a control list with nothing saying where it came from,
+  which is the half of this brief that decides whether a control the build never drew can appear
+  as missing. Each now carries a `controlsSource` naming the XAML it was read out of, and a
+  `controlsSourceNote` saying plainly that a static read sees only literals and the number is a
+  FLOOR. `bin/win-surface-reconcile.py` R4 enforces both and was watched to fail three ways.
+
+  Numbers as the checker printed them, `bin/control-census.py`, before on `main` and after here:
+  38 of 180 actuated across 29 surfaces -> 56 of 199 across 32, with the 13 strays (cases actuating
+  a control no surface declared) gone. Evidence in `planning/evidence/WA3/run/`.
+
+  Still open: the acceptance sketch's last two lines. A control whose promised effect is a message
+  is recorded as such on the Mac boards and on none of the Windows ones - every Windows row reads
+  0 message-only, which is a gap rather than a measurement. And 39 controls remain UNDISPOSED.
 found-by: `campaign.py check` on `main`, 2026-08-27
 ---
 

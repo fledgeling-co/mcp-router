@@ -214,7 +214,12 @@ def main():
                   ("fail" if measured else "n/a: the lane measured no destination"),
         "armed": False,
         "armedNote": "not armed; see the destination rows.",
-        "actuates": ["NavigationView pane"],
+        # `Nav`, not "NavigationView pane". The registry's control vocabulary is the literal name
+        # the source carries, so that `win-surface-reconcile.py` R4 can check the declaration
+        # against ShellWindow.xaml rather than against a phrase somebody typed here. The pane is
+        # `x:Name="Nav"` and carries no AutomationProperties.Name of its own, which SURF-030's
+        # note records as the accessibility finding it is.
+        "actuates": ["Nav"],
         "evidence": ["planning/evidence/WIN-SHELL/run/assert-report.json"],
         "note": (
             "The shell's own row, and it asserts the one thing no per-destination case can: that "

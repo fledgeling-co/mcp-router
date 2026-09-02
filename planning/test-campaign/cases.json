@@ -4087,7 +4087,9 @@
       "recorder": "Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider), in a process that is not the writer and through an API that is not schtasks.exe",
       "effect": "ipc",
       "count": 1
-    }
+    },
+    "surface": "SURF-045",
+    "actuatesSurface": "SURF-045"
   },
   {
     "id": "CASE-0339",
@@ -4111,7 +4113,9 @@
       "recorder": "HKCU\\Software\\Classes\\AppUserModelId and HKCU\\Software\\Classes\\CLSID, read by PowerShell's registry provider in a process that is not the shell",
       "effect": "ipc",
       "count": 1
-    }
+    },
+    "surface": "SURF-046",
+    "actuatesSurface": "SURF-046"
   },
   {
     "id": "CASE-0340",
@@ -4152,7 +4156,9 @@
       "recorder": "System.IO.Compression.ZipArchive over the packed container; `winget validate`; Get-AppxPackage - the Windows deployment stack reporting its own state",
       "effect": "filesystem-write",
       "count": 1
-    }
+    },
+    "surface": "SURF-047",
+    "actuatesSurface": "SURF-047"
   },
   {
     "id": "CASE-0324",
@@ -4183,7 +4189,9 @@
       "planning/evidence/WIN-SHELL/run/uia-shell-discover.json"
     ],
     "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Discover' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
+    "actuatesSurface": "SURF-030",
+    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control."
   },
   {
     "id": "CASE-0325",
@@ -4214,7 +4222,9 @@
       "planning/evidence/WIN-SHELL/run/uia-shell-skills.json"
     ],
     "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Skills' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
+    "actuatesSurface": "SURF-030",
+    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control."
   },
   {
     "id": "CASE-0326",
@@ -4245,7 +4255,9 @@
       "planning/evidence/WIN-SHELL/run/uia-shell-servers.json"
     ],
     "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Servers' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
+    "actuatesSurface": "SURF-030",
+    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control."
   },
   {
     "id": "CASE-0327",
@@ -4276,7 +4288,9 @@
       "planning/evidence/WIN-SHELL/run/uia-shell-activity.json"
     ],
     "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Activity' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
+    "actuatesSurface": "SURF-030",
+    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control."
   },
   {
     "id": "CASE-0328",
@@ -4307,7 +4321,9 @@
       "planning/evidence/WIN-SHELL/run/uia-shell-harnesses.json"
     ],
     "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Harnesses' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
+    "actuatesSurface": "SURF-030",
+    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control."
   },
   {
     "id": "CASE-0329",
@@ -4338,7 +4354,9 @@
       "planning/evidence/WIN-SHELL/run/uia-shell-checks.json"
     ],
     "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Checks' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
+    "actuatesSurface": "SURF-030",
+    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control."
   },
   {
     "id": "CASE-0330",
@@ -4369,7 +4387,9 @@
       "planning/evidence/WIN-SHELL/run/uia-shell-cleanup.json"
     ],
     "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Cleanup' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
+    "actuatesSurface": "SURF-030",
+    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control."
   },
   {
     "id": "CASE-0331",
@@ -4400,7 +4420,9 @@
       "planning/evidence/WIN-SHELL/run/uia-shell-inbox.json"
     ],
     "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Inbox' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
+    "actuatesSurface": "SURF-030",
+    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control."
   },
   {
     "id": "CASE-0332",
@@ -4431,7 +4453,9 @@
       "planning/evidence/WIN-SHELL/run/uia-shell-insights.json"
     ],
     "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Insights' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
+    "actuatesSurface": "SURF-030",
+    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control."
   },
   {
     "id": "CASE-0333",
@@ -4462,7 +4486,9 @@
       "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
     ],
     "note": "Driven through the UI Automation plane against the real MCPRouter.Shell binary in the interactive session, out of process, with the target never foregrounded. The pane item named 'Settings' was actuated with SelectionItemPattern.Select(), and the reads were taken AFTER that actuation: the window title, the realised control-view tree, and a fingerprint over the tree's names. The fingerprint is what makes this more than a presence check - a destination whose tree is identical to the previous one is recorded as a COLLAPSE and fails, which is the shape where six sidebar items opened one placeholder view and every gate passed.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
+    "actuatesSurface": "SURF-030",
+    "actuatesSurfaceNote": "The control pressed is the shell's pane item; the claim is the board's. Filed against the board it proves, counted against the surface that carries the control."
   },
   {
     "id": "CASE-0334",
@@ -4485,7 +4511,7 @@
     "armed": false,
     "armedNote": "not armed; see the destination rows.",
     "actuates": [
-      "NavigationView pane"
+      "Nav"
     ],
     "evidence": [
       "planning/evidence/WIN-SHELL/run/assert-report.json"
@@ -4851,5 +4877,42 @@
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
     "renumberedFrom": "CASE-0342",
     "renumberNote": "Allocated as CASE-0342 by a concurrent Wave A runner and renumbered at merge: another runner in the same wave had already published a DIFFERENT row under CASE-0342. The id is the only thing that changed."
+  },
+  {
+    "id": "CASE-0351",
+    "req": "REQ-031",
+    "surface": "SURF-030",
+    "lane": "windows-glass",
+    "oracle": "structural",
+    "cell": "execution-plane=static-source-read - data-shape=the registry as committed",
+    "status": "pass",
+    "armed": true,
+    "armedNote": "CASE-0352 is the arm: seven mutations, each moving this reader's exit code.",
+    "evidence": [
+      "planning/test-campaign/bin/win-surface-reconcile.py",
+      "planning/evidence/WA3/run/win-surface-reconcile.txt"
+    ],
+    "note": "The surface DENOMINATOR reconciled against the product rather than against itself. R1 every id in DestinationCatalog.All has a surface row; R2 every Label is a declared control on the shell surface; R3 every requirement sourced from app/windows/ that has a case reaches a surface that exists; R4 every Windows surface declaring controls says where the list came from, and every control it names appears verbatim in the files that source names. What makes this more than the registry checking the registry: the denominator is parsed out of C# the WinUI compiler enforces - ShellWindow builds its pane by iterating DestinationCatalog.All, so a destination cannot reach a user without appearing in the list this reads - and out of the boards' own XAML. Typing a row into inventory.json cannot make R1, R2 or R4 pass. It found two real things on the tree it was written against: SURF-045's controlsSource named a path that does not exist (LogonTaskSupervisor.cs is under Lifecycle/), and SURF-030 declared a control called 'NavigationView pane' that appears in no source file at all. WHAT IT DOES NOT CHECK: that a declared control is drawn, reachable, or does anything - that is control-census.py's actuated count and the UIA lane behind it - and that a board's list is COMPLETE, because affordances built in a DataTemplate or in code-behind carry no literal a static reader can see. Every such row says so in its controlsSourceNote and the count is a floor.",
+    "recorder": "a static parse of app/windows/**/*.cs and *.xaml, in a process that never opens the shell and never reads the registry to judge the registry",
+    "renumberedFrom": "CASE-0342",
+    "renumberNote": "Allocated as CASE-0342 by a concurrent Wave A runner and renumbered at merge: another runner in the same wave had already published a DIFFERENT row under CASE-0342. The id is the only thing that changed."
+  },
+  {
+    "id": "CASE-0352",
+    "req": "REQ-031",
+    "surface": "SURF-030",
+    "lane": "windows-glass",
+    "oracle": "metamorphic",
+    "cell": "execution-plane=static-source-read - data-shape=one registry fact removed per arm",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "planning/test-campaign/bin/arm-win-surface-reconcile.py",
+      "planning/evidence/WA3/run/arm-win-surface-reconcile.txt"
+    ],
+    "note": "Seven arms, each removing exactly one fact and requiring the exit code to move: the Harnesses surface row deleted (R1 red), `Insights` removed from the shell's controls (R2 red), CASE-0341 stripped of its surface link (R3 red), SURF-036's controlsSource removed (R4 red), SURF-031's source path misspelt (R4 red), a control invented on SURF-039 (R4 red), and DestinationCatalog.cs emptied - which must exit 2 and REFUSE a verdict rather than reporting a clean registry, because a reader that finds nothing must not report a pass. 7/7 moved. The arm restores every file in a finally, and its last act is to re-run the reader and require green, so a half-applied mutation cannot be left behind as a passing run.",
+    "recorder": "the exit code of a separate process, per mutation, compared against a baseline measured in the same run",
+    "renumberedFrom": "CASE-0343",
+    "renumberNote": "Allocated as CASE-0343 by a concurrent Wave A runner and renumbered at merge: another runner in the same wave had already published a DIFFERENT row under CASE-0343. The id is the only thing that changed."
   }
 ]

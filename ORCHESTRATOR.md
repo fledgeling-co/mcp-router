@@ -3780,3 +3780,75 @@ Two cases authored here against `CASE-0309`/`CASE-0310` were silently taken over
 Skills rows. Ids are now allocated once per subject and remembered on a `generatedKey`, above every
 id in the file. It was reproducing, every run, the exact defect `3189d028` left behind as a dangling
 `CASE-0151` — which the same session had just spent an hour declaring retirements for.
+
+## 2026-09-02 · The 72-member fleet, and the three things a member can be
+
+`planning/reckoning/2026-09-02/ledger.json` schedules 72 members across three waves (47 / 24 / 1).
+The `waves` completion gate is red until they are shipped, and it is the only red gate: `branches`,
+`liveness`, `wincoverage` (13/13) and `winlive` (10/10 destinations) are all green, and
+`scripts/windows/verify.ps1` completes exit 0 with the three new witnesses passing.
+
+### The partition, and why it is not a narrowing
+
+Ship-everything was the instruction and it stands. What follows is not a smaller list — it is the
+same 72 rows sorted by **what can be established about a finish here**, because this fleet runs on a
+Windows host with no Swift toolchain, no simulator and no display server that Xcode can reach. A row
+whose work can be written but whose finish cannot be witnessed is a different kind of row from one
+that can be closed and proved, and reporting them under one green is precisely the failure the
+campaign's own header calls *testing the parts on paper and reporting it as the product on glass*.
+
+| Bucket | Members | What a finish means here |
+|---|---|---|
+| **A — closable and provable on this host** | 10 | Code, test and an instrument that reddens; merged to `main` and enrolled in `verify.ps1` where it belongs there |
+| **B — writable here, unprovable here** | 47 | Swift / macOS / iOS. `swift test` and `xcodebuild` cannot run. Work lands on a branch with its verification named and NOT claimed |
+| **C — parked with a reason** | 15 | Structurally outside this fleet's reach: a different repository, an outward-facing action, a signing identity, a logon, or a decision that is the owner's |
+
+Bucket C is not a deferral of effort. Fourteen of its fifteen rows resolve to two facts somebody
+already wrote down: brief X7 states that the campaign-tooling defects "cannot be closed by an
+mcp-router runner … a different repository and an outward-facing action", and DEF-083 needs a signing
+certificate this repository does not hold plus a pull request into `microsoft/winget-pkgs`.
+A parked item with a stated reason beats a fake green, and every one of them stays on the ledger.
+
+### Wave A — the ten that can be finished here
+
+Six runners, because file-adjacency is the merge cost. Items inside a runner are serial; runners are
+concurrent at five slots, which is a correctness limit rather than a throughput preference (measured:
+92 agents died silently, 88 of them at exactly 180.0s, when the cap was lifted). Every runner is
+opus-5 at medium effort in its own git worktree, commits to `ai/<slug>`, and merges nothing —
+finalization is serialized here.
+
+| Runner | Members | Subject |
+|---|---|---|
+| `wa1-shell-controls` | DEF-076, DEF-075 | `SettingsBoard.xaml`, `DiscoverDetailContent.xaml` — controls a UIA client can name and drive |
+| `wa2-shell-crash` | DEF-079 | The two new top-level handlers, observed firing rather than merely registered |
+| `wa3-surface-census` | `no-surface-declares-its-controls`, `the-campaign-never-enumerated-three-shipped-surfaces` | The denominator: `controls` arrays, and the three shipped surfaces with no row to be uncovered in |
+| `wa4-registry-vocabulary` | `a-status-word-nobody-taught-the-gate`, `a-brief-that-names-nothing-cannot-be-retired` | Status words the gate can partition, and a brief that can leave the remaining set |
+| `wa5-capture-lineage` | `three-captures-name-a-route-they-were-not-pointed-at`, `glass-evidence-outlives-the-build` | A picture bound to its subject by something other than its filename |
+| `wa6-repo-gates` | `G9-two-gates-pin-a-worktree-that-no-longer-exists` | Two executable gates that `cd` into a directory that is gone |
+
+Two of these carry a deliberate half-finish, stated here so a green cannot imply the other half.
+`glass-evidence-outlives-the-build` gets its staleness gate on this host; the **re-capture** it
+demands is macOS and stays open. `no-surface-declares-its-controls` gets the declaration; **driving**
+those controls is `eleven-surfaces-declare-controls-that-nothing-drives`, which is Bucket B.
+
+### What Wave A is graded by
+
+Each runner's work is accepted on the same three questions, and they are inline in every brief
+rather than referenced by path — measured on this pipeline: a project `CLAUDE.md` reached 0 of 409
+subagent contexts.
+
+1. **Does an instrument redden?** A fix with no check that would have caught the defect is not a fix,
+   it is a claim. Where the subject already has a lane, the lane grows an arm; where it does not, say
+   so rather than adding a green.
+2. **Is the recorder something other than the writer?** A process reporting its own effect is the
+   shape DEF-072 was about.
+3. **Is what the item does *not* settle written down?** In the defect's `resolution`, the case's
+   note, or a newly filed defect — never folded into a wider claim.
+
+### After Wave A
+
+Bucket B ships next, in the ledger's own dependency order, with one standing disclosure on every
+member: **the Swift half is written and not run on this host.** Bucket C is written into the ledger
+as parked with its reason and its owner. Phase 6 closes on *reconciliation* — re-anchor the campaign,
+re-run `reckon.py build` and `check`, and either land `unbuilt`/`broken`/`unmeasured`/`undecided` at
+zero or name the class the run stopped on and how many rows it held.

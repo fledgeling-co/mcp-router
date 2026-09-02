@@ -101,6 +101,48 @@ public static class SettingsPresentation
         };
     }
 
+    public static RouterSettingsState WithToggle(RouterSettingsState state, string key, bool value)
+    {
+        return key switch
+        {
+            "LaunchAtLogin" => state with { LaunchAtLogin = value },
+            "ShowAmbientIcon" => state with { ShowAmbientIcon = value },
+            "RequireConfirmationOnDestructive" => state with { RequireConfirmationOnDestructive = value },
+            _ => state
+        };
+    }
+
+    /// <summary>The automation id of the line that says why a switch cannot act.</summary>
+    public static string ToggleReasonAutomationId(string key) => "settings.toggle." + key + ".reason";
+
+    /// <summary>
+    /// Why a switch on this build owns nothing, or null when it owns something.
+    ///
+    /// DEF-087's rule, and it is the reason this method exists rather than a stub effector for
+    /// each key: a switch that moves and reaches nothing is the defect, and a switch that says it
+    /// cannot act yet is honest. Both sentences here are statements about THIS BUILD, checked
+    /// against the tree by <c>MCPRouter.Shell.Tests.SettingsUnavailabilityTests</c> - the day a
+    /// notification-area icon or a confirmation-policy reader lands, that test fails and this
+    /// sentence has to be removed rather than left standing over a working feature.
+    /// </summary>
+    public static string? ToggleUnavailableReason(string key)
+    {
+        return key switch
+        {
+            "ShowAmbientIcon" => "Unavailable: this build draws no notification-area icon, so there is nothing for this switch to show or hide. DEF-101.",
+            "RequireConfirmationOnDestructive" => "Unavailable: no operation in this build asks this setting before it acts, so turning it off would remove no prompt. DEF-102.",
+            _ => null
+        };
+    }
+
+    /// <summary>Why launch-at-sign-in cannot act when the board was built without an agent.</summary>
+    public const string NoLaunchAgentReason =
+        "Unavailable: this board was built without a logon-task agent, so nothing here can register or remove the sign-in task.";
+
+    /// <summary>The switches this build can genuinely act on.</summary>
+    public static IEnumerable<string> ActuableToggleKeys =>
+        ToggleKeys.Where(key => ToggleUnavailableReason(key) is null);
+
     /// <summary>
     /// A rendering of the whole toggle state as one line, so that flipping a switch has a visible
     /// effect OUTSIDE the switch that was flipped. A toggle that moves and changes nothing else

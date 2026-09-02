@@ -58,6 +58,34 @@ if (-not $ExePath) {
 }
 if (-not (Test-Path $Out)) { New-Item -ItemType Directory -Force -Path $Out | Out-Null }
 
+# ------------------------------------------------- the harness's own machine state (DEF-087)
+# Section 3c drives "Launch router daemon at sign-in" for real, which registers a Windows
+# scheduled task, and it reads the shell's settings file back off disk. Both of those are things
+# the OPERATOR owns, so the lane points the product at names and paths of its own before it
+# launches anything:
+#
+#   the task name    a lane that registered and deleted the operator's real daemon task would
+#                    break the thing it measures. win23-logon-task-witness.ps1 takes the same
+#                    precaution for the same reason.
+#   the daemon path  deliberately a file that does not exist, so a read-back showing a different
+#                    Execute is this lane comparing its own registration against somebody else's
+#                    task under the same name, and it says so rather than agreeing.
+#   the state dir    so the persistence arm never writes over the settings of the person running
+#                    the lane.
+#
+# All three are read by the SHIPPED code path - MCPROUTER_LOGON_TASK_NAME and
+# MCPROUTER_DAEMON_PATH by LogonTaskLaunchAgent, MCPROUTER_SHELL_STATE_DIR by SettingsStore - so
+# what is measured is the product's own resolution with the lane's values in it. What this does
+# NOT establish is that a real daemon executable resolves on an operator's machine; that is
+# recorded on DEF-087 rather than folded into these arms.
+$witnessTaskName = '\MCPRouter\WIN-SHELL Settings Witness (transient)'
+$witnessDaemon   = Join-Path $repoRoot 'app\windows\MCPRouter.Shell\win-shell-witness-daemon.exe'
+$witnessStateDir = Join-Path $Out 'shell-state'
+$env:MCPROUTER_LOGON_TASK_NAME = $witnessTaskName
+$env:MCPROUTER_DAEMON_PATH     = $witnessDaemon
+$env:MCPROUTER_SHELL_STATE_DIR = $witnessStateDir
+Remove-Item (Join-Path $witnessStateDir 'shell-settings.json') -ErrorAction SilentlyContinue
+
 $laneLog  = Join-Path $Out 'lane.log'
 $laneJson = Join-Path $Out 'lane.json'
 Remove-Item $laneJson -ErrorAction SilentlyContinue
@@ -497,8 +525,19 @@ foreach ($d in $destinations) {
 
 $controls = @()
 
-function Add-ControlRow($id, $status, $detail) {
-    $script:controls += [pscustomobject]@{ id = $id; status = $status; detail = $detail }
+function Add-ControlRow($id, $status, $detail, $actuates = @(), $recorder = '') {
+    # `actuates` is A CONTROL THE SURFACE DECLARES, never the command this lane ran. The census in
+    # planning/test-campaign/bin/control-census.py takes its denominator from the surface's own
+    # `controls` array, so a row naming "UIA TogglePattern.Toggle()" counts against nothing and
+    # reads as a control the registry has never heard of.
+    #
+    # `recorder` names the thing that read the effect when that thing is NOT this process. An
+    # empty recorder means the row was read off the automation tree by this script, which is the
+    # default; a named one is what makes the row an effect-witness rather than a UI-state read.
+    $row = [ordered]@{ id = $id; status = $status; detail = $detail }
+    if ($actuates.Count -gt 0) { $row.actuates = @($actuates) }
+    if ($recorder)             { $row.recorder = $recorder }
+    $script:controls += [pscustomobject]$row
     if ($status -eq 'fail') { $script:controlFailures++ }
     Say ("  control {0}: {1} - {2}" -f $id, $status.ToUpper(), $detail)
 }
@@ -708,7 +747,7 @@ if (-not (Get-Process -Id $script:ShellProcessId -ErrorAction SilentlyContinue))
                 } else {
                     Add-ControlRow 'settings.effect' 'pass' ("toggling '$($subject.Label)' through " +
                         "the plane moved the board's state readout from '$before' to '$after' - an " +
-                        "effect outside the control that was actuated.")
+                        "effect outside the control that was actuated.") @($subject.Label)
                     # Put it back, so the dump committed as evidence shows the board at rest.
                     try {
                         $switch.GetCurrentPattern(
@@ -722,6 +761,285 @@ if (-not (Get-Process -Id $script:ShellProcessId -ErrorAction SilentlyContinue))
             & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $dumper `
                 -ProcessId $script:ShellProcessId -Out (Join-Path $Out 'uia-shell-settings.json') `
                 -View Control | Out-Null
+
+            # ============================================================ 3c. OUTSIDE THE PROCESS
+            # DEF-087 and DEF-088. Everything above this line is one process reading another
+            # process's accessibility tree, which is a real out-of-process read and still only ever
+            # a read of the SHELL. A toggle that moves, updates a model and updates a readout
+            # satisfies all of it while nothing on the machine changes - which is exactly what the
+            # board did, and what a census structurally cannot see.
+            #
+            # These arms leave the shell entirely. Each names its own recorder, and no recorder
+            # here is the writer:
+            #
+            #   the task     written by the product through schtasks.exe /Create /XML; read back by
+            #                Get-ScheduledTask, the ScheduledTasks module over the Task Scheduler's
+            #                WMI provider. A different API, a different process and a different
+            #                VOCABULARY - the XML says RunLevel LeastPrivilege and the recorder
+            #                says Limited, and nothing in this repository translates between them.
+            #   the store    written by the product into shell-settings.json; read back by this
+            #                script off the disk, never by asking the app what it saved.
+            #   the clipboard written by the product through a DataPackage; read back by a
+            #                SEPARATE PowerShell process, after this lane has seeded it with a
+            #                sentinel so a clipboard that already held the endpoint cannot pass.
+
+            function Read-WitnessTask {
+                # The independent read. Null when the scheduler holds no such task. Nothing here
+                # touches schtasks.exe or any type from the assembly that wrote it.
+                param([string] $Name)
+                $leaf = Split-Path -Leaf $Name
+                $path = Split-Path -Parent $Name
+                if (-not $path.EndsWith('\')) { $path = $path + '\' }
+                $task = Get-ScheduledTask -TaskName $leaf -TaskPath $path -ErrorAction SilentlyContinue
+                if ($null -eq $task) { return $null }
+                $classes = @()
+                foreach ($trigger in @($task.Triggers)) {
+                    if ($null -ne $trigger -and $null -ne $trigger.CimClass) {
+                        $classes += $trigger.CimClass.CimClassName
+                    }
+                }
+                $action = @($task.Actions)[0]
+                return [pscustomobject]@{
+                    state           = [string] $task.State
+                    hasLogonTrigger = ($classes -contains 'MSFT_TaskLogonTrigger')
+                    runLevel        = [string] $task.Principal.RunLevel
+                    execute         = if ($null -ne $action) { [string] $action.Execute } else { '' }
+                }
+            }
+
+            function Set-ToggleThroughPlane {
+                # Drive a switch to a named position through the plane, and report whether the
+                # PLANE now reads it there. Reading the switch back is not the effect test - the
+                # arms below are - but a switch that would not move at all has to be told apart
+                # from one that moved and reached nothing.
+                param($Root, [string] $AutomationId, [bool] $On)
+                $el = Wait-ById $Root $AutomationId 10
+                if ($null -eq $el) { return 'unaddressable' }
+                try {
+                    $pattern = $el.GetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern)
+                    $want = if ($On) { 'On' } else { 'Off' }
+                    for ($i = 0; $i -lt 3; $i++) {
+                        if ([string] $pattern.Current.ToggleState -eq $want) { return 'ok' }
+                        $pattern.Toggle()
+                        Start-Sleep -Milliseconds 600
+                        $el = Find-ById $Root $AutomationId
+                        if ($null -eq $el) { return 'lost' }
+                        $pattern = $el.GetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern)
+                    }
+                    return ("stuck at " + [string] $pattern.Current.ToggleState)
+                } catch {
+                    return ("threw: " + $_.Exception.Message)
+                }
+            }
+
+            $launchId = 'settings.toggle.LaunchAtLogin'
+
+            # -------------------------------------------------------------------- BASELINE
+            # Without this arm a task left behind by an interrupted run makes every assertion
+            # below pass while this run registers nothing at all.
+            $leftover = Read-WitnessTask $witnessTaskName
+            if ($null -ne $leftover) {
+                Say "  a witness task survived an earlier run; deleting it before the baseline"
+                & schtasks.exe /Delete /TN $witnessTaskName /F 2>&1 | Out-Null
+                $leftover = Read-WitnessTask $witnessTaskName
+            }
+            Add-ControlRow 'settings.launchAtLogin.baseline' `
+                $(if ($null -eq $leftover) { 'pass' } else { 'fail' }) `
+                $(if ($null -eq $leftover) {
+                    "Get-ScheduledTask reports no task at '$witnessTaskName' before the switch is " +
+                    "driven, so the arms below measure THIS run's registration."
+                } else {
+                    "a task at '$witnessTaskName' survived deletion, so every assertion below would " +
+                    "be about it rather than about this run."
+                }) @('Launch router daemon at sign-in') `
+                'Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)'
+
+            # -------------------------------------------------------------------- EFFECT
+            $drove = Set-ToggleThroughPlane $window $launchId $true
+            Start-Sleep -Milliseconds 800
+            $registered = Read-WitnessTask $witnessTaskName
+            if ($drove -ne 'ok') {
+                Add-ControlRow 'settings.launchAtLogin.effect' 'fail' `
+                    ("the switch could not be driven to On through the plane: $drove") `
+                    @('Launch router daemon at sign-in') `
+                    'Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)'
+            } elseif ($null -eq $registered) {
+                Add-ControlRow 'settings.launchAtLogin.effect' 'fail' `
+                    ("INERT BEYOND THE PROCESS: the switch reads On through the plane and " +
+                     "Get-ScheduledTask reports no task at '$witnessTaskName'. The control moved " +
+                     "and the machine did not.") `
+                    @('Launch router daemon at sign-in') `
+                    'Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)'
+            } else {
+                $claims = @()
+                if (-not $registered.hasLogonTrigger) { $claims += 'no logon trigger' }
+                # 'Limited' is the ScheduledTasks module's word for the XML's LeastPrivilege. The
+                # two vocabularies meeting here is the point.
+                if ($registered.runLevel -ne 'Limited') { $claims += "RunLevel=$($registered.runLevel)" }
+                if ($registered.execute -ne $witnessDaemon) { $claims += "Execute=$($registered.execute)" }
+                Add-ControlRow 'settings.launchAtLogin.effect' `
+                    $(if ($claims.Count -eq 0) { 'pass' } else { 'fail' }) `
+                    $(if ($claims.Count -eq 0) {
+                        "driving the switch to On through the automation plane registered " +
+                        "'$witnessTaskName' in the Windows task scheduler: state=" +
+                        "$($registered.state), logon trigger present, RunLevel=$($registered.runLevel) " +
+                        "(the recorder's word for the XML's LeastPrivilege), Execute=" +
+                        "$($registered.execute). Read by an API that did not write it."
+                    } else {
+                        "the task was registered and does not carry what the board's own row " +
+                        "claims: $($claims -join '; ')"
+                    }) @('Launch router daemon at sign-in') `
+                    'Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)'
+            }
+
+            # -------------------------------------------------------------------- PERSISTENCE
+            # The store, read off the disk by this script rather than by asking the app what it
+            # saved, and then the shell CLOSED AND RELAUNCHED and the switch read back.
+            $storeFile = Join-Path $witnessStateDir 'shell-settings.json'
+            $stored = $null
+            if (Test-Path $storeFile) {
+                try { $stored = Get-Content $storeFile -Raw -Encoding UTF8 | ConvertFrom-Json } catch { }
+            }
+            Add-ControlRow 'settings.persistence.store' `
+                $(if ($null -ne $stored -and $stored.LaunchAtLogin -eq $true) { 'pass' } else { 'fail' }) `
+                $(if ($null -eq $stored) {
+                    "nothing readable at $storeFile after the switch was driven, so the setting " +
+                    "reached no durable store."
+                } elseif ($stored.LaunchAtLogin -ne $true) {
+                    "$storeFile holds LaunchAtLogin=$($stored.LaunchAtLogin) after the switch was " +
+                    "driven to On."
+                } else {
+                    "$storeFile holds LaunchAtLogin=true, read off the disk by this script. The " +
+                    "file is the recorder; the shell is not asked what it saved."
+                }) @('Launch router daemon at sign-in') 'a read of the settings file by this script'
+
+            Say "  closing the shell to measure whether the setting survives it"
+            Stop-Process -Id $script:ShellProcessId -Force -ErrorAction SilentlyContinue
+            Start-Sleep -Milliseconds 1200
+            $window = Start-Shell
+            if ($null -eq $window) {
+                Add-ControlRow 'settings.persistence' 'unoracled' `
+                    ('the shell could not be relaunched, so whether the setting survived a restart ' +
+                     'was never read. Not a pass and not a failure of persistence.') `
+                    @('Launch router daemon at sign-in')
+            } elseif (-not (Invoke-Destination 'Settings')) {
+                Add-ControlRow 'settings.persistence' 'unoracled' `
+                    ('the relaunched shell could not be navigated to Settings, so the switch was ' +
+                     'never read back.') @('Launch router daemon at sign-in')
+            } else {
+                Start-Sleep -Milliseconds 800
+                $reloaded = Wait-ById $window $launchId 15
+                $backState = 'unaddressable'
+                if ($null -ne $reloaded) {
+                    try {
+                        $backState = [string] $reloaded.GetCurrentPattern(
+                            [System.Windows.Automation.TogglePattern]::Pattern).Current.ToggleState
+                    } catch { $backState = "unreadable: $($_.Exception.Message)" }
+                }
+                Add-ControlRow 'settings.persistence' `
+                    $(if ($backState -eq 'On') { 'pass' } else { 'fail' }) `
+                    $(if ($backState -eq 'On') {
+                        "the shell was terminated and launched again as a new process, and the " +
+                        "switch reads On in the new one. Closing the shell no longer forgets the " +
+                        "setting."
+                    } else {
+                        "the switch reads '$backState' in a freshly launched shell after being " +
+                        "driven to On in the previous one, so the setting did not survive the " +
+                        "process."
+                    }) @('Launch router daemon at sign-in') `
+                    'a second MCPRouter.Shell process, launched after the first was terminated'
+            }
+
+            # -------------------------------------------------------------------- COPY (DEF-088)
+            if ($null -ne $window) {
+                $sentinel = 'mcprouter-lane-sentinel-' + [guid]::NewGuid().ToString('N')
+                & powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -Command `
+                    "Set-Clipboard -Value '$sentinel'" | Out-Null
+                $endpointEl = Wait-ById $window 'settings.state.endpoint' 10
+                $shown = ''
+                if ($null -ne $endpointEl) { try { $shown = $endpointEl.Current.Name } catch { } }
+
+                $copyButton = Wait-ById $window 'settings.action.copyEndpoint' 10
+                $invoked = $false
+                if ($null -ne $copyButton) {
+                    try {
+                        $copyButton.GetCurrentPattern(
+                            [System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+                        $invoked = $true
+                    } catch { }
+                }
+                Start-Sleep -Milliseconds 900
+
+                # A DIFFERENT PROCESS reads it. Get-Clipboard in this process would still be a
+                # different process from the shell, but running it out of a fresh STA host is what
+                # the arm claims and it costs nothing to actually do.
+                $clip = (& powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -Command `
+                    'Get-Clipboard -Raw' 2>$null | Out-String).Trim()
+
+                if (-not $invoked) {
+                    Add-ControlRow 'settings.copyEndpoint' 'fail' `
+                        ('the Copy button is addressable and InvokePattern.Invoke() did not take, ' +
+                         'so nothing could be copied.') @('Copy the loopback endpoint') `
+                        'Get-Clipboard in a separate PowerShell process'
+                } elseif ($clip -eq $sentinel) {
+                    Add-ControlRow 'settings.copyEndpoint' 'fail' `
+                        ("INERT: the button was invoked through the plane and the clipboard still " +
+                         "holds the sentinel this lane put there. Nothing was copied.") `
+                        @('Copy the loopback endpoint') `
+                        'Get-Clipboard in a separate PowerShell process'
+                } elseif ($shown -and $clip -ne $shown) {
+                    Add-ControlRow 'settings.copyEndpoint' 'fail' `
+                        ("the clipboard changed to '$clip' and the board displays '$shown', so the " +
+                         "button copied something other than the endpoint beside it.") `
+                        @('Copy the loopback endpoint') `
+                        'Get-Clipboard in a separate PowerShell process'
+                } elseif ($clip -notmatch '^http://127\.0\.0\.1:\d+$') {
+                    Add-ControlRow 'settings.copyEndpoint' 'fail' `
+                        ("the clipboard holds '$clip', which is not a loopback endpoint.") `
+                        @('Copy the loopback endpoint') `
+                        'Get-Clipboard in a separate PowerShell process'
+                } else {
+                    Add-ControlRow 'settings.copyEndpoint' 'pass' `
+                        ("the clipboard held this lane's sentinel before the button was invoked and " +
+                         "holds '$clip' after, read out of a separate PowerShell process. It " +
+                         "matches the endpoint the board displays at settings.state.endpoint.") `
+                        @('Copy the loopback endpoint') `
+                        'Get-Clipboard in a separate PowerShell process'
+                }
+            }
+
+            # -------------------------------------------------------------------- SILENCE
+            # The presence control. A recorder that always answered "yes, and here are the
+            # properties" would pass BASELINE by accident of ordering and EFFECT by construction;
+            # only being required to say no at a moment when the answer is no separates a reader
+            # from an echo. It is also the arm that makes turning the setting OFF mean something,
+            # which is the half a user is most likely to be lied to about.
+            $droveOff = 'no window'
+            if ($null -ne $window) {
+                $droveOff = Set-ToggleThroughPlane $window $launchId $false
+                Start-Sleep -Milliseconds 800
+            }
+            $gone = Read-WitnessTask $witnessTaskName
+            Add-ControlRow 'settings.launchAtLogin.silence' `
+                $(if ($droveOff -eq 'ok' -and $null -eq $gone) { 'pass' }
+                  elseif ($droveOff -ne 'ok') { 'unoracled' } else { 'fail' }) `
+                $(if ($droveOff -ne 'ok') {
+                    "the switch could not be driven back to Off through the plane ($droveOff), so " +
+                    "removal was never attempted."
+                } elseif ($null -eq $gone) {
+                    "driving the switch back to Off removed '$witnessTaskName': Get-ScheduledTask " +
+                    "reports absence again, so its yes above was a reading rather than an echo."
+                } else {
+                    "the switch reads Off and Get-ScheduledTask still reports the task present " +
+                    "(state=$($gone.state)). Turning the setting off told the user something untrue."
+                }) @('Launch router daemon at sign-in') `
+                'Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)'
+
+            # Never leave a scheduled task behind, whatever the arms concluded.
+            if ($null -ne (Read-WitnessTask $witnessTaskName)) {
+                Say "  cleaning up the witness task after the arms"
+                & schtasks.exe /Delete /TN $witnessTaskName /F 2>&1 | Out-Null
+            }
         }
     }
 

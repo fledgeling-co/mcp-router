@@ -59,10 +59,14 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel>
                                 <TextBlock Text="Loopback Endpoint" FontWeight="SemiBold" />
-                                <TextBlock x:Name="EndpointText" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <TextBlock x:Name="EndpointText"
+                                           automation:AutomationProperties.AutomationId="settings.state.endpoint"
+                                           Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             </StackPanel>
                             <Button Grid.Column="1"
+                                    x:Name="CopyEndpointButton"
                                     Content="Copy"
+                                    Click="OnCopyEndpointClicked"
                                     automation:AutomationProperties.Name="Copy the loopback endpoint"
                                     automation:AutomationProperties.AutomationId="settings.action.copyEndpoint"
                                     VerticalAlignment="Center" />
@@ -76,6 +80,16 @@
                             <StackPanel>
                                 <TextBlock Text="Launch router daemon at sign-in" FontWeight="SemiBold" />
                                 <TextBlock Text="Starts the background loopback service automatically." Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <!-- The line that says why the switch beside it cannot act, when it
+                                     cannot. Collapsed when the setting owns something. DEF-087:
+                                     a switch that moves and reaches nothing is the defect; one
+                                     that states it cannot act yet is honest. -->
+                                <TextBlock x:Name="LaunchAtLoginReasonText"
+                                           automation:AutomationProperties.AutomationId="settings.toggle.LaunchAtLogin.reason"
+                                           Style="{ThemeResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                           TextWrapping="Wrap"
+                                           Visibility="Collapsed" />
                             </StackPanel>
                             <ToggleSwitch x:Name="LaunchAtLoginToggle"
                                           Grid.Column="1"
@@ -156,6 +170,12 @@
                         <StackPanel>
                             <TextBlock Text="Require confirmation on destructive operations" FontWeight="SemiBold" />
                             <TextBlock Text="Prompts before removing servers, skills, or deleting stored tokens." Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBlock x:Name="RequireConfirmationReasonText"
+                                       automation:AutomationProperties.AutomationId="settings.toggle.RequireConfirmationOnDestructive.reason"
+                                       Style="{ThemeResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                       TextWrapping="Wrap"
+                                       Visibility="Collapsed" />
                         </StackPanel>
                         <ToggleSwitch x:Name="RequireConfirmationToggle"
                                       Grid.Column="1"
@@ -184,6 +204,12 @@
                         <StackPanel>
                             <TextBlock Text="Show status in notification area" FontWeight="SemiBold" />
                             <TextBlock Text="Displays ambient router status and queued inbox items in the Windows tray." Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBlock x:Name="ShowAmbientIconReasonText"
+                                       automation:AutomationProperties.AutomationId="settings.toggle.ShowAmbientIcon.reason"
+                                       Style="{ThemeResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                       TextWrapping="Wrap"
+                                       Visibility="Collapsed" />
                         </StackPanel>
                         <ToggleSwitch x:Name="ShowAmbientIconToggle"
                                       Grid.Column="1"
@@ -230,6 +256,18 @@
                                    automation:AutomationProperties.AutomationId="settings.state.summary"
                                    Style="{ThemeResource CaptionTextBlockStyle}"
                                    FontFamily="Consolas"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   TextWrapping="Wrap" />
+                        <!-- DEF-087's readout: where the state is kept, where the sign-in switch's
+                             value was read from, and what the last toggle that reached outside the
+                             process actually did. This line is IN-PROCESS reporting and proves
+                             nothing on its own - the store is a file and the task is in the
+                             scheduler, and both are read by scripts/windows/uia/shell-lane.ps1
+                             from outside the shell. It is here so an operator can see the same
+                             facts the lane asserts. -->
+                        <TextBlock x:Name="DurabilityText"
+                                   automation:AutomationProperties.AutomationId="settings.state.durability"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                    TextWrapping="Wrap" />
                     </StackPanel>

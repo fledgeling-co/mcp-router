@@ -4755,7 +4755,7 @@
       "planning/evidence/WIN-SHELL/run/lane.log",
       "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
     ],
-    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: named 'Launch router daemon at sign-in', toggle state readable as 'On' WHAT NO ROW HERE SETTLES: that any setting persists or reaches the machine. Nothing outside the shell process changes when a toggle moves. DEF-087.",
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: named 'Launch router daemon at sign-in', toggle state readable as 'Off' WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
@@ -4784,7 +4784,7 @@
       "planning/evidence/WIN-SHELL/run/lane.log",
       "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
     ],
-    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: named 'Require confirmation on destructive operations', toggle state readable as 'On' WHAT NO ROW HERE SETTLES: that any setting persists or reaches the machine. Nothing outside the shell process changes when a toggle moves. DEF-087.",
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: named 'Require confirmation on destructive operations', toggle state readable as 'On' WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
@@ -4813,7 +4813,7 @@
       "planning/evidence/WIN-SHELL/run/lane.log",
       "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
     ],
-    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: named 'Show status in notification area', toggle state readable as 'On' WHAT NO ROW HERE SETTLES: that any setting persists or reaches the machine. Nothing outside the shell process changes when a toggle moves. DEF-087.",
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: named 'Show status in notification area', toggle state readable as 'On' WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
@@ -4844,7 +4844,7 @@
       "planning/evidence/WIN-SHELL/run/lane.log",
       "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
     ],
-    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: toggling 'Launch router daemon at sign-in' through the plane moved the board's state readout from 'LaunchAtLogin=on · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' to 'LaunchAtLogin=off · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' - an effect outside the control that was actuated. THIS IS THE ROW THAT SEPARATES A BOUND CONTROL FROM AN INERT ONE. It toggles the switch through TogglePattern and then reads a DIFFERENT element - the board's state readout, which the view renders from the model - so a switch that moved and wrote through to nothing would leave that line unchanged and fail here. It went red for real on the first run, against a readout carrying a static AutomationProperties.Name that overrode its own text. WHAT NO ROW HERE SETTLES: that any setting persists or reaches the machine. Nothing outside the shell process changes when a toggle moves. DEF-087. ACTUATES VOCABULARY, corrected at merge: `actuates` is read by planning/test-campaign/bin/control-census.py as a control the surface DECLARES, which is what gives the actuation census its denominator. This case originally listed the command the lane ran instead - UIA TogglePattern.Toggle() - and that is DEF-080, two meanings sharing one field. The command is here in the note where it can be read; the field now carries the declared control the pattern was invoked on.",
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: toggling 'Launch router daemon at sign-in' through the plane moved the board's state readout from 'LaunchAtLogin=off · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' to 'LaunchAtLogin=on · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' - an effect outside the control that was actuated. THIS IS THE ROW THAT SEPARATES A BOUND CONTROL FROM AN INERT ONE. It toggles the switch through TogglePattern and then reads a DIFFERENT element - the board's state readout, which the view renders from the model - so a switch that moved and wrote through to nothing would leave that line unchanged and fail here. It went red for real on the first run, against a readout carrying a static AutomationProperties.Name that overrode its own text. WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
     "witness": {
       "recorder": "System.Windows.Automation, in a PowerShell process that is not the shell, reading the shell's published accessibility tree",
       "effect": "ui-state",
@@ -4878,7 +4878,7 @@
       "planning/evidence/WIN-SHELL/run/lane.log",
       "planning/evidence/WIN-SHELL/run/uia-shell-discover-detail.json"
     ],
-    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: opened from the row 'MCPRouter.Shell.Views.DiscoverRow'; all 8 checked control(s) are addressable by id and publish a name. WHAT NO ROW HERE SETTLES: that any setting persists or reaches the machine. Nothing outside the shell process changes when a toggle moves. DEF-087.",
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: opened from the row 'MCPRouter.Shell.Views.DiscoverRow'; all 8 checked control(s) are addressable by id and publish a name. WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
@@ -4952,10 +4952,8 @@
       "planning/evidence/WIN-SHELL/run/lane.log",
       "planning/evidence/WIN-SHELL/run/uia-shell-settings.json"
     ],
-    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: all 7 declared section(s) publish an addressable container: settings.section.router, settings.section.harnesses, settings.section.sessionanalyst, settings.section.updates, settings.section.security, settings.section.ambientsurface, settings.section.advanced WHAT NO ROW HERE SETTLES: that any setting persists or reaches the machine. Nothing outside the shell process changes when a toggle moves. DEF-087.",
-    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py",
-    "renumberedFrom": "CASE-0342",
-    "renumberNote": "Allocated as CASE-0342 by a concurrent Wave A runner and renumbered at merge: another runner in the same wave had already published a DIFFERENT row under CASE-0342. The id is the only thing that changed."
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: all 7 declared section(s) publish an addressable container: settings.section.router, settings.section.harnesses, settings.section.sessionanalyst, settings.section.updates, settings.section.security, settings.section.ambientsurface, settings.section.advanced WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   },
   {
     "id": "CASE-0351",
@@ -5106,5 +5104,233 @@
     "note": "HOST-CONDITIONAL, and deliberately NOT in `make lint`. The plugin cache belongs to a machine and not to this repository, so on a clean checkout this arm exits 2 - not compared - and a gate whose verdict depends on what is installed would red for the wrong reason. This `pass` is therefore a reading taken on LUKESFF on 2026-09-02 against reckon 1.9.4, not a property of the checkout. WHAT IT DOES NOT COVER, and it is the gap that matters: only the five word lists are compared, never the BRANCH STRUCTURE that reads some of them as a leading token and others as a whole status. That asymmetry is the whole of DEF-011's and DEF-048's defect and it is modelled by hand. It held across 1.9.3 and 1.9.4, both read.",
     "renumberedFrom": "CASE-0343",
     "renumberNote": "Allocated as CASE-0343 by a concurrent Wave A runner and renumbered at merge: another runner in the same wave had already published a DIFFERENT row under CASE-0343. The id is the only thing that changed."
+  },
+  {
+    "id": "CASE-0366",
+    "generatedKey": "control:settings.launchAtLogin.baseline",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "NOT armed. This row HELD through both plants of 2026-09-02 - see planning/evidence/WIN-SHELL/arming/ - which establishes that it is independent of those two defects and says nothing about whether it can go red at all. It stays unarmed until something has been watched to break it.",
+    "actuates": [
+      "Launch router daemon at sign-in"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: Get-ScheduledTask reports no task at '\\MCPRouter\\WIN-SHELL Settings Witness (transient)' before the switch is driven, so the arms below measure THIS run's registration. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider). That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green.",
+    "witness": {
+      "recorder": "Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0367",
+    "generatedKey": "control:settings.launchAtLogin.effect",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": true,
+    "armedNote": "armed by a planted defect, watched on 2026-09-02. Removing the call that carries the sign-in switch to the supervisor broke settings.launchAtLogin.effect and settings.persistence; making the store's Save report success without writing broke settings.persistence.store alone. Both transcripts are in planning/evidence/WIN-SHELL/arming/.",
+    "actuates": [
+      "Launch router daemon at sign-in"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: driving the switch to On through the automation plane registered '\\MCPRouter\\WIN-SHELL Settings Witness (transient)' in the Windows task scheduler: state=Ready, logon trigger present, RunLevel=Limited (the recorder's word for the XML's LeastPrivilege), Execute=C:\\Dev\\mcp-router\\.worktrees\\wb1-settings-persistence\\app\\windows\\MCPRouter.Shell\\win-shell-witness-daemon.exe. Read by an API that did not write it. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider). That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green.",
+    "witness": {
+      "recorder": "Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0368",
+    "generatedKey": "control:settings.persistence.store",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": true,
+    "armedNote": "armed by a planted defect, watched on 2026-09-02. Removing the call that carries the sign-in switch to the supervisor broke settings.launchAtLogin.effect and settings.persistence; making the store's Save report success without writing broke settings.persistence.store alone. Both transcripts are in planning/evidence/WIN-SHELL/arming/.",
+    "actuates": [
+      "Launch router daemon at sign-in"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: C:\\Dev\\mcp-router\\.worktrees\\wb1-settings-persistence\\planning\\evidence\\WIN-SHELL\\run\\shell-state\\shell-settings.json holds LaunchAtLogin=true, read off the disk by this script. The file is the recorder; the shell is not asked what it saved. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: a read of the settings file by this script. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green.",
+    "witness": {
+      "recorder": "a read of the settings file by this script",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0369",
+    "generatedKey": "control:settings.persistence",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": true,
+    "armedNote": "armed by a planted defect, watched on 2026-09-02. Removing the call that carries the sign-in switch to the supervisor broke settings.launchAtLogin.effect and settings.persistence; making the store's Save report success without writing broke settings.persistence.store alone. Both transcripts are in planning/evidence/WIN-SHELL/arming/.",
+    "actuates": [
+      "Launch router daemon at sign-in"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: the shell was terminated and launched again as a new process, and the switch reads On in the new one. Closing the shell no longer forgets the setting. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: a second MCPRouter.Shell process, launched after the first was terminated. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green.",
+    "witness": {
+      "recorder": "a second MCPRouter.Shell process, launched after the first was terminated",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0370",
+    "generatedKey": "control:settings.copyEndpoint",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "NOT armed. This row HELD through both plants of 2026-09-02 - see planning/evidence/WIN-SHELL/arming/ - which establishes that it is independent of those two defects and says nothing about whether it can go red at all. It stays unarmed until something has been watched to break it.",
+    "actuates": [
+      "Copy the loopback endpoint"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: the clipboard held this lane's sentinel before the button was invoked and holds 'http://127.0.0.1:8879' after, read out of a separate PowerShell process. It matches the endpoint the board displays at settings.state.endpoint. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Get-Clipboard in a separate PowerShell process. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green.",
+    "witness": {
+      "recorder": "Get-Clipboard in a separate PowerShell process",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0371",
+    "generatedKey": "control:settings.launchAtLogin.silence",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "NOT armed. This row HELD through both plants of 2026-09-02 - see planning/evidence/WIN-SHELL/arming/ - which establishes that it is independent of those two defects and says nothing about whether it can go red at all. It stays unarmed until something has been watched to break it.",
+    "actuates": [
+      "Launch router daemon at sign-in"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: driving the switch back to Off removed '\\MCPRouter\\WIN-SHELL Settings Witness (transient)': Get-ScheduledTask reports absence again, so its yes above was a reading rather than an echo. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider). That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green.",
+    "witness": {
+      "recorder": "Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
   }
 ]

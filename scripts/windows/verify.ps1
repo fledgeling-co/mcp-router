@@ -427,6 +427,10 @@ $gates = @(
     # C# and the XAML and needs no build.
     @{ Cmd = 'planning/test-campaign/bin/win-surface-reconcile.py' },
     @{ Cmd = 'planning/test-campaign/bin/arm-win-surface-reconcile.py' },
+    # The arm for the `plane` field: it plants a misfiled member on a surface of each plane and
+    # runs BOTH this branch's census and the one it replaced, requiring the pair to differ. It
+    # needs `git show` and prints no verdict (exit 2) rather than half of one if git is absent.
+    @{ Cmd = 'planning/test-campaign/bin/arm-surface-plane.py';      NoVerdict = @(2) },
     # The control census reads the registry this repository pins rather than the vendored
     # campaign.py, whose 0.9.2 pin has no census at all. It reports and does not block.
     @{ Cmd = 'planning/test-campaign/bin/control-census.py' }

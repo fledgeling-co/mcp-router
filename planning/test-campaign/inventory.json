@@ -437,7 +437,7 @@
       "status": "open · owner-decision",
       "req": "REQ-019",
       "text": "`MCPRouterCLI index` reports a clean index and exits 0 when the manifest write does not land, and prints two counts that disagree with each other in the same output.",
-      "note": "Found by a denial control in the effect-witness pass rather than by reading code: `bin/witness-arm-denial.sh` points the CLI at a router home with mode dr-x------, which the process may read and traverse but not write. `index --force` then prints `ok    witness-fixture (1 tools)`, prints `0 tools cached -> /tmp/.../manifest.json` eight lines later, and exits 0 over a manifest.json that does not exist.\n\nCause: ManifestIndexer.record at RouterCore/Service/ServicePorts.swift:341 calls `try? ManifestIO.save(...)`. ManifestIO.save throws correctly and its own doc comment is careful about the disk-full case -- it deliberately leaves the temp file behind as evidence -- but all three call sites discard the error (AuthRoutes.swift:120, WatchIndexing.swift:150, ServicePorts.swift:341). The verb's closing count is honest, because MCPRouterCLI.swift:167-173 re-reads the manifest from disk to compute it; nothing compares that count against the per-server line above it.\n\nThe same `try?` on the control-API path is already characterised and deliberate -- ControlApproveDispatchTests.approveWithARefusingFileSystem pins the 200, registered in spec-P1 section 8, as R5's shipped behaviour that P1 does not move. This is the second call site, and until CASE-0153, CASE-0154 and CASE-0151 no test in the repo named ManifestIndexer at all, which is why the swallow survived here after being characterised there. The iOS side of the same requirement was found and fixed -- PhoneStorageFailureTests covers `try? await store.save(mac)` letting a success surface render over a refused write.\n\nLeft open-owner rather than fixed in campaign: propagating the error changes the CLI's exit code, which is a shipped-contract decision, and the project has already taken the opposite decision once on a sibling path. CASE-0153, CASE-0154 and CASE-0151 characterise today's behaviour so the day someone changes it, the change is deliberate."
+      "note": "Found by a denial control in the effect-witness pass rather than by reading code: `bin/witness-arm-denial.sh` points the CLI at a router home with mode dr-x------, which the process may read and traverse but not write. `index --force` then prints `ok    witness-fixture (1 tools)`, prints `0 tools cached -> /tmp/.../manifest.json` eight lines later, and exits 0 over a manifest.json that does not exist.\n\nCause: ManifestIndexer.record at RouterCore/Service/ServicePorts.swift:341 calls `try? ManifestIO.save(...)`. ManifestIO.save throws correctly and its own doc comment is careful about the disk-full case -- it deliberately leaves the temp file behind as evidence -- but all three call sites discard the error (AuthRoutes.swift:120, WatchIndexing.swift:150, ServicePorts.swift:341). The verb's closing count is honest, because MCPRouterCLI.swift:167-173 re-reads the manifest from disk to compute it; nothing compares that count against the per-server line above it.\n\nThe same `try?` on the control-API path is already characterised and deliberate -- ControlApproveDispatchTests.approveWithARefusingFileSystem pins the 200, registered in spec-P1 section 8, as R5's shipped behaviour that P1 does not move. This is the second call site, and until CASE-0153, CASE-0154 and CASE-0151 no test in the repo named ManifestIndexer at all, which is why the swallow survived here after being characterised there. The iOS side of the same requirement was found and fixed -- PhoneStorageFailureTests covers `try? await store.save(mac)` letting a success surface render over a refused write.\n\nLeft open-owner rather than fixed in campaign: propagating the error changes the CLI's exit code, which is a shipped-contract decision, and the project has already taken the opposite decision once on a sibling path. CASE-0153, CASE-0154 and CASE-0151 characterise today's behaviour so the day someone changes it, the change is deliberate.\n\nRE-READ AT 42aef112 ON 2026-09-03, BECAUSE THIS NOTE HAD GONE STALE IN THE DIRECTION THAT MATTERS. It says all three call sites discard the error and cites `ServicePorts.swift:341`. Two of the three no longer discard it and the file it names no longer holds the indexer.\n  * The indexer moved to `app/Sources/RouterCore/Service/ManifestIndexer.swift`. Its `record` is a `do`/`catch` at `:193-223` that returns a `cacheFailure`, which reaches the CLI's `IndexReport.add` (`MCPRouterCLI.swift:331-334`) and prints a `not cached  <server> ...` line deliberately kept out of the ordinary pass/fail pair, plus a closing sentence about what was not recorded (`MCPRouterCLIIndex.swift:99-135`). A server whose row was lost no longer gets an `ok` line. That is R10, merged at `8241e0f`.\n  * The approve route is a `do`/`catch` at `app/Sources/RouterCore/Auth/AuthRoutes.swift:171-177` returning `(500, {\"error\": \"failed to write manifest: ...\"})`. That is R21, merged at `5a51776`, and it CHANGED THE WIRE STATUS this note records as deliberate - see DEF-442, and note that the change agrees with the reference, measured at DEF-441.\n  * `app/Sources/RouterCore/Watch/WatchIndexing.swift:209` is still `try? ManifestIO.save(...)`. R10's brief declares it out of scope in those words - it has no output to contradict itself with - and that is still true.\nWHAT KEEPS THIS ROW OPEN is unchanged and is the half neither brief would take: `index` still EXITS 0 when every write was refused, and moving that is a shipped-contract decision the owner has not taken. SWIFT WAS NOT COMPILED FOR THIS RE-READ - `swift` and `xcodebuild` are absent on the machine it was written on - so every line above is read off the tree and none of it is a test result. `app/Tests/RouterCoreTests/CLIIndexWriteDeniedTests.swift` and `ManifestIndexerWriteFailureTests.swift` exist and pin this behaviour; whether they pass at 42aef112 is not known here and must not be assumed."
     },
     {
       "id": "DEF-050",
@@ -892,13 +892,13 @@
       "title": "The command-shape check cannot see a bare command NAME, so a two-word operation could still be filed as a control",
       "lane": "repo-gate",
       "severity": "minor",
-      "status": "open",
+      "status": "fixed",
       "found": "2026-09-02 by wb4, while closing DEF-080 -- found from inside the fix rather than reported against it",
       "evidence": "`control-census.py`'s `command_shape()` refuses an invocation with ARGUMENTS and nothing else, and its misfiled-operation check matches only a PascalCase `Foo.Bar`. Measured by plant: moving SURF-045 and SURF-046 back from `operations` to `controls` reddens the census with four findings, and moving SURF-047 back reddens with none -- `MakeAppx pack`, `winget validate`, `Add-AppxPackage` and `Remove-AppxPackage` are indistinguishable, to any string rule this file could carry, from a button somebody labelled that.",
       "class": "measured-and-broken",
       "why-it-matters": "The half of DEF-080 that is now defended by a gate is the half whose names happen to look like API calls. The other half is defended by a person reading the row. So the guarantee REQ-080 states is a floor: the census cannot be made to add a `Foo.Bar` to the buttons, and it can still be made to add `MakeAppx pack` to them. Saying so here is the point -- a gate that half-covers a class and is described as covering it is how the class comes back.",
       "next": "The shape rules cannot be widened without reddening honest rows (`winget validate` is a legitimate operation name and `Reset history` is a legitimate control name, and no string rule separates them). The fix is not a better regex: it is a declared property of the SURFACE -- a `plane` or `kind` field saying whether this row has glass at all -- from which the field a member belongs in follows. That is a schema change across every surface row and a change to what `bin/design-controls.py` writes, which is why it is filed rather than done inside DEF-080's scope.",
-      "resolution": "Not settled. Filed 2026-09-02 by wb4 so the floor is quotable rather than latent."
+      "resolution": "Settled 2026-09-03 by wd3, as a schema change rather than a regex. (1) THE FIELD. Every one of the 47 surface rows now declares `plane`, one of `glass` (a person can see it and press it; its members are `controls`), `headless` (no glass at all -- a Scheduled Task, a COM activator, an HTTP route, the daemon itself; its members are `operations`), `mixed` (both halves over one subject) or `undetermined` (nobody has worked it out, permitted only while the surface declares nothing). 36 glass, 9 headless, 2 mixed, 0 undetermined. There is no default and a missing or unrecognised value is a finding, because a default is a guess about the denominator that later reads as a declaration. (2) THE CENSUS DERIVES MEMBERSHIP FROM IT. `bin/control-census.py` reports a member declared under a field its plane does not carry, and the old shape rule -- `_OPERATION_SHAPE`, the PascalCase `Foo.Bar` test -- is DELETED rather than left beside it. `command_shape()` stays: it answers whether a string is an invocation rather than a declared name at all, never which field a member belongs in, so it cannot disagree with the plane. (3) THE ARM. `bin/test-campaign/bin/arm-surface-plane.py` plants eight misfilings against a scratch copy of the registry and runs BOTH this branch's census and the one it replaced, read out of git, requiring the pair to differ: six plants are red on the new census and SILENT on the old, including this row's own exhibit -- SURF-047's four operations moved back under `controls`, which the old rule could not see and the new one reports as `SURF-047 is declared `plane`: headless and declares 4 member(s) under `controls``. Baseline clean on both censuses, and the plant reverted and re-run clean after every one. (4) `bin/design-controls.py` writes `plane: \"glass\"` beside every control list `--set-controls` writes -- a surface harvested by measuring drawn boxes in a rendered design has glass by construction -- and REFUSES, rather than flips, a surface the registry already calls something else. WHAT MOVED IN THE PUBLISHED NUMBERS: nothing. `Controls: 52 of 205 across 30 surface(s)` and `Operations: 8 of 8 across 3` are identical either side of this change, which is the correct outcome for a schema change that reclassifies no member; what moved is which misfilings are refused. WHAT IT DOES NOT SETTLE, and both are measured rather than asserted: a `mixed` row is UNDEFENDED -- both fields are legitimate on it, the census names those rows on their own output line, and the arm plants into one and requires the silence; and deleting the shape rule gave up the one class it did cover, a PascalCase API-call name declared under `controls` on a GLASS surface, which the previous census refused and this one does not. DEF-420 carries that, and the arm's eighth plant measures it in both directions."
     },
     {
       "id": "DEF-360",
@@ -1072,6 +1072,87 @@
       "evidence": "Across eight runs of scripts/windows/uia/shell-lane.ps1 on 2026-09-03 the shell terminated mid-run in five of them, and never on the same subject twice: on selecting Cleanup, on selecting Discover, on selecting Servers, during the Settings board's removal arms, and three times during the ambient arms in one run. Every launch wrote `handlers: xaml=True, appdomain=True, unobserved-task=True, dispatcher-guard=True` to shell-startup.log and not one of the deaths wrote an `unhandled:` line - so all four routes DEF-079 and DEF-085 added were armed and none of them saw it. The lane records each death honestly (a destination row reads CRASH, a control row reads unoracled) rather than reporting the empty tree that follows as a finding about a board.\n\nIT IS NOT THE AMBIENT POLL THIS ITEM'S NEIGHBOUR ADDED. Deaths were observed on builds with the poll deliberately removed (planning/evidence/WIN-SHELL/arming/def-301-planted-lane.txt, three deaths in one run) as well as on the shipping build, and the last three runs of the shipping build were 10-of-10, 10-of-10-with-one-crash, and 10-of-10 clean. That is the whole of what is known about the cause.",
       "why-it-matters": "A process that vanishes with every logging route armed and silent is the exact condition DEF-079 was filed for, arriving again by a route those handlers do not cover, and it is what makes a lane's greens run-dependent: the same build measured 30 arms with none failing on one run and lost four destinations to unoracled on the next. For an operator it is the application disappearing while they use it, with nothing to send anybody.",
       "next": "The routes that remain unwatched are the ones below managed dispatch: a fault in native/COM code on the UI thread, a fail-fast, and a stack overflow, none of which reach a managed handler. What would settle it is the Windows Error Reporting record rather than another handler - Get-WinEvent -LogName Application for EventID 1000/1026 in the seconds around a recorded death, which the lane already timestamps, plus the process exit code, which Start-Shell can capture and does not. Both are cheap and neither has been done."
+    },
+    {
+      "id": "DEF-440",
+      "class": "decision",
+      "severity": "major",
+      "status": "open · owner-decision",
+      "req": "REQ-016",
+      "title": "REQ-016's outbound socket has no provider and never will until somebody decides whether the product is meant to open one",
+      "found": "2026-09-03, re-measuring `vacuity-check.py --gate`'s 0.14.1 finding at HEAD",
+      "text": "REQ-016 declares an `outbound-socket` effect and names no production symbol that could perform it. The register already records this correctly - `evidence: vacuous`, with a `providerNote` saying no symbol under `app/Sources` opens a connection to a paired device - so this row is not a request to correct the register. It is the question the register cannot answer: BUILD THE TRANSPORT, or WITHDRAW THE CLAIM. Both are consistent with every measurement below and they produce different products, so the choice is the owner's rather than a runner's.",
+      "detail": "THE FACT, RE-MEASURED AT 42aef112 rather than inherited from the 83e5380 note. `PairingService` still has exactly ONE conformance in production source, `public struct FixturePairingService: PairingService`, `app/Sources/MCPRouterKit/Pairing/PairingService.swift:31` - measured by `grep -rn \"PairingService\" app/ --include=*.swift` excluding `app/Tests`, which returns that one declaration and no other. The shipped phone shell still wires it by default, `pairing: any PairingService = FixturePairingService()`, `app/Sources/MCPRouterUI/Phone/PhoneShell.swift:63` and again at `:183`. All nine files under `app/Sources/MCPRouterKit/Pairing/` import `Foundation` and nothing else; a grep for `NWConnection`, `URLSession`, `URLRequest` and `connect(` over that directory returns zero lines. Twenty-two files elsewhere under `app/Sources` do hold one of those symbols and they are OAuth, the control plane, the registry client, the loopback server, the stdio pool and the CLI - none of them takes a `PairedMac` or is reachable from `PairingService.pair`.\n\nWHY THIS IS NOT A RUNNER'S CALL. The two remedies differ on what the product IS, not on how to say it. Building the transport is I5/DEF-001 - a subsystem, a wire contract, and a Mac endpoint to match; `PairingService.swift`'s own docstring records that not shipping one was a decision taken so that the consumer would not invent a contract the producer has to match late. Withdrawing the claim deletes a promise from the requirement set, and `spec-I5.md` and `ORCHESTRATOR.md`'s I5 row are where it was made. A runner who picked either would be deciding what the product does while calling it a defect fix - the same move `R10`'s brief refused over the CLI exit code.\n\nWHAT WAS DONE INSTEAD, so the question cannot rot silently. `planning/effect-provider-gate.py` now refuses an effect claim that names no provider unless the row is `vacuous` AND says in `providerNote` what is missing, and refuses a named provider that stops resolving. REQ-016 passes it today by the second branch, deliberately: the gate holds the ABSENCE VISIBLE rather than answering the question. Enrolled in `make lint`. SWIFT WAS NOT COMPILED AND NOT RUN FOR THIS ROW. `swift` and `xcodebuild` are both absent on the machine this was written on (LUKESFF, Windows 11; `Get-Command` found neither), so every statement here about Swift source is READ off the tree at 42aef112 and none of it is a test result. Where a claim is measured, the command that measured it is named.",
+      "evidence": [
+        "planning/effect-provider-gate.py",
+        "planning/evidence/WD4/run/effect-provider-gate.txt",
+        "planning/evidence/WD4/run/effect-provider-gate-selftest.txt",
+        "planning/evidence/WD4/run/arming.txt"
+      ],
+      "next": "Owner decides: build the pairing transport (I5, DEF-001) or withdraw REQ-016's outbound-socket claim. Until then REQ-016 stays `vacuous` and this row stays open."
+    },
+    {
+      "id": "DEF-441",
+      "class": "parity",
+      "severity": "minor",
+      "status": "open · measured",
+      "req": "REQ-019",
+      "title": "The two approve routes agree on 500 when the manifest write is refused and disagree on what they put in the body",
+      "found": "2026-09-03, by `scripts/acceptance/r21-approve-write-denied.mjs`, which is the first lane to ask the reference what it does on a refused approve write",
+      "text": "MEASURED on the reference, READ on the port. Node's `POST /servers/:name/approve` against a manifest write the filesystem refuses answers `500` with `{\"error\":\"<the errno message verbatim>\"}` - the run recorded `{\"error\":\"EISDIR: illegal operation on a directory, open '...\\\\manifest.json.tmp-4752'\"}` - and leaves `pending` on disk. Swift's `AuthRoutes.promote` catches the same failure at `app/Sources/RouterCore/Auth/AuthRoutes.swift:171-177` and answers `500` with `{\"error\": \"failed to write manifest: <error.localizedDescription>\"}`. The STATUS agrees; the BODY does not, because the port prefixes a sentence of its own that the reference does not write.",
+      "detail": "This is small and it is filed rather than fixed for a reason worth stating: the fix is one line in Swift, and this machine cannot compile Swift, so changing it would trade a measured divergence for an unmeasured edit. `planning/parity/surface.tsv`'s `control-approve-post` row declares that the 200 promotion path is proven Swift-side only and says nothing at all about the failed-write path, so this divergence was in neither the proven set nor the declared set. It is now declared in that row.\n\nThe remedy is a choice between two one-line edits and it is not obviously the port's: dropping Swift's prefix matches the reference byte for byte, and adding the prefix to node makes both sentences readable at the cost of moving the reference. Whoever takes it should take it on a machine with a Swift toolchain and re-run `scripts/acceptance/r21-approve-write-denied.mjs` on the node side either way. SWIFT WAS NOT COMPILED AND NOT RUN FOR THIS ROW. `swift` and `xcodebuild` are both absent on the machine this was written on (LUKESFF, Windows 11; `Get-Command` found neither), so every statement here about Swift source is READ off the tree at 42aef112 and none of it is a test result. Where a claim is measured, the command that measured it is named.",
+      "evidence": [
+        "scripts/acceptance/r21-approve-write-denied.mjs",
+        "planning/evidence/WD4/run/r21-approve-write-denied.txt",
+        "planning/evidence/WD4/run/arming.txt",
+        "planning/parity/surface.tsv"
+      ],
+      "next": "Pick a side of the sentence and make the two bodies agree, on a machine that can build Swift; or keep the divergence and leave `surface.tsv`'s declaration standing."
+    },
+    {
+      "id": "DEF-442",
+      "class": "record",
+      "severity": "minor",
+      "status": "open · measured",
+      "req": "REQ-007",
+      "title": "R21's LEDGER row records the status change and instructs against it in the same cell, and the brief it points at still forbids what shipped",
+      "found": "2026-09-03, reading R21's brief against the commit that closed it",
+      "text": "`planning/features-to-triage/LEDGER.md:145` opens with **Done** - merged `5a51776` ... handleApprove answers 500 when ManifestIO.save fails and closes with **Do not move the status code** - `ControlApproveDispatchTests.swift:114-118` at `1d95734` pins 200 deliberately. One cell, two instructions, and the second is about the change the first records as merged. `planning/features-to-triage/R21-approve-answers-200-over-a-discarded-write.md` still carries `Status: Ready for AI` and the same prohibition, plus an acceptance line reading `ControlApproveDispatchTests` stays green unedited - and commit `5a51776c` edited that very test, replacing the 200 expectation with 500.",
+      "detail": "THE CHANGE WAS RIGHT AND THE RECORD IS WRONG, which is why this is a record defect and not a revert. The pin's own withdrawn comment said so: MEASURED, not chosen ... the reference's own `saveManifest` throws. That is a real divergence. It was a divergence, and 5a51776c closed it. Measured here for the first time rather than argued: `scripts/acceptance/r21-approve-write-denied.mjs` drives the shipped node route against a filesystem that refuses the save and records `500`, so Swift's old 200 disagreed with the reference and its new 500 agrees. The pin was doing exactly the job its comment claimed - making the change deliberate the day somebody made it - and the day came. What is missing is anybody writing that down, so a reader arriving at either the brief or the LEDGER cell today is told not to make a change that has been on `main` since 24 Aug 2026.\n\nNOT FIXED HERE, and the boundary is the point: correcting a shipped brief's status word is `shipped-brief-gate.py`'s axis, and R21 is one of the thirteen briefs that gate holds under R6 because DEF-049 is still open against its subject. Writing a terminal word onto R21 now would take a live defect off the total, which is the one direction that gate exists to refuse. So the contradiction is recorded and the words are left alone. SWIFT WAS NOT COMPILED AND NOT RUN FOR THIS ROW. `swift` and `xcodebuild` are both absent on the machine this was written on (LUKESFF, Windows 11; `Get-Command` found neither), so every statement here about Swift source is READ off the tree at 42aef112 and none of it is a test result. Where a claim is measured, the command that measured it is named.",
+      "evidence": [
+        "planning/features-to-triage/LEDGER.md",
+        "planning/features-to-triage/R21-approve-answers-200-over-a-discarded-write.md",
+        "planning/evidence/WD4/run/r21-approve-write-denied.txt"
+      ],
+      "next": "When DEF-049 closes and `shipped-brief-gate.py` releases R21, correct the cell and the brief in the same edit that writes the terminal word."
+    },
+    {
+      "id": "DEF-420",
+      "surface": "SURF-002",
+      "lane": "repo-gate",
+      "severity": "minor",
+      "status": "open",
+      "title": "A name shaped like an API call can be declared under `controls` on a glass surface, and the plane rule that replaced the shape rule does not look at names at all",
+      "found": "2026-09-03 by wd3, while closing DEF-131 -- found from inside the fix and measured before it was written down",
+      "class": "measured-and-broken",
+      "evidence": "Measured by plant, both directions, in `planning/test-campaign/bin/arm-surface-plane.py` (the eighth plant). `LogonTaskSupervisor.Register` appended to SURF-002's `controls` -- a glass surface, the Mac Servers board: the census this branch REPLACED exits 1 with `SURF-002 declares `LogonTaskSupervisor.Register` under `controls` and it is shaped like an API call`; the census this branch installs exits 0 and says nothing. The name would then sit in the controls denominator and could be actuated into the numerator by a passing case.",
+      "why-it-matters": "DEF-131 replaced a rule that half-covered the misfiling class with one that covers a different part of it, and the parts do not nest. The plane rule catches every member declared under a field its surface's plane does not carry -- which is what DEF-131's own exhibit needed and the shape rule could never do -- and it is blind to what a name looks like, so a member misfiled WITHIN a plane's own field is invisible to it. Net, the class is better covered and one corner of it got worse, and a fix described as closing a class while quietly losing a corner is how the corner comes back.",
+      "next": "Not a restored regex: reinstating `_OPERATION_SHAPE` puts two rules on the same question again, which is the state DEF-131's `next` ruled out, and it would refuse a glass control legitimately named `Foo.Bar` while still missing `MakeAppx pack`. The shape of a fix is a per-member declaration where the plane cannot reach -- the surface saying, for a member it declares, what kind of thing it is -- or a provenance check that requires every declared control to appear in the source its `controlsSource` names, which `win-surface-reconcile.py` already does for the Windows rows and which is a property of the build rather than of the string. The second is the cheaper one and is not scoped here.",
+      "resolution": "Not settled. Filed 2026-09-03 by wd3 so the corner is quotable rather than latent, on the same grounds DEF-131 was filed inside DEF-080."
+    },
+    {
+      "id": "DEF-421",
+      "surface": "SURF-038",
+      "lane": "windows-glass",
+      "severity": "minor",
+      "status": "open",
+      "title": "`win-surface-reconcile.py` has been red since before this branch: SURF-038 declares a control its own `controlsSource` does not contain",
+      "found": "2026-09-03 by wd3, running the gate as a baseline before touching the registry -- not caused by this branch and not fixed by it",
+      "class": "measured-and-broken",
+      "evidence": "`python planning/test-campaign/bin/win-surface-reconcile.py` exits 1 with one finding, on `main` at 42aef112 and identically on this branch: `R4  SURF-038 declares the control `Confirm before removing a server` and it appears in none of the file(s) its `controlsSource` names (SettingsBoard.xaml). Either the source moved or the list is stale.` The knock-on is that `arm-win-surface-reconcile.py` refuses to run at all -- it stops with BASELINE IS NOT GREEN, because every plant it makes would be measuring an already-red reader -- so the Windows reconciler's own arm is disarmed for as long as this stands.",
+      "why-it-matters": "One of the two records is wrong and nothing here says which. If the control is real and the XAML moved, the provenance field points at the wrong file and every other row sourced the same way is suspect; if the list is stale, a control nothing draws is sitting in the Windows controls denominator. Neither reading is available from the registry alone, which is why this is filed rather than resolved.",
+      "next": "Read `app/windows/MCPRouter.Shell/Views/SettingsBoard.xaml` and whatever the confirmation setting is drawn by now, then either correct SURF-038's `controlsSource` to the file that carries it or withdraw the control with the measurement that says the build draws no such thing. Removing the row to make the gate green without that measurement is the move this campaign refuses.",
+      "resolution": "Not settled by wd3. Filed so the red is attributable rather than ambient. A concurrent runner in this wave may be working the same row; if a duplicate lands, keep the one carrying the measurement of what the build draws."
     }
   ],
   "flow": [
@@ -1685,6 +1766,16 @@
       "effect": "outbound-socket",
       "provider": "scripts/windows/uia/shell-lane.ps1",
       "providerNote": "Measured by driving the ROUTER from outside the application and reading the pane back off the automation plane: the lane owns the router the shell polls, stops it, puts scripts/windows/uia/router-status-stub.ps1 on its port with counts of its own, starts the real router again, and takes it away once more. CASE-0470..CASE-0475. What no arm here reaches is the notification-area TOOLTIP - Shell_NotifyIconGetRect returns a rectangle and never the tip - so the tip's text is this application's own account of itself and is carried on DEF-380 rather than by this requirement's green."
+    },
+    {
+      "id": "REQ-095",
+      "class": "honesty-guardrail",
+      "text": "Every surface declares the plane it is on -- glass, headless, mixed or undetermined -- and the field a declared member belongs in follows from that declaration rather than from the shape of its name. A surface with no plane, an unrecognised plane, a member under a field its plane does not carry, or a `mixed` plane with no written statement of what each half is, is refused.",
+      "source": "planning/test-campaign/inventory.json DEF-131, filed 2026-09-02 by wb4 inside DEF-080's fix after the shape rule was measured unable to see SURF-047's four operations filed as controls",
+      "evidence": "observed",
+      "effect": "`bin/control-census.py` exits 1 on any of those four states; `bin/arm-surface-plane.py` plants each of them against a scratch copy of the registry and requires exactly the matching finding, running the census this branch replaced beside it to show which plants are newly caught",
+      "provider": "planning/test-campaign/bin/control-census.py",
+      "note": "A repository-hygiene guardrail about the campaign's own reporting rather than a product behaviour a user meets, written as a requirement for the reason REQ-080 was: DEF-080's first correction fixed the rows and left the class untouched, and there was nothing a reader could point at to say a rule had gone unmet. It does NOT state that every misfiling is refused -- a `mixed` row is undefended by construction and DEF-420 records the corner the plane rule cannot see. Observed by CASE-0510."
     }
   ],
   "surface": [
@@ -1693,6 +1784,7 @@
       "title": "Mac shell — sidebar, title, menus",
       "route": "app://mac/shell",
       "lane": "macos-glass",
+      "plane": "glass",
       "status": "ready",
       "shot": "evidence/shots/SURF-001.shell.png",
       "routeNote": "the shell is window chrome and the source list. It has no `Destination` case and no `RouterSheet` case, which is what `surface-bindings.json` records by listing it as addressless; `app://mac/shell` is the campaign's name for the frame, and it is the target `bin/capture-mac-glass.sh:248` writes at the shutter for the sidebar crop. This field previously read `app://mac/servers`, which is not this surface's address but the board it was PHOTOGRAPHED on -- two different facts in one field, and `capture-lineage.py`'s tie pass read the disagreement as a mis-aimed camera. Where the photograph was taken is recorded where it belongs, in the capture's `derivedFrom`: SURF-001.shell.png is cropped out of SURF-002.build.png at the frame the AX dump reports.",
@@ -1739,6 +1831,7 @@
       "title": "Mac Servers board",
       "route": "app://mac/servers",
       "lane": "macos-glass",
+      "plane": "glass",
       "status": "ready",
       "shot": "evidence/shots/SURF-002.build.png",
       "controls": [
@@ -1791,6 +1884,7 @@
       "title": "Mac Activity board",
       "route": "app://mac/activity",
       "lane": "macos-glass",
+      "plane": "glass",
       "status": "ready",
       "shot": "evidence/shots/SURF-003.build.png",
       "controls": [
@@ -1809,6 +1903,7 @@
       "title": "Mac Skills board",
       "route": "app://mac/skills",
       "lane": "macos-glass",
+      "plane": "glass",
       "status": "ready",
       "shot": "evidence/shots/SURF-004.build.png",
       "controls": [
@@ -1864,6 +1959,7 @@
       "title": "Mac Discover board",
       "route": "app://mac/discover",
       "lane": "macos-glass",
+      "plane": "glass",
       "status": "ready",
       "shot": "evidence/shots/SURF-005.build.png",
       "controls": [
@@ -1896,6 +1992,7 @@
       "title": "Mac Checks board",
       "route": "app://mac/checks",
       "lane": "macos-glass",
+      "plane": "glass",
       "status": "ready",
       "shot": "evidence/shots/SURF-006.build.png",
       "routeNote": "the registry addressed this board as /evals; the running app's window title reads back 'Checks'. The tie pass caught the drift — the board was renamed and the campaign's address was not.",
@@ -1916,6 +2013,7 @@
       "title": "Mac Cleanup board",
       "route": "app://mac/cleanup",
       "lane": "macos-glass",
+      "plane": "glass",
       "status": "ready",
       "shot": "evidence/shots/SURF-007.build.png",
       "controls": [
@@ -1944,6 +2042,7 @@
       "title": "Mac Inbox board and review sheet",
       "route": "app://mac/inbox",
       "lane": "macos-glass",
+      "plane": "glass",
       "status": "ready",
       "shot": "evidence/shots/SURF-008.build.png",
       "controls": [
@@ -1967,6 +2066,7 @@
       "title": "Mac menu-bar popover and inbox band",
       "route": "app://mac/menubar-popover",
       "lane": "macos-glass",
+      "plane": "glass",
       "status": "ready",
       "shotNote": "No build capture exists, and none can be taken under this campaign's standing constraint: the campaign never activates MCPRouter, and a menu-bar popover cannot be opened or photographed without doing so. evidence/shots/pairs.json already carried `shot: null` with `reason: build half uncaptured -- see the surface's shotNote`, and until 20 Aug 2026 the shotNote it points at did not exist -- a dangling pointer that reads, to anyone following it, as a note somebody deleted rather than one nobody wrote. The reference half (evidence/shots/mock/SURF-009.png) is rendered and on disk, so this surface is uncompared rather than unreferenced, and it is not a pass. Related: DEF-051.",
       "controls": [
@@ -1996,6 +2096,7 @@
       "title": "Mac Pairing sheet",
       "route": "app://mac/pairing",
       "lane": "macos-glass",
+      "plane": "glass",
       "status": "ready",
       "shotNote": "CORRECTED 20 Aug 2026. This note used to read 'no picture is filed under this surface ... the sheet was never opened and never photographed', which was true when written and false by the time it was read: DEF-036 closed and the sheet was opened and photographed at 2026-08-20T11:33:01Z. The capture's windowTitleReadback is 'Inbox' because the sheet is a modal over the Inbox window, so the window keeps its title while the sheet is up - a readback that looks like the mis-file DEF-006 records and is not one. Judged 20 Aug 2026: fail, DEF-001 on glass.",
       "shot": "evidence/shots/SURF-010.build.png",
@@ -2016,6 +2117,7 @@
       "title": "Mac Settings board",
       "route": "app://mac/settings",
       "lane": "macos-glass",
+      "plane": "glass",
       "status": "ready",
       "shot": "evidence/shots/SURF-011.build.png",
       "controls": [
@@ -2051,6 +2153,7 @@
       "title": "iOS Discover",
       "route": "app://ios/discover",
       "lane": "ios-glass",
+      "plane": "glass",
       "status": "ready",
       "shot": "evidence/shots/ios/SURF-012.ios.discover-populated.png"
     },
@@ -2059,6 +2162,7 @@
       "title": "iOS Triage, Queue, Library",
       "route": "app://ios/triage",
       "lane": "ios-glass",
+      "plane": "glass",
       "status": "ready",
       "shot": "evidence/shots/ios/SURF-013.ios.triage.png",
       "name": "iOS Triage",
@@ -2069,6 +2173,7 @@
       "title": "iOS Pairing scanner and code entry",
       "route": "app://ios/pair-mac",
       "lane": "ios-glass",
+      "plane": "glass",
       "status": "ready",
       "shotNote": "the pairing preflight was reached on glass and rendered, but the assertion failed before the screenshot step, so no picture exists. The surface's state at that moment is recorded in the failure's own on-screen string list, not in a raster.",
       "routeNote": "Was app://ios/pairing. The app's navigation bar publishes 'Pair Mac', and the route is the campaign's record of where a surface lives rather than a name it gets to choose — same class as DEF-007's evals/Checks. Corrected to what the running app says; registered as DEF-023.",
@@ -2079,6 +2184,7 @@
       "title": "Router daemon and upstream pool",
       "route": "ipc://router/core",
       "lane": "router-daemon",
+      "plane": "headless",
       "status": "ready"
     },
     {
@@ -2086,6 +2192,7 @@
       "title": "Loopback control API and auth routes",
       "route": "http://127.0.0.1:8879/control",
       "lane": "router-daemon",
+      "plane": "headless",
       "status": "ready"
     },
     {
@@ -2093,6 +2200,7 @@
       "title": "Parity harness vs TypeScript reference",
       "route": "test://parity/surface",
       "lane": "parity-wire",
+      "plane": "headless",
       "status": "ready"
     },
     {
@@ -2100,6 +2208,7 @@
       "name": "iOS Settings and paired-Mac state",
       "route": "app://ios/settings",
       "lane": "ios-glass",
+      "plane": "glass",
       "status": "ready",
       "shot": "evidence/shots/ios/SURF-018.ios.settings-never-paired.png",
       "note": "the phone ships five tabs and the campaign enumerated three. The on-glass lane photographed Settings while proving each tab renders its own surface, which is how the missing surface surfaced — a tab nobody enumerated has no denominator and no case could have failed on it."
@@ -2107,6 +2216,7 @@
     {
       "title": "iOS Triage, Queue, Library",
       "lane": "ios-glass",
+      "plane": "glass",
       "status": "ready",
       "id": "SURF-019",
       "name": "iOS Queue",
@@ -2117,6 +2227,7 @@
     {
       "title": "iOS Triage, Queue, Library",
       "lane": "ios-glass",
+      "plane": "glass",
       "status": "ready",
       "id": "SURF-020",
       "name": "iOS Library",
@@ -2129,6 +2240,7 @@
       "title": "OAuth discovery and dynamic client registration",
       "route": "http://127.0.0.1:8879/.well-known/oauth-authorization-server",
       "lane": "router-daemon",
+      "plane": "headless",
       "status": "ready"
     },
     {
@@ -2136,6 +2248,8 @@
       "title": "The /authorize consent interstitial and its upstream report",
       "route": "http://127.0.0.1:8879/authorize",
       "lane": "router-daemon",
+      "plane": "mixed",
+      "planeNote": "MIXED, and the field cannot decide for it. The route is measured over the wire as HTTP -- redirect targets, error codes, the upstream report -- which is a headless plane; and it also renders a consent interstitial a person reads and presses, which CASE-0157 photographs at raster-visual on the live route. It declares no members today, so nothing is misfiled either way; when it declares any, the glass half's buttons belong in `controls` and the wire half's calls in `operations`, and no rule in `bin/control-census.py` can tell them apart on this row.",
       "status": "ready"
     },
     {
@@ -2143,6 +2257,7 @@
       "title": "The /token grant handler — authorization_code and refresh_token",
       "route": "http://127.0.0.1:8879/token",
       "lane": "router-daemon",
+      "plane": "headless",
       "status": "ready"
     },
     {
@@ -2150,6 +2265,7 @@
       "title": "The authority guard ahead of the dispatch ladder",
       "route": "http://127.0.0.1:8879/",
       "lane": "router-daemon",
+      "plane": "headless",
       "status": "ready"
     },
     {
@@ -2157,6 +2273,7 @@
       "title": "Mac Harnesses board",
       "route": "app://mac/harnesses",
       "lane": "macos-glass",
+      "plane": "glass",
       "status": "ready",
       "shot": "evidence/shots/SURF-025.build.png",
       "enumeratedNote": "Enumerated 2026-08-27 by G15. The board shipped with M22 and was absent from this list until now, so no completeness gate could report it uncovered — a surface never enumerated has no row to be uncovered in. `scripts/acceptance/m22-boards.sh` had been opening it on glass since M22, which is why this is an enumeration gap rather than an unbuilt board: the repository could see it and the campaign's denominator could not.",
@@ -2194,6 +2311,7 @@
       "title": "Mac Insights board",
       "route": "app://mac/insights",
       "lane": "macos-glass",
+      "plane": "glass",
       "status": "ready",
       "shot": "evidence/shots/SURF-026.build.png",
       "enumeratedNote": "Enumerated 2026-08-27 by G16. Absent from this list since M22 shipped it, so no completeness gate could report it uncovered. It is the board of COUNTS AND MEASUREMENTS, which is why it is enumerated separately from Harnesses: DESIGN.md §6 forbids drawing a figure the router does not observe, and a plausible number reads as a real one. Its cases therefore owe a trace per figure, not only a render. F7 built the analyst PRD.md §6 specifies, so four of this surface's five undisposed controls move off DEF-065: Analyse now, Analyst model, Second-opinion model and Analyst cadence are actuated by CASE-0223..0225. `Insights window` stays a refusal for the reason already recorded.",
@@ -2220,6 +2338,7 @@
       "title": "The document route — a package's own files over the control API",
       "route": "http://127.0.0.1:8879/servers/:name/document",
       "lane": "router-daemon",
+      "plane": "headless",
       "status": "ready",
       "routeNote": "Every server exercised against this surface is CONSTRUCTED. None of the 21 upstreams installed on this machine declares a package directory, so on all 21 the route answers 404 noPackageDirectory and no real package on this host reaches the other six outcomes. The fixture in bin/wire-document-fixture/seed.py builds seven servers, one per outcome, under a scratch MCP_ROUTER_HOME."
     },
@@ -2228,6 +2347,7 @@
       "title": "Mac capability document panel — three tabs over one package",
       "route": "app://mac/servers/{server}/document",
       "lane": "swiftui",
+      "plane": "glass",
       "status": "ready",
       "reaches": "SURF-027",
       "routeNote": "Opened from the Servers board's inspector — ServerInspector.swift:77 sets `board.sheet = .document(server: server.name)` and ServerSheets.swift:30 presents `ServerDocumentSheet`, whose source is `ControlAPICapabilityDocumentSource`. That source is the one caller of SURF-027, which is what `reaches` records: the panel is not a surface that happens to sit near the route, it is the route's only consumer in the product.",
@@ -2259,6 +2379,8 @@
       "title": "Windows automation probe — WIN20's WinUI 3 plane witness",
       "route": "app://windows/automation-probe",
       "lane": "windows-glass",
+      "plane": "glass",
+      "planeNote": "GLASS. WIN20's own probe window rather than the product, but it is a WinUI window with two CommandBar commands a person can press, which is what the field records.",
       "status": "ready",
       "controls": [
         "Export log",
@@ -2277,6 +2399,7 @@
       "title": "Windows shell — NavigationView, caption band, title, menus",
       "route": "app://windows/shell",
       "lane": "windows-glass",
+      "plane": "glass",
       "status": "ready",
       "controls": [
         "Activity",
@@ -2310,6 +2433,7 @@
       "title": "Windows Servers board and the Signal Path",
       "route": "app://windows/shell#servers",
       "lane": "windows-glass",
+      "plane": "glass",
       "status": "ready",
       "destinationOf": "SURF-030",
       "controls": [
@@ -2330,6 +2454,7 @@
       "title": "Windows Activity board — the live call log",
       "route": "app://windows/shell#activity",
       "lane": "windows-glass",
+      "plane": "glass",
       "status": "ready",
       "destinationOf": "SURF-030",
       "controls": [
@@ -2346,6 +2471,7 @@
       "title": "Windows Skills board",
       "route": "app://windows/shell#skills",
       "lane": "windows-glass",
+      "plane": "glass",
       "status": "ready",
       "destinationOf": "SURF-030",
       "controls": [
@@ -2360,6 +2486,7 @@
       "title": "Windows Discover board",
       "route": "app://windows/shell#discover",
       "lane": "windows-glass",
+      "plane": "glass",
       "status": "ready",
       "destinationOf": "SURF-030",
       "controls": [
@@ -2376,6 +2503,7 @@
       "title": "Windows Checks board",
       "route": "app://windows/shell#checks",
       "lane": "windows-glass",
+      "plane": "glass",
       "status": "ready",
       "destinationOf": "SURF-030",
       "controls": [
@@ -2391,6 +2519,7 @@
       "title": "Windows Cleanup board",
       "route": "app://windows/shell#cleanup",
       "lane": "windows-glass",
+      "plane": "glass",
       "status": "ready",
       "destinationOf": "SURF-030",
       "controls": [
@@ -2407,6 +2536,7 @@
       "title": "Windows Inbox board and review sheet",
       "route": "app://windows/shell#inbox",
       "lane": "windows-glass",
+      "plane": "glass",
       "status": "ready",
       "destinationOf": "SURF-030",
       "controls": [
@@ -2424,6 +2554,7 @@
       "title": "Windows Settings board",
       "route": "app://windows/shell#settings",
       "lane": "windows-glass",
+      "plane": "glass",
       "status": "ready",
       "destinationOf": "SURF-030",
       "controls": [
@@ -2442,6 +2573,7 @@
       "title": "Windows Harnesses board",
       "route": "app://windows/shell#harnesses",
       "lane": "windows-glass",
+      "plane": "glass",
       "status": "ready",
       "destinationOf": "SURF-030",
       "controls": [
@@ -2456,6 +2588,7 @@
       "title": "Windows Insights board",
       "route": "app://windows/shell#insights",
       "lane": "windows-glass",
+      "plane": "glass",
       "status": "ready",
       "destinationOf": "SURF-030",
       "controls": [
@@ -2470,6 +2603,7 @@
       "title": "Windows ambient surface — notification-area flyout",
       "route": "app://windows/ambient-flyout",
       "lane": "windows-glass",
+      "plane": "glass",
       "status": "manual",
       "controls": [
         "Open App",
@@ -2485,6 +2619,7 @@
       "title": "Windows pairing dialog",
       "route": "app://windows/pairing-dialog",
       "lane": "windows-glass",
+      "plane": "glass",
       "status": "manual",
       "controls": [
         "Done"
@@ -2498,6 +2633,7 @@
       "title": "Windows capability document panel — three tabs over one package",
       "route": "app://windows/capability-document",
       "lane": "windows-glass",
+      "plane": "glass",
       "status": "manual",
       "controls": [
         "Capabilities",
@@ -2515,6 +2651,7 @@
       "title": "Windows Discover detail dialog",
       "route": "app://windows/discover-detail",
       "lane": "windows-glass",
+      "plane": "glass",
       "status": "ready",
       "controls": [
         "discover.detail.root",
@@ -2535,6 +2672,7 @@
       "title": "Windows logon-task supervision - the daemon's Scheduled Task",
       "route": "task://windows/logon/MCPRouter",
       "lane": "router-daemon",
+      "plane": "headless",
       "status": "ready",
       "operations": [
         "LogonTaskSupervisor.Register",
@@ -2549,6 +2687,8 @@
       "title": "Windows toast notification and its COM activator",
       "route": "shell://windows/notifications/AppNotificationManager",
       "lane": "windows-glass",
+      "plane": "mixed",
+      "planeNote": "MIXED, and this is the honest answer rather than a hedge. The two members declared here are calls a lane makes with no glass involved (ToastNotifier.Register, ToastNotifier.Show), and the toast those calls raise carries two buttons -- Review and Dismiss -- that a person presses, which REQ-036 states and nothing in this repository has driven. So the surface has a glass half whose controls are undeclared and a non-glass half whose operations are declared. `plane` records that; it does not resolve it, and while the row is `mixed` the census cannot derive which field a new member belongs in. See DEF-131's resolution.",
       "status": "ready",
       "operations": [
         "ToastNotifier.Register",
@@ -2563,6 +2703,8 @@
       "title": "The MSIX package - pack, validate, install, uninstall",
       "route": "package://windows/Fledgeling.MCPRouter",
       "lane": "windows-glass",
+      "plane": "headless",
+      "planeNote": "HEADLESS describes the half this campaign enumerated, and the other half is real: an MSIX package also installs from a double-click in File Explorer through App Installer, which is glass a person presses. Nothing here has measured that path and no member of it is declared, so the row is filed under the plane its four declared members are actually on. The forced single answer is the plane field's stated limit -- DEF-131 -- and if the App Installer path is ever enumerated this row becomes `mixed` and its glass members go in `controls`.",
       "status": "ready",
       "operations": [
         "MakeAppx pack",
@@ -2579,6 +2721,8 @@
       "title": "Windows ambient status readout - the navigation pane footer",
       "route": "app://windows/shell#ambient-status",
       "lane": "windows-glass",
+      "plane": "glass",
+      "planeNote": "Set at Wave C integration, not by the runner that filed the row: wd1 branched before DEF-131's plane field existed, so this was the one surface of 48 carrying no value and the census refuses a missing one. It is `glass` rather than `undetermined` because the row already says where it is drawn - the NavigationView.PaneFooter block of ShellWindow.xaml, on screen on every destination - so the plane was read off the row rather than guessed, which is the condition wd3 attached to `undetermined`. The empty `controls` list is a property of this surface and not an unfinished one: it is a readout, nothing on it can be pressed, and the row states that. A glass surface with no pressable member is exactly what an actuation denominator of zero should mean.",
       "status": "ready",
       "destinationOf": "SURF-030",
       "controls": [],

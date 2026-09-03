@@ -1,10 +1,9 @@
 ---
 status: to-triage
 found-by: intake, parity target for SURF-001 · 2026-08-30
-registry-target: none
-no-target-reason: SURF-001 registers the macOS shell and the registry holds no Windows shell surface for a case to bind to, so nothing recorded could witness this
+reckon-sources: [SURF-030]
+target-note: SURF-030 `Windows shell - NavigationView, caption band, title, menus` is this brief's surface and its own `note` field opens `WIN3.`; the row did not exist when the `none` was declared on 2026-08-30.
 ---
-
 # The Windows shell — navigation, title bar, and the command surface the Mac reaches through its menu bar
 
 - origin: owner directive, 2026-08-30; parity target for the Mac shell

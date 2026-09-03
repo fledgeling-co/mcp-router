@@ -1,3 +1,7 @@
+---
+registry-target: none
+no-target-reason: a gap-fix verdict against parent R17, about one claim with two homes and a sweep blind to one of them. A record defect; no registry row is about it. Read against the registry 2026-09-03, we4.
+---
 # R17 gap-fix 3 — one claim, two homes, and a sweep that could not see one of them
 
 **Parent:** R17 · **Verdict:** Needs More Work, 2026-08-22 (third verification)

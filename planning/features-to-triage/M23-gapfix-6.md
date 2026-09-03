@@ -1,3 +1,7 @@
+---
+registry-target: none
+no-target-reason: a gap-fix verdict against parent M23, about enumerating the marker's routes rather than arming them one at a time. Gate machinery; no registry row is about it. Read against the registry 2026-09-03, we4.
+---
 # M23 gap-fix 6 — stop arming the marker route by route; enumerate its routes
 
 **Parent:** M23 — The mock-to-SwiftUI conversion contract

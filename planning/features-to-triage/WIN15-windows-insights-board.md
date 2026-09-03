@@ -1,10 +1,9 @@
 ---
 status: to-triage
 found-by: intake, parity target for SURF-026 · 2026-08-30
-registry-target: none
-no-target-reason: SURF-026 registers the macOS Insights board and the registry holds no Windows equivalent, so no recorded case could witness the Windows one
+reckon-sources: [SURF-040]
+target-note: SURF-040 `Windows Insights board` carries `note: WIN15.`; the row did not exist when the `none` was declared on 2026-08-30.
 ---
-
 # The Windows Insights board — counted from calls this router served, never modelled
 
 - origin: owner directive, 2026-08-30; parity target for the Mac Insights board

@@ -1,10 +1,9 @@
 ---
 status: to-triage
 found-by: intake, parity target for SURF-011 · 2026-08-30
-registry-target: none
-no-target-reason: SURF-011 registers the macOS Settings board and the registry holds no Windows equivalent, so no recorded case could witness the Windows one
+reckon-sources: [SURF-038, REQ-038]
+target-note: SURF-038 `Windows Settings board` and REQ-038, which states the seven sections this brief specifies, both name WIN13; neither existed when the `none` was declared on 2026-08-30.
 ---
-
 # The Windows Settings board — seven panes, in Windows 11 settings idiom
 
 - origin: owner directive, 2026-08-30; parity target for the Mac Settings board

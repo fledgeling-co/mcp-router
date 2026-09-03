@@ -1,3 +1,7 @@
+---
+reckon-sources: [DEF-362]
+target-note: DEF-362 is titled `M18 and R19 carry a standing Needs More Work verdict and their gap-fixes have since merged ungraded`. It names this brief's item by id and is the registry row standing between M18 and any retirement claim: while it is open, M18's landing is ungraded. Cited as what would settle the brief's status, not as a description of the twelve sheets.
+---
 # M18 — twelve sheets, and the gate each decision gets
 
 **Depends on:** M1. **Related:** M8 (quarantine is one of the twelve).

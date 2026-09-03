@@ -1,8 +1,9 @@
 ---
 status: to-triage
 found-by: the remaining-backlog fleet, 2026-08-27, checking `make lint` whole rather than gate by gate
+registry-target: none
+no-target-reason: its subject is that twenty sweeps are discovered and disposed by nothing. DEF-444 is the registry's only sweep-control-gate row and is about a timed-out control being reported as a failing one - the unmeasured-read-as-failed conflation - which is a different mechanism from a sweep never being disposed at all. Read and rejected rather than cited on the shared name. Read against the registry 2026-09-03, we4.
 ---
-
 # 20 sweeps are discovered and disposed by nothing
 
 - origin: the remaining-backlog fleet · 2026-08-27

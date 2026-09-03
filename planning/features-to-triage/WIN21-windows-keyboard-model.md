@@ -2,7 +2,7 @@
 status: to-triage
 found-by: intake divergent pass, from DESIGN.md section 8 being a macOS keyboard specification · 2026-08-30
 registry-target: none
-no-target-reason: the keyboard cases in the registry are macOS shortcut cases and several are recorded unmeasurable there, so nothing in it describes a Windows keyboard model
+no-target-reason: the registry has since gained nineteen Windows rows, so the original reason - that nothing in it describes a Windows surface - is no longer true. It is still true that no requirement, case, surface or defect describes a Windows KEYBOARD MODEL: searching the registry for accelerator, shortcut or keyboard against any Windows row returns nothing. Corrected 2026-09-03, we4.
 ---
 
 # DESIGN.md specifies a macOS keyboard, so the Windows client has no keyboard specification at all

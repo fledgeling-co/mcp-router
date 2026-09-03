@@ -1,3 +1,7 @@
+---
+reckon-sources: [DEF-360, DEF-362]
+target-note: DEF-360's evidence quotes `LEDGER.md`'s R19-INT row directly - the merge record this brief exists to resolve - and DEF-362 names R19 by id as carrying a standing Needs More Work verdict with an ungraded merged gap-fix. Both are about this item's merge and its grade; neither is a shared word.
+---
 # R19 integration — a merge that needs a person, not a resolution
 
 **Status:** Ready for AI · **Category:** router · Standard tier

@@ -2,9 +2,8 @@
 status: to-triage
 found-by: WIN2's independent verifier, note 2 of 2 · 2026-08-30
 registry-target: none
-no-target-reason: the registry holds no Windows surface or requirement, so nothing in it can witness a contrast ratio measured against a Windows control fill
+no-target-reason: the registry has since gained nineteen Windows rows, so the original reason - that it holds no Windows surface or requirement - is no longer true. It is still true that no registry entity records a CONTRAST MEASUREMENT against a Windows control fill; the Windows surface rows declare controls and routes, and no case measures a disabled pairing's contrast ratio on a Windows surface. Corrected 2026-09-03, we4.
 ---
-
 # The Windows disabled-control pairing is named but never measured, and its macOS twin was
 
 - origin: WIN2 verification, 2026-08-30

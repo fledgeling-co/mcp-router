@@ -1,3 +1,7 @@
+---
+registry-target: none
+no-target-reason: a gap-fix verdict against parent G3, about the residue failing toward misses in a third model's grammar. Gate machinery; the registry holds no `G3` row. Read against the registry 2026-09-03, we4.
+---
 # G3 gap-fix 3 — the residue fails toward misses, and the third model has no grammar
 
 **Parent:** G3 — `make test` is not deterministically green

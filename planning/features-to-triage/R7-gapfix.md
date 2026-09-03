@@ -1,3 +1,7 @@
+---
+registry-target: none
+no-target-reason: a gap-fix verdict against parent R7, the harness reconciliation engine, about three rows where the tool answers confidently and wrongly. The registry holds no harness-reconciliation entity and returns nothing for `R7`; SURF-025 is the Mac Harnesses BOARD, which is a different thing from the engine behind it. Read against the registry 2026-09-03, we4.
+---
 # R7 gap-fix — three rows where the tool answers confidently and wrongly
 
 **Parent:** R7, the harness reconciliation engine (`R7-harness-reconciliation.md`).

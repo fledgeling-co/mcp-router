@@ -4050,7 +4050,7 @@ Five runners, opus-5 at medium effort, concurrency two, all five reported.
 ### Merge-break resolutions
 - `shipped-brief-gate`: `the-wave-enumerated-three-surfaces-and-bound-none.md` corrected `retired -> in-progress` because DEF-065 on SURF-026 is open (now visible because wc4 carried it into inventory).
 - `control-census`: CASE-0440 and CASE-0441 cleaned of internal method names in `actuates`.
-- `target-resolution`: CASE-0309 and CASE-0310 in ORCHESTRATOR.md withdrawn in text.
+- `target-resolution`: the two unallocated case numbers in ORCHESTRATOR.md withdrawn in text.
 - `sweep-control-gate`: `overflow-assert.py` registered as `not-a-sweep`.
 - Lane evidence: regenerated with 22 control arms (up from 15), 10/10 destinations, exit 0.
 

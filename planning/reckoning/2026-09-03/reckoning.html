@@ -109,8 +109,8 @@ code{font:12.5px ui-monospace,Menlo,monospace;background:var(--paper);border:1px
 </style>
 <div class="wrap">
 <h1>mcp-router</h1>
-<p class="lede">198 piece(s) of work remain and 332 thing(s) are settled. Everything below is what somebody proved, or an honest statement that nobody did — the two are kept apart on purpose.</p>
-<p class="lede" style="margin-top:14px"><strong>5.4 h – 11 h of agent wall-clock</strong> across 3 wave(s) at up to 8 concurrent agents — about 21 h if the same work ran one item at a time. Plan against the upper figure.</p>
+<p class="lede">200 piece(s) of work remain and 332 thing(s) are settled. Everything below is what somebody proved, or an honest statement that nobody did — the two are kept apart on purpose.</p>
+<p class="lede" style="margin-top:14px"><strong>5.5 h – 11 h of agent wall-clock</strong> across 3 wave(s) at up to 8 concurrent agents — about 22 h if the same work ran one item at a time. Plan against the upper figure.</p>
 <div class="caveat"><strong>Every time on this page is an estimate, and every one is a range.</strong> They come from 1,842 measured Opus 4.8 and Opus 5 agent runs across 88 sessions and 31 projects, and they are wall-clock — the time an agent was busy, waiting included. They do not carry a failure rate: an agent that ran for an hour and produced work that was later rejected counts the same as one that landed. Treat a range as a planning figure, never as a commitment.</div>
 <p class="stamp">campaign: planning/test-campaign · briefs: planning/features-to-triage · 630 ledger rows</p>
 <h2>What this can speak for</h2>
@@ -141,12 +141,13 @@ code{font:12.5px ui-monospace,Menlo,monospace;background:var(--paper);border:1px
 <div class="feat"><span class="tick d">✓</span><span class="t">A command the shell cannot run right now dims in place and explains itself rather than disappearing: the short<small>measured, and it held</small></span></div>
 <div class="more">…and 120 more in the ledger</div>
 </div>
-<div class="panel"><h3>Remaining <span class="c">197 + 1 blockers</span></h3>
+<div class="panel"><h3>Remaining <span class="c">199 + 1 blockers</span></h3>
 <div class="feat"><span class="tick l">•</span><span class="t">G5 — vendor the `test-campaign` version the gates actually run<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
 <div class="feat"><span class="tick l">•</span><span class="t">I1 — iPhone app: shell and pairing<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
 <div class="feat"><span class="tick l">•</span><span class="t">M26 — the Checks board and the design's eval board are two different surfaces<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
 <div class="feat"><span class="tick l">•</span><span class="t">M27 — the sidebar foot's loopback readout is absent, and the child-process card lost its label<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">3 min – 25 min</span></div>
 <div class="feat"><span class="tick l">•</span><span class="t">M28 — five findings that need a decision rather than a runner<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
+<div class="feat"><span class="tick l">•</span><span class="t">The one new user-visible behaviour in M20's Slice A cannot be measured by any lane we have<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
 <div class="feat"><span class="tick l">•</span><span class="t">M6 — Inbox and phone pairing (Mac side)<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
 <div class="feat"><span class="tick l">•</span><span class="t">R10 — `index` prints two counts that disagree, and neither is checked<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
 <div class="feat"><span class="tick l">•</span><span class="t">R21 — `approve` answers 200 while discarding the write that would make it true<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
@@ -155,12 +156,11 @@ code{font:12.5px ui-monospace,Menlo,monospace;background:var(--paper);border:1px
 <div class="feat"><span class="tick l">•</span><span class="t">X7 — the campaign's published artifacts under-report what the campaign knows<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
 <div class="feat"><span class="tick l">•</span><span class="t">X8 — two campaign detectors report findings they cannot support<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
 <div class="feat"><span class="tick l">•</span><span class="t">A brief that names nothing the registry holds can never leave the remaining set<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
-<div class="feat"><span class="tick l">•</span><span class="t">A too-large refusal names the file and the cap but never the capability<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
-<div class="more">…and 183 more, every one of them in the ledger</div>
+<div class="more">…and 185 more, every one of them in the ledger</div>
 </div></div>
 <h2>What can run at the same time</h2>
 <p class="lede">A wave is everything whose dependencies all sit in an earlier wave, so its members run in parallel. A wave costs its slowest member, not the sum of its members — measured wall-clock divided by slowest member was 1.05 at the median and 1.8 at p90 across 253 real waves. Dependency edges drawn from a registry citation are firm; edges this reckoning inferred only order the work, they never block it.</p>
-<div class="wave"><header><span class="n">Wave 1</span><span class="r">3.5 h – 6.1 h</span><span class="m">53 item(s) · 8 slots</span></header>
+<div class="wave"><header><span class="n">Wave 1</span><span class="r">3.5 h – 6.2 h</span><span class="m">54 item(s) · 8 slots</span></header>
 <div class="lanes">
 <div class="item"><div class="id">BLOCK-0001</div><p class="h">unoracled: the drawn badge on the app's own menu has no channel. SwiftUI does not publish an NSMenuItem's badge to the a</p>
 <ul class="sub">
@@ -221,6 +221,15 @@ code{font:12.5px ui-monospace,Menlo,monospace;background:var(--paper);border:1px
 <div class="f"><span class="pill p">product</span><span class="pill k">S</span><span class="t">3 min – 25 min</span></div></div>
 <div class="item"><div class="id">DEF-083</div><p class="h">The winget manifest points at a placeholder URL because nothing publishes the package</p>
 <div class="f"><span class="pill p">product</span><span class="pill k">L</span><span class="t">14 min – 68 min</span></div></div>
+<div class="item"><div class="id">BRIEF-M34-the-menu-badge-is-unmeasurable-by-any-lane</div><p class="h">The one new user-visible behaviour in M20's Slice A cannot be measured by any lane we have</p>
+<ul class="sub">
+<li>CASE-0195 — SURF-001 · ?</li>
+<li>CASE-0196 — SURF-001 · ?</li>
+<li>CASE-0197 — SURF-001 · ?</li>
+<li>REQ-028 — A command the shell cannot run right now dims in pla</li>
+<li>SURF-001 — Mac shell — sidebar, title, menus</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
 <div class="item"><div class="id">BRIEF-R9-sdk-drops-upstream-message</div><p class="h">R9 — the upstream's own words survive the SDK that drops them</p>
 <ul class="sub">
 <li>DEF-047 — the Swift MCP SDK discards an upstream's error messa</li>
@@ -286,7 +295,7 @@ code{font:12.5px ui-monospace,Menlo,monospace;background:var(--paper);border:1px
 <div class="item"><div class="id">DEF-301</div><p class="h">The ambient surface reports AtRest without anything ever reading the router</p>
 <div class="f"><span class="pill p">product</span><span class="pill k">S</span><span class="t">3 min – 25 min</span></div></div>
 </div>
-<p class="wavenote">costs its slowest member — measured wall-clock ÷ slowest member was 1.05 at the median and 1.8 at p90 across 253 real waves; with 53 item(s) the slowest-member figure would imply a speedup better than the 4.0x p90 ever measured here, so the low end is held to that instead; 53 members is above the observed concurrency ceiling of 8, where the slowest-member property degrades, so the upper bound is widened</p></div>
+<p class="wavenote">costs its slowest member — measured wall-clock ÷ slowest member was 1.05 at the median and 1.8 at p90 across 253 real waves; with 54 item(s) the slowest-member figure would imply a speedup better than the 4.0x p90 ever measured here, so the low end is held to that instead; 54 members is above the observed concurrency ceiling of 8, where the slowest-member property degrades, so the upper bound is widened</p></div>
 <div class="wave"><header><span class="n">Wave 2</span><span class="r">1.8 h – 3.3 h</span><span class="m">29 item(s) · 8 slots</span></header>
 <div class="lanes">
 <div class="item"><div class="id">DEF-035</div><p class="h">an incremental Swift build after adding an enum case reports impossible test failures</p>
@@ -524,7 +533,7 @@ code{font:12.5px ui-monospace,Menlo,monospace;background:var(--paper);border:1px
 <div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
 </div>
 <p class="wavenote">costs its slowest member — measured wall-clock ÷ slowest member was 1.05 at the median and 1.8 at p90 across 253 real waves</p></div>
-<div class="caveat" style="margin-top:22px"><strong>115 item(s) are not in any wave.</strong> They are decisions — a person reading two documents and ruling — and they have no agent duration. Giving them one would report waiting on a human as though an agent were busy. They gate the waves rather than sitting inside them.</div>
+<div class="caveat" style="margin-top:22px"><strong>116 item(s) are not in any wave.</strong> They are decisions — a person reading two documents and ruling — and they have no agent duration. Giving them one would report waiting on a human as though an agent were busy. They gate the waves rather than sitting inside them.</div>
 <h2>What unblocks the most</h2>
 <p class="lede">Blocked cases cluster. Twenty of them are usually a handful of causes, and each row here is a cause with the coverage that resolving it returns.</p>
 <div class="scroll"><table><thead><tr><th>Cause</th><th class="n">Cases</th><th class="n">Coverage</th><th class="n">Estimate</th><th>What it is</th></tr></thead><tbody>
@@ -534,10 +543,10 @@ code{font:12.5px ui-monospace,Menlo,monospace;background:var(--paper);border:1px
 <p class="lede">Nothing was filtered out of this list, because there is nowhere to filter to. That is what makes the counts above mean something.</p>
 <div class="scroll"><table><thead><tr><th>Class</th><th class="n">Work</th><th class="n">Rows</th><th>Whose job</th><th>What it means</th></tr></thead><tbody>
 <tr><td><code>unjoined</code></td><td class="n">90</td><td class="n">90</td><td>decision-work</td><td>named in a brief; the join reached nothing either way</td></tr>
-<tr><td><code>broken</code></td><td class="n">64</td><td class="n">72</td><td>product-work</td><td>measured, and the answer was no</td></tr>
+<tr><td><code>broken</code></td><td class="n">65</td><td class="n">73</td><td>product-work</td><td>measured, and the answer was no</td></tr>
 <tr><td><code>unmeasured</code></td><td class="n">18 + 1 blockers</td><td class="n">23</td><td>evidence-work</td><td>nobody found out — the work is becoming able to tell</td></tr>
-<tr><td><code>undecided</code></td><td class="n">25</td><td class="n">25</td><td>decision-work</td><td>the documents and the evidence disagree</td></tr>
-<tr><td><code>waived</code></td><td class="n">0</td><td class="n">88</td><td>exception</td><td>somebody decided not to; it stays visible because the reason expires</td></tr>
+<tr><td><code>undecided</code></td><td class="n">26</td><td class="n">26</td><td>decision-work</td><td>the documents and the evidence disagree</td></tr>
+<tr><td><code>waived</code></td><td class="n">0</td><td class="n">86</td><td>exception</td><td>somebody decided not to; it stays visible because the reason expires</td></tr>
 <tr><td><code>verified-done</code></td><td class="n">0</td><td class="n">332</td><td>none</td><td>not remaining; kept so the denominator is honest</td></tr>
 </tbody></table></div>
 <footer>Generated by <code>reckon</code> from <code>ledger.json</code>; every figure on this page exists in that file. The full technical record — every row, the reason for its class, the join edges and what this reckoning could not classify — is in <code>reckoning.md</code> beside it. Estimate provenance and its limits: <code>references/estimation.md</code>.</footer>

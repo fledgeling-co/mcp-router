@@ -1,5 +1,5 @@
 ---
-status: retired
+status: to-triage
 shipped-by: 65192b1
 found-by: M20's verifier (F4), 2026-08-23; rescued from a verdict that had no destination for it
 reckon-sources: [REQ-028, SURF-001, CASE-0195, CASE-0196, CASE-0197]

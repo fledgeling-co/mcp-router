@@ -1,6 +1,6 @@
 # Reckoning — mcp-router
 
-198 piece(s) of work remain — 64 product, 19 evidence, 115 decision — across 630 ledger rows. This reckoning speaks for 206/216 (95%) of the campaign's designed cases and 26/41 (63%) of its stated requirements; the rest is not known to be done, it is simply not known. 90 brief(s) could not be tied to the registry at all; they are listed as `unjoined` and counted as decision work, rather than assumed unbuilt.
+200 piece(s) of work remain — 65 product, 19 evidence, 116 decision — across 630 ledger rows. This reckoning speaks for 206/216 (95%) of the campaign's designed cases and 26/41 (63%) of its stated requirements; the rest is not known to be done, it is simply not known. 90 brief(s) could not be tied to the registry at all; they are listed as `unjoined` and counted as decision work, rather than assumed unbuilt.
 
 ## What it can speak for
 
@@ -21,10 +21,10 @@ Two counts, because they answer different questions. **Rows** is every entity on
 | Class | Work | Rows | Kind | What it is |
 |---|---:|---:|---|---|
 | `unjoined` | 90 | 90 | decision-work | named in a brief; the join reached nothing, so its state is unknown either way |
-| `broken` | 64 | 72 | product-work | measured, and the answer was no |
+| `broken` | 65 | 73 | product-work | measured, and the answer was no |
 | `unmeasured` | 18 + 1 blockers | 23 | evidence-work | nobody found out — the work here is becoming able to tell |
-| `undecided` | 25 | 25 | decision-work | the documents and the evidence disagree; needs a person |
-| `waived` | 0 | 88 | exception | somebody decided not to — an exception, and it stays visible |
+| `undecided` | 26 | 26 | decision-work | the documents and the evidence disagree; needs a person |
+| `waived` | 0 | 86 | exception | somebody decided not to — an exception, and it stays visible |
 | `verified-done` | 0 | 332 | none | not remaining; kept so the denominator is honest |
 
 ## What unblocks the most
@@ -39,19 +39,19 @@ Blocked cases cluster: a handful of causes usually account for most of them. Res
 
 Every duration below is **wall-clock for one agent unit**, from a corpus of 1,842 measured Opus 4.8 and Opus 5 subagent runs across 88 sessions and 31 projects (14 Jul – 30 Aug 2026). Ranges are p25–p90 and are printed as ranges because the measured spread demands it: p90 ÷ median is 3.4 for build work and 3.1 for research, so any single number would be wrong by a factor of three in the ordinary case. Provenance, method and limits: `references/estimation.md`.
 
-**5.4 h – 11 h across 3 wave(s) at up to 8 concurrent agents**, against roughly 21 h if the same work ran one item at a time. wall-clock for 3 wave(s) at up to 8 concurrent agents, summed. The implied speedup over running the same work serially is 3.9x, within the 2.2x median / 4.0x p90 measured on this corpus.
+**5.5 h – 11 h across 3 wave(s) at up to 8 concurrent agents**, against roughly 22 h if the same work ran one item at a time. wall-clock for 3 wave(s) at up to 8 concurrent agents, summed. The implied speedup over running the same work serially is 3.9x, within the 2.2x median / 4.0x p90 measured on this corpus.
 
 These figures do not carry a failure rate. A unit that ran forty minutes and produced work that was later rejected is counted the same as one that landed, so this answers how long an agent will be busy, not how long until the work is accepted.
 
 | Wave | Items | Slots | Range | Serial | Bounded by |
 |---:|---:|---:|---|---|---|
-| 1 | 53 | 8 | 3.5 h – 6.1 h | 14 h | observed-speedup-ceiling |
+| 1 | 54 | 8 | 3.5 h – 6.2 h | 14 h | observed-speedup-ceiling |
 | 2 | 29 | 8 | 1.8 h – 3.3 h | 7.1 h | observed-speedup-ceiling |
 | 3 | 1 | 1 | 8 min – 1.7 h | 15 min | slowest-member |
 
-### Wave 1 — 3.5 h – 6.1 h
+### Wave 1 — 3.5 h – 6.2 h
 
-costs its slowest member — measured wall-clock ÷ slowest member was 1.05 at the median and 1.8 at p90 across 253 real waves; with 53 item(s) the slowest-member figure would imply a speedup better than the 4.0x p90 ever measured here, so the low end is held to that instead; 53 members is above the observed concurrency ceiling of 8, where the slowest-member property degrades, so the upper bound is widened.
+costs its slowest member — measured wall-clock ÷ slowest member was 1.05 at the median and 1.8 at p90 across 253 real waves; with 54 item(s) the slowest-member figure would imply a speedup better than the 4.0x p90 ever measured here, so the low end is held to that instead; 54 members is above the observed concurrency ceiling of 8, where the slowest-member property degrades, so the upper bound is widened.
 
 | Item | Kind | Tier | Range | Sub-tasks | Why this tier |
 |---|---|---|---|---|---|
@@ -83,6 +83,7 @@ costs its slowest member — measured wall-clock ÷ slowest member was 1.05 at t
 | `REQ-034` The router says when an upstream's credential is running out or has be | evidence-work | M | 7 min – 56 min | — | unmeasured work defaults to M |
 | `DEF-043` the sidebar foot's loopback readout is absent from the build on every  | product-work | S | 3 min – 25 min | — | broken work defaults to M; wording suggests a contained change |
 | `DEF-083` The winget manifest points at a placeholder URL because nothing publis | product-work | L | 14 min – 68 min | — | broken work defaults to M; wording suggests it spans more than one surface |
+| `BRIEF-M34-the-menu-badge-is-unmeasurable-by-any-lane` The one new user-visible behaviour in M20's Slice A cannot be measured | product-work | M | 7 min – 56 min | CASE-0195, CASE-0196, CASE-0197, REQ-028… | broken work defaults to M |
 | `BRIEF-R9-sdk-drops-upstream-message` R9 — the upstream's own words survive the SDK that drops them | evidence-work | M | 7 min – 56 min | DEF-047 | unmeasured work defaults to M |
 | `BRIEF-X1-ios-a11y-harness` X1 — the iOS accessibility-tree harness, and the two surfaces that wer | evidence-work | M | 7 min – 56 min | DEF-029 | unmeasured work defaults to M |
 | `BRIEF-an-effect-class-the-census-cannot-name-reads-as-no-effect` An effect class the census cannot name reads as no effect at all | product-work | M | 7 min – 56 min | REQ-016 | broken work defaults to M |
@@ -201,7 +202,7 @@ A **cited** edge is a citation somebody wrote into the registry, and it blocks: 
 | `DEF-001` | `BRIEF-local-network-device-pairing-handshake` | cited | BRIEF-local-network-device-pairing-handshake cites DEF-001 |
 | … | | | _15 more in ledger.json_ |
 
-#### Not in any wave (115)
+#### Not in any wave (116)
 
 These are decisions — a person reading two documents and ruling — and they have no agent duration. Putting a wall-clock figure on them would report waiting on a human as though an agent were busy. They gate the waves rather than sitting inside them.
 
@@ -231,7 +232,7 @@ These are decisions — a person reading two documents and ruling — and they h
 - **BRIEF-M23-gapfix-3** — M23 gap-fix 3 — the property is wider than the site, three times running
 - **BRIEF-M23-gapfix-4** — M23 gap-fix 4 — one arm, on the closure this pass shipped
 
-## Broken (64)
+## Broken (65)
 
 - **BRIEF-G5-vendor-the-campaign-version-the-gates-run** — G5 — vendor the `test-campaign` version the gates actually run
   - the registry records a defect or a failing case against this brief's subject
@@ -242,6 +243,8 @@ These are decisions — a person reading two documents and ruling — and they h
 - **BRIEF-M27-sidebar-foot-readout** — M27 — the sidebar foot's loopback readout is absent, and the child-process card lost its label
   - the registry records a defect or a failing case against this brief's subject
 - **BRIEF-M28-decision-docket** — M28 — five findings that need a decision rather than a runner
+  - the registry records a defect or a failing case against this brief's subject
+- **BRIEF-M34-the-menu-badge-is-unmeasurable-by-any-lane** — The one new user-visible behaviour in M20's Slice A cannot be measured by any lane we have
   - the registry records a defect or a failing case against this brief's subject
 - **BRIEF-M6-inbox-pairing** — M6 — Inbox and phone pairing (Mac side)
   - the registry records a defect or a failing case against this brief's subject
@@ -311,9 +314,7 @@ These are decisions — a person reading two documents and ruling — and they h
   - a defect is a measured negative result — the unit of product work behind every failing case that cites it
 - **DEF-058** — the macos-glass lane is green over window evidence captured from a pre-M22 build, and four of its cases assert a shell that no longer ships
   - a defect is a measured negative result — the unit of product work behind every failing case that cites it
-- **DEF-059** — `Settings` is no longer a sidebar row, so the glass capture filed a neighbouring board's pixels under SURF-011 — and the committed glass evi
-  - a defect is a measured negative result — the unit of product work behind every failing case that cites it
-- _…and 24 more in ledger.json_
+- _…and 25 more in ledger.json_
 
 ## Unjoined (90)
 
@@ -439,7 +440,7 @@ These are decisions — a person reading two documents and ruling — and they h
   - nearest the join considered: REQ-027 (0.13), REQ-080 (0.09), REQ-016 (0.09)
 - _…and 50 more in ledger.json_
 
-## Undecided (25)
+## Undecided (26)
 
 - **BRIEF-F-cross-harness-skill-sync** — Cross-Harness Skill and Plugin Profile Synchronization
   - looks done, but the join as a whole is too weak to carry a retirement claim — route to spec-validation before retiring
@@ -453,6 +454,8 @@ These are decisions — a person reading two documents and ruling — and they h
   - looks done, but the join as a whole is too weak to carry a retirement claim — route to spec-validation before retiring
 - **BRIEF-M25-board-columns-do-not-flex** — M25 — closed: the width came from the controls row, not the columns
   - looks done, but the join as a whole is too weak to carry a retirement claim — route to spec-validation before retiring
+- **BRIEF-M30-capability-document-source** — M30 — where a capability's documentation actually comes from
+  - the brief declares status 'in-progress' while the registry's evidence reads done -- the document and the evidence disagree; a person rules, an instrument cannot
 - **BRIEF-M38-phone-cannot-approve-a-tool-surface** — The phone can be told a tool surface changed, and there is no honest way for it to accept one
   - the brief declares status 'to-triage' while the registry's evidence reads done -- the document and the evidence disagree; a person rules, an instrument cannot
 - **BRIEF-P7-auth-post-oauth-client** — P7 — `control-auth-post-http` needs a real OAuth client
@@ -492,7 +495,7 @@ These are decisions — a person reading two documents and ruling — and they h
 - **REQ-019** — A refused write is shown as the server's refusal. Success affordances are not shown for work that did not happen.
   - requirement evidence 'contradicted' is a disagreement between the documents and the build; a person rules on it, an instrument cannot
 
-## Decisions on the record (88)
+## Decisions on the record (86)
 
 Not remaining work, and not done either. Each of these was ruled out by somebody, and the reason it was ruled out can stop being true — a state that had no hook may get one, an account that could not be reached may become reachable. They stay on the ledger so that when the reason expires, the item is still there.
 

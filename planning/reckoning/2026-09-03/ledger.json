@@ -5,27 +5,27 @@
  "campaign_present": true,
  "campaign_dir": "planning/test-campaign",
  "briefs_dir": "planning/features-to-triage",
- "headline": "198 piece(s) of work remain — 64 product, 19 evidence, 115 decision — across 630 ledger rows. This reckoning speaks for 206/216 (95%) of the campaign's designed cases and 26/41 (63%) of its stated requirements; the rest is not known to be done, it is simply not known. 90 brief(s) could not be tied to the registry at all; they are listed as `unjoined` and counted as decision work, rather than assumed unbuilt.",
+ "headline": "200 piece(s) of work remain — 65 product, 19 evidence, 116 decision — across 630 ledger rows. This reckoning speaks for 206/216 (95%) of the campaign's designed cases and 26/41 (63%) of its stated requirements; the rest is not known to be done, it is simply not known. 90 brief(s) could not be tied to the registry at all; they are listed as `unjoined` and counted as decision work, rather than assumed unbuilt.",
  "summary": {
   "counts": {
-   "broken": 72,
-   "waived": 88,
+   "broken": 73,
+   "waived": 86,
    "verified-done": 332,
    "unmeasured": 23,
-   "undecided": 25,
+   "undecided": 26,
    "unjoined": 90
   },
-  "work_items": 198,
+  "work_items": 200,
   "work_by_class": {
    "unmeasured": 18,
-   "undecided": 25,
-   "broken": 64,
+   "undecided": 26,
+   "broken": 65,
    "unjoined": 90
   },
   "work_by_kind": {
    "evidence-work": 19,
-   "decision-work": 115,
-   "product-work": 64
+   "decision-work": 116,
+   "product-work": 65
   },
   "rows": 630
  },
@@ -1605,6 +1605,7 @@
      "REQ-034",
      "DEF-043",
      "DEF-083",
+     "BRIEF-M34-the-menu-badge-is-unmeasurable-by-any-lane",
      "BRIEF-R9-sdk-drops-upstream-message",
      "BRIEF-X1-ios-a11y-harness",
      "BRIEF-an-effect-class-the-census-cannot-name-reads-as-no-effect",
@@ -1634,14 +1635,14 @@
     "blockers": [
      "BLOCK-0001"
     ],
-    "n": 53,
+    "n": 54,
     "slots": 8,
     "batches": 7,
-    "low_min": 209,
-    "high_min": 368,
-    "serial_min": 834,
+    "low_min": 213,
+    "high_min": 375,
+    "serial_min": 849,
     "bound_by": "observed-speedup-ceiling",
-    "note": "costs its slowest member — measured wall-clock ÷ slowest member was 1.05 at the median and 1.8 at p90 across 253 real waves; with 53 item(s) the slowest-member figure would imply a speedup better than the 4.0x p90 ever measured here, so the low end is held to that instead; 53 members is above the observed concurrency ceiling of 8, where the slowest-member property degrades, so the upper bound is widened",
+    "note": "costs its slowest member — measured wall-clock ÷ slowest member was 1.05 at the median and 1.8 at p90 across 253 real waves; with 54 item(s) the slowest-member figure would imply a speedup better than the 4.0x p90 ever measured here, so the low end is held to that instead; 54 members is above the observed concurrency ceiling of 8, where the slowest-member property degrades, so the upper bound is widened",
     "has_cycle": false
    },
    {
@@ -2070,6 +2071,7 @@
    "BRIEF-M23-gapfix",
    "BRIEF-M25-board-columns-do-not-flex",
    "BRIEF-M29-disable-a-server-is-drawn-with-nothing-behind-it",
+   "BRIEF-M30-capability-document-source",
    "BRIEF-M38-phone-cannot-approve-a-tool-surface",
    "BRIEF-P7-auth-post-oauth-client",
    "BRIEF-P8-launchd-watch-attributable",
@@ -2156,9 +2158,9 @@
   ],
   "bookkeeping": [],
   "project": {
-   "low_min": 324,
-   "high_min": 668,
-   "serial_min": 1277,
+   "low_min": 328,
+   "high_min": 675,
+   "serial_min": 1292,
    "speedup": 3.9,
    "speedup_exceeds_measured": false,
    "basis": "wall-clock for 3 wave(s) at up to 8 concurrent agents, summed. The implied speedup over running the same work serially is 3.9x, within the 2.2x median / 4.0x p90 measured on this corpus."
@@ -11347,13 +11349,13 @@
   {
    "id": "BRIEF-M30-capability-document-source",
    "entity": "brief",
-   "class": "waived",
-   "kind": "exception",
+   "class": "undecided",
+   "kind": "decision-work",
    "title": "M30 — where a capability's documentation actually comes from",
    "file": "M30-capability-document-source.md",
-   "declared_status": "completed",
+   "declared_status": "in-progress",
    "generated_by": null,
-   "is_work_item": false,
+   "is_work_item": true,
    "edges": [
     {
      "target": "REQ-026",
@@ -11384,7 +11386,15 @@
    },
    "unclassifiable_ids": null,
    "remedy": null,
-   "why": "the brief declares status 'completed' — a decision, not a measurement. It stays on the ledger because the reason for it may stop being true."
+   "why": "the brief declares status 'in-progress' while the registry's evidence reads done -- the document and the evidence disagree; a person rules, an instrument cannot",
+   "estimate": {
+    "tier": "S",
+    "low_min": 3,
+    "median_min": 8,
+    "high_min": 25,
+    "basis": "undecided work defaults to S",
+    "shape": "read-only, or one or two files"
+   }
   },
   {
    "id": "BRIEF-M31-the-design-of-record-cannot-draw-a-disabled-primary",
@@ -11452,13 +11462,13 @@
   {
    "id": "BRIEF-M34-the-menu-badge-is-unmeasurable-by-any-lane",
    "entity": "brief",
-   "class": "waived",
-   "kind": "exception",
+   "class": "broken",
+   "kind": "product-work",
    "title": "The one new user-visible behaviour in M20's Slice A cannot be measured by any lane we have",
    "file": "M34-the-menu-badge-is-unmeasurable-by-any-lane.md",
-   "declared_status": "retired",
+   "declared_status": "to-triage",
    "generated_by": null,
-   "is_work_item": false,
+   "is_work_item": true,
    "edges": [
     {
      "target": "CASE-0195",
@@ -11494,7 +11504,15 @@
    },
    "unclassifiable_ids": null,
    "remedy": null,
-   "why": "the brief declares status 'retired' — a decision, not a measurement. It stays on the ledger because the reason for it may stop being true."
+   "why": "the registry records a defect or a failing case against this brief's subject",
+   "estimate": {
+    "tier": "M",
+    "low_min": 7,
+    "median_min": 15,
+    "high_min": 56,
+    "basis": "broken work defaults to M",
+    "shape": "three to seven files, one subsystem"
+   }
   },
   {
    "id": "BRIEF-M38-phone-cannot-approve-a-tool-surface",

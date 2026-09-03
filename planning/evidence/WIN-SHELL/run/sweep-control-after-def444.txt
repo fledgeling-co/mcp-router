@@ -1,0 +1,133 @@
+sweep-control gate — every absence sweep must carry a presence control
+
+Control (planted in a temp directory, never in this corpus):
+  sees  a planted sweep is discovered (markers V3,V4)
+  quiet a planted non-sweep is not discovered, so discovery is not automatic
+  sees  a tracked script with no script extension is named by the discard census (planted_hook)
+  quiet a planted non-script drop is not called a script, so the census is a reading and not a list of everything
+  sees  a vendored script is discarded BY NAME rather than by silence (['vendor/planted_vendor.sh'])
+  ok    kept + discarded accounts for every path `git ls-files` returned (2 + 3 = 5 against 5 counted independently)
+  sees  a control that exits 1 is reported failing — it said: control exited 1 — it said: (no output)
+  ok    a control that exits 0 is reported passing, so the runner is not simply always red
+  => the instrument fires and can report a failure
+
+Discovery — four readers, each named, over the whole tracked script corpus:
+  D0   218  tracked .py/.sh files, vendor/ excluded
+  D1   184  carrying 1+ marker(s)
+  D2   123  carrying 2+ marker(s)  <= the threshold
+  D3    36  carrying 3+ marker(s)
+  D4     1  carrying 4+ marker(s)
+  D5   123  discovered as absence sweeps
+        V1 a counting or existence grep       fired on  79 of them
+        V2 zero is the answer                 fired on  98 of them
+        V3 absence vocabulary                 fired on  93 of them
+        V4 an empty collection is the answer  fired on  13 of them
+
+What the D0 filter discarded, counted rather than described:
+  X0  2817  paths returned by `git ls-files`, before any filter
+  X-    86  dropped: vendor/
+  X-  2513  dropped: no .py or .sh extension
+  X+     6  of those drops open with a script shebang, so they are runnable and unexamined —
+            planning/hooks/pre-commit
+            planning/hooks/pre-push
+            scripts/fixtures/registry-fixture-server.mjs
+            scripts/fixtures/slow-failing-server.mjs
+            scripts/fixtures/slow-mcp-server.mjs
+            src/index.ts
+        Outside D0, therefore outside every figure above AND outside every
+        disposition below: no registry row can be written for a path discovery
+        never reaches. D0 is held at .py/.sh deliberately — a verifier re-derived
+        it exact and widening it would move a confirmed denominator — so this is a
+        named, owed decision rather than a closed one. Measured 2026-08-26: none
+        of them carries two markers, so widening D0 today would add 0 sweeps and
+        move only the denominators.
+
+What discovery does NOT reach, printed rather than implied:
+  * files that are not `.py` or `.sh` — an extensionless executable, `.zsh`, a node
+    script. They are outside D0 entirely, so they are outside every figure above.
+    The X block above counts them, and names the ones that are scripts by shebang.
+  * idiomatic absence checks these four readers do not spell: `if not results:`,
+    `assert not errors`, a bare `if count == 0:` with no other marker. They fall below
+    the threshold and are not discovered.
+  * whether a declared control is a real control. This runs it and reads its exit code;
+    a command that exits 0 without testing anything passes. `proves` records the intent
+    in prose and this gate does not verify it.
+
+Disposition — never blended into one figure:
+    28  control
+    54  grandfathered
+     6  not-a-sweep
+    37  waived
+     0  UNDISPOSED — discovered and absent from planning/sweep-controls.json
+     0  MISLABELLED — an entry whose disposition is not one of the four
+     0  UNDISCOVERED — registered, still in the tree, and no longer matched by the four readers
+     2  SETTLED-AND-UNDISCOVERED — left discovery and the call was made: not-a-sweep, waived
+        design/assets/slice-tiles.py — 'not-a-sweep', markers now V4. Reported, not a finding: the row says this file stopped being a sweep and gives its reason.
+        planning/test-campaign/bin/arm-f7-analyst.py — 'waived', markers now V2. Reported, not a finding: the row says this file stopped being a sweep and gives its reason.
+
+Declared controls, run rather than believed:
+  ok    planning/brief-target-gate.py          exited 0
+          proves: 19 planted briefs read back through the real classifier, one per class the gate can print, plus five NEGATIVE arms that a green run must not swallow: the same id inside a fence and inside an HTML comment must NOT read as a citation (reckon blanks both, so counting them would report a join reckon will not make), a terminal status must not excuse a dead declared link, a foreign id beside a resolving one must not read as FOREIGN_ONLY, and `registry-target: none` with no reason of substance must fall back to UNDECLARED. Two arms drive the ratchet itself in both directions, because a file the floor does not name having a floor of zero is the whole of the catch-a-new-brief mechanism and a ratchet nobody has seen fire is a ratchet nobody knows is wired up. The load-bearing arm is the last: it writes a two-brief fixture queue, runs the REAL reckon 1.7.0 over it against the REAL campaign registry, and fails unless the declared brief carries a `cited` edge and the bare one lands `unjoined` — the claim the whole item rests on, that the field this gate demands is the field reckon joins on. That arm caught a real defect on its first run: the reader was looking for edges at the ledger's top level and reckon writes them under `join.edges`, so every agreement would have been silently unmeasured. What it does NOT prove is that the corpus is the right one — the index rather than the working tree is an argument, not a plant — so the untracked briefs are printed by name.
+  ok    planning/citation-gate.py              exited 0
+          proves: twelve citations planted in a throwaway repo, one per class, each answer required exactly; the wrap row must classify RESOLVES whole and something else line-anchored, so a reader that would have answered the same either way fails the control
+  ok    planning/evidence-citation-gate.py     exited 0
+          proves: five citations planted in a throwaway git repository, one per class, plus a carry entry for a tracked path; each answer required exactly. The UNTRACKED arm carries the weight — its artifact IS written to disk in the control repo, so a classifier that consulted the filesystem answers TRACKED and the control exits 2 without printing a verdict. The stale-carry arm proves the carry file is not a one-way valve.
+  ok    planning/evidence/M31/sweep-prominent-disabled.py exited 0
+          proves: the file's own named control (`The sweep has its own control in arm-sweep.sh`). Eight arms plant a real defect each into the mock, the store page and Controls.swift, and the assertion is the DIFF of the sweep's verdict lines against baseline plus the movement in its failure count — never a grep for a word, because grepping was wrong twice in one run. It exists because the sweep's first form could not fail: `failures` was initialised, read twice and never appended to. Every file is restored and the restore is checked back to its pre-plant sha256.
+  ok    planning/goals/prove-gates.py          exited 0
+          proves: This file IS the control - it is the two-way proof for planning/goals/completion-gates.py, whose five gates all assert absences (zero product-work, zero uncased surfaces, zero unmerged branches) and so all pass by default on a tree the instrument cannot read. Thirteen arms mutate the input each gate reads and require the gate to flip RED, then restore the bytes and require GREEN again, comparing the restored file byte-for-byte so an arm cannot leave the tree changed. Each arm also carries a PRESENCE CONTROL: a mutation that changes nothing the gate measures, which must NOT flip it - because an arm that reddens on any edit whatsoever proves the gate is noisy rather than that it is watching. Its own V2/V3 markers are the arm tallies (`wrong == 0`) and the vocabulary of the absences it describes. What running it does NOT prove is that the gates measure the RIGHT absence; it proves only that each one can still go red.
+  ok    planning/goals/tests-reader-control.sh exited 0
+          proves: two fixtures and a pattern EXTRACTED from tests-check.sh rather than copied, so an edit to the reader changes this control instead of leaving it testing a dead string. A 7-line green log whose test NAMES contain the word failed must produce 0 matches (the real defect: 59 matches printed under a FAILING TESTS heading), and 3 real failure lines must produce exactly 3 — so a pattern matching nothing fails it too. Exits 2 rather than 0 when the extraction stops working.
+  ok    planning/hooks/prove-pre-commit.sh     exited 0
+          proves: the control runs on every invocation, not behind a flag: D4 and D6 are each run twice, once against the tracked hook which must refuse and once against a reconstructed pre-G9 hook which must allow, and an arm that agrees with its control exits 2 instead of printing a pass
+  ok    planning/instrument-census.py          exited 0
+          proves: 17 arms against a scratch git repository built to break each reader, because a census that classified everything `static` and found no containment would print a clean run and satisfy this gate. Eight arms require a class to FIRE — a planted swift suite discovered and contained both by an unfiltered `swift test` recipe and by a `--filter` naming its type, a planted lane invoking dist/index.js classed `node` and contained by parity-gate.sh's LANES list, a lane that invokes another lane containing it, reach closing over containment so a recipe running a `swift test` gate reaches swift and says which child carried it, a python gate that subprocess-runs node classed `node`, and the drift comparison going unequal when one row is missing. Five require a class NOT to fire, and they are the ones that matter: a gate that only writes ABOUT dist/index.js, a lane whose only node invocation is a header comment and an echoed repair instruction, a python gate holding a node invocation as a string literal, and a lane that NAMES another instrument without running it must each stay `static` or edgeless. Every one of those was a real over-claim in this reader's first cut, and each would have inflated the very set the census exists to bound.
+  ok    planning/m33-branch-sweep.py           exited 0
+          proves: 7 arms bit: the sweep never reports a bare `affected=0`, it separates `n/a` from `clean` so a branch it could not read is not counted as one it cleared, and a planted branch touching app/MCPRouter/ is discovered rather than skipped
+  ok    planning/pin-class-gate.py             exited 0
+          proves: five arms on a synthetic generator: a compliant region is silent, a region that computes its own expectation is reported, a copy hidden in a helper one call away is followed and reported, a writer with no pin-class annotation is reported as uncovered, and a template literal lifted verbatim out of the reference is reported. A rule set that matched nothing would pass the first arm and fail the other four.
+  ok    planning/role-intersection-gate.py     exited 0
+          proves: five planted answers in a throwaway repo, including a branch with zero diff on the gate file that must still read EXPOSED, an obituary ledger that must read INCONCLUSIVE rather than clean, and a fail-if-agree row that reddens if the verdict does not depend on the union
+  ok    planning/runnable-path-gate.py         exited 0
+          proves: ten fixtures planted in a throwaway repo on every invocation — one per class plus a waived instance, a marker quoted inside a string, and a bare marker with no reason — each answer required exactly; a plant that never reaches the index reads NEVER REACHED THE INDEX and the run exits 2 without printing a verdict
+  ok    planning/scope-invariance-gate.py      exited 0
+          proves: Eight arms, and the two halves are armed by different mechanisms because the gate has two. Five static arms hand the analyser one planted call each and require the verdict to differ across them: an unanchored `git ls-files` reported, `-C <root>` and `cwd=root` not reported, `cwd="."` REPORTED because a literal relative cwd is the caller's directory under another name, and an unanchored `git rev-parse HEAD` not reported because it enumerates nothing. So a rule that flagged everything and a rule that flagged nothing both fail. Two dynamic arms run a planted script from two directories inside a scratch repository built under mktemp: a cwd-sensitive enumerator must be caught by the comparison and its `-C`-anchored twin must pass it, which is what stops the dynamic half rotting into a comparison that can only agree. The eighth is the null arm — a corpus of zero files must be a refusal rather than a clean report. Nothing in this corpus is read or written by any arm.
+  ok    planning/shipped-brief-gate.py         exited 0
+          proves: ten arms on a synthetic brief queue and a synthetic LEDGER on every invocation — a terminal word with no ledger row, one over a To Do row, one over a sha the branch does not carry, a shipped-by the row does not witness, one over a failing case, and `retired` with no passing case must each be refused, while a measured brief, an unmeasured one, a drifted one, a contested drifted one and an untouched one each stay silent; the finding count is asserted exactly, so a rule that fired twice or matched everything fails the control and no census is printed
+  ok    planning/sweep-control-gate.py         exited 0
+          proves: a planted sweep must be discovered and a planted non-sweep must not, and a control command that exits 1 must be reported failing - so the runner is known to be able to go red
+  ok    planning/target-resolution-gate.py     exited 0
+          proves: seventeen arms in a throwaway git repository — one plant per path class and per id class, each answer required exactly. Two carry the weight. The same dead path cited WITH and WITHOUT a tree must answer FRAMED and MOVED and the run fails if they agree, because a frame that changes no answer has demonstrated nothing about the coordinate the whole form rests on. And a renumber that keeps the old registry row must be silent where one that drops it fires, which is what makes this gate survivable in a repository that renumbered three ids in one day. Three arms are negatives: a plan file with no work verb still blocks, a denial clause far from its citation withdraws nothing, and an elided path segment is a value rather than a pointer.
+  ok    planning/test-campaign/bin/arm-surface-plane.py exited 0
+          proves: RUNNING THIS ARM IS ITS OWN TWO-WAY CONTROL, which is why the command is the file itself rather than a --control flag. It plants eight states against a SCRATCH copy of the registry and runs BOTH the census DEF-131 installed and the one it replaced, so every reading is a difference rather than a verdict: six plants must redden the new census (a glass surface declaring an operation, a headless surface declaring a control, DEF-131's own exhibit of SURF-047's four operations moved back under `controls`, an `undetermined` plane carrying members, no plane at all, and `mixed` with no planeNote), and TWO MUST BE SILENT ON BOTH - a mixed surface declaring a control, which is the declared limit of the field, and a PascalCase API-call name under `controls` on a glass surface, which is coverage DEF-420 records as deliberately given up. An arm with only red directions cannot tell a working rule from one that fires on everything, and the two silences are what make the six reds mean something. Each plant is reverted and re-run clean, and the writer's two readings are taken as well: a glass surface's harvested controls are written with plane `glass`, and a headless surface's are REFUSED with the row byte-identical afterwards.
+
+WHAT IT DOES NOT PROVE, and the reason is DEF-443. The comparison rests on a pinned SHA - 42aef112, the last commit holding `_OPERATION_SHAPE` - because it read `HEAD:` until Wave C integration and that is the previous census only while the new one is UNCOMMITTED. Merged, it compared the file with itself and every difference vanished while the arm still ran. So this control is sound exactly as long as that pin names a tree where the old rule lived; moving the pin is a decision about what "before" means and changes what the two silences assert.
+  ok    planning/test-campaign/bin/forced-state-assert.py exited 0
+          proves: Every check this script makes is planted against, one mutation per check, and the control refuses to report at all if any check has no mutation behind it — so the arm cannot fall behind the assertions it arms. The clean scratch set runs 38 checks and reports none; 38 planted defects are then each required to be seen. The ones that carry the weight are the absences: `stale-claims-running` puts `· 1 running` back into the header of a board whose router has stopped, `stale-sidebar-claims-running` does the same to the sidebar readout, and `cold-claims-totals` gives a board that has never loaded a count. REQ-005 is a promise that a figure is NOT drawn, and an absence check pointed at the wrong file or the wrong state passes exactly as loudly as one that is right. WHAT IT DOES NOT PROVE: that the product behaves this way. This control runs over planted text, never over a rendered board. Only `bin/forced-state.sh` arranges a real router and photographs the app, and that lane needs a build, a display server and an Accessibility grant, so it cannot run here.
+  ok    planning/test-campaign/bin/vocab-differential.py exited 0
+          proves: 14 arms on dictionaries the control builds, each planting the fault its check is for. The four that matter are the registry's own rules, and they run through `findings_for` rather than re-implementing it — an arm that re-implements the predicate proves the arm and not the gate, which is this item's own subject arriving inside its own fix. Both directions are armed: an extra with a disposition and a well-formed registry row must stay quiet. What it does NOT prove is that the accessibility dumps are of the surfaces they are named for; `capture-lineage.py --gate` owns that, and two of the thirteen dispositions rest on its findings. Was `grandfathered` — 'predates this gate; carries no control this gate can run' — until M32 gave the file a control to run.
+  ....  scripts/acceptance/acceptance-lanes-selftest.sh control did not finish in 600s
+  ok    scripts/acceptance/acceptance-lanes.sh exited 0
+          proves: the aggregator's own arming, named by the file in its own words as `what proves the aggregation can actually go red`. The sweep here is the zero-assertion test — a lane reaching exit 0 through a dead shell or an empty loop — and the selftest plants exactly that lane and requires it classed with the failures. It runs the same 19 seconds as the selftest's own row; that row proves the instrument, this one binds the sweep to it, and neither is the other.
+  ok    scripts/acceptance/green-streak.sh     exited 0
+          proves: Ten arms against fixture ledgers through GREEN_STREAK_LEDGER, the tracked ledger diffed afterwards. Each of the four pass clauses is planted as the NEWEST run and must end the streak: a DIVERGED row, an exit 2, a blocked count above the standing exclusions, and a proven count short of PARITY_CUTOVER_TARGET - which is read from parity-gate.sh rather than pinned here, so a fixture cannot arm a target the gate no longer holds. Two arms carry the weight the others cannot: an older failure BELOW the newest pass must NOT end the streak, which a reader scanning the whole file for any red would fail; and an empty ledger must exit 2 saying the streak is unmeasured rather than reporting a streak of zero. Two more drive the recorder against parity-gate.sh's own summary shape, requiring the four figures back from a measured run and `?` rather than a helpful zero from a run that withheld coverage. What it does NOT prove is that a real parity-gate.sh run produces that shape; the fixtures are built from the gate's own format strings, and no whole-gate run has been taken.
+  ok    scripts/acceptance/menu-reason-plane-selftest.sh exited 0
+          proves: 10 arms over doctored accessibility dumps, sourcing menu-reason-plane.sh's five assertions rather than re-implementing them, so an edit to the lane changes what this tests instead of leaving it checking a dead copy. Five arms require each assertion to FIRE — a reason MenuCommandAvailability does not declare, a badge folded into AXTitle, a menu item reporting a real AXSize, a dump of one item, a dump carrying no reason at all — and five require none of them to fire on a dump of the shape today's platform produces. That second half is the two-way control and it is the one that matters: every assertion in this lane asserts an ABSENCE, and a check that CANNOT fire and a check that correctly does not fire are indistinguishable from a green run. It has already earned its place: the badge tripwire used `exit 0` inside an awk rule, awk's `exit` runs END, and `END { exit 1 }` overrode the hit — so the line watching for the one event the lane exists to notice could never fire, and every real run passed. This caught it. Needs no build, no window server and no Accessibility grant; runs against planted files in about a second, which is why it holds a row the lane itself is waived from.
+  ok    scripts/build-description-report.py    exited 0
+          proves: 10 poison arms bit: the report line cannot go missing while the target passes, a project.yml source path compiled by no lane reads COVERED BY NOTHING at exit 1, and the `make all` excuse for the three MCPRouterIOS* paths is checked against the real Makefile rather than asserted
+  ....  scripts/lint/no-telemetry-egress.sh    control did not finish in 600s
+  ok    scripts/parity/mutation-gate-selftest.sh exited 0
+          proves: 11 cases against the real harness with no rebuild: a filter that selects nothing must fail closed rather than report a clean sweep of zero mutations, the mutation count is read from the table rather than asserted, and an unknown option exits 2 instead of being ignored.
+  ok    scripts/windows/ps-parse-gate.py       exited 0
+          proves: Four fixtures, and the gate's two checks must answer each one exactly - so a rule that fired on everything and a rule that fired on nothing both fail. ASCII with no BOM must stay silent, because most of the tree is that shape and a gate that reddened on it would be banning nothing in particular. Non-ASCII WITH a BOM must stay silent, or the gate is just banning non-ASCII rather than measuring the decoding rule it claims to. Non-ASCII with NO BOM, inside a double-quoted string, must fire PARSE and ONLY parse: this is the measured failure that cost this repository a scheduled-task run - Windows PowerShell 5.1 decodes a mark-less file as cp1252, an em dash's third byte 0x94 becomes a right curly quote, the string ends early and the rest of the file parses against the wrong grammar - and DECODING alongside it would be noise, because one cause owes one finding. THE FOURTH IS THE ONE THE DECODING CHECK EXISTS FOR: the same bytes in a COMMENT, where an early-terminated string harms nothing. It parses perfectly under 5.1 today, it is the exact shape several tracked scripts carry, and it breaks the moment somebody moves that character inside a string - an edit that will look like prose and read like a parser bug. Only the byte-level check can see it, so a fixture asserting DECODING and NOT parse is what stops the byte check being quietly reduced to a slower parse check. The control also caught a real defect in this gate's own harness on its first run: `powershell.exe -Command` does not bind trailing arguments to $args, so the snippet read a null path and reported ALL THREE fixtures - including the two healthy ones - as PARSE. A one-way control would have shown three findings and looked like a working gate.
+  ok    scripts/windows/uia/uia-assert.py      exited 0
+          proves: The sibling selftest plants 26 misbehaviours (stripped Busy markers, zeroed floors, an unoracled control that turns up) against a real dump and requires each to fire; the floor-of-zero arm exists because a floor of 0 is satisfied by an empty list. Discovered as a sweep for its `== 0` floors and absence vocabulary; the selftest is what stops those floors being confident zeros.
+
+  UNMEASURED 2 of 28 declared control(s) did not finish inside 600s. Each is reported and none is counted as a finding: a budget is a property of the machine and a verdict is a property of the tree, and this gate cannot tell a slow control from a rotted one, so it says so instead of guessing.
+  Raise it with SWEEP_CONTROL_TIMEOUT; scripts/windows/verify.ps1 declares one.
+    · scripts/acceptance/acceptance-lanes-selftest.sh: control did not finish in 600s
+    · scripts/lint/no-telemetry-egress.sh: control did not finish in 600s
+
+CLEAN sweep-control: 123 discovered sweep(s), all disposed; 28 declared control(s) run and passing.
+      54 are grandfathered, which is a backlog with a number on
+      it rather than a pass, and this gate does not report them as controlled.

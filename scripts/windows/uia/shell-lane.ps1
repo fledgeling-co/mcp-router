@@ -1787,6 +1787,511 @@ if (-not (Get-Process -Id $script:ShellProcessId -ErrorAction SilentlyContinue))
         }
     }
 
+
+    # ============================================================ DEF-301: the ambient surface
+    # "The ambient surface reports AtRest without anything ever reading the router."
+    #
+    # AmbientSurfaceModel.State initialised to AtRest and UpdateState was called by nothing in the
+    # build, so the surface said "Router ready" and "All systems quiet" whatever the router was
+    # doing - INCLUDING WHEN IT WAS NOT RUNNING. Everything an in-process check could have said
+    # about that was true of the defect too: the model was consistent, the view rendered it
+    # faithfully, and the whole thing was about a router nobody had asked.
+    #
+    # SO THE ROUTER IS DRIVEN FROM OUTSIDE THE APPLICATION. The lane owns the router the shell is
+    # pointed at - its own node process, on its own port, over its own MCP_ROUTER_HOME - and these
+    # arms stop it, put something else on that port, and start it again. The shell is never told;
+    # it polls /status and finds what it finds. The readout is then read back off the automation
+    # plane, which is a different process from the one that moved the router and a different one
+    # again from the app.
+    #
+    # THE ARM THAT MATTERS MOST IS THE FIRST. A surface that says "Ready" while the router is down
+    # is the whole defect, so the first thing this section does is take the router away.
+    #
+    # `actuates` is deliberately empty on these rows. The census in
+    # planning/test-campaign/bin/control-census.py takes its denominator from a surface's own
+    # declared `controls` array, and the pane readout is not in one; naming it here would count
+    # against nothing and read as a control the registry has never heard of.
+    $ambientRecorder = 'UI Automation read of the shell pane, over a router state driven by ' +
+        'starting and stopping processes outside the application'
+    $ambientStub = Join-Path $PSScriptRoot 'router-status-stub.ps1'
+    $script:StubProcessId = 0
+
+    function Read-Ambient {
+        param($Root)
+        $titleEl  = Find-ById $Root 'ambient.status.title'
+        $detailEl = Find-ById $Root 'ambient.status.detail'
+        if ($null -eq $titleEl -and $null -eq $detailEl) { return $null }
+        $t = ''
+        $d = ''
+        try { if ($null -ne $titleEl)  { $t = $titleEl.Current.Name } }  catch { }
+        try { if ($null -ne $detailEl) { $d = $detailEl.Current.Name } } catch { }
+        return [pscustomobject]@{ title = $t; detail = $d }
+    }
+
+    function Wait-Ambient {
+        # Poll the readout until its title reaches $Expect, then return it; on the deadline return
+        # whatever it says instead, so a failing arm reports the words on screen rather than a
+        # timeout. The wait is generous because the shell polls the router on its own clock.
+        param($Root, [string] $Expect, [int] $Seconds = 25)
+        $until = (Get-Date).AddSeconds($Seconds)
+        $last = $null
+        while ($true) {
+            $last = Read-Ambient $Root
+            if ($null -ne $last -and $last.title -eq $Expect) { return $last }
+            if ((Get-Date) -ge $until) { return $last }
+            Start-Sleep -Milliseconds 700
+        }
+    }
+
+    function Test-PortAnswers {
+        # Whether ANYTHING answers /status on the lane's port, asked by this script. It grades no
+        # arm: it says whether the drive landed, so "the surface did not move" can be told apart
+        # from "the thing it reads never changed".
+        try {
+            $null = Invoke-RestMethod -Uri "$routerBase/status" -TimeoutSec 2 -ErrorAction Stop
+            return $true
+        } catch { return $false }
+    }
+
+    function Stop-AmbientSource {
+        # Take away whatever is on the lane's control port, and wait until the port really is
+        # silent before saying so.
+        if ($script:StubProcessId -ne 0) {
+            Stop-Process -Id $script:StubProcessId -Force -ErrorAction SilentlyContinue
+            $script:StubProcessId = 0
+        }
+        if ($script:RouterProcessId -ne 0) {
+            Stop-Process -Id $script:RouterProcessId -Force -ErrorAction SilentlyContinue
+            $script:RouterProcessId = 0
+        }
+        $until = (Get-Date).AddSeconds(15)
+        while ((Get-Date) -lt $until) {
+            if (-not (Test-PortAnswers)) { return $true }
+            Start-Sleep -Milliseconds 500
+        }
+        return (-not (Test-PortAnswers))
+    }
+
+    function Start-AmbientStub {
+        param([int] $InFlight = 0, [int] $PendingAuth = 0)
+        $proc = Start-Process -FilePath 'powershell.exe' -PassThru -WindowStyle Hidden `
+            -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $ambientStub,
+                            '-Port', $routerPort, '-InFlight', $InFlight, '-PendingAuth', $PendingAuth) `
+            -RedirectStandardOutput (Join-Path $Out "ambient-stub-$InFlight-$PendingAuth.log") `
+            -RedirectStandardError  (Join-Path $Out "ambient-stub-$InFlight-$PendingAuth.err")
+        $script:StubProcessId = $proc.Id
+        $until = (Get-Date).AddSeconds(20)
+        while ((Get-Date) -lt $until) {
+            if (Test-PortAnswers) { return $true }
+            Start-Sleep -Milliseconds 400
+        }
+        return $false
+    }
+
+    # The section runs against a SHELL OF ITS OWN. By the time it is reached the sweep has
+    # relaunched the shell after a crash, opened a modal dialog on Discover and left it open, and
+    # driven three switches; measuring an ambient claim on top of all that would be measuring the
+    # sweep as much as the surface. So the shell is started again, and the section sits on
+    # Settings - the destination that asks the router for nothing, so that what moves the readout
+    # is the router going away rather than a board reacting to it.
+    $window = Start-Shell
+    $script:AmbientWindow = $window
+    if ($null -ne $window) { [void] (Invoke-Destination 'Settings'); Start-Sleep -Milliseconds 600 }
+
+    # An arm whose subject vanished measured nothing, so a death is reported as its own row rather
+    # than as a failure of whichever arm was in progress. The shell is relaunched so the arms that
+    # follow are not all reporting the absence of an application.
+    $script:AmbientShellDeaths = 0
+    function Confirm-ShellAlive {
+        if (Get-Process -Id $script:ShellProcessId -ErrorAction SilentlyContinue) { return $true }
+        $script:AmbientShellDeaths++
+        Say "  the shell is gone during the ambient arms; relaunching"
+        $script:AmbientWindow = Start-Shell
+        # Invoke-Destination reads the script-scoped $window, so the relaunched handle has to
+        # land there too - otherwise every later navigation is aimed at a dead process's window.
+        $script:window = $script:AmbientWindow
+        if ($null -ne $script:AmbientWindow) {
+            [void] (Invoke-Destination 'Settings')
+            Start-Sleep -Milliseconds 600
+        }
+        return $false
+    }
+
+    if ($null -eq $window) {
+        Add-ControlRow 'ambient.routerStopped' 'unoracled' ('the shell could not be relaunched for ' +
+            'the ambient arms, so nothing was measured about the surface.') @() $ambientRecorder
+    } elseif ($null -eq (Read-Ambient $script:AmbientWindow)) {
+        Add-ControlRow 'ambient.readout' 'fail' ('no element on the automation plane carries ' +
+            'ambient.status.title or ambient.status.detail, so the shell publishes no ambient ' +
+            'state anything outside it can read. A surface only the app can see is a claim, not ' +
+            'a readout.') @() $ambientRecorder
+    } else {
+        # ------------------------------------------------------------ 1. THE ROUTER IS NOT THERE
+        $silenced = Stop-AmbientSource
+        $down = Wait-Ambient $script:AmbientWindow 'Cannot reach router' 30
+        if (-not (Confirm-ShellAlive)) {
+            Add-ControlRow 'ambient.routerStopped' 'unoracled' ('the shell did not survive the ' +
+                'router being taken away, so what the pane said about it was never read. That is ' +
+                'reported on its own row below.') @() $ambientRecorder
+        } elseif (-not $silenced) {
+            Add-ControlRow 'ambient.routerStopped' 'unoracled' ("something still answers " +
+                "$routerBase/status after the lane's router was stopped, so the router was never " +
+                "actually taken away and this arm would be about the wrong thing.") @() $ambientRecorder
+        } elseif ($null -eq $down) {
+            Add-ControlRow 'ambient.routerStopped' 'fail' ('the ambient readout left the ' +
+                'automation plane entirely once the router was stopped.') @() $ambientRecorder
+        } elseif ($down.title -eq 'Cannot reach router') {
+            Add-ControlRow 'ambient.routerStopped' 'pass' ("the router was stopped from outside " +
+                "the application - this script killed the process and then confirmed, over the " +
+                "loopback port, that nothing answers $routerBase/status - and the shell's pane " +
+                "moved to '$($down.title)' / '$($down.detail)'. It does not say 'Router ready' " +
+                "over a router that is not running, which is DEF-301 exactly.") @() $ambientRecorder
+        } else {
+            Add-ControlRow 'ambient.routerStopped' 'fail' ("nothing answers $routerBase/status and " +
+                "the shell's pane still reads '$($down.title)' / '$($down.detail)'. The surface is " +
+                "reporting a router state nothing has read.") @() $ambientRecorder
+        }
+
+        # ------------------------------------------------------------ 2. WORK IN FLIGHT
+        [void] (Confirm-ShellAlive)
+        # Three calls, spread over two children by the stub, so what is read back is the surface's
+        # own summing rather than a number copied through one field.
+        if (-not (Start-AmbientStub -InFlight 3)) {
+            Add-ControlRow 'ambient.workInFlight' 'unoracled' ("the stub never answered on " +
+                "$routerBase/status, so the shell was never offered a router with work in flight.") `
+                @() $ambientRecorder
+        } else {
+            $busy = Wait-Ambient $script:AmbientWindow 'Serving tool calls' 30
+            $wantDetail = '3 active tool calls in flight.'
+            if ($null -ne $busy -and $busy.title -eq 'Serving tool calls' -and $busy.detail -eq $wantDetail) {
+                Add-ControlRow 'ambient.workInFlight' 'pass' ("a process outside the application " +
+                    "answered /status with three tool calls in flight across two upstreams, and " +
+                    "the pane moved to '$($busy.title)' / '$($busy.detail)'. The count came from " +
+                    "the answer, not from the app.") @() $ambientRecorder
+            } else {
+                Add-ControlRow 'ambient.workInFlight' 'fail' ("/status was answered with three " +
+                    "calls in flight and the pane reads '$($busy.title)' / '$($busy.detail)'; " +
+                    "expected 'Serving tool calls' / '$wantDetail'.") @() $ambientRecorder
+            }
+        }
+
+        # ------------------------------------------------------------ 3. A DECISION WAITING
+        [void] (Confirm-ShellAlive)
+        [void] (Stop-AmbientSource)
+        if (-not (Start-AmbientStub -PendingAuth 2)) {
+            Add-ControlRow 'ambient.signInWaiting' 'unoracled' ("the stub never answered on " +
+                "$routerBase/status, so the waiting state was never offered to the shell.") `
+                @() $ambientRecorder
+        } else {
+            $waiting = Wait-Ambient $script:AmbientWindow 'Decisions waiting' 30
+            $wantWaiting = '2 servers are waiting for you to sign in.'
+            if ($null -ne $waiting -and $waiting.title -eq 'Decisions waiting' -and $waiting.detail -eq $wantWaiting) {
+                Add-ControlRow 'ambient.signInWaiting' 'pass' ("/status was answered with two " +
+                    "upstreams in pendingAuth and the pane moved to '$($waiting.title)' / " +
+                    "'$($waiting.detail)'.") @() $ambientRecorder
+            } else {
+                Add-ControlRow 'ambient.signInWaiting' 'fail' ("/status was answered with two " +
+                    "upstreams in pendingAuth and the pane reads '$($waiting.title)' / " +
+                    "'$($waiting.detail)'; expected 'Decisions waiting' / '$wantWaiting'.") `
+                    @() $ambientRecorder
+            }
+        }
+
+        # ------------------------------------------------------------ 4. THE REAL ROUTER, BACK
+        [void] (Confirm-ShellAlive)
+        # The three arms above could all be satisfied by a surface that reads the stub and nothing
+        # else. This one puts the product's own router back on the port.
+        [void] (Stop-AmbientSource)
+        if ($null -eq $nodeExe -or -not (Test-Path $routerEntry)) {
+            Add-ControlRow 'ambient.routerRunning' 'unoracled' ('the lane has no router to start ' +
+                '(no node on PATH, or no built dist/index.js), so the surface was never read ' +
+                'against the product''s own router.') @() $ambientRecorder
+        } else {
+            $again = Start-Process -FilePath $nodeExe.Source -ArgumentList @($routerEntry) `
+                -PassThru -WindowStyle Hidden `
+                -RedirectStandardOutput "$routerLog.restart" -RedirectStandardError "$routerLog.restart.err"
+            $script:RouterProcessId = $again.Id
+            Say "  lane router restarted for the ambient arms: pid $($again.Id) on $routerBase"
+            $up = $false
+            $until = (Get-Date).AddSeconds(40)
+            while ((Get-Date) -lt $until) {
+                if (Test-PortAnswers) { $up = $true; break }
+                Start-Sleep -Milliseconds 500
+            }
+            if (-not $up) {
+                Add-ControlRow 'ambient.routerRunning' 'unoracled' ("the lane's router did not " +
+                    "answer $routerBase/status within 40s of being restarted, so the surface was " +
+                    "never offered a running router.") @() $ambientRecorder
+            } else {
+                $ready = Wait-Ambient $script:AmbientWindow 'Router ready' 30
+                if ($null -ne $ready -and $ready.title -eq 'Router ready') {
+                    Add-ControlRow 'ambient.routerRunning' 'pass' ("the product's own router was " +
+                        "started again outside the application and the pane moved to " +
+                        "'$($ready.title)' / '$($ready.detail)'. The surface reads the real " +
+                        "router, not only the lane's stand-in.") @() $ambientRecorder
+                } else {
+                    Add-ControlRow 'ambient.routerRunning' 'fail' ("the router answers " +
+                        "$routerBase/status and the pane reads '$($ready.title)' / " +
+                        "'$($ready.detail)'; expected 'Router ready'.") @() $ambientRecorder
+                }
+            }
+        }
+
+        # ------------------------------------------------------------ 5. SILENCE
+        [void] (Confirm-ShellAlive)
+        # A recorder that has never said no is an echo. Everything above could be produced by a
+        # surface that latches on its first reachable reading, so the router is taken away once
+        # more and the pane has to go back.
+        $silencedAgain = Stop-AmbientSource
+        $downAgain = Wait-Ambient $script:AmbientWindow 'Cannot reach router' 30
+        if (-not $silencedAgain) {
+            Add-ControlRow 'ambient.silence' 'unoracled' ("something still answers " +
+                "$routerBase/status, so nothing was taken away and removal was never read.") `
+                @() $ambientRecorder
+        } elseif ($null -ne $downAgain -and $downAgain.title -eq 'Cannot reach router') {
+            Add-ControlRow 'ambient.silence' 'pass' ("taking the router away again put the pane " +
+                "back to '$($downAgain.title)' / '$($downAgain.detail)'. Its readings above were " +
+                "readings rather than a state it latched on to.") @() $ambientRecorder
+        } else {
+            Add-ControlRow 'ambient.silence' 'fail' ("nothing answers $routerBase/status and the " +
+                "pane still reads '$($downAgain.title)' / '$($downAgain.detail)'. The surface " +
+                "keeps reporting a router it can no longer see.") @() $ambientRecorder
+        }
+
+        # ------------------------------------------------- THE SHELL, THROUGH ALL OF THAT
+        # A surface that reports the router correctly and takes the application down with it when
+        # the router goes is not a surface anybody can use. This is the one row in the section
+        # that is about the app rather than about the words on it.
+        [void] (Confirm-ShellAlive)
+        if ($script:AmbientShellDeaths -eq 0) {
+            Add-ControlRow 'ambient.shellSurvivedRouterLoss' 'pass' ('the router was stopped, ' +
+                'replaced twice and started again underneath the running shell, and the shell was ' +
+                'still on the automation plane at the end of it.') @() $ambientRecorder
+        } else {
+            Add-ControlRow 'ambient.shellSurvivedRouterLoss' 'fail' ("MCPRouter.Shell terminated " +
+                "$($script:AmbientShellDeaths) time(s) while the router was being taken away and " +
+                "put back underneath it. See shell-startup.log beside the executable; a death with " +
+                "no line in it is the DEF-079 shape.") @() $ambientRecorder
+        }
+    }
+
+    # ============================================================ DEF-300: the Explorer restart
+    # "The notification-area icon does not come back after an Explorer restart."
+    #
+    # HOW THAT DEFECT WAS FILED MATTERS. It was read off documented behaviour and the code that
+    # chooses the parent - a message-only window receives no broadcast TaskbarCreated - and it was
+    # NEVER OBSERVED on a live Explorer restart. So the first job here is not to confirm a fix. It
+    # is to find out whether the thing described happens on this machine at all.
+    #
+    # AND THE FIRST TIME IT WAS RUN, IT DID NOT. Measured 2026-09-03 against a build with the
+    # re-add watchdog deliberately removed - the defect exactly as filed - Explorer was killed, came
+    # back, and 73 seconds later a separate process asking Shell_NotifyIconGetRect for the icon's
+    # GUID was given a rectangle again. Nothing in that build re-added it. An arm that passes over
+    # the planted defect is not an arm, so the reader is made to prove it can say no under the same
+    # conditions before its yes is allowed to mean anything.
+    #
+    # HENCE THE BASELINE, and it is the whole reason this section restarts Explorer twice. With no
+    # MCPRouter.Shell running at all, Explorer is restarted and the same reader is asked the same
+    # question. A "no" there means a fresh notification area does not invent this icon, so the
+    # "yes" after the second restart is about an icon that is really in it. A "yes" there means the
+    # reader cannot tell a live icon from a record something else restores, and BOTH rows are
+    # reported unoracled rather than passed.
+    #
+    # Restarting Explorer on the owner's live desktop is disruptive and recoverable. It happens
+    # inside the interactive scheduled task the lane already runs in, Explorer is checked back up
+    # afterwards, and it is started by hand if Windows has not done it.
+    $iconProbePath = Join-Path $PSScriptRoot 'notification-icon-probe.ps1'
+    $explorerRecorder = 'Shell_NotifyIconGetRect in a separate powershell.exe process, across an ' +
+        'Explorer restart'
+
+    function Read-IconOutOfProcess {
+        # $null means the question could not be asked at all, which is neither yes nor no.
+        $raw = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $iconProbePath 2>$null |
+            Out-String
+        if (-not $raw.Trim()) { return $null }
+        try { $answer = $raw | ConvertFrom-Json } catch { return $null }
+        if (-not $answer.asked) { return $null }
+        return $answer
+    }
+
+    function Restart-Explorer {
+        # Returns $true when Explorer is running again. Windows restarts the shell instance itself;
+        # a File Explorer window killed alongside it is not restored, which is the disruption this
+        # arm costs and is recoverable by the operator opening a new window.
+        $was = @(Get-Process explorer -ErrorAction SilentlyContinue).Count
+        Get-Process explorer -ErrorAction SilentlyContinue |
+            ForEach-Object { Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue }
+        $back = $false
+        $until = (Get-Date).AddSeconds(45)
+        while ((Get-Date) -lt $until) {
+            if (@(Get-Process explorer -ErrorAction SilentlyContinue).Count -gt 0) { $back = $true; break }
+            Start-Sleep -Seconds 1
+        }
+        if (-not $back) {
+            Say "  Windows did not bring Explorer back on its own; starting it"
+            Start-Process 'explorer.exe' -ErrorAction SilentlyContinue | Out-Null
+            $until = (Get-Date).AddSeconds(45)
+            while ((Get-Date) -lt $until) {
+                if (@(Get-Process explorer -ErrorAction SilentlyContinue).Count -gt 0) { $back = $true; break }
+                Start-Sleep -Seconds 1
+            }
+        }
+        Say "  explorer processes before: $was, back up: $back"
+        return $back
+    }
+
+    $explorerBaselineArm = 'settings.ambientIcon.explorerRestart.baseline'
+    $explorerArm         = 'settings.ambientIcon.survivesExplorerRestart'
+
+    # ---------------------------------------------------------------- BASELINE: nothing owns it
+    Get-Process 'MCPRouter.Shell' -ErrorAction SilentlyContinue | ForEach-Object {
+        Say "  stopping the shell for the notification-area baseline, pid=$($_.Id)"
+        Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
+    }
+    $script:ShellProcessId = 0
+    Start-Sleep -Seconds 2
+    # Clear any record a killed run left under this GUID, so the baseline is about a fresh
+    # notification area rather than about somebody's leftovers.
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $iconProbePath -Delete 2>$null | Out-Null
+
+    $explorerUpForBaseline = Restart-Explorer
+    # A "no" answers instantly and a tray that is not up yet also answers no, so the reader is
+    # given time to be wrong before its answer is believed. Thirty seconds rather than twenty:
+    # the arm below has to place an icon into this same notification area immediately afterwards,
+    # and a tray that has not finished starting refuses the add.
+    Start-Sleep -Seconds 30
+    $baselineIcon = Read-IconOutOfProcess
+    $baselineSaid = if ($null -eq $baselineIcon) { 'could not be asked' }
+                    else { "found=$($baselineIcon.found), HRESULT $($baselineIcon.hresult)" }
+    $baselineUsable = ($explorerUpForBaseline -and $null -ne $baselineIcon -and -not $baselineIcon.found)
+    if (-not $explorerUpForBaseline) {
+        Add-ControlRow $explorerBaselineArm 'unoracled' ('Explorer did not come back after being ' +
+            'stopped, so no baseline was taken and the desktop needs attention.') `
+            @('Show status in notification area') $explorerRecorder
+    } elseif ($null -eq $baselineIcon) {
+        Add-ControlRow $explorerBaselineArm 'unoracled' ('Shell_NotifyIconGetRect could not be ' +
+            'called after the restart, so nothing was read about the notification area.') `
+            @('Show status in notification area') $explorerRecorder
+    } elseif (-not $baselineIcon.found) {
+        Add-ControlRow $explorerBaselineArm 'pass' ("with no MCPRouter.Shell running at all, " +
+            "Explorer was restarted and a separate process asking the new notification area for " +
+            "$($baselineIcon.guid) is told there is none ($baselineSaid). A fresh notification " +
+            "area does not invent this icon, so a yes below is about an icon that is in it.") `
+            @('Show status in notification area') $explorerRecorder
+    } else {
+        # UNORACLED AND NOT FAIL, and the distinction is the campaign's own: `fail` is the product
+        # doing the wrong thing, and this row is not about the product at all - there is no
+        # instance of it running while this is read. A yes here is the READER unable to say no,
+        # which is "the question could not be asked" and is graded the way every other
+        # unanswerable question in this lane is graded.
+        #
+        # MEASURED BOTH WAYS ON 2026-09-03, which is why the row exists at all: on one run the
+        # reader answered 0x80004005 with nothing owning the icon (a usable baseline, and the arm
+        # below then passed), and on the next it answered S_OK under identical conditions
+        # - planning/evidence/WIN-SHELL/arming/def-300-oracle-unreliable-lane.txt. So
+        # Shell_NotifyIconGetRect across an Explorer restart is not dependable in either
+        # direction, and the arm below degrades to unoracled whenever this one does. Nothing is
+        # ever passed on the strength of it.
+        Add-ControlRow $explorerBaselineArm 'unoracled' ("with no MCPRouter.Shell running at all, " +
+            "a restarted Explorer still answers for $($baselineIcon.guid) ($baselineSaid). The " +
+            "reader cannot say no here, so it cannot witness the icon surviving a restart either " +
+            "and the arm below is reported unoracled rather than either way. See DEF-300.") `
+            @('Show status in notification area') $explorerRecorder
+    }
+
+    # ---------------------------------------------------------------- THE ARM
+    $window = Start-Shell
+    $script:AmbientWindow = $window
+    if ($null -eq $window) {
+        Add-ControlRow $explorerArm 'unoracled' ('the shell could not be relaunched after the ' +
+            'baseline, so there was no icon to restart Explorer under.') `
+            @('Show status in notification area') $explorerRecorder
+    } elseif (-not (Invoke-Destination 'Settings')) {
+        Add-ControlRow $explorerArm 'unoracled' ('Settings could not be actuated, so the icon ' +
+            'could not be switched on for this arm.') @('Show status in notification area') $explorerRecorder
+    } else {
+        Start-Sleep -Milliseconds 800
+
+        # PLACED WITH RETRIES, because the baseline above has just restarted Explorer. A
+        # notification area that is not ready refuses NIM_ADD, the board's switch follows only
+        # what the machine accepted, and the switch snaps back to Off - which arrives here as
+        # `stuck at Off` and takes the arm to `unoracled` over a shell that is perfectly capable
+        # of placing an icon a few seconds later. Measured 2026-09-03: this arm read `unoracled`
+        # for exactly that reason on a run in which every other arm passed. So the placement is
+        # attempted until the notification area confirms it, or a minute goes by.
+        $droveOn = 'never attempted'
+        $before = $null
+        $until = (Get-Date).AddSeconds(60)
+        while ($true) {
+            $droveOn = Set-ToggleThroughPlane $window 'settings.toggle.ShowAmbientIcon' $true
+            Start-Sleep -Milliseconds 1500
+            $before = Read-IconOutOfProcess
+            if ($null -ne $before -and $before.found) { break }
+            if ((Get-Date) -ge $until) { break }
+            Say "  the icon is not placed yet (drive: $droveOn); the tray may still be starting"
+            # Off first: an add the shell refused leaves the switch reading Off already, and
+            # Set-ToggleThroughPlane returns immediately when the switch is where it was asked to
+            # be. Driving it Off makes the next On a real attempt rather than a no-op.
+            [void] (Set-ToggleThroughPlane $window 'settings.toggle.ShowAmbientIcon' $false)
+            Start-Sleep -Seconds 3
+        }
+        $beforeSaid = if ($null -eq $before) { 'could not be asked' }
+                      else { "found=$($before.found), HRESULT $($before.hresult)" }
+        if ($droveOn -ne 'ok' -or $null -eq $before -or -not $before.found) {
+            Add-ControlRow $explorerArm 'unoracled' ("the icon was not in the notification area " +
+                "before Explorer was restarted (switch drive: $droveOn; probe: $beforeSaid). " +
+                "Explorer was left alone: an arm about an icon surviving a restart needs an icon " +
+                "to survive.") @('Show status in notification area') $explorerRecorder
+        } else {
+            Say "  restarting Explorer; the icon is present at $($before.guid) before it goes"
+            $explorerBack = Restart-Explorer
+            if (-not $explorerBack) {
+                Add-ControlRow $explorerArm 'unoracled' ('Explorer did not come back after being ' +
+                    'stopped, so there is no notification area to ask and the desktop needs ' +
+                    'attention. Nothing is claimed about the icon.') `
+                    @('Show status in notification area') $explorerRecorder
+            } else {
+                # The notification area is not ready the instant explorer.exe exists, and the
+                # watchdog only re-adds when the shell will accept an add. So the question is
+                # asked repeatedly rather than once, and the arm fails on the window expiring
+                # rather than on the first no.
+                $after = $null
+                $until = (Get-Date).AddSeconds(120)
+                while ((Get-Date) -lt $until) {
+                    $after = Read-IconOutOfProcess
+                    if ($null -ne $after -and $after.found) { break }
+                    Start-Sleep -Seconds 2
+                }
+                if ($null -eq $after) {
+                    Add-ControlRow $explorerArm 'unoracled' ('Shell_NotifyIconGetRect could not be ' +
+                        'called after the restart, so nothing was read about the notification area.') `
+                        @('Show status in notification area') $explorerRecorder
+                } elseif (-not $baselineUsable) {
+                    Add-ControlRow $explorerArm 'unoracled' ("the notification area answers " +
+                        "found=$($after.found) for $($before.guid) after the restart, and the " +
+                        "baseline above did not establish that this reader can say no across a " +
+                        "restart. The reading is recorded and is not counted either way.") `
+                        @('Show status in notification area') $explorerRecorder
+                } elseif ($after.found) {
+                    Add-ControlRow $explorerArm 'pass' ("the notification area held the icon at " +
+                        "$($before.guid), Explorer was killed and came back, and a separate " +
+                        "powershell.exe asking the new shell for that GUID gets a rectangle again " +
+                        "($($after.rect.left),$($after.rect.top) to $($after.rect.right)," +
+                        "$($after.rect.bottom), HRESULT $($after.hresult)) - where the same reader, " +
+                        "with nothing owning the icon, was told there was none. The icon comes back " +
+                        "without the operator doing anything.") `
+                        @('Show status in notification area') $explorerRecorder
+                } else {
+                    Add-ControlRow $explorerArm 'fail' ("the icon was in the notification area, " +
+                        "Explorer was restarted, and 120 seconds later a separate process asking " +
+                        "the shell for $($before.guid) is still told there is none (HRESULT " +
+                        "$($after.hresult)). The icon does not survive an Explorer restart.") `
+                        @('Show status in notification area') $explorerRecorder
+                }
+            }
+        }
+    }
+
 }
 
 $failed += $script:controlFailures

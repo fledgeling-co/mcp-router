@@ -111,6 +111,43 @@
             SelectionChanged="OnDestinationChanged">
 
             <!--
+              THE AMBIENT SURFACE, and what DEF-301 was about.
+
+              The ambient state used to live only in AmbientSurfaceModel, which initialised to
+              AtRest and which nothing in the build ever updated - so every surface that rendered
+              it said "Router ready" whatever the router was doing, including when the router was
+              not running. It is drawn HERE, in the pane, because the pane is on screen whichever
+              destination is selected: an ambient claim about the router that only appears on one
+              board is not ambient.
+
+              The two lines are addressable by automation id so the state can be read back out of
+              process, by something that drove the router from outside this application. A
+              readout the app is the only reader of would be the same defect with a witness
+              attached to it.
+            -->
+            <muxc:NavigationView.PaneFooter>
+                <StackPanel
+                    x:Name="AmbientStatus"
+                    AutomationProperties.AutomationId="ambient.status"
+                    AutomationProperties.Name="Router status"
+                    Margin="16,4,16,12"
+                    Spacing="2">
+                    <TextBlock
+                        x:Name="AmbientStatusTitle"
+                        AutomationProperties.AutomationId="ambient.status.title"
+                        Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                        Style="{ThemeResource CaptionTextBlockStyle}"
+                        TextTrimming="CharacterEllipsis" />
+                    <TextBlock
+                        x:Name="AmbientStatusDetail"
+                        AutomationProperties.AutomationId="ambient.status.detail"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{ThemeResource CaptionTextBlockStyle}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </muxc:NavigationView.PaneFooter>
+
+            <!--
               The content layer sits on LayerFillColorDefault over the window's Mica base, and
               nothing else in this window applies a backdrop material - DESIGN.md §11 rule 3's
               "don't apply backdrop material more than once in an application". The navigation

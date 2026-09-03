@@ -23,6 +23,19 @@ public partial class App : Application
     internal static MCPRouter.Shell.Live.Ambient.NotificationAreaIcon? NotificationIcon { get; private set; }
 
     /// <summary>
+    /// The ambient state, process-wide, for the same reason the icon is: the pane draws it and
+    /// the notification-area tip formats it, and two models would let the two surfaces disagree
+    /// about the same router.
+    /// </summary>
+    /// <remarks>
+    /// DEF-301: this used to be a private field of a view, initialised to AtRest, that nothing
+    /// ever wrote to. It is now written only by <see cref="Shell.ShellWindow"/>'s reader, and it
+    /// opens at <c>Unknown</c> - so a tip formatted before the first reading says "MCP Router"
+    /// rather than "Ready".
+    /// </remarks>
+    internal static MCPRouter.Shell.Model.Ambient.AmbientSurfaceModel Ambient { get; } = new();
+
+    /// <summary>
     /// Where the self-test writes, when <c>--selftest &lt;dir&gt;</c> was passed. Null for a
     /// normal launch.
     /// </summary>
@@ -169,7 +182,7 @@ public partial class App : Application
 #endif
         StartupLog.Write($"launched, selftest={SelfTestDirectory ?? "(no)"}, skills-fixture={UseSkillsFixture}");
 
-        _window = new ShellWindow(UseSkillsFixture ? new FixtureSkillsControlClient() : null);
+        _window = new ShellWindow(UseSkillsFixture ? new FixtureSkillsControlClient() : null, Ambient);
 
         // WIN22. Registered at launch rather than on first use, because the registration is what
         // makes a toast raised LATER able to activate this application at all - and because the
@@ -185,7 +198,11 @@ public partial class App : Application
         // "Show status in notification area" owns; until this, the switch moved a boolean and the
         // words "notification area" appeared nowhere else in the build.
         NotificationIcon = new MCPRouter.Shell.Live.Ambient.NotificationAreaIcon(
-            () => MCPRouter.Shell.Model.Ambient.AmbientPresentation.FlyoutTitle,
+            // DEF-301: the tip is formatted from the state the pane's reader wrote, not from a
+            // constant. Before the first reading Ambient.State is Unknown, whose tip is the bare
+            // product name - the icon does not claim "Ready" for a router nothing has read.
+            () => MCPRouter.Shell.Model.Ambient.AmbientPresentation.TrayToolTip(
+                Ambient.State, Ambient.WaitingCount),
             () => _window?.DispatcherQueue.TryEnqueueGuarded(
                 "App.NotificationIconActivated", () => _window!.Activate()));
         var storedSettings = new MCPRouter.Shell.Model.Settings.SettingsStore()

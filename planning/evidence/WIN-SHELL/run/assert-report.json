@@ -1,9 +1,9 @@
 ﻿{
     "schema":  "win-shell.uia-assert/1",
     "subject":  "MCPRouter.Shell - the Windows client, driven through the automation plane",
-    "capturedAtUtc":  "2026-09-03T00:27:10.1810274Z",
-    "exePath":  "C:\\Dev\\mcp-router\\app\\windows\\MCPRouter.Shell\\bin\\Debug\\net8.0-windows10.0.19041.0\\win-x64\\MCPRouter.Shell.exe",
-    "processId":  42928,
+    "capturedAtUtc":  "2026-09-03T02:56:41.4625918Z",
+    "exePath":  "C:\\Dev\\mcp-router\\.worktrees\\wd1-ambient-truth\\app\\windows\\MCPRouter.Shell\\bin\\Debug\\net8.0-windows10.0.19041.0\\win-x64\\MCPRouter.Shell.exe",
+    "processId":  18976,
     "destinations":  10,
     "measured":  10,
     "passed":  10,
@@ -52,7 +52,7 @@
                      {
                          "id":  "settings.launchAtLogin.effect",
                          "status":  "pass",
-                         "detail":  "driving the switch to On through the automation plane registered \u0027\\MCPRouter\\WIN-SHELL Settings Witness (transient)\u0027 in the Windows task scheduler: state=Ready, logon trigger present, RunLevel=Limited (the recorder\u0027s word for the XML\u0027s LeastPrivilege), Execute=C:\\Dev\\mcp-router\\app\\windows\\MCPRouter.Shell\\win-shell-witness-daemon.exe. Read by an API that did not write it.",
+                         "detail":  "driving the switch to On through the automation plane registered \u0027\\MCPRouter\\WIN-SHELL Settings Witness (transient)\u0027 in the Windows task scheduler: state=Ready, logon trigger present, RunLevel=Limited (the recorder\u0027s word for the XML\u0027s LeastPrivilege), Execute=C:\\Dev\\mcp-router\\.worktrees\\wd1-ambient-truth\\app\\windows\\MCPRouter.Shell\\win-shell-witness-daemon.exe. Read by an API that did not write it.",
                          "actuates":  [
                                           "Launch router daemon at sign-in"
                                       ],
@@ -61,7 +61,7 @@
                      {
                          "id":  "settings.persistence.store",
                          "status":  "pass",
-                         "detail":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\shell-state\\shell-settings.json holds LaunchAtLogin=true, read off the disk by this script. The file is the recorder; the shell is not asked what it saved.",
+                         "detail":  "C:\\Dev\\mcp-router\\.worktrees\\wd1-ambient-truth\\planning\\evidence\\WIN-SHELL\\run\\shell-state\\shell-settings.json holds LaunchAtLogin=true, read off the disk by this script. The file is the recorder; the shell is not asked what it saved.",
                          "actuates":  [
                                           "Launch router daemon at sign-in"
                                       ],
@@ -106,7 +106,7 @@
                      {
                          "id":  "settings.ambientIcon.effect",
                          "status":  "pass",
-                         "detail":  "driving the switch to On through the automation plane put an icon in the Windows notification area at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90}: a separate process asked the shell for its rectangle and got 2154,1528 to 2202,1600 (HRESULT 0x00000000). Read by an API this application never called.",
+                         "detail":  "driving the switch to On through the automation plane put an icon in the Windows notification area at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90}: a separate process asked the shell for its rectangle and got 2108,1528 to 2156,1600 (HRESULT 0x00000000). Read by an API this application never called.",
                          "actuates":  [
                                           "Show status in notification area"
                                       ],
@@ -176,6 +176,60 @@
                          "id":  "shell.navigationPane",
                          "status":  "pass",
                          "detail":  "the navigation pane publishes the accessible name \u0027Destinations\u0027."
+                     },
+                     {
+                         "id":  "ambient.routerStopped",
+                         "status":  "pass",
+                         "detail":  "the router was stopped from outside the application - this script killed the process and then confirmed, over the loopback port, that nothing answers http://127.0.0.1:59780/status - and the shell\u0027s pane moved to \u0027Cannot reach router\u0027 / \u0027The router daemon is not responding on 127.0.0.1:59780.\u0027. It does not say \u0027Router ready\u0027 over a router that is not running, which is DEF-301 exactly.",
+                         "recorder":  "UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application"
+                     },
+                     {
+                         "id":  "ambient.workInFlight",
+                         "status":  "pass",
+                         "detail":  "a process outside the application answered /status with three tool calls in flight across two upstreams, and the pane moved to \u0027Serving tool calls\u0027 / \u00273 active tool calls in flight.\u0027. The count came from the answer, not from the app.",
+                         "recorder":  "UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application"
+                     },
+                     {
+                         "id":  "ambient.signInWaiting",
+                         "status":  "pass",
+                         "detail":  "/status was answered with two upstreams in pendingAuth and the pane moved to \u0027Decisions waiting\u0027 / \u00272 servers are waiting for you to sign in.\u0027.",
+                         "recorder":  "UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application"
+                     },
+                     {
+                         "id":  "ambient.routerRunning",
+                         "status":  "pass",
+                         "detail":  "the product\u0027s own router was started again outside the application and the pane moved to \u0027Router ready\u0027 / \u0027All systems quiet. No active calls or queued items.\u0027. The surface reads the real router, not only the lane\u0027s stand-in.",
+                         "recorder":  "UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application"
+                     },
+                     {
+                         "id":  "ambient.silence",
+                         "status":  "pass",
+                         "detail":  "taking the router away again put the pane back to \u0027Cannot reach router\u0027 / \u0027The router daemon is not responding on 127.0.0.1:59780.\u0027. Its readings above were readings rather than a state it latched on to.",
+                         "recorder":  "UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application"
+                     },
+                     {
+                         "id":  "ambient.shellSurvivedRouterLoss",
+                         "status":  "pass",
+                         "detail":  "the router was stopped, replaced twice and started again underneath the running shell, and the shell was still on the automation plane at the end of it.",
+                         "recorder":  "UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application"
+                     },
+                     {
+                         "id":  "settings.ambientIcon.explorerRestart.baseline",
+                         "status":  "pass",
+                         "detail":  "with no MCPRouter.Shell running at all, Explorer was restarted and a separate process asking the new notification area for {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90} is told there is none (found=False, HRESULT 0x80004005). A fresh notification area does not invent this icon, so a yes below is about an icon that is in it.",
+                         "actuates":  [
+                                          "Show status in notification area"
+                                      ],
+                         "recorder":  "Shell_NotifyIconGetRect in a separate powershell.exe process, across an Explorer restart"
+                     },
+                     {
+                         "id":  "settings.ambientIcon.survivesExplorerRestart",
+                         "status":  "pass",
+                         "detail":  "the notification area held the icon at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90}, Explorer was killed and came back, and a separate powershell.exe asking the new shell for that GUID gets a rectangle again (2252,1528 to 2312,1600, HRESULT 0x00000000) - where the same reader, with nothing owning the icon, was told there was none. The icon comes back without the operator doing anything.",
+                         "actuates":  [
+                                          "Show status in notification area"
+                                      ],
+                         "recorder":  "Shell_NotifyIconGetRect in a separate powershell.exe process, across an Explorer restart"
                      }
                  ],
     "controlsFailed":  0,
@@ -191,10 +245,10 @@
                         "titleBefore":  "Servers",
                         "selected":  true,
                         "windowTitle":  "Discover",
-                        "elements":  905,
-                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-discover.json",
+                        "elements":  908,
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd1-ambient-truth\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-discover.json",
                         "dumpExit":  0,
-                        "fingerprint":  "67AD5BDE41ADCD99",
+                        "fingerprint":  "4E3DD0BB9DE77988",
                         "status":  "pass"
                     },
                     {
@@ -208,10 +262,10 @@
                         "titleBefore":  "Discover",
                         "selected":  true,
                         "windowTitle":  "Skills",
-                        "elements":  57,
-                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-skills.json",
+                        "elements":  60,
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd1-ambient-truth\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-skills.json",
                         "dumpExit":  0,
-                        "fingerprint":  "0CFAEEC8BC3484CE",
+                        "fingerprint":  "07503731F6E38E5C",
                         "status":  "pass"
                     },
                     {
@@ -225,10 +279,10 @@
                         "titleBefore":  "Skills",
                         "selected":  true,
                         "windowTitle":  "Servers",
-                        "elements":  95,
-                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-servers.json",
+                        "elements":  98,
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd1-ambient-truth\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-servers.json",
                         "dumpExit":  0,
-                        "fingerprint":  "3971A511918706ED",
+                        "fingerprint":  "C2CDAD33C7693AF6",
                         "status":  "pass"
                     },
                     {
@@ -242,10 +296,10 @@
                         "titleBefore":  "Servers",
                         "selected":  true,
                         "windowTitle":  "Activity",
-                        "elements":  114,
-                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-activity.json",
+                        "elements":  117,
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd1-ambient-truth\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-activity.json",
                         "dumpExit":  0,
-                        "fingerprint":  "548C3D965A42DC7E",
+                        "fingerprint":  "41C2792846F44C4E",
                         "status":  "pass"
                     },
                     {
@@ -259,10 +313,10 @@
                         "titleBefore":  "Activity",
                         "selected":  true,
                         "windowTitle":  "Harnesses",
-                        "elements":  71,
-                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-harnesses.json",
+                        "elements":  74,
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd1-ambient-truth\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-harnesses.json",
                         "dumpExit":  0,
-                        "fingerprint":  "79B39EDCA354E1D0",
+                        "fingerprint":  "1748C2878A645D71",
                         "status":  "pass"
                     },
                     {
@@ -276,10 +330,10 @@
                         "titleBefore":  "Harnesses",
                         "selected":  true,
                         "windowTitle":  "Checks",
-                        "elements":  70,
-                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-checks.json",
+                        "elements":  73,
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd1-ambient-truth\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-checks.json",
                         "dumpExit":  0,
-                        "fingerprint":  "DBB023D906C8E1E9",
+                        "fingerprint":  "4F72D66FD8D6D468",
                         "status":  "pass"
                     },
                     {
@@ -293,10 +347,10 @@
                         "titleBefore":  "Checks",
                         "selected":  true,
                         "windowTitle":  "Cleanup",
-                        "elements":  91,
-                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-cleanup.json",
+                        "elements":  94,
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd1-ambient-truth\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-cleanup.json",
                         "dumpExit":  0,
-                        "fingerprint":  "4706EFE12C32B6E7",
+                        "fingerprint":  "6F64D456EB517377",
                         "status":  "pass"
                     },
                     {
@@ -310,10 +364,10 @@
                         "titleBefore":  "Cleanup",
                         "selected":  true,
                         "windowTitle":  "Inbox",
-                        "elements":  80,
-                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-inbox.json",
+                        "elements":  83,
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd1-ambient-truth\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-inbox.json",
                         "dumpExit":  0,
-                        "fingerprint":  "3F25248FD8E0665E",
+                        "fingerprint":  "FF4228314F0437F8",
                         "status":  "pass"
                     },
                     {
@@ -327,10 +381,10 @@
                         "titleBefore":  "Inbox",
                         "selected":  true,
                         "windowTitle":  "Insights",
-                        "elements":  74,
-                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-insights.json",
+                        "elements":  77,
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd1-ambient-truth\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-insights.json",
                         "dumpExit":  0,
-                        "fingerprint":  "D23841C16F2D16DB",
+                        "fingerprint":  "F27321DCEB4E24A9",
                         "status":  "pass"
                     },
                     {
@@ -344,10 +398,10 @@
                         "titleBefore":  "Insights",
                         "selected":  true,
                         "windowTitle":  "Settings",
-                        "elements":  83,
-                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-settings.json",
+                        "elements":  86,
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd1-ambient-truth\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-settings.json",
                         "dumpExit":  0,
-                        "fingerprint":  "29EF22537F89D54B",
+                        "fingerprint":  "86640BAFA1085885",
                         "status":  "pass"
                     }
                 ]

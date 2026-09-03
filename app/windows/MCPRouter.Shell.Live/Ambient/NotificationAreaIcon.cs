@@ -25,9 +25,21 @@ namespace MCPRouter.Shell.Live.Ambient;
 /// clicks to, and a hidden top-level window would join the shell's own on the automation plane,
 /// where the UIA lane looks for "a top-level window owned by this process". A message-only window
 /// (parented to <c>HWND_MESSAGE</c>) is not a top-level window and is not in the accessibility
-/// tree at all. The cost is recorded rather than hidden: message-only windows do not receive the
-/// broadcast <c>TaskbarCreated</c>, so an icon does not come back by itself if Explorer restarts
-/// under it. That is written on DEF-101's resolution instead of being papered over here.</para>
+/// tree at all.</para>
+///
+/// <para><b>Why the icon comes back by polling rather than by TaskbarCreated</b> (DEF-300). A
+/// message-only window receives no broadcast message, so this process is never told that the
+/// shell restarted, and an icon dropped by an Explorer restart never came back. The two ways out
+/// were a hidden TOP-LEVEL window that can receive <c>TaskbarCreated</c>, or asking the shell
+/// whether the icon is still there. The first one gives the fault back to the automation plane:
+/// the UIA lane binds to "a top-level window owned by this process", a second one would be a
+/// second candidate, and DEF-089 is already the record of what that costs - a run bound to the
+/// wrong window and reported eight destinations unreachable and three failures, every one of them
+/// a statement about the harness's handle. So the icon is watched instead, with
+/// <see cref="Shell_NotifyIconGetRect"/>: the shell's own answer about its own notification area,
+/// asked every couple of seconds while the setting is on, and the icon re-added when the answer is
+/// no. It costs one call per tick and it needs no window that anything else can mistake for the
+/// shell's.</para>
 /// </remarks>
 public sealed class NotificationAreaIcon
 {
@@ -47,6 +59,23 @@ public sealed class NotificationAreaIcon
     private IntPtr _window = IntPtr.Zero;
     private WndProcDelegate? _wndProc;   // held alive: the shell calls it from native code
     private string _registeredClass = "";
+
+    /// <summary>Serialises the UI thread's <see cref="Apply"/> against the watchdog's re-add.</summary>
+    private readonly object _gate = new();
+
+    /// <summary>Whether the setting says the icon is to be there. The watchdog acts only on this.</summary>
+    private bool _wanted;
+
+    private System.Threading.Timer? _watchdog;
+
+    /// <summary>How often the shell is asked whether it still holds the icon.</summary>
+    private static readonly TimeSpan WatchInterval = TimeSpan.FromSeconds(2);
+
+    /// <summary>
+    /// How many times the watchdog has put the icon back after finding it gone - the count an
+    /// Explorer restart moves, and the one the DEF-300 arm reads out of the startup log.
+    /// </summary>
+    public int RestoredCount { get; private set; }
 
     /// <param name="tooltip">
     /// What the icon says when hovered. Supplied as a function rather than a string so the caller
@@ -100,7 +129,89 @@ public sealed class NotificationAreaIcon
     }
 
     /// <summary>Place the icon, or remove it.</summary>
+    /// <remarks>
+    /// Placing it also arms the watchdog that puts it back after an Explorer restart (DEF-300);
+    /// removing it disarms the watchdog first, so a switch driven Off can never race a re-add.
+    /// </remarks>
     public bool Apply(bool shown)
+    {
+        lock (_gate)
+        {
+            _wanted = shown;
+            if (!shown) StopWatchdog();
+            var ok = ApplyLocked(shown);
+            if (shown && ok) StartWatchdog();
+            return ok;
+        }
+    }
+
+    /// <summary>
+    /// Refresh the hover text from the tooltip function, so the tip follows the router's state
+    /// instead of freezing at whatever it said when the icon was placed.
+    /// </summary>
+    /// <returns>False when there is no icon to modify, or the shell refused the change.</returns>
+    public bool RefreshTooltip()
+    {
+        lock (_gate)
+        {
+            if (!_wanted || _window == IntPtr.Zero) return false;
+            var data = NewData(NIF_TIP | NIF_SHOWTIP | NIF_GUID);
+            return Shell_NotifyIconW(NIM_MODIFY, ref data);
+        }
+    }
+
+    // ------------------------------------------------------------------ the watchdog (DEF-300)
+
+    private void StartWatchdog()
+    {
+        _watchdog ??= new System.Threading.Timer(_ => Watch(), null, WatchInterval, WatchInterval);
+    }
+
+    private void StopWatchdog()
+    {
+        _watchdog?.Dispose();
+        _watchdog = null;
+    }
+
+    /// <summary>
+    /// Re-assert the icon, and place it again if the shell will not take the change.
+    /// </summary>
+    /// <remarks>
+    /// <para><b>It re-asserts rather than asks, and that is a correction.</b> The first version of
+    /// this called <see cref="IsPlaced"/> and re-added on a false. Measured 2026-09-03 by
+    /// scripts/windows/uia/shell-lane.ps1: <c>Shell_NotifyIconGetRect</c> is not a reliable
+    /// question to ask across an Explorer restart. On one run, with NO instance of this
+    /// application running at all and the icon's record deleted, a restarted notification area
+    /// still answered S_OK for this GUID; on another, with the application running and the icon
+    /// placed, it answered 0x80004005 for two minutes. A watchdog whose trigger is that reader
+    /// inherits both errors - it sits still while the icon is gone, and it would re-add over an
+    /// icon that is there.</para>
+    ///
+    /// <para><c>NIM_MODIFY</c> has no such problem: it is answered by the shell's accept-or-refuse
+    /// on the icon this process owns, which is the same path <c>NIM_ADD</c> takes and the one
+    /// DEF-101's arms measure end to end. A refusal means the shell is not carrying this icon, and
+    /// the answer to that is to add it. It also carries the current tooltip while it is there, so
+    /// the tip follows the router without a second timer.</para>
+    /// </remarks>
+    private void Watch()
+    {
+        lock (_gate)
+        {
+            if (!_wanted || _window == IntPtr.Zero) return;
+
+            var reassert = NewData(NIF_TIP | NIF_SHOWTIP | NIF_GUID);
+            if (Shell_NotifyIconW(NIM_MODIFY, ref reassert)) return;
+
+            if (ApplyLocked(true))
+            {
+                RestoredCount++;
+                LastDetail = $"the shell refused a change to this icon, so it was placed again "
+                    + $"(restore #{RestoredCount})";
+            }
+        }
+    }
+
+    private bool ApplyLocked(bool shown)
     {
         if (shown)
         {
@@ -150,6 +261,7 @@ public sealed class NotificationAreaIcon
     public void Dispose()
     {
         Apply(false);
+        StopWatchdog();
         if (_window != IntPtr.Zero)
         {
             DestroyWindow(_window);
@@ -231,6 +343,7 @@ public sealed class NotificationAreaIcon
     // ------------------------------------------------------------------ the platform
 
     private const uint NIM_ADD = 0x0;
+    private const uint NIM_MODIFY = 0x1;
     private const uint NIM_DELETE = 0x2;
     private const uint NIM_SETVERSION = 0x4;
     private const uint NIF_MESSAGE = 0x1;

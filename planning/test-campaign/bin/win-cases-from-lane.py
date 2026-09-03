@@ -84,6 +84,18 @@ CONFIRM_PLANT_NOTE = (
     "every case is the router's own server list, read over the control API by the lane rather than "
     "reported by the app.")
 
+AMBIENT_PLANT_NOTE = (
+    "armed by a planted defect, watched twice on 2026-09-03, transcripts in "
+    "planning/evidence/WIN-SHELL/arming/def-301-planted-lane.txt and def-301-planted-lane-2.txt. Putting "
+    "AmbientSurfaceModel's default back to AtRest and never starting the poll - DEF-301 exactly as "
+    "it was filed - broke ambient.routerStopped, ambient.workInFlight, ambient.signInWaiting and "
+    "ambient.silence, each of them reporting the pane frozen at 'Router ready' / 'All systems "
+    "quiet. No active calls or queued items.' while the router was stopped or answering something "
+    "else. ambient.routerRunning HELD through that plant, because a surface frozen at 'Router "
+    "ready' satisfies an arm that expects 'Router ready' - which is why it stays unarmed and why "
+    "the section takes the router away first. The unit half was watched separately: "
+    "planning/evidence/WIN-SHELL/arming/def-301-unit-plant.txt.")
+
 ARMED_BY_PLANT = {
     "settings.launchAtLogin.effect": LAUNCH_PLANT_NOTE,
     "settings.persistence": LAUNCH_PLANT_NOTE,
@@ -94,6 +106,10 @@ ARMED_BY_PLANT = {
     "settings.requireConfirmation.effect": CONFIRM_PLANT_NOTE,
     "settings.requireConfirmation.accepted": CONFIRM_PLANT_NOTE,
     "settings.requireConfirmation.silence": CONFIRM_PLANT_NOTE,
+    "ambient.routerStopped": AMBIENT_PLANT_NOTE,
+    "ambient.workInFlight": AMBIENT_PLANT_NOTE,
+    "ambient.signInWaiting": AMBIENT_PLANT_NOTE,
+    "ambient.silence": AMBIENT_PLANT_NOTE,
 }
 
 # Which DECLARED control each lane row drives, keyed by the lane's own control id.
@@ -108,8 +124,47 @@ ARMED_BY_PLANT = {
 # surface declares is a fact somebody has to state. A control id absent from this table actuates
 # NOTHING, which is the honest default -- a naming row reads a name and has not driven anything.
 # The command the lane ran belongs in the case's `note`, and is written there.
+# WHICH ARMING TRANSCRIPTS A ROW MAY CITE, keyed by the lane's own control id.
+#
+# This used to be one blanket append: every row carrying a `recorder` cited all four of the
+# September 2nd transcripts. That put the notification-area icon's arming prose on rows those runs
+# never touched, which is the citation-to-a-run-that-never-happened failure this file's own header
+# warns about. A row cites the runs that were about it, and nothing else.
+SEPTEMBER_2 = [
+    "planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt",
+    "planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt",
+    "planning/evidence/WIN-SHELL/arming/icon-inert-and-no-confirmation-lane.txt",
+    "planning/evidence/WIN-SHELL/arming/icon-never-removed-and-answer-ignored-lane.txt",
+]
+SEPTEMBER_3 = [
+    "planning/evidence/WIN-SHELL/arming/def-301-planted-lane.txt",
+    "planning/evidence/WIN-SHELL/arming/def-301-planted-lane-2.txt",
+    "planning/evidence/WIN-SHELL/arming/def-301-unit-plant.txt",
+]
+# The Explorer rows cite one more run: the one where the reader itself failed. A row whose oracle
+# has been caught unable to say no has to carry that run, or its greens read as unqualified.
+EXPLORER_RUNS = SEPTEMBER_3 + [
+    "planning/evidence/WIN-SHELL/arming/def-300-oracle-unreliable-lane.txt",
+]
+ARMING_EVIDENCE = {
+    "ambient.routerStopped": SEPTEMBER_3,
+    "ambient.workInFlight": SEPTEMBER_3,
+    "ambient.signInWaiting": SEPTEMBER_3,
+    "ambient.routerRunning": SEPTEMBER_3,
+    "ambient.silence": SEPTEMBER_3,
+    "ambient.shellSurvivedRouterLoss": SEPTEMBER_3,
+    # The two Explorer rows have NEVER been watched to fail: on both planted runs the shell did
+    # not survive to place an icon and the arm read `unoracled`. They cite those runs because a
+    # failed attempt to arm a predicate is part of that predicate's record, not because they are
+    # armed - `armed` is false on both.
+    "settings.ambientIcon.explorerRestart.baseline": EXPLORER_RUNS,
+    "settings.ambientIcon.survivesExplorerRestart": EXPLORER_RUNS,
+}
+
 CONTROL_ACTUATES = {
     "settings.effect": ["Launch router daemon at sign-in"],
+    "settings.ambientIcon.explorerRestart.baseline": ["Show status in notification area"],
+    "settings.ambientIcon.survivesExplorerRestart": ["Show status in notification area"],
     "settings.ambientIcon.baseline": ["Show status in notification area"],
     "settings.ambientIcon.effect": ["Show status in notification area"],
     "settings.ambientIcon.silence": ["Show status in notification area"],
@@ -350,8 +405,8 @@ def main():
     # the measurement - and a census row that came back `unoracled` becomes an unoracled case
     # rather than being dropped, because a check that could not run and a check that found
     # nothing are the same green.
-    census_surface = {"settings": "SURF-038", "discover": "SURF-044"}
-    census_req = {"settings": "REQ-038", "discover": "REQ-039"}
+    census_surface = {"settings": "SURF-038", "discover": "SURF-044", "ambient": "SURF-050"}
+    census_req = {"settings": "REQ-038", "discover": "REQ-039", "ambient": "REQ-085"}
     for row in report.get("controls", []):
         control_id = str(row.get("id") or "")
         family = control_id.split(".", 1)[0]
@@ -371,18 +426,14 @@ def main():
                     "planning/evidence/WIN-SHELL/run/lane.log"]
         if family == "settings":
             evidence.append("planning/evidence/WIN-SHELL/run/uia-shell-settings.json")
-        else:
+        elif family == "discover":
             evidence.append("planning/evidence/WIN-SHELL/run/uia-shell-discover-detail.json")
         if row.get("recorder"):
-            # The two arming transcripts. A predicate nobody has watched fail is
-            # indistinguishable from one that cannot, so the runs where these went red are
-            # evidence in the same sense the green one is.
-            evidence.append("planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt")
-            evidence.append("planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt")
-            evidence.append(
-                "planning/evidence/WIN-SHELL/arming/icon-inert-and-no-confirmation-lane.txt")
-            evidence.append(
-                "planning/evidence/WIN-SHELL/arming/icon-never-removed-and-answer-ignored-lane.txt")
+            # The arming transcripts THIS row's predicate was watched in. A predicate nobody has
+            # watched fail is indistinguishable from one that cannot, so the runs where these went
+            # red are evidence in the same sense the green one is - and a run that never touched
+            # the row is not evidence about it at all.
+            evidence.extend(ARMING_EVIDENCE.get(control_id, SEPTEMBER_2))
 
         # The effect row is a different rung from the naming rows, and saying so is the point:
         # reading a name proves the tree publishes one, and only the effect row can tell a bound
@@ -397,16 +448,27 @@ def main():
         recorder = row.get("recorder")
         is_effect = control_id.endswith(".effect") or bool(recorder)
         reaches_the_machine = bool(recorder)
-        note = (
-            "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, "
-            "which runs out of process against the real shell binary in the interactive session. "
-            "The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE "
-            "(SettingsPresentation.cs) rather than restated in the harness, so a rename moves the "
-            "expectation with it instead of leaving the lane measuring a product that does not "
-            "ship. Controls are addressed by AutomationId, never by name: a UIA name search "
-            "returns the first element carrying that name anywhere in the tree, and this shell's "
-            "menu bar already holds a 'Router' and a 'Help'. The lane recorded: %s"
-        ) % (row.get("detail") or "")
+        if family == "ambient":
+            note = (
+                "Written from the ambient section of scripts/windows/uia/shell-lane.ps1, which "
+                "runs out of process against the real shell binary in the interactive session and "
+                "DRIVES THE ROUTER FROM OUTSIDE THE APPLICATION: the lane owns the router the "
+                "shell is pointed at - its own node process, on its own port, over its own "
+                "MCP_ROUTER_HOME - and these rows stop it, put a stand-in on that port and start "
+                "it again while the shell is told nothing at all. What is read back is the pane "
+                "footer, addressed by AutomationId, never by name. The lane recorded: %s"
+            ) % (row.get("detail") or "")
+        else:
+            note = (
+                "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, "
+                "which runs out of process against the real shell binary in the interactive "
+                "session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE "
+                "(SettingsPresentation.cs) rather than restated in the harness, so a rename moves "
+                "the expectation with it instead of leaving the lane measuring a product that does "
+                "not ship. Controls are addressed by AutomationId, never by name: a UIA name "
+                "search returns the first element carrying that name anywhere in the tree, and "
+                "this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: %s"
+            ) % (row.get("detail") or "")
         if control_id.endswith(".effect") and not recorder:
             note += (
                 " THIS IS THE ROW THAT SEPARATES A BOUND CONTROL FROM AN INERT ONE. It toggles "

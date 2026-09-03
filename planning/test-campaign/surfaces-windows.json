@@ -218,5 +218,16 @@
       "discover.detail.argv"
     ],
     "note": "WIN7's detail dialog, addressable since DEF-075's fix: every x:Named element carries an AutomationProperties.AutomationId, and the containers that publish no text of their own carry a Name. The text elements deliberately do not - a TextBlock's own Text IS its accessible name and a static Name would overwrite it, so the controls listed here are ids. Opened by shell-lane.ps1 section 3b, which needs the registry search to return a store row first; where it does not, that census row reads `unoracled` rather than passing."
+  },
+  {
+    "id": "SURF-050",
+    "title": "Windows ambient status readout - the navigation pane footer",
+    "route": "app://windows/shell#ambient-status",
+    "lane": "windows-glass",
+    "status": "ready",
+    "destinationOf": "SURF-030",
+    "controls": [],
+    "note": "WHERE THE AMBIENT STATE IS ACTUALLY ON SCREEN. SURF-041, the notification-area flyout, is the surface WIN11 describes and nothing in the build mounts it (DEF-380). This one is the pane footer the shell draws on every destination: two lines, ambient.status.title and ambient.status.detail, painted from the reading RouterStatusReader takes off the router's own /status every two seconds. It is in the pane rather than on a board because an ambient claim that appears on one destination is not ambient.\n\nIt declares NO controls, and that is not an omission: it is a readout. Nothing on it can be pressed, so nothing on it belongs in an actuation denominator - the cases that read it carry no `actuates` for the same reason.",
+    "controlsSource": "app/windows/MCPRouter.Shell/Shell/ShellWindow.xaml, the NavigationView.PaneFooter block. Read out of the source rather than off a UIA dump: a list harvested from a build cannot contain a control the build failed to draw."
   }
 ]

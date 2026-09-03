@@ -30,8 +30,8 @@
                     CornerRadius="{ThemeResource ControlCornerRadius}"
                     Padding="12">
                 <StackPanel Spacing="4">
-                    <TextBlock x:Name="StatusTitleText" Text="Router ready" FontWeight="SemiBold" />
-                    <TextBlock x:Name="StatusDetailText" Text="All systems quiet. No active calls or queued items."
+                    <TextBlock x:Name="StatusTitleText" FontWeight="SemiBold" />
+                    <TextBlock x:Name="StatusDetailText"
                                Style="{ThemeResource CaptionTextBlockStyle}"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                TextWrapping="Wrap" />

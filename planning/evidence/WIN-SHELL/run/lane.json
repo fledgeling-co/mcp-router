@@ -4,5 +4,5 @@
     "verdict":  "pass",
     "schema":  "win-shell.uia-lane/1",
     "why":  "pass: 10 of 10 destination(s) were actuated through the automation plane and read back distinct, correctly-titled trees, out of process, without the target ever being foregrounded. 0 unreachable and 0 unactuable are reported, not counted as passes.",
-    "finishedAt":  "2026-09-03T00:27:10.2293786Z"
+    "finishedAt":  "2026-09-03T02:56:41.5051628Z"
 }

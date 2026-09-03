@@ -1,0 +1,9 @@
+  Failed MCPRouter.Shell.Tests.AmbientStatusMappingTests.AnUnreadableAnswer_IsNeverAtRest(body: "") [19 ms]
+   Assert.Equal() Failure: Values differ
+  Failed MCPRouter.Shell.Tests.AmbientStatusMappingTests.AnUnreadableAnswer_IsNeverAtRest(body: "not json at all") [< 1 ms]
+   Assert.Equal() Failure: Values differ
+  Failed MCPRouter.Shell.Tests.AmbientSurfaceModelTests.Apply_ReportsWhetherTheRenderedStateMoved [3 ms]
+   Assert.True() Failure
+  Failed MCPRouter.Shell.Tests.AmbientSurfaceModelTests.BeforeAnyReading_TheSurfaceDoesNotClaimTheRouterIsReady [< 1 ms]
+   Assert.Equal() Failure: Values differ
+Failed!  - Failed:     4, Passed:   688, Skipped:     0, Total:   692, Duration: 4 s - MCPRouter.Shell.Tests.dll (net8.0)

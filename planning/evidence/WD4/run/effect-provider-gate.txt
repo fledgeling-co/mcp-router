@@ -1,0 +1,15 @@
+effect providers - an effect claim names code that can perform it, or says why none can
+  41 requirement row(s) read; 17 declare an effect
+    16 name a provider, 1 are declared vacuous with a reason
+    40 provider path token(s) checked for resolution; 0 row(s) carried a provider this gate could read no path out of and therefore checked nothing in
+
+  WHAT THIS GREEN DOES NOT COVER
+    * R3 checks that the FILE exists, never that the symbol inside it does. A renamed
+      function in a surviving file passes, and a `:line` is not followed.
+    * A provider this gate could read no path out of is counted above and checked by
+      nothing. Prose in that field buys a pass on R3.
+    * `vacuous` with a reason is a PASS here and is still a product gap. It is a claim
+      the register admits it cannot keep, not a claim it has kept.
+
+exit: 0
+gate exit 0

@@ -11,7 +11,8 @@
  * So "both answer 500" was a reading of two source files, and this makes it a measurement of one of
  * them. The Swift half stays a reading, and this file says so rather than implying otherwise.
  *
- * THE DENIAL IS THE FILESYSTEM'S, NOT A MOCK. `saveManifest` (`src/manifest.ts:136`) writes
+ * THE DENIAL IS THE FILESYSTEM'S, NOT A MOCK. `saveManifest`
+ * (`src/manifest.ts:136` at `42aef112`, reads "export function saveManifest") writes
  * `${path}.tmp-${process.pid}` and renames it over `path`. This lane creates a DIRECTORY at exactly
  * that temp path before calling, so `writeFileSync` is refused with `EISDIR` by the real filesystem
  * at exactly the step that makes the change durable. The lock sidecar and the manifest read are
@@ -184,9 +185,11 @@ console.log(`    body   ${effect.body}`);
 console.log();
 console.log('  AGAINST THE SWIFT PORT, WHICH THIS LANE CANNOT RUN. `swift` and `xcodebuild` are');
 console.log('  absent on this machine, so the Swift side below is READ, not measured:');
-console.log('    AuthRoutes.swift:171-177 catches the save and returns');
+console.log('    AuthRoutes.swift:176 at `42aef112`, reads "failed to write manifest"');
+console.log('      - catches the save and returns');
 console.log('      (500, {"error": "failed to write manifest: <error.localizedDescription>"})');
-console.log('    control.ts:600-603 catches it and returns');
+console.log('    control.ts:602 at `42aef112`, reads "as Error).message"');
+console.log('      - catches it and returns');
 console.log('      (500, {"error": "<err.message>"})');
 console.log('    The STATUS agrees. The BODY does not: the port prefixes a sentence of its own.');
 

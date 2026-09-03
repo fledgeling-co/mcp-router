@@ -451,9 +451,11 @@ def main():
     # here is SKIPPED with a printed finding, so a new lane section that nobody registered here
     # reports nothing and looks exactly like a section that was never written.
     census_surface = {"settings": "SURF-038", "discover": "SURF-044",
-                      "cleanup": "SURF-036", "ambient": "SURF-050"}
+                      "cleanup": "SURF-036", "ambient": "SURF-050",
+                      "shell": "SURF-030"}
     census_req = {"settings": "REQ-038", "discover": "REQ-039",
-                  "cleanup": "REQ-090", "ambient": "REQ-085"}
+                  "cleanup": "REQ-090", "ambient": "REQ-085",
+                  "shell": "REQ-062"}
     # The per-family UIA dump. `ambient` is an explicit None rather than a missing key: that
     # section reads the pane footer live and writes no uia-shell-ambient.json, so it has no dump
     # to cite. Spelling the absence out keeps a family that HAS a dump and was never registered
@@ -464,6 +466,12 @@ def main():
         "discover": "planning/evidence/WIN-SHELL/run/uia-shell-discover-detail.json",
         "cleanup": "planning/evidence/WIN-SHELL/run/uia-shell-cleanup.json",
         "ambient": None,
+        # `shell` reads the NavigationView's own accessible name off the live tree and writes no
+        # per-family dump either. Registered at Wave C integration: the arm existed and this table
+        # did not know the family, so the generator was printing its finding on every run and the
+        # measurement reached no case - a control that was actually taken and counted nowhere,
+        # which is the shape SURF-030's own census exists to make impossible.
+        "shell": None,
     }
     for row in report.get("controls", []):
         control_id = str(row.get("id") or "")

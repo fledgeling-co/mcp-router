@@ -4058,3 +4058,63 @@ Five runners, opus-5 at medium effort, concurrency two, all five reported.
 Reckoning 1.9.4 at `planning/reckoning/2026-09-03`: 630 rows, gate clean, ratchet clean.
 `unjoined 90 · broken 72 · unmeasured 23 · undecided 25 · waived 88 · verified-done 332`.
 Remaining work fell 201 -> 198, verified-done rose 312 -> 332 (+20). Scheduled members rose 71 -> 83 because joining briefs to failing cases moves unjoined decision work into scheduled work.
+
+
+## 2026-09-03 · Wave C landed, and four instruments that integration changed the meaning of
+
+Four runners, opus-5 at medium effort, concurrency two, all four reported. Merged by resolving on
+each runner's own branch and fast-forwarding `main`, because G9 refuses a conflict-resolution
+commit on `main` and only lets an auto-resolving merge through.
+
+| Runner | Items | Settled by |
+|---|---|---|
+| `wd1-ambient-truth` | DEF-301, DEF-300 | `RouterStatusReader` polls the router's own `/status`; `AmbientRouterState.Unknown` placed FIRST so `default()` means "nothing has read the router yet". Recorder is a router driven from outside the app: the lane stops its own node router, puts a stand-in on the port, starts the real one again. DEF-300 **answered, not fixed** — the icon does come back, and the finding is that `Shell_NotifyIconGetRect` is not dependable in either direction, so the baseline grades `unoracled` rather than `fail`. Filed DEF-380, DEF-381. |
+| `wd2-cleanup-board` | DEF-302 | `PopulateSampleData` DELETED, not bypassed; rows reach the model only through `Adopt(ServersEnvelope)`. Removal routed through `ControlApiClient.RemoveServerAsync`, gated by the setting read at the moment of the press. Four arms graded on the router's own listing, never the dialog. The strongest reading is the one with no plant at all: the same three arms went red against **main's own tree**, rebuilt clean. Filed DEF-400, DEF-401, DEF-402. |
+| `wd3-surface-plane` | DEF-131 | All 47 surfaces declare `plane`; `_OPERATION_SHAPE` deleted rather than left beside the new rule. `arm-surface-plane.py` plants eight states against a scratch copy and runs BOTH censuses, so each reading is a difference. Filed DEF-420 (coverage deliberately given up) and DEF-421. |
+| `wd4-router-writes` | R21, R10, REQ-016 | Toolchain checked first: `swift` and `xcodebuild` absent, so every Swift claim says so in its own words. **R21 and R10 were already shipped** — the brief's premise was stale, and what was left was the acceptance line. `r21-approve-write-denied.mjs` drives the shipped reference against a real `EISDIR` at the durable step; ACLs were tried first and **failed silently**, which is recorded rather than dropped. Filed DEF-440, DEF-441, DEF-442. |
+
+### What only the merged tree could show
+
+Four things were invisible to every runner in its own worktree, and each was found by running the
+instruments on the merge rather than by reading the reports.
+
+- **wd1's DEF-381 and wd2's DEF-402 are one fact.** wd1 filed "MCPRouter.Shell terminated in five
+  of eight runs, four unhandled-exception routes armed and silent" as a defect it could not
+  explain. wd2 found the cause: the lane's kill was unscoped and was terminating *any*
+  `MCPRouter.Shell`, including the other runner's, and the victim reported a crash wherever it
+  happened to be reading. Neither could have seen the whole of it alone.
+- **wd2's fix made wd1's arm measurable.** `settings.ambientIcon.survivesExplorerRestart` is
+  `armed: false` in wd1's report — never watched to fail, because the shell died on both planted
+  runs. On the merged tree it PASSES. The arm was not weak; the harness was killing its subject.
+- **`arm-surface-plane` stopped being a differential the moment it was committed** — DEF-443. It
+  read `PREVIOUS = "HEAD:..."`, which is the previous census only while the new one is
+  uncommitted. Merged, it compared the file with itself: all six EFFECT plants read red on both
+  sides and DEF-131's own exhibit stopped being a difference. Pinned to `42aef112`.
+- **DEF-421 was diagnosed as the wrong half.** SURF-038's `controlsSource` already named
+  `SettingsPresentation.cs`; it named it without the `app/windows/` prefix, and the reconciler
+  reads only the repo-relative form it documents. A registry correct in substance produced a
+  stale-source finding through an abbreviation — and while it was red,
+  `arm-win-surface-reconcile.py` stopped at BASELINE IS NOT GREEN and measured nothing. It now
+  runs 7 of 7.
+
+### Integration corrections beyond the merge
+
+- `shell.navigationPane` was a measured control that reached no case: the generator printed its
+  finding on every run and the family was never registered. Registered to SURF-030 / REQ-062.
+- SURF-050 was the one surface of 48 with no `plane` — wd1 branched before the field existed. Set
+  `glass` from what the row itself says about where it is drawn, with the reasoning recorded, not
+  `undetermined`, which is reserved for a plane nobody has worked out.
+- Five bare citations in wd4's evidence given anchor and tree. **Two were wrong by a few lines**
+  while bare — the Swift do/catch is 173-180, not 171-177 — and would have read DRIFTED the moment
+  they carried an anchor. The corpus bare count fell 707 → 700.
+- Four requirements carried an effect outside the census's closed vocabulary, so they counted as
+  declaring no effect at all. REQ-090 and REQ-095 were this wave's; REQ-040 and REQ-080 predate it
+  and were fixed too, because a gate that is red anyway cannot catch the next one.
+- High-water mark raised 386 → 436, the raise three runners deferred to integration.
+
+### Where it stands
+
+Build clean, 699 Windows tests passing, the lane at **10 of 10 destinations and 34 control arms,
+none failing** — up from wd1's 30 and wd2's 26 because the merge carries both sets. Fourteen
+portable gates, `control-census`, `effect-class-census`, `effect-provider-gate`,
+`win-surface-reconcile`, `arm-surface-plane` and `arm-win-surface-reconcile` all exit 0.

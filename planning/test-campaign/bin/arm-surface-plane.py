@@ -72,7 +72,20 @@ CAMPAIGN = ROOT / "planning" / "test-campaign"
 # The commit whose census this branch replaced. Read from git rather than kept as a vendored copy:
 # a copy would be a second thing to keep in step, and the point of the comparison is that the file
 # on the other side is the one that was actually shipped.
-PREVIOUS = "HEAD:planning/test-campaign/bin/control-census.py"
+#
+# PINNED TO A SHA, AND IT HAS TO BE. This read `HEAD:` until Wave C integration, which is correct
+# for exactly as long as the new census is UNCOMMITTED - the state the arm was written and watched
+# in. The moment the commit that earns it lands, `HEAD:` resolves to the NEW census and the arm
+# compares the file against itself: all six EFFECT plants read red on both sides, the three that
+# were the whole point (DEF-131's exhibit among them) stop being differences, and the arm exits 1
+# reporting the collapse rather than a defect. An instrument that measures its subject only until
+# its subject ships is the failure this campaign is built against, and it was found by running the
+# arm on the merged tree rather than by reading it.
+#
+# 42aef112 is the merge base of Wave C - the last commit holding `_OPERATION_SHAPE`, the string
+# rule DEF-131 deleted. Moving this pin means declaring a new "before", which is a decision with a
+# consequence for what the DECLARED SILENCE arms mean, so it is written here rather than tracked.
+PREVIOUS = "42aef112:planning/test-campaign/bin/control-census.py"
 
 
 def plant_glass_declares_operations(inv: dict) -> None:

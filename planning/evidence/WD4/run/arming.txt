@@ -5,7 +5,8 @@ Tree: 42aef112 on ai/wd4-router-writes
 ==============================================================
 ARM 1 - scripts/acceptance/r21-approve-write-denied.mjs
 PLANT: DEF-049's swallowed save restored into the compiled reference,
-       dist/control.js:520 -> try { saveManifest(...) } catch {}
+       dist/control.js:520 at `42aef112`, reads "saveManifest(deps.cfg.manifestPath"
+       -> wrapped as try { saveManifest(...) } catch {}
 ==============================================================
 R21 — the node reference's approve route against a refused manifest write
   home C:\Users\rhode\AppData\Local\Temp\r21-approve-gKJmDI
@@ -32,9 +33,11 @@ R21 — the node reference's approve route against a refused manifest write
 
   AGAINST THE SWIFT PORT, WHICH THIS LANE CANNOT RUN. `swift` and `xcodebuild` are
   absent on this machine, so the Swift side below is READ, not measured:
-    AuthRoutes.swift:171-177 catches the save and returns
+    AuthRoutes.swift:176 at `42aef112`, reads "failed to write manifest"
+      - catches the save and returns
       (500, {"error": "failed to write manifest: <error.localizedDescription>"})
-    control.ts:600-603 catches it and returns
+    control.ts:602 at `42aef112`, reads "as Error).message"
+      - catches it and returns
       (500, {"error": "<err.message>"})
     The STATUS agrees. The BODY does not: the port prefixes a sentence of its own.
 
@@ -66,9 +69,11 @@ R21 — the node reference's approve route against a refused manifest write
 
   AGAINST THE SWIFT PORT, WHICH THIS LANE CANNOT RUN. `swift` and `xcodebuild` are
   absent on this machine, so the Swift side below is READ, not measured:
-    AuthRoutes.swift:171-177 catches the save and returns
+    AuthRoutes.swift:176 at `42aef112`, reads "failed to write manifest"
+      - catches the save and returns
       (500, {"error": "failed to write manifest: <error.localizedDescription>"})
-    control.ts:600-603 catches it and returns
+    control.ts:602 at `42aef112`, reads "as Error).message"
+      - catches it and returns
       (500, {"error": "<err.message>"})
     The STATUS agrees. The BODY does not: the port prefixes a sentence of its own.
 
@@ -118,3 +123,16 @@ effect providers - an effect claim names code that can perform it, or says why n
 
 exit: 0
 REVERTED exit 0
+
+==============================================================
+CITATION FRAME ADDED AT WAVE C INTEGRATION, 2026-09-03
+==============================================================
+The five path:line citations above were written BARE - a line number with no anchor phrase and
+no tree - which `planning/citation-gate.py` ratchets because a bare citation cannot be checked
+and so cannot fail. Each has been given its anchor and the tree it was read at, and two were
+WRONG BY A FEW LINES while bare: the Swift do/catch is at 173-180 and not 171-177, and the
+TypeScript catch is at 601-604 and not 600-603. Both would have read DRIFTED the moment they
+carried an anchor, which is the argument for the form rather than an argument against these
+runs - the measurements they wrap are unaffected, and the lane was re-run at integration on the
+merged tree and reproduced: exit 0, EISDIR at the durable step, baseline/effect/silence intact.
+The transcript in r21-approve-write-denied.txt is that re-run, not the original.

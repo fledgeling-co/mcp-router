@@ -303,6 +303,7 @@ planning/citation-gate.py	gate	planning/citation-gate.py	static	no router invoca
 planning/claim-sweep.py	gate	planning/claim-sweep.py	static	no router invocation matched	-
 planning/defect-status-vocabulary-gate.py	gate	planning/defect-status-vocabulary-gate.py	static	no router invocation matched	make:lint
 planning/design-divergence-marker-gate.py	gate	planning/design-divergence-marker-gate.py	static	no router invocation matched	make:lint
+planning/effect-provider-gate.py	gate	planning/effect-provider-gate.py	static	no router invocation matched	make:lint
 planning/evidence-citation-gate.py	gate	planning/evidence-citation-gate.py	static	no router invocation matched	make:lint
 planning/evidence/F6/measure-update-surface.py	gate	planning/evidence/F6/measure-update-surface.py	static	no router invocation matched	-
 planning/evidence/F6/red-green.py	gate	planning/evidence/F6/red-green.py	swift	argv ["swift", …]	-
@@ -361,6 +362,7 @@ planning/test-campaign/bin/arm-r22-diagnostics.sh	gate	planning/test-campaign/bi
 planning/test-campaign/bin/arm-r26-auth-expiry.py	gate	planning/test-campaign/bin/arm-r26-auth-expiry.py	static	no router invocation matched	-
 planning/test-campaign/bin/arm-r27-health.sh	gate	planning/test-campaign/bin/arm-r27-health.sh	swift	swift test	-
 planning/test-campaign/bin/arm-suites.py	gate	planning/test-campaign/bin/arm-suites.py	swift	argv ["swift", …]	-
+planning/test-campaign/bin/arm-surface-plane.py	gate	planning/test-campaign/bin/arm-surface-plane.py	static	no router invocation matched	-
 planning/test-campaign/bin/arm-surface-reconcile.py	gate	planning/test-campaign/bin/arm-surface-reconcile.py	static	no router invocation matched	make:surface-reconcile-arm
 planning/test-campaign/bin/arm-win-surface-reconcile.py	gate	planning/test-campaign/bin/arm-win-surface-reconcile.py	static	no router invocation matched	-
 planning/test-campaign/bin/blind-vocabulary-arm.py	gate	planning/test-campaign/bin/blind-vocabulary-arm.py	static	no router invocation matched	make:lint
@@ -482,6 +484,7 @@ scripts/acceptance/parity-selftests.sh	lane	scripts/acceptance/parity-selftests.
 scripts/acceptance/parity-state.sh	lane	scripts/acceptance/parity-state.sh	both	node <path> + swift router binary	scripts/acceptance/parity-gate.sh
 scripts/acceptance/parity-stream.sh	lane	scripts/acceptance/parity-stream.sh	both	node <path> + swift router binary	scripts/acceptance/parity-gate.sh
 scripts/acceptance/parity-suite.sh	lane	scripts/acceptance/parity-suite.sh	swift	swift test	scripts/acceptance/parity-gate.sh
+scripts/acceptance/r21-approve-write-denied.mjs	lane	scripts/acceptance/r21-approve-write-denied.mjs	swift	xcodebuild	-
 scripts/acceptance/r22-diagnostics.sh	lane	scripts/acceptance/r22-diagnostics.sh	swift	swift router binary	-
 scripts/acceptance/r26-auth-expiry.sh	lane	scripts/acceptance/r26-auth-expiry.sh	swift	swift router binary	-
 scripts/acceptance/r27-health.sh	lane	scripts/acceptance/r27-health.sh	swift	swift router binary	planning/test-campaign/bin/arm-r27-health.sh

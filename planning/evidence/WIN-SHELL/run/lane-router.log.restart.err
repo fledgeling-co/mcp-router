@@ -1,4 +1,4 @@
-2026-09-03T02:55:51.612Z info  mcp-router listening on http://127.0.0.1:59780/mcp
-2026-09-03T02:55:51.616Z info  serving 0 tools from 0 upstreams; 0 open, idle window 300s
-2026-09-03T02:55:51.616Z warn  supervision: no supervisor on win32: nothing restarts this process when it exits, so an exit is a stop. WIN23 decides what supervises the router here.
-2026-09-03T02:55:51.616Z warn  config watcher: nothing watches ~/.claude.json on win32: a server added there is NOT adopted on its own, so run `mcpr watch` yourself after `claude mcp add`. WIN23 decides what runs it here.
+2026-09-03T04:48:55.893Z info  mcp-router listening on http://127.0.0.1:62755/mcp
+2026-09-03T04:48:55.912Z info  serving 0 tools from 0 upstreams; 0 open, idle window 300s
+2026-09-03T04:48:55.913Z warn  supervision: no supervisor on win32: nothing restarts this process when it exits, so an exit is a stop. WIN23 decides what supervises the router here.
+2026-09-03T04:48:55.915Z warn  config watcher: nothing watches ~/.claude.json on win32: a server added there is NOT adopted on its own, so run `mcpr watch` yourself after `claude mcp add`. WIN23 decides what runs it here.

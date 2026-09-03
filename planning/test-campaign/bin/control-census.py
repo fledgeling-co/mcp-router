@@ -91,10 +91,61 @@ to be: they are two-word operation names on an operation surface, which is what 
 The check cannot tell those from a bare command name and does not try — that distinction is what
 the separate denominator makes visible instead of hiding.
 
-A control whose name is shaped like an API call (`Something.Method`, PascalCase either side of the
-dot) is refused from `controls` and pointed at `operations`, which is the arm that reddens if
-somebody merges the two populations back together. It cannot catch an operation whose name is
-ordinary prose; that limit is stated rather than papered over.
+WHICH FIELD A MEMBER BELONGS IN IS THE SURFACE'S OWN DECLARATION — DEF-131, closed here
+----------------------------------------------------------------------------------------
+Until 2026-09-03 that question was answered by the SHAPE OF THE NAME: a `controls` entry matching
+`Something.Method` (PascalCase either side of a dot) was refused and pointed at `operations`. That
+rule caught SURF-045 and SURF-046 and could not catch SURF-047, and the measurement is DEF-131's:
+moving SURF-045 and SURF-046 back from `operations` to `controls` reddened with four findings and
+moving SURF-047 back reddened with NONE, because `MakeAppx pack`, `winget validate`,
+`Add-AppxPackage` and `Remove-AppxPackage` are indistinguishable, to any string rule this file
+could carry, from a button somebody labelled that. Widening the regex was not available either:
+`winget validate` is a legitimate operation name and `Reset history` is a legitimate control name,
+and no string rule separates them.
+
+So the shape rule is GONE — deleted, not kept beside this one to disagree with it — and membership
+is derived from a property the SURFACE declares in `inventory.json`:
+
+    plane: glass          a person can see it and press it. Its members are `controls`.
+                          Declaring `operations` here is a finding.
+    plane: headless       no glass at all — a Scheduled Task, a COM activator, an HTTP route, the
+                          daemon itself. Its members are `operations`. Declaring `controls` here
+                          is a finding.
+    plane: mixed          the surface genuinely has both halves over one subject. BOTH fields are
+                          allowed, which means this file cannot decide the question for these rows
+                          and says so on its own line rather than counting them as defended. A
+                          `mixed` row must carry a `planeNote` saying what each half is, so the
+                          escape hatch costs a written justification and stays visible.
+    plane: undetermined   nobody has worked out which. Permitted only while the surface declares
+                          NOTHING; a member declared under an undetermined plane is a finding,
+                          because that is a guess about the denominator wearing a declaration's
+                          clothes.
+
+A surface with no `plane`, or with a value not on that list, is a finding. There is no default: a
+silent default is the same guess this field exists to refuse.
+
+`command_shape()` below is NOT the old rule and is kept deliberately. It answers a different
+question — whether a string is an invocation rather than a declared name at all — and it never
+assigns a member to a field, so it cannot disagree with the plane. `dotnet test app/x` is refused
+on a headless plane exactly as it is on glass.
+
+WHAT THE PLANE FIELD CANNOT DECIDE
+----------------------------------
+A surface that is partly glass and partly not is a real shape and `plane` forces one word onto it.
+Two rows in this registry are that shape and are declared `mixed` for it: SURF-046, whose declared
+members are notifier calls with no glass while the toast they raise carries two buttons a person
+presses (REQ-036, undriven), and SURF-022, whose route is measured over the wire and also renders
+a consent interstitial CASE-0157 photographs. On those two rows the misfiling class is UNDEFENDED
+and the output says so by name. A third, SURF-047, is declared `headless` although an MSIX package
+also installs from a double-click in File Explorer: the value describes the half this campaign
+enumerated, and the unenumerated half is written into its `planeNote` rather than into a plane
+value nothing has measured.
+
+The plane also says nothing about a member misfiled INSIDE its own plane's field — a `Foo.Bar` API
+name declared under `controls` on a glass board is a control by declaration here, and the deleted
+shape rule did refuse that one case. That is coverage this change gave up rather than gained;
+DEF-420 carries it, and `bin/arm-surface-plane.py` plants it against both censuses so the loss is
+measured in both directions rather than admitted in a sentence.
 
 THE RULES, WHICH ARE UPSTREAM'S AND NOT THIS FILE'S
 ---------------------------------------------------
@@ -123,8 +174,9 @@ EXITS
     1  a case actuates a name its surface never declared, OR `controlsUnactuatable` /
        `operationsUnactuatable` names something the surface never declared, OR it excuses one a
        passing case actually drives, OR a command-shaped string was written into `actuates` or into
-       a declared list, OR a `controls` entry is shaped like an operation and belongs in
-       `operations` — every one of these is fixable in the registry right now, unlike an inert
+       a declared list, OR a surface declares no `plane` or an unrecognised one, OR it
+       declares a member under a field its plane does not carry, OR a `mixed` row carries no
+       `planeNote` — every one of these is fixable in the registry right now, unlike an inert
        surface.
     2  no surface declares any controls or operations, so there is no denominator. This is the
        state G28 was written to end, and it is an exit rather than a quiet zero for the reason the
@@ -166,9 +218,15 @@ _EXT = re.compile(r"\.(?:ps1|psm1|exe|dll|py|sh|cmd|bat|csproj|sln|cs|xaml|swift
                   r"(?:$|[\s'\":;,])")
 _CALL = re.compile(r"[A-Za-z0-9_\]\)]\(")
 _SHELL = re.compile(r"&&|\|\||[|`]|\s>\s|\$\(")
-# `Something.Method`, PascalCase both sides. `discover.detail.root` (all lower) is an
-# AutomationId and is not this; `Add-AppxPackage` (no dot) is not this either.
-_OPERATION_SHAPE = re.compile(r"^[A-Z][A-Za-z0-9_]*(?:\.[A-Z][A-Za-z0-9_]*)+$")
+# Which declared field each plane may carry. `undetermined` maps to no field at all: it is a
+# statement that nobody has worked out the answer, and a surface making that statement while
+# declaring members has guessed rather than deferred.
+PLANE_FIELDS: dict[str, frozenset[str]] = {
+    "glass": frozenset({"controls"}),
+    "headless": frozenset({"operations"}),
+    "mixed": frozenset({"controls", "operations"}),
+    "undetermined": frozenset(),
+}
 
 
 def command_shape(name: str) -> str:
@@ -226,7 +284,36 @@ def main() -> int:
     titles: dict[str, str] = {}
     strays: list[str] = []
 
+    # THE PLANE, read per surface before anything is counted. Every surface must carry one:
+    # there is no default, because a default is a guess about the denominator that later reads
+    # as a declaration (DEF-131).
+    mixed_rows: list[str] = []
     for s in inventory.get("surface", []):
+        sid, plane = s["id"], s.get("plane")
+        declares = [field for _k, field, _m, _e in KINDS if s.get(field)]
+        if plane not in PLANE_FIELDS:
+            strays.append(
+                f"{sid} declares `plane`: {plane!r}, which is not one of "
+                f"{', '.join(sorted(PLANE_FIELDS))}. The plane is what decides whether this "
+                f"surface's members are `controls` a person presses or `operations` a lane "
+                f"calls, and nothing here guesses it — DEF-131.")
+        else:
+            for field in declares:
+                if field not in PLANE_FIELDS[plane]:
+                    allowed = " or ".join(f"`{f}`" for f in sorted(PLANE_FIELDS[plane])) \
+                        or "nothing at all"
+                    strays.append(
+                        f"{sid} is declared `plane`: {plane} and declares {len(s[field])} "
+                        f"member(s) under `{field}`. A {plane} surface declares {allowed}. "
+                        f"Either the members are in the wrong field or the plane is wrong; the "
+                        f"census will not decide which — DEF-131.")
+            if plane == "mixed":
+                mixed_rows.append(sid)
+                if not str(s.get("planeNote") or "").strip():
+                    strays.append(
+                        f"{sid} is declared `plane`: mixed and carries no `planeNote`. `mixed` "
+                        f"is the value that switches this check off for a row, so it costs a "
+                        f"written statement of what each half is — DEF-131.")
         for kind, field, msg_field, excuse_field in KINDS:
             if not s.get(field):
                 continue
@@ -259,11 +346,6 @@ def main() -> int:
                 strays.append(f"{sid} declares `{name}` under `{kind}s` and it {why}. `{kind}s` "
                               f"names what the SURFACE carries; the command a lane ran belongs in "
                               f"the case's `note`.")
-            elif kind == "control" and _OPERATION_SHAPE.match(name):
-                strays.append(f"{sid} declares `{name}` under `controls` and it is shaped like an "
-                              f"API call, not something a person can press. Non-glass planes "
-                              f"declare `operations`, which the census counts against its own "
-                              f"denominator — DEF-080.")
 
     actuated: dict[tuple[str, str], set[str]] = {k: set() for k in declared}
     claimed: dict[tuple[str, str], set[str]] = {k: set() for k in declared}
@@ -366,6 +448,14 @@ def main() -> int:
     else:
         print("Operations: none declared. No surface in this registry names an operation a lane "
               "calls, which is a fact about the registry rather than about the product.")
+    if mixed_rows:
+        print(f"            UNDEFENDED: {len(mixed_rows)} surface(s) are declared `plane`: mixed "
+              f"— {', '.join(sorted(mixed_rows))} — and carry both halves over one subject, so "
+              f"nothing here can decide which field a new member belongs in. Those rows are "
+              f"checked by a person reading them. DEF-131.")
+    else:
+        print("            No surface is declared `plane`: mixed, so every declared member's "
+              "field is derivable from its surface's own plane. DEF-131.")
     print("            The two counts above are NEVER added. A control is something a person can "
           "press on glass; an operation is a call a lane makes on a plane with no glass at all "
           "(a Scheduled Task, a COM activator, an MSIX package). DEF-080.")

@@ -5973,5 +5973,32 @@
       "planning/evidence/WD4/run/arming.txt"
     ],
     "note": "NOT A PRODUCT MEASUREMENT. Nothing here is observed on any surface and `surface` is null on purpose: the gate reads the register, and a green means the register's effect claims are accountable, never that the effects happen. Enrolled in `make lint` beside `defect-status-vocabulary-gate.py`, both the check and its selftest.\n\nIt exists because `vacuity-check.py` REPORTS this state and cannot refuse it - it lives under `vendor/`, pinned by checksum, and this repository may not edit it - so its finding was carried forward run after run. The rule is a disjunction rather than a count, because a gate written to `9 of 9 named` would be satisfied by somebody typing a plausible filename into the field: name a provider that resolves, OR record the claim `vacuous` and say in `providerNote` what is missing. REQ-016 takes the second branch and passes deliberately - the gate holds the absence visible rather than answering DEF-440's question.\n\nBlind spots it prints on every clean run: R3 checks that the FILE exists and never that the symbol inside it does, a `:line` is not followed, and a provider field carrying only prose is counted as checked-by-nothing rather than passed quietly. 40 provider path tokens resolve across 16 bound rows at 42aef112; the unreadable-token count is 0."
+  },
+  {
+    "id": "CASE-0510",
+    "req": "REQ-095",
+    "surface": null,
+    "flow": null,
+    "lane": "repo-gate",
+    "cell": {
+      "surface": null,
+      "state": "the campaign registry as committed, and eight plants against a scratch copy",
+      "viewport": "n/a",
+      "theme": "n/a",
+      "role": "whoever quotes the actuation census",
+      "dataShape": "planning/test-campaign/inventory.json + cases.json",
+      "executionPlane": "repository"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "armedBy": "Eight plants, each made on a scratch copy of `planning/test-campaign/` and each reverted and re-run before the next, run against BOTH this branch's census and the one it replaced (`git show HEAD:...`) so the reading is a difference rather than an assertion. BASELINE: both censuses exit 0 over the committed registry. SIX RED ON THE NEW CENSUS AND SILENT ON THE OLD -- (1) SURF-002 (glass) declares an `operations` member; (2) SURF-045 (headless) declares the control `Reset history`, an ordinary prose name no string rule could ever catch; (3) DEF-131's own exhibit, SURF-047's four operations moved back under `controls`, which is the plant the previous census was MEASURED not to see; (4) SURF-003 set to `undetermined` while declaring three controls; (5) SURF-001's `plane` removed entirely; (6) SURF-046's `planeNote` removed, which is what makes `mixed` cost a written justification. TWO DECLARED SILENCES, required to stay silent so the limits are measured rather than claimed -- (7) SURF-046 (mixed) declares a control: silent on both, because both fields are legitimate on a mixed row and the census names those rows as UNDEFENDED on its own output line; (8) `LogonTaskSupervisor.Register` appended to SURF-002's `controls`: silent on the new census and RED on the old, which is coverage this change gave up and is filed as DEF-420. SILENCE: the plant reverted after every one, census clean each time.",
+    "actuates": [],
+    "evidence": [
+      "planning/test-campaign/bin/arm-surface-plane.py",
+      "planning/test-campaign/bin/control-census.py",
+      "planning/test-campaign/bin/design-controls.py"
+    ],
+    "note": "NOT a product measurement. Nothing here is observed on glass and this row must not be read as coverage of any surface -- `surface` is null on purpose and `actuates` is empty, because a case about the vocabulary of `controls` and `operations` must not put a member in the numerator to say so. The commands, which is what `actuates` is NOT for: `python planning/test-campaign/bin/arm-surface-plane.py` and `python planning/test-campaign/bin/control-census.py`, from the worktree root. WHAT THIS CASE DOES NOT COVER: a member misfiled inside its own plane's field on a glass surface (DEF-420) and anything at all on a `mixed` row, and neither is evidence against those -- plants 7 and 8 are the arm requiring both silences so a later change cannot quietly acquire the coverage without the record moving with it."
   }
 ]

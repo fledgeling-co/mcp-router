@@ -85,6 +85,21 @@
       "since": "2026-08-26"
     },
     {
+      "path": "planning/effect-class-vocabulary-gate.py",
+      "disposition": "control",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "since": "2026-09-03",
+      "control": [
+        "python3",
+        "planning/effect-class-vocabulary-gate.py",
+        "--selftest"
+      ],
+      "proves": "Five arms over planted rows. A clean set must be silent AND count two declared classes, so a reader that stopped resolving the field passes nothing. R1 plants `outbound-sockett` — the one-letter typo actually measured against the instrument, where it moved `vacuity-check.py`'s census from findings=1 to findings=0 — and requires it refused. R2 plants a bad class in the NESTED `witness.effect` a case carries and a good one beside it, and also plants a top-level `effect` on a case which must NOT be mistaken for one, because `campaign.py:702` at `5934c38f` reads only the nested field and an arm that accepted either would report a population the instrument does not have. Two arms drive the ratchet in both directions: an id outside the roster is a rise, and a roster id whose CLASS changed is a rise rather than a carry — the second is the one that stops a row being silently re-spelled inside the floor. WHAT IT DOES NOT PROVE: that the 31 rows on the roster are wrongly classed rather than the vocabulary being too narrow. That is DEF-502's adjudication and this gate deliberately does not make it."
+    },
+    {
       "path": "planning/evidence-citation-gate.py",
       "disposition": "control",
       "markers": [
@@ -305,6 +320,21 @@
         "--selftest"
       ],
       "proves": "7 arms bit: the sweep never reports a bare `affected=0`, it separates `n/a` from `clean` so a branch it could not read is not counted as one it cleared, and a planted branch touching app/MCPRouter/ is discovered rather than skipped"
+    },
+    {
+      "path": "planning/mock-exclusion-gate.py",
+      "disposition": "control",
+      "markers": [
+        "V3",
+        "V4"
+      ],
+      "since": "2026-09-03",
+      "control": [
+        "python3",
+        "planning/mock-exclusion-gate.py",
+        "--selftest"
+      ],
+      "proves": "Three planted shots trees in a temp directory, one per rule plus a clean one. The clean tree must produce no finding and must count exactly one design render and one build capture, so a gate that had stopped resolving either population fails rather than reporting a quiet zero. R2 plants a design render at `mock-hidpi/` — the literal defect, DEF-054 — and requires it refused; R3 plants a build capture under `mock/` and requires the opposite error refused, because the equality this gate holds has two directions and a one-directional arm would pass a tree where everything had been moved inside the exclusion. Beyond `--selftest`, the blocking run carries R1: the two vendored files whose one line this gate models are checked against recorded SHA-256 digests and the line is required verbatim, and that arm was watched to exit 2 NOT COMPARED against a copy with the exclusion altered. WHAT IT DOES NOT PROVE: that `attach-shots.py` would in fact attach a given file — the arm models the exclusion rule, and the real `--apply` run against a scratchpad copy of the campaign is what measured SURF-009 before and after; that run is in `planning/evidence/WE3/mock-exclusion-gate.baseline.txt` and is not re-run here."
     },
     {
       "path": "planning/null-run-gate.py",

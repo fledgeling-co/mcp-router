@@ -97,3 +97,66 @@ Recorded as `DEF-061` in that campaign's `inventory.json`, with the reason the f
 locally: `vendor/README.md` pins the tree by checksum so the gates re-run from a clone, and a
 `tie()` that behaves one way in one repository is not evidence anywhere. Referred out of family
 (gpt-5.6-sol, high effort) before deciding, and it reached the same conclusion independently.
+
+
+---
+
+## WE3 ADJUDICATION, 2026-09-03 — **item 5's first half was NOT upstream. It was this repository's directory name, and it is fixed.**
+
+### The "Where this can be done, and it is not here" paragraph is stale, same as X7's
+
+It says both defects are on the machine and the vendored submodule contains neither script.
+`vendor/test-campaign/` has carried **0.9.2** — `attach-shots.py`, `vacuity-check.py` and all —
+since 2026-08-22, one day after this brief. The blocker moved from *"the code is at no path
+here"* to *"the code is here and pinned by checksum"*, which forbids the same edit for a
+different reason and, unlike the old one, let the defect be read closely enough to find out where
+it actually lived.
+
+### DEF-054 — split, and the split is the finding
+
+**The instrument already ships the guard.** `attach-shots.py:101` at `5934c38f` drops any image with a
+directory part named EXACTLY `mock` before matching, and `capture-lineage.py:150` at `5934c38f` applies the same
+rule; both lines are byte-identical in the machine's 0.17.0. This repository put its hi-dpi
+renders at `evidence/shots/mock-hidpi/`, which is not that name, so both tools walked them. The
+defect was the directory name.
+
+**Measured before and after**, against the pinned 0.9.2, on a scratchpad copy:
+
+| | images walked | attached to a design render |
+|---|---|---|
+| `evidence/shots/mock-hidpi/` | 69 | **SURF-009** → `mock-hidpi/SURF-009.full.png` |
+| `evidence/shots/mock/hidpi/` | 58 | none |
+
+SURF-009 is the one surface with a rendered design of record and no build capture at all
+(DEF-051), so nothing outranked the render. **The eleven in this brief's original measurement are
+not withdrawn** — `sorted()` over `Path` case-folds on Windows, where `mock-hidpi/` sorts *before*
+`SURF-00N.build.png` and loses the last-write-wins race, while on the macOS tree this was measured
+on it sorts after and wins eleven times. Ten of the eleven were held back by collation, not by
+anything anybody chose.
+
+**Armed:** `planning/mock-exclusion-gate.py`, in `make lint`. It does not check the directory
+name — that is not a property. It holds the equality: the set `bin/capture-manifest.py` calls a
+render of the design and the set the vendored rule refuses to attach must be the same set, both
+directions. Both sides are read rather than copied (`MOCK_DIRS` by import; the exclusion line out
+of `vendor/` under a recorded SHA-256), so a re-vendor that moves the rule exits 2 NOT COMPARED
+rather than asserting the old one. Watched to fail first: 11 findings, then green. Transcript at
+`planning/evidence/WE3/mock-exclusion-gate.baseline.txt`.
+
+**Item 5's second half stays (A) and unchanged.** The report still prints surface ids rather than
+the file — `attach-shots.py:201` at `5934c38f`, `print(f"   {sid}")` — and `--apply` still checks only that a
+`target` field is *present* (`:167`) rather than comparing it to the subject's route. Exact remedy
+in DEF-054's `resolution`.
+
+### DEF-055 and item 6 — not adjudicated here
+
+DEF-055 is another runner's member. Item 6 (`tie()` and route templates) is DEF-061's, likewise.
+
+### A finding this brief's shape predicts, filed rather than folded in
+
+While arming the effect-class axis: **31 of the 49 cases naming a `witness.effect` name a class
+`EFFECT_CLASSES` does not carry**, all of them `effect-witness · pass`. `campaign.py` counts them
+into its `40 effect-witness claim(s) with no recorder, no effect class, or a count of zero` and
+then caps the printed detail at twelve lines, which on this campaign are twelve lines about four
+*other* cases — so not one of the 31 appears in the report. That is this brief's own category, a
+detector reporting a number it cannot support. Filed as **DEF-502**, with a ratcheted gate at
+`planning/effect-class-vocabulary-gate.py` holding the roster at 31.

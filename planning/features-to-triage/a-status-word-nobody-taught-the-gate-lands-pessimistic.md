@@ -95,3 +95,32 @@ read; the gate prints the limit on every clean run.
 
 Evidence: `planning/evidence/wa4-registry-vocabulary.md`, transcript at
 `planning/evidence/wa4-gate-transcript.txt`.
+
+
+---
+
+## WE3 ADJUDICATION, 2026-09-03 — **(B), delivered and merged. This row is on the list for a reason that is not about the work.**
+
+Re-checked independently of the `checked-2026-09-03-wc1` line above and it holds:
+`planning/defect-status-vocabulary-gate.py` is on `main`, is in `make lint`, and both the check
+and its `--selftest` exit **0** on this tree. The vocabulary held under three defect additions
+this session (DEF-500, DEF-501, DEF-502), each of which had to choose a status word the gate would
+accept — which is the property this brief asked for, exercised rather than asserted.
+
+`reckon.py` is vendored and this row does not need it edited. The whole of the fix is a guard on
+this repository's own register, which is where it landed. **(B).**
+
+**Why the row is still scheduled, and neither reason is the work.** (1) No `LEDGER.md` row names
+this brief, so `shipped-brief-gate` has no witness to read and the merge is invisible to it. (2)
+R6 would refuse a terminal word regardless, because the brief cites DEF-011, which is
+`partially-fixed` and correctly still counted broken. Writing `completed` here would take a
+still-broken row off the total, which is the failure the gate exists for.
+
+**No LEDGER id allocated here**, for the reason the note above already gives and this session can
+confirm from the other side: allocation is a read-modify-write on one file while another runner is
+live in a worktree this one cannot see. That is the integrator's move, not a runner's.
+
+The limit the delivery recorded stands unchanged after this session's reading:
+`reckon`'s fixed and open sets match a status's **leading token** while its partial, waived and
+not-owing sets match the **whole string**, the gate models that asymmetry by hand, and `--agree`
+compares word lists rather than branch structure. Nothing here moves it.

@@ -84,3 +84,42 @@ already read it.
   since the iOS lane's accessibility identifiers are already a recorded defect (`DEF-008`).
 - Assuming the planes and journeys axes stay with `campaign-journey-plane-ledger-model`, which
   already covers both; this brief is only the third of the three `NOT DECLARED` lines.
+
+
+---
+
+## WE3 ADJUDICATION, 2026-09-03 — **(B), and the `settled` block above is right about why it cannot say `completed`.**
+
+Adjudicated as one of fifteen rows naming a vendored script. This one names `campaign.py check`
+as the thing printing `Controls: NOT DECLARED`, and that is the finder rather than the fix: the
+missing declarations were in this repository's `inventory.json`, and they are there now
+(`bin/control-census.py`, 56 of 199 actuated across 32 surfaces, up from 38 of 180 across 29, with
+the 13 strays gone). **(B).**
+
+**One clause of the reasoning above deserves a correction, because it is quoted as a constraint.**
+The `settled` block says the census is not `campaign.py check`'s because *"`vendor/test-campaign/`
+pins 0.9.2 and the census landed upstream in 0.11.0, so on the pinned instrument declaring
+controls produces no visible line at all"*. That is a true statement about the pinned instrument
+and it should not be read as a statement about the machine: the cache now holds **0.16.0, 0.16.3
+and 0.17.0**, and this campaign's published numbers were produced by **0.14.1**. So the control
+census *is* visible to the instrument a skill invocation actually loads today, and
+`bin/control-census.py` is now a second reading of the same axis rather than the only one. Keeping
+the repo-side census is still right — for the reason `raster-claim-gate.py` already gives, that a
+rule enforced only in a shared plugin cache leaves with the cache — but the pin is not the reason,
+and the two numbers ought to be compared rather than assumed to agree. Not done here; recorded so
+it is not rediscovered.
+
+**The two clauses the block leaves open are unmoved and are worth restating as work.** A control
+whose promised effect is a message is recorded as such on the Mac boards and on none of the
+Windows ones — every Windows row reads 0 message-only, which is a gap rather than a measurement —
+and 39 controls remain UNDISPOSED.
+
+**And a measurement from the neighbouring axis that bears on the last acceptance clause**
+(*"driving a control reads the state it was supposed to change through a channel other than the
+one that struck it"*): of the 49 cases naming a `witness.effect`, **31 name a class the census
+cannot recognise**, and several of the 25 `machine-state` rows record their recorder as the
+router's own control API — a channel inside the product. Filed as **DEF-502**. Whether those
+read-backs satisfy this clause is the same adjudication.
+
+No status word written: R6 refuses one while DEF-008 is open and DEF-011 is `partially-fixed`, and
+the `settled` block is right that it should.

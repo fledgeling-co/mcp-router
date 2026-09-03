@@ -20,7 +20,7 @@ import asyncio, base64, json, sys, pathlib, hashlib
 import websockets
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 9222
-OUT = pathlib.Path(sys.argv[2]) if len(sys.argv) > 2 else pathlib.Path("evidence/shots/mock-hidpi")
+OUT = pathlib.Path(sys.argv[2]) if len(sys.argv) > 2 else pathlib.Path("evidence/shots/mock/hidpi")
 # Derived, never pinned (G9): this file sits at planning/test-campaign/bin/, so the repository
 # root is three parents up. as_uri() builds the file:// form rather than string-pasting it.
 _ROOT = pathlib.Path(__file__).resolve().parents[3]

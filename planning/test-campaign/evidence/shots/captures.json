@@ -724,7 +724,7 @@
   "target": null,
   "croppedFrom": "design/mocks/prototype.html?pane=servers&only=mac",
   "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride 1280x900@2 + Page.captureScreenshot, cropped to the window's own borders",
-  "derivedFrom": "evidence/shots/mock-hidpi/SURF-002.full.png",
+  "derivedFrom": "evidence/shots/mock/hidpi/SURF-002.full.png",
   "cropBox": [
    60,
    330,
@@ -794,7 +794,7 @@
   "target": null,
   "croppedFrom": "design/mocks/prototype.html?pane=activity&only=mac",
   "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride 1280x900@2 + Page.captureScreenshot, cropped to the window's own borders",
-  "derivedFrom": "evidence/shots/mock-hidpi/SURF-003.full.png",
+  "derivedFrom": "evidence/shots/mock/hidpi/SURF-003.full.png",
   "cropBox": [
    60,
    330,
@@ -864,7 +864,7 @@
   "target": null,
   "croppedFrom": "design/mocks/prototype.html?pane=skills&only=mac",
   "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride 1280x900@2 + Page.captureScreenshot, cropped to the window's own borders",
-  "derivedFrom": "evidence/shots/mock-hidpi/SURF-004.full.png",
+  "derivedFrom": "evidence/shots/mock/hidpi/SURF-004.full.png",
   "cropBox": [
    60,
    330,
@@ -934,7 +934,7 @@
   "target": null,
   "croppedFrom": "design/mocks/prototype.html?pane=discover&only=mac",
   "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride 1280x900@2 + Page.captureScreenshot, cropped to the window's own borders",
-  "derivedFrom": "evidence/shots/mock-hidpi/SURF-005.full.png",
+  "derivedFrom": "evidence/shots/mock/hidpi/SURF-005.full.png",
   "cropBox": [
    60,
    330,
@@ -1004,7 +1004,7 @@
   "target": null,
   "croppedFrom": "design/mocks/prototype.html?pane=evals&only=mac",
   "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride 1280x900@2 + Page.captureScreenshot, cropped to the window's own borders",
-  "derivedFrom": "evidence/shots/mock-hidpi/SURF-006.full.png",
+  "derivedFrom": "evidence/shots/mock/hidpi/SURF-006.full.png",
   "cropBox": [
    60,
    330,
@@ -1074,7 +1074,7 @@
   "target": null,
   "croppedFrom": "design/mocks/prototype.html?pane=cleanup&only=mac",
   "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride 1280x900@2 + Page.captureScreenshot, cropped to the window's own borders",
-  "derivedFrom": "evidence/shots/mock-hidpi/SURF-007.full.png",
+  "derivedFrom": "evidence/shots/mock/hidpi/SURF-007.full.png",
   "cropBox": [
    60,
    330,
@@ -1144,7 +1144,7 @@
   "target": null,
   "croppedFrom": "design/mocks/prototype.html?pane=inbox&only=mac",
   "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride 1280x900@2 + Page.captureScreenshot, cropped to the window's own borders",
-  "derivedFrom": "evidence/shots/mock-hidpi/SURF-008.full.png",
+  "derivedFrom": "evidence/shots/mock/hidpi/SURF-008.full.png",
   "cropBox": [
    60,
    330,
@@ -1214,7 +1214,7 @@
   "target": null,
   "croppedFrom": "design/mocks/prototype.html?pane=settings&only=mac",
   "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride 1280x900@2 + Page.captureScreenshot, cropped to the window's own borders",
-  "derivedFrom": "evidence/shots/mock-hidpi/SURF-011.full.png",
+  "derivedFrom": "evidence/shots/mock/hidpi/SURF-011.full.png",
   "cropBox": [
    60,
    330,
@@ -1377,12 +1377,12 @@
   "unpublishedReason": "a third capture of app://ios/pair-mac, asserted by nothing and named UNASSERTED so no filename match can present it as a second independent proof. Its `unassertedReason` carries the full argument."
  },
  {
-  "path": "evidence/shots/mock-hidpi/SURF-001.full.png",
+  "path": "evidence/shots/mock/hidpi/SURF-001.full.png",
   "subject": null,
   "depicts": "the design of record for SURF-001, not the build",
   "target": null,
   "renderedFrom": "design/mocks/prototype.html?pane=servers&only=mac",
-  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a path with a directory part named exactly `mock`. These renders lived at `evidence/shots/mock-hidpi/`, which is not that name, so it walked them and offered them to a surface on the filename; SURF-009, which has a design of record and no build capture, took one. They now live under `mock/hidpi/` and the instrument's own guard excludes them. The row still carries no `target`, because this frame is no subject's capture.",
   "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
   "derivedFrom": null,
   "sha256": "6790530654cdd5e97a7f3d3d840b1c3bea64e5697274bb28ba34f9dd470d98fd",
@@ -1400,15 +1400,15 @@
    "titleReadback": "Conduit \u2014 interactive prototype"
   },
   "witnessed": false,
-  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054, which is why these files sit under `mock/hidpi/` and not beside it: the instrument's exclusion matches a path with a directory part named exactly `mock`, and at `evidence/shots/mock-hidpi/` they were outside it. Kept as the design source the fidelity pairs crop from."
  },
  {
-  "path": "evidence/shots/mock-hidpi/SURF-002.full.png",
+  "path": "evidence/shots/mock/hidpi/SURF-002.full.png",
   "subject": null,
   "depicts": "the design of record for SURF-002, not the build",
   "target": null,
   "renderedFrom": "design/mocks/prototype.html?pane=servers&only=mac",
-  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a path with a directory part named exactly `mock`. These renders lived at `evidence/shots/mock-hidpi/`, which is not that name, so it walked them and offered them to a surface on the filename; SURF-009, which has a design of record and no build capture, took one. They now live under `mock/hidpi/` and the instrument's own guard excludes them. The row still carries no `target`, because this frame is no subject's capture.",
   "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
   "derivedFrom": null,
   "sha256": "6790530654cdd5e97a7f3d3d840b1c3bea64e5697274bb28ba34f9dd470d98fd",
@@ -1426,15 +1426,15 @@
    "titleReadback": "Conduit \u2014 interactive prototype"
   },
   "witnessed": false,
-  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054, which is why these files sit under `mock/hidpi/` and not beside it: the instrument's exclusion matches a path with a directory part named exactly `mock`, and at `evidence/shots/mock-hidpi/` they were outside it. Kept as the design source the fidelity pairs crop from."
  },
  {
-  "path": "evidence/shots/mock-hidpi/SURF-003.full.png",
+  "path": "evidence/shots/mock/hidpi/SURF-003.full.png",
   "subject": null,
   "depicts": "the design of record for SURF-003, not the build",
   "target": null,
   "renderedFrom": "design/mocks/prototype.html?pane=activity&only=mac",
-  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a path with a directory part named exactly `mock`. These renders lived at `evidence/shots/mock-hidpi/`, which is not that name, so it walked them and offered them to a surface on the filename; SURF-009, which has a design of record and no build capture, took one. They now live under `mock/hidpi/` and the instrument's own guard excludes them. The row still carries no `target`, because this frame is no subject's capture.",
   "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
   "derivedFrom": null,
   "sha256": "e3dc0713201b6da092426d2652d6c5402719a18425ed79997d241cf25eab348c",
@@ -1452,15 +1452,15 @@
    "titleReadback": "Conduit \u2014 interactive prototype"
   },
   "witnessed": false,
-  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054, which is why these files sit under `mock/hidpi/` and not beside it: the instrument's exclusion matches a path with a directory part named exactly `mock`, and at `evidence/shots/mock-hidpi/` they were outside it. Kept as the design source the fidelity pairs crop from."
  },
  {
-  "path": "evidence/shots/mock-hidpi/SURF-004.full.png",
+  "path": "evidence/shots/mock/hidpi/SURF-004.full.png",
   "subject": null,
   "depicts": "the design of record for SURF-004, not the build",
   "target": null,
   "renderedFrom": "design/mocks/prototype.html?pane=skills&only=mac",
-  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a path with a directory part named exactly `mock`. These renders lived at `evidence/shots/mock-hidpi/`, which is not that name, so it walked them and offered them to a surface on the filename; SURF-009, which has a design of record and no build capture, took one. They now live under `mock/hidpi/` and the instrument's own guard excludes them. The row still carries no `target`, because this frame is no subject's capture.",
   "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
   "derivedFrom": null,
   "sha256": "903f5e721485cb1ac7b6ed9fa85898e86d3e3113dcdac63219ec61f769cebfc5",
@@ -1478,15 +1478,15 @@
    "titleReadback": "Conduit \u2014 interactive prototype"
   },
   "witnessed": false,
-  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054, which is why these files sit under `mock/hidpi/` and not beside it: the instrument's exclusion matches a path with a directory part named exactly `mock`, and at `evidence/shots/mock-hidpi/` they were outside it. Kept as the design source the fidelity pairs crop from."
  },
  {
-  "path": "evidence/shots/mock-hidpi/SURF-005.full.png",
+  "path": "evidence/shots/mock/hidpi/SURF-005.full.png",
   "subject": null,
   "depicts": "the design of record for SURF-005, not the build",
   "target": null,
   "renderedFrom": "design/mocks/prototype.html?pane=discover&only=mac",
-  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a path with a directory part named exactly `mock`. These renders lived at `evidence/shots/mock-hidpi/`, which is not that name, so it walked them and offered them to a surface on the filename; SURF-009, which has a design of record and no build capture, took one. They now live under `mock/hidpi/` and the instrument's own guard excludes them. The row still carries no `target`, because this frame is no subject's capture.",
   "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
   "derivedFrom": null,
   "sha256": "57b72a3b3c90b05eb6a1c86e1ec971955da948c75301a40049f2941f07f757f8",
@@ -1504,15 +1504,15 @@
    "titleReadback": "Conduit \u2014 interactive prototype"
   },
   "witnessed": false,
-  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054, which is why these files sit under `mock/hidpi/` and not beside it: the instrument's exclusion matches a path with a directory part named exactly `mock`, and at `evidence/shots/mock-hidpi/` they were outside it. Kept as the design source the fidelity pairs crop from."
  },
  {
-  "path": "evidence/shots/mock-hidpi/SURF-006.full.png",
+  "path": "evidence/shots/mock/hidpi/SURF-006.full.png",
   "subject": null,
   "depicts": "the design of record for SURF-006, not the build",
   "target": null,
   "renderedFrom": "design/mocks/prototype.html?pane=evals&only=mac",
-  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a path with a directory part named exactly `mock`. These renders lived at `evidence/shots/mock-hidpi/`, which is not that name, so it walked them and offered them to a surface on the filename; SURF-009, which has a design of record and no build capture, took one. They now live under `mock/hidpi/` and the instrument's own guard excludes them. The row still carries no `target`, because this frame is no subject's capture.",
   "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
   "derivedFrom": null,
   "sha256": "0d67d57461eca4789971d2fd030eaa23fb5bf1d6b115450df85137d61f5a08de",
@@ -1530,15 +1530,15 @@
    "titleReadback": "Conduit \u2014 interactive prototype"
   },
   "witnessed": false,
-  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054, which is why these files sit under `mock/hidpi/` and not beside it: the instrument's exclusion matches a path with a directory part named exactly `mock`, and at `evidence/shots/mock-hidpi/` they were outside it. Kept as the design source the fidelity pairs crop from."
  },
  {
-  "path": "evidence/shots/mock-hidpi/SURF-007.full.png",
+  "path": "evidence/shots/mock/hidpi/SURF-007.full.png",
   "subject": null,
   "depicts": "the design of record for SURF-007, not the build",
   "target": null,
   "renderedFrom": "design/mocks/prototype.html?pane=cleanup&only=mac",
-  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a path with a directory part named exactly `mock`. These renders lived at `evidence/shots/mock-hidpi/`, which is not that name, so it walked them and offered them to a surface on the filename; SURF-009, which has a design of record and no build capture, took one. They now live under `mock/hidpi/` and the instrument's own guard excludes them. The row still carries no `target`, because this frame is no subject's capture.",
   "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
   "derivedFrom": null,
   "sha256": "e30084130c8a0e105d40943e6e3d0359c1ae4f7f37a46b4b7ff0bb2e0cee8fe0",
@@ -1556,15 +1556,15 @@
    "titleReadback": "Conduit \u2014 interactive prototype"
   },
   "witnessed": false,
-  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054, which is why these files sit under `mock/hidpi/` and not beside it: the instrument's exclusion matches a path with a directory part named exactly `mock`, and at `evidence/shots/mock-hidpi/` they were outside it. Kept as the design source the fidelity pairs crop from."
  },
  {
-  "path": "evidence/shots/mock-hidpi/SURF-008.full.png",
+  "path": "evidence/shots/mock/hidpi/SURF-008.full.png",
   "subject": null,
   "depicts": "the design of record for SURF-008, not the build",
   "target": null,
   "renderedFrom": "design/mocks/prototype.html?pane=inbox&only=mac",
-  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a path with a directory part named exactly `mock`. These renders lived at `evidence/shots/mock-hidpi/`, which is not that name, so it walked them and offered them to a surface on the filename; SURF-009, which has a design of record and no build capture, took one. They now live under `mock/hidpi/` and the instrument's own guard excludes them. The row still carries no `target`, because this frame is no subject's capture.",
   "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
   "derivedFrom": null,
   "sha256": "114fee3d612bbb891a1dd9cc058580a95af8afdd268c478d47f2ced26a9512be",
@@ -1582,15 +1582,15 @@
    "titleReadback": "Conduit \u2014 interactive prototype"
   },
   "witnessed": false,
-  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054, which is why these files sit under `mock/hidpi/` and not beside it: the instrument's exclusion matches a path with a directory part named exactly `mock`, and at `evidence/shots/mock-hidpi/` they were outside it. Kept as the design source the fidelity pairs crop from."
  },
  {
-  "path": "evidence/shots/mock-hidpi/SURF-009.full.png",
+  "path": "evidence/shots/mock/hidpi/SURF-009.full.png",
   "subject": null,
   "depicts": "the design of record for SURF-009, not the build",
   "target": null,
   "renderedFrom": "design/mocks/prototype.html?pane=inbox&popover=1&only=mac",
-  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a path with a directory part named exactly `mock`. These renders lived at `evidence/shots/mock-hidpi/`, which is not that name, so it walked them and offered them to a surface on the filename; SURF-009, which has a design of record and no build capture, took one. They now live under `mock/hidpi/` and the instrument's own guard excludes them. The row still carries no `target`, because this frame is no subject's capture.",
   "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
   "derivedFrom": null,
   "sha256": "2f41ac363edba43b92c44ee424cf917379cb839e9c4ccdbf8b30ef7326a541b3",
@@ -1608,15 +1608,15 @@
    "titleReadback": "Conduit \u2014 interactive prototype"
   },
   "witnessed": false,
-  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054, which is why these files sit under `mock/hidpi/` and not beside it: the instrument's exclusion matches a path with a directory part named exactly `mock`, and at `evidence/shots/mock-hidpi/` they were outside it. Kept as the design source the fidelity pairs crop from."
  },
  {
-  "path": "evidence/shots/mock-hidpi/SURF-010.full.png",
+  "path": "evidence/shots/mock/hidpi/SURF-010.full.png",
   "subject": null,
   "depicts": "the design of record for SURF-010, not the build",
   "target": null,
   "renderedFrom": "design/mocks/prototype.html?pane=inbox&sheet=pair&only=mac",
-  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a path with a directory part named exactly `mock`. These renders lived at `evidence/shots/mock-hidpi/`, which is not that name, so it walked them and offered them to a surface on the filename; SURF-009, which has a design of record and no build capture, took one. They now live under `mock/hidpi/` and the instrument's own guard excludes them. The row still carries no `target`, because this frame is no subject's capture.",
   "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
   "derivedFrom": null,
   "sha256": "43b4813a85fd6fee0e8e9d649354e3ff0370cd44eca78b493ed0f4d381f4396d",
@@ -1634,15 +1634,15 @@
    "titleReadback": "Conduit \u2014 interactive prototype"
   },
   "witnessed": false,
-  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054, which is why these files sit under `mock/hidpi/` and not beside it: the instrument's exclusion matches a path with a directory part named exactly `mock`, and at `evidence/shots/mock-hidpi/` they were outside it. Kept as the design source the fidelity pairs crop from."
  },
  {
-  "path": "evidence/shots/mock-hidpi/SURF-011.full.png",
+  "path": "evidence/shots/mock/hidpi/SURF-011.full.png",
   "subject": null,
   "depicts": "the design of record for SURF-011, not the build",
   "target": null,
   "renderedFrom": "design/mocks/prototype.html?pane=settings&only=mac",
-  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a path with a directory part named exactly `mock`. These renders lived at `evidence/shots/mock-hidpi/`, which is not that name, so it walked them and offered them to a surface on the filename; SURF-009, which has a design of record and no build capture, took one. They now live under `mock/hidpi/` and the instrument's own guard excludes them. The row still carries no `target`, because this frame is no subject's capture.",
   "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
   "derivedFrom": null,
   "sha256": "8667ec75e42cd005a90cdaec2c8389d9865c32a564d6f67b3e308ee04c2e9c4b",
@@ -1660,7 +1660,7 @@
    "titleReadback": "Conduit \u2014 interactive prototype"
   },
   "witnessed": false,
-  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054, which is why these files sit under `mock/hidpi/` and not beside it: the instrument's exclusion matches a path with a directory part named exactly `mock`, and at `evidence/shots/mock-hidpi/` they were outside it. Kept as the design source the fidelity pairs crop from."
  },
  {
   "path": "evidence/shots/surf-022-consent-auth-states.png",

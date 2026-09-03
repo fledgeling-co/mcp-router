@@ -303,6 +303,7 @@ planning/citation-gate.py	gate	planning/citation-gate.py	static	no router invoca
 planning/claim-sweep.py	gate	planning/claim-sweep.py	static	no router invocation matched	-
 planning/defect-status-vocabulary-gate.py	gate	planning/defect-status-vocabulary-gate.py	static	no router invocation matched	make:lint
 planning/design-divergence-marker-gate.py	gate	planning/design-divergence-marker-gate.py	static	no router invocation matched	make:lint
+planning/effect-class-vocabulary-gate.py	gate	planning/effect-class-vocabulary-gate.py	static	no router invocation matched	make:lint
 planning/effect-provider-gate.py	gate	planning/effect-provider-gate.py	static	no router invocation matched	make:lint
 planning/evidence-citation-gate.py	gate	planning/evidence-citation-gate.py	static	no router invocation matched	make:lint
 planning/evidence/F6/measure-update-surface.py	gate	planning/evidence/F6/measure-update-surface.py	static	no router invocation matched	-
@@ -341,6 +342,7 @@ planning/installed-claim-sweep.py	gate	planning/installed-claim-sweep.py	static	
 planning/instrument-census.py	gate	planning/instrument-census.py	node	argv ["node", …]	make:lint
 planning/ledger-reconcile.py	gate	planning/ledger-reconcile.py	static	no router invocation matched	make:lint
 planning/m33-branch-sweep.py	gate	planning/m33-branch-sweep.py	static	no router invocation matched	-
+planning/mock-exclusion-gate.py	gate	planning/mock-exclusion-gate.py	static	no router invocation matched	make:lint
 planning/null-run-gate.py	gate	planning/null-run-gate.py	static	no router invocation matched	make:lint
 planning/pin-class-gate.py	gate	planning/pin-class-gate.py	static	no router invocation matched	make:lint
 planning/py39-annotation-gate.py	gate	planning/py39-annotation-gate.py	static	no router invocation matched	make:lint

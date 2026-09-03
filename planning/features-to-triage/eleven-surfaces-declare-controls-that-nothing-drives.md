@@ -54,3 +54,34 @@ pressed is the same tautology one level in.
   removed from the denominator is a control nobody will ever ask about again.
 - Assuming the declarations themselves are correct, having come from the design of record, so a
   control the build never drew surfaces here as an unactuatable entry rather than as a bad list.
+
+
+---
+
+## WE3 ADJUDICATION, 2026-09-03 — **neither (A) nor (B): naming `campaign.py` here names the FINDER, not the fix.**
+
+This row was scheduled among fifteen that name a script this fleet may not edit. Its
+`found-by` is `campaign.py check`, and that is the whole of its connection to a vendored script.
+Nothing about the finding is a defect in the instrument: the census is right, the denominator is
+right, and the numerator is genuinely zero. `campaign.py` measured the product correctly and the
+product is what is short.
+
+**The work is product work in this repository, and it is large.** The acceptance sketch asks for
+an actuation-and-read-back path per control across eleven surfaces, where actuation only counts
+when the effect is read through a channel other than the one that struck the control, plus a
+mutation arm (replace one handler with an empty closure and the covering case must go red). That
+is a wave's worth of case-building, not an adjudication, and building it was not this runner's
+assignment.
+
+**One thing measured here that bears on it, and cuts the wrong way.** The effect-witness rung is
+where read-back-through-another-channel is recorded, and **31 of the 49 cases that name a
+`witness.effect` name a class the census cannot recognise** — 25 of them `machine-state`, and
+several of those record their recorder as *"the router's own /servers listing, read over the
+control API"*, which is a channel **inside** the product. So some of the actuation evidence this
+brief would be closed by already exists in a form that does not yet satisfy the rung's own rule
+about an independent recorder. Filed as **DEF-502** with the roster; adjudicating those 31 against
+`references/effect-boundary.md` is a prerequisite for counting them toward this brief's numerator,
+not a separate chore.
+
+No status change and no work claimed. Recorded so the next runner does not spend the first hour
+establishing that this row is not blocked on a vendored script.

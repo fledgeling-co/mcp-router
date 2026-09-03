@@ -1,0 +1,27 @@
+WARNING: Task may not run because /ST is earlier than current time.
+foreign process pid 4752 named MCPRouter.Shell, at C:\Users\rhode\AppData\Local\Temp\mcpr-foreign-shell\MCPRouter.Shell.exe, is running in the interactive session
+window station is 'Service-0x0-5698181$'; scheduling the shell lane into the interactive session
+task name: MCPRouter-WINSHELL-AutomationPlaneLane-687212BA
+WARNING: Task may not run because /ST is earlier than current time.
+SUCCESS: The scheduled task "MCPRouter-WINSHELL-AutomationPlaneLane-687212BA" has successfully been created.
+SUCCESS: Attempted to run the scheduled task "MCPRouter-WINSHELL-AutomationPlaneLane-687212BA".
+
+2026-09-03T02:52:42.0878295Z lane router: pid 34256 on http://127.0.0.1:61209, home C:\Dev\mcp-router\.worktrees\wd2-cleanup-board\planning\evidence\WIN-SHELL\run\router-home
+2026-09-03T02:52:42.6683537Z   the lane's router answers /servers: lane-cleanup-delta, lane-witness-beta, lane-cleanup-gamma, lane-witness-alpha
+2026-09-03T02:52:42.6722226Z shell binary: C:\Dev\mcp-router\.worktrees\wd2-cleanup-board\app\windows\MCPRouter.Shell\bin\Debug\net8.0-windows10.0.19041.0\win-x64\MCPRouter.Shell.exe (written 2026-09-03T02:31:41.9938307Z)
+2026-09-03T02:52:43.0714649Z shell binary is current: none of 209 tracked source file(s) under app\windows is newer than it
+2026-09-03T02:52:43.1654089Z   stopping a stale shell, pid=4752
+2026-09-03T02:52:44.8364253Z   the shell exited before publishing a window
+2026-09-03T02:52:44.8574278Z shell pid 13336 stopped
+2026-09-03T02:52:44.8676393Z lane router pid 34256 stopped
+2026-09-03T02:52:44.8730451Z NO VERDICT: the shell never reached the automation plane on the first launch, so no destination could be measured. That is a fault in the shell or the build rather than a finding about any board.
+
+shell lane verdict: no-verdict (exit 3)
+NO VERDICT: the shell never reached the automation plane on the first launch, so no destination could be measured. That is a fault in the shell or the build rather than a finding about any board.
+lane exit 3
+FAIL  the foreign process (pid 4752) was terminated by the lane. It was named
+      MCPRouter.Shell at
+      C:\Users\rhode\AppData\Local\Temp\mcpr-foreign-shell\MCPRouter.Shell.exe,
+      which is not the lane's subject and which the lane never measured. This is
+      DEF-402: in a fleet wave the process killed is another runner's shell, and the
+      victim reports it as a destination crash it did not have.

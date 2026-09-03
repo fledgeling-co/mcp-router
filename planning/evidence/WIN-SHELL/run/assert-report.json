@@ -1,9 +1,9 @@
 ﻿{
     "schema":  "win-shell.uia-assert/1",
     "subject":  "MCPRouter.Shell - the Windows client, driven through the automation plane",
-    "capturedAtUtc":  "2026-09-03T02:33:19.7073486Z",
+    "capturedAtUtc":  "2026-09-03T03:01:44.0179057Z",
     "exePath":  "C:\\Dev\\mcp-router\\.worktrees\\wd2-cleanup-board\\app\\windows\\MCPRouter.Shell\\bin\\Debug\\net8.0-windows10.0.19041.0\\win-x64\\MCPRouter.Shell.exe",
-    "processId":  11780,
+    "processId":  19924,
     "destinations":  10,
     "measured":  10,
     "passed":  10,
@@ -106,7 +106,7 @@
                      {
                          "id":  "settings.ambientIcon.effect",
                          "status":  "pass",
-                         "detail":  "driving the switch to On through the automation plane put an icon in the Windows notification area at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90}: a separate process asked the shell for its rectangle and got 2108,1528 to 2156,1600 (HRESULT 0x00000000). Read by an API this application never called.",
+                         "detail":  "driving the switch to On through the automation plane put an icon in the Windows notification area at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90}: a separate process asked the shell for its rectangle and got 2109,1528 to 2157,1600 (HRESULT 0x00000000). Read by an API this application never called.",
                          "actuates":  [
                                           "Show status in notification area"
                                       ],
@@ -227,10 +227,10 @@
                         "titleBefore":  "Servers",
                         "selected":  true,
                         "windowTitle":  "Discover",
-                        "elements":  905,
+                        "elements":  55,
                         "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd2-cleanup-board\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-discover.json",
                         "dumpExit":  0,
-                        "fingerprint":  "67AD5BDE41ADCD99",
+                        "fingerprint":  "973E33FC1619F7D7",
                         "status":  "pass"
                     },
                     {
@@ -261,10 +261,10 @@
                         "titleBefore":  "Skills",
                         "selected":  true,
                         "windowTitle":  "Servers",
-                        "elements":  111,
+                        "elements":  116,
                         "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd2-cleanup-board\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-servers.json",
                         "dumpExit":  0,
-                        "fingerprint":  "BF003D2ED4B62F4D",
+                        "fingerprint":  "A0CB5D6F1A930E0C",
                         "status":  "pass"
                     },
                     {

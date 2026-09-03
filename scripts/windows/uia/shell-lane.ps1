@@ -220,6 +220,10 @@ if (-not (Test-Path $ExePath)) {
     Stop-Lane 3 ("NO VERDICT: the shell is not built at $ExePath. Run scripts/windows/build-shell.ps1. " +
         "A missing binary is a build job, never a finished gap.")
 }
+# Absolute and normalised, because Start-Shell compares it against a running process's own Path to
+# decide what it may kill (DEF-402). A relative or unnormalised form would match nothing and the
+# lane would leave its own stale shell running instead.
+$ExePath = [System.IO.Path]::GetFullPath($ExePath)
 Say "shell binary: $ExePath (written $((Get-Item $ExePath).LastWriteTimeUtc.ToString('o')))"
 
 # ------------------------------------------------- 0. is this binary the tree it is being read against?
@@ -287,9 +291,31 @@ function Start-Shell {
     # A stale shell from an earlier run would be found by the ProcessId search below and measured
     # instead of this one, so it is stopped first. probe-lane.ps1 records why this matters for the
     # foreground; here it matters for identity.
+    #
+    # SCOPED TO THIS LANE'S OWN BINARY, and that is DEF-402. This read `Get-Process
+    # 'MCPRouter.Shell'` and killed EVERY process of that name on the machine. Two runners in a
+    # fleet wave run this lane from two worktrees at once, so each one's Start-Shell terminated the
+    # other's shell partway through its sweep - which the victim then reported as a destination
+    # CRASH, at whichever destination it happened to be reading, with no unhandled-exception line
+    # in shell-startup.log and no Windows Error Reporting record, because nothing had faulted: the
+    # process was killed. Measured across eleven runs on 2026-09-03, four deaths, four different
+    # destinations, on both the modified tree and main's own.
+    #
+    # Comparing Path rather than name is what makes the kill name its subject: two worktrees build
+    # to two absolute paths, so a lane now stops only shells it could itself have started. A
+    # process whose Path cannot be read - one running as another user - is LEFT ALONE and said out
+    # loud, because killing on a failed identity check is the behaviour this is removing.
     Get-Process 'MCPRouter.Shell' -ErrorAction SilentlyContinue | ForEach-Object {
-        Say "  stopping a stale shell, pid=$($_.Id)"
-        Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
+        $path = $null
+        try { $path = $_.Path } catch { }
+        if ($null -eq $path) {
+            Say "  leaving a shell whose path could not be read, pid=$($_.Id) - not provably this lane's"
+        } elseif ($path -eq $ExePath) {
+            Say "  stopping a stale shell, pid=$($_.Id)"
+            Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
+        } else {
+            Say "  leaving a shell that is not this lane's subject, pid=$($_.Id) at $path"
+        }
     }
     Start-Sleep -Milliseconds 500
 

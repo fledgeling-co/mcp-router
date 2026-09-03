@@ -1,4 +1,5 @@
 using MCPRouter.Shell.Model;
+using MCPRouter.Shell.Model.Ambient;
 using MCPRouter.Shell.Model.Control;
 using MCPRouter.Shell.Views;
 using Microsoft.UI.Composition.SystemBackdrops;
@@ -29,13 +30,39 @@ public sealed partial class ShellWindow : Window
     private bool _sidebarShown = true;
     private readonly ISkillsControlClient? _skillsClient;
 
+    /// <summary>The ambient state on the pane, and the state the notification-area tip formats.</summary>
+    private readonly AmbientSurfaceModel _ambient;
+
+    /// <summary>What reads the router. Never the app's own memory of what it last saw.</summary>
+    private readonly IAmbientRouterReader _ambientReader;
+
+    private DispatcherTimer? _ambientTimer;
+    private bool _ambientReadInFlight;
+
+    /// <summary>
+    /// How often the router is read for the ambient surface. Two seconds is the Servers board's
+    /// poll doubled: the pane says what the router is doing, not what it is doing right now to
+    /// the second, and every tick is a loopback request whether or not anything has changed.
+    /// </summary>
+    private static readonly TimeSpan AmbientPollInterval = TimeSpan.FromSeconds(2);
+
     /// <param name="skillsClient">
     /// The skills board's read client. Null builds the live one against the loopback control
     /// port; App passes the Debug fixture client for <c>--fixture-skills</c>.
     /// </param>
-    public ShellWindow(ISkillsControlClient? skillsClient = null)
+    /// <param name="ambient">
+    /// The ambient model to render. App passes the process-wide one, so the pane and the
+    /// notification-area tip cannot drift apart; null builds a private one.
+    /// </param>
+    /// <param name="ambientReader">The router reader. Null builds the live one.</param>
+    public ShellWindow(
+        ISkillsControlClient? skillsClient = null,
+        AmbientSurfaceModel? ambient = null,
+        IAmbientRouterReader? ambientReader = null)
     {
         _skillsClient = skillsClient;
+        _ambient = ambient ?? new AmbientSurfaceModel();
+        _ambientReader = ambientReader ?? new RouterStatusReader();
 
         InitializeComponent();
 
@@ -442,7 +469,78 @@ public sealed partial class ShellWindow : Window
             StartupLog.Write($"loaded at rasterization scale {_rasterizationScale}");
         }
 
+        StartAmbientPolling();
+
         if (App.SelfTestDirectory is { } directory) _ = RunSelfTestAsync(directory);
+    }
+
+    // ------------------------------------------------------------------ the ambient surface
+
+    /// <summary>
+    /// Start reading the router, and render the first reading as soon as it lands.
+    /// </summary>
+    /// <remarks>
+    /// DEF-301. Before this there was no reader in the build at all: the model's default was
+    /// AtRest, nothing called <c>UpdateState</c>, and the surface said "Router ready" over a
+    /// router that was not running. The pane is painted from <see cref="AmbientSurfaceModel"/>
+    /// before the first read too, and what it says then is that nothing has read the router yet -
+    /// which is true, and is not "Ready".
+    /// </remarks>
+    private void StartAmbientPolling()
+    {
+        RenderAmbient();
+
+        _ambientTimer = new DispatcherTimer { Interval = AmbientPollInterval };
+        _ambientTimer.Tick += OnAmbientTick;
+        _ambientTimer.Start();
+        Closed += (_, _) =>
+        {
+            _ambientTimer?.Stop();
+            _ambientTimer = null;
+        };
+
+        _ = ReadAmbientAsync();
+    }
+
+    private void OnAmbientTick(object? sender, object e) => _ = ReadAmbientAsync();
+
+    private async Task ReadAmbientAsync()
+    {
+        // A read that has not answered yet is not a reason to ask again: two in flight would
+        // let an older answer land after a newer one and put a stale state on the pane.
+        if (_ambientReadInFlight) return;
+        _ambientReadInFlight = true;
+        try
+        {
+            var reading = await _ambientReader.ReadAsync();
+            var changed = _ambient.Apply(reading);
+            RenderAmbient();
+            if (changed)
+            {
+                // The tip is the same claim in the notification area, so it moves with the pane
+                // rather than freezing at whatever it said when the icon was placed.
+                App.NotificationIcon?.RefreshTooltip();
+            }
+        }
+        catch (Exception ex)
+        {
+            // The reader's contract is that it does not throw; if that is ever untrue the pane
+            // must not be left showing a state nothing read.
+            StartupLog.Write($"ambient read threw: {ex}");
+            _ambient.Apply(AmbientReading.Unreachable);
+            RenderAmbient();
+        }
+        finally
+        {
+            _ambientReadInFlight = false;
+        }
+    }
+
+    private void RenderAmbient()
+    {
+        var info = _ambient.GetStatusInfo();
+        AmbientStatusTitle.Text = info.StatusText;
+        AmbientStatusDetail.Text = info.Subtitle;
     }
 
     private async Task RunSelfTestAsync(string directory)

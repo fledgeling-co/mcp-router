@@ -1,0 +1,76 @@
+﻿
+2026-09-03T02:03:32.4654424Z lane router: pid 41956 on http://127.0.0.1:51070, home C:\Dev\mcp-router\.worktrees\wd1-ambient-truth\planning\evidence\WIN-SHELL\arming\def-300-301-planted-run\router-home
+2026-09-03T02:03:33.0463839Z   the lane's router answers /servers: lane-witness-beta, lane-witness-alpha
+2026-09-03T02:03:33.0507756Z shell binary: C:\Dev\mcp-router\.worktrees\wd1-ambient-truth\app\windows\MCPRouter.Shell\bin\Debug\net8.0-windows10.0.19041.0\win-x64\MCPRouter.Shell.exe (written 2026-09-03T01:58:45.4938120Z)
+2026-09-03T02:03:33.3272999Z shell binary is current: none of 213 tracked source file(s) under app\windows is newer than it
+2026-09-03T02:03:33.3888436Z   stopping a stale shell, pid=23132
+2026-09-03T02:03:34.6583573Z   bound to the shell's own window: class 'WinUIDesktopWin32WindowClass', title 'Servers'
+2026-09-03T02:03:34.6633566Z shell pid 6448 is on the automation plane: 'Servers'
+2026-09-03T02:03:34.6839380Z catalogue: 10 destination(s) — discover, skills, servers, activity, harnesses, checks, cleanup, inbox, insights, settings
+2026-09-03T02:03:36.5502104Z   discover: PASS — title 'Discover', 58 element(s), fp 9C02CAE56136CDFA
+2026-09-03T02:03:38.1890962Z   skills: PASS — title 'Skills', 60 element(s), fp 07503731F6E38E5C
+2026-09-03T02:03:40.0528789Z   servers: PASS — title 'Servers', 98 element(s), fp 4FEB5AC963136E2A
+2026-09-03T02:03:42.2805322Z   activity: PASS — title 'Activity', 117 element(s), fp 41C2792846F44C4E
+2026-09-03T02:03:43.9865653Z   harnesses: PASS — title 'Harnesses', 74 element(s), fp 1748C2878A645D71
+2026-09-03T02:03:45.6903387Z   checks: UNORACLED - no element named 'Checks'
+2026-09-03T02:03:45.6943735Z   the shell is gone; relaunching before 'cleanup'
+2026-09-03T02:03:45.7066434Z   stopping a stale shell, pid=18080
+2026-09-03T02:03:46.8157683Z   bound to the shell's own window: class 'WinUIDesktopWin32WindowClass', title 'Servers'
+2026-09-03T02:03:48.7906696Z   cleanup: PASS — title 'Cleanup', 94 element(s), fp 6F64D456EB517377
+2026-09-03T02:03:50.6636227Z   inbox: PASS — title 'Inbox', 83 element(s), fp FF4228314F0437F8
+2026-09-03T02:03:52.4745668Z   insights: PASS — title 'Insights', 77 element(s), fp F27321DCEB4E24A9
+2026-09-03T02:03:54.2961928Z   settings: PASS — title 'Settings', 86 element(s), fp 86640BAFA1085885
+2026-09-03T02:03:54.3191774Z settings census expects 7 section(s) and 3 toggle(s), read out of SettingsPresentation.cs
+2026-09-03T02:03:55.0378407Z   control settings.sections: PASS - all 7 declared section(s) publish an addressable container: settings.section.router, settings.section.harnesses, settings.section.sessionanalyst, settings.section.updates, settings.section.security, settings.section.ambientsurface, settings.section.advanced
+2026-09-03T02:03:55.0557931Z   control settings.toggle.LaunchAtLogin: PASS - named 'Launch router daemon at sign-in', toggle state readable as 'Off'
+2026-09-03T02:03:55.0704982Z   control settings.toggle.RequireConfirmationOnDestructive: PASS - named 'Confirm before removing a server', toggle state readable as 'On'
+2026-09-03T02:03:55.0837001Z   control settings.toggle.ShowAmbientIcon: PASS - named 'Show status in notification area', toggle state readable as 'On'
+2026-09-03T02:03:55.1930768Z   control settings.effect: PASS - toggling 'Launch router daemon at sign-in' through the plane moved the board's state readout from 'LaunchAtLogin=off · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' to 'LaunchAtLogin=on · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' - an effect outside the control that was actuated.
+2026-09-03T02:03:57.5794310Z   control settings.launchAtLogin.baseline: PASS - Get-ScheduledTask reports no task at '\MCPRouter\WIN-SHELL Settings Witness (transient)' before the switch is driven, so the arms below measure THIS run's registration.
+2026-09-03T02:03:59.8069895Z   control settings.launchAtLogin.effect: PASS - driving the switch to On through the automation plane registered '\MCPRouter\WIN-SHELL Settings Witness (transient)' in the Windows task scheduler: state=Ready, logon trigger present, RunLevel=Limited (the recorder's word for the XML's LeastPrivilege), Execute=C:\Dev\mcp-router\.worktrees\wd1-ambient-truth\app\windows\MCPRouter.Shell\win-shell-witness-daemon.exe. Read by an API that did not write it.
+2026-09-03T02:03:59.8112567Z   control settings.persistence.store: PASS - C:\Dev\mcp-router\.worktrees\wd1-ambient-truth\planning\evidence\WIN-SHELL\arming\def-300-301-planted-run\shell-state\shell-settings.json holds LaunchAtLogin=true, read off the disk by this script. The file is the recorder; the shell is not asked what it saved.
+2026-09-03T02:03:59.8132855Z   closing the shell to measure whether the setting survives it
+2026-09-03T02:04:02.1569505Z   bound to the shell's own window: class 'WinUIDesktopWin32WindowClass', title 'Servers'
+2026-09-03T02:04:03.1503995Z   control settings.persistence: PASS - the shell was terminated and launched again as a new process, and the switch reads On in the new one. Closing the shell no longer forgets the setting.
+2026-09-03T02:04:04.5365828Z   control settings.copyEndpoint: PASS - the clipboard held this lane's sentinel before the button was invoked and holds 'http://127.0.0.1:8879' after, read out of a separate PowerShell process. It matches the endpoint the board displays at settings.state.endpoint.
+2026-09-03T02:04:06.6913922Z   control settings.launchAtLogin.silence: PASS - driving the switch back to Off removed '\MCPRouter\WIN-SHELL Settings Witness (transient)': Get-ScheduledTask reports absence again, so its yes above was a reading rather than an echo.
+2026-09-03T02:04:09.2730727Z   control settings.ambientIcon.baseline: PASS - with the switch driven Off, a separate process asks the shell for the icon at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90} and is told there is none (HRESULT 0x80004005). The recorder is capable of saying no, and any yes below is this run's.
+2026-09-03T02:04:11.4873077Z   control settings.ambientIcon.effect: PASS - driving the switch to On through the automation plane put an icon in the Windows notification area at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90}: a separate process asked the shell for its rectangle and got 2108,1528 to 2156,1600 (HRESULT 0x00000000). Read by an API this application never called.
+2026-09-03T02:04:13.7123530Z   control settings.ambientIcon.silence: PASS - driving the switch back to Off took the icon out of the notification area: the same reader that found it a moment ago now answers HRESULT 0x80004005. Its yes above was a reading rather than an echo, and turning the setting off tells the user something true.
+2026-09-03T02:04:13.7367625Z   control settings.requireConfirmation.baseline: PASS - the router lists both servers this lane declared - lane-witness-beta, lane-witness-alpha - before any removal is attempted, so the arms below measure removals rather than absences that were already there.
+2026-09-03T02:04:18.5928023Z   control settings.requireConfirmation.effect: PASS - with the setting On, Remove raised a confirmation, this lane pressed 'Keep it', and the router still lists lane-witness-alpha (now: lane-witness-beta, lane-witness-alpha). The refusal is read out of the router, not out of the dialog: the app's account of having asked is not evidence that it obeyed the answer.
+2026-09-03T02:04:21.0595267Z   control settings.requireConfirmation.accepted: PASS - pressing 'Remove permanently' removed lane-witness-alpha from the ROUTER - it now lists lane-witness-beta. The gate opens as well as closes.
+2026-09-03T02:04:31.7872885Z   control settings.requireConfirmation.silence: PASS - with the setting Off, Remove raised no confirmation at all and the router no longer lists lane-witness-beta (now: nothing). The prompt above was the setting being obeyed rather than a dialog this board always shows.
+2026-09-03T02:04:33.3658069Z   control discover.rows.recent: PASS - 60 row(s) in 'discover.band.recent' each publish a distinct accessible name, none of them the type name, and a distinct automation id. First three: sap-mcp, 34,350 sessions on Smithery, added 13 Jul 2026, On Smithery | Framesail, 11,533 sessions on Smithery, added 9 Jul 2026, On Smithery | LMK.today MCP, 8,243 sessions on Smithery, added 6 Jul 2026, On Smithery
+2026-09-03T02:04:33.5693174Z   control discover.rows.used: PASS - 60 row(s) in 'discover.band.used' each publish a distinct accessible name, none of them the type name, and a distinct automation id. First three: pipeworx gateway, 419,019 sessions on Smithery, added 22 Apr 2026, On Smithery | Brave Search, 87,579 sessions on Smithery, added 5 Sep 2025, On Smithery, verified by Smithery | uk-due-diligence, 60,881 sessions on Smithery, added 29 Apr 2026, On Smithery
+2026-09-03T02:04:39.6069996Z   control discover.detail: PASS - opened from the row 'sap-mcp, 34,350 sessions on Smithery, added 13 Jul 2026, On Smithery'; all 8 checked control(s) are addressable by id and publish a name.
+2026-09-03T02:04:39.6265222Z   control shell.navigationPane: PASS - the navigation pane publishes the accessible name 'Destinations'.
+2026-09-03T02:04:39.6363821Z   stopping a stale shell, pid=5344
+2026-09-03T02:04:40.7440879Z   bound to the shell's own window: class 'WinUIDesktopWin32WindowClass', title 'Servers'
+2026-09-03T02:05:13.6886719Z   the shell is gone during the ambient arms; relaunching
+2026-09-03T02:05:13.7000335Z   stopping a stale shell, pid=21832
+2026-09-03T02:05:14.7870975Z   bound to the shell's own window: class 'WinUIDesktopWin32WindowClass', title 'Servers'
+2026-09-03T02:05:15.5205538Z   control ambient.routerStopped: UNORACLED - the shell did not survive the router being taken away, so what the pane said about it was never read. That is reported on its own row below.
+2026-09-03T02:05:46.2656421Z   control ambient.workInFlight: FAIL - /status was answered with three calls in flight and the pane reads 'Router ready' / 'All systems quiet. No active calls or queued items.'; expected 'Serving tool calls' / '3 active tool calls in flight.'.
+2026-09-03T02:06:19.2017409Z   control ambient.signInWaiting: FAIL - /status was answered with two upstreams in pendingAuth and the pane reads '' / ''; expected 'Decisions waiting' / '2 servers are waiting for you to sign in.'.
+2026-09-03T02:06:19.2047412Z   the shell is gone during the ambient arms; relaunching
+2026-09-03T02:06:19.2147742Z   stopping a stale shell, pid=15496
+2026-09-03T02:06:20.3658427Z   bound to the shell's own window: class 'WinUIDesktopWin32WindowClass', title 'Servers'
+2026-09-03T02:06:23.1331335Z   lane router restarted for the ambient arms: pid 21464 on http://127.0.0.1:51070
+2026-09-03T02:06:23.6692702Z   control ambient.routerRunning: PASS - the product's own router was started again outside the application and the pane moved to 'Router ready' / 'All systems quiet. No active calls or queued items.'. The surface reads the real router, not only the lane's stand-in.
+2026-09-03T02:06:55.7720690Z   control ambient.silence: FAIL - nothing answers http://127.0.0.1:51070/status and the pane still reads '' / ''. The surface keeps reporting a router it can no longer see.
+2026-09-03T02:06:55.7823945Z   the shell is gone during the ambient arms; relaunching
+2026-09-03T02:06:55.7928816Z   stopping a stale shell, pid=21584
+2026-09-03T02:06:56.8818283Z   bound to the shell's own window: class 'WinUIDesktopWin32WindowClass', title 'Servers'
+2026-09-03T02:06:57.6036372Z   control ambient.shellSurvivedRouterLoss: FAIL - MCPRouter.Shell terminated 3 time(s) while the router was being taken away and put back underneath it. See shell-startup.log beside the executable; a death with no line in it is the DEF-079 shape.
+2026-09-03T02:06:57.6171467Z   stopping the shell for the notification-area baseline, pid=32472
+2026-09-03T02:07:00.0070545Z   explorer processes before: 1, back up: True
+2026-09-03T02:07:20.3895977Z   control settings.ambientIcon.explorerRestart.baseline: PASS - with no MCPRouter.Shell running at all, Explorer was restarted and a separate process asking the new notification area for {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90} is told there is none (found=False, HRESULT 0x80004005). A fresh notification area does not invent this icon, so a yes below is about an icon that is in it.
+2026-09-03T02:07:20.4084505Z   stopping a stale shell, pid=31972
+2026-09-03T02:07:21.5687161Z   bound to the shell's own window: class 'WinUIDesktopWin32WindowClass', title 'Servers'
+2026-09-03T02:07:34.5618425Z   control settings.ambientIcon.survivesExplorerRestart: UNORACLED - the icon was not in the notification area before Explorer was restarted (switch drive: unaddressable; probe: found=False, HRESULT 0x80004005). Explorer was left alone: an arm about an icon surviving a restart needs an icon to survive.
+2026-09-03T02:07:34.5767567Z wrote C:\Dev\mcp-router\.worktrees\wd1-ambient-truth\planning\evidence\WIN-SHELL\arming\def-300-301-planted-run\assert-report.json
+2026-09-03T02:07:34.5787577Z destinations 10 · measured 9 · passed 9 · FAILED 4 · unoracled 1 · inconclusive 0
+2026-09-03T02:07:34.5798579Z controls checked 30 · FAILED 4
+2026-09-03T02:07:34.5855917Z shell pid 32808 stopped
+2026-09-03T02:07:34.5897733Z 4 destination(s) failed against the real shell on the automation plane.

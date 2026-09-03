@@ -1,0 +1,16 @@
+selftest - 9 planted row(s), one per rule and one per way of not being one
+  ok   T-1   want clean  got clean   no effect declared - not this gate's population at all
+  ok   T-2   want clean  got clean   a bound effect whose provider resolves
+  ok   T-3   want ['R1'] got ['R1']  REQ-016's shape BEFORE the re-class: an effect, no provider, and an evidence word that claims the product does it
+  ok   T-4   want ['R1'] got ['R1']  the same with the commonest evidence word in this register
+  ok   T-5   want ['R2'] got ['R2']  vacuity typed with no reason attached
+  ok   T-6   want clean  got clean   REQ-016 as it actually stands: vacuity with the absence written down
+  ok   T-7   want ['R3'] got ['R3']  a provider that no longer resolves - the sketch's fourth bullet
+  ok   T-8   want ['R3'] got ['R3']  one resolving and one not: a row is not excused by its good half
+  ok   T-9   want clean  got clean   prose with no path in it - passes R3 and is counted as unchecked, stated rather than hidden
+
+  T-3 and T-6 are the pair that matters. They differ only in the evidence word and the
+  note, and the gate refuses one and passes the other - so the exit it offers is a
+  recorded absence, not a typed one.
+exit: 0
+selftest exit 0

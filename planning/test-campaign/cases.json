@@ -5524,7 +5524,7 @@
       "planning/evidence/WIN-SHELL/arming/icon-inert-and-no-confirmation-lane.txt",
       "planning/evidence/WIN-SHELL/arming/icon-never-removed-and-answer-ignored-lane.txt"
     ],
-    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: driving the switch to On through the automation plane put an icon in the Windows notification area at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90}: a separate process asked the shell for its rectangle and got 2109,1528 to 2157,1600 (HRESULT 0x00000000). Read by an API this application never called. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Shell_NotifyIconGetRect in a separate powershell.exe process. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: driving the switch to On through the automation plane put an icon in the Windows notification area at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90}: a separate process asked the shell for its rectangle and got 2108,1528 to 2156,1600 (HRESULT 0x00000000). Read by an API this application never called. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Shell_NotifyIconGetRect in a separate powershell.exe process. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
     "witness": {
       "recorder": "Shell_NotifyIconGetRect in a separate powershell.exe process",
       "effect": "machine-state",
@@ -6049,5 +6049,408 @@
     "evidence": [],
     "note": "Registered as a case so this surface appears in the denominator with its reason attached. A surface left out of the registry is invisible to a coverage figure; a surface in it with an `n/a:` status is counted against one. The second is the honest shape and it is the whole reason this row exists rather than being omitted.",
     "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0470",
+    "generatedKey": "control:ambient.routerStopped",
+    "req": "REQ-085",
+    "surface": "SURF-050",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-050",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": true,
+    "armedNote": "armed by a planted defect, watched twice on 2026-09-03, transcripts in planning/evidence/WIN-SHELL/arming/def-301-planted-lane.txt and def-301-planted-lane-2.txt. Putting AmbientSurfaceModel's default back to AtRest and never starting the poll - DEF-301 exactly as it was filed - broke ambient.routerStopped, ambient.workInFlight, ambient.signInWaiting and ambient.silence, each of them reporting the pane frozen at 'Router ready' / 'All systems quiet. No active calls or queued items.' while the router was stopped or answering something else. ambient.routerRunning HELD through that plant, because a surface frozen at 'Router ready' satisfies an arm that expects 'Router ready' - which is why it stays unarmed and why the section takes the router away first. The unit half was watched separately: planning/evidence/WIN-SHELL/arming/def-301-unit-plant.txt.",
+    "actuates": [],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/arming/def-301-planted-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/def-301-planted-lane-2.txt",
+      "planning/evidence/WIN-SHELL/arming/def-301-unit-plant.txt"
+    ],
+    "note": "Written from the ambient section of scripts/windows/uia/shell-lane.ps1, which runs out of process against the real shell binary in the interactive session and DRIVES THE ROUTER FROM OUTSIDE THE APPLICATION: the lane owns the router the shell is pointed at - its own node process, on its own port, over its own MCP_ROUTER_HOME - and these rows stop it, put a stand-in on that port and start it again while the shell is told nothing at all. What is read back is the pane footer, addressed by AutomationId, never by name. The lane recorded: the router was stopped from outside the application - this script killed the process and then confirmed, over the loopback port, that nothing answers http://127.0.0.1:59780/status - and the shell's pane moved to 'Cannot reach router' / 'The router daemon is not responding on 127.0.0.1:59780.'. It does not say 'Router ready' over a router that is not running, which is DEF-301 exactly. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0471",
+    "generatedKey": "control:ambient.workInFlight",
+    "req": "REQ-085",
+    "surface": "SURF-050",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-050",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": true,
+    "armedNote": "armed by a planted defect, watched twice on 2026-09-03, transcripts in planning/evidence/WIN-SHELL/arming/def-301-planted-lane.txt and def-301-planted-lane-2.txt. Putting AmbientSurfaceModel's default back to AtRest and never starting the poll - DEF-301 exactly as it was filed - broke ambient.routerStopped, ambient.workInFlight, ambient.signInWaiting and ambient.silence, each of them reporting the pane frozen at 'Router ready' / 'All systems quiet. No active calls or queued items.' while the router was stopped or answering something else. ambient.routerRunning HELD through that plant, because a surface frozen at 'Router ready' satisfies an arm that expects 'Router ready' - which is why it stays unarmed and why the section takes the router away first. The unit half was watched separately: planning/evidence/WIN-SHELL/arming/def-301-unit-plant.txt.",
+    "actuates": [],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/arming/def-301-planted-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/def-301-planted-lane-2.txt",
+      "planning/evidence/WIN-SHELL/arming/def-301-unit-plant.txt"
+    ],
+    "note": "Written from the ambient section of scripts/windows/uia/shell-lane.ps1, which runs out of process against the real shell binary in the interactive session and DRIVES THE ROUTER FROM OUTSIDE THE APPLICATION: the lane owns the router the shell is pointed at - its own node process, on its own port, over its own MCP_ROUTER_HOME - and these rows stop it, put a stand-in on that port and start it again while the shell is told nothing at all. What is read back is the pane footer, addressed by AutomationId, never by name. The lane recorded: a process outside the application answered /status with three tool calls in flight across two upstreams, and the pane moved to 'Serving tool calls' / '3 active tool calls in flight.'. The count came from the answer, not from the app. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0472",
+    "generatedKey": "control:ambient.signInWaiting",
+    "req": "REQ-085",
+    "surface": "SURF-050",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-050",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": true,
+    "armedNote": "armed by a planted defect, watched twice on 2026-09-03, transcripts in planning/evidence/WIN-SHELL/arming/def-301-planted-lane.txt and def-301-planted-lane-2.txt. Putting AmbientSurfaceModel's default back to AtRest and never starting the poll - DEF-301 exactly as it was filed - broke ambient.routerStopped, ambient.workInFlight, ambient.signInWaiting and ambient.silence, each of them reporting the pane frozen at 'Router ready' / 'All systems quiet. No active calls or queued items.' while the router was stopped or answering something else. ambient.routerRunning HELD through that plant, because a surface frozen at 'Router ready' satisfies an arm that expects 'Router ready' - which is why it stays unarmed and why the section takes the router away first. The unit half was watched separately: planning/evidence/WIN-SHELL/arming/def-301-unit-plant.txt.",
+    "actuates": [],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/arming/def-301-planted-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/def-301-planted-lane-2.txt",
+      "planning/evidence/WIN-SHELL/arming/def-301-unit-plant.txt"
+    ],
+    "note": "Written from the ambient section of scripts/windows/uia/shell-lane.ps1, which runs out of process against the real shell binary in the interactive session and DRIVES THE ROUTER FROM OUTSIDE THE APPLICATION: the lane owns the router the shell is pointed at - its own node process, on its own port, over its own MCP_ROUTER_HOME - and these rows stop it, put a stand-in on that port and start it again while the shell is told nothing at all. What is read back is the pane footer, addressed by AutomationId, never by name. The lane recorded: /status was answered with two upstreams in pendingAuth and the pane moved to 'Decisions waiting' / '2 servers are waiting for you to sign in.'. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0473",
+    "generatedKey": "control:ambient.routerRunning",
+    "req": "REQ-085",
+    "surface": "SURF-050",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-050",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "NOT armed. This row HELD through every plant taken so far - see planning/evidence/WIN-SHELL/arming/ - which establishes that it is independent of those defects and says nothing about whether it can go red at all. It stays unarmed until something has been watched to break it.",
+    "actuates": [],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/arming/def-301-planted-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/def-301-planted-lane-2.txt",
+      "planning/evidence/WIN-SHELL/arming/def-301-unit-plant.txt"
+    ],
+    "note": "Written from the ambient section of scripts/windows/uia/shell-lane.ps1, which runs out of process against the real shell binary in the interactive session and DRIVES THE ROUTER FROM OUTSIDE THE APPLICATION: the lane owns the router the shell is pointed at - its own node process, on its own port, over its own MCP_ROUTER_HOME - and these rows stop it, put a stand-in on that port and start it again while the shell is told nothing at all. What is read back is the pane footer, addressed by AutomationId, never by name. The lane recorded: the product's own router was started again outside the application and the pane moved to 'Router ready' / 'All systems quiet. No active calls or queued items.'. The surface reads the real router, not only the lane's stand-in. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0474",
+    "generatedKey": "control:ambient.silence",
+    "req": "REQ-085",
+    "surface": "SURF-050",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-050",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": true,
+    "armedNote": "armed by a planted defect, watched twice on 2026-09-03, transcripts in planning/evidence/WIN-SHELL/arming/def-301-planted-lane.txt and def-301-planted-lane-2.txt. Putting AmbientSurfaceModel's default back to AtRest and never starting the poll - DEF-301 exactly as it was filed - broke ambient.routerStopped, ambient.workInFlight, ambient.signInWaiting and ambient.silence, each of them reporting the pane frozen at 'Router ready' / 'All systems quiet. No active calls or queued items.' while the router was stopped or answering something else. ambient.routerRunning HELD through that plant, because a surface frozen at 'Router ready' satisfies an arm that expects 'Router ready' - which is why it stays unarmed and why the section takes the router away first. The unit half was watched separately: planning/evidence/WIN-SHELL/arming/def-301-unit-plant.txt.",
+    "actuates": [],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/arming/def-301-planted-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/def-301-planted-lane-2.txt",
+      "planning/evidence/WIN-SHELL/arming/def-301-unit-plant.txt"
+    ],
+    "note": "Written from the ambient section of scripts/windows/uia/shell-lane.ps1, which runs out of process against the real shell binary in the interactive session and DRIVES THE ROUTER FROM OUTSIDE THE APPLICATION: the lane owns the router the shell is pointed at - its own node process, on its own port, over its own MCP_ROUTER_HOME - and these rows stop it, put a stand-in on that port and start it again while the shell is told nothing at all. What is read back is the pane footer, addressed by AutomationId, never by name. The lane recorded: taking the router away again put the pane back to 'Cannot reach router' / 'The router daemon is not responding on 127.0.0.1:59780.'. Its readings above were readings rather than a state it latched on to. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0475",
+    "generatedKey": "control:ambient.shellSurvivedRouterLoss",
+    "req": "REQ-085",
+    "surface": "SURF-050",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-050",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "NOT armed. This row HELD through every plant taken so far - see planning/evidence/WIN-SHELL/arming/ - which establishes that it is independent of those defects and says nothing about whether it can go red at all. It stays unarmed until something has been watched to break it.",
+    "actuates": [],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/arming/def-301-planted-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/def-301-planted-lane-2.txt",
+      "planning/evidence/WIN-SHELL/arming/def-301-unit-plant.txt"
+    ],
+    "note": "Written from the ambient section of scripts/windows/uia/shell-lane.ps1, which runs out of process against the real shell binary in the interactive session and DRIVES THE ROUTER FROM OUTSIDE THE APPLICATION: the lane owns the router the shell is pointed at - its own node process, on its own port, over its own MCP_ROUTER_HOME - and these rows stop it, put a stand-in on that port and start it again while the shell is told nothing at all. What is read back is the pane footer, addressed by AutomationId, never by name. The lane recorded: the router was stopped, replaced twice and started again underneath the running shell, and the shell was still on the automation plane at the end of it. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0476",
+    "generatedKey": "control:settings.ambientIcon.explorerRestart.baseline",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "NOT armed. This row HELD through every plant taken so far - see planning/evidence/WIN-SHELL/arming/ - which establishes that it is independent of those defects and says nothing about whether it can go red at all. It stays unarmed until something has been watched to break it.",
+    "actuates": [
+      "Show status in notification area"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/def-301-planted-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/def-301-planted-lane-2.txt",
+      "planning/evidence/WIN-SHELL/arming/def-301-unit-plant.txt",
+      "planning/evidence/WIN-SHELL/arming/def-300-oracle-unreliable-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: with no MCPRouter.Shell running at all, Explorer was restarted and a separate process asking the new notification area for {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90} is told there is none (found=False, HRESULT 0x80004005). A fresh notification area does not invent this icon, so a yes below is about an icon that is in it. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Shell_NotifyIconGetRect in a separate powershell.exe process, across an Explorer restart. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "Shell_NotifyIconGetRect in a separate powershell.exe process, across an Explorer restart",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0477",
+    "generatedKey": "control:settings.ambientIcon.survivesExplorerRestart",
+    "req": "REQ-038",
+    "surface": "SURF-038",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-038",
+      "state": "as-launched",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": false,
+    "armedNote": "NOT armed. This row HELD through every plant taken so far - see planning/evidence/WIN-SHELL/arming/ - which establishes that it is independent of those defects and says nothing about whether it can go red at all. It stays unarmed until something has been watched to break it.",
+    "actuates": [
+      "Show status in notification area"
+    ],
+    "evidence": [
+      "planning/evidence/WIN-SHELL/run/assert-report.json",
+      "planning/evidence/WIN-SHELL/run/lane.log",
+      "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+      "planning/evidence/WIN-SHELL/arming/def-301-planted-lane.txt",
+      "planning/evidence/WIN-SHELL/arming/def-301-planted-lane-2.txt",
+      "planning/evidence/WIN-SHELL/arming/def-301-unit-plant.txt",
+      "planning/evidence/WIN-SHELL/arming/def-300-oracle-unreliable-lane.txt"
+    ],
+    "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: the notification area held the icon at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90}, Explorer was killed and came back, and a separate powershell.exe asking the new shell for that GUID gets a rectangle again (2252,1528 to 2312,1600, HRESULT 0x00000000) - where the same reader, with nothing owning the icon, was told there was none. The icon comes back without the operator doing anything. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Shell_NotifyIconGetRect in a separate powershell.exe process, across an Explorer restart. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+    "witness": {
+      "recorder": "Shell_NotifyIconGetRect in a separate powershell.exe process, across an Explorer restart",
+      "effect": "machine-state",
+      "count": 1
+    },
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0338",
+    "generatedKey": "manual:SURF-044",
+    "req": "REQ-031",
+    "surface": "SURF-044",
+    "flow": null,
+    "lane": "windows-glass",
+    "cell": {
+      "surface": "SURF-044",
+      "state": "unreached",
+      "viewport": "default",
+      "theme": "system",
+      "role": "operator",
+      "dataShape": "no-router-running",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "presence",
+    "status": "n/a: not reachable from the shell's navigation, so the destination sweep never opens it. WIN7's detail dialog. DiscoverDetailContent.xaml declares NO literal control name and no AutomationProperties.Name at all, so nothing on it is addressable from the automation plane by name. That is a finding, and it is why the control list is empty rather than omitted.",
+    "armed": false,
+    "armedNote": "not armed: nothing was measured, so there is no predicate to arm.",
+    "actuates": [],
+    "evidence": [],
+    "note": "Registered as a case so this surface appears in the denominator with its reason attached. A surface left out of the registry is invisible to a coverage figure; a surface in it with an `n/a:` status is counted against one. The second is the honest shape and it is the whole reason this row exists rather than being omitted.",
+    "generatedBy": "scripts/windows/uia/shell-lane.ps1 via planning/test-campaign/bin/win-cases-from-lane.py"
+  },
+  {
+    "id": "CASE-0530",
+    "req": "REQ-019",
+    "surface": null,
+    "flow": null,
+    "lane": "parity-wire",
+    "cell": {
+      "surface": null,
+      "state": "a pending tool surface staged for approval",
+      "viewport": "n/a",
+      "theme": "n/a",
+      "role": "harness",
+      "dataShape": "the manifest save refused by the real filesystem",
+      "executionPlane": "headless"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "armedBy": "PLANTED AND WATCHED RED. DEF-049's swallowed save was restored into the compiled reference - `dist/control.js:520` wrapped as `try { saveManifest(...) } catch {}` - and the EFFECT arm went from `500` with `pending` still on disk to `200` with `pending` still on disk, which is the defect's exact shape, at exit 1. The plant was reverted from a byte copy and the same command returned exit 0. Both runs are in `planning/evidence/WD4/run/arming.txt`.",
+    "actuates": [],
+    "evidence": [
+      "scripts/acceptance/r21-approve-write-denied.mjs",
+      "planning/evidence/WD4/run/r21-approve-write-denied.txt",
+      "planning/evidence/WD4/run/arming.txt"
+    ],
+    "note": "WHAT THIS ROW SPEAKS FOR, AND WHAT IT DOES NOT. It measures the NODE reference only. `swift` and `xcodebuild` are absent on this machine, so nothing here is a Swift test result and this case must not be read as coverage of `AuthRoutes.promote`; the Swift side of REQ-019 is still carried by `ControlApproveDispatchTests` and this campaign has not run it.\n\nThree arms over the shipped `handleControl` out of `dist/`: a writable home answering 200 with `pending` gone from disk; the same call with the save's temp path occupied by a directory, answering 500 with the errno message and `pending` still on disk; and the occupation removed, answering 200 again. The denial is the filesystem's own `EISDIR` at exactly the step that makes the change durable - not a mocked `FileSystem` - and the lock sidecar and the manifest read are left working on purpose, because a denial that also stopped the lock would produce a 500 carrying the LOCK's sentence and prove nothing about the save.\n\nACLs were tried first and are recorded in the lane's header as a control that did not arm: `icacls <file> /deny <user>:(D,WD,AD,WEA,WA)` and `icacls <dir> /deny <user>:(DC)` both apply, read back as DENY aces, and `renameSync` over the target succeeds anyway on this machine. An ACL that is set and does not bite produces a green arm that never armed, which is why the temp-path occupation replaced it.\n\nWhat it found: the reference answers 500, so Swift's pre-R21 200 was a divergence and R21's change closed it (DEF-442), while the error BODIES still differ (DEF-441). `deps.liveReload` and `deps.manifest` are stubs - they are the announcement collaborators the 200 path calls after the write - and the route, the lock, `loadManifest` and `saveManifest` are the shipped ones."
+  },
+  {
+    "id": "CASE-0531",
+    "req": "REQ-016",
+    "surface": null,
+    "flow": null,
+    "lane": "repo-gate",
+    "cell": {
+      "surface": null,
+      "state": "the campaign registry as committed",
+      "viewport": "n/a",
+      "theme": "n/a",
+      "role": "whoever reads an effect claim and believes something can perform it",
+      "dataShape": "planning/test-campaign/inventory.json, the 17 rows declaring an effect",
+      "executionPlane": "repository"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "armedBy": "PLANTED TWICE INTO THE REAL REGISTER, not only into the selftest. (A) REQ-016's `evidence` moved `vacuous` -> `observed`, which is the shape `vacuity-check.py --gate` found it in: exit 1, R1, the row named. (B) REQ-024's provider renamed to `RequestAuthorityRenamed.swift`: exit 1, R3, the token named - the acceptance sketch's fourth bullet, a provider that stops resolving. Each plant reverted with `git checkout --` and the register left byte-identical to HEAD; the same command returned exit 0 either side of both. `--selftest` covers nine rows at the function level, and the pair that matters is T-3 against T-6: identical but for the evidence word and the note, refused and passed respectively. Runs in `planning/evidence/WD4/run/arming.txt`.",
+    "actuates": [],
+    "evidence": [
+      "planning/effect-provider-gate.py",
+      "planning/evidence/WD4/run/effect-provider-gate.txt",
+      "planning/evidence/WD4/run/effect-provider-gate-selftest.txt",
+      "planning/evidence/WD4/run/arming.txt"
+    ],
+    "note": "NOT A PRODUCT MEASUREMENT. Nothing here is observed on any surface and `surface` is null on purpose: the gate reads the register, and a green means the register's effect claims are accountable, never that the effects happen. Enrolled in `make lint` beside `defect-status-vocabulary-gate.py`, both the check and its selftest.\n\nIt exists because `vacuity-check.py` REPORTS this state and cannot refuse it - it lives under `vendor/`, pinned by checksum, and this repository may not edit it - so its finding was carried forward run after run. The rule is a disjunction rather than a count, because a gate written to `9 of 9 named` would be satisfied by somebody typing a plausible filename into the field: name a provider that resolves, OR record the claim `vacuous` and say in `providerNote` what is missing. REQ-016 takes the second branch and passes deliberately - the gate holds the absence visible rather than answering DEF-440's question.\n\nBlind spots it prints on every clean run: R3 checks that the FILE exists and never that the symbol inside it does, a `:line` is not followed, and a provider field carrying only prose is counted as checked-by-nothing rather than passed quietly. 40 provider path tokens resolve across 16 bound rows at 42aef112; the unreadable-token count is 0."
+  },
+  {
+    "id": "CASE-0510",
+    "req": "REQ-095",
+    "surface": null,
+    "flow": null,
+    "lane": "repo-gate",
+    "cell": {
+      "surface": null,
+      "state": "the campaign registry as committed, and eight plants against a scratch copy",
+      "viewport": "n/a",
+      "theme": "n/a",
+      "role": "whoever quotes the actuation census",
+      "dataShape": "planning/test-campaign/inventory.json + cases.json",
+      "executionPlane": "repository"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "armedBy": "Eight plants, each made on a scratch copy of `planning/test-campaign/` and each reverted and re-run before the next, run against BOTH this branch's census and the one it replaced (`git show HEAD:...`) so the reading is a difference rather than an assertion. BASELINE: both censuses exit 0 over the committed registry. SIX RED ON THE NEW CENSUS AND SILENT ON THE OLD -- (1) SURF-002 (glass) declares an `operations` member; (2) SURF-045 (headless) declares the control `Reset history`, an ordinary prose name no string rule could ever catch; (3) DEF-131's own exhibit, SURF-047's four operations moved back under `controls`, which is the plant the previous census was MEASURED not to see; (4) SURF-003 set to `undetermined` while declaring three controls; (5) SURF-001's `plane` removed entirely; (6) SURF-046's `planeNote` removed, which is what makes `mixed` cost a written justification. TWO DECLARED SILENCES, required to stay silent so the limits are measured rather than claimed -- (7) SURF-046 (mixed) declares a control: silent on both, because both fields are legitimate on a mixed row and the census names those rows as UNDEFENDED on its own output line; (8) `LogonTaskSupervisor.Register` appended to SURF-002's `controls`: silent on the new census and RED on the old, which is coverage this change gave up and is filed as DEF-420. SILENCE: the plant reverted after every one, census clean each time.",
+    "actuates": [],
+    "evidence": [
+      "planning/test-campaign/bin/arm-surface-plane.py",
+      "planning/test-campaign/bin/control-census.py",
+      "planning/test-campaign/bin/design-controls.py"
+    ],
+    "note": "NOT a product measurement. Nothing here is observed on glass and this row must not be read as coverage of any surface -- `surface` is null on purpose and `actuates` is empty, because a case about the vocabulary of `controls` and `operations` must not put a member in the numerator to say so. The commands, which is what `actuates` is NOT for: `python planning/test-campaign/bin/arm-surface-plane.py` and `python planning/test-campaign/bin/control-census.py`, from the worktree root. WHAT THIS CASE DOES NOT COVER: a member misfiled inside its own plane's field on a glass surface (DEF-420) and anything at all on a `mixed` row, and neither is evidence against those -- plants 7 and 8 are the arm requiring both silences so a later change cannot quietly acquire the coverage without the record moving with it."
   }
 ]

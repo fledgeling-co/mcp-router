@@ -89,10 +89,20 @@ in the static HTML. `getBoundingClientRect()` is documented correct on this engi
 rendered the mock itself — so visibility is taken from the box. This file is now the only one of the
 two that runs a browser.
 
+WHAT `--set-controls` WRITES, AND WHY `plane` IS PART OF IT
+-----------------------------------------------------------
+`bin/control-census.py` no longer decides from the shape of a name whether a declared member is a
+control somebody presses or an operation a lane calls; it reads a `plane` the surface declares
+(DEF-131). Every surface enumerated here was harvested by measuring drawn boxes in a rendered
+design, which is a measurement that it has glass, so `--set-controls` writes `plane: "glass"`
+beside the control list it writes. It refuses, rather than overwrites, a surface the registry
+already calls something else — see `write_controls`.
+
 EXITS
 -----
     0  every state returned its controls and every surface has at least one
-    2  a state returned nothing, or a surface came back empty — a board specifying no controls is a
+    2  a state returned nothing, a surface came back empty, or `--set-controls` found a surface
+       the registry calls non-glass — a board specifying no controls is a
        broken probe far more often than a true empty, so this refuses rather than writing an empty
        denominator, which is the failure the whole census exists to avoid
     3  obscura could not be run at all
@@ -458,6 +468,40 @@ def classify(action: str, source: str, console_msg: set[str]) -> bool:
     return action in MESSAGE_ONLY_ACTIONS
 
 
+def write_controls(inv: dict, result: dict[str, dict]) -> tuple[int, list[str]]:
+    """Write the harvested denominator onto the registry's surfaces. Returns (written, refusals).
+
+    THE PLANE IS WRITTEN HERE TOO, and that is not bookkeeping. Every surface this file harvests
+    was read out of a rendered design by measuring boxes on screen, so it has glass by
+    construction — `plane: "glass"` is the same measurement as the control list, recorded rather
+    than inferred later from the shape of the names (DEF-131).
+
+    A surface the registry already calls `headless`, `mixed` or `undetermined` is REFUSED rather
+    than flipped. Two records disagreeing about whether a surface has glass is a fact somebody has
+    to settle; overwriting the older one makes the disagreement vanish without settling it, and
+    the file that overwrote it would be the one nobody reads.
+    """
+    written, refusals = 0, []
+    for srec in inv.get("surface", []):
+        found = result.get(srec["id"])
+        if not found:
+            continue
+        plane = srec.get("plane")
+        if plane not in (None, "glass"):
+            refusals.append(
+                f"{srec['id']} is declared `plane`: {plane} in the registry and this file "
+                f"harvested {len(found['controls'])} control(s) off a rendered design for it. "
+                f"One of the two is wrong and neither is overwritten here — settle it in "
+                f"inventory.json.")
+            continue
+        srec["plane"] = "glass"
+        srec["controls"] = found["controls"]
+        srec["controlsMessageOnly"] = found["messageOnly"]
+        srec["controlsSource"] = found["source"]
+        written += 1
+    return written, refusals
+
+
 def main() -> int:
     if not shutil.which("obscura"):
         print("obscura is not on PATH — no verdict printed, because a count from an instrument "
@@ -544,21 +588,19 @@ def main() -> int:
         # would leave the tree dirty and the next `git merge` would refuse — measured in this
         # repository on 2026-08-27 and written into `registry-drop-gate.py`'s own header. Reading
         # the census and writing the denominator are separate acts.
-        inv = json.loads(INVENTORY.read_text())
-        written = 0
-        for srec in inv.get("surface", []):
-            found = result.get(srec["id"])
-            if not found:
-                continue
-            srec["controls"] = found["controls"]
-            srec["controlsMessageOnly"] = found["messageOnly"]
-            srec["controlsSource"] = found["source"]
-            written += 1
+        inv = json.loads(INVENTORY.read_text(encoding="utf-8-sig"))
+        written, refusals = write_controls(inv, result)
+        if refusals:
+            print("\nREFUSED — the registry and this harvest disagree about whether a surface "
+                  "has glass, and nothing was written:", file=sys.stderr)
+            for r in refusals:
+                print(f"  · {r}", file=sys.stderr)
+            return 2
         # `ensure_ascii=False` because this file holds its em-dashes raw. Writing it back escaped
         # rewrites 120 lines that did not change, which buries the census in a diff nobody can read.
         INVENTORY.write_text(json.dumps(inv, indent=2, ensure_ascii=False) + "\n")
-        print(f"--set-controls: wrote controls onto {written} surface(s) in "
-              f"{INVENTORY.relative_to(ROOT)}")
+        print(f"--set-controls: wrote `plane: glass` and controls onto {written} surface(s) "
+              f"in {INVENTORY.relative_to(ROOT)}")
     return 0
 
 

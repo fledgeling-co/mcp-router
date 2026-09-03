@@ -1,5 +1,17 @@
 ---
-status: retired
+status: in-progress
+was: retired
+status-corrected: 2026-09-03, at the Wave B merge
+status-correction-reason: >-
+  The enumeration half shipped at 2ac492f and the binding half did not. This brief carried
+  `retired` against SURF-026, and DEF-065 - the Insights analyst panel is an empty state with
+  a dead button, three readouts and its one action unbuilt - is open and MEASURED on that very
+  surface. The word was earnable only because DEF-065 lived solely in defects.in.json, which
+  reckon.read_campaign never opens, so no ledger counted it and no gate could see the
+  contradiction. wc4 carried it into inventory.json on 2026-09-03 and shipped-brief-gate
+  reddened on this brief in the same run. `completed` would be as wrong as `retired`: that
+  word means nothing in the registry answers to the brief, and something does, and it says no.
+  `shipped-by` is kept as the record of the half that landed.
 shipped-by: 2ac492f
 found-by: the serialized merge of G15/G16/G17/G19, 2026-08-27, running G18's own gate afterwards
 ---

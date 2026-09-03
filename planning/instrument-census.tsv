@@ -302,6 +302,7 @@ planning/carrier-parity-gate.py	gate	planning/carrier-parity-gate.py	static	no r
 planning/citation-gate.py	gate	planning/citation-gate.py	static	no router invocation matched	make:lint,planning/goals/citations-blocking-check.sh
 planning/claim-sweep.py	gate	planning/claim-sweep.py	static	no router invocation matched	-
 planning/defect-status-vocabulary-gate.py	gate	planning/defect-status-vocabulary-gate.py	static	no router invocation matched	make:lint
+planning/design-divergence-marker-gate.py	gate	planning/design-divergence-marker-gate.py	static	no router invocation matched	make:lint
 planning/evidence-citation-gate.py	gate	planning/evidence-citation-gate.py	static	no router invocation matched	make:lint
 planning/evidence/F6/measure-update-surface.py	gate	planning/evidence/F6/measure-update-surface.py	static	no router invocation matched	-
 planning/evidence/F6/red-green.py	gate	planning/evidence/F6/red-green.py	swift	argv ["swift", …]	-
@@ -387,6 +388,7 @@ planning/test-campaign/bin/raster-claim-gate.py	gate	planning/test-campaign/bin/
 planning/test-campaign/bin/record-arms.py	gate	planning/test-campaign/bin/record-arms.py	static	no router invocation matched	-
 planning/test-campaign/bin/record-glass-arms.py	gate	planning/test-campaign/bin/record-glass-arms.py	static	no router invocation matched	-
 planning/test-campaign/bin/req017-honesty.py	gate	planning/test-campaign/bin/req017-honesty.py	static	no router invocation matched	-
+planning/test-campaign/bin/sidebar-foot-arm.py	gate	planning/test-campaign/bin/sidebar-foot-arm.py	static	no router invocation matched	make:lint
 planning/test-campaign/bin/surface-oracle.swift	gate	planning/test-campaign/bin/surface-oracle.swift	static	no router invocation matched	-
 planning/test-campaign/bin/surface-reconcile.py	gate	planning/test-campaign/bin/surface-reconcile.py	static	no router invocation matched	make:surface-reconcile
 planning/test-campaign/bin/vocab-differential.py	gate	planning/test-campaign/bin/vocab-differential.py	static	no router invocation matched	make:lint
@@ -526,6 +528,7 @@ scripts/warden/apply-migration.py	gate	scripts/warden/apply-migration.py	static	
 scripts/warden/plan-migration.py	gate	scripts/warden/plan-migration.py	static	no router invocation matched	-
 scripts/warden/selftest.sh	gate	scripts/warden/selftest.sh	static	no router invocation matched	make:lint
 scripts/windows/ps-parse-gate.py	gate	scripts/windows/ps-parse-gate.py	static	no router invocation matched	-
+scripts/windows/uia/overflow-assert.py	gate	scripts/windows/uia/overflow-assert.py	static	no router invocation matched	-
 scripts/windows/uia/uia-assert.py	gate	scripts/windows/uia/uia-assert.py	static	no router invocation matched	-
 scripts/windows/uia/uia-selftest.py	gate	scripts/windows/uia/uia-selftest.py	static	no router invocation matched	-
 scripts/worktree-preflight-selftest.sh	gate	scripts/worktree-preflight-selftest.sh	static	no router invocation matched	make:lint

@@ -6,7 +6,7 @@
       "DELETED",
       "PHANTOM"
     ],
-    "total": 22,
+    "total": 20,
     "by_file": {
       "ORCHESTRATOR.md": 1,
       "planning/evidence/M16-acceptance.md": 1,
@@ -19,8 +19,7 @@
       "planning/plans/plan-M4.md": 1,
       "planning/practices/EVIDENCE_AND_DISPATCH.md": 1,
       "planning/practices/NEW_PROJECT_BEST_PRACTICES.md": 1,
-      "planning/progress/G4-gapfix-3.md": 1,
-      "planning/progress/G6.md": 2,
+      "planning/progress/G6.md": 1,
       "planning/progress/P9.md": 1,
       "planning/specs/spec-I2.md": 1,
       "planning/specs/spec-M16.md": 3

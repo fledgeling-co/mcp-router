@@ -3788,8 +3788,9 @@ defects above, which is the ordinary way a verification pass pays for itself twi
 **And one defect found in an instrument I wrote earlier this session.** `win-cases-from-lane.py`
 allocated case ids from `max(hand-written) + 1`, so the generated block sat immediately above the
 highest hand-written id and *every* generated id slid up by one whenever a case was added by hand.
-Two cases authored here against `CASE-0309`/`CASE-0310` were silently taken over by the Discover and
-Skills rows. Ids are now allocated once per subject and remembered on a `generatedKey`, above every
+Two cases authored here were silently taken over by the Discover and Skills rows: `CASE-0309`
+names no row in any registry, and neither does `CASE-0310`. The subjects survived under the ids
+the generator then assigned them; the two numbers did not, and were never rows to retire. Ids are now allocated once per subject and remembered on a `generatedKey`, above every
 id in the file. It was reproducing, every run, the exact defect `3189d028` left behind as a dangling
 `CASE-0151` — which the same session had just spent an hour declaring retirements for.
 

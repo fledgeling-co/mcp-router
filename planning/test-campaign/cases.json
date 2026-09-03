@@ -5538,7 +5538,6 @@
     "status": "pass",
     "armed": true,
     "actuates": [
-      "LogonTaskSupervisor.BuildTaskXml",
       "LogonTaskSupervisor.Register"
     ],
     "note": "The half of WIN23's supervision promise that had never been watched: a daemon the Windows task scheduler starts, loses, and starts again. DEF-081 filed it as unmeasurable and named the blocker as a missing Windows daemon binary; the blocker was real and is gone - app/windows/MCPRouter.Witness.Daemon is a harness process that starts, records its own start and waits to be killed, so there is something for the scheduler to supervise. WHAT THE MEASUREMENT FOUND IS NOT WHAT THE ROW EXPECTED. The registration the product wrote carried RestartOnFailure with a 60-second interval and a count of 3, and it did not restart the daemon at all. Killed, watched 150 seconds, on the unified scheduling engine and the legacy one, for a run started by a trigger and one started on demand: four registrations, no restart. The same block DID restart, three times at exactly 60 seconds, a task whose Command named a file that does not exist - so the instrument can see a restart, and RestartOnFailure governs a task that fails to LAUNCH rather than one whose action launched and later died. DEF-320 carries that, and the product now writes a Repetition on the trigger alongside MultipleInstancesPolicy IgnoreNew. THE RECORDERS ARE TWO AND NEITHER WROTE ANYTHING: Get-ScheduledTaskInfo for the scheduler's own account of its runs, and Get-CimInstance Win32_Process for the process identity, which is what makes 'it came back' a different process id rather than a report from the thing that came back. The daemon's own run log is carried and graded by nothing. EIGHT ARMS, THREE OF THEM ABOUT THE INSTRUMENT: BASELINE requires both tasks absent and no daemon running, so nothing below is inherited from an interrupted run; CLAIM.repetition and CLAIM.ignorenew read the product's own unmodified logon registration back through the WMI provider; SILENCE requires both recorders to say no once the tasks are gone. ONE SUBSTITUTION, SAID OUT LOUD: a trigger repetition does not apply to an on-demand start - measured, twice - so the live task carries a TimeTrigger where the product writes a LogonTrigger, because this lane must not log the machine out. Every Setting, the repetition interval, the principal, the action and the instances policy are the product's own document. That the trigger fires AT LOGON is still unwitnessed and DEF-081 keeps it.",
@@ -5553,7 +5552,8 @@
       "count": 1
     },
     "surface": "SURF-045",
-    "actuatesSurface": "SURF-045"
+    "actuatesSurface": "SURF-045",
+    "actuatesNote": "`LogonTaskSupervisor.BuildTaskXml` was listed here and is not among SURF-045's declared operations, so control-census.py reported it as a stray and exited 1. It is an internal producer rather than an operation on the plane - it builds the payload; it does not touch the scheduler or the notification platform. DEF-080 settled the vocabulary: `actuates` names a control or operation the SURFACE declares, which is the census's denominator, never the method the lane happened to call. The declared operation this case does exercise is still named, so nothing measured was lost."
   },
   {
     "id": "CASE-0441",
@@ -5564,8 +5564,7 @@
     "status": "pass",
     "armed": true,
     "actuates": [
-      "ToastNotifier.Show",
-      "NotificationPresentation.ForQueuedItem"
+      "ToastNotifier.Show"
     ],
     "note": "The toast itself, in the Action Center, read by a process that cannot raise one. DEF-082 filed this as unmeasurable and gave a reason: UserNotificationListener's userNotificationListener capability is only grantable to a packaged application, and MCPRouter.Shell is WindowsPackageType=None, so the row was said to be downstream of WIN19's MSIX. THE REASON WAS WRONG, AND IT WAS WRONG BEFORE WIN19 LANDED. Measured on this host from an ordinary unpackaged Win32 console process with no package identity at all - Package.Current throws InvalidOperationException, which the lane asserts rather than assumes - UserNotificationListener.Current resolves, RequestAccessAsync returns Allowed with no consent prompt, and GetNotificationsAsync returns the toasts that are really there. On the first run those included three raised by win22-toast-witness the day before, carrying the exact strings NotificationPresentation writes. No MSIX, no capability, no packaged identity. WHAT IS STILL NOT AVAILABLE UNPACKAGED, and it bounds this case: every member of UserNotification.AppInfo throws NotImplementedException 0x80004001 for a caller with no package identity, so the listener can say what a notification SAYS and when it arrived and cannot say who raised it. Attribution here is the payload text, which the product owns, inside a time window this run opened - weaker than a publisher identity, and recorded as such. THE RECORDER IS NOT THE WRITER AND IS NOT EVEN THE SAME PROCESS: app/windows/MCPRouter.Witness.ActionCenter shares no code with the shell and cannot raise a notification. The shell's toast-probe.json is carried as the writer's self-report and graded by nothing. THE PRESENCE CONTROL is a removal: the matched notification is taken back out through the listener and the Action Center is read a third time, and the recorder is required to say no about it.",
     "evidence": [
@@ -5579,7 +5578,8 @@
       "count": 1
     },
     "surface": "SURF-046",
-    "actuatesSurface": "SURF-046"
+    "actuatesSurface": "SURF-046",
+    "actuatesNote": "`NotificationPresentation.ForQueuedItem` was listed here and is not among SURF-046's declared operations, so control-census.py reported it as a stray and exited 1. It is an internal producer rather than an operation on the plane - it builds the payload; it does not touch the scheduler or the notification platform. DEF-080 settled the vocabulary: `actuates` names a control or operation the SURFACE declares, which is the census's denominator, never the method the lane happened to call. The declared operation this case does exercise is still named, so nothing measured was lost."
   },
   {
     "id": "CASE-0420",

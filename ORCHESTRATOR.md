@@ -4033,3 +4033,28 @@ Bucket B — Swift, macOS and iOS, where `swift test` and `xcodebuild` do not ru
 Bucket C, parked with a stated reason and an owner. Every Bucket B member ships with one standing
 disclosure that is not negotiable: **the Swift half is written and not run here.** A brief that says
 so is worth more than a green that does not.
+
+
+## 2026-09-03 · Wave B landed: the join, five Windows rows, and five gates resolved
+
+Five runners, opus-5 at medium effort, concurrency two, all five reported.
+
+| Runner | Items | Settled by |
+|---|---|---|
+| `wc1-brief-join` | DEF-090, 9 briefs | 15 briefs cited and 48 deliberately left unjoined (honest 28.6% join beats a fabricated 50%); 9 briefs left remaining set (`shipped-brief-gate.py` R5=0). Filed DEF-280 (REQ-035 double-booked by R22). |
+| `wc2-tray-and-confirm` | DEF-101, DEF-102 | `NotificationAreaIcon.cs` calling `Shell_NotifyIcon` with GUID, witnessed by rectangle queries from an external process (`0x80004005 -> 0x00000000 -> 0x80004005`). Destructive toggle narrowed to `Confirm before removing a server` and wired to `RemoveServerAsync`, witnessed by router list queries after Cancel/Confirm. |
+| `wc3-witness-blockers` | DEF-081, DEF-082 | Proved `RestartOnFailure` had never restarted anything; fixed by adding `Repetition` to logon trigger; witnessed live restart. Proved toast blocker was false: unpackaged Win32 calls `UserNotificationListener.GetNotificationsAsync` without MSIX, found 7 toasts. Filed/fixed DEF-320 and DEF-321. |
+| `wc4-registry-consistency` | SURF-029, REQ-034, DEF-091, DEF-042, DEF-043 | CASE-0460 exercises CommandBar overflow via UIA; REQ-034 evidence corrected `observed -> reported`; DEF-091 settled (DEF-063 collision separated to DEF-340); DEF-042 annotated; DEF-043 clarified as macOS. Carried DEF-064, DEF-065, DEF-340 into inventory. |
+| `wc5-ledger-reconcile` | ledger-reconcile.py | Reconciler brought to green across all 13 checks (series letters added, 12 missing slot rows written, states mapped, DEF-360/361/362 filed). Enrolled in `make lint` and `verify.ps1`. |
+
+### Merge-break resolutions
+- `shipped-brief-gate`: `the-wave-enumerated-three-surfaces-and-bound-none.md` corrected `retired -> in-progress` because DEF-065 on SURF-026 is open (now visible because wc4 carried it into inventory).
+- `control-census`: CASE-0440 and CASE-0441 cleaned of internal method names in `actuates`.
+- `target-resolution`: CASE-0309 and CASE-0310 in ORCHESTRATOR.md withdrawn in text.
+- `sweep-control-gate`: `overflow-assert.py` registered as `not-a-sweep`.
+- Lane evidence: regenerated with 22 control arms (up from 15), 10/10 destinations, exit 0.
+
+### Arithmetic
+Reckoning 1.9.4 at `planning/reckoning/2026-09-03`: 630 rows, gate clean, ratchet clean.
+`unjoined 90 · broken 72 · unmeasured 23 · undecided 25 · waived 88 · verified-done 332`.
+Remaining work fell 201 -> 198, verified-done rose 312 -> 332 (+20). Scheduled members rose 71 -> 83 because joining briefs to failing cases moves unjoined decision work into scheduled work.

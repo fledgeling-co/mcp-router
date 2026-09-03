@@ -5,61 +5,59 @@
  "campaign_present": true,
  "campaign_dir": "planning/test-campaign",
  "briefs_dir": "planning/features-to-triage",
- "headline": "201 piece(s) of work remain — 55 product, 16 evidence, 130 decision — across 605 ledger rows. This reckoning speaks for 193/203 (95%) of the campaign's designed cases and 27/41 (66%) of its stated requirements; the rest is not known to be done, it is simply not known. 108 brief(s) could not be tied to the registry at all; they are listed as `unjoined` and counted as decision work, rather than assumed unbuilt.",
+ "headline": "198 piece(s) of work remain — 64 product, 19 evidence, 115 decision — across 630 ledger rows. This reckoning speaks for 206/216 (95%) of the campaign's designed cases and 26/41 (63%) of its stated requirements; the rest is not known to be done, it is simply not known. 90 brief(s) could not be tied to the registry at all; they are listed as `unjoined` and counted as decision work, rather than assumed unbuilt.",
  "summary": {
   "counts": {
-   "broken": 63,
-   "waived": 80,
-   "verified-done": 312,
-   "unmeasured": 20,
-   "undecided": 21,
-   "unnamed": 1,
-   "unjoined": 108
+   "broken": 72,
+   "waived": 88,
+   "verified-done": 332,
+   "unmeasured": 23,
+   "undecided": 25,
+   "unjoined": 90
   },
-  "work_items": 201,
+  "work_items": 198,
   "work_by_class": {
-   "unmeasured": 15,
-   "undecided": 21,
-   "broken": 55,
-   "unnamed": 1,
-   "unjoined": 108
+   "unmeasured": 18,
+   "undecided": 25,
+   "broken": 64,
+   "unjoined": 90
   },
   "work_by_kind": {
-   "evidence-work": 16,
-   "decision-work": 130,
-   "product-work": 55
+   "evidence-work": 19,
+   "decision-work": 115,
+   "product-work": 64
   },
-  "rows": 605
+  "rows": 630
  },
  "denominators": {
   "cases_adjudicated": {
-   "n": 193,
-   "of": 203,
-   "pct": 95.1,
+   "n": 206,
+   "of": 216,
+   "pct": 95.4,
    "means": "an instrument returned a verdict on the product — pass or fail. A fail is knowledge; this is not a pass rate."
   },
   "decisions_taken": {
    "n": 9,
-   "of": 203,
-   "pct": 4.4,
+   "of": 216,
+   "pct": 4.2,
    "means": "somebody ruled the cell out of scope or not applicable. A decision, not a measurement, and it is kept out of the line above on purpose."
   },
   "requirements_observed": {
-   "n": 27,
+   "n": 26,
    "of": 41,
-   "pct": 65.9,
+   "pct": 63.4,
    "means": "somebody watched it happen, rather than the project reporting it of itself."
   },
   "surfaces_spoken_for": {
-   "n": 42,
+   "n": 43,
    "of": 47,
-   "pct": 89.4,
+   "pct": 91.5,
    "means": "at least one case on this surface reached a verdict."
   },
   "briefs_joined": {
-   "n": 53,
+   "n": 64,
    "of": 224,
-   "pct": 23.7,
+   "pct": 28.6,
    "means": "the brief could be tied to something in the registry at all."
   },
   "is_floor": true,
@@ -178,6 +176,36 @@
     "confidence": 1.0
    },
    {
+    "brief": "BRIEF-I4-phone-direct-install",
+    "target": "REQ-006",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-I4-phone-direct-install",
+    "target": "SURF-008",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-M19-gfm-viewer",
+    "target": "CASE-0292",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-M19-gfm-viewer",
+    "target": "REQ-027",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-M19-gfm-viewer",
+    "target": "SURF-028",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
     "brief": "BRIEF-M25-board-columns-do-not-flex",
     "target": "DEF-015",
     "method": "cited",
@@ -286,8 +314,56 @@
     "confidence": 1.0
    },
    {
+    "brief": "BRIEF-M30-capability-document-source",
+    "target": "REQ-026",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-M30-capability-document-source",
+    "target": "REQ-027",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-M30-capability-document-source",
+    "target": "SURF-027",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-M30-capability-document-source",
+    "target": "SURF-028",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-M34-the-menu-badge-is-unmeasurable-by-any-lane",
+    "target": "CASE-0195",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-M34-the-menu-badge-is-unmeasurable-by-any-lane",
+    "target": "CASE-0196",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-M34-the-menu-badge-is-unmeasurable-by-any-lane",
+    "target": "CASE-0197",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
     "brief": "BRIEF-M34-the-menu-badge-is-unmeasurable-by-any-lane",
     "target": "REQ-028",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-M34-the-menu-badge-is-unmeasurable-by-any-lane",
+    "target": "SURF-001",
     "method": "cited",
     "confidence": 1.0
    },
@@ -330,6 +406,30 @@
    {
     "brief": "BRIEF-M6-inbox-pairing",
     "target": "SURF-010",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-P7-auth-post-oauth-client",
+    "target": "DEF-002",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-P7-auth-post-oauth-client",
+    "target": "REQ-014",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-P7-auth-post-oauth-client",
+    "target": "REQ-021",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-P7-auth-post-oauth-client",
+    "target": "SURF-021",
     "method": "cited",
     "confidence": 1.0
    },
@@ -384,6 +484,36 @@
    {
     "brief": "BRIEF-R21-approve-answers-200-over-a-discarded-write",
     "target": "DEF-049",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-R2R-router-daemon",
+    "target": "DEF-002",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-R2R-router-daemon",
+    "target": "REQ-011",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-R2R-router-daemon",
+    "target": "REQ-014",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-R2R-router-daemon",
+    "target": "REQ-020",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-R2R-router-daemon",
+    "target": "SURF-015",
     "method": "cited",
     "confidence": 1.0
    },
@@ -658,8 +788,116 @@
     "confidence": 1.0
    },
    {
+    "brief": "BRIEF-an-effect-class-the-census-cannot-name-reads-as-no-effect",
+    "target": "REQ-016",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-daemon-diagnostics-bundle-export",
+    "target": "CASE-0270",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-daemon-diagnostics-bundle-export",
+    "target": "CASE-0271",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-daemon-diagnostics-bundle-export",
+    "target": "CASE-0272",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-daemon-diagnostics-bundle-export",
+    "target": "CASE-0273",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-daemon-diagnostics-bundle-export",
+    "target": "CASE-0274",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-daemon-diagnostics-bundle-export",
+    "target": "CASE-0275",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-daemon-status-popover-interactive-testability",
+    "target": "CASE-0004",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-daemon-status-popover-interactive-testability",
+    "target": "CASE-0006",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-daemon-status-popover-interactive-testability",
+    "target": "CASE-0109",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-daemon-status-popover-interactive-testability",
+    "target": "REQ-008",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-daemon-status-popover-interactive-testability",
+    "target": "SURF-009",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-defect-vocabulary-blocks-the-reckoning-gate",
+    "target": "CASE-0355",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-defect-vocabulary-blocks-the-reckoning-gate",
+    "target": "CASE-0356",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-defect-vocabulary-blocks-the-reckoning-gate",
+    "target": "DEF-011",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-defect-vocabulary-blocks-the-reckoning-gate",
+    "target": "DEF-048",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
     "brief": "BRIEF-defect-vocabulary-blocks-the-reckoning-gate",
     "target": "REQ-040",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-design-of-record-honesty-alignment",
+    "target": "DEF-042",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-design-of-record-honesty-alignment",
+    "target": "REQ-007",
     "method": "cited",
     "confidence": 1.0
    },
@@ -780,6 +1018,36 @@
    {
     "brief": "BRIEF-glass-evidence-outlives-the-build-it-was-taken-from",
     "target": "SURF-011",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-local-network-device-pairing-handshake",
+    "target": "DEF-001",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-local-network-device-pairing-handshake",
+    "target": "REQ-015",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-local-network-device-pairing-handshake",
+    "target": "REQ-016",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-local-network-device-pairing-handshake",
+    "target": "SURF-010",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-local-network-device-pairing-handshake",
+    "target": "SURF-014",
     "method": "cited",
     "confidence": 1.0
    },
@@ -958,6 +1226,18 @@
     "confidence": 1.0
    },
    {
+    "brief": "BRIEF-the-blind-sweep-runs-on-a-vocabulary-nobody-wrote-for-this-project",
+    "target": "DEF-048",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-the-blind-sweep-runs-on-a-vocabulary-nobody-wrote-for-this-project",
+    "target": "DEF-055",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
     "brief": "BRIEF-the-campaign-never-enumerated-three-shipped-surfaces",
     "target": "DEF-001",
     "method": "cited",
@@ -1001,10 +1281,21 @@
    },
    {
     "brief": "BRIEF-the-document-route-can-serve-none-of-this-machines-upstreams",
-    "target": "REQ-027",
-    "method": "overlap",
-    "confidence": 0.193,
-    "target_kind": "requirement"
+    "target": "CASE-0179",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-the-document-route-can-serve-none-of-this-machines-upstreams",
+    "target": "REQ-026",
+    "method": "cited",
+    "confidence": 1.0
+   },
+   {
+    "brief": "BRIEF-the-document-route-can-serve-none-of-this-machines-upstreams",
+    "target": "SURF-027",
+    "method": "cited",
+    "confidence": 1.0
    },
    {
     "brief": "BRIEF-the-document-route-has-no-wire-level-campaign-case",
@@ -1253,9 +1544,9 @@
     "confidence": 1.0
    }
   ],
-  "briefs_joined": 53,
+  "briefs_joined": 64,
   "briefs_total": 224,
-  "pct": 23.7,
+  "pct": 28.6,
   "weak": true,
   "note": "cited edges are citations somebody wrote; overlap edges are guesses and cannot retire a brief"
  },
@@ -1270,7 +1561,7 @@
    "surfaces": [
     "SURF-001"
    ],
-   "total_cases": 203,
+   "total_cases": 216,
    "coverage_gain_pct": 0.5,
    "kind": "evidence-work",
    "estimate": {
@@ -1288,17 +1579,16 @@
     "wave": 1,
     "members": [
      "DEF-001",
-     "DEF-057",
-     "DEF-008",
      "DEF-011",
+     "DEF-055",
+     "DEF-057",
+     "REQ-015",
+     "DEF-008",
      "DEF-041",
      "DEF-049",
-     "DEF-055",
-     "REQ-015",
      "DEF-054",
      "DEF-063",
      "DEF-033",
-     "DEF-042",
      "DEF-059",
      "DEF-061",
      "DEF-052",
@@ -1308,42 +1598,50 @@
      "DEF-056",
      "DEF-058",
      "DEF-060",
-     "DEF-091",
+     "DEF-064",
      "REQ-007",
+     "REQ-008",
      "REQ-020",
+     "REQ-034",
      "DEF-043",
      "DEF-083",
      "BRIEF-R9-sdk-drops-upstream-message",
      "BRIEF-X1-ios-a11y-harness",
+     "BRIEF-an-effect-class-the-census-cannot-name-reads-as-no-effect",
      "BRIEF-eleven-surfaces-declare-controls-that-nothing-drives",
      "DEF-062",
+     "DEF-065",
      "DEF-070",
      "DEF-081",
      "DEF-082",
-     "DEF-102",
      "DEF-131",
+     "DEF-280",
+     "DEF-300",
+     "DEF-302",
+     "DEF-340",
+     "DEF-361",
+     "DEF-362",
      "REQ-002",
      "REQ-004",
      "REQ-005",
-     "REQ-008",
      "REQ-009",
      "REQ-010",
      "REQ-014",
      "REQ-017",
      "REQ-018",
-     "DEF-101"
+     "DEF-301"
     ],
     "blockers": [
      "BLOCK-0001"
     ],
-    "n": 46,
+    "n": 53,
     "slots": 8,
-    "batches": 6,
-    "low_min": 183,
-    "high_min": 319,
-    "serial_min": 729,
+    "batches": 7,
+    "low_min": 209,
+    "high_min": 368,
+    "serial_min": 834,
     "bound_by": "observed-speedup-ceiling",
-    "note": "costs its slowest member — measured wall-clock ÷ slowest member was 1.05 at the median and 1.8 at p90 across 253 real waves; with 46 item(s) the slowest-member figure would imply a speedup better than the 4.0x p90 ever measured here, so the low end is held to that instead; 46 members is above the observed concurrency ceiling of 8, where the slowest-member property degrades, so the upper bound is widened",
+    "note": "costs its slowest member — measured wall-clock ÷ slowest member was 1.05 at the median and 1.8 at p90 across 253 real waves; with 53 item(s) the slowest-member figure would imply a speedup better than the 4.0x p90 ever measured here, so the low end is held to that instead; 53 members is above the observed concurrency ceiling of 8, where the slowest-member property degrades, so the upper bound is widened",
     "has_cycle": false
    },
    {
@@ -1365,24 +1663,29 @@
      "BRIEF-a-brief-that-names-nothing-cannot-be-retired",
      "BRIEF-a-refusal-that-cannot-say-which-capability-it-refused",
      "BRIEF-a-status-word-nobody-taught-the-gate-lands-pessimistic",
+     "BRIEF-daemon-status-popover-interactive-testability",
+     "BRIEF-defect-vocabulary-blocks-the-reckoning-gate",
      "BRIEF-glass-evidence-outlives-the-build-it-was-taken-from",
+     "BRIEF-local-network-device-pairing-handshake",
      "BRIEF-no-surface-declares-its-controls-so-nothing-counts-them",
      "BRIEF-phone-pairing-qr-render-and-countdown",
      "BRIEF-req-016-claims-an-outbound-socket-and-names-nothing-that-opens-one",
+     "BRIEF-the-blind-sweep-runs-on-a-vocabulary-nobody-wrote-for-this-project",
      "BRIEF-the-oracle-ladders-top-rung-scores-as-its-bottom-one",
      "BRIEF-three-captures-name-a-route-they-were-not-pointed-at",
+     "BRIEF-upstream-auth-expiry-desktop-notification",
      "BRIEF-upstream-server-health-probe-settings",
      "BRIEF-M27-sidebar-foot-readout"
     ],
     "blockers": [],
-    "n": 24,
+    "n": 29,
     "slots": 8,
-    "batches": 3,
-    "low_min": 89,
-    "high_min": 164,
-    "serial_min": 353,
+    "batches": 4,
+    "low_min": 107,
+    "high_min": 199,
+    "serial_min": 428,
     "bound_by": "observed-speedup-ceiling",
-    "note": "costs its slowest member — measured wall-clock ÷ slowest member was 1.05 at the median and 1.8 at p90 across 253 real waves; with 24 item(s) the slowest-member figure would imply a speedup better than the 4.0x p90 ever measured here, so the low end is held to that instead; 24 members is above the observed concurrency ceiling of 8, where the slowest-member property degrades, so the upper bound is widened",
+    "note": "costs its slowest member — measured wall-clock ÷ slowest member was 1.05 at the median and 1.8 at p90 across 253 real waves; with 29 item(s) the slowest-member figure would imply a speedup better than the 4.0x p90 ever measured here, so the low end is held to that instead; 29 members is above the observed concurrency ceiling of 8, where the slowest-member property degrades, so the upper bound is widened",
     "has_cycle": false
    },
    {
@@ -1440,12 +1743,6 @@
     "why": "BRIEF-M26-checks-board-framing cites DEF-011"
    },
    {
-    "from": "DEF-042",
-    "to": "BRIEF-M27-sidebar-foot-readout",
-    "method": "cited",
-    "why": "BRIEF-M27-sidebar-foot-readout cites DEF-042"
-   },
-   {
     "from": "DEF-043",
     "to": "BRIEF-M27-sidebar-foot-readout",
     "method": "cited",
@@ -1462,12 +1759,6 @@
     "to": "BRIEF-M28-decision-docket",
     "method": "cited",
     "why": "BRIEF-M28-decision-docket cites DEF-033"
-   },
-   {
-    "from": "DEF-042",
-    "to": "BRIEF-M28-decision-docket",
-    "method": "cited",
-    "why": "BRIEF-M28-decision-docket cites DEF-042"
    },
    {
     "from": "DEF-049",
@@ -1602,12 +1893,6 @@
     "why": "BRIEF-a-brief-that-names-nothing-cannot-be-retired cites DEF-090"
    },
    {
-    "from": "DEF-091",
-    "to": "BRIEF-a-brief-that-names-nothing-cannot-be-retired",
-    "method": "cited",
-    "why": "BRIEF-a-brief-that-names-nothing-cannot-be-retired cites DEF-091"
-   },
-   {
     "from": "DEF-060",
     "to": "BRIEF-a-refusal-that-cannot-say-which-capability-it-refused",
     "method": "cited",
@@ -1632,6 +1917,18 @@
     "why": "BRIEF-a-status-word-nobody-taught-the-gate-lands-pessimistic cites DEF-055"
    },
    {
+    "from": "REQ-008",
+    "to": "BRIEF-daemon-status-popover-interactive-testability",
+    "method": "cited",
+    "why": "BRIEF-daemon-status-popover-interactive-testability cites REQ-008"
+   },
+   {
+    "from": "DEF-011",
+    "to": "BRIEF-defect-vocabulary-blocks-the-reckoning-gate",
+    "method": "cited",
+    "why": "BRIEF-defect-vocabulary-blocks-the-reckoning-gate cites DEF-011"
+   },
+   {
     "from": "DEF-058",
     "to": "BRIEF-glass-evidence-outlives-the-build-it-was-taken-from",
     "method": "cited",
@@ -1642,6 +1939,18 @@
     "to": "BRIEF-glass-evidence-outlives-the-build-it-was-taken-from",
     "method": "cited",
     "why": "BRIEF-glass-evidence-outlives-the-build-it-was-taken-from cites DEF-059"
+   },
+   {
+    "from": "DEF-001",
+    "to": "BRIEF-local-network-device-pairing-handshake",
+    "method": "cited",
+    "why": "BRIEF-local-network-device-pairing-handshake cites DEF-001"
+   },
+   {
+    "from": "REQ-015",
+    "to": "BRIEF-local-network-device-pairing-handshake",
+    "method": "cited",
+    "why": "BRIEF-local-network-device-pairing-handshake cites REQ-015"
    },
    {
     "from": "DEF-008",
@@ -1662,6 +1971,12 @@
     "why": "BRIEF-phone-pairing-qr-render-and-countdown cites DEF-001"
    },
    {
+    "from": "DEF-064",
+    "to": "BRIEF-phone-pairing-qr-render-and-countdown",
+    "method": "cited",
+    "why": "BRIEF-phone-pairing-qr-render-and-countdown cites DEF-064"
+   },
+   {
     "from": "REQ-015",
     "to": "BRIEF-phone-pairing-qr-render-and-countdown",
     "method": "cited",
@@ -1672,6 +1987,12 @@
     "to": "BRIEF-req-016-claims-an-outbound-socket-and-names-nothing-that-opens-one",
     "method": "cited",
     "why": "BRIEF-req-016-claims-an-outbound-socket-and-names-nothing-that-opens-one cites DEF-041"
+   },
+   {
+    "from": "DEF-055",
+    "to": "BRIEF-the-blind-sweep-runs-on-a-vocabulary-nobody-wrote-for-this-project",
+    "method": "cited",
+    "why": "BRIEF-the-blind-sweep-runs-on-a-vocabulary-nobody-wrote-for-this-project cites DEF-055"
    },
    {
     "from": "DEF-053",
@@ -1698,6 +2019,12 @@
     "why": "BRIEF-three-captures-name-a-route-they-were-not-pointed-at cites DEF-061"
    },
    {
+    "from": "REQ-034",
+    "to": "BRIEF-upstream-auth-expiry-desktop-notification",
+    "method": "cited",
+    "why": "BRIEF-upstream-auth-expiry-desktop-notification cites REQ-034"
+   },
+   {
     "from": "DEF-063",
     "to": "BRIEF-upstream-server-health-probe-settings",
     "method": "cited",
@@ -1713,7 +2040,6 @@
   "decisions": [
    "REQ-016",
    "REQ-019",
-   "SURF-029",
    "BRIEF-BLOCKED-apple-identity",
    "BRIEF-D3-copy-proposals",
    "BRIEF-F-cross-harness-skill-sync",
@@ -1728,8 +2054,6 @@
    "BRIEF-G4-gapfix",
    "BRIEF-G5-gapfix-2",
    "BRIEF-G5-gapfix",
-   "BRIEF-G6-evidence-that-lives-in-tmp-is-not-evidence",
-   "BRIEF-G7-a-citation-that-does-not-resolve-where-it-is-read",
    "BRIEF-G8-a-question-answered-at-the-wrong-scope",
    "BRIEF-I4-phone-direct-install",
    "BRIEF-M15-gapfix",
@@ -1746,11 +2070,6 @@
    "BRIEF-M23-gapfix",
    "BRIEF-M25-board-columns-do-not-flex",
    "BRIEF-M29-disable-a-server-is-drawn-with-nothing-behind-it",
-   "BRIEF-M30-capability-document-source",
-   "BRIEF-M31-the-design-of-record-cannot-draw-a-disabled-primary",
-   "BRIEF-M32-a-mock-driven-gate-is-blind-to-what-the-mock-does-not-draw",
-   "BRIEF-M33-swift-build-cannot-gate-the-app-target",
-   "BRIEF-M34-the-menu-badge-is-unmeasurable-by-any-lane",
    "BRIEF-M38-phone-cannot-approve-a-tool-surface",
    "BRIEF-P7-auth-post-oauth-client",
    "BRIEF-P8-launchd-watch-attributable",
@@ -1802,38 +2121,31 @@
    "BRIEF-a-second-inertness-clause-is-unfailable-for-the-same-reason",
    "BRIEF-a-security-guard-that-cannot-fail-now-guards-a-live-entry-point",
    "BRIEF-a-verification-lane-ran-in-the-writers-own-family",
-   "BRIEF-an-effect-class-the-census-cannot-name-reads-as-no-effect",
    "BRIEF-campaign-journey-plane-ledger-model",
    "BRIEF-campaign-reanchor-to-current-tree",
    "BRIEF-citation-debt-residual",
    "BRIEF-daemon-diagnostics-bundle-export",
-   "BRIEF-daemon-status-popover-interactive-testability",
-   "BRIEF-defect-vocabulary-blocks-the-reckoning-gate",
    "BRIEF-design-of-record-honesty-alignment",
    "BRIEF-drive-every-data-surface-off-its-happy-path",
    "BRIEF-gates-ran-with-their-verdict-discarded",
    "BRIEF-gateway-log-rotation-size-policy",
-   "BRIEF-local-network-device-pairing-handshake",
    "BRIEF-observe-a-notification-banner-and-its-withdrawal",
    "BRIEF-phone-prominent-disabled-uses-an-unratified-token",
    "BRIEF-prove-the-tool-cache-is-keyed-on-a-servers-identity",
    "BRIEF-put-the-router-in-a-chosen-state-and-read-the-boards",
-   "BRIEF-reader-accounting-unnamed-drop-sites",
    "BRIEF-server-disable-toggle-action",
    "BRIEF-server-profile-export-redaction",
    "BRIEF-staged-tool-diff-visual-review",
    "BRIEF-sweep-control-gate-undisposed",
    "BRIEF-tailings-emits-three-findings-its-own-rows-contradict",
-   "BRIEF-the-blind-sweep-runs-on-a-vocabulary-nobody-wrote-for-this-project",
    "BRIEF-the-carrier-gate-pins-a-landing-to-a-sha-that-keeps-moving",
    "BRIEF-the-document-route-can-serve-none-of-this-machines-upstreams",
    "BRIEF-the-ledger-gate-nothing-runs-and-nothing-checks-against-git",
    "BRIEF-the-reckoning-cannot-see-a-merge",
    "BRIEF-the-relabel-gate-cannot-fire-on-any-ledger-it-writes",
-   "BRIEF-the-worktree-path-duality-breaks-every-runner",
+   "BRIEF-the-wave-enumerated-three-surfaces-and-bound-none",
    "BRIEF-twelve-cases-prove-only-that-something-rendered",
    "BRIEF-twenty-eight-visual-claims-cite-artifacts-that-are-not-pictures",
-   "BRIEF-upstream-auth-expiry-desktop-notification",
    "BRIEF-upstream-citation-probe-basename-false-positive",
    "BRIEF-upstream-tokens-warden-migration",
    "BRIEF-2026-08-26-campaign-reckon-trawl",
@@ -1844,9 +2156,9 @@
   ],
   "bookkeeping": [],
   "project": {
-   "low_min": 280,
-   "high_min": 584,
-   "serial_min": 1097,
+   "low_min": 324,
+   "high_min": 668,
+   "serial_min": 1277,
    "speedup": 3.9,
    "speedup_exceeds_measured": false,
    "basis": "wall-clock for 3 wave(s) at up to 8 concurrent agents, summed. The implied speedup over running the same work serially is 3.9x, within the 2.2x median / 4.0x p90 measured on this corpus."
@@ -5002,7 +5314,7 @@
    "status": "pass",
    "oracle": "structural",
    "armed": false,
-   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: named 'Require confirmation on destructive operations', toggle state readable as 'On' WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
+   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: named 'Confirm before removing a server', toggle state readable as 'On' WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
    "surface": "SURF-038",
    "lane": "windows-glass",
    "is_work_item": false,
@@ -5036,13 +5348,15 @@
    "status": "pass",
    "oracle": "effect-witness",
    "armed": true,
-   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: toggling 'Launch router daemon at sign-in' through the plane moved the board's state readout from 'LaunchAtLogin=off · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' to 'LaunchAtLogin=on · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' - an effect outside the control that was actuated. THIS IS THE ROW THAT SEPARATES A BOUND CONTROL FROM AN INERT ONE. It toggles the switch through TogglePattern and then reads a DIFFERENT element - the board's state readout, which the view renders from the model - so a switch that moved and wrote through to nothing would leave that line unchanged and fail here. It went red for real on the first run, against a readout carrying a static AutomationProperties.Name that overrode its own text. WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
+   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: toggling 'Launch router daemon at sign-in' through the plane moved the board's state readout from 'LaunchAtLogin=off · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' to 'LaunchAtLogin=on · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on' - an effect outside the control that was actuated. THIS IS THE ROW THAT SEPARATES A BOUND CONTROL FROM AN INERT ONE. It toggles the switch through TogglePattern and then reads a DIFFERENT element - the board's state readout, which the view renders from the model - so a switch that moved and wrote through to nothing would leave that line unchanged and fail here. It went red for real on the first run, against a readout carrying a static AutomationProperties.Name that overrode its own text. WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
    "surface": "SURF-038",
    "lane": "windows-glass",
    "is_work_item": false,
    "remedy": null,
-   "rolls_up_to": null,
-   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to its surface."
+   "rolls_up_to": [
+    "DEF-080"
+   ],
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-080."
   },
   {
    "id": "CASE-0347",
@@ -5053,7 +5367,7 @@
    "status": "pass",
    "oracle": "structural",
    "armed": false,
-   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: opened from the row 'MCPRouter.Shell.Views.DiscoverRow'; all 8 checked control(s) are addressable by id and publish a name. WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
+   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: opened from the row 'sap-mcp, 34,350 sessions on Smithery, added 13 Jul 2026, On Smithery'; all 8 checked control(s) are addressable by id and publish a name. WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
    "surface": "SURF-044",
    "lane": "windows-glass",
    "is_work_item": false,
@@ -5234,15 +5548,16 @@
    "status": "pass",
    "oracle": "effect-witness",
    "armed": false,
-   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: Get-ScheduledTask reports no task at '\\MCPRouter\\WIN-SHELL Settings Witness (transient)' before the switch is driven, so the arms below measure THIS run's registration. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider). That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green.",
+   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: Get-ScheduledTask reports no task at '\\MCPRouter\\WIN-SHELL Settings Witness (transient)' before the switch is driven, so the arms below measure THIS run's registration. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider). That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
    "surface": "SURF-038",
    "lane": "windows-glass",
    "is_work_item": false,
    "remedy": null,
    "rolls_up_to": [
+    "DEF-080",
     "DEF-087"
    ],
-   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-087."
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-080, DEF-087."
   },
   {
    "id": "CASE-0367",
@@ -5253,15 +5568,16 @@
    "status": "pass",
    "oracle": "effect-witness",
    "armed": true,
-   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: driving the switch to On through the automation plane registered '\\MCPRouter\\WIN-SHELL Settings Witness (transient)' in the Windows task scheduler: state=Ready, logon trigger present, RunLevel=Limited (the recorder's word for the XML's LeastPrivilege), Execute=C:\\Dev\\mcp-router\\.worktrees\\wb1-settings-persistence\\app\\windows\\MCPRouter.Shell\\win-shell-witness-daemon.exe. Read by an API that did not write it. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider). That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green.",
+   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: driving the switch to On through the automation plane registered '\\MCPRouter\\WIN-SHELL Settings Witness (transient)' in the Windows task scheduler: state=Ready, logon trigger present, RunLevel=Limited (the recorder's word for the XML's LeastPrivilege), Execute=C:\\Dev\\mcp-router\\.worktrees\\wc2-tray-and-confirm\\app\\windows\\MCPRouter.Shell\\win-shell-witness-daemon.exe. Read by an API that did not write it. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider). That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
    "surface": "SURF-038",
    "lane": "windows-glass",
    "is_work_item": false,
    "remedy": null,
    "rolls_up_to": [
+    "DEF-080",
     "DEF-087"
    ],
-   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-087."
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-080, DEF-087."
   },
   {
    "id": "CASE-0368",
@@ -5272,15 +5588,16 @@
    "status": "pass",
    "oracle": "effect-witness",
    "armed": true,
-   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: C:\\Dev\\mcp-router\\.worktrees\\wb1-settings-persistence\\planning\\evidence\\WIN-SHELL\\run\\shell-state\\shell-settings.json holds LaunchAtLogin=true, read off the disk by this script. The file is the recorder; the shell is not asked what it saved. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: a read of the settings file by this script. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green.",
+   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: C:\\Dev\\mcp-router\\.worktrees\\wc2-tray-and-confirm\\planning\\evidence\\WIN-SHELL\\run\\shell-state\\shell-settings.json holds LaunchAtLogin=true, read off the disk by this script. The file is the recorder; the shell is not asked what it saved. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: a read of the settings file by this script. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
    "surface": "SURF-038",
    "lane": "windows-glass",
    "is_work_item": false,
    "remedy": null,
    "rolls_up_to": [
+    "DEF-080",
     "DEF-087"
    ],
-   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-087."
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-080, DEF-087."
   },
   {
    "id": "CASE-0369",
@@ -5291,15 +5608,16 @@
    "status": "pass",
    "oracle": "effect-witness",
    "armed": true,
-   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: the shell was terminated and launched again as a new process, and the switch reads On in the new one. Closing the shell no longer forgets the setting. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: a second MCPRouter.Shell process, launched after the first was terminated. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green.",
+   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: the shell was terminated and launched again as a new process, and the switch reads On in the new one. Closing the shell no longer forgets the setting. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: a second MCPRouter.Shell process, launched after the first was terminated. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
    "surface": "SURF-038",
    "lane": "windows-glass",
    "is_work_item": false,
    "remedy": null,
    "rolls_up_to": [
+    "DEF-080",
     "DEF-087"
    ],
-   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-087."
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-080, DEF-087."
   },
   {
    "id": "CASE-0370",
@@ -5310,15 +5628,16 @@
    "status": "pass",
    "oracle": "effect-witness",
    "armed": false,
-   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: the clipboard held this lane's sentinel before the button was invoked and holds 'http://127.0.0.1:8879' after, read out of a separate PowerShell process. It matches the endpoint the board displays at settings.state.endpoint. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Get-Clipboard in a separate PowerShell process. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green.",
+   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: the clipboard held this lane's sentinel before the button was invoked and holds 'http://127.0.0.1:8879' after, read out of a separate PowerShell process. It matches the endpoint the board displays at settings.state.endpoint. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Get-Clipboard in a separate PowerShell process. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
    "surface": "SURF-038",
    "lane": "windows-glass",
    "is_work_item": false,
    "remedy": null,
    "rolls_up_to": [
+    "DEF-080",
     "DEF-087"
    ],
-   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-087."
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-080, DEF-087."
   },
   {
    "id": "CASE-0371",
@@ -5329,15 +5648,16 @@
    "status": "pass",
    "oracle": "effect-witness",
    "armed": false,
-   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: driving the switch back to Off removed '\\MCPRouter\\WIN-SHELL Settings Witness (transient)': Get-ScheduledTask reports absence again, so its yes above was a reading rather than an echo. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider). That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green.",
+   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: driving the switch back to Off removed '\\MCPRouter\\WIN-SHELL Settings Witness (transient)': Get-ScheduledTask reports absence again, so its yes above was a reading rather than an echo. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider). That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
    "surface": "SURF-038",
    "lane": "windows-glass",
    "is_work_item": false,
    "remedy": null,
    "rolls_up_to": [
+    "DEF-080",
     "DEF-087"
    ],
-   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-087."
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-080, DEF-087."
   },
   {
    "id": "CASE-0376",
@@ -5433,6 +5753,257 @@
     "DEF-131"
    ],
    "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-131."
+  },
+  {
+   "id": "CASE-0460",
+   "entity": "case",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "SURF-029 · ?",
+   "status": "pass",
+   "oracle": "effect-witness",
+   "armed": true,
+   "note": "SURF-029's two SecondaryCommands, 'Export log' and 'Reset router', were enumerated and unreached: a CommandBar does not realise its overflow items while the overflow is shut, so the at-rest lane could only record an absence with its reason, and planning/registry-drop-gate.py reported the surface as uncovered for exactly that. This case opens the overflow through ExpandCollapsePattern.Expand and reads both commands back with their names and ControlType.Button, between a BASELINE and a SILENCE that both find them absent from the control view AND the raw view. The writer is not the reader: overflow-actuate.ps1 expands in its own process and writes only the ExpandCollapseState it saw, while every element reading comes from uia-dump.ps1 started separately. TWO FINDINGS FROM THE FIRST RUN, neither planted, both corrected in the manifest rather than in the assertion. (1) probe-expectation.json predicted that opening the overflow would cost the never-activated guarantee, and IT WAS RIGHT: the probe held the foreground at none of the three baseline samples and at all six effect and silence samples, so Expand activates the window and Collapse does not hand the foreground back. That cost is now DECLARED as `overflow.activationCost` and compared both ways, so the day WinUI stops activating, this arm reddens rather than quietly acquiring a guarantee nobody re-checked. Baseline stays a hard assertion. (2) each command resolves to TWO tree paths with the overflow open, because WinUI publishes the OverflowPopup subtree once through a Microsoft.UI.Content.PopupWindowSiteBridge child and once in place beneath the ApplicationBar. Both copies agree on name, controlType, className, isEnabled, isOffscreen, accessKey, patterns and bounding rectangle, so it is one control on two routes; the assertion now permits several matches only while they agree on everything a caller would act on, and plant (H) watches that a genuinely different control under one id still fails. WHAT THIS DOES NOT BUY. It is not at-rest coverage and does not close DESIGN.md section 11 rule 9 for these two commands. The product fix is a surface that realises them without an actuation, and that is DEF-340. Neither command is INVOKED, so both stay outside the actuation census with a stated reason on SURF-029; this arm's subject is realisation and vocabulary, not effect. And the subject is WIN20's probe rather than the MCP Router Windows client: it measures WinUI 3's automation behaviour on this machine.",
+   "surface": "SURF-029",
+   "lane": "windows-glass",
+   "is_work_item": false,
+   "remedy": null,
+   "rolls_up_to": [
+    "DEF-340"
+   ],
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-340."
+  },
+  {
+   "id": "CASE-0461",
+   "entity": "case",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "SURF-001 · ?",
+   "status": "pass",
+   "oracle": "source-analysis",
+   "armed": true,
+   "note": "SOURCE-ANALYSIS, AND THAT IS THE CEILING. This case reads Swift. It does not run the Mac app and does not photograph a board, and it cannot on this host: the shell is a SwiftPM target with no Windows build and `swift` is not on LUKESFF. A green means the code that draws DEF-043's two elements is present and composed the way DESIGN.md section 2 requires. It does NOT mean either element reached a screen, and it must not be read as closing DEF-043. M27 asked for on-glass coverage and that is still owed, on a Mac, through the campaign's own capture lane.\n\nWHAT IT ESTABLISHES. SidebarFoot renders the address on its `.address` case; the reading comes from LoopbackAddress.hostPort while the Settings endpoint row comes from LoopbackAddress.controlEndpoint, so the two cannot drift; no literal host:port appears in any of the four files that DISPLAY an address; and ReadoutCopy.childProcessesLabel is \"Child processes\" and Readout draws it - the string DEF-043 measured in 0 of 9 accessibility dumps.\n\nTHE FIRST RUN FAILED AND THE INSTRUMENT WAS THE ONE AT FAULT. The honesty arm originally refused a literal host:port anywhere in either shell tree and reported `ShellClientFactory.shippingEndpoint`. Every reference to that symbol was then read: it is consumed by Choice.live, LiveControlAPIClient, ControlEventStream and the Release guard, and reaches no view. It is a dialled endpoint, not a displayed one, and the honesty rule governs what a user is told. The scope was corrected rather than the finding suppressed, and the sweep was NOT narrowed: it still covers both trees, and a literal outside the display files fails unless its symbol is declared with a reason - which plant Q6 watches.\n\nPLATFORM. macOS, and DEF-043 never said so, which is what the row cost to establish. M27-sidebar-foot-readout.md reads `Category: mac`, the evidence is nine accessibility dumps at 1156x680 against the Mac design of record, and the sidebar-foot specification is in DESIGN.md section 2 rather than in the Windows floor. The Windows shell's NavigationView declares no pane footer content at all and the Windows floor's own owed list names no sidebar foot, so the absence there is not a defect - Windows was never promised it. This case asserts nothing about Windows, because a check demanding Windows never grow a sidebar foot would redden on somebody adding a good thing.",
+   "surface": "SURF-001",
+   "lane": "repo-gate",
+   "is_work_item": false,
+   "remedy": null,
+   "rolls_up_to": [
+    "DEF-043"
+   ],
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-043."
+  },
+  {
+   "id": "CASE-0440",
+   "entity": "case",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "SURF-045 · ?",
+   "status": "pass",
+   "oracle": "effect-witness",
+   "armed": true,
+   "note": "The half of WIN23's supervision promise that had never been watched: a daemon the Windows task scheduler starts, loses, and starts again. DEF-081 filed it as unmeasurable and named the blocker as a missing Windows daemon binary; the blocker was real and is gone - app/windows/MCPRouter.Witness.Daemon is a harness process that starts, records its own start and waits to be killed, so there is something for the scheduler to supervise. WHAT THE MEASUREMENT FOUND IS NOT WHAT THE ROW EXPECTED. The registration the product wrote carried RestartOnFailure with a 60-second interval and a count of 3, and it did not restart the daemon at all. Killed, watched 150 seconds, on the unified scheduling engine and the legacy one, for a run started by a trigger and one started on demand: four registrations, no restart. The same block DID restart, three times at exactly 60 seconds, a task whose Command named a file that does not exist - so the instrument can see a restart, and RestartOnFailure governs a task that fails to LAUNCH rather than one whose action launched and later died. DEF-320 carries that, and the product now writes a Repetition on the trigger alongside MultipleInstancesPolicy IgnoreNew. THE RECORDERS ARE TWO AND NEITHER WROTE ANYTHING: Get-ScheduledTaskInfo for the scheduler's own account of its runs, and Get-CimInstance Win32_Process for the process identity, which is what makes 'it came back' a different process id rather than a report from the thing that came back. The daemon's own run log is carried and graded by nothing. EIGHT ARMS, THREE OF THEM ABOUT THE INSTRUMENT: BASELINE requires both tasks absent and no daemon running, so nothing below is inherited from an interrupted run; CLAIM.repetition and CLAIM.ignorenew read the product's own unmodified logon registration back through the WMI provider; SILENCE requires both recorders to say no once the tasks are gone. ONE SUBSTITUTION, SAID OUT LOUD: a trigger repetition does not apply to an on-demand start - measured, twice - so the live task carries a TimeTrigger where the product writes a LogonTrigger, because this lane must not log the machine out. Every Setting, the repetition interval, the principal, the action and the instances policy are the product's own document. That the trigger fires AT LOGON is still unwitnessed and DEF-081 keeps it.",
+   "surface": "SURF-045",
+   "lane": "router-daemon",
+   "is_work_item": false,
+   "remedy": null,
+   "rolls_up_to": [
+    "DEF-081",
+    "DEF-320"
+   ],
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-081, DEF-320."
+  },
+  {
+   "id": "CASE-0441",
+   "entity": "case",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "SURF-046 · ?",
+   "status": "pass",
+   "oracle": "effect-witness",
+   "armed": true,
+   "note": "The toast itself, in the Action Center, read by a process that cannot raise one. DEF-082 filed this as unmeasurable and gave a reason: UserNotificationListener's userNotificationListener capability is only grantable to a packaged application, and MCPRouter.Shell is WindowsPackageType=None, so the row was said to be downstream of WIN19's MSIX. THE REASON WAS WRONG, AND IT WAS WRONG BEFORE WIN19 LANDED. Measured on this host from an ordinary unpackaged Win32 console process with no package identity at all - Package.Current throws InvalidOperationException, which the lane asserts rather than assumes - UserNotificationListener.Current resolves, RequestAccessAsync returns Allowed with no consent prompt, and GetNotificationsAsync returns the toasts that are really there. On the first run those included three raised by win22-toast-witness the day before, carrying the exact strings NotificationPresentation writes. No MSIX, no capability, no packaged identity. WHAT IS STILL NOT AVAILABLE UNPACKAGED, and it bounds this case: every member of UserNotification.AppInfo throws NotImplementedException 0x80004001 for a caller with no package identity, so the listener can say what a notification SAYS and when it arrived and cannot say who raised it. Attribution here is the payload text, which the product owns, inside a time window this run opened - weaker than a publisher identity, and recorded as such. THE RECORDER IS NOT THE WRITER AND IS NOT EVEN THE SAME PROCESS: app/windows/MCPRouter.Witness.ActionCenter shares no code with the shell and cannot raise a notification. The shell's toast-probe.json is carried as the writer's self-report and graded by nothing. THE PRESENCE CONTROL is a removal: the matched notification is taken back out through the listener and the Action Center is read a third time, and the recorder is required to say no about it.",
+   "surface": "SURF-046",
+   "lane": "windows-glass",
+   "is_work_item": false,
+   "remedy": null,
+   "rolls_up_to": [
+    "DEF-082"
+   ],
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-082."
+  },
+  {
+   "id": "CASE-0420",
+   "entity": "case",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "SURF-038 · ?",
+   "status": "pass",
+   "oracle": "effect-witness",
+   "armed": true,
+   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: with the switch driven Off, a separate process asks the shell for the icon at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90} and is told there is none (HRESULT 0x80004005). The recorder is capable of saying no, and any yes below is this run's. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Shell_NotifyIconGetRect in a separate powershell.exe process. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+   "surface": "SURF-038",
+   "lane": "windows-glass",
+   "is_work_item": false,
+   "remedy": null,
+   "rolls_up_to": [
+    "DEF-080",
+    "DEF-087"
+   ],
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-080, DEF-087."
+  },
+  {
+   "id": "CASE-0421",
+   "entity": "case",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "SURF-038 · ?",
+   "status": "pass",
+   "oracle": "effect-witness",
+   "armed": true,
+   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: driving the switch to On through the automation plane put an icon in the Windows notification area at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90}: a separate process asked the shell for its rectangle and got 2109,1528 to 2157,1600 (HRESULT 0x00000000). Read by an API this application never called. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Shell_NotifyIconGetRect in a separate powershell.exe process. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+   "surface": "SURF-038",
+   "lane": "windows-glass",
+   "is_work_item": false,
+   "remedy": null,
+   "rolls_up_to": [
+    "DEF-080",
+    "DEF-087"
+   ],
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-080, DEF-087."
+  },
+  {
+   "id": "CASE-0422",
+   "entity": "case",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "SURF-038 · ?",
+   "status": "pass",
+   "oracle": "effect-witness",
+   "armed": true,
+   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: driving the switch back to Off took the icon out of the notification area: the same reader that found it a moment ago now answers HRESULT 0x80004005. Its yes above was a reading rather than an echo, and turning the setting off tells the user something true. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: Shell_NotifyIconGetRect in a separate powershell.exe process. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+   "surface": "SURF-038",
+   "lane": "windows-glass",
+   "is_work_item": false,
+   "remedy": null,
+   "rolls_up_to": [
+    "DEF-080",
+    "DEF-087"
+   ],
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-080, DEF-087."
+  },
+  {
+   "id": "CASE-0423",
+   "entity": "case",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "SURF-038 · ?",
+   "status": "pass",
+   "oracle": "effect-witness",
+   "armed": false,
+   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: the router lists both servers this lane declared - lane-witness-beta, lane-witness-alpha - before any removal is attempted, so the arms below measure removals rather than absences that were already there. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: the router's own /servers listing, read over the control API by this script. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+   "surface": "SURF-038",
+   "lane": "windows-glass",
+   "is_work_item": false,
+   "remedy": null,
+   "rolls_up_to": [
+    "DEF-080",
+    "DEF-087"
+   ],
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-080, DEF-087."
+  },
+  {
+   "id": "CASE-0424",
+   "entity": "case",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "SURF-038 · ?",
+   "status": "pass",
+   "oracle": "effect-witness",
+   "armed": true,
+   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: with the setting On, Remove raised a confirmation, this lane pressed 'Keep it', and the router still lists lane-witness-alpha (now: lane-witness-beta, lane-witness-alpha). The refusal is read out of the router, not out of the dialog: the app's account of having asked is not evidence that it obeyed the answer. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: the router's own /servers listing, read over the control API by this script. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+   "surface": "SURF-038",
+   "lane": "windows-glass",
+   "is_work_item": false,
+   "remedy": null,
+   "rolls_up_to": [
+    "DEF-080",
+    "DEF-087"
+   ],
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-080, DEF-087."
+  },
+  {
+   "id": "CASE-0425",
+   "entity": "case",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "SURF-038 · ?",
+   "status": "pass",
+   "oracle": "effect-witness",
+   "armed": true,
+   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: pressing 'Remove permanently' removed lane-witness-alpha from the ROUTER - it now lists lane-witness-beta. The gate opens as well as closes. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: the router's own /servers listing, read over the control API by this script. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+   "surface": "SURF-038",
+   "lane": "windows-glass",
+   "is_work_item": false,
+   "remedy": null,
+   "rolls_up_to": [
+    "DEF-080",
+    "DEF-087"
+   ],
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-080, DEF-087."
+  },
+  {
+   "id": "CASE-0426",
+   "entity": "case",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "SURF-038 · ?",
+   "status": "pass",
+   "oracle": "effect-witness",
+   "armed": true,
+   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: with the setting Off, Remove raised no confirmation at all and the router no longer lists lane-witness-beta (now: nothing). The prompt above was the setting being obeyed rather than a dialog this board always shows. THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: the router's own /servers listing, read over the control API by this script. That is what makes this row a claim about the MACHINE rather than about the application's own report of itself, which is the whole of DEF-087. WHAT IT DOES NOT SETTLE: that the registration fires at a real logon, and that a daemon executable resolves on an operator's machine - the lane points the shipped resolution at a witness task name and a witness executable of its own so it cannot disturb the operator's real registration. Both limits stay on DEF-087's resolution rather than being folded into this green. THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was driven through System.Windows.Automation's TogglePattern.Toggle() from shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080.",
+   "surface": "SURF-038",
+   "lane": "windows-glass",
+   "is_work_item": false,
+   "remedy": null,
+   "rolls_up_to": [
+    "DEF-080",
+    "DEF-087"
+   ],
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to DEF-080, DEF-087."
+  },
+  {
+   "id": "CASE-0404",
+   "entity": "case",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "SURF-044 · ?",
+   "status": "pass",
+   "oracle": "structural",
+   "armed": false,
+   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: 60 row(s) in 'discover.band.recent' each publish a distinct accessible name, none of them the type name, and a distinct automation id. First three: sap-mcp, 34,350 sessions on Smithery, added 13 Jul 2026, On Smithery | Framesail, 11,533 sessions on Smithery, added 9 Jul 2026, On Smithery | LMK.today MCP, 8,243 sessions on Smithery, added 6 Jul 2026, On Smithery WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
+   "surface": "SURF-044",
+   "lane": "windows-glass",
+   "is_work_item": false,
+   "remedy": null,
+   "rolls_up_to": null,
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to its surface."
+  },
+  {
+   "id": "CASE-0405",
+   "entity": "case",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "SURF-044 · ?",
+   "status": "pass",
+   "oracle": "structural",
+   "armed": false,
+   "note": "Written from the control census in scripts/windows/uia/shell-lane.ps1 section 3b, which runs out of process against the real shell binary in the interactive session. The ids and labels it asserts are READ OUT OF THE PRODUCT'S OWN SOURCE (SettingsPresentation.cs) rather than restated in the harness, so a rename moves the expectation with it instead of leaving the lane measuring a product that does not ship. Controls are addressed by AutomationId, never by name: a UIA name search returns the first element carrying that name anywhere in the tree, and this shell's menu bar already holds a 'Router' and a 'Help'. The lane recorded: 60 row(s) in 'discover.band.used' each publish a distinct accessible name, none of them the type name, and a distinct automation id. First three: pipeworx gateway, 419,019 sessions on Smithery, added 22 Apr 2026, On Smithery | Brave Search, 87,579 sessions on Smithery, added 5 Sep 2025, On Smithery, verified by Smithery | uk-due-diligence, 60,881 sessions on Smithery, added 29 Apr 2026, On Smithery WHAT THIS ROW DOES NOT SETTLE: anything outside the shell process. It is a read of the application's own accessibility tree, so a control that moved a model and reached no file and no scheduler passes it. The rows carrying a `recorder` are the ones that leave the process.",
+   "surface": "SURF-044",
+   "lane": "windows-glass",
+   "is_work_item": false,
+   "remedy": null,
+   "rolls_up_to": null,
+   "why": "a measurement, not a task: status 'pass' may only be retirable/verified-done. It rolls up to its surface."
   },
   {
    "id": "REQ-001",
@@ -6165,16 +6736,24 @@
   {
    "id": "REQ-034",
    "entity": "requirement",
-   "class": "verified-done",
-   "kind": "none",
+   "class": "unmeasured",
+   "kind": "evidence-work",
    "title": "The router says when an upstream's credential is running out or has been refused, before a tool call fails on it — and it can say that it does not know. Expiry is DERIVED from what the router already ",
-   "evidence": "observed",
+   "evidence": "reported",
    "note": "R26. It inherits R27's rule (REQ-029) and meets it by not needing it: a health probe of a stdio upstream IS a child process, so R27 defaults background probing off and never lets a scheduled sweep cold-start. An expiry needs no probe at all, so this feature arms no task, holds no timer and spawns nothing — which is why it is ON by default where health probing is off. The vacuity rule is `warnWithinMs`'s floor of 60000 with zero REFUSED: at zero a token passes straight from valid to expired, `expiring` is unreachable, and the promise 'you are told before it stops working' would hold only because nothing can enter the state it names. R27's tripAfter floor of 2 is the same rule one item earlier. The `mobbin` lesson is carried into the notification rather than rediscovered: with a refresh token held, no command is offered, because telling its owner to re-authorise sends them round a loop that cannot succeed.",
    "provider": "app/Sources/RouterCore/AuthExpiry/AuthExpiryRecord.swift derives the state and app/Sources/RouterCore/AuthExpiry/AuthExpiryMonitor.swift holds the throttle; app/Sources/RouterCore/Control/ControlAuthExpiry.swift serves both routes on the loopback control listener bound by RouterService, which is the inbound socket this row names. Witnessed by scripts/acceptance/r26-auth-expiry.sh, which plants credential records on disk in a scratch home, drives the routes over the daemon's own socket, and PAIRS every zero-children reading with a reading that moves when the planted file moves — an absence asserted alone is satisfied by a feature that does nothing.",
    "backed_by": null,
-   "remedy": null,
-   "is_work_item": false,
-   "why": "requirement observed"
+   "remedy": "obtain independent evidence — this is the project's own account of itself",
+   "is_work_item": true,
+   "why": "requirement evidence 'reported' is the project's own account of itself, not an observation",
+   "estimate": {
+    "tier": "M",
+    "low_min": 7,
+    "median_min": 15,
+    "high_min": 56,
+    "basis": "unmeasured work defaults to M",
+    "shape": "three to seven files, one subsystem"
+   }
   },
   {
    "id": "REQ-035",
@@ -6192,7 +6771,8 @@
     "CASE-0273",
     "CASE-0274",
     "CASE-0275",
-    "CASE-0308"
+    "CASE-0308",
+    "CASE-0440"
    ],
    "remedy": null,
    "is_work_item": false,
@@ -6209,7 +6789,8 @@
    "provider": "app/windows/MCPRouter.Shell/Notifications/ToastNotifier.cs -> AppNotificationManager.Register()/Show(); app/windows/MCPRouter.Shell.Model/Notifications/ToastPayloadCodec.cs; app/windows/MCPRouter.Shell/App.xaml.cs OnToastInvoked -> ShellWindow.SelectDestination(DestinationCatalog.InboxId)",
    "backed_by": [
     "CASE-0339",
-    "CASE-0340"
+    "CASE-0340",
+    "CASE-0441"
    ],
    "remedy": null,
    "is_work_item": false,
@@ -6252,7 +6833,14 @@
     "CASE-0368",
     "CASE-0369",
     "CASE-0370",
-    "CASE-0371"
+    "CASE-0371",
+    "CASE-0420",
+    "CASE-0421",
+    "CASE-0422",
+    "CASE-0423",
+    "CASE-0424",
+    "CASE-0425",
+    "CASE-0426"
    ],
    "remedy": null,
    "is_work_item": false,
@@ -6269,7 +6857,9 @@
    "provider": null,
    "backed_by": [
     "CASE-0347",
-    "CASE-0349"
+    "CASE-0349",
+    "CASE-0404",
+    "CASE-0405"
    ],
    "remedy": null,
    "is_work_item": false,
@@ -6926,23 +7516,15 @@
   {
    "id": "DEF-042",
    "entity": "defect",
-   "class": "broken",
-   "kind": "product-work",
+   "class": "verified-done",
+   "kind": "none",
    "title": "the design of record still draws a model-graded evaluation feature the product deliberately does not have",
    "severity": null,
-   "status": "open",
+   "status": "fixed",
    "surface": null,
    "note": "",
-   "is_work_item": true,
-   "why": "a defect is a measured negative result — the unit of product work behind every failing case that cites it",
-   "estimate": {
-    "tier": "M",
-    "low_min": 7,
-    "median_min": 15,
-    "high_min": 56,
-    "basis": "broken work defaults to M",
-    "shape": "three to seven files, one subsystem"
-   }
+   "is_work_item": false,
+   "why": "the registry records this defect as 'fixed'. That is the same registry, speaking about the same run, as the `pass` that retires a case."
   },
   {
    "id": "DEF-043",
@@ -7480,7 +8062,7 @@
    "entity": "defect",
    "class": "broken",
    "kind": "product-work",
-   "title": "WIN23's logon trigger has never been watched to fire, and the restart has never been watched to happen",
+   "title": "WIN23's logon trigger has never been watched to fire; the restart has been, and it did not happen until the registration was fixed",
    "severity": "low",
    "status": "open",
    "surface": null,
@@ -7501,7 +8083,7 @@
    "entity": "defect",
    "class": "broken",
    "kind": "product-work",
-   "title": "No instrument on this host can see a toast in the Action Center, or a click on one",
+   "title": "Nothing on this host can press a toast button, or say which application raised a toast it can see",
    "severity": "low",
    "status": "open",
    "surface": null,
@@ -7606,23 +8188,15 @@
   {
    "id": "DEF-091",
    "entity": "defect",
-   "class": "broken",
-   "kind": "product-work",
+   "class": "verified-done",
+   "kind": "none",
    "title": "defects.in.json and inventory.json disagree about the adjudication of three defect rows, and only one of the two is read",
    "severity": null,
-   "status": "open",
+   "status": "fixed",
    "surface": null,
    "note": "",
-   "is_work_item": true,
-   "why": "a defect is a measured negative result — the unit of product work behind every failing case that cites it",
-   "estimate": {
-    "tier": "M",
-    "low_min": 7,
-    "median_min": 15,
-    "high_min": 56,
-    "basis": "broken work defaults to M",
-    "shape": "three to seven files, one subsystem"
-   }
+   "is_work_item": false,
+   "why": "the registry records this defect as 'fixed'. That is the same registry, speaking about the same run, as the `pass` that retires a case."
   },
   {
    "id": "DEF-090",
@@ -7674,44 +8248,28 @@
   {
    "id": "DEF-101",
    "entity": "defect",
-   "class": "broken",
-   "kind": "product-work",
+   "class": "verified-done",
+   "kind": "none",
    "title": "The notification-area icon the ambient-surface setting would switch does not exist",
    "severity": "low",
-   "status": "open",
+   "status": "fixed",
    "surface": "SURF-041",
    "note": "No NotifyIcon, no Shell_NotifyIcon and no tray host appears anywhere under app/windows: the only occurrences of the word are AmbientPresentation.TrayToolTip, which formats a string nothing displays, and the Settings row's own caption. So `Show status in notification area` has nothing to show or hide.",
-   "is_work_item": true,
-   "why": "a defect is a measured negative result — the unit of product work behind every failing case that cites it",
-   "estimate": {
-    "tier": "S",
-    "low_min": 3,
-    "median_min": 8,
-    "high_min": 25,
-    "basis": "broken work defaults to M; wording suggests a contained change",
-    "shape": "read-only, or one or two files"
-   }
+   "is_work_item": false,
+   "why": "the registry records this defect as 'fixed'. That is the same registry, speaking about the same run, as the `pass` that retires a case."
   },
   {
    "id": "DEF-102",
    "entity": "defect",
-   "class": "broken",
-   "kind": "product-work",
+   "class": "verified-done",
+   "kind": "none",
    "title": "Nothing in the Windows build consults a destructive-operation confirmation policy",
    "severity": "low",
-   "status": "open",
+   "status": "fixed",
    "surface": "SURF-038",
    "note": "RequireConfirmationOnDestructive is read in exactly three places - the model that holds it, the presentation that renders it and the store that persists it - and by no board. The ContentDialogs this shell raises are the Activity export dialog, the Servers add dialog and the Discover detail dialog; none is a destructive confirmation and none asks this setting anything.",
-   "is_work_item": true,
-   "why": "a defect is a measured negative result — the unit of product work behind every failing case that cites it",
-   "estimate": {
-    "tier": "M",
-    "low_min": 7,
-    "median_min": 15,
-    "high_min": 56,
-    "basis": "broken work defaults to M",
-    "shape": "three to seven files, one subsystem"
-   }
+   "is_work_item": false,
+   "why": "the registry records this defect as 'fixed'. That is the same registry, speaking about the same run, as the `pass` that retires a case."
   },
   {
    "id": "DEF-274",
@@ -7761,6 +8319,234 @@
    }
   },
   {
+   "id": "DEF-360",
+   "entity": "defect",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "A merge sha cited in both trackers resolves to no object in this repository",
+   "severity": "low",
+   "status": "fixed",
+   "surface": null,
+   "note": "`ORCHESTRATOR.md:1544` and `LEDGER.md`'s R19-INT row both read \"**Merged** `920ff96`\". `git cat-file -t 920ff96` returns `fatal: Not a valid object name`, and `git log --all` has no such object. The R19-INT merge that did happen is `ff05efd4`, 2026-08-24, \"Merge R19-INT: Stale manifest snapshot clobbers concurrent write (gap-fix 4 verified at 79d40ee)\".",
+   "is_work_item": false,
+   "why": "the registry records this defect as 'fixed'. That is the same registry, speaking about the same run, as the `pass` that retires a case."
+  },
+  {
+   "id": "DEF-361",
+   "entity": "defect",
+   "class": "broken",
+   "kind": "product-work",
+   "title": "Twelve wave-slot landings merged to main with no verify verdict recorded anywhere",
+   "severity": "medium",
+   "status": "open",
+   "surface": null,
+   "note": "Wave slots L3-L6 and N1-N8 merged into `main` between 2026-08-29 and 2026-08-30 carrying M32, G8, M37, R27, F5, F6, F7, F8, M38, M39, R22 and M19's gap-fix. `git log --format=%s main --since=2026-08-28 | grep -iE 'verif|verdict'` returns twenty-nine lines and every one of them is a WIN-fleet item; not one names an `ai/l*` or `ai/n*` branch. The merge subjects themselves are bare -- \"merge ai/n5\", ",
+   "is_work_item": true,
+   "why": "a defect is a measured negative result — the unit of product work behind every failing case that cites it",
+   "estimate": {
+    "tier": "M",
+    "low_min": 7,
+    "median_min": 15,
+    "high_min": 56,
+    "basis": "broken work defaults to M",
+    "shape": "three to seven files, one subsystem"
+   }
+  },
+  {
+   "id": "DEF-362",
+   "entity": "defect",
+   "class": "broken",
+   "kind": "product-work",
+   "title": "M18 and R19 carry a standing Needs More Work verdict and their gap-fixes have since merged ungraded",
+   "severity": "medium",
+   "status": "open",
+   "surface": null,
+   "note": "`LEDGER.md`'s heads for both were written 2026-08-23 at `9d4da76` and named an owed gap-fix: M18 \"verified `8354a63`, gap-fix 3 owed\", R19 \"verified `a40351d`, gap-fix 3 owed\". Both owed gap-fixes shipped -- M18's gap-fix 3 at `planning/evidence/M18-gapfix-3/`, gap-fix 4 in wave slot K1 merged `afe6b6d6`; R19's gap-fix 5 in wave slot K2 merged `6250d8b2`, with its evidence at `planning/evidence/R1",
+   "is_work_item": true,
+   "why": "a defect is a measured negative result — the unit of product work behind every failing case that cites it",
+   "estimate": {
+    "tier": "M",
+    "low_min": 7,
+    "median_min": 15,
+    "high_min": 56,
+    "basis": "broken work defaults to M",
+    "shape": "three to seven files, one subsystem"
+   }
+  },
+  {
+   "id": "DEF-340",
+   "entity": "defect",
+   "class": "broken",
+   "kind": "product-work",
+   "title": "The Discover board draws neither of the design's two scoping controls — no kind toggle, no window",
+   "severity": null,
+   "status": "open",
+   "surface": "SURF-005",
+   "note": "",
+   "is_work_item": true,
+   "why": "a defect is a measured negative result — the unit of product work behind every failing case that cites it",
+   "estimate": {
+    "tier": "M",
+    "low_min": 7,
+    "median_min": 15,
+    "high_min": 56,
+    "basis": "broken work defaults to M",
+    "shape": "three to seven files, one subsystem"
+   }
+  },
+  {
+   "id": "DEF-064",
+   "entity": "defect",
+   "class": "broken",
+   "kind": "product-work",
+   "title": "Three Settings and pairing controls the design draws have no counterpart on the Mac",
+   "severity": null,
+   "status": "open",
+   "surface": "SURF-011",
+   "note": "",
+   "is_work_item": true,
+   "why": "a defect is a measured negative result — the unit of product work behind every failing case that cites it",
+   "estimate": {
+    "tier": "M",
+    "low_min": 7,
+    "median_min": 15,
+    "high_min": 56,
+    "basis": "broken work defaults to M",
+    "shape": "three to seven files, one subsystem"
+   }
+  },
+  {
+   "id": "DEF-065",
+   "entity": "defect",
+   "class": "broken",
+   "kind": "product-work",
+   "title": "The Insights analyst panel is an empty state with a dead button — three readouts and its one action are unbuilt",
+   "severity": null,
+   "status": "open",
+   "surface": "SURF-026",
+   "note": "",
+   "is_work_item": true,
+   "why": "a defect is a measured negative result — the unit of product work behind every failing case that cites it",
+   "estimate": {
+    "tier": "M",
+    "low_min": 7,
+    "median_min": 15,
+    "high_min": 56,
+    "basis": "broken work defaults to M",
+    "shape": "three to seven files, one subsystem"
+   }
+  },
+  {
+   "id": "DEF-320",
+   "entity": "defect",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "The logon task's RestartOnFailure block never restarted a crashed daemon, under a UI promising it did",
+   "severity": "medium",
+   "status": "fixed",
+   "surface": "SURF-045",
+   "note": "Four registrations on this host, each started and then killed, with Get-ScheduledTaskInfo and Win32_Process as recorders:\n  (1) the product's own document - LogonTrigger, RestartOnFailure PT60S count 3, MultipleInstancesPolicy IgnoreNew - started on demand, process killed. LastTaskResult became 0xFFFFFFFF and no replacement process appeared in 130 s.\n  (2) the same with UseUnifiedSchedulingEngine ",
+   "is_work_item": false,
+   "why": "the registry records this defect as 'fixed'. That is the same registry, speaking about the same run, as the `pass` that retires a case."
+  },
+  {
+   "id": "DEF-321",
+   "entity": "defect",
+   "class": "verified-done",
+   "kind": "none",
+   "title": "win22-toast-witness.ps1 looked for the shell in the directory the shell is not built into",
+   "severity": "low",
+   "status": "fixed",
+   "surface": "SURF-046",
+   "note": "The lane defaulted $ExePath to app\\windows\\MCPRouter.Shell\\bin\\x64\\Debug\\..., which is what `MSBuild -p:Platform=x64` writes. scripts/windows/build-shell.ps1 writes bin\\Debug\\..., and so does everything that reads it. On a tree built correctly seconds earlier the lane returned NO VERDICT and told the reader to go and build a shell that was already on disk. Its message printed a literal {0} where t",
+   "is_work_item": false,
+   "why": "the registry records this defect as 'fixed'. That is the same registry, speaking about the same run, as the `pass` that retires a case."
+  },
+  {
+   "id": "DEF-300",
+   "entity": "defect",
+   "class": "broken",
+   "kind": "product-work",
+   "title": "The notification-area icon does not come back after an Explorer restart",
+   "severity": "low",
+   "status": "open",
+   "surface": "SURF-041",
+   "note": "MCPRouter.Shell.Live/Ambient/NotificationAreaIcon.cs parents its window to HWND_MESSAGE. Windows delivers the registered TaskbarCreated broadcast only to top-level windows, so this process never learns that the shell restarted and never re-adds the icon. Not observed on a live Explorer restart - it is read off the documented behaviour of broadcast messages and the code that chooses the parent.",
+   "is_work_item": true,
+   "why": "a defect is a measured negative result — the unit of product work behind every failing case that cites it",
+   "estimate": {
+    "tier": "M",
+    "low_min": 7,
+    "median_min": 15,
+    "high_min": 56,
+    "basis": "broken work defaults to M",
+    "shape": "three to seven files, one subsystem"
+   }
+  },
+  {
+   "id": "DEF-301",
+   "entity": "defect",
+   "class": "broken",
+   "kind": "product-work",
+   "title": "The ambient surface reports AtRest without anything ever reading the router",
+   "severity": "medium",
+   "status": "open",
+   "surface": "SURF-041",
+   "note": "AmbientSurfaceModel.State initialises to AmbientRouterState.AtRest and UpdateState is called by nothing in the build. AmbientFlyoutView therefore renders 'Router ready' and 'All systems quiet. No active calls or queued items.' whatever the router is doing, including when it is not running. AmbientPresentation.TrayToolTip formats the same state into 'MCP Router - Ready'.",
+   "is_work_item": true,
+   "why": "a defect is a measured negative result — the unit of product work behind every failing case that cites it",
+   "estimate": {
+    "tier": "S",
+    "low_min": 3,
+    "median_min": 8,
+    "high_min": 25,
+    "basis": "broken work defaults to M; wording suggests a contained change",
+    "shape": "read-only, or one or two files"
+   }
+  },
+  {
+   "id": "DEF-302",
+   "entity": "defect",
+   "class": "broken",
+   "kind": "product-work",
+   "title": "The Cleanup board's Remove selected button reaches nothing and asks nothing",
+   "severity": "medium",
+   "status": "open",
+   "surface": "SURF-036",
+   "note": "CleanupBoard.OnRemoveSelectedClicked gets the selected rows and its body is the comment '// Removal dialog logic'. The rows themselves come from CleanupBoardModel.PopulateSampleData, so the board is offering to remove servers and skills that are not the operator's. Nothing on that board reads RequireConfirmationOnDestructive.",
+   "is_work_item": true,
+   "why": "a defect is a measured negative result — the unit of product work behind every failing case that cites it",
+   "estimate": {
+    "tier": "M",
+    "low_min": 7,
+    "median_min": 15,
+    "high_min": 56,
+    "basis": "broken work defaults to M",
+    "shape": "three to seven files, one subsystem"
+   }
+  },
+  {
+   "id": "DEF-280",
+   "entity": "defect",
+   "class": "broken",
+   "kind": "product-work",
+   "title": "Six diagnostics-bundle cases are filed under REQ-035, which is the Windows logon-task requirement",
+   "severity": null,
+   "status": "open",
+   "surface": null,
+   "note": "",
+   "is_work_item": true,
+   "why": "a defect is a measured negative result — the unit of product work behind every failing case that cites it",
+   "estimate": {
+    "tier": "M",
+    "low_min": 7,
+    "median_min": 15,
+    "high_min": 56,
+    "basis": "broken work defaults to M",
+    "shape": "three to seven files, one subsystem"
+   }
+  },
+  {
    "id": "SURF-001",
    "entity": "surface",
    "class": "verified-done",
@@ -7769,7 +8555,7 @@
    "reachability": null,
    "note": null,
    "is_work_item": false,
-   "why": "10 case(s) here reached a verdict, so the campaign can speak for this surface. Whether those verdicts were good is carried by the cases and defects themselves."
+   "why": "11 case(s) here reached a verdict, so the campaign can speak for this surface. Whether those verdicts were good is carried by the cases and defects themselves."
   },
   {
    "id": "SURF-002",
@@ -8071,21 +8857,13 @@
   {
    "id": "SURF-029",
    "entity": "surface",
-   "class": "unnamed",
-   "kind": "decision-work",
+   "class": "verified-done",
+   "kind": "none",
    "title": "Windows automation probe — WIN20's WinUI 3 plane witness",
    "reachability": null,
-   "note": "WIN20's own probe window, not the product. Kept as a surface because it is what proves the automation plane works at all, and because its two SecondaryCommands are the recorded unoracled pair: a CommandBar's overflow items are not realised while the overflow is closed, so they exist on neither the control view nor the raw view.",
-   "is_work_item": true,
-   "why": "the campaign found this surface; no brief and no requirement claims it",
-   "estimate": {
-    "tier": "S",
-    "low_min": 3,
-    "median_min": 8,
-    "high_min": 25,
-    "basis": "unnamed work defaults to S",
-    "shape": "read-only, or one or two files"
-   }
+   "note": "WIN20's own probe window, not the product. Kept as a surface because it is what proves the automation plane works at all. Its two SecondaryCommands were the recorded unoracled pair - a CommandBar's overflow items are not realised while the overflow is closed, so they exist on neither the control view nor the raw view - and CASE-0460 is the arm that reaches them: it opens the overflow through ExpandCollapsePattern.Expand and reads both back between a baseline and a silence that find them absent. That reading costs the never-activated guarantee (Expand foregrounds the window; measured, and declared in probe-expectation.json as `overflow.activationCost`), which is why it is a second lane rather than a step inside the at-rest one. The at-rest lane still asserts both absences. AT-REST coverage of these two commands remains open as DEF-340: the product fix is a surface that realises them without an actuation, per DESIGN.md section 11 rule 9.",
+   "is_work_item": false,
+   "why": "1 case(s) here reached a verdict, so the campaign can speak for this surface. Whether those verdicts were good is carried by the cases and defects themselves."
   },
   {
    "id": "SURF-030",
@@ -8182,9 +8960,9 @@
    "kind": "none",
    "title": "Windows Settings board",
    "reachability": null,
-   "note": "Seven sections, measured on the automation plane rather than counted in the markup: settings.section.router, .harnesses, .sessionanalyst, .updates, .security, .ambientsurface, .advanced, each publishing a name. Three of them carry a switch; the other four carry WIN13's governance prose because this build has no harness settings, no session analyst and no update check. The switches publish as Button carrying TogglePattern - which is what a WinUI ToggleSwitch is on the plane, and what made DEF-076's first reading say there were none.\n\nSINCE DEF-087 ONE OF THE THREE REACHES THE MACHINE AND TWO ARE DISABLED. `Launch router daemon at sign-in` registers and removes WIN23's logon task, and the board seeds it from the Windows task scheduler rather than from its own memory; the state persists to %APPDATA%\\MCPRouter\\shell-settings.json. `Show status in notification area` and `Require confirmation on destructive operations` own nothing on this build, so each is DISABLED and publishes its reason at settings.toggle.<key>.reason naming DEF-101 and DEF-102 - a switch that moves and reaches nothing is the defect this surface has already been caught by twice. `Copy the loopback endpoint` copies (DEF-088). The two disabled switches still publish a readable toggle state, so the census rows over them are unchanged.",
+   "note": "Seven sections, measured on the automation plane rather than counted in the markup: settings.section.router, .harnesses, .sessionanalyst, .updates, .security, .ambientsurface, .advanced, each publishing a name. Three of them carry a switch; the other four carry WIN13's governance prose because this build has no harness settings, no session analyst and no update check. The switches publish as Button carrying TogglePattern - which is what a WinUI ToggleSwitch is on the plane, and what made DEF-076's first reading say there were none.\n\nSINCE DEF-087 ONE OF THE THREE REACHES THE MACHINE AND TWO ARE DISABLED. `Launch router daemon at sign-in` registers and removes WIN23's logon task, and the board seeds it from the Windows task scheduler rather than from its own memory; the state persists to %APPDATA%\\MCPRouter\\shell-settings.json. `Show status in notification area` places and removes a real notification-area icon (DEF-101), registered by GUID so that something other than this application can ask the shell whether it is there. `Confirm before removing a server` - narrowed from `Require confirmation on destructive operations`, which named a class of operations this build does not have - decides whether the Servers board asks before it sends the router the one destructive verb the shell speaks (DEF-102). Both were DISABLED with a reason until those two landed, and neither is any more: nothing on this board now moves a boolean that reaches nothing. `Copy the loopback endpoint` copies (DEF-088). The two disabled switches still publish a readable toggle state, so the census rows over them are unchanged.",
    "is_work_item": false,
-   "why": "13 case(s) here reached a verdict, so the campaign can speak for this surface. Whether those verdicts were good is carried by the cases and defects themselves."
+   "why": "20 case(s) here reached a verdict, so the campaign can speak for this surface. Whether those verdicts were good is carried by the cases and defects themselves."
   },
   {
    "id": "SURF-039",
@@ -8250,7 +9028,7 @@
    "reachability": null,
    "note": "WIN7's detail dialog, addressable since DEF-075's fix: every x:Named element carries an AutomationProperties.AutomationId, and the containers that publish no text of their own carry a Name. The text elements deliberately do not - a TextBlock's own Text IS its accessible name and a static Name would overwrite it, so the controls listed here are ids. Opened by shell-lane.ps1 section 3b, which needs the registry search to return a store row first; where it does not, that census row reads `unoracled` rather than passing.",
    "is_work_item": false,
-   "why": "2 case(s) here reached a verdict, so the campaign can speak for this surface. Whether those verdicts were good is carried by the cases and defects themselves."
+   "why": "4 case(s) here reached a verdict, so the campaign can speak for this surface. Whether those verdicts were good is carried by the cases and defects themselves."
   },
   {
    "id": "SURF-045",
@@ -8261,7 +9039,7 @@
    "reachability": null,
    "note": "Not a glass surface. It is a plane the product acts on, in the same class as SURF-015 (router daemon) and SURF-016 (the loopback control API), and its `controls` are operations rather than things a person can press. DEF-080 records that the registry has one word for both and that counting them in the same census is a known overstatement of how much glass has been driven. DEF-080 CLOSED 2026-09-02 by wb4: this list moved from `controls` to `operations`, and `bin/control-census.py` now counts operations against their own denominator and prints it on its own line. The census no longer adds this row's members to the Mac boards' buttons in one headline.",
    "is_work_item": false,
-   "why": "1 case(s) here reached a verdict, so the campaign can speak for this surface. Whether those verdicts were good is carried by the cases and defects themselves."
+   "why": "2 case(s) here reached a verdict, so the campaign can speak for this surface. Whether those verdicts were good is carried by the cases and defects themselves."
   },
   {
    "id": "SURF-046",
@@ -8272,7 +9050,7 @@
    "reachability": null,
    "note": "What this row's controls do NOT cover is the half that matters most to a user: CASE-0339 proves the COM activator is registered so that pressing Review an hour later can reach the app, and nobody has pressed Review. That gap is stated here rather than hidden by a denominator of two. DEF-080 CLOSED 2026-09-02 by wb4: this list moved from `controls` to `operations`, and `bin/control-census.py` now counts operations against their own denominator and prints it on its own line. The census no longer adds this row's members to the Mac boards' buttons in one headline.",
    "is_work_item": false,
-   "why": "1 case(s) here reached a verdict, so the campaign can speak for this surface. Whether those verdicts were good is carried by the cases and defects themselves."
+   "why": "2 case(s) here reached a verdict, so the campaign can speak for this surface. Whether those verdicts were good is carried by the cases and defects themselves."
   },
   {
    "id": "SURF-047",
@@ -8872,9 +9650,9 @@
      "score": 0.077
     },
     {
-     "target": "REQ-034",
-     "kind": "requirement",
-     "score": 0.054
+     "target": "DEF-320",
+     "kind": "defect",
+     "score": 0.06
     }
    ],
    "id_scan": {
@@ -9070,7 +9848,7 @@
      "score": 0.081
     },
     {
-     "target": "DEF-275",
+     "target": "DEF-320",
      "kind": "defect",
      "score": 0.07
     }
@@ -9220,92 +9998,44 @@
   {
    "id": "BRIEF-G6-evidence-that-lives-in-tmp-is-not-evidence",
    "entity": "brief",
-   "class": "unjoined",
-   "kind": "decision-work",
+   "class": "waived",
+   "kind": "exception",
    "title": "A sweep that proves a guard is armed, kept in `/tmp`",
    "file": "G6-evidence-that-lives-in-tmp-is-not-evidence.md",
-   "declared_status": "to-triage",
+   "declared_status": "completed",
    "generated_by": null,
-   "is_work_item": true,
+   "is_work_item": false,
    "edges": [],
-   "near_misses": [
-    {
-     "target": "REQ-027",
-     "kind": "requirement",
-     "score": 0.112
-    },
-    {
-     "target": "REQ-016",
-     "kind": "requirement",
-     "score": 0.099
-    },
-    {
-     "target": "REQ-034",
-     "kind": "requirement",
-     "score": 0.084
-    }
-   ],
+   "near_misses": null,
    "id_scan": {
     "cited": [],
     "shown": {},
     "shown_only": []
    },
    "unclassifiable_ids": null,
-   "remedy": "read the brief against the registry and rule — the join is a guess and it returned nothing, so nothing here is a finding about the product yet",
-   "why": "the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule",
-   "estimate": {
-    "tier": "S",
-    "low_min": 3,
-    "median_min": 8,
-    "high_min": 25,
-    "basis": "unjoined work defaults to S",
-    "shape": "read-only, or one or two files"
-   }
+   "remedy": null,
+   "why": "the brief declares status 'completed' — a decision, not a measurement. It stays on the ledger because the reason for it may stop being true."
   },
   {
    "id": "BRIEF-G7-a-citation-that-does-not-resolve-where-it-is-read",
    "entity": "brief",
-   "class": "unjoined",
-   "kind": "decision-work",
+   "class": "waived",
+   "kind": "exception",
    "title": "A citation that resolved when written and does not resolve where it is read",
    "file": "G7-a-citation-that-does-not-resolve-where-it-is-read.md",
-   "declared_status": "to-triage",
+   "declared_status": "completed",
    "generated_by": null,
-   "is_work_item": true,
+   "is_work_item": false,
    "edges": [],
-   "near_misses": [
-    {
-     "target": "REQ-027",
-     "kind": "requirement",
-     "score": 0.135
-    },
-    {
-     "target": "REQ-016",
-     "kind": "requirement",
-     "score": 0.088
-    },
-    {
-     "target": "DEF-078",
-     "kind": "defect",
-     "score": 0.083
-    }
-   ],
+   "near_misses": null,
    "id_scan": {
     "cited": [],
     "shown": {},
     "shown_only": []
    },
    "unclassifiable_ids": null,
-   "remedy": "read the brief against the registry and rule — the join is a guess and it returned nothing, so nothing here is a finding about the product yet",
-   "why": "the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule",
-   "estimate": {
-    "tier": "S",
-    "low_min": 3,
-    "median_min": 8,
-    "high_min": 25,
-    "basis": "unjoined work defaults to S",
-    "shape": "read-only, or one or two files"
-   }
+   "remedy": null,
+   "why": "the brief declares status 'completed' — a decision, not a measurement. It stays on the ledger because the reason for it may stop being true."
   },
   {
    "id": "BRIEF-G8-a-question-answered-at-the-wrong-scope",
@@ -9487,45 +10217,40 @@
   {
    "id": "BRIEF-I4-phone-direct-install",
    "entity": "brief",
-   "class": "unjoined",
+   "class": "undecided",
    "kind": "decision-work",
    "title": "I4 — Let the phone install directly",
    "file": "I4-phone-direct-install.md",
    "declared_status": "",
    "generated_by": null,
    "is_work_item": true,
-   "edges": [],
-   "near_misses": [
+   "edges": [
     {
-     "target": "REQ-040",
-     "kind": "requirement",
-     "score": 0.063
+     "target": "REQ-006",
+     "method": "cited",
+     "confidence": 1.0
     },
     {
-     "target": "REQ-016",
-     "kind": "requirement",
-     "score": 0.063
-    },
-    {
-     "target": "REQ-019",
-     "kind": "requirement",
-     "score": 0.056
+     "target": "SURF-008",
+     "method": "cited",
+     "confidence": 1.0
     }
    ],
+   "near_misses": null,
    "id_scan": {
     "cited": [],
     "shown": {},
     "shown_only": []
    },
    "unclassifiable_ids": null,
-   "remedy": "read the brief against the registry and rule — the join is a guess and it returned nothing, so nothing here is a finding about the product yet",
-   "why": "the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule",
+   "remedy": null,
+   "why": "looks done, but the join as a whole is too weak to carry a retirement claim — route to spec-validation before retiring",
    "estimate": {
     "tier": "S",
     "low_min": 3,
     "median_min": 8,
     "high_min": 25,
-    "basis": "unjoined work defaults to S",
+    "basis": "undecided work defaults to S",
     "shape": "read-only, or one or two files"
    }
   },
@@ -9769,45 +10494,45 @@
   {
    "id": "BRIEF-M19-gfm-viewer",
    "entity": "brief",
-   "class": "unjoined",
+   "class": "undecided",
    "kind": "decision-work",
    "title": "M19 — the in-app GitHub-flavoured Markdown viewer",
    "file": "M19-gfm-viewer.md",
    "declared_status": "",
    "generated_by": null,
    "is_work_item": true,
-   "edges": [],
-   "near_misses": [
+   "edges": [
+    {
+     "target": "CASE-0292",
+     "method": "cited",
+     "confidence": 1.0
+    },
     {
      "target": "REQ-027",
-     "kind": "requirement",
-     "score": 0.106
+     "method": "cited",
+     "confidence": 1.0
     },
     {
-     "target": "REQ-026",
-     "kind": "requirement",
-     "score": 0.068
-    },
-    {
-     "target": "DEF-078",
-     "kind": "defect",
-     "score": 0.056
+     "target": "SURF-028",
+     "method": "cited",
+     "confidence": 1.0
     }
    ],
+   "near_misses": null,
    "id_scan": {
     "cited": [],
     "shown": {},
     "shown_only": []
    },
    "unclassifiable_ids": null,
-   "remedy": "read the brief against the registry and rule — the join is a guess and it returned nothing, so nothing here is a finding about the product yet",
-   "why": "the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule",
+   "remedy": null,
+   "why": "looks done, but the join as a whole is too weak to carry a retirement claim — route to spec-validation before retiring",
    "estimate": {
     "tier": "S",
     "low_min": 3,
     "median_min": 8,
     "high_min": 25,
-    "basis": "unjoined work defaults to S",
+    "basis": "undecided work defaults to S",
     "shape": "read-only, or one or two files"
    }
   },
@@ -10143,9 +10868,9 @@
      "score": 0.072
     },
     {
-     "target": "REQ-026",
-     "kind": "requirement",
-     "score": 0.065
+     "target": "DEF-361",
+     "kind": "defect",
+     "score": 0.071
     }
    ],
    "id_scan": {
@@ -10622,196 +11347,31 @@
   {
    "id": "BRIEF-M30-capability-document-source",
    "entity": "brief",
-   "class": "unjoined",
-   "kind": "decision-work",
+   "class": "waived",
+   "kind": "exception",
    "title": "M30 — where a capability's documentation actually comes from",
    "file": "M30-capability-document-source.md",
-   "declared_status": "",
+   "declared_status": "completed",
    "generated_by": null,
-   "is_work_item": true,
-   "edges": [],
-   "near_misses": [
-    {
-     "target": "REQ-027",
-     "kind": "requirement",
-     "score": 0.148
-    },
-    {
-     "target": "REQ-026",
-     "kind": "requirement",
-     "score": 0.105
-    },
-    {
-     "target": "REQ-016",
-     "kind": "requirement",
-     "score": 0.099
-    }
-   ],
-   "id_scan": {
-    "cited": [],
-    "shown": {},
-    "shown_only": []
-   },
-   "unclassifiable_ids": null,
-   "remedy": "read the brief against the registry and rule — the join is a guess and it returned nothing, so nothing here is a finding about the product yet",
-   "why": "the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule",
-   "estimate": {
-    "tier": "S",
-    "low_min": 3,
-    "median_min": 8,
-    "high_min": 25,
-    "basis": "unjoined work defaults to S",
-    "shape": "read-only, or one or two files"
-   }
-  },
-  {
-   "id": "BRIEF-M31-the-design-of-record-cannot-draw-a-disabled-primary",
-   "entity": "brief",
-   "class": "unjoined",
-   "kind": "decision-work",
-   "title": "The design of record cannot draw the state `DESIGN.md` requires of every control",
-   "file": "M31-the-design-of-record-cannot-draw-a-disabled-primary.md",
-   "declared_status": "to-triage",
-   "generated_by": null,
-   "is_work_item": true,
-   "edges": [],
-   "near_misses": [
-    {
-     "target": "REQ-016",
-     "kind": "requirement",
-     "score": 0.109
-    },
-    {
-     "target": "REQ-027",
-     "kind": "requirement",
-     "score": 0.106
-    },
-    {
-     "target": "REQ-034",
-     "kind": "requirement",
-     "score": 0.082
-    }
-   ],
-   "id_scan": {
-    "cited": [],
-    "shown": {},
-    "shown_only": []
-   },
-   "unclassifiable_ids": null,
-   "remedy": "read the brief against the registry and rule — the join is a guess and it returned nothing, so nothing here is a finding about the product yet",
-   "why": "the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule",
-   "estimate": {
-    "tier": "S",
-    "low_min": 3,
-    "median_min": 8,
-    "high_min": 25,
-    "basis": "unjoined work defaults to S",
-    "shape": "read-only, or one or two files"
-   }
-  },
-  {
-   "id": "BRIEF-M32-a-mock-driven-gate-is-blind-to-what-the-mock-does-not-draw",
-   "entity": "brief",
-   "class": "unjoined",
-   "kind": "decision-work",
-   "title": "A mock-driven fidelity gate cannot see a defect in something the mock does not draw",
-   "file": "M32-a-mock-driven-gate-is-blind-to-what-the-mock-does-not-draw.md",
-   "declared_status": "to-triage",
-   "generated_by": null,
-   "is_work_item": true,
-   "edges": [],
-   "near_misses": [
-    {
-     "target": "REQ-027",
-     "kind": "requirement",
-     "score": 0.133
-    },
-    {
-     "target": "REQ-016",
-     "kind": "requirement",
-     "score": 0.115
-    },
-    {
-     "target": "REQ-080",
-     "kind": "requirement",
-     "score": 0.081
-    }
-   ],
-   "id_scan": {
-    "cited": [],
-    "shown": {},
-    "shown_only": []
-   },
-   "unclassifiable_ids": null,
-   "remedy": "read the brief against the registry and rule — the join is a guess and it returned nothing, so nothing here is a finding about the product yet",
-   "why": "the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule",
-   "estimate": {
-    "tier": "S",
-    "low_min": 3,
-    "median_min": 8,
-    "high_min": 25,
-    "basis": "unjoined work defaults to S",
-    "shape": "read-only, or one or two files"
-   }
-  },
-  {
-   "id": "BRIEF-M33-swift-build-cannot-gate-the-app-target",
-   "entity": "brief",
-   "class": "unjoined",
-   "kind": "decision-work",
-   "title": "`swift build` exits 0 and silent on a fault `xcodebuild` calls fatal",
-   "file": "M33-swift-build-cannot-gate-the-app-target.md",
-   "declared_status": "to-triage",
-   "generated_by": null,
-   "is_work_item": true,
-   "edges": [],
-   "near_misses": [
-    {
-     "target": "REQ-080",
-     "kind": "requirement",
-     "score": 0.101
-    },
-    {
-     "target": "REQ-016",
-     "kind": "requirement",
-     "score": 0.1
-    },
-    {
-     "target": "REQ-027",
-     "kind": "requirement",
-     "score": 0.093
-    }
-   ],
-   "id_scan": {
-    "cited": [],
-    "shown": {},
-    "shown_only": []
-   },
-   "unclassifiable_ids": null,
-   "remedy": "read the brief against the registry and rule — the join is a guess and it returned nothing, so nothing here is a finding about the product yet",
-   "why": "the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule",
-   "estimate": {
-    "tier": "S",
-    "low_min": 3,
-    "median_min": 8,
-    "high_min": 25,
-    "basis": "unjoined work defaults to S",
-    "shape": "read-only, or one or two files"
-   }
-  },
-  {
-   "id": "BRIEF-M34-the-menu-badge-is-unmeasurable-by-any-lane",
-   "entity": "brief",
-   "class": "undecided",
-   "kind": "decision-work",
-   "title": "The one new user-visible behaviour in M20's Slice A cannot be measured by any lane we have",
-   "file": "M34-the-menu-badge-is-unmeasurable-by-any-lane.md",
-   "declared_status": "to-triage",
-   "generated_by": null,
-   "is_work_item": true,
+   "is_work_item": false,
    "edges": [
     {
-     "target": "REQ-028",
+     "target": "REQ-026",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "REQ-027",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "SURF-027",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "SURF-028",
      "method": "cited",
      "confidence": 1.0
     }
@@ -10824,15 +11384,117 @@
    },
    "unclassifiable_ids": null,
    "remedy": null,
-   "why": "the brief declares status 'to-triage' while the registry's evidence reads done -- the document and the evidence disagree; a person rules, an instrument cannot",
-   "estimate": {
-    "tier": "S",
-    "low_min": 3,
-    "median_min": 8,
-    "high_min": 25,
-    "basis": "undecided work defaults to S",
-    "shape": "read-only, or one or two files"
-   }
+   "why": "the brief declares status 'completed' — a decision, not a measurement. It stays on the ledger because the reason for it may stop being true."
+  },
+  {
+   "id": "BRIEF-M31-the-design-of-record-cannot-draw-a-disabled-primary",
+   "entity": "brief",
+   "class": "waived",
+   "kind": "exception",
+   "title": "The design of record cannot draw the state `DESIGN.md` requires of every control",
+   "file": "M31-the-design-of-record-cannot-draw-a-disabled-primary.md",
+   "declared_status": "completed",
+   "generated_by": null,
+   "is_work_item": false,
+   "edges": [],
+   "near_misses": null,
+   "id_scan": {
+    "cited": [],
+    "shown": {},
+    "shown_only": []
+   },
+   "unclassifiable_ids": null,
+   "remedy": null,
+   "why": "the brief declares status 'completed' — a decision, not a measurement. It stays on the ledger because the reason for it may stop being true."
+  },
+  {
+   "id": "BRIEF-M32-a-mock-driven-gate-is-blind-to-what-the-mock-does-not-draw",
+   "entity": "brief",
+   "class": "waived",
+   "kind": "exception",
+   "title": "A mock-driven fidelity gate cannot see a defect in something the mock does not draw",
+   "file": "M32-a-mock-driven-gate-is-blind-to-what-the-mock-does-not-draw.md",
+   "declared_status": "completed",
+   "generated_by": null,
+   "is_work_item": false,
+   "edges": [],
+   "near_misses": null,
+   "id_scan": {
+    "cited": [],
+    "shown": {},
+    "shown_only": []
+   },
+   "unclassifiable_ids": null,
+   "remedy": null,
+   "why": "the brief declares status 'completed' — a decision, not a measurement. It stays on the ledger because the reason for it may stop being true."
+  },
+  {
+   "id": "BRIEF-M33-swift-build-cannot-gate-the-app-target",
+   "entity": "brief",
+   "class": "waived",
+   "kind": "exception",
+   "title": "`swift build` exits 0 and silent on a fault `xcodebuild` calls fatal",
+   "file": "M33-swift-build-cannot-gate-the-app-target.md",
+   "declared_status": "completed",
+   "generated_by": null,
+   "is_work_item": false,
+   "edges": [],
+   "near_misses": null,
+   "id_scan": {
+    "cited": [],
+    "shown": {},
+    "shown_only": []
+   },
+   "unclassifiable_ids": null,
+   "remedy": null,
+   "why": "the brief declares status 'completed' — a decision, not a measurement. It stays on the ledger because the reason for it may stop being true."
+  },
+  {
+   "id": "BRIEF-M34-the-menu-badge-is-unmeasurable-by-any-lane",
+   "entity": "brief",
+   "class": "waived",
+   "kind": "exception",
+   "title": "The one new user-visible behaviour in M20's Slice A cannot be measured by any lane we have",
+   "file": "M34-the-menu-badge-is-unmeasurable-by-any-lane.md",
+   "declared_status": "retired",
+   "generated_by": null,
+   "is_work_item": false,
+   "edges": [
+    {
+     "target": "CASE-0195",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "CASE-0196",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "CASE-0197",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "REQ-028",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "SURF-001",
+     "method": "cited",
+     "confidence": 1.0
+    }
+   ],
+   "near_misses": null,
+   "id_scan": {
+    "cited": [],
+    "shown": {},
+    "shown_only": []
+   },
+   "unclassifiable_ids": null,
+   "remedy": null,
+   "why": "the brief declares status 'retired' — a decision, not a measurement. It stays on the ledger because the reason for it may stop being true."
   },
   {
    "id": "BRIEF-M38-phone-cannot-approve-a-tool-surface",
@@ -11109,45 +11771,50 @@
   {
    "id": "BRIEF-P7-auth-post-oauth-client",
    "entity": "brief",
-   "class": "unjoined",
+   "class": "undecided",
    "kind": "decision-work",
    "title": "P7 — `control-auth-post-http` needs a real OAuth client",
    "file": "P7-auth-post-oauth-client.md",
    "declared_status": "",
    "generated_by": null,
    "is_work_item": true,
-   "edges": [],
-   "near_misses": [
+   "edges": [
     {
-     "target": "REQ-027",
-     "kind": "requirement",
-     "score": 0.095
+     "target": "DEF-002",
+     "method": "cited",
+     "confidence": 1.0
     },
     {
-     "target": "REQ-016",
-     "kind": "requirement",
-     "score": 0.082
+     "target": "REQ-014",
+     "method": "cited",
+     "confidence": 1.0
     },
     {
-     "target": "REQ-030",
-     "kind": "requirement",
-     "score": 0.07
+     "target": "REQ-021",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "SURF-021",
+     "method": "cited",
+     "confidence": 1.0
     }
    ],
+   "near_misses": null,
    "id_scan": {
     "cited": [],
     "shown": {},
     "shown_only": []
    },
    "unclassifiable_ids": null,
-   "remedy": "read the brief against the registry and rule — the join is a guess and it returned nothing, so nothing here is a finding about the product yet",
-   "why": "the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule",
+   "remedy": null,
+   "why": "looks done, but the join as a whole is too weak to carry a retirement claim — route to spec-validation before retiring",
    "estimate": {
     "tier": "S",
     "low_min": 3,
     "median_min": 8,
     "high_min": 25,
-    "basis": "unjoined work defaults to S",
+    "basis": "undecided work defaults to S",
     "shape": "read-only, or one or two files"
    }
   },
@@ -11864,45 +12531,55 @@
   {
    "id": "BRIEF-R2R-router-daemon",
    "entity": "brief",
-   "class": "unjoined",
+   "class": "undecided",
    "kind": "decision-work",
    "title": "R2-R — Swift router: the process that actually serves",
    "file": "R2R-router-daemon.md",
    "declared_status": "",
    "generated_by": null,
    "is_work_item": true,
-   "edges": [],
-   "near_misses": [
+   "edges": [
     {
-     "target": "REQ-027",
-     "kind": "requirement",
-     "score": 0.133
+     "target": "DEF-002",
+     "method": "cited",
+     "confidence": 1.0
     },
     {
-     "target": "REQ-034",
-     "kind": "requirement",
-     "score": 0.101
+     "target": "REQ-011",
+     "method": "cited",
+     "confidence": 1.0
     },
     {
-     "target": "REQ-016",
-     "kind": "requirement",
-     "score": 0.093
+     "target": "REQ-014",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "REQ-020",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "SURF-015",
+     "method": "cited",
+     "confidence": 1.0
     }
    ],
+   "near_misses": null,
    "id_scan": {
     "cited": [],
     "shown": {},
     "shown_only": []
    },
    "unclassifiable_ids": null,
-   "remedy": "read the brief against the registry and rule — the join is a guess and it returned nothing, so nothing here is a finding about the product yet",
-   "why": "the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule",
+   "remedy": null,
+   "why": "looks done, but the join as a whole is too weak to carry a retirement claim — route to spec-validation before retiring",
    "estimate": {
     "tier": "S",
     "low_min": 3,
     "median_min": 8,
     "high_min": 25,
-    "basis": "unjoined work defaults to S",
+    "basis": "undecided work defaults to S",
     "shape": "read-only, or one or two files"
    }
   },
@@ -13119,12 +13796,12 @@
      "score": 0.088
     },
     {
-     "target": "REQ-016",
-     "kind": "requirement",
-     "score": 0.063
+     "target": "DEF-320",
+     "kind": "defect",
+     "score": 0.064
     },
     {
-     "target": "REQ-034",
+     "target": "REQ-016",
      "kind": "requirement",
      "score": 0.063
     }
@@ -14375,46 +15052,36 @@
   {
    "id": "BRIEF-an-effect-class-the-census-cannot-name-reads-as-no-effect",
    "entity": "brief",
-   "class": "unjoined",
-   "kind": "decision-work",
+   "class": "broken",
+   "kind": "product-work",
    "title": "An effect class the census cannot name reads as no effect at all",
    "file": "an-effect-class-the-census-cannot-name-reads-as-no-effect.md",
    "declared_status": "to-triage",
    "generated_by": null,
    "is_work_item": true,
-   "edges": [],
-   "near_misses": [
+   "edges": [
     {
-     "target": "REQ-027",
-     "kind": "requirement",
-     "score": 0.107
-    },
-    {
-     "target": "REQ-026",
-     "kind": "requirement",
-     "score": 0.085
-    },
-    {
-     "target": "REQ-030",
-     "kind": "requirement",
-     "score": 0.082
+     "target": "REQ-016",
+     "method": "cited",
+     "confidence": 1.0
     }
    ],
+   "near_misses": null,
    "id_scan": {
     "cited": [],
     "shown": {},
     "shown_only": []
    },
    "unclassifiable_ids": null,
-   "remedy": "read the brief against the registry and rule — the join is a guess and it returned nothing, so nothing here is a finding about the product yet",
-   "why": "the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule",
+   "remedy": null,
+   "why": "the registry records a defect or a failing case against this brief's subject",
    "estimate": {
-    "tier": "S",
-    "low_min": 3,
-    "median_min": 8,
-    "high_min": 25,
-    "basis": "unjoined work defaults to S",
-    "shape": "read-only, or one or two files"
+    "tier": "M",
+    "low_min": 7,
+    "median_min": 15,
+    "high_min": 56,
+    "basis": "broken work defaults to M",
+    "shape": "three to seven files, one subsystem"
    }
   },
   {
@@ -14597,106 +15264,41 @@
   {
    "id": "BRIEF-daemon-diagnostics-bundle-export",
    "entity": "brief",
-   "class": "unjoined",
+   "class": "undecided",
    "kind": "decision-work",
    "title": "Single Action Router Daemon Diagnostics Bundle Export",
    "file": "daemon-diagnostics-bundle-export.md",
    "declared_status": "",
    "generated_by": null,
    "is_work_item": true,
-   "edges": [],
-   "near_misses": [
-    {
-     "target": "REQ-016",
-     "kind": "requirement",
-     "score": 0.052
-    },
-    {
-     "target": "DEF-078",
-     "kind": "defect",
-     "score": 0.051
-    },
-    {
-     "target": "REQ-019",
-     "kind": "requirement",
-     "score": 0.048
-    }
-   ],
-   "id_scan": {
-    "cited": [],
-    "shown": {},
-    "shown_only": []
-   },
-   "unclassifiable_ids": null,
-   "remedy": "read the brief against the registry and rule — the join is a guess and it returned nothing, so nothing here is a finding about the product yet",
-   "why": "the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule",
-   "estimate": {
-    "tier": "S",
-    "low_min": 3,
-    "median_min": 8,
-    "high_min": 25,
-    "basis": "unjoined work defaults to S",
-    "shape": "read-only, or one or two files"
-   }
-  },
-  {
-   "id": "BRIEF-daemon-status-popover-interactive-testability",
-   "entity": "brief",
-   "class": "unjoined",
-   "kind": "decision-work",
-   "title": "Background Status Item and Popover Accessible Testability",
-   "file": "daemon-status-popover-interactive-testability.md",
-   "declared_status": "",
-   "generated_by": null,
-   "is_work_item": true,
-   "edges": [],
-   "near_misses": [
-    {
-     "target": "DEF-078",
-     "kind": "defect",
-     "score": 0.045
-    },
-    {
-     "target": "SURF-009",
-     "kind": "surface",
-     "score": 0.045
-    },
-    {
-     "target": "REQ-008",
-     "kind": "requirement",
-     "score": 0.041
-    }
-   ],
-   "id_scan": {
-    "cited": [],
-    "shown": {},
-    "shown_only": []
-   },
-   "unclassifiable_ids": null,
-   "remedy": "read the brief against the registry and rule — the join is a guess and it returned nothing, so nothing here is a finding about the product yet",
-   "why": "the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule",
-   "estimate": {
-    "tier": "S",
-    "low_min": 3,
-    "median_min": 8,
-    "high_min": 25,
-    "basis": "unjoined work defaults to S",
-    "shape": "read-only, or one or two files"
-   }
-  },
-  {
-   "id": "BRIEF-defect-vocabulary-blocks-the-reckoning-gate",
-   "entity": "brief",
-   "class": "undecided",
-   "kind": "decision-work",
-   "title": "The remaining-work gate fails every run on words nobody taught it",
-   "file": "defect-vocabulary-blocks-the-reckoning-gate.md",
-   "declared_status": "",
-   "generated_by": null,
-   "is_work_item": true,
    "edges": [
     {
-     "target": "REQ-040",
+     "target": "CASE-0270",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "CASE-0271",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "CASE-0272",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "CASE-0273",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "CASE-0274",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "CASE-0275",
      "method": "cited",
      "confidence": 1.0
     }
@@ -14720,47 +15322,152 @@
    }
   },
   {
-   "id": "BRIEF-design-of-record-honesty-alignment",
+   "id": "BRIEF-daemon-status-popover-interactive-testability",
    "entity": "brief",
-   "class": "unjoined",
-   "kind": "decision-work",
-   "title": "Design of Record Parity Alignment with Honesty Guardrails",
-   "file": "design-of-record-honesty-alignment.md",
+   "class": "unmeasured",
+   "kind": "evidence-work",
+   "title": "Background Status Item and Popover Accessible Testability",
+   "file": "daemon-status-popover-interactive-testability.md",
    "declared_status": "",
    "generated_by": null,
    "is_work_item": true,
-   "edges": [],
-   "near_misses": [
+   "edges": [
     {
-     "target": "DEF-042",
-     "kind": "defect",
-     "score": 0.051
+     "target": "CASE-0004",
+     "method": "cited",
+     "confidence": 1.0
     },
     {
-     "target": "REQ-027",
-     "kind": "requirement",
-     "score": 0.049
+     "target": "CASE-0006",
+     "method": "cited",
+     "confidence": 1.0
     },
     {
-     "target": "REQ-016",
-     "kind": "requirement",
-     "score": 0.048
+     "target": "CASE-0109",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "REQ-008",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "SURF-009",
+     "method": "cited",
+     "confidence": 1.0
     }
    ],
+   "near_misses": null,
    "id_scan": {
     "cited": [],
     "shown": {},
     "shown_only": []
    },
    "unclassifiable_ids": null,
-   "remedy": "read the brief against the registry and rule — the join is a guess and it returned nothing, so nothing here is a finding about the product yet",
-   "why": "the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule",
+   "remedy": null,
+   "why": "this brief maps to the registry only through self-reported evidence; nothing observed it",
+   "estimate": {
+    "tier": "M",
+    "low_min": 7,
+    "median_min": 15,
+    "high_min": 56,
+    "basis": "unmeasured work defaults to M",
+    "shape": "three to seven files, one subsystem"
+   }
+  },
+  {
+   "id": "BRIEF-defect-vocabulary-blocks-the-reckoning-gate",
+   "entity": "brief",
+   "class": "broken",
+   "kind": "product-work",
+   "title": "The remaining-work gate fails every run on words nobody taught it",
+   "file": "defect-vocabulary-blocks-the-reckoning-gate.md",
+   "declared_status": "",
+   "generated_by": null,
+   "is_work_item": true,
+   "edges": [
+    {
+     "target": "CASE-0355",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "CASE-0356",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "DEF-011",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "DEF-048",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "REQ-040",
+     "method": "cited",
+     "confidence": 1.0
+    }
+   ],
+   "near_misses": null,
+   "id_scan": {
+    "cited": [],
+    "shown": {},
+    "shown_only": []
+   },
+   "unclassifiable_ids": null,
+   "remedy": null,
+   "why": "the registry records a defect or a failing case against this brief's subject",
+   "estimate": {
+    "tier": "M",
+    "low_min": 7,
+    "median_min": 15,
+    "high_min": 56,
+    "basis": "broken work defaults to M",
+    "shape": "three to seven files, one subsystem"
+   }
+  },
+  {
+   "id": "BRIEF-design-of-record-honesty-alignment",
+   "entity": "brief",
+   "class": "undecided",
+   "kind": "decision-work",
+   "title": "Design of Record Parity Alignment with Honesty Guardrails",
+   "file": "design-of-record-honesty-alignment.md",
+   "declared_status": "",
+   "generated_by": null,
+   "is_work_item": true,
+   "edges": [
+    {
+     "target": "DEF-042",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "REQ-007",
+     "method": "cited",
+     "confidence": 1.0
+    }
+   ],
+   "near_misses": null,
+   "id_scan": {
+    "cited": [],
+    "shown": {},
+    "shown_only": []
+   },
+   "unclassifiable_ids": null,
+   "remedy": null,
+   "why": "looks done, but the join as a whole is too weak to carry a retirement claim — route to spec-validation before retiring",
    "estimate": {
     "tier": "S",
     "low_min": 3,
     "median_min": 8,
     "high_min": 25,
-    "basis": "unjoined work defaults to S",
+    "basis": "undecided work defaults to S",
     "shape": "read-only, or one or two files"
    }
   },
@@ -14938,9 +15645,9 @@
      "score": 0.099
     },
     {
-     "target": "REQ-040",
-     "kind": "requirement",
-     "score": 0.064
+     "target": "DEF-321",
+     "kind": "defect",
+     "score": 0.069
     }
    ],
    "id_scan": {
@@ -15135,46 +15842,56 @@
   {
    "id": "BRIEF-local-network-device-pairing-handshake",
    "entity": "brief",
-   "class": "unjoined",
-   "kind": "decision-work",
+   "class": "broken",
+   "kind": "product-work",
    "title": "Local Network Device Discovery and Mutual Pairing Handshake",
    "file": "local-network-device-pairing-handshake.md",
    "declared_status": "",
    "generated_by": null,
    "is_work_item": true,
-   "edges": [],
-   "near_misses": [
+   "edges": [
     {
-     "target": "REQ-016",
-     "kind": "requirement",
-     "score": 0.056
-    },
-    {
-     "target": "REQ-024",
-     "kind": "requirement",
-     "score": 0.045
+     "target": "DEF-001",
+     "method": "cited",
+     "confidence": 1.0
     },
     {
      "target": "REQ-015",
-     "kind": "requirement",
-     "score": 0.043
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "REQ-016",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "SURF-010",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "SURF-014",
+     "method": "cited",
+     "confidence": 1.0
     }
    ],
+   "near_misses": null,
    "id_scan": {
     "cited": [],
     "shown": {},
     "shown_only": []
    },
    "unclassifiable_ids": null,
-   "remedy": "read the brief against the registry and rule — the join is a guess and it returned nothing, so nothing here is a finding about the product yet",
-   "why": "the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule",
+   "remedy": null,
+   "why": "the registry records a defect or a failing case against this brief's subject",
    "estimate": {
-    "tier": "S",
-    "low_min": 3,
-    "median_min": 8,
-    "high_min": 25,
-    "basis": "unjoined work defaults to S",
-    "shape": "read-only, or one or two files"
+    "tier": "M",
+    "low_min": 7,
+    "median_min": 15,
+    "high_min": 56,
+    "basis": "broken work defaults to M",
+    "shape": "three to seven files, one subsystem"
    }
   },
   {
@@ -15615,47 +16332,23 @@
   {
    "id": "BRIEF-reader-accounting-unnamed-drop-sites",
    "entity": "brief",
-   "class": "unjoined",
-   "kind": "decision-work",
+   "class": "waived",
+   "kind": "exception",
    "title": "61 of 102 reader drop sites do not name what they discarded",
    "file": "reader-accounting-unnamed-drop-sites.md",
-   "declared_status": "to-triage",
+   "declared_status": "completed",
    "generated_by": null,
-   "is_work_item": true,
+   "is_work_item": false,
    "edges": [],
-   "near_misses": [
-    {
-     "target": "REQ-027",
-     "kind": "requirement",
-     "score": 0.111
-    },
-    {
-     "target": "REQ-040",
-     "kind": "requirement",
-     "score": 0.097
-    },
-    {
-     "target": "REQ-080",
-     "kind": "requirement",
-     "score": 0.092
-    }
-   ],
+   "near_misses": null,
    "id_scan": {
     "cited": [],
     "shown": {},
     "shown_only": []
    },
    "unclassifiable_ids": null,
-   "remedy": "read the brief against the registry and rule — the join is a guess and it returned nothing, so nothing here is a finding about the product yet",
-   "why": "the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule",
-   "estimate": {
-    "tier": "S",
-    "low_min": 3,
-    "median_min": 8,
-    "high_min": 25,
-    "basis": "unjoined work defaults to S",
-    "shape": "read-only, or one or two files"
-   }
+   "remedy": null,
+   "why": "the brief declares status 'completed' — a decision, not a measurement. It stays on the ledger because the reason for it may stop being true."
   },
   {
    "id": "BRIEF-req-016-claims-an-outbound-socket-and-names-nothing-that-opens-one",
@@ -15722,9 +16415,9 @@
      "score": 0.043
     },
     {
-     "target": "REQ-026",
-     "kind": "requirement",
-     "score": 0.041
+     "target": "DEF-082",
+     "kind": "defect",
+     "score": 0.043
     }
    ],
    "id_scan": {
@@ -15968,46 +16661,41 @@
   {
    "id": "BRIEF-the-blind-sweep-runs-on-a-vocabulary-nobody-wrote-for-this-project",
    "entity": "brief",
-   "class": "unjoined",
-   "kind": "decision-work",
+   "class": "broken",
+   "kind": "product-work",
    "title": "The blind-mutation sweep runs on borrowed vocabulary, so its three findings settle nothing",
    "file": "the-blind-sweep-runs-on-a-vocabulary-nobody-wrote-for-this-project.md",
    "declared_status": "to-triage",
    "generated_by": null,
    "is_work_item": true,
-   "edges": [],
-   "near_misses": [
+   "edges": [
     {
-     "target": "REQ-027",
-     "kind": "requirement",
-     "score": 0.12
+     "target": "DEF-048",
+     "method": "cited",
+     "confidence": 1.0
     },
     {
-     "target": "REQ-016",
-     "kind": "requirement",
-     "score": 0.096
-    },
-    {
-     "target": "REQ-034",
-     "kind": "requirement",
-     "score": 0.087
+     "target": "DEF-055",
+     "method": "cited",
+     "confidence": 1.0
     }
    ],
+   "near_misses": null,
    "id_scan": {
     "cited": [],
     "shown": {},
     "shown_only": []
    },
    "unclassifiable_ids": null,
-   "remedy": "read the brief against the registry and rule — the join is a guess and it returned nothing, so nothing here is a finding about the product yet",
-   "why": "the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule",
+   "remedy": null,
+   "why": "the registry records a defect or a failing case against this brief's subject",
    "estimate": {
-    "tier": "S",
-    "low_min": 3,
-    "median_min": 8,
-    "high_min": 25,
-    "basis": "unjoined work defaults to S",
-    "shape": "read-only, or one or two files"
+    "tier": "M",
+    "low_min": 7,
+    "median_min": 15,
+    "high_min": 56,
+    "basis": "broken work defaults to M",
+    "shape": "three to seven files, one subsystem"
    }
   },
   {
@@ -16174,9 +16862,19 @@
    "is_work_item": true,
    "edges": [
     {
-     "target": "REQ-027",
-     "method": "overlap",
-     "confidence": 0.193
+     "target": "CASE-0179",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "REQ-026",
+     "method": "cited",
+     "confidence": 1.0
+    },
+    {
+     "target": "SURF-027",
+     "method": "cited",
+     "confidence": 1.0
     }
    ],
    "near_misses": null,
@@ -16187,7 +16885,7 @@
    },
    "unclassifiable_ids": null,
    "remedy": null,
-   "why": "looks done, but the join to the registry is a token-overlap guess, not a citation; and the join as a whole is too weak to carry a retirement claim — route to spec-validation before retiring",
+   "why": "looks done, but the join as a whole is too weak to carry a retirement claim — route to spec-validation before retiring",
    "estimate": {
     "tier": "S",
     "low_min": 3,
@@ -16247,9 +16945,9 @@
      "score": 0.091
     },
     {
-     "target": "REQ-034",
-     "kind": "requirement",
-     "score": 0.075
+     "target": "DEF-361",
+     "kind": "defect",
+     "score": 0.084
     }
    ],
    "id_scan": {
@@ -16397,13 +17095,13 @@
   {
    "id": "BRIEF-the-wave-enumerated-three-surfaces-and-bound-none",
    "entity": "brief",
-   "class": "waived",
-   "kind": "exception",
+   "class": "undecided",
+   "kind": "decision-work",
    "title": "The wave enumerated three surfaces and bound none, so the gate it was measured by got worse",
    "file": "the-wave-enumerated-three-surfaces-and-bound-none.md",
-   "declared_status": "retired",
+   "declared_status": "in-progress",
    "generated_by": null,
-   "is_work_item": false,
+   "is_work_item": true,
    "edges": [
     {
      "target": "SURF-025",
@@ -16432,52 +17130,36 @@
    },
    "unclassifiable_ids": null,
    "remedy": null,
-   "why": "the brief declares status 'retired' — a decision, not a measurement. It stays on the ledger because the reason for it may stop being true."
+   "why": "the brief declares status 'in-progress' while the registry's evidence reads done -- the document and the evidence disagree; a person rules, an instrument cannot",
+   "estimate": {
+    "tier": "S",
+    "low_min": 3,
+    "median_min": 8,
+    "high_min": 25,
+    "basis": "undecided work defaults to S",
+    "shape": "read-only, or one or two files"
+   }
   },
   {
    "id": "BRIEF-the-worktree-path-duality-breaks-every-runner",
    "entity": "brief",
-   "class": "unjoined",
-   "kind": "decision-work",
+   "class": "waived",
+   "kind": "exception",
    "title": "`.worktrees` resolves two ways, and both failures read as source errors",
    "file": "the-worktree-path-duality-breaks-every-runner.md",
-   "declared_status": "to-triage",
+   "declared_status": "completed",
    "generated_by": null,
-   "is_work_item": true,
+   "is_work_item": false,
    "edges": [],
-   "near_misses": [
-    {
-     "target": "REQ-027",
-     "kind": "requirement",
-     "score": 0.103
-    },
-    {
-     "target": "REQ-034",
-     "kind": "requirement",
-     "score": 0.086
-    },
-    {
-     "target": "REQ-016",
-     "kind": "requirement",
-     "score": 0.08
-    }
-   ],
+   "near_misses": null,
    "id_scan": {
     "cited": [],
     "shown": {},
     "shown_only": []
    },
    "unclassifiable_ids": null,
-   "remedy": "read the brief against the registry and rule — the join is a guess and it returned nothing, so nothing here is a finding about the product yet",
-   "why": "the join could not tie this brief to anything in the registry. That is not evidence that it was never built — it is the inferential step of this pipeline returning nothing, and a person has to read the brief and rule",
-   "estimate": {
-    "tier": "S",
-    "low_min": 3,
-    "median_min": 8,
-    "high_min": 25,
-    "basis": "unjoined work defaults to S",
-    "shape": "read-only, or one or two files"
-   }
+   "remedy": null,
+   "why": "the brief declares status 'completed' — a decision, not a measurement. It stays on the ledger because the reason for it may stop being true."
   },
   {
    "id": "BRIEF-three-captures-name-a-route-they-were-not-pointed-at",
@@ -16766,8 +17448,8 @@
   {
    "id": "BRIEF-upstream-auth-expiry-desktop-notification",
    "entity": "brief",
-   "class": "undecided",
-   "kind": "decision-work",
+   "class": "unmeasured",
+   "kind": "evidence-work",
    "title": "Proactive Desktop Notification for Upstream Authentication Expiry",
    "file": "upstream-auth-expiry-desktop-notification.md",
    "declared_status": "",
@@ -16788,14 +17470,14 @@
    },
    "unclassifiable_ids": null,
    "remedy": null,
-   "why": "looks done, but the strongest oracle behind it is 'none', below the 'outcome' floor for retiring intent; and the join as a whole is too weak to carry a retirement claim — route to spec-validation before retiring",
+   "why": "this brief maps to the registry only through self-reported evidence; nothing observed it",
    "estimate": {
-    "tier": "S",
-    "low_min": 3,
-    "median_min": 8,
-    "high_min": 25,
-    "basis": "undecided work defaults to S",
-    "shape": "read-only, or one or two files"
+    "tier": "M",
+    "low_min": 7,
+    "median_min": 15,
+    "high_min": 56,
+    "basis": "unmeasured work defaults to M",
+    "shape": "three to seven files, one subsystem"
    }
   },
   {
@@ -16981,9 +17663,9 @@
      "score": 0.079
     },
     {
-     "target": "DEF-078",
+     "target": "DEF-361",
      "kind": "defect",
-     "score": 0.065
+     "score": 0.067
     }
    ],
    "id_scan": {
@@ -17071,8 +17753,8 @@
      "score": 0.037
     },
     {
-     "target": "SURF-015",
-     "kind": "surface",
+     "target": "DEF-081",
+     "kind": "defect",
      "score": 0.035
     }
    ],

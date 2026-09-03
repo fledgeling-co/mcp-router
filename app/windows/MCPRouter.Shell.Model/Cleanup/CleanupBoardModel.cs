@@ -1,18 +1,59 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
+using MCPRouter.Shell.Model.Servers;
 
 namespace MCPRouter.Shell.Model.Cleanup;
 
+/// <summary>
+/// The Cleanup board's state, derived from the router's own <c>GET /servers</c> answer and from
+/// nothing else.
+///
+/// <para><b>DEF-302. There is no sample data here any more, and that is the point.</b> This model
+/// used to carry a <c>PopulateSampleData</c> that invented five rows — <c>pocketsmith</c>,
+/// <c>ai-elements</c>, <c>graphify</c>, <c>media-gen-pro</c>, <c>acceptance-e2e</c> — and the board
+/// offered to remove them. A destructive control over rows that are not the operator's is worse
+/// than an inert one, because the inert one at least cannot act on the wrong thing. The only way
+/// a row reaches this model now is <see cref="Adopt"/>, which takes a
+/// <see cref="ServersEnvelope"/> the router answered; a board that never got an answer has no rows
+/// and says why (<see cref="Fail"/>), rather than falling back to a list somebody typed.</para>
+///
+/// <para><b>What this model deliberately cannot see.</b> <see cref="CleanupKind.Skill"/> exists in
+/// the row vocabulary and is never produced here. The router serves no skills route on this build
+/// — spec-WIN6 §2.1, and the Skills board's own live reads answer 404 — so there is no reading
+/// from which "this skill is unused" could be derived. Inventing one would be exactly the defect
+/// above wearing a different noun. <see cref="SkillsNotEnumerated"/> is the sentence the board
+/// draws instead.</para>
+/// </summary>
 public sealed class CleanupBoardModel
 {
     private readonly List<CleanupRow> _neverCalledRows = new();
     private readonly List<CleanupRow> _quietRows = new();
 
+    /// <summary>
+    /// Which rows the operator has ticked, by id, kept ACROSS refreshes.
+    /// </summary>
+    /// <remarks>
+    /// The board polls, so every refresh rebuilds both lists. Holding selection in the rows alone
+    /// would clear the operator's ticks every few seconds and leave the Remove button permanently
+    /// disabled — a control that cannot be pressed reads exactly like one that does nothing, which
+    /// is the shape DEF-302 was filed against. A selection whose server the router has stopped
+    /// listing is dropped on the next <see cref="Adopt"/>, so nothing stays ticked that could no
+    /// longer be removed.
+    /// </remarks>
+    private readonly HashSet<string> _selected = new(StringComparer.Ordinal);
+
     public int SelectedDaysWindow { get; set; } = 30;
-    public bool IsLoading { get; private set; }
+
+    /// <summary>True until the first answer or the first failure. Not a spinner: it is the state
+    /// that keeps the board from drawing "nothing to propose" over a router it has not asked.</summary>
+    public bool IsLoading { get; private set; } = true;
+
     public string? ErrorMessage { get; private set; }
+
+    /// <summary>When the reading the rows were built from was taken, or null if none has been.</summary>
+    public DateTimeOffset? AnsweredAt { get; private set; }
 
     public IReadOnlyList<CleanupRow> NeverCalledRows => _neverCalledRows;
     public IReadOnlyList<CleanupRow> QuietRows => _quietRows;
@@ -20,65 +61,79 @@ public sealed class CleanupBoardModel
     public int TotalCandidates => _neverCalledRows.Count + _quietRows.Count;
     public int SelectedCount => _neverCalledRows.Count(r => r.IsSelected) + _quietRows.Count(r => r.IsSelected);
 
-    public void PopulateSampleData()
+    public const string SkillsNotEnumerated =
+        "Only MCP servers are listed. The router serves no skills route on this build, so whether "
+        + "a skill is unused is something this board has no reading for and does not guess.";
+
+    /// <summary>
+    /// Take the router's answer and derive the candidates from it.
+    /// </summary>
+    /// <param name="envelope">The router's own <c>GET /servers</c> reading.</param>
+    /// <param name="now">The clock, passed in so the quiet window is testable without waiting.</param>
+    public void Adopt(ServersEnvelope envelope, DateTimeOffset now)
+    {
+        if (envelope is null) throw new ArgumentNullException(nameof(envelope));
+
+        _neverCalledRows.Clear();
+        _quietRows.Clear();
+        IsLoading = false;
+        ErrorMessage = null;
+        AnsweredAt = now;
+
+        // A tick over a server the router no longer lists cannot be acted on, so it is not kept.
+        _selected.IntersectWith(envelope.Servers.Select(s => s.Name));
+
+        foreach (var server in envelope.Servers.OrderBy(s => s.Name, StringComparer.Ordinal))
+        {
+            var firstSeen = FormatDate(server.Usage.FirstSeen);
+            var selected = _selected.Contains(server.Name);
+
+            if (server.Usage.Calls == 0)
+            {
+                _neverCalledRows.Add(new CleanupRow(
+                    Id: server.Name,
+                    Name: server.Name,
+                    Kind: CleanupKind.Server,
+                    ToolCount: server.Tools,
+                    InstalledDate: firstSeen,
+                    WhyItMightStillMatter: CleanupPresentation.NeverCalled,
+                    SecondaryActionLabel: string.Empty,
+                    IsSelected: selected));
+                continue;
+            }
+
+            var quietDays = DaysSince(server.Usage.LastUsed, now);
+            if (quietDays is int days && days >= SelectedDaysWindow)
+            {
+                _quietRows.Add(new CleanupRow(
+                    Id: server.Name,
+                    Name: server.Name,
+                    Kind: CleanupKind.Server,
+                    ToolCount: server.Tools,
+                    InstalledDate: firstSeen,
+                    WhyItMightStillMatter: QuietFor(days, server.Usage.Calls),
+                    SecondaryActionLabel: string.Empty,
+                    IsSelected: selected));
+            }
+        }
+    }
+
+    /// <summary>The router did not answer. The rows already on screen are dropped rather than
+    /// kept: this board's one action is destructive, and acting on a list whose provenance has
+    /// lapsed is the thing to avoid, not the refresh.</summary>
+    public void Fail(string message)
     {
         _neverCalledRows.Clear();
         _quietRows.Clear();
-
-        _neverCalledRows.Add(new CleanupRow(
-            Id: "pocketsmith",
-            Name: "pocketsmith",
-            Kind: CleanupKind.Server,
-            ToolCount: 2,
-            InstalledDate: "14 Jul 2026",
-            WhyItMightStillMatter: "Never signed in, so it has never had the chance",
-            SecondaryActionLabel: "Sign in instead"
-        ));
-
-        _neverCalledRows.Add(new CleanupRow(
-            Id: "ai-elements",
-            Name: "ai-elements",
-            Kind: CleanupKind.Server,
-            ToolCount: 2,
-            InstalledDate: "2 Jun 2026",
-            WhyItMightStillMatter: "Superseded by a skill you use weekly",
-            SecondaryActionLabel: "Remove…",
-            IsSelected: true
-        ));
-
-        _neverCalledRows.Add(new CleanupRow(
-            Id: "graphify",
-            Name: "graphify",
-            Kind: CleanupKind.Skill,
-            ToolCount: null,
-            InstalledDate: "9 Aug 2026",
-            WhyItMightStillMatter: "Installed 10 days ago — probably just early",
-            SecondaryActionLabel: "Keep"
-        ));
-
-        _quietRows.Add(new CleanupRow(
-            Id: "media-gen-pro",
-            Name: "media-gen-pro",
-            Kind: CleanupKind.Server,
-            ToolCount: 31,
-            InstalledDate: "42 d ago",
-            WhyItMightStillMatter: "Used in bursts — three runs in one week, then nothing",
-            SecondaryActionLabel: "Keep"
-        ));
-
-        _quietRows.Add(new CleanupRow(
-            Id: "acceptance-e2e",
-            Name: "acceptance-e2e",
-            Kind: CleanupKind.Skill,
-            ToolCount: 12,
-            InstalledDate: "36 d ago",
-            WhyItMightStillMatter: "Tied to a project that shipped",
-            SecondaryActionLabel: "Remove…"
-        ));
+        IsLoading = false;
+        ErrorMessage = message;
+        AnsweredAt = null;
     }
 
     public void SetSelection(string id, bool isSelected)
     {
+        if (isSelected) _selected.Add(id); else _selected.Remove(id);
+
         for (int i = 0; i < _neverCalledRows.Count; i++)
         {
             if (_neverCalledRows[i].Id == id)
@@ -99,6 +154,7 @@ public sealed class CleanupBoardModel
 
     public void MarkAllAsKeep()
     {
+        _selected.Clear();
         for (int i = 0; i < _neverCalledRows.Count; i++)
         {
             _neverCalledRows[i] = _neverCalledRows[i] with { IsSelected = false };
@@ -114,5 +170,39 @@ public sealed class CleanupBoardModel
         var list = _neverCalledRows.Where(r => r.IsSelected).ToList();
         list.AddRange(_quietRows.Where(r => r.IsSelected));
         return list;
+    }
+
+    // ------------------------------------------------------------------ derivations
+
+    /// <summary>Whole days between the router's <c>lastUsed</c> stamp and now, or null when the
+    /// router sent no stamp or one this client cannot read. Null is NOT zero and not "long ago":
+    /// a server whose last use is unknown is left out of the quiet list entirely, because the
+    /// board would otherwise propose removing something on the strength of a field it failed to
+    /// parse.</summary>
+    public static int? DaysSince(string? stamp, DateTimeOffset now)
+    {
+        if (string.IsNullOrWhiteSpace(stamp)) return null;
+        if (!DateTimeOffset.TryParse(stamp, CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var used))
+        {
+            return null;
+        }
+        var days = (int)Math.Floor((now - used).TotalDays);
+        return days < 0 ? 0 : days;
+    }
+
+    public static string QuietFor(int days, int calls)
+    {
+        var callWord = calls == 1 ? "call" : "calls";
+        return $"{calls} {callWord} recorded, and nothing in the last {days} days.";
+    }
+
+    public static string FormatDate(string? stamp)
+    {
+        if (string.IsNullOrWhiteSpace(stamp)) return "Unknown";
+        return DateTimeOffset.TryParse(stamp, CultureInfo.InvariantCulture,
+                   DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var when)
+            ? when.ToLocalTime().ToString("d MMM yyyy", CultureInfo.CurrentCulture)
+            : "Unknown";
     }
 }

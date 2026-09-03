@@ -138,6 +138,11 @@ $routerHome = Join-Path $Out 'router-home'
 $routerEntry = Join-Path $repoRoot 'dist\index.js'
 $laneServerAlpha = 'lane-witness-alpha'
 $laneServerBeta  = 'lane-witness-beta'
+# DEF-302's pair, separate from DEF-102's above because that section removes both of its own before
+# the Cleanup arms run. Neither is ever called, which is exactly what puts them on the Cleanup
+# board: its rows are the router's never-called servers now, not sample data.
+$laneCleanupGamma = 'lane-cleanup-gamma'
+$laneCleanupDelta = 'lane-cleanup-delta'
 $env:MCP_ROUTER_HOME = $routerHome
 New-Item -ItemType Directory -Force -Path $routerHome | Out-Null
 Remove-Item (Join-Path $routerHome 'control.token') -ErrorAction SilentlyContinue
@@ -154,8 +159,10 @@ $routerBase = "http://127.0.0.1:$routerPort"
 @{
     port       = $routerPort
     mcpServers = @{
-        $laneServerAlpha = @{ command = 'cmd'; args = @('/c', 'exit') }
-        $laneServerBeta  = @{ command = 'cmd'; args = @('/c', 'exit') }
+        $laneServerAlpha  = @{ command = 'cmd'; args = @('/c', 'exit') }
+        $laneServerBeta   = @{ command = 'cmd'; args = @('/c', 'exit') }
+        $laneCleanupGamma = @{ command = 'cmd'; args = @('/c', 'exit') }
+        $laneCleanupDelta = @{ command = 'cmd'; args = @('/c', 'exit') }
     }
 } | ConvertTo-Json -Depth 6 |
     ForEach-Object {
@@ -1527,6 +1534,225 @@ if (-not (Get-Process -Id $script:ShellProcessId -ErrorAction SilentlyContinue))
                 "no confirmation was raised and the router still lists $laneServerBeta, so the " +
                 "button did nothing at all with the setting off."
             }) @('Confirm before removing a server') $routerRecorder
+    }
+
+
+    # ------------------------------------------------- DEF-302: the Cleanup board's own destructive control
+    # The Servers board's Remove was the first destructive control in this product and DEF-102 gave
+    # it a gate. The Cleanup board carried a SECOND one - `Remove selected...` - whose entire body
+    # was the comment `// Removal dialog logic`, over rows invented by
+    # `CleanupBoardModel.PopulateSampleData`. So an operator who turned "Confirm before removing a
+    # server" on had covered the Remove that worked and not the Remove that did not, and the board
+    # was offering to remove servers that were not theirs.
+    #
+    # These four arms are wc2's, over this board, and they refuse the same things as evidence. Not
+    # that a dialog appeared: that is the app's account of having asked. Not that the row left the
+    # table: the table is drawn by the process that pressed the button. What is graded is the
+    # ROUTER's own list of servers, read over the control API by this script.
+    #
+    # Two servers of this lane's own, separate from DEF-102's pair, because that section removes
+    # both of its own before this one runs.
+    $cleanupRecorder = "the router's own /servers listing, read over the control API by this script"
+
+    if (-not $routerUp) {
+        foreach ($arm in @('baseline', 'effect', 'accepted', 'silence')) {
+            Add-ControlRow "cleanup.requireConfirmation.$arm" 'unoracled' `
+                ("the lane's own router was never started (no node, no dist/index.js, or it did not " +
+                 "answer), so no removal was attempted from the Cleanup board and nothing was read " +
+                 "back. Not a pass and not a failure.") @('Remove selected…') $cleanupRecorder
+        }
+    } elseif (-not (Get-Process -Id $script:ShellProcessId -ErrorAction SilentlyContinue)) {
+        foreach ($arm in @('baseline', 'effect', 'accepted', 'silence')) {
+            Add-ControlRow "cleanup.requireConfirmation.$arm" 'unoracled' `
+                ('the shell was not running, so the Cleanup board removal path was never driven.') `
+                @('Remove selected…') $cleanupRecorder
+        }
+    } else {
+        # Tick one row, press Remove selected, and answer the confirmation - or report that there
+        # was none to answer. The row is addressed by AutomationId (`cleanup.row.<name>`), never by
+        # its accessible name: a name search returns the first match anywhere in the tree.
+        function Invoke-CleanupRemoveThroughPlane {
+            param($Root, [string] $Server, [string] $Answer)
+            $box = Wait-ById $Root ('cleanup.row.' + $Server) 20
+            if ($null -eq $box) { return "no row for $Server" }
+            try {
+                $toggle = $box.GetCurrentPattern(
+                    [System.Windows.Automation.TogglePattern]::Pattern)
+                $guard = 0
+                while ($toggle.Current.ToggleState -ne
+                       [System.Windows.Automation.ToggleState]::On -and $guard -lt 3) {
+                    $toggle.Toggle()
+                    Start-Sleep -Milliseconds 300
+                    $guard++
+                }
+                if ($toggle.Current.ToggleState -ne [System.Windows.Automation.ToggleState]::On) {
+                    return "the row for $Server would not tick"
+                }
+            } catch { return "the row for $Server would not toggle: $($_.Exception.Message)" }
+            Start-Sleep -Milliseconds 400
+
+            $remove = Wait-ById $Root 'cleanup.action.removeSelected' 10
+            if ($null -eq $remove) { return 'the Remove selected button is unaddressable' }
+            try {
+                if (-not $remove.Current.IsEnabled) {
+                    return 'the Remove selected button is disabled with a row ticked'
+                }
+                $remove.GetCurrentPattern(
+                    [System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+            } catch {
+                return "the Remove selected button would not invoke: $($_.Exception.Message)"
+            }
+            Start-Sleep -Milliseconds 700
+
+            # One row is ticked, so the cancel label is the singular one the board composes.
+            $wanted = if ($Answer -eq 'commit') { 'Remove permanently' } else { 'Keep it' }
+            $button = Wait-ByName $Root $wanted 6
+            if ($null -eq $button) { return 'no confirmation was raised' }
+            try {
+                $button.GetCurrentPattern(
+                    [System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+            } catch { return "the '$wanted' button would not invoke: $($_.Exception.Message)" }
+            Start-Sleep -Milliseconds 1500
+            return "confirmed:$Answer"
+        }
+
+        $cleanupAtStart = Read-RouterServers
+
+        # -------------------------------------------------------------------- BASELINE
+        Add-ControlRow 'cleanup.requireConfirmation.baseline' `
+            $(if ($null -eq $cleanupAtStart) { 'unoracled' }
+              elseif (($cleanupAtStart -contains $laneCleanupGamma) -and
+                      ($cleanupAtStart -contains $laneCleanupDelta)) { 'pass' } else { 'fail' }) `
+            $(if ($null -eq $cleanupAtStart) {
+                "the router stopped answering /servers before the Cleanup arms were driven."
+            } elseif (($cleanupAtStart -contains $laneCleanupGamma) -and
+                      ($cleanupAtStart -contains $laneCleanupDelta)) {
+                "the router lists both servers this lane declared for the Cleanup board - " +
+                "$($cleanupAtStart -join ', ') - before any removal is attempted from it, so the " +
+                "arms below measure removals rather than absences that were already there. " +
+                "Neither has ever been called, which is what puts them on this board at all: the " +
+                "rows come from the router's own usage figures now, not from sample data."
+            } else {
+                "the router lists $($cleanupAtStart -join ', '), which does not hold both of the " +
+                "Cleanup lane's servers, so a later absence would prove nothing."
+            }) @('Remove selected…') $cleanupRecorder
+
+        # -------------------------------------------------------------------- EFFECT
+        # Setting ON, removal DECLINED, and the server read back out of the router. A confirmation
+        # that is displayed and then ignored looks exactly like one that gates, right up until
+        # somebody presses Keep it.
+        $droveCleanupOn = Set-ConfirmSetting $window $true
+        $onCleanup = $false
+        if ($droveCleanupOn -eq 'ok') {
+            $onCleanup = Invoke-Destination 'Cleanup'
+            Start-Sleep -Milliseconds 1800
+        }
+        $cleanupDeclined = 'not attempted'
+        $afterCleanupDecline = $null
+        if ($onCleanup) {
+            $cleanupDeclined = Invoke-CleanupRemoveThroughPlane $window $laneCleanupGamma 'decline'
+            $afterCleanupDecline = Read-RouterServers
+        }
+        Add-ControlRow 'cleanup.requireConfirmation.effect' `
+            $(if ($droveCleanupOn -ne 'ok' -or -not $onCleanup) { 'unoracled' }
+              elseif ($cleanupDeclined -ne 'confirmed:decline') { 'fail' }
+              elseif ($null -eq $afterCleanupDecline) { 'unoracled' }
+              elseif ($afterCleanupDecline -contains $laneCleanupGamma) { 'pass' } else { 'fail' }) `
+            $(if ($droveCleanupOn -ne 'ok') {
+                "the confirmation switch could not be driven to On through the plane " +
+                "($droveCleanupOn), so no removal was attempted from the Cleanup board."
+            } elseif (-not $onCleanup) {
+                "the Cleanup destination could not be actuated, so its removal path was never reached."
+            } elseif ($cleanupDeclined -ne 'confirmed:decline') {
+                "with the setting On, pressing Remove selected did not produce a confirmation this " +
+                "lane could decline: $cleanupDeclined. This is the state DEF-302 was filed in - a " +
+                "destructive button that asks nothing - and it is what this arm exists to catch."
+            } elseif ($null -eq $afterCleanupDecline) {
+                "the router stopped answering after the Cleanup removal was declined."
+            } elseif ($afterCleanupDecline -contains $laneCleanupGamma) {
+                "with the setting On, the Cleanup board's Remove selected raised a confirmation, " +
+                "this lane pressed 'Keep it', and the router still lists $laneCleanupGamma (now: " +
+                "$($afterCleanupDecline -join ', ')). The refusal is read out of the ROUTER, not " +
+                "out of the dialog: the app's account of having asked is not evidence that it " +
+                "obeyed the answer."
+            } else {
+                "the confirmation was declined and the router no longer lists $laneCleanupGamma " +
+                "(now: $($afterCleanupDecline -join ', ')). The dialog was a decoration over an " +
+                "operation that had already been decided."
+            }) @('Remove selected…') $cleanupRecorder
+
+        # A gate that can only refuse is not a gate. Its own row, because "declining stops it" and
+        # "accepting lets it through" are two facts and one green would lose whichever failed.
+        $cleanupCommitted = 'not attempted'
+        $afterCleanupCommit = $null
+        if ($onCleanup) {
+            $cleanupCommitted = Invoke-CleanupRemoveThroughPlane $window $laneCleanupGamma 'commit'
+            $afterCleanupCommit = Read-RouterServers
+        }
+        Add-ControlRow 'cleanup.requireConfirmation.accepted' `
+            $(if ($droveCleanupOn -ne 'ok' -or -not $onCleanup) { 'unoracled' }
+              elseif ($cleanupCommitted -ne 'confirmed:commit') { 'fail' }
+              elseif ($null -eq $afterCleanupCommit) { 'unoracled' }
+              elseif ($afterCleanupCommit -notcontains $laneCleanupGamma) { 'pass' } else { 'fail' }) `
+            $(if ($droveCleanupOn -ne 'ok' -or -not $onCleanup) {
+                "the setting or the board was not reachable, so acceptance was never driven from " +
+                "the Cleanup board."
+            } elseif ($cleanupCommitted -ne 'confirmed:commit') {
+                "the confirmation could not be accepted through the plane: $cleanupCommitted"
+            } elseif ($null -eq $afterCleanupCommit) {
+                "the router stopped answering after the Cleanup removal was accepted."
+            } elseif ($afterCleanupCommit -notcontains $laneCleanupGamma) {
+                "pressing 'Remove permanently' on the Cleanup board removed $laneCleanupGamma from " +
+                "the ROUTER - it now lists " +
+                "$(if ($afterCleanupCommit.Count) { $afterCleanupCommit -join ', ' } else { 'nothing' }). " +
+                "The board's button reaches the router at all, which is the half of DEF-302 no " +
+                "dialog check could establish."
+            } else {
+                "the confirmation was accepted and the router still lists $laneCleanupGamma, so the " +
+                "Cleanup board asks a question whose yes it does not act on."
+            }) @('Remove selected…') $cleanupRecorder
+
+        # -------------------------------------------------------------------- SILENCE
+        # Setting OFF. The recorder has to be able to report the removal going through UNASKED, or
+        # its yes above was never a reading of the setting: it would pass identically over a board
+        # that always confirms and consults nothing.
+        $droveCleanupOff = Set-ConfirmSetting $window $false
+        $onCleanupAgain = $false
+        if ($droveCleanupOff -eq 'ok') {
+            $onCleanupAgain = Invoke-Destination 'Cleanup'
+            Start-Sleep -Milliseconds 1800
+        }
+        $cleanupUnasked = 'not attempted'
+        $afterCleanupSilence = $null
+        if ($onCleanupAgain) {
+            $cleanupUnasked = Invoke-CleanupRemoveThroughPlane $window $laneCleanupDelta 'decline'
+            $afterCleanupSilence = Read-RouterServers
+        }
+        Add-ControlRow 'cleanup.requireConfirmation.silence' `
+            $(if ($droveCleanupOff -ne 'ok' -or -not $onCleanupAgain) { 'unoracled' }
+              elseif ($cleanupUnasked -ne 'no confirmation was raised') { 'fail' }
+              elseif ($null -eq $afterCleanupSilence) { 'unoracled' }
+              elseif ($afterCleanupSilence -notcontains $laneCleanupDelta) { 'pass' } else { 'fail' }) `
+            $(if ($droveCleanupOff -ne 'ok' -or -not $onCleanupAgain) {
+                "the setting could not be driven to Off ($droveCleanupOff), or the Cleanup board " +
+                "was unreachable, so the unconfirmed path was never driven."
+            } elseif ($cleanupUnasked -ne 'no confirmation was raised') {
+                "with the setting Off, the Cleanup board's Remove selected still produced a " +
+                "confirmation ($cleanupUnasked). The switch is not being read here: turning it off " +
+                "removes no prompt, so the prompt above was this board's habit rather than the " +
+                "setting."
+            } elseif ($null -eq $afterCleanupSilence) {
+                "the router stopped answering, so the unconfirmed Cleanup removal was never read back."
+            } elseif ($afterCleanupSilence -notcontains $laneCleanupDelta) {
+                "with the setting Off, Remove selected raised no confirmation at all and the router " +
+                "no longer lists $laneCleanupDelta (now: " +
+                "$(if ($afterCleanupSilence.Count) { $afterCleanupSilence -join ', ' } else { 'nothing' })). " +
+                "The prompt above was THIS SETTING being obeyed by THIS board, rather than a dialog " +
+                "the Cleanup board always shows."
+            } else {
+                "no confirmation was raised and the router still lists $laneCleanupDelta, so the " +
+                "Cleanup board's button did nothing at all with the setting off."
+            }) @('Remove selected…') $cleanupRecorder
     }
 
     # ------------------------------------------------------- DEF-084: the Discover store rows

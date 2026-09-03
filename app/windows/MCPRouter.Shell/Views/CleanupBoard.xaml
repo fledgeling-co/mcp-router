@@ -6,7 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid x:Name="RootGrid" Background="Transparent">
+    <Grid x:Name="RootGrid" Background="Transparent" Loaded="OnLoaded" Unloaded="OnUnloaded">
         <!-- Ideal / Populated State -->
         <ScrollViewer x:Name="IdealView" VerticalScrollBarVisibility="Auto">
             <StackPanel Padding="24,16,24,32" Spacing="16" MaxWidth="1080" HorizontalAlignment="Left">
@@ -39,6 +39,21 @@
                                TextWrapping="Wrap" />
                 </Border>
 
+                <!-- What this board can and cannot see. Servers come from the router; skills have
+                     no route on this build, so the board says so instead of inventing them. -->
+                <TextBlock x:Name="ScopeNote"
+                           Style="{ThemeResource CaptionTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                           TextWrapping="Wrap" MaxWidth="720" />
+
+                <!-- The reading's own state: connecting, or the router's refusal. Never left blank
+                     over an empty list, because "nothing to propose" and "nobody answered" look
+                     identical once the rows are gone. -->
+                <TextBlock x:Name="StatusLine"
+                           Style="{ThemeResource BodyTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           TextWrapping="Wrap" MaxWidth="720" Visibility="Collapsed" />
+
                 <!-- Section: Never called -->
                 <TextBlock Text="Never called" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" Margin="0,8,0,0" />
                 <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -65,23 +80,34 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="SelectedCountText" Text="1 selected" Style="{ThemeResource BodyTextBlockStyle}"
+                    <TextBlock x:Name="SelectedCountText" Text="0 selected" Style="{ThemeResource BodyTextBlockStyle}"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,16,0" />
                     <Button Grid.Column="1" x:Name="RemoveSelectedButton" Content="Remove selected…"
                             Background="{ThemeResource SystemFillColorCriticalBackgroundBrush}"
                             Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
                             Margin="0,0,8,0" Click="OnRemoveSelectedClicked" />
                     <Button Grid.Column="2" x:Name="KeepAllButton" Content="Mark all as keep" Style="{ThemeResource SubtleButtonStyle}" Click="OnKeepAllClicked" />
-                    <TextBlock Grid.Column="3" Text="Removing is undoable for 30 days." HorizontalAlignment="Right" VerticalAlignment="Center"
+                    <!-- DEF-400: this line used to read "Removing is undoable for 30 days." Nothing
+                         in the product implements that, and the router's DELETE drops the entry and
+                         reloads. The wording now comes from CleanupPresentation so the dialog and
+                         this line cannot drift apart. -->
+                    <TextBlock Grid.Column="3" x:Name="IrreversibleNote" HorizontalAlignment="Right" VerticalAlignment="Center"
+                               TextWrapping="Wrap" MaxWidth="360" TextAlignment="Right"
                                Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                 </Grid>
+
+                <!-- What the removal did, read back after the router answered. -->
+                <TextBlock x:Name="RemoveOutcomeText" Visibility="Collapsed"
+                           Style="{ThemeResource BodyTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           TextWrapping="Wrap" MaxWidth="720" />
             </StackPanel>
         </ScrollViewer>
 
         <!-- Empty State -->
         <StackPanel x:Name="EmptyView" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" MaxWidth="440">
-            <TextBlock Text="Everything installed has been used" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="SemiBold" TextAlignment="Center" />
-            <TextBlock Text="Every server and skill on this PC has been called at least once in the last 30 days. There is nothing to propose."
+            <TextBlock Text="Every server here has been called" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="SemiBold" TextAlignment="Center" />
+            <TextBlock Text="Every server the router lists has served at least one call, and none has gone quiet for the window above. There is nothing to propose. Skills are not counted: the router serves no skills route on this build."
                        Style="{ThemeResource BodyTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextAlignment="Center" TextWrapping="Wrap" />
         </StackPanel>
     </Grid>

@@ -84,7 +84,38 @@ CONFIRM_PLANT_NOTE = (
     "every case is the router's own server list, read over the control API by the lane rather than "
     "reported by the app.")
 
+# DEF-302's pair, 2026-09-03, both reverted, transcripts in planning/evidence/WIN-SHELL/arming/:
+#   the Cleanup board's handler returned to the comment it was filed as - the defect replanted -
+#     broke cleanup.requireConfirmation.effect, .accepted and .silence
+#   the Cleanup board's dialog raised unconditionally with its answer discarded broke
+#     cleanup.requireConfirmation.effect from the other side, and .silence
+#
+# cleanup.requireConfirmation.baseline HELD through both. It stays unarmed and says so, which is
+# the same treatment its Servers-board twin gets.
+CLEANUP_PLANT_NOTE = (
+    "armed by two planted defects, watched on 2026-09-03, transcripts in "
+    "planning/evidence/WIN-SHELL/arming/. Restoring DEF-302 itself - CleanupBoard's "
+    "OnRemoveSelectedClicked returned to the comment '// Removal dialog logic' - broke "
+    "cleanup.requireConfirmation.effect ('a destructive button that asks nothing'), .accepted and "
+    ".silence ('the Cleanup board's button did nothing at all with the setting off'), while every "
+    "settings.requireConfirmation arm stayed green through the same run, so the reds are about "
+    "this board rather than the harness. Raising the confirmation unconditionally and discarding "
+    "its answer broke .effect from the other side ('the dialog was a decoration over an operation "
+    "that had already been decided') and .silence ('turning it off removes no prompt'). What is "
+    "graded in every case is the router's own server list, read over the control API by the lane "
+    "rather than reported by the app. AND ONCE WITHOUT A PLANT AT ALL: the same three arms went "
+    "red against the board AS COMMITTED ON MAIN - app/windows stashed back to main's tree and "
+    "rebuilt clean - reporting 'no row for lane-cleanup-gamma', because that board draws "
+    "PopulateSampleData's five invented names and the router's own servers are not on it. Two "
+    "consecutive runs, in cleanup-defect-as-committed-lane.txt. An arm that reds against the real "
+    "defect in the real tree is a stronger reading than one that reds against a plant, because "
+    "nobody chose what it was looking at."
+)
+
 ARMED_BY_PLANT = {
+    "cleanup.requireConfirmation.effect": CLEANUP_PLANT_NOTE,
+    "cleanup.requireConfirmation.accepted": CLEANUP_PLANT_NOTE,
+    "cleanup.requireConfirmation.silence": CLEANUP_PLANT_NOTE,
     "settings.launchAtLogin.effect": LAUNCH_PLANT_NOTE,
     "settings.persistence": LAUNCH_PLANT_NOTE,
     "settings.persistence.store": LAUNCH_PLANT_NOTE,
@@ -350,8 +381,16 @@ def main():
     # the measurement - and a census row that came back `unoracled` becomes an unoracled case
     # rather than being dropped, because a check that could not run and a check that found
     # nothing are the same green.
-    census_surface = {"settings": "SURF-038", "discover": "SURF-044"}
-    census_req = {"settings": "REQ-038", "discover": "REQ-039"}
+    # DEF-302 added a third family. A census row whose family is not here is SKIPPED with a
+    # printed finding, so a new lane section that nobody registered here reports nothing and looks
+    # exactly like a section that was never written.
+    census_surface = {"settings": "SURF-038", "discover": "SURF-044", "cleanup": "SURF-036"}
+    census_req = {"settings": "REQ-038", "discover": "REQ-039", "cleanup": "REQ-090"}
+    census_dump = {
+        "settings": "planning/evidence/WIN-SHELL/run/uia-shell-settings.json",
+        "discover": "planning/evidence/WIN-SHELL/run/uia-shell-discover-detail.json",
+        "cleanup": "planning/evidence/WIN-SHELL/run/uia-shell-cleanup.json",
+    }
     for row in report.get("controls", []):
         control_id = str(row.get("id") or "")
         family = control_id.split(".", 1)[0]
@@ -369,20 +408,27 @@ def main():
 
         evidence = ["planning/evidence/WIN-SHELL/run/assert-report.json",
                     "planning/evidence/WIN-SHELL/run/lane.log"]
-        if family == "settings":
-            evidence.append("planning/evidence/WIN-SHELL/run/uia-shell-settings.json")
-        else:
-            evidence.append("planning/evidence/WIN-SHELL/run/uia-shell-discover-detail.json")
+        evidence.append(census_dump[family])
         if row.get("recorder"):
-            # The two arming transcripts. A predicate nobody has watched fail is
-            # indistinguishable from one that cannot, so the runs where these went red are
-            # evidence in the same sense the green one is.
-            evidence.append("planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt")
-            evidence.append("planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt")
-            evidence.append(
-                "planning/evidence/WIN-SHELL/arming/icon-inert-and-no-confirmation-lane.txt")
-            evidence.append(
-                "planning/evidence/WIN-SHELL/arming/icon-never-removed-and-answer-ignored-lane.txt")
+            # The arming transcripts, and they are family-specific. A predicate nobody has watched
+            # fail is indistinguishable from one that cannot, so the runs where these went red are
+            # evidence in the same sense the green one is - but a cleanup row citing the logon-task
+            # and notification-icon plants would be citing runs that never touched it, which is a
+            # false citation rather than a generous one.
+            if family == "cleanup":
+                evidence.append(
+                    "planning/evidence/WIN-SHELL/arming/cleanup-button-reaches-nothing-lane.txt")
+                evidence.append(
+                    "planning/evidence/WIN-SHELL/arming/cleanup-dialog-is-a-decoration-lane.txt")
+                evidence.append(
+                    "planning/evidence/WIN-SHELL/arming/cleanup-defect-as-committed-lane.txt")
+            else:
+                evidence.append("planning/evidence/WIN-SHELL/arming/unbind-supervisor-lane.txt")
+                evidence.append("planning/evidence/WIN-SHELL/arming/store-writes-nothing-lane.txt")
+                evidence.append(
+                    "planning/evidence/WIN-SHELL/arming/icon-inert-and-no-confirmation-lane.txt")
+                evidence.append(
+                    "planning/evidence/WIN-SHELL/arming/icon-never-removed-and-answer-ignored-lane.txt")
 
         # The effect row is a different rung from the naming rows, and saying so is the point:
         # reading a name proves the tree publishes one, and only the effect row can tell a bound
@@ -416,7 +462,20 @@ def main():
                 "here. It went red for real on the first run, against a readout carrying a static "
                 "AutomationProperties.Name that overrode its own text."
             )
-        if recorder:
+        if recorder and family == "cleanup":
+            # DEF-087's two limits are the logon task's. Repeating them here would cite a run that
+            # never touched this board; the Cleanup board's own residue is what goes on its rows.
+            note += (
+                " THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: %s. "
+                "The board's own table is drawn by the process that pressed the button, and the "
+                "dialog is that process's account of having asked, so neither can settle whether "
+                "the removal happened - the router's list can. WHAT IT DOES NOT SETTLE: anything "
+                "about SKILLS. The Cleanup board enumerates MCP servers only, because the router "
+                "serves no skills route on this build and a row saying a skill is unused would be "
+                "derived from no reading at all. That limit stays on DEF-302's resolution rather "
+                "than being folded into this green."
+            ) % recorder
+        elif recorder:
             note += (
                 " THE RECORDER IS NOT THE WRITER, and on this row it is not even the shell: %s. "
                 "That is what makes this row a claim about the MACHINE rather than about the "
@@ -440,8 +499,11 @@ def main():
             # is entitled to know what was actually invoked.
             note += (
                 " THE CALL THIS LANE MADE, which is what `actuates` is NOT for: the row was "
-                "driven through System.Windows.Automation's TogglePattern.Toggle() from "
+                "driven through System.Windows.Automation's %s from "
                 "shell-lane.ps1. `actuates` carries the control the surface declares - DEF-080."
+                % ("TogglePattern.Toggle() over the row's checkbox and InvokePattern.Invoke() "
+                   "over the button and the dialog"
+                   if family == "cleanup" else "TogglePattern.Toggle()")
             )
 
         written.append({

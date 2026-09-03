@@ -106,7 +106,7 @@
       "Remove selected…",
       "Unused for 30 days"
     ],
-    "note": "WIN9. `Remove selected…` is a destructive control — any sweep touching this board runs under the write firewall, never against a live config."
+    "note": "WIN9. `Remove selected…` is a destructive control and is now live: DEF-302 pointed the board at the router's own server list and routed the removal through ControlApiClient.RemoveServerAsync, gated by 'Confirm before removing a server'. Any sweep touching this board runs under the write firewall against a router of the lane's own, never against a live config."
   },
   {
     "id": "SURF-037",

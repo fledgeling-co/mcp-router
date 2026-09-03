@@ -1,12 +1,18 @@
-2026-09-03T00:25:38.758Z warn  2 upstream(s) not in the manifest (lane-witness-beta, lane-witness-alpha); their tools will be missing until `mcp-router index` runs.
-2026-09-03T00:25:38.762Z info  wrote a new control token -> C:\Dev\mcp-router\planning\evidence\WIN-SHELL\run\router-home\control.token
-2026-09-03T00:25:38.777Z info  mcp-router listening on http://127.0.0.1:57260/mcp
-2026-09-03T00:25:38.778Z info  serving 0 tools from 2 upstreams; 0 open, idle window 300s
-2026-09-03T00:25:38.779Z warn  supervision: no supervisor on win32: nothing restarts this process when it exits, so an exit is a stop. WIN23 decides what supervises the router here.
-2026-09-03T00:25:38.782Z warn  config watcher: nothing watches ~/.claude.json on win32: a server added there is NOT adopted on its own, so run `mcpr watch` yourself after `claude mcp add`. WIN23 decides what runs it here.
-2026-09-03T00:26:47.829Z info  config reloaded: 1 upstreams
-2026-09-03T00:26:47.831Z info  removed upstream "lane-witness-alpha"
-2026-09-03T00:26:47.832Z info  live-reload: removed the server "lane-witness-alpha" -> notified 0/0 attached session(s)
-2026-09-03T00:26:52.375Z info  config reloaded: 0 upstreams
-2026-09-03T00:26:52.376Z info  removed upstream "lane-witness-beta"
-2026-09-03T00:26:52.378Z info  live-reload: removed the server "lane-witness-beta" -> notified 0/0 attached session(s)
+2026-09-03T02:31:51.226Z warn  4 upstream(s) not in the manifest (lane-cleanup-delta, lane-witness-beta, lane-cleanup-gamma, lane-witness-alpha); their tools will be missing until `mcp-router index` runs.
+2026-09-03T02:31:51.229Z info  wrote a new control token -> C:\Dev\mcp-router\.worktrees\wd2-cleanup-board\planning\evidence\WIN-SHELL\run\router-home\control.token
+2026-09-03T02:31:51.241Z info  mcp-router listening on http://127.0.0.1:51173/mcp
+2026-09-03T02:31:51.242Z info  serving 0 tools from 4 upstreams; 0 open, idle window 300s
+2026-09-03T02:31:51.242Z warn  supervision: no supervisor on win32: nothing restarts this process when it exits, so an exit is a stop. WIN23 decides what supervises the router here.
+2026-09-03T02:31:51.243Z warn  config watcher: nothing watches ~/.claude.json on win32: a server added there is NOT adopted on its own, so run `mcpr watch` yourself after `claude mcp add`. WIN23 decides what runs it here.
+2026-09-03T02:32:40.724Z info  config reloaded: 3 upstreams
+2026-09-03T02:32:40.726Z info  removed upstream "lane-witness-alpha"
+2026-09-03T02:32:40.728Z info  live-reload: removed the server "lane-witness-alpha" -> notified 0/0 attached session(s)
+2026-09-03T02:32:45.345Z info  config reloaded: 2 upstreams
+2026-09-03T02:32:45.348Z info  removed upstream "lane-witness-beta"
+2026-09-03T02:32:45.349Z info  live-reload: removed the server "lane-witness-beta" -> notified 0/0 attached session(s)
+2026-09-03T02:33:00.231Z info  config reloaded: 1 upstreams
+2026-09-03T02:33:00.232Z info  removed upstream "lane-cleanup-gamma"
+2026-09-03T02:33:00.233Z info  live-reload: removed the server "lane-cleanup-gamma" -> notified 0/0 attached session(s)
+2026-09-03T02:33:05.581Z info  config reloaded: 0 upstreams
+2026-09-03T02:33:05.582Z info  removed upstream "lane-cleanup-delta"
+2026-09-03T02:33:05.583Z info  live-reload: removed the server "lane-cleanup-delta" -> notified 0/0 attached session(s)

@@ -1,9 +1,9 @@
 ﻿{
     "schema":  "win-shell.uia-assert/1",
     "subject":  "MCPRouter.Shell - the Windows client, driven through the automation plane",
-    "capturedAtUtc":  "2026-09-03T00:27:10.1810274Z",
-    "exePath":  "C:\\Dev\\mcp-router\\app\\windows\\MCPRouter.Shell\\bin\\Debug\\net8.0-windows10.0.19041.0\\win-x64\\MCPRouter.Shell.exe",
-    "processId":  42928,
+    "capturedAtUtc":  "2026-09-03T02:33:19.7073486Z",
+    "exePath":  "C:\\Dev\\mcp-router\\.worktrees\\wd2-cleanup-board\\app\\windows\\MCPRouter.Shell\\bin\\Debug\\net8.0-windows10.0.19041.0\\win-x64\\MCPRouter.Shell.exe",
+    "processId":  11780,
     "destinations":  10,
     "measured":  10,
     "passed":  10,
@@ -52,7 +52,7 @@
                      {
                          "id":  "settings.launchAtLogin.effect",
                          "status":  "pass",
-                         "detail":  "driving the switch to On through the automation plane registered \u0027\\MCPRouter\\WIN-SHELL Settings Witness (transient)\u0027 in the Windows task scheduler: state=Ready, logon trigger present, RunLevel=Limited (the recorder\u0027s word for the XML\u0027s LeastPrivilege), Execute=C:\\Dev\\mcp-router\\app\\windows\\MCPRouter.Shell\\win-shell-witness-daemon.exe. Read by an API that did not write it.",
+                         "detail":  "driving the switch to On through the automation plane registered \u0027\\MCPRouter\\WIN-SHELL Settings Witness (transient)\u0027 in the Windows task scheduler: state=Ready, logon trigger present, RunLevel=Limited (the recorder\u0027s word for the XML\u0027s LeastPrivilege), Execute=C:\\Dev\\mcp-router\\.worktrees\\wd2-cleanup-board\\app\\windows\\MCPRouter.Shell\\win-shell-witness-daemon.exe. Read by an API that did not write it.",
                          "actuates":  [
                                           "Launch router daemon at sign-in"
                                       ],
@@ -61,7 +61,7 @@
                      {
                          "id":  "settings.persistence.store",
                          "status":  "pass",
-                         "detail":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\shell-state\\shell-settings.json holds LaunchAtLogin=true, read off the disk by this script. The file is the recorder; the shell is not asked what it saved.",
+                         "detail":  "C:\\Dev\\mcp-router\\.worktrees\\wd2-cleanup-board\\planning\\evidence\\WIN-SHELL\\run\\shell-state\\shell-settings.json holds LaunchAtLogin=true, read off the disk by this script. The file is the recorder; the shell is not asked what it saved.",
                          "actuates":  [
                                           "Launch router daemon at sign-in"
                                       ],
@@ -106,7 +106,7 @@
                      {
                          "id":  "settings.ambientIcon.effect",
                          "status":  "pass",
-                         "detail":  "driving the switch to On through the automation plane put an icon in the Windows notification area at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90}: a separate process asked the shell for its rectangle and got 2154,1528 to 2202,1600 (HRESULT 0x00000000). Read by an API this application never called.",
+                         "detail":  "driving the switch to On through the automation plane put an icon in the Windows notification area at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90}: a separate process asked the shell for its rectangle and got 2108,1528 to 2156,1600 (HRESULT 0x00000000). Read by an API this application never called.",
                          "actuates":  [
                                           "Show status in notification area"
                                       ],
@@ -124,7 +124,7 @@
                      {
                          "id":  "settings.requireConfirmation.baseline",
                          "status":  "pass",
-                         "detail":  "the router lists both servers this lane declared - lane-witness-beta, lane-witness-alpha - before any removal is attempted, so the arms below measure removals rather than absences that were already there.",
+                         "detail":  "the router lists both servers this lane declared - lane-cleanup-delta, lane-witness-beta, lane-cleanup-gamma, lane-witness-alpha - before any removal is attempted, so the arms below measure removals rather than absences that were already there.",
                          "actuates":  [
                                           "Confirm before removing a server"
                                       ],
@@ -133,7 +133,7 @@
                      {
                          "id":  "settings.requireConfirmation.effect",
                          "status":  "pass",
-                         "detail":  "with the setting On, Remove raised a confirmation, this lane pressed \u0027Keep it\u0027, and the router still lists lane-witness-alpha (now: lane-witness-beta, lane-witness-alpha). The refusal is read out of the router, not out of the dialog: the app\u0027s account of having asked is not evidence that it obeyed the answer.",
+                         "detail":  "with the setting On, Remove raised a confirmation, this lane pressed \u0027Keep it\u0027, and the router still lists lane-witness-alpha (now: lane-cleanup-delta, lane-witness-beta, lane-cleanup-gamma, lane-witness-alpha). The refusal is read out of the router, not out of the dialog: the app\u0027s account of having asked is not evidence that it obeyed the answer.",
                          "actuates":  [
                                           "Confirm before removing a server"
                                       ],
@@ -142,7 +142,7 @@
                      {
                          "id":  "settings.requireConfirmation.accepted",
                          "status":  "pass",
-                         "detail":  "pressing \u0027Remove permanently\u0027 removed lane-witness-alpha from the ROUTER - it now lists lane-witness-beta. The gate opens as well as closes.",
+                         "detail":  "pressing \u0027Remove permanently\u0027 removed lane-witness-alpha from the ROUTER - it now lists lane-cleanup-delta, lane-witness-beta, lane-cleanup-gamma. The gate opens as well as closes.",
                          "actuates":  [
                                           "Confirm before removing a server"
                                       ],
@@ -151,9 +151,45 @@
                      {
                          "id":  "settings.requireConfirmation.silence",
                          "status":  "pass",
-                         "detail":  "with the setting Off, Remove raised no confirmation at all and the router no longer lists lane-witness-beta (now: nothing). The prompt above was the setting being obeyed rather than a dialog this board always shows.",
+                         "detail":  "with the setting Off, Remove raised no confirmation at all and the router no longer lists lane-witness-beta (now: lane-cleanup-delta, lane-cleanup-gamma). The prompt above was the setting being obeyed rather than a dialog this board always shows.",
                          "actuates":  [
                                           "Confirm before removing a server"
+                                      ],
+                         "recorder":  "the router\u0027s own /servers listing, read over the control API by this script"
+                     },
+                     {
+                         "id":  "cleanup.requireConfirmation.baseline",
+                         "status":  "pass",
+                         "detail":  "the router lists both servers this lane declared for the Cleanup board - lane-cleanup-delta, lane-cleanup-gamma - before any removal is attempted from it, so the arms below measure removals rather than absences that were already there. Neither has ever been called, which is what puts them on this board at all: the rows come from the router\u0027s own usage figures now, not from sample data.",
+                         "actuates":  [
+                                          "Remove selected…"
+                                      ],
+                         "recorder":  "the router\u0027s own /servers listing, read over the control API by this script"
+                     },
+                     {
+                         "id":  "cleanup.requireConfirmation.effect",
+                         "status":  "pass",
+                         "detail":  "with the setting On, the Cleanup board\u0027s Remove selected raised a confirmation, this lane pressed \u0027Keep it\u0027, and the router still lists lane-cleanup-gamma (now: lane-cleanup-delta, lane-cleanup-gamma). The refusal is read out of the ROUTER, not out of the dialog: the app\u0027s account of having asked is not evidence that it obeyed the answer.",
+                         "actuates":  [
+                                          "Remove selected…"
+                                      ],
+                         "recorder":  "the router\u0027s own /servers listing, read over the control API by this script"
+                     },
+                     {
+                         "id":  "cleanup.requireConfirmation.accepted",
+                         "status":  "pass",
+                         "detail":  "pressing \u0027Remove permanently\u0027 on the Cleanup board removed lane-cleanup-gamma from the ROUTER - it now lists lane-cleanup-delta. The board\u0027s button reaches the router at all, which is the half of DEF-302 no dialog check could establish.",
+                         "actuates":  [
+                                          "Remove selected…"
+                                      ],
+                         "recorder":  "the router\u0027s own /servers listing, read over the control API by this script"
+                     },
+                     {
+                         "id":  "cleanup.requireConfirmation.silence",
+                         "status":  "pass",
+                         "detail":  "with the setting Off, Remove selected raised no confirmation at all and the router no longer lists lane-cleanup-delta (now: nothing). The prompt above was THIS SETTING being obeyed by THIS board, rather than a dialog the Cleanup board always shows.",
+                         "actuates":  [
+                                          "Remove selected…"
                                       ],
                          "recorder":  "the router\u0027s own /servers listing, read over the control API by this script"
                      },
@@ -192,7 +228,7 @@
                         "selected":  true,
                         "windowTitle":  "Discover",
                         "elements":  905,
-                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-discover.json",
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd2-cleanup-board\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-discover.json",
                         "dumpExit":  0,
                         "fingerprint":  "67AD5BDE41ADCD99",
                         "status":  "pass"
@@ -209,7 +245,7 @@
                         "selected":  true,
                         "windowTitle":  "Skills",
                         "elements":  57,
-                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-skills.json",
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd2-cleanup-board\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-skills.json",
                         "dumpExit":  0,
                         "fingerprint":  "0CFAEEC8BC3484CE",
                         "status":  "pass"
@@ -225,10 +261,10 @@
                         "titleBefore":  "Skills",
                         "selected":  true,
                         "windowTitle":  "Servers",
-                        "elements":  95,
-                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-servers.json",
+                        "elements":  111,
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd2-cleanup-board\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-servers.json",
                         "dumpExit":  0,
-                        "fingerprint":  "3971A511918706ED",
+                        "fingerprint":  "BF003D2ED4B62F4D",
                         "status":  "pass"
                     },
                     {
@@ -243,7 +279,7 @@
                         "selected":  true,
                         "windowTitle":  "Activity",
                         "elements":  114,
-                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-activity.json",
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd2-cleanup-board\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-activity.json",
                         "dumpExit":  0,
                         "fingerprint":  "548C3D965A42DC7E",
                         "status":  "pass"
@@ -260,7 +296,7 @@
                         "selected":  true,
                         "windowTitle":  "Harnesses",
                         "elements":  71,
-                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-harnesses.json",
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd2-cleanup-board\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-harnesses.json",
                         "dumpExit":  0,
                         "fingerprint":  "79B39EDCA354E1D0",
                         "status":  "pass"
@@ -277,7 +313,7 @@
                         "selected":  true,
                         "windowTitle":  "Checks",
                         "elements":  70,
-                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-checks.json",
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd2-cleanup-board\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-checks.json",
                         "dumpExit":  0,
                         "fingerprint":  "DBB023D906C8E1E9",
                         "status":  "pass"
@@ -293,10 +329,10 @@
                         "titleBefore":  "Checks",
                         "selected":  true,
                         "windowTitle":  "Cleanup",
-                        "elements":  91,
-                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-cleanup.json",
+                        "elements":  81,
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd2-cleanup-board\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-cleanup.json",
                         "dumpExit":  0,
-                        "fingerprint":  "4706EFE12C32B6E7",
+                        "fingerprint":  "5DA6220DA70773F1",
                         "status":  "pass"
                     },
                     {
@@ -311,7 +347,7 @@
                         "selected":  true,
                         "windowTitle":  "Inbox",
                         "elements":  80,
-                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-inbox.json",
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd2-cleanup-board\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-inbox.json",
                         "dumpExit":  0,
                         "fingerprint":  "3F25248FD8E0665E",
                         "status":  "pass"
@@ -328,7 +364,7 @@
                         "selected":  true,
                         "windowTitle":  "Insights",
                         "elements":  74,
-                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-insights.json",
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd2-cleanup-board\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-insights.json",
                         "dumpExit":  0,
                         "fingerprint":  "D23841C16F2D16DB",
                         "status":  "pass"
@@ -345,7 +381,7 @@
                         "selected":  true,
                         "windowTitle":  "Settings",
                         "elements":  83,
-                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-settings.json",
+                        "dump":  "C:\\Dev\\mcp-router\\.worktrees\\wd2-cleanup-board\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-settings.json",
                         "dumpExit":  0,
                         "fingerprint":  "29EF22537F89D54B",
                         "status":  "pass"

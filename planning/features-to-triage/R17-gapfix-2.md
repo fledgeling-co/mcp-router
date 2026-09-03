@@ -1,3 +1,7 @@
+---
+registry-target: none
+no-target-reason: a gap-fix verdict against parent R17, about two withdrawn claims outliving their withdrawal. A record defect; no registry row is about it. Read against the registry 2026-09-03, we4.
+---
 # R17 gap-fix 2 — two clauses, both a withdrawn claim outliving its withdrawal
 
 **Parent:** R17 · **Verdict:** Needs More Work, 2026-08-22 (second verification)

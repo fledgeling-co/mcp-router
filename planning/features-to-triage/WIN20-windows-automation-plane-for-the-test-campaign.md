@@ -1,10 +1,9 @@
 ---
 status: to-triage
 found-by: intake divergent pass, from the campaign's dependence on an accessibility plane · 2026-08-30
-registry-target: none
-no-target-reason: the campaign's oracle rungs are defined against the macOS accessibility plane, and no requirement or case in the registry describes how a Windows surface would be observed at all
+reckon-sources: [SURF-029]
+target-note: SURF-029 is titled `Windows automation probe - WIN20's WinUI 3 plane witness` and is the plane this brief asks for; the row did not exist when the `none` was declared on 2026-08-30.
 ---
-
 # Without a Windows automation plane, every Windows surface is unmeasurable and the campaign can only report never-measured
 
 - origin: intake divergent pass, 2026-08-30

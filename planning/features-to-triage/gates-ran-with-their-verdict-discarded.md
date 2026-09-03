@@ -1,8 +1,9 @@
 ---
 status: to-triage
 found-by: tailings 0.1.0 over this session's transcript, 2026-08-29
+registry-target: none
+no-target-reason: its subject is gate invocations whose stdout went nowhere inside one session's transcript. DEF-361 is the nearest row and is about twelve wave-slot landings merged with no verify verdict recorded - a different mechanism, at merge rather than at invocation. Read and rejected rather than cited on the shared idea of a lost verdict. Read against the registry 2026-09-03, we4.
 ---
-
 # Gates ran with their verdict thrown away and were never run again where anyone could read it
 
 - origin: tailings audit of this session's own transcript · 2026-08-29

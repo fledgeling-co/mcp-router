@@ -1,10 +1,9 @@
 ---
 status: to-triage
 found-by: intake, parity target for SURF-005 · 2026-08-30
-registry-target: none
-no-target-reason: SURF-005 registers the macOS Discover board and the registry holds no Windows equivalent, so no recorded case could witness the Windows one
+reckon-sources: [SURF-034, SURF-044]
+target-note: SURF-034 `Windows Discover board` carries `note: WIN7.` and SURF-044 `Windows Discover detail dialog` opens `WIN7's detail dialog`; neither row existed when the `none` was declared on 2026-08-30.
 ---
-
 # The Windows Discover board — two bands, because editorial and measured are different claims
 
 - origin: owner directive, 2026-08-30; parity target for the Mac Discover board

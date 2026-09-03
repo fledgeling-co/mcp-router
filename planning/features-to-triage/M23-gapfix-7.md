@@ -1,3 +1,7 @@
+---
+registry-target: none
+no-target-reason: a gap-fix verdict against parent M23, about a false row in `scripts/acceptance/mock_fidelity.py`'s reachability enumeration. Its subject is that engine's control flow; the campaign registry holds no entity for a gate engine's interior. Read against the registry 2026-09-03, we4.
+---
 # M23 gap-fix 7 — the enumeration's sixth row is false, and the engine says so
 
 **Parent:** M23 · **Verdict:** Needs More Work, 2026-08-21, rung `effect-witness`

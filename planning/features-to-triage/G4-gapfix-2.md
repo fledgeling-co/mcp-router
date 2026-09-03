@@ -1,3 +1,7 @@
+---
+registry-target: none
+no-target-reason: a gap-fix verdict against parent G4, about the item that catches unwritten records having shipped one. Record-keeping machinery; the registry holds no `G4` row. Read against the registry 2026-09-03, we4.
+---
 # G4 gap-fix 2 — the item that catches unwritten records shipped one
 
 **Parent:** G4 · **Verdict:** Needs More Work, 2026-08-22 (second verification) · **Branch:** `ai/g4` @ `27417a9`

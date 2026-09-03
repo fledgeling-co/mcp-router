@@ -1,3 +1,7 @@
+---
+registry-target: none
+no-target-reason: a gap-fix verdict against parent R7, about the Gemini harness reading a config file R7 has never opened. The registry enumerates no harness config paths and returns nothing for `R7`. Read against the registry 2026-09-03, we4.
+---
 # R7 gap-fix 2 — the Gemini harness reads a file R7 has never opened
 
 **Parent:** R7 — The router's thesis is unmet for every harness but Claude Code

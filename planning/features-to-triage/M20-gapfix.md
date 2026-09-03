@@ -1,3 +1,7 @@
+---
+reckon-sources: [REQ-028]
+target-note: REQ-028 (`a command the shell cannot run right now dims in place and explains itself; the short reason sits in the menu`) carries `source: ... planning/specs/spec-M20.md` - the registry names M20's own spec as where the requirement comes from. This gap-fix is about `MenuCommandAvailability.swift` and the eleven dimmed items carrying their unbuilt sentences, which is that requirement's subject.
+---
 # M20 gap-fix 1 — it does not compile, and three of four slices are only in the plan
 
 Verified **Needs More Work** at `984f00a` in `.worktrees/M20V`. Read

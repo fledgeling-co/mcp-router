@@ -1,3 +1,7 @@
+---
+registry-target: none
+no-target-reason: a gap-fix verdict against parent M23, about one arm on the closure that pass shipped. Gate machinery; no registry row is about it. Read against the registry 2026-09-03, we4.
+---
 # M23 gap-fix 4 — one arm, on the closure this pass shipped
 
 **Parent:** M23 — The mock-to-SwiftUI conversion contract

@@ -1,10 +1,9 @@
 ---
 status: to-triage
 found-by: intake, parity target for SURF-008 · 2026-08-30
-registry-target: none
-no-target-reason: SURF-008 registers the macOS Inbox board and review sheet and the registry holds no Windows equivalent, so no recorded case could witness the Windows one
+reckon-sources: [SURF-037]
+target-note: SURF-037 `Windows Inbox board and review sheet` carries `note: WIN10.`; the row did not exist when the `none` was declared on 2026-08-30.
 ---
-
 # The Windows Inbox board and review sheet — the phone queues, it never installs
 
 - origin: owner directive, 2026-08-30; parity target for the Mac Inbox board and review sheet

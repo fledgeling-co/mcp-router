@@ -1,3 +1,7 @@
+---
+registry-target: none
+no-target-reason: a gap-fix verdict against parent M15. Its subject is `mock-fidelity-gate.sh`'s divergence allowance list not adjudicating its own findings - gate machinery. DEF-058 and DEF-059 name M15 but are about the macos-glass lane capturing a pre-M22 build and about SURF-011's mis-filed pixels, which is a different mechanism from this brief's. Read against the registry 2026-09-03, we4.
+---
 # M15 gap-fix — four record defects, and the one product defect nothing guards
 
 **Parent:** M15 · **Verdict:** Needs More Work, 2026-08-22 (first verification) · **Branch:** `ai/m15`

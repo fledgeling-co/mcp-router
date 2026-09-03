@@ -2,9 +2,8 @@
 status: to-triage
 found-by: intake, reading src/ for platform assumptions while scoping the Windows client · 2026-08-30
 registry-target: none
-no-target-reason: SURF-015 and SURF-016 register the daemon and its control API as measured on macOS only, and no case in the registry exercises either on Windows
+no-target-reason: the registry has since gained SURF-045 (the daemon's Scheduled Task) and REQ-035, so the original reason - that no case exercises the daemon on Windows - is no longer true of supervision. It remains true of this brief's subject: no registry entity records the daemon's macOS-shaped path, signal and process assumptions in src/, which is what this brief is about and which SURF-045 does not cover. Corrected 2026-09-03, we4.
 ---
-
 # The router daemon assumes macOS in at least five places, and contains no platform branch at all
 
 - origin: intake, 2026-08-30, reading `src/*.ts` while scoping the Windows client

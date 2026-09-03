@@ -1,10 +1,9 @@
 ---
 status: to-triage
 found-by: intake, parity target for SURF-009, which has no literal Windows equivalent · 2026-08-30
-registry-target: none
-no-target-reason: SURF-009 registers the macOS menu-bar popover, an affordance Windows does not have, so no case in the registry describes the surface this brief would build
+reckon-sources: [SURF-041, SURF-050]
+target-note: SURF-041 `Windows ambient surface - notification-area flyout` carries `note: WIN11.` and SURF-050 `Windows ambient status readout - the navigation pane footer` names SURF-041 as the surface WIN11 described; neither row existed when the `none` was declared on 2026-08-30.
 ---
-
 # The always-available Windows surface that answers what the Mac menu-bar popover answers
 
 - origin: owner directive, 2026-08-30; parity target for the Mac menu-bar popover

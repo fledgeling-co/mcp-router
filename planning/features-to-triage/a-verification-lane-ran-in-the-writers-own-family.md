@@ -1,8 +1,9 @@
 ---
 status: to-triage
 found-by: tailings 0.1.0 over this session's transcript, 2026-08-29
+registry-target: none
+no-target-reason: its subject is a verification lane resolving to the same model family as the work it checked, with nothing recording that. The registry enumerates product entities and campaign cases; it holds no row for which model family graded a landing, so nothing in it could settle this. Read against the registry 2026-09-03, we4.
 ---
-
 # A verification ran in the same model family as the work it was checking, and nothing said so
 
 - origin: tailings audit of this session's own transcript · 2026-08-29

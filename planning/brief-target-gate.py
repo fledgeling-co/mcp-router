@@ -319,8 +319,27 @@ def discover(root: pathlib.Path) -> tuple:
                 if not name.endswith(".md") or name.upper().startswith(RESERVED_PREFIXES):
                     continue
                 on_disk.add(os.path.relpath(os.path.join(base, name), str(root)))
-    untracked = sorted(on_disk - set(tally.kept))
-    return tally, untracked
+    return tally, untracked_against(on_disk, tally.kept)
+
+
+def untracked_against(on_disk, kept) -> list:
+    """Every brief on disk that the git index does not carry, in the index's own vocabulary.
+
+    The normalisation is the whole of it. `git ls-files` prints POSIX separators on every
+    platform; `os.path.relpath` prints the platform's. On macOS the two agree and a raw set
+    difference is correct, which is why this shipped. On Windows they never intersect, so the
+    difference was the ENTIRE corpus: 219 tracked briefs printed under "on disk and NOT in the
+    index and are outside this verdict" while every one of them was in fact read and classified.
+    The verdict was right and the sentence above it was false, and a genuinely untracked brief --
+    the one thing this arm exists to surface -- was one line inside a list of 219. DEF-520.
+
+    Both sides are normalised rather than only the disk side, so a caller that hands this
+    platform-shaped paths on both sides still gets a comparison rather than a coincidence.
+    """
+    def posix(p):
+        return str(p).replace("\\", "/")
+
+    return sorted({posix(p) for p in on_disk} - {posix(p) for p in kept})
 
 
 # ------------------------------------------------------------------------------- classifying
@@ -509,6 +528,30 @@ def control(root: pathlib.Path, verbose: bool = True) -> bool:
                  "the backlog must not redden while it stands still"))
     if not ok:
         failures.append("floor negative: a file at its floor read as risen")
+
+    # THE UNTRACKED ARM. `discover` reads the git INDEX and separately walks the DISK, and names
+    # every brief on disk the index does not carry. `git ls-files` prints POSIX separators and
+    # `os.path.relpath` prints the platform's, so on Windows the two sets never intersect and the
+    # difference is the WHOLE corpus: 219 tracked briefs printed as "outside this verdict", with a
+    # genuinely untracked brief hidden inside the list. An arm that reads the corpus is not enough
+    # to catch it -- on macOS the separators agree and the bug is invisible -- so the platform
+    # shape is planted explicitly. DEF-520.
+    for label, disk, kept, want, why in (
+        ("a tracked brief is not called untracked", ["planning/features-to-triage/a.md"],
+         ["planning/features-to-triage/a.md"], [],
+         "POSIX on both sides: the shape macOS sees"),
+        ("NEGATIVE: separators must not make a tracked brief untracked",
+         [r"planning\features-to-triage\a.md"], ["planning/features-to-triage/a.md"], [],
+         "the Windows shape -- os.sep on disk, / from git ls-files"),
+        ("an untracked brief is still named", [r"planning\features-to-triage\b.md"],
+         ["planning/features-to-triage/a.md"], ["planning/features-to-triage/b.md"],
+         "the silence check: normalising must not silence a real finding"),
+    ):
+        got = untracked_against(disk, kept)
+        ok = got == want
+        rows.append((label, want or "none", got or "none", ok, why))
+        if not ok:
+            failures.append("untracked arm %r: got %s, want %s" % (label, got, want))
 
     # THE AGREEMENT ARM. Everything above is this gate reading its own vocabulary back. This is the
     # only arm that checks the claim the whole item rests on: that the field this gate demands is

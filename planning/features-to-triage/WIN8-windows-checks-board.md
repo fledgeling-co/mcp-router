@@ -1,10 +1,9 @@
 ---
 status: to-triage
 found-by: intake, parity target for SURF-006 · 2026-08-30
-registry-target: none
-no-target-reason: SURF-006 registers the macOS Checks board and the registry holds no Windows equivalent, so no recorded case could witness the Windows one
+reckon-sources: [SURF-035]
+target-note: SURF-035 `Windows Checks board` carries `note: WIN8.`; the row did not exist when the `none` was declared on 2026-08-30.
 ---
-
 # The Windows Checks board — a result belongs to the version it ran against
 
 - origin: owner directive, 2026-08-30; parity target for the Mac Checks board

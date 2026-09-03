@@ -1,10 +1,9 @@
 ---
 status: to-triage
 found-by: intake divergent pass, from launchd having no Windows counterpart in the router · 2026-08-30
-registry-target: none
-no-target-reason: SURF-015 records the daemon and pool as measured under launchd on macOS, and no case in the registry covers how the router starts or is supervised on Windows
+reckon-sources: [SURF-045, REQ-035]
+target-note: SURF-045 `Windows logon-task supervision - the daemon's Scheduled Task` and REQ-035, which states the logon-registered Scheduled Task this brief asks for, are what would settle it; neither existed when the `none` was declared on 2026-08-30.
 ---
-
 # What starts the router on Windows, and what restarts it when it dies
 
 - origin: intake divergent pass, 2026-08-30

@@ -3,7 +3,7 @@ import { dirname } from 'node:path';
 import { createHash } from 'node:crypto';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import type { UpstreamConfig } from './config.js';
-import { upstreamHash, compareStrings } from './config.js';
+import { upstreamHash, binaryStamp, compareStrings } from './config.js';
 import { UpstreamPool } from './pool.js';
 import { isAuthFailure } from './auth.js';
 import { withExclusiveLock } from './lock.js';
@@ -14,6 +14,12 @@ export const NS = '__';
 
 export interface CachedServer {
   hash: string;
+  /**
+   * Size-and-mtime stamp of the executable this entry was read from, for stdio
+   * upstreams. Absent on an entry written before the field existed, which is
+   * treated as stale so the surface is re-read once rather than trusted for ever.
+   */
+  bin?: string;
   builtAt: string;
   /** The APPROVED tool surface. This is what clients are served. */
   tools: Tool[];
@@ -211,6 +217,7 @@ function applyObservation(
   if ('error' in observation) {
     manifest.servers[u.name] = {
       hash: upstreamHash(u),
+      bin: binaryStamp(u),
       builtAt: new Date().toISOString(),
       tools: [],
       ...(prev?.digest ? { digest: prev.digest } : {}),
@@ -231,6 +238,7 @@ function applyObservation(
   if (!prev?.digest || prev.digest === digest) {
     manifest.servers[u.name] = {
       hash: upstreamHash(u),
+      bin: binaryStamp(u),
       builtAt: new Date().toISOString(),
       tools: observation.tools,
       digest,
@@ -245,6 +253,7 @@ function applyObservation(
   manifest.servers[u.name] = {
     ...prev,
     hash: upstreamHash(u),
+      bin: binaryStamp(u),
     error: undefined,
     pending: { tools: observation.tools, digest, seenAt: new Date().toISOString() },
   };
@@ -325,7 +334,13 @@ export class ManifestStore {
 /** True when the cache has no usable entry for this server's current config. */
 export function isStale(manifest: Manifest, u: UpstreamConfig): boolean {
   const entry = manifest.servers[u.name];
-  return !entry || entry.hash !== upstreamHash(u) || !!entry.error;
+  if (!entry || entry.hash !== upstreamHash(u) || !!entry.error) return true;
+  // The binary behind an unchanged command can still be a different program. An
+  // entry with no stamp predates the field, and is re-read once rather than
+  // trusted indefinitely — the reason it has no stamp is that nobody was looking.
+  const stamp = binaryStamp(u);
+  if (stamp === '') return false;
+  return entry.bin !== stamp;
 }
 
 /**

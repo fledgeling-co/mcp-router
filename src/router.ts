@@ -253,13 +253,39 @@ function buildMcpServer(
     let ok = true;
     let err: string | undefined;
 
+    /*
+     * Tell an upstream which project is calling, where its tool asks to be told.
+     *
+     * A stdio upstream is spawned once and shared by every project, so its
+     * environment names one project at best and none at worst — the router runs
+     * under launchd, which hands it no project at all. A server that resolves the
+     * project from its own environment therefore cannot be reached through the
+     * router for anything project-scoped. Measured 2026-09-09 against Warden:
+     * every project-bound key was unreachable and 53 of 109 calls failed, with
+     * the refusal reading as though the request were malformed.
+     *
+     * So the project travels in the arguments, for exactly the tools that declare
+     * a `project` property, and only when the caller has not set one — a caller
+     * that names its own project is never overridden. The identity is already
+     * resolved and cached on the socket, and is already awaited on this path
+     * above, so this costs nothing and cannot fail the call: no cwd means no
+     * injection rather than an error.
+     */
+    const args: Record<string, unknown> = { ...(request.params.arguments ?? {}) };
+    const schema = manifest.current().servers[serverName]?.tools.find((t) => t.name === tool)
+      ?.inputSchema as { properties?: Record<string, unknown> } | undefined;
+    if (schema?.properties?.project && !args.project) {
+      const who = await identify().catch(() => ({}) as { cwd?: string });
+      if (who.cwd) args.project = who.cwd;
+    }
+
     try {
       // First call for this upstream in this idle window is what starts it.
       // pool.call, not acquire + callTool: the pool has to know a request is
       // outstanding or its idle reaper will close the upstream mid-call.
       const result = (await pool.call(serverName, {
         name: tool,
-        arguments: request.params.arguments ?? {},
+        arguments: args,
       })) as CallToolResult;
       // A tool that reports its own failure is a failure in the record. Counting
       // it as a success would make the error rate a measure of transport health

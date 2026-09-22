@@ -1,4 +1,4 @@
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
@@ -136,6 +136,49 @@ export const AUTH_DIR = join(ROUTER_HOME, 'auth');
  */
 export function compareStrings(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0;
+}
+
+/**
+ * Identity of the executable behind a stdio upstream: its size and mtime.
+ *
+ * `upstreamHash` covers what the *configuration* says, and its own rule is that a
+ * field belongs there when it "changes what the upstream advertises". The bytes on
+ * disk change exactly that and were not covered, so replacing a server's binary in
+ * place left the cached tool surface stale for ever: the command, args, cwd and env
+ * are all identical, so `isStale` answered false and `index --force` skipped it.
+ *
+ * Measured 2026-09-09. Warden gained a `project` property on two tools and was
+ * rebuilt over `/Applications/Warden.app`. A full re-index reported success and kept
+ * a schema from two days earlier, so a router change that matched on that property
+ * could never fire — and the failure read as the new code not working rather than as
+ * a cache that could not see it.
+ *
+ * Size and mtime rather than a content hash: a server binary can be tens of
+ * megabytes and this runs for every upstream on every staleness check, while the
+ * thing being detected is a rebuild or a reinstall, both of which move both fields.
+ * A rebuild that reproduced byte-identical output at an identical timestamp would be
+ * missed, and that is a rebuild with nothing to re-index.
+ *
+ * The first absolute-path argument is stamped too, because the interesting file for
+ * `node /path/to/dist/index.js` is the script rather than the interpreter. A path
+ * that cannot be stat-ed contributes nothing instead of throwing: a stamp is a
+ * staleness hint, and it must never be the reason a router fails to start.
+ */
+export function binaryStamp(u: UpstreamConfig): string {
+  if (!isStdio(u)) return '';
+  const parts: string[] = [];
+  const candidates = [u.command, ...(u.args ?? []).filter((a) => a.startsWith('/'))];
+  for (const p of candidates) {
+    if (!p.startsWith('/')) continue;
+    try {
+      const st = statSync(p);
+      parts.push(`${p}:${st.size}:${Math.trunc(st.mtimeMs)}`);
+    } catch {
+      // Absent, unreadable, or not a real path. Nothing to say about it.
+    }
+  }
+  if (parts.length === 0) return '';
+  return createHash('sha256').update(parts.join('\n')).digest('hex').slice(0, 16);
 }
 
 export function upstreamHash(u: UpstreamConfig): string {

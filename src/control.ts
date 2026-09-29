@@ -257,7 +257,7 @@ function describe(u: UpstreamConfig, deps: ControlDeps) {
     callsServed: live?.callsServed ?? 0,
     idleSec: live?.idleSec ?? 0,
     ...(isStdio(u)
-      ? { command: u.command, args: u.args, cwd: u.cwd, envKeys: Object.keys(u.env).sort() }
+      ? { command: u.command, args: u.args, cwd: u.cwd, envKeys: Object.keys(u.env).sort(), envFiles: u.envFiles }
       : { url: u.url, headerKeys: Object.keys(u.headers).sort() }),
     hash: upstreamHash(u),
     tools: entry?.error ? 0 : (entry?.tools.length ?? 0),

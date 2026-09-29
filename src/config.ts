@@ -2,6 +2,7 @@ import { readFileSync, existsSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
+import { resolveEnvFiles, envFilesDigest } from './envfile.js';
 
 interface UpstreamBase {
   /** Logical name; becomes the namespace prefix on every tool it exposes. */
@@ -60,6 +61,11 @@ export interface StdioUpstream extends UpstreamBase {
   args: string[];
   env: Record<string, string>;
   cwd?: string;
+  /**
+   * Env files read at every spawn, merged under `env`. Resolved once at parse time from
+   * `envFile` or the package root's `.env` / `.env.local`; see envfile.ts.
+   */
+  envFiles: string[];
 }
 
 export interface HttpUpstream extends UpstreamBase {
@@ -189,6 +195,7 @@ export function upstreamHash(u: UpstreamConfig): string {
         u.args,
         u.cwd ?? null,
         Object.entries(u.env).sort(([a], [b]) => compareStrings(a, b)),
+        ...(u.envFiles.length ? [envFilesDigest(u.envFiles)] : []),
       ])
     : JSON.stringify([
         u.transport,
@@ -204,6 +211,7 @@ export interface RawServer {
   args?: string[];
   env?: Record<string, string>;
   cwd?: string;
+  envFile?: string | string[] | false;
   url?: string;
   headers?: Record<string, string>;
   oauth?: boolean;
@@ -246,6 +254,7 @@ export function parseServer(name: string, s: RawServer): { upstream: UpstreamCon
         args: s.args ?? [],
         env: s.env ?? {},
         cwd: s.cwd,
+        envFiles: resolveEnvFiles(s.command, s.args ?? [], s.cwd, s.envFile),
         idleMs: s.idleMs,
         startupTimeoutMs: s.startupTimeoutMs,
         projects: s.projects,

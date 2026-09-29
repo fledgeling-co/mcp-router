@@ -7,6 +7,7 @@ import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { isStdio, type UpstreamConfig, type HttpUpstream, type StdioUpstream } from './config.js';
 import { FileOAuthProvider, isAuthFailure } from './auth.js';
 import { log } from './log.js';
+import { readEnvFiles } from './envfile.js';
 import { readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { PATH_LIST_SEPARATOR, residentKb, IS_WINDOWS } from './platform.js';
@@ -165,8 +166,9 @@ export class UpstreamPool {
   ) {}
 
   /**
-   * Environment for a child: the router's own env with PATH augmented, then the server's
-   * overrides.
+   * Environment for a child: the router's own env with PATH augmented, then the server's env
+   * files, then the server's overrides. The files are read here, at spawn, so a rotated key
+   * reaches the next start without a config edit.
    *
    * The server's own `env` still merges last, so a server that sets PATH wins outright — that
    * override is R6's escape hatch for a prefix the discovery below does not find.
@@ -179,7 +181,7 @@ export class UpstreamPool {
     if (typeof env.HOME === 'string' && env.HOME !== '') {
       env.PATH = augmentPath(env.PATH ?? '', env.HOME);
     }
-    return { ...env, ...u.env };
+    return { ...env, ...readEnvFiles(u.envFiles), ...u.env };
   }
 
   /** Servers currently waiting on a browser authorization, for `/servers` to report. */

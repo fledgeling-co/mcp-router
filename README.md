@@ -115,7 +115,7 @@ sequenceDiagram
   Note over R,U: after idleMs with no calls, the child is closed
 ```
 
-The cache is keyed on each server's `command`/`args`/`env` identity, so editing one server invalidates only its own entry. Tools are namespaced `<server>__<tool>` so two servers can't collide.
+The cache is keyed on each server's `command`/`args`/`cwd`/`env` identity, plus a digest of any env files it loads, so editing one server, or rotating a key in its `.env.local`, invalidates only its own entry. Tools are namespaced `<server>__<tool>` so two servers can't collide.
 
 Spawns are single-flighted, so two concurrent calls to a cold server produce one child rather than two.
 
@@ -158,6 +158,21 @@ Three things the watcher deliberately leaves alone:
 | Project scope (`.mcp.json`) and local scope | Deliberately scoped to one repo; that's the point of them |
 
 `~/.claude.json` is ~268 KB, holds live session state for every project, and Claude Code rewrites it constantly. So the watcher hashes **only** the `mcpServers` object and exits in about 100 ms when it's unchanged, which is nearly every fire. It backs the file up before writing, writes via temp file plus rename, re-reads immediately before writing so concurrent session state survives, and abandons the run without writing anything if the parse fails.
+
+### Keys in the server's own `.env` file
+
+A local stdio server usually keeps its API keys where its own README says to: a `.env` or `.env.local` in its package root. The router loads those itself, so the entry needs no `env` block and no `sh -c "set -a; . .env.local; …"` wrapper.
+
+| Entry | What loads |
+|---|---|
+| sets `cwd` | `<cwd>/.env`, then `<cwd>/.env.local` |
+| no `cwd` | the same two files from the nearest ancestor of the entry's script holding a `package.json`, `pyproject.toml`, `Cargo.toml` or `go.mod` |
+| `"envFile": ".env.test"` or `["a.env", "b.env"]` | exactly those, relative to that root; a missing one fails the spawn |
+| `"envFile": false` | nothing |
+
+Precedence is the router's environment, then the files in order, then the entry's own `env`, which wins. The files are read at every spawn, so a rotated key takes effect on the next start without a config edit. A monorepo root (`pnpm-workspace.yaml`, `nx.json`, `turbo.json`, `lerna.json`, or `workspaces` in `package.json`) is never inferred, because a script inside an app repo would otherwise inherit the app's secrets rather than its own; set `envFile` explicitly to load one there. `GET /servers/<name>` reports the resolved `envFiles`.
+
+Re-registering a server over the control API updates the config but does not restart a child that is already running, so a changed env reaches the process only after that child restarts.
 
 ---
 
@@ -400,6 +415,7 @@ Ten checks against a running router using the SDK's own client, which is the sam
 | `src/livereload.ts` | The streams attached sessions already hold, and the one notification worth sending down one |
 | `src/sessions.ts` | The session registry, the five reach classes, and why the socket half can only ask |
 | `src/pool.ts` | Child lifecycle: single-flight spawn, idle reaping |
+| `src/envfile.ts` | Which `.env` files a local server gets, and why a workspace root is never inferred |
 | `src/router.ts` | The stateless HTTP layer and how a dead upstream is contained |
 | `src/watch.ts` | The adoption watcher and its refusal behaviour |
 | `docs/install.sh` | What the one-liner actually does, in order (and what GitHub Pages serves) |

@@ -1,3 +1,7 @@
+---
+registry-target: none
+no-target-reason: a gap-fix verdict against parent G3 (`make test` is not deterministically green). Its subject is test-suite determinism and the scanner that guards it, and the campaign registry enumerates product surfaces, requirements, cases and defects - it holds no entity for a build-gate's flakiness. The registry was searched for `G3` and returns nothing. Read against the registry 2026-09-03, we4.
+---
 # G3 gap-fix — the fix trades a 150ms false red for a ten-minute nameless one
 
 **Parent:** G3 — `make test` is not deterministically green

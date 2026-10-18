@@ -277,6 +277,7 @@ make:acceptance-r6	make-target	Makefile	both	npm run	-
 make:build-ios	make-target	Makefile	swift	xcodebuild	-
 make:build-mac	make-target	Makefile	swift	xcodebuild	-
 make:build-mac-release	make-target	Makefile	swift	xcodebuild	-
+make:glass-build	make-target	Makefile	static	no router invocation matched	-
 make:green-streak	make-target	Makefile	both	via scripts/acceptance/green-streak.sh (via scripts/acceptance/parity-gate.sh ($MCP_ROUTER_DIST))	-
 make:install-default	make-target	Makefile	static	no router invocation matched	-
 make:lint	make-target	Makefile	node	via planning/instrument-census.py (argv ["node", …])	-
@@ -300,6 +301,10 @@ planning/brief-target-gate.py	gate	planning/brief-target-gate.py	static	no route
 planning/carrier-parity-gate.py	gate	planning/carrier-parity-gate.py	static	no router invocation matched	make:lint
 planning/citation-gate.py	gate	planning/citation-gate.py	static	no router invocation matched	make:lint,planning/goals/citations-blocking-check.sh
 planning/claim-sweep.py	gate	planning/claim-sweep.py	static	no router invocation matched	-
+planning/defect-status-vocabulary-gate.py	gate	planning/defect-status-vocabulary-gate.py	static	no router invocation matched	make:lint
+planning/design-divergence-marker-gate.py	gate	planning/design-divergence-marker-gate.py	static	no router invocation matched	make:lint
+planning/effect-class-vocabulary-gate.py	gate	planning/effect-class-vocabulary-gate.py	static	no router invocation matched	make:lint
+planning/effect-provider-gate.py	gate	planning/effect-provider-gate.py	static	no router invocation matched	make:lint
 planning/evidence-citation-gate.py	gate	planning/evidence-citation-gate.py	static	no router invocation matched	make:lint
 planning/evidence/F6/measure-update-surface.py	gate	planning/evidence/F6/measure-update-surface.py	static	no router invocation matched	-
 planning/evidence/F6/red-green.py	gate	planning/evidence/F6/red-green.py	swift	argv ["swift", …]	-
@@ -318,8 +323,10 @@ planning/evidence/WIN24/disabled-pairing-ratio.py	gate	planning/evidence/WIN24/d
 planning/fleet-runner.js	gate	planning/fleet-runner.js	static	no router invocation matched	-
 planning/foreign-path-gate.py	gate	planning/foreign-path-gate.py	static	no router invocation matched	make:lint,planning/verification/G6-shared-ledger-withdrawals.py
 planning/goals/citations-blocking-check.sh	gate	planning/goals/citations-blocking-check.sh	static	no router invocation matched	-
+planning/goals/completion-gates.py	gate	planning/goals/completion-gates.py	static	no router invocation matched	-
 planning/goals/lint-except-citation-ratchet.sh	gate	planning/goals/lint-except-citation-ratchet.sh	static	no router invocation matched	-
 planning/goals/liveness-check.sh	gate	planning/goals/liveness-check.sh	static	no router invocation matched	-
+planning/goals/prove-gates.py	gate	planning/goals/prove-gates.py	static	no router invocation matched	-
 planning/goals/tests-check.sh	gate	planning/goals/tests-check.sh	static	no router invocation matched	-
 planning/goals/tests-reader-control.sh	gate	planning/goals/tests-reader-control.sh	static	no router invocation matched	planning/goals/tests-check.sh
 planning/goals/w2-dispatch.js	gate	planning/goals/w2-dispatch.js	swift	xcodebuild	-
@@ -333,8 +340,9 @@ planning/hooks/prove-pre-commit.sh	gate	planning/hooks/prove-pre-commit.sh	stati
 planning/input_accounting.py	gate	planning/input_accounting.py	static	no router invocation matched	-
 planning/installed-claim-sweep.py	gate	planning/installed-claim-sweep.py	static	no router invocation matched	-
 planning/instrument-census.py	gate	planning/instrument-census.py	node	argv ["node", …]	make:lint
-planning/ledger-reconcile.py	gate	planning/ledger-reconcile.py	static	no router invocation matched	-
+planning/ledger-reconcile.py	gate	planning/ledger-reconcile.py	static	no router invocation matched	make:lint
 planning/m33-branch-sweep.py	gate	planning/m33-branch-sweep.py	static	no router invocation matched	-
+planning/mock-exclusion-gate.py	gate	planning/mock-exclusion-gate.py	static	no router invocation matched	make:lint
 planning/null-run-gate.py	gate	planning/null-run-gate.py	static	no router invocation matched	make:lint
 planning/pin-class-gate.py	gate	planning/pin-class-gate.py	static	no router invocation matched	make:lint
 planning/py39-annotation-gate.py	gate	planning/py39-annotation-gate.py	static	no router invocation matched	make:lint
@@ -347,6 +355,7 @@ planning/scope-invariance-gate.py	gate	planning/scope-invariance-gate.py	static	
 planning/set-status.py	gate	planning/set-status.py	static	no router invocation matched	-
 planning/shipped-brief-gate.py	gate	planning/shipped-brief-gate.py	static	no router invocation matched	make:lint
 planning/sweep-control-gate.py	gate	planning/sweep-control-gate.py	static	no router invocation matched	make:lint
+planning/tailings-win/classify.py	gate	planning/tailings-win/classify.py	static	no router invocation matched	-
 planning/target-resolution-gate.py	gate	planning/target-resolution-gate.py	static	no router invocation matched	make:lint
 planning/test-campaign/bin/arm-f7-analyst.py	gate	planning/test-campaign/bin/arm-f7-analyst.py	static	no router invocation matched	-
 planning/test-campaign/bin/arm-headless.py	gate	planning/test-campaign/bin/arm-headless.py	swift	argv ["swift", …]	-
@@ -355,7 +364,9 @@ planning/test-campaign/bin/arm-r22-diagnostics.sh	gate	planning/test-campaign/bi
 planning/test-campaign/bin/arm-r26-auth-expiry.py	gate	planning/test-campaign/bin/arm-r26-auth-expiry.py	static	no router invocation matched	-
 planning/test-campaign/bin/arm-r27-health.sh	gate	planning/test-campaign/bin/arm-r27-health.sh	swift	swift test	-
 planning/test-campaign/bin/arm-suites.py	gate	planning/test-campaign/bin/arm-suites.py	swift	argv ["swift", …]	-
+planning/test-campaign/bin/arm-surface-plane.py	gate	planning/test-campaign/bin/arm-surface-plane.py	static	no router invocation matched	-
 planning/test-campaign/bin/arm-surface-reconcile.py	gate	planning/test-campaign/bin/arm-surface-reconcile.py	static	no router invocation matched	make:surface-reconcile-arm
+planning/test-campaign/bin/arm-win-surface-reconcile.py	gate	planning/test-campaign/bin/arm-win-surface-reconcile.py	static	no router invocation matched	-
 planning/test-campaign/bin/blind-vocabulary-arm.py	gate	planning/test-campaign/bin/blind-vocabulary-arm.py	static	no router invocation matched	make:lint
 planning/test-campaign/bin/capture-mac-design-size.sh	gate	planning/test-campaign/bin/capture-mac-design-size.sh	static	no router invocation matched	-
 planning/test-campaign/bin/capture-mac-glass.sh	gate	planning/test-campaign/bin/capture-mac-glass.sh	static	no router invocation matched	-
@@ -372,6 +383,7 @@ planning/test-campaign/bin/forced-state.sh	gate	planning/test-campaign/bin/force
 planning/test-campaign/bin/g17-document-flow.sh	gate	planning/test-campaign/bin/g17-document-flow.sh	both	node <path> + swift build	-
 planning/test-campaign/bin/g17_document_assert.py	gate	planning/test-campaign/bin/g17_document_assert.py	static	no router invocation matched	-
 planning/test-campaign/bin/glass-assert.py	gate	planning/test-campaign/bin/glass-assert.py	static	no router invocation matched	-
+planning/test-campaign/bin/glass-build-gate.py	gate	planning/test-campaign/bin/glass-build-gate.py	static	no router invocation matched	make:glass-build,make:lint
 planning/test-campaign/bin/harnesses-live-probe.py	gate	planning/test-campaign/bin/harnesses-live-probe.py	static	no router invocation matched	-
 planning/test-campaign/bin/insights-live-probe.py	gate	planning/test-campaign/bin/insights-live-probe.py	static	no router invocation matched	-
 planning/test-campaign/bin/paint-check.py	gate	planning/test-campaign/bin/paint-check.py	static	no router invocation matched	-
@@ -380,9 +392,12 @@ planning/test-campaign/bin/raster-claim-gate.py	gate	planning/test-campaign/bin/
 planning/test-campaign/bin/record-arms.py	gate	planning/test-campaign/bin/record-arms.py	static	no router invocation matched	-
 planning/test-campaign/bin/record-glass-arms.py	gate	planning/test-campaign/bin/record-glass-arms.py	static	no router invocation matched	-
 planning/test-campaign/bin/req017-honesty.py	gate	planning/test-campaign/bin/req017-honesty.py	static	no router invocation matched	-
+planning/test-campaign/bin/sidebar-foot-arm.py	gate	planning/test-campaign/bin/sidebar-foot-arm.py	static	no router invocation matched	make:lint
 planning/test-campaign/bin/surface-oracle.swift	gate	planning/test-campaign/bin/surface-oracle.swift	static	no router invocation matched	-
 planning/test-campaign/bin/surface-reconcile.py	gate	planning/test-campaign/bin/surface-reconcile.py	static	no router invocation matched	make:surface-reconcile
 planning/test-campaign/bin/vocab-differential.py	gate	planning/test-campaign/bin/vocab-differential.py	static	no router invocation matched	make:lint
+planning/test-campaign/bin/win-cases-from-lane.py	gate	planning/test-campaign/bin/win-cases-from-lane.py	static	no router invocation matched	-
+planning/test-campaign/bin/win-surface-reconcile.py	gate	planning/test-campaign/bin/win-surface-reconcile.py	static	no router invocation matched	-
 planning/test-campaign/bin/wire-document-arm.py	gate	planning/test-campaign/bin/wire-document-arm.py	static	no router invocation matched	-
 planning/test-campaign/bin/wire-document-fixture/seed.py	gate	planning/test-campaign/bin/wire-document-fixture/seed.py	static	no router invocation matched	-
 planning/test-campaign/bin/wire-document.py	gate	planning/test-campaign/bin/wire-document.py	static	no router invocation matched	-
@@ -471,6 +486,7 @@ scripts/acceptance/parity-selftests.sh	lane	scripts/acceptance/parity-selftests.
 scripts/acceptance/parity-state.sh	lane	scripts/acceptance/parity-state.sh	both	node <path> + swift router binary	scripts/acceptance/parity-gate.sh
 scripts/acceptance/parity-stream.sh	lane	scripts/acceptance/parity-stream.sh	both	node <path> + swift router binary	scripts/acceptance/parity-gate.sh
 scripts/acceptance/parity-suite.sh	lane	scripts/acceptance/parity-suite.sh	swift	swift test	scripts/acceptance/parity-gate.sh
+scripts/acceptance/r21-approve-write-denied.mjs	lane	scripts/acceptance/r21-approve-write-denied.mjs	swift	xcodebuild	-
 scripts/acceptance/r22-diagnostics.sh	lane	scripts/acceptance/r22-diagnostics.sh	swift	swift router binary	-
 scripts/acceptance/r26-auth-expiry.sh	lane	scripts/acceptance/r26-auth-expiry.sh	swift	swift router binary	-
 scripts/acceptance/r27-health.sh	lane	scripts/acceptance/r27-health.sh	swift	swift router binary	planning/test-campaign/bin/arm-r27-health.sh
@@ -516,5 +532,9 @@ scripts/red-green.py	gate	scripts/red-green.py	swift	argv ["swift", …]	-
 scripts/warden/apply-migration.py	gate	scripts/warden/apply-migration.py	static	no router invocation matched	scripts/warden/plan-migration.py
 scripts/warden/plan-migration.py	gate	scripts/warden/plan-migration.py	static	no router invocation matched	-
 scripts/warden/selftest.sh	gate	scripts/warden/selftest.sh	static	no router invocation matched	make:lint
+scripts/windows/ps-parse-gate.py	gate	scripts/windows/ps-parse-gate.py	static	no router invocation matched	-
+scripts/windows/uia/overflow-assert.py	gate	scripts/windows/uia/overflow-assert.py	static	no router invocation matched	-
+scripts/windows/uia/uia-assert.py	gate	scripts/windows/uia/uia-assert.py	static	no router invocation matched	-
+scripts/windows/uia/uia-selftest.py	gate	scripts/windows/uia/uia-selftest.py	static	no router invocation matched	-
 scripts/worktree-preflight-selftest.sh	gate	scripts/worktree-preflight-selftest.sh	static	no router invocation matched	make:lint
 scripts/worktree-preflight.sh	gate	scripts/worktree-preflight.sh	static	no router invocation matched	make:tools,scripts/worktree-preflight-selftest.sh

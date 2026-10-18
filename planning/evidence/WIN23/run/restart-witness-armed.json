@@ -1,0 +1,104 @@
+{
+  "lane": "win23-restart-witness",
+  "rung": "effect-witness",
+  "subject": "MCPRouter.Shell.Live.Lifecycle.LogonTaskSupervisor, the \"restarts on crash\" claim",
+  "writer": "schtasks.exe /Create /XML, with the document the shipped supervisor built",
+  "recorders": [
+    "Get-ScheduledTaskInfo - the Task Scheduler WMI provider, for LastRunTime and LastTaskResult",
+    "Get-CimInstance Win32_Process - the operating system process table, for the process identity"
+  ],
+  "recorderIsNotWriter": true,
+  "arming": true,
+  "claimTask": "\\MCPRouter\\WIN23 Restart Witness registration (transient)",
+  "liveTask": "\\MCPRouter\\WIN23 Restart Witness live (transient)",
+  "verdict": "PASS (armed)",
+  "reason": "the planted defect - the RestartOnFailure-only document the product wrote until 2026-09-03 - broke LIVE.restarted and nothing else. The restart assertion is watching the scheduler and not restating the config.",
+  "arms": [
+    {
+      "id": "BASELINE",
+      "what": "neither task is registered and no witness daemon is running before this run",
+      "held": true,
+      "detail": "so every process and every run time below belongs to this run"
+    },
+    {
+      "id": "CLAIM.accepted",
+      "what": "the recorder reports the product registration present",
+      "held": true,
+      "detail": "state=Ready"
+    },
+    {
+      "id": "CLAIM.repetition",
+      "what": "the logon trigger carries a repetition, which is what restarts a crashed daemon",
+      "held": true,
+      "detail": "Repetition.Interval=PT1M; RestartOnFailure count=3"
+    },
+    {
+      "id": "CLAIM.ignorenew",
+      "what": "the instances policy discards a repetition that fires while the daemon is alive",
+      "held": true,
+      "detail": "MultipleInstances=IgnoreNew"
+    },
+    {
+      "id": "LIVE.started",
+      "what": "the scheduler starts the daemon when the trigger fires",
+      "held": true,
+      "detail": "pid=3488, scheduler LastRunTime=9/3/2026 3:20:08 AM"
+    },
+    {
+      "id": "LIVE.killed",
+      "what": "the process table stops reporting the daemon, and the scheduler records the run as failed",
+      "held": true,
+      "detail": "pid 3488 gone=True, scheduler LastTaskResult=0xFFFFFFFF"
+    },
+    {
+      "id": "LIVE.restarted",
+      "what": "the scheduler brings the daemon back after it dies",
+      "held": false,
+      "detail": "first pid=3488 at 9/3/2026 3:20:08 AM; second pid=<none> at <none>; waited up to 210s"
+    },
+    {
+      "id": "SILENCE",
+      "what": "both recorders report absence once the tasks are removed and the daemon is stopped",
+      "held": true,
+      "detail": "both recorders can say no, so their yes above was a reading"
+    }
+  ],
+  "armsHeld": 7,
+  "armsTotal": 8,
+  "timeline": [
+    {
+      "at": "2026-09-02T17:18:58.6468830Z",
+      "what": "live task registered",
+      "detail": "fires at 2026-09-03T03:20:08"
+    },
+    {
+      "at": "2026-09-02T17:20:11.1545969Z",
+      "what": "daemon started",
+      "detail": "pid 3488"
+    },
+    {
+      "at": "2026-09-02T17:20:13.3961769Z",
+      "what": "daemon killed",
+      "detail": "pid 3488, LastTaskResult=0xFFFFFFFF"
+    },
+    {
+      "at": "2026-09-02T17:23:52.1143151Z",
+      "what": "no restart observed",
+      "detail": "waited 210s"
+    }
+  ],
+  "writerSelfReport": [
+    "2026-09-02T17:20:09.2278072Z\tpid=3488\tport=8891"
+  ],
+  "writerSelfReportIsNotEvidence": "the daemon's own append-only run log. Graded by nothing here: a process reporting its own start is the writer reporting on itself. It is carried so a reader can see whether it agrees with the two recorders that did the grading.",
+  "substitution": "the live task carries a TimeTrigger where the product writes a LogonTrigger, because a trigger repetition does not apply to an on-demand start and this lane must not log the machine out. Every Setting, the repetition interval, the principal, the action and the instances policy are the product's own document, unmodified.",
+  "notMeasured": [
+    "that the trigger fires AT LOGON - this lane does not log the user out, and DEF-081 keeps that half",
+    "that the daemon under supervision is the router daemon - the payload is app/windows/MCPRouter.Witness.Daemon, a harness binary that starts, records its own start and waits to be killed, because this tree's router daemon is TypeScript under Node rather than a Windows executable a Task Scheduler action can name"
+  ],
+  "notes": [
+    "ARMING RUN: the live task is registered from the product document with its Repetition block removed - the exact registration this product shipped until 2026-09-03. Exactly LIVE.restarted is required to break. A run in this mode that reports PASS has shown the restart assertion cannot fail, which is a defect in this lane and not in the product."
+  ],
+  "host": "Z13",
+  "psVersion": "7.6.5"
+}

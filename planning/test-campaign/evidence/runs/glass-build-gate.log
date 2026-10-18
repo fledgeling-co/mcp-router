@@ -1,0 +1,21 @@
+# glass-build-gate.py on ai/wa5-capture-lineage at e4b4d118, 2026-09-02T10:37:15Z
+# Read on a Windows host: git blob ids are line-ending normalised, so this is the verdict a macOS
+# checkout of the same commit gets. Standing RED, and the finding is true - every glass artifact
+# was captured before the Mac sources reached this tree, and the re-capture needs a macOS host.
+
+macos-glass build lineage · 56 artifact(s) cited by the lane, 56 carrying a build record (reconstructed-from-git)
+the build this lane is being read against: c2dd5589ec38bb02
+
+STALE — the picture outlived the build it was taken from:
+   1 artifact(s) stamped fd078c736e8a (2026-08-29, 0379199fc) — the lane is being read against c2dd5589ec38. Moved since: app/Sources/MCPRouterKit, app/Sources/MCPRouterUI, app/Package.swift. Owed: re-capture on a macOS host. Artifacts: evidence/ax/SURF-001.menu-reasons.tsv
+   1 artifact(s) stamped 601f68cc291e (2026-08-27, 16b5ca908) — the lane is being read against c2dd5589ec38. Moved since: app/Sources/MCPRouterKit, app/Sources/MCPRouterUI, app/Package.swift. Owed: re-capture on a macOS host. Artifacts: evidence/shots/SURF-011.build.png
+   12 artifact(s) stamped 924ab603b9d3 (2026-08-27, 3e962f8ec) — the lane is being read against c2dd5589ec38. Moved since: app/Sources/MCPRouterKit, app/Sources/MCPRouterUI, app/Package.swift. Owed: re-capture on a macOS host. Artifacts: evidence/ax/SURF-002.empty.window.txt, evidence/ax/SURF-002.offline.window.txt, evidence/ax/SURF-002.window.txt, evidence/ax/SURF-025.empty.window.txt … and 8 more
+   28 artifact(s) stamped 924ab603b9d3 (2026-08-27, 519aebc83) — the lane is being read against c2dd5589ec38. Moved since: app/Sources/MCPRouterKit, app/Sources/MCPRouterUI, app/Package.swift. Owed: re-capture on a macOS host. Artifacts: evidence/ax/SURF-001.menu.txt, evidence/ax/SURF-003.window.txt, evidence/ax/SURF-004.window.txt, evidence/ax/SURF-005.window.txt … and 24 more
+   4 artifact(s) stamped da52861a88bd (2026-08-29, 8d8fb8ac0) — the lane is being read against c2dd5589ec38. Moved since: app/Sources/MCPRouterKit, app/Sources/MCPRouterUI, app/Package.swift. Owed: re-capture on a macOS host. Artifacts: evidence/ax/SURF-002.live-cold.window.txt, evidence/ax/SURF-002.live-running.window.txt, evidence/ax/SURF-002.live-stale.window.txt, evidence/shots/forced-state/SURF-002.live-running.png
+   2 artifact(s) stamped 664053cb0034 (2026-08-20, cef372924) — the lane is being read against c2dd5589ec38. Moved since: app/MCPRouter, app/Sources/MCPRouterKit, app/Sources/MCPRouterUI, app/Package.swift. Owed: re-capture on a macOS host. Artifacts: evidence/ax/SURF-007.provenance-sheet.window.txt, evidence/shots/SURF-007.provenance-sheet.png
+   8 artifact(s) stamped 40e2594f4816 (2026-08-20, f8d4fa636) — the lane is being read against c2dd5589ec38. Moved since: app/MCPRouter, app/Sources/MCPRouterKit, app/Sources/MCPRouterUI, app/project.yml, app/Package.swift. Owed: re-capture on a macOS host. Artifacts: evidence/ax/SURF-001.keyboard.txt, evidence/ax/SURF-002.title.txt, evidence/ax/SURF-003.title.txt, evidence/ax/SURF-004.title.txt … and 4 more
+   -> Re-capture on a macOS host. Editing the stamp, or the assertion it makes stale, is the one move forbidden here.
+
+7 hard finding(s). A green lane over evidence older than the build is a statement about a product that no longer ships.
+
+exit: 2

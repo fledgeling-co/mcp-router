@@ -1,10 +1,9 @@
 ---
 status: to-triage
 found-by: intake, parity target for SURF-004 · 2026-08-30
-registry-target: none
-no-target-reason: SURF-004 registers the macOS Skills board and the registry holds no Windows equivalent, so no recorded case could witness the Windows one
+reckon-sources: [SURF-033]
+target-note: SURF-033 `Windows Skills board` carries `note: WIN6.`; the row did not exist when the `none` was declared on 2026-08-30.
 ---
-
 # The Windows Skills board — one skill, every harness, and the slots that say where it is live
 
 - origin: owner directive, 2026-08-30; parity target for the Mac Skills board

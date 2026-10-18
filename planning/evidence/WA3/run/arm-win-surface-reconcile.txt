@@ -1,0 +1,26 @@
+baseline -- the tree as it stands
+  exit=0    R1 every destination has a surface · R2 every pane item is a declared shell control · R3 every measured Windows requir
+  R1  the Harnesses surface row deleted                    exit=1  RED
+        · R1  DestinationCatalog ships `harnesses` (Harnesses) and no surface carries the route `app://windows/shell#harnesses`. A destination nobody enumerat
+        [not R1] 1 finding(s):
+  R2  `Insights` removed from the shell's controls         exit=1  RED
+        · R2  the pane item `Insights` is built from DestinationCatalog and is not among SURF-030's declared controls. A case pressing it actuates a control n
+        [not R2] 1 finding(s):
+  R3  CASE-0341 stripped of its surface link               exit=1  RED
+        · R3  REQ-037 is sourced from app/windows/ and has 1 case(s), and none of them names a surface in the registry (saw None). The measurement exists and 
+        [not R3] 1 finding(s):
+  R4  SURF-036's controlsSource removed                    exit=1  RED
+        · R4  SURF-036 declares 3 control(s) and no `controlsSource`. Nothing says whether the list was read off the design, off the source, or off a UIA dump
+        [not R4] 1 finding(s):
+  R4  SURF-031's source path misspelt                      exit=1  RED
+        · R4  SURF-031's `controlsSource` names C:/Dev/mcp-router/.worktrees/wa3-surface-census/app/windows/MCPRouter.Shell/Views/ServerBoard.xaml, which does
+        [not R4] 1 finding(s):
+  R4  a control invented on SURF-039                       exit=1  RED
+        · R4  SURF-039 declares the control `Rescan everything twice` and it appears in none of the file(s) its `controlsSource` names (HarnessesBoard.xaml). 
+        [not R4] 1 finding(s):
+  CTRL DestinationCatalog.cs emptied                        exit=2  REFUSED (2)
+
+restored -- exit=0
+
+7/7 arm(s) moved the exit code.
+rc=0

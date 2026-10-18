@@ -1,10 +1,9 @@
 ---
 status: to-triage
 found-by: intake, parity target for SURF-002 · 2026-08-30
-registry-target: none
-no-target-reason: SURF-002 registers the macOS Servers board and the registry holds no Windows equivalent, so no recorded case could witness the Windows one
+reckon-sources: [SURF-031]
+target-note: SURF-031 `Windows Servers board and the Signal Path` carries `note: WIN4.`; the row did not exist when the `none` was declared on 2026-08-30.
 ---
-
 # The Windows Servers board, including the Signal Path — the one loud surface in the product
 
 - origin: owner directive, 2026-08-30; parity target for the Mac Servers board

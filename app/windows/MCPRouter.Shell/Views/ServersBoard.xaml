@@ -1,0 +1,491 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="MCPRouter.Shell.Views.ServersBoard"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Loaded="OnLoaded"
+    Unloaded="OnUnloaded">
+
+    <!--
+      The Servers board's geometry is not guessed from the Mac points. DESIGN.md §12's
+      "Signal Path geometry (Windows)" is the source: 12px padding, 132px minimum jack,
+      44px lane, 9px gap, 16px plug and 3px ring. The code keeps those constants together with
+      their conversion note because an adaptive grid has to do the arithmetic at the width it
+      actually receives.
+    -->
+    <UserControl.Resources>
+        <Style x:Key="JackButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="UseSystemFocusVisuals" Value="True" />
+        </Style>
+        <Style x:Key="ServerRowStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{ThemeResource DividerStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="UseSystemFocusVisuals" Value="True" />
+        </Style>
+        <Style x:Key="LiveDotStyle" TargetType="Ellipse">
+            <Setter Property="Fill" Value="{ThemeResource SystemFillColorSuccessBrush}" />
+        </Style>
+        <Style x:Key="CautionDotStyle" TargetType="Ellipse">
+            <Setter Property="Fill" Value="{ThemeResource SystemFillColorCautionBrush}" />
+        </Style>
+        <Style x:Key="CriticalDotStyle" TargetType="Ellipse">
+            <Setter Property="Fill" Value="{ThemeResource SystemFillColorCriticalBrush}" />
+        </Style>
+        <Style x:Key="OffDotStyle" TargetType="Ellipse">
+            <Setter Property="Fill" Value="{ThemeResource TextFillColorDisabledBrush}" />
+        </Style>
+        <Style x:Key="LiveRingStyle" TargetType="Ellipse">
+            <Setter Property="Stroke" Value="{ThemeResource SystemFillColorSuccessBackgroundBrush}" />
+        </Style>
+        <Style x:Key="CautionRingStyle" TargetType="Ellipse">
+            <Setter Property="Stroke" Value="{ThemeResource SystemFillColorCautionBackgroundBrush}" />
+        </Style>
+        <Style x:Key="CriticalRingStyle" TargetType="Ellipse">
+            <Setter Property="Stroke" Value="{ThemeResource SystemFillColorCriticalBackgroundBrush}" />
+        </Style>
+        <Style x:Key="OffRingStyle" TargetType="Ellipse">
+            <Setter Property="Stroke" Value="{ThemeResource ControlStrokeColorDefaultBrush}" />
+        </Style>
+        <Style x:Key="LabelTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="SecondaryTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Padding="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- ============================================================ board head -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" MinWidth="0">
+                <TextBlock
+                    x:Name="BoardHeading"
+                    Style="{StaticResource SubtitleTextBlockStyle}"
+                    Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                    Text="Servers" />
+                <TextBlock
+                    x:Name="BoardDescription"
+                    MaxWidth="720"
+                    Margin="0,4,16,0"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    FontSize="14"
+                    LineHeight="20"
+                    TextWrapping="Wrap"
+                    Text="Every MCP server your agents can reach. A jack lights the instant something calls it, and goes dark when the reaper closes the child. Nothing here is running because it was declared." />
+            </StackPanel>
+            <StackPanel Grid.Column="1" VerticalAlignment="Top" Spacing="4">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <!-- DEF-102: the one destructive verb this app sends the router. It stays
+                         disabled until a row is selected, and whether it asks first is
+                         "Confirm before removing a server" in Settings - read at the moment it is
+                         pressed, off the same file the Settings board writes. -->
+                    <Button
+                        x:Name="RemoveButton"
+                        Content="Remove server…"
+                        IsEnabled="False"
+                        Click="OnRemoveServerClicked" />
+                    <Button
+                        x:Name="ReapButton"
+                        Content="Reap idle"
+                        IsEnabled="False"
+                        Click="OnReapIdleClicked" />
+                    <Button
+                        x:Name="AddButton"
+                        Content="Add server…"
+                        Click="OnAddServerClicked"
+                        Style="{StaticResource AccentButtonStyle}" />
+                </StackPanel>
+                <!-- spec-WIN4 §3.4: the head's own reason line — the sighted channel for why
+                     Reap idle dims in place. §5 calls a reason discoverable when a disabled
+                     control still carries it on the accessibility plane AND the surface says it
+                     in its own words; the copy is ServersCopy.ReapIdleReason, set in
+                     code-behind, so one wording carries every channel. -->
+                <TextBlock
+                    x:Name="ReapReasonText"
+                    MaxWidth="420"
+                    HorizontalAlignment="Right"
+                    TextAlignment="Right"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    FontSize="12"
+                    TextWrapping="Wrap" />
+                <!-- What the removal did, in the board's own words. A destructive action that
+                     leaves no mark on the surface that took it is indistinguishable from one that
+                     never happened - and when confirmation is off, this line is the only trace. -->
+                <TextBlock
+                    x:Name="RemoveOutcomeText"
+                    MaxWidth="420"
+                    HorizontalAlignment="Right"
+                    TextAlignment="Right"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    FontSize="12"
+                    TextWrapping="Wrap"
+                    Visibility="Collapsed" />
+            </StackPanel>
+        </Grid>
+
+        <!-- ============================================================ states / content -->
+        <ScrollViewer
+            x:Name="BoardScroll"
+            Grid.Row="1"
+            HorizontalScrollBarVisibility="Disabled"
+            VerticalScrollBarVisibility="Auto">
+            <Grid>
+                <!-- Loading is a skeleton with the actual Signal Path and row geometry, never a
+                     spinner over a blank pane. It is the only visible state before a poll answers. -->
+                <StackPanel x:Name="LoadingPanel" Visibility="Collapsed" Spacing="12">
+                    <Border
+                        Padding="12"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8">
+                        <StackPanel Spacing="10">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                FontSize="14"
+                                Text="Connecting to the router…" />
+                            <Grid Height="44">
+                                <Rectangle
+                                    Fill="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                    RadiusX="4"
+                                    RadiusY="4" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                    <Border
+                        Height="56"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8" />
+                    <Border
+                        Height="56"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8" />
+                </StackPanel>
+
+                <!-- No poll has ever answered. The action that would start a daemon is present but
+                     disabled with its reason: WIN23 owns lifecycle and a dead button is worse than
+                     a dimmed one that explains itself. -->
+                <StackPanel x:Name="DisconnectedPanel" Visibility="Collapsed" Spacing="12" MaxWidth="620" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="32">
+                    <Ellipse
+                        Width="28"
+                        Height="28"
+                        HorizontalAlignment="Left"
+                        Fill="{ThemeResource SystemFillColorCriticalBrush}" />
+                    <TextBlock
+                        x:Name="ErrorHeadline"
+                        Style="{StaticResource SubtitleTextBlockStyle}"
+                        Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                        Text="The router isn't running" />
+                    <TextBlock
+                        x:Name="ErrorEndpoint"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        FontFamily="Consolas"
+                        FontSize="12"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        x:Name="ErrorAdvice"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        FontSize="14"
+                        TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button
+                            x:Name="RetryButton"
+                            Content="Try again"
+                            Click="OnRetryClicked"
+                            Style="{StaticResource AccentButtonStyle}" />
+                        <Button
+                            x:Name="StartButton"
+                            Content="Start the router"
+                            IsEnabled="False" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Empty is data, not an unbuilt board: one sentence, one action. -->
+                <StackPanel x:Name="EmptyPanel" Visibility="Collapsed" Spacing="12" MaxWidth="620" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="32">
+                    <FontIcon
+                        FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                        FontSize="32"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Glyph="&#xE774;" />
+                    <TextBlock
+                        Style="{StaticResource SubtitleTextBlockStyle}"
+                        Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                        Text="No servers adopted yet" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        FontSize="14"
+                        TextWrapping="Wrap"
+                        Text="MCP Router has not taken over any harness configurations yet. A server added here is indexed once, and every session is handed the same endpoint." />
+                    <Button
+                        x:Name="EmptyAddButton"
+                        Content="Add one by hand…"
+                        Click="OnAddServerClicked"
+                        HorizontalAlignment="Left"
+                        Style="{StaticResource AccentButtonStyle}" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        FontSize="12"
+                        TextWrapping="Wrap"
+                        Text="Nothing is written until the router accepts the server." />
+                </StackPanel>
+
+                <!-- ======================================================== populated / stale -->
+                <StackPanel x:Name="ContentPanel" Visibility="Collapsed" Spacing="12">
+                    <Border
+                        x:Name="StaleBanner"
+                        Visibility="Collapsed"
+                        Padding="10,8"
+                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                        BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4">
+                        <TextBlock
+                            x:Name="StaleText"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            FontSize="14"
+                            TextWrapping="Wrap" />
+                    </Border>
+
+                    <Border
+                        x:Name="PartialBanner"
+                        Visibility="Collapsed"
+                        Padding="10,8"
+                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                        BorderBrush="{ThemeResource SystemFillColorCautionBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4">
+                        <TextBlock
+                            x:Name="PartialText"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            FontSize="14"
+                            TextWrapping="Wrap" />
+                    </Border>
+
+                    <!-- SIGNATURE: the Signal Path. It is deliberately drawn from Borders,
+                         Ellipses and an adaptive Grid rather than represented by a stock graph or
+                         a table column. -->
+                    <Border
+                        x:Name="SignalPathCard"
+                        Padding="12"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8">
+                        <StackPanel Spacing="10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                    FontSize="14"
+                                    FontWeight="SemiBold"
+                                    Text="Signal path" />
+                                <TextBlock
+                                    x:Name="TopologyText"
+                                    Grid.Column="1"
+                                    Margin="16,0,16,0"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    FontFamily="Consolas"
+                                    FontSize="12"
+                                    TextTrimming="CharacterEllipsis" />
+                                <StackPanel
+                                    x:Name="LegendPanel"
+                                    Grid.Column="2"
+                                    Orientation="Horizontal"
+                                    Spacing="10" />
+                            </Grid>
+                            <Grid x:Name="SignalRail" ColumnSpacing="9" MinHeight="120">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="188" />
+                                    <ColumnDefinition Width="20" />
+                                    <ColumnDefinition Width="76" />
+                                    <ColumnDefinition Width="20" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel x:Name="HarnessesPanel" Grid.Column="0" Spacing="5" />
+                                <!-- The flow arrow is drawn rather than gambled on a codepoint:
+                                     §13 prefers an authored mark where no certain Fluent glyph
+                                     fits, and this is the design of record's #i-arrow-r. -->
+                                <Grid
+                                    Grid.Column="1"
+                                    Width="20"
+                                    Height="12"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                    <Rectangle
+                                        Height="1.4"
+                                        VerticalAlignment="Center"
+                                        Margin="0,0,5,0"
+                                        Fill="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <Polygon
+                                        Points="0,0 6,6 0,12"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Center"
+                                        Fill="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Grid>
+                                <Border
+                                    Grid.Column="2"
+                                    Padding="6"
+                                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                    BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="4"
+                                    VerticalAlignment="Center">
+                                    <StackPanel>
+                                        <TextBlock
+                                            Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                            FontSize="14"
+                                            FontWeight="SemiBold"
+                                            Text="Router" />
+                                        <TextBlock
+                                            x:Name="EndpointText"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            FontFamily="Consolas"
+                                            FontSize="12"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <TextBlock
+                                            x:Name="AtRestText"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            FontFamily="Consolas"
+                                            FontSize="12"
+                                            TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Border>
+                                <Grid
+                                    Grid.Column="3"
+                                    Width="20"
+                                    Height="12"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                    <Rectangle
+                                        Height="1.4"
+                                        VerticalAlignment="Center"
+                                        Margin="0,0,5,0"
+                                        Fill="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <Polygon
+                                        Points="0,0 6,6 0,12"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Center"
+                                        Fill="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Grid>
+                                <Grid
+                                    x:Name="JackGrid"
+                                    Grid.Column="4"
+                                    VerticalAlignment="Center"
+                                    ColumnSpacing="9"
+                                    RowSpacing="9"
+                                    MinHeight="44" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border
+                        x:Name="HeldBand"
+                        Visibility="Collapsed"
+                        Padding="10,8"
+                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                        BorderBrush="{ThemeResource SystemFillColorCautionBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" MinWidth="0">
+                                <TextBlock
+                                    x:Name="HeldBandTitle"
+                                    Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                    FontSize="14"
+                                    FontWeight="SemiBold"
+                                    TextTrimming="CharacterEllipsis" />
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    FontSize="12"
+                                    Text="Nothing calls a held tool until you have read the diff."
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                            <Button
+                                x:Name="ReviewChangesButton"
+                                Grid.Column="1"
+                                Margin="12,0,0,0"
+                                Content="Review changes…"
+                                Click="OnReviewChangesClicked" />
+                        </Grid>
+                    </Border>
+
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Text="All servers" />
+                    <Border
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8">
+                        <StackPanel>
+                            <Grid Padding="12,8" Background="{ThemeResource SubtleFillColorSecondaryBrush}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.6*" />
+                                    <ColumnDefinition Width="1*" />
+                                    <ColumnDefinition Width="0.6*" />
+                                    <ColumnDefinition Width="1.6*" />
+                                    <ColumnDefinition Width="0.8*" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="12" Text="Server" />
+                                <TextBlock Grid.Column="1" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="12" Text="Transport" />
+                                <TextBlock Grid.Column="2" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="12" TextAlignment="Right" Text="Tools" />
+                                <TextBlock Grid.Column="3" Margin="12,0,0,0" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="12" Text="State" />
+                                <TextBlock Grid.Column="4" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="12" TextAlignment="Right" Text="Calls" />
+                                <TextBlock Grid.Column="5" Margin="12,0,0,0" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="12" Text="Last call" />
+                            </Grid>
+                            <StackPanel x:Name="ServerTable" />
+                        </StackPanel>
+                    </Border>
+                    <TextBlock
+                        x:Name="DormantCallout"
+                        Visibility="Collapsed"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        FontSize="12"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

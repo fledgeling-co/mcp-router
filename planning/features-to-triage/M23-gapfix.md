@@ -1,3 +1,7 @@
+---
+registry-target: none
+no-target-reason: a gap-fix verdict against parent M23, the mock-to-SwiftUI conversion contract, about three rows that would let a future surface reach exit 0. Its subject is the contract's own gate; CASE-0185 mentions M23 in passing while being a document-panel case, which is a mention and not a subject. Read against the registry 2026-09-03, we4.
+---
 # M23 gap-fix — three rows that would let a future surface reach exit 0
 
 **Parent:** M23, the mock-to-SwiftUI conversion contract (`M23-mock-to-swiftui-contract.md`).

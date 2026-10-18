@@ -1,0 +1,72 @@
+{
+  "lane": "win23-logon-task-witness",
+  "rung": "effect-witness",
+  "subject": "MCPRouter.Shell.Live.Lifecycle.LogonTaskSupervisor",
+  "writer": "schtasks.exe /Create /XML, driven by the shipped supervisor",
+  "recorder": "Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)",
+  "recorderIsNotWriter": true,
+  "taskName": "\\MCPRouter\\WIN23 Witness (transient)",
+  "verdict": "PASS (armed)",
+  "reason": "the planted defect - supervision turned off - broke EFFECT.restart and nothing else. The restart assertion is watching the scheduler and not restating the config.",
+  "arms": [
+    {
+      "id": "BASELINE",
+      "what": "the recorder reports no such task before registration",
+      "held": true,
+      "detail": "nothing registered - the arms below measure this run"
+    },
+    {
+      "id": "EFFECT.present",
+      "what": "the recorder reports the task present after registration",
+      "held": true,
+      "detail": "state=Ready"
+    },
+    {
+      "id": "EFFECT.logon",
+      "what": "the trigger is a logon trigger",
+      "held": true,
+      "detail": "triggers: MSFT_TaskLogonTrigger"
+    },
+    {
+      "id": "EFFECT.unelevated",
+      "what": "the principal runs un-elevated",
+      "held": true,
+      "detail": "RunLevel=Limited, LogonType=Interactive"
+    },
+    {
+      "id": "EFFECT.restart",
+      "what": "the task carries both halves of the restart claim",
+      "held": false,
+      "detail": "RestartCount=0, RestartInterval=, trigger Repetition=<none>"
+    },
+    {
+      "id": "EFFECT.action",
+      "what": "the action is the executable and port this run asked for",
+      "held": true,
+      "detail": "Execute=C:\\Dev\\mcp-router\\.worktrees\\wc3-witness-blockers\\app\\windows\\MCPRouter.Shell.Live\\win23-witness-daemon.exe Arguments=--port 8890"
+    },
+    {
+      "id": "REMOVAL",
+      "what": "the supervisor removes what it registered",
+      "held": true,
+      "detail": "schtasks /Delete exit 0"
+    },
+    {
+      "id": "SILENCE",
+      "what": "the recorder reports absence once the task is gone",
+      "held": true,
+      "detail": "the recorder can say no, so its yes above was a reading"
+    }
+  ],
+  "armsHeld": 7,
+  "armsTotal": 8,
+  "notMeasured": [
+    "that the trigger fires at the next logon - this lane does not log the user out, and DEF-081 keeps it",
+    "that a killed daemon is restarted - this lane does not start or kill one; scripts/windows/win23-restart-witness.ps1 does, and does"
+  ],
+  "notes": [
+    "ARMING RUN: registered with RestartOnCrash false. EFFECT.restart is REQUIRED to break and every other arm is required to hold. A run in this mode that reports PASS has shown the restart assertion cannot fail, which is a defect in this lane and not in the product."
+  ],
+  "host": "Z13",
+  "psVersion": "7.6.5"
+}

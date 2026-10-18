@@ -1,8 +1,8 @@
 ---
-status: to-triage
+status: in-progress
 found-by: reckon 1.7.0, 2026-08-29
+checked-2026-09-03-wc1: the work IS on main - e5e5f59d, merged at df40b0aa; `planning/test-campaign/bin/glass-build-gate.py` exists and its selftest runs in `make lint`. It stays in-progress CORRECTLY: CASE-0353 - does every committed piece of macos-glass evidence name the build it was taken from - is `fail`, because the gate is red over all 56 artifacts on the tree it shipped on and the finding is true. The instrument landed; the condition it measures has not been fixed. A terminal word here would be R6's exact failure.
 ---
-
 # Committed glass evidence outlives the build it was taken from, and nothing goes red when it does
 
 - origin: reckon 1.7.0, `DEF-058` and `DEF-059` with `CASE-0001`, `CASE-0016`, `CASE-0101`,
@@ -50,3 +50,49 @@ assertion is the instrument that found this.
   re-capturing and correcting assertions rather than changing the app.
 - Assuming this is separate from the resolved re-anchoring brief, which re-measured the campaign once;
   this is the mechanism that would have made the re-measurement unnecessary.
+
+## What landed, and what is still owed
+
+**The mechanism is in; the re-capture is not, and the two halves must not be read as one.**
+
+`planning/test-campaign/bin/glass-build-gate.py` binds every artifact the `macos-glass` lane cites to
+the build it was taken from. The identity is the git blob identity of the Mac app's own build
+inputs — `app/MCPRouter`, `app/Sources/MCPRouterKit`, `app/Sources/MCPRouterUI`, `app/project.yml`,
+`app/Package.swift`, `app/Package.resolved` — the set `scripts/acceptance/build-freshness.sh`
+compiles from, read out of that file rather than copied, so a Mac input added there and missed here
+fails as INPUT DRIFT instead of quietly narrowing every verdict below it. Blob ids are line-ending
+normalised, so the verdict is the same on macOS and on Windows for one commit.
+
+It is RED on this tree, over all 56 artifacts in 7 capture groups spanning 20-29 Aug, and the finding
+is true: `evidence/runs/glass-build-gate.log`, exit 2. `CASE-0342` carries it, failing.
+
+Going forward the stamp is written by the capture channel rather than reconstructed:
+`bin/capture-mac-glass.sh` now calls `glass-build-gate.py --emit` in the run that takes the pictures,
+recording the bundle's own `CFBundleShortVersionString` and `CFBundleVersion` and the
+`sources`/`binary` digests from `.mcprouter-build-stamp`, which the Makefile writes only after
+`xcodebuild` exits 0. The rows committed today are marked `reconstructed-from-git` and are
+deliberately the weaker claim — git can prove which commit last wrote each artifact, so a
+reconstructed row establishes the build the evidence CANNOT BE NEWER THAN rather than the build it
+came from.
+
+Watched both ways, because this gate is red on the tree it ships on and its green cannot be observed
+by running it: `evidence/runs/glass-build-gate.selftest.log` — green over a capture stamped with the
+current tree, red over a stale one, red over one no record covers, red over a row that cannot be
+dated. `make lint` runs the selftest; `make glass-build` runs the gate, and it stays out of `lint`
+and `all` for the reason `role-intersection` does, so a standing red does not get softened inside a
+week.
+
+**Owed, and owned by a macOS host with Xcode and a display server.** None of this was possible on the
+Windows host the work was done on — no Swift toolchain, no `xcodebuild`, no display server:
+
+1. The re-capture itself. `CASE-0001`, `CASE-0016`, `CASE-0101` and `CASE-0111` stay `fail` and each
+   carries an `owed` block naming the re-capture, its owner and what blocks it. No assertion, stamp
+   or recorded identity was edited to restore a green; the stale assertion is the instrument.
+2. `SURF-011` still has no route to the Settings SCENE — `axkit select Settings` has failed since M15
+   and `bin/capture-mac-glass.sh` correctly withholds the photograph rather than filing a
+   neighbouring board under it. `DEF-059`.
+3. `SURF-001`'s menu map, to be re-read from `Destination.selectionDigit` rather than by hand.
+   `DEF-058` §1.
+4. The acceptance line "a green glass lane can state the age of the evidence behind it, in a place a
+   reader meets before the verdict" is not delivered. The gate prints the age; `evidence.html` does
+   not yet carry it.

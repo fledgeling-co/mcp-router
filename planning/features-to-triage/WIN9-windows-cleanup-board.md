@@ -1,10 +1,9 @@
 ---
 status: to-triage
 found-by: intake, parity target for SURF-007 · 2026-08-30
-registry-target: none
-no-target-reason: SURF-007 registers the macOS Cleanup board and the registry holds no Windows equivalent, so no recorded case could witness the Windows one
+reckon-sources: [SURF-036]
+target-note: SURF-036 `Windows Cleanup board` carries `note: WIN9.`; the row did not exist when the `none` was declared on 2026-08-30.
 ---
-
 # The Windows Cleanup board — states its window, and never calls anything rubbish
 
 - origin: owner directive, 2026-08-30; parity target for the Mac Cleanup board

@@ -1,0 +1,33 @@
+R21 — the node reference's approve route against a refused manifest write
+  home C:\Users\rhode\AppData\Local\Temp\r21-approve-fzjCUJ
+
+2026-09-03T04:20:57.837Z info  approved "fixture"'s new tool surface (2 tools)
+  as expected  BASELINE — a writable home
+      status 200
+      body   {"server":"fixture","approved":2}
+      manifest.json still holds "pending": false
+  as expected  EFFECT — the save's temp path occupied by a directory
+      status 500
+      body   {"error":"EISDIR: illegal operation on a directory, open 'C:\\Users\\rhode\\AppData\\Local\\Temp\\r21-approve-fzjCUJ\\manifest.json.tmp-20500'"}
+      manifest.json still holds "pending": true
+2026-09-03T04:20:57.843Z info  approved "fixture"'s new tool surface (2 tools)
+  as expected  SILENCE — the occupation removed
+      status 200
+      body   {"server":"fixture","approved":2}
+      manifest.json still holds "pending": false
+
+  WHAT THE REFERENCE ANSWERS WHEN THE WRITE IS REFUSED
+    status 500
+    body   {"error":"EISDIR: illegal operation on a directory, open 'C:\\Users\\rhode\\AppData\\Local\\Temp\\r21-approve-fzjCUJ\\manifest.json.tmp-20500'"}
+
+  AGAINST THE SWIFT PORT, WHICH THIS LANE CANNOT RUN. `swift` and `xcodebuild` are
+  absent on this machine, so the Swift side below is READ, not measured:
+    AuthRoutes.swift:176 at `42aef112`, reads "failed to write manifest"
+      - catches the save and returns
+      (500, {"error": "failed to write manifest: <error.localizedDescription>"})
+    control.ts:602 at `42aef112`, reads "as Error).message"
+      - catches it and returns
+      (500, {"error": "<err.message>"})
+    The STATUS agrees. The BODY does not: the port prefixes a sentence of its own.
+
+exit: 0

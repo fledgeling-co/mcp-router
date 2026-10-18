@@ -1,0 +1,27 @@
+# What a person reads in `winget show Fledgeling.MCPRouter` before deciding to install.
+PackageIdentifier: Fledgeling.MCPRouter
+PackageVersion: 0.1.0
+PackageLocale: en-US
+Publisher: Fledgeling
+PublisherUrl: https://github.com/fledgeling-co
+PackageName: MCP Router
+License: Proprietary
+ShortDescription: Routes Model Context Protocol servers to the harnesses on this machine.
+Description: |-
+  MCP Router keeps one list of Model Context Protocol servers and serves it to every harness on the
+  machine, so a server added once is available everywhere rather than configured per tool.
+Tags:
+- mcp
+- developer-tools
+# The SmartScreen disclosure, carried where somebody deciding to install will actually meet it
+# rather than only in PackagingPresentation.SmartScreenNotice. The witness lane asserts this field
+# holds that constant's substance, so the two cannot drift into saying different things about what
+# a first launch looks like.
+ReleaseNotes: |-
+  Unsigned developer builds trigger Windows SmartScreen warnings on first launch. Official releases
+  are code-signed and distributed via winget.
+
+  Uninstalling removes the client binaries while preserving %USERPROFILE%\.claude\mcp-router
+  configuration and credentials unless explicitly purged.
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

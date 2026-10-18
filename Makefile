@@ -955,6 +955,62 @@ build-router-release:
 ## because a zero from an instrument that cannot see the defect is not a measurement. A run in
 ## which no raster case resolved to `pass` exits 3 rather than reporting clean.
 
+## `effect-class-vocabulary-gate.py` (`WE3`) is the sibling of `defect-status-vocabulary-gate.py`
+## one axis over, and it exists because the failure it catches is SILENT AND GREEN.
+##
+## An effect class outside `campaign.py`'s closed `EFFECT_CLASSES` does not fail the census -- it
+## drops out of the population. Measured on this tree by planting `outbound-sockett`, one letter,
+## on `REQ-016`: `vacuity-check.py --gate` went from `uncensused: examined=17 findings=1` to
+## `examined=16 findings=0`. The typo did not produce a finding; it took a requirement off the
+## list of things anybody has to prove, and the census got GREENER.
+##
+## R1 is blocking and covers the 44 requirements. R2 is a RATCHET over cases, because 31 of the
+## 49 cases naming a `witness.effect` name a class the vocabulary does not carry -- `machine-state`
+## x25, `file` x2, and `os-record`, `process`, `notification`, `ui-state`. They are not a spelling
+## accident and are deliberately not remapped: `process` over `Get-ScheduledTaskInfo` is a rename,
+## but `machine-state` over *"the router's own /servers listing, read over the control API"* is a
+## recorder INSIDE the product, and whether that case belongs at `effect-witness` is a judgement
+## about the case rather than about a word. Picking the nearest legal spelling for all 31 would
+## turn 31 rows green while answering neither question. Filed as `DEF-502`; the ratchet holds the
+## exact roster, so a 32nd row fails and a row leaving it lowers the floor.
+##
+## `campaign.py check` does compute this and cannot report it: its line reads `40 effect-witness
+## claim(s) with no recorder, no effect class, or a count of zero` and then caps the detail at
+## twelve lines, which on this campaign are twelve lines about four cases with missing recorders.
+## All 31 class findings are inside that 40 and none is printed.
+##
+## The vocabulary is parsed out of `vendor/test-campaign/.../campaign.py` under a recorded
+## SHA-256 rather than copied here, so this file cannot become a third vocabulary; a re-vendor
+## that moves the tuple exits 2 NOT COMPARED. Watched: R1 red on the planted letter and green on
+## revert, R2 red at floor 0 and green at floor 31, transcript in
+## `planning/evidence/WE3/effect-class-vocabulary-gate.baseline.txt`.
+
+## `mock-exclusion-gate.py` (`WE3`) runs here because the defect it closes is one no gate in
+## `lint` could see: it lived in the gap BETWEEN this repository's declarations and the pinned
+## instrument's, and every gate on either side of that gap was green while it stood.
+##
+## `attach-shots.py` and `capture-lineage.py` both drop an image with a directory part named
+## EXACTLY `mock` before matching -- the instrument's own guard against publishing a render of the
+## design as a photograph of the build. This repository kept its hi-dpi renders at
+## `evidence/shots/mock-hidpi/`, which is not that name, so both tools walked them. Measured on
+## `5934c38f` with the pinned 0.9.2: `attach-shots.py --apply --filename-only` attached
+## **SURF-009** to `evidence/shots/mock-hidpi/SURF-009.full.png`, a render of the DESIGN, because
+## SURF-009 is the one surface with a design of record and no build capture (`DEF-051`) and
+## nothing outranked it. The other ten were saved by sort order that does not hold across
+## platforms. The renders now live under `evidence/shots/mock/hidpi/`, inside the guard.
+##
+## What runs here is not a check that the directory has that name. It is the equality the rename
+## restored: the set `capture-manifest.py` excludes as a render of the DESIGN, and the set the
+## vendored rule refuses to attach, must be the same set (R2 and R3, the two directions). Both
+## sides are read rather than copied -- `MOCK_DIRS` by import, the exclusion line out of
+## `vendor/test-campaign/` under a recorded SHA-256 -- so a re-vendor that moves the rule exits 2
+## NOT COMPARED rather than asserting yesterday's rule, and the pin is a digest rather than a
+## `HEAD:` comparison, which is what `DEF-443` turned into a self-comparison on merge.
+##
+## Watched to fail before it passed: 11 findings against the tree as it stood, one per render;
+## green after; and the R1 pin refused a copy of the instrument with its exclusion line altered.
+## Transcript at `planning/evidence/WE3/mock-exclusion-gate.baseline.txt`.
+
 ## `forced-state-assert.py --control` (`J5`) is in `lint` for the reason its own lane cannot be.
 ##
 ## `planning/test-campaign/bin/forced-state.sh` starts a real router, drives the built Debug app
@@ -1009,17 +1065,29 @@ lint: tools
 	python3 planning/null-run-gate.py || fail=1; \
 	python3 planning/py39-annotation-gate.py || fail=1; \
 	python3 planning/citation-gate.py || fail=1; \
+	python3 planning/ledger-reconcile.py || fail=1; \
 	python3 planning/sweep-control-gate.py || fail=1; \
 	python3 planning/scope-invariance-gate.py --quiet || fail=1; \
 	python3 planning/instrument-census.py || fail=1; \
 	python3 planning/runnable-path-gate.py || fail=1; \
 	bash planning/hooks/install.sh --gate || fail=1; \
 	python3 planning/registry-drop-gate.py || fail=1; \
+	python3 planning/defect-status-vocabulary-gate.py || fail=1; \
+	python3 planning/defect-status-vocabulary-gate.py --selftest || fail=1; \
+	python3 planning/effect-provider-gate.py || fail=1; \
+	python3 planning/effect-provider-gate.py --selftest || fail=1; \
+	python3 planning/design-divergence-marker-gate.py || fail=1; \
+	python3 planning/test-campaign/bin/sidebar-foot-arm.py || fail=1; \
 	python3 planning/evidence-citation-gate.py || fail=1; \
 	python3 planning/foreign-path-gate.py --quiet || fail=1; \
 	python3 planning/target-resolution-gate.py --quiet || fail=1; \
 	python3 planning/test-campaign/bin/capture-manifest.py || fail=1; \
+	python3 planning/test-campaign/bin/glass-build-gate.py --selftest || fail=1; \
 	python3 planning/test-campaign/bin/raster-claim-gate.py || fail=1; \
+	python3 planning/mock-exclusion-gate.py || fail=1; \
+	python3 planning/mock-exclusion-gate.py --selftest || fail=1; \
+	python3 planning/effect-class-vocabulary-gate.py || fail=1; \
+	python3 planning/effect-class-vocabulary-gate.py --selftest || fail=1; \
 	python3 planning/test-campaign/bin/forced-state-assert.py --control || fail=1; \
 	python3 planning/test-campaign/bin/effect-class-census.py --control || fail=1; \
 	python3 planning/test-campaign/bin/effect-class-census.py || fail=1; \
@@ -1032,6 +1100,30 @@ lint: tools
 	python3 planning/carrier-parity-gate.py || fail=1; \
 	zsh app/Scripts/pool-mutation-gate-selftest.sh || fail=1; \
 	exit $$fail
+
+## Does the committed glass evidence still depict the build this tree would produce?
+##
+## `macos-glass` was green for seven days over pictures taken from a build that predates M22,
+## because a committed capture recorded everything about itself except WHICH BUILD IT CAME FROM.
+## `glass-build-gate.py` binds each artifact to the git blob identity of the Mac app's own build
+## inputs -- the set `scripts/acceptance/build-freshness.sh` compiles from -- and goes red when
+## that identity is not the one the lane is being read against. Blob ids are line-ending
+## normalised, so the verdict is the same on macOS and on Windows.
+##
+## OUT OF `lint` AND OUT OF `all`, for the same reason `role-intersection` is: it is standing red
+## on this tree and the finding is true. Every glass artifact was captured before M22, the
+## re-capture needs a macOS host with Xcode and a display server, and wiring a permanent red into
+## `all` would mean softening it inside a week. What IS in `lint` is `--selftest`, which watches
+## all four arms move: green over a capture stamped with the current tree, red over a stale one,
+## red over one no record covers, and red over a row that cannot be shown to predate its own
+## manifest. The gate joins `all` when `bin/capture-mac-glass.sh` has re-run on a macOS host and
+## its `--emit` has replaced the reconstructed stamps with capture-time ones.
+##
+## Exit codes: 0 every artifact names the build it depicts and that build is this one, 2 findings.
+glass-build:
+	@python3 planning/test-campaign/bin/glass-build-gate.py; ec=$$?; \
+	echo "glass-build: exit $$ec  (0 current · 2 evidence outlived its build)"; \
+	exit 0
 
 ## The cross-branch role-intersection check (`G8`). Not in `all` — see the note above `all` for
 ## why a standing exit 3 stays out of it. Two controls run on every invocation and print above the

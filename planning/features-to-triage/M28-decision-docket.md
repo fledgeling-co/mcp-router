@@ -266,3 +266,26 @@ and DEF-033 needs nothing. What each answer became — R21 and G5 — is ordinar
 ### 5 · DEF-033 — unchanged
 
 Stays open and unexplained on purpose. Nothing to decide, nothing proposed.
+
+
+---
+
+## WE3 NOTE, 2026-09-03 — one of this docket's five findings moved; the other four are not this runner's.
+
+M28 was scheduled as a row naming a vendored script, and it is not one: it is a docket of
+decisions, and it names `test-campaign` only because DEF-057 is among its citations. The
+adjudication owed here is therefore per-citation.
+
+**DEF-057 — re-measured, and its headline has changed shape.** The claim "the code is in this
+repository at no path, so no runner can fix it" has stopped being true: `vendor/test-campaign`
+carries 0.9.2 as of G5. The blocker did not lift, it moved — the code is present and pinned by
+checksum, which is a different refusal with a different remedy. Three versions are now reachable
+and no two agree (0.9.2 vendored, 0.5.0/0.6.0 in the submodule and self-contradicting, 0.16.0–0.17.0
+in the machine cache, 0.14.1 having produced the published numbers). The full measurement is in
+DEF-057's `resolution`, and the submodule's self-contradiction is filed as **DEF-500**.
+
+**DEF-008, DEF-033, DEF-042 and DEF-049 were not touched.** They are other runners' members in
+this wave and adjudicating them from here would be a claim about work this session cannot see.
+This row stays open on them.
+
+Status word not changed, and R6 would refuse one anyway while four of the five citations are open.

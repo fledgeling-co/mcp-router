@@ -22,7 +22,7 @@
         1360
       ],
       "designCropFrom": {
-        "image": "evidence/shots/mock-hidpi/SURF-002.full.png",
+        "image": "evidence/shots/mock/hidpi/SURF-002.full.png",
         "box": [
           60,
           330,
@@ -58,7 +58,7 @@
         1360
       ],
       "designCropFrom": {
-        "image": "evidence/shots/mock-hidpi/SURF-003.full.png",
+        "image": "evidence/shots/mock/hidpi/SURF-003.full.png",
         "box": [
           60,
           330,
@@ -94,7 +94,7 @@
         1360
       ],
       "designCropFrom": {
-        "image": "evidence/shots/mock-hidpi/SURF-004.full.png",
+        "image": "evidence/shots/mock/hidpi/SURF-004.full.png",
         "box": [
           60,
           330,
@@ -130,7 +130,7 @@
         1360
       ],
       "designCropFrom": {
-        "image": "evidence/shots/mock-hidpi/SURF-005.full.png",
+        "image": "evidence/shots/mock/hidpi/SURF-005.full.png",
         "box": [
           60,
           330,
@@ -166,7 +166,7 @@
         1360
       ],
       "designCropFrom": {
-        "image": "evidence/shots/mock-hidpi/SURF-006.full.png",
+        "image": "evidence/shots/mock/hidpi/SURF-006.full.png",
         "box": [
           60,
           330,
@@ -202,7 +202,7 @@
         1360
       ],
       "designCropFrom": {
-        "image": "evidence/shots/mock-hidpi/SURF-007.full.png",
+        "image": "evidence/shots/mock/hidpi/SURF-007.full.png",
         "box": [
           60,
           330,
@@ -238,7 +238,7 @@
         1360
       ],
       "designCropFrom": {
-        "image": "evidence/shots/mock-hidpi/SURF-008.full.png",
+        "image": "evidence/shots/mock/hidpi/SURF-008.full.png",
         "box": [
           60,
           330,
@@ -274,7 +274,7 @@
         1360
       ],
       "designCropFrom": {
-        "image": "evidence/shots/mock-hidpi/SURF-011.full.png",
+        "image": "evidence/shots/mock/hidpi/SURF-011.full.png",
         "box": [
           60,
           330,

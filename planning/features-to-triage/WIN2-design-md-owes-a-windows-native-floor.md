@@ -2,9 +2,8 @@
 status: completed
 found-by: intake, reading DESIGN.md section 3 against the directive's "modern windows 11 aesthetic" · 2026-08-30
 registry-target: none
-no-target-reason: the design authority's native floor is macOS-only and no requirement, case or surface in the registry describes a Windows one, so the registry cannot say whether a Windows surface conforms
+no-target-reason: the registry has since gained nineteen Windows rows, so the original reason - that no Windows surface exists to judge - is no longer true. It is still true that no requirement, case or surface records a Windows NATIVE FLOOR against which a Windows surface could be called conformant or defective; the Windows surface rows carry control lists, not a conformance standard. Corrected 2026-09-03, we4.
 ---
-
 # DESIGN.md has no Windows native floor, so no Windows surface can be judged conformant or defective
 
 - origin: intake, 2026-08-30, reading DESIGN.md section 3 against the owner's directive

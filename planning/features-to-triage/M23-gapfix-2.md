@@ -1,3 +1,7 @@
+---
+registry-target: none
+no-target-reason: a gap-fix verdict against parent M23, about asserting the property rather than the route in the conversion contract's arms. Gate machinery; the registry's only `M23` mention is CASE-0185's passing note. Read against the registry 2026-09-03, we4.
+---
 # M23 gap-fix, second pass — assert the property, not the route
 
 **Parent:** M23, the mock-to-SwiftUI conversion contract.

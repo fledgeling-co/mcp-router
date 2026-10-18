@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    The Activity board's router client, deliberately plain net8.0 with no WinUI reference.
+
+    The reference machine cannot host a XAML window from the session that runs the gates
+    (spec-WIN3 §7 gap 1), so every claim this library makes about the wire - the SSE framing,
+    the record shape, the reconnect ladder, the pause window - has to be checkable by a test
+    that needs no display. Keeping the client out of the WinUI project is what makes that
+    possible; the same reasoning split MCPRouter.Shell.Model out in WIN3.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>MCPRouter.Shell.Live</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- DaemonLifecycleConfig and DaemonSupervisionKind live in the Model project. The
+         supervisor reads them rather than restating them, so a mode added there with no
+         implementation here is a compile error at the guard rather than a silent no-op
+         at runtime. -->
+    <ProjectReference Include="..\MCPRouter.Shell.Model\MCPRouter.Shell.Model.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- DecodeByMark and SaysAbsent are internal because nothing outside this assembly
+         should call them, and they are visible to the suite because they are the two
+         places a wrong answer is silent: a mis-decoded query reads as "no such task"
+         and an unrecognised refusal reads as the same. Making them public to test them
+         would put two decoding helpers on the supervisor's surface. -->
+    <InternalsVisibleTo Include="MCPRouter.Shell.Live.Tests" />
+  </ItemGroup>
+</Project>

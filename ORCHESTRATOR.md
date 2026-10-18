@@ -1309,8 +1309,10 @@ described, and it carries a ratchet.
 | W0 | WIN1 | Done. The framework call everything else inherits |
 | W1 | WIN2, WIN17, WIN18 | No internal dependencies. WIN18 gates every later item, WIN2 is what lets a Windows surface be judged at all, WIN17 is TypeScript and independent of the UI |
 | W2 | WIN3, WIN20 | The shell every board is drawn inside, and the automation plane that decides whether any of them can be measured |
-| W3 | WIN4-WIN11, WIN13-WIN16 | The thirteen surfaces. Each is one dispatchable item, and each inherits WIN2's floor and WIN3's shell |
-| W4 | WIN19, WIN21, WIN22, WIN23 | Cross-cutting, and each needs a surface to exist first |
+| W3 | WIN4-WIN11, WIN13-WIN16 | The twelve independent surfaces; WIN12 waits for WIN10 + WIN17. Each inherits WIN2's floor and WIN3's shell |
+| W4 | WIN12, WIN19, WIN21, WIN22, WIN23 | Cross-cutting; WIN12 needs WIN10 + WIN17, the others need their named surface(s) |
+
+**`W0`-`W4` above are wave labels, not allocation ids, and two of them collide with ones that are.** `W1` is *Secrets-at-rest inventory and dynamic token resolution bridge*, merged `b9ceec6`; `W2` is *Upstream token migration to the secrets broker*, merged `8f57217`. Both have rows in the item table below and in `LEDGER.md`. Until 2026-09-03 `ledger-reconcile.py` read this table's first column as allocations and reported `W0`, `W3` and `W4` as ids `LEDGER.md` had never heard of, and `W1`/`W2` as one id carrying two items. It now reads only tables whose first column is `ID` or the deferred register's `#`, so the labels are invisible to it — they are still ambiguous to a person, and renumbering them is not a reconciliation runner's call to make mid-fleet, because the dispatch prose above and the fleet's own records name the same labels.
 
 ### The exit condition for this fleet is not a drained ledger
 
@@ -1342,27 +1344,27 @@ does **not** change what any check reads, and must not be described as though it
 |---|---|---|---|---|---|---|---|---|
 | **WIN1** | Windows client framework - decided: WinUI 3 | windows | - | - | Opus | Done | decide/win1-framework | WinUI 3 chosen; dotnet build fails MSB4062, VS MSBuild.exe succeeds. Probes recorded in the brief |
 | **WIN2** | A Windows native floor in DESIGN.md | windows | - | design/mcp-router-console.html | Opus | Done | merged to main | verified PASS by an independent verifier that fetched seven cited sources and checked every quoted token verbatim. +481/-0, ten macOS rules intact. Two documentation notes: the carried-clause overclaim is fixed; the unmeasured disabled pairing is WIN24 |
-| **WIN17** | The router's five macOS assumptions | router | - | - | Opus | Gap-fix | ai/win17-gapfix | merged, verified NEEDS-WORK. Gap-fix dispatched wf_a5268148-5fe with D1 rounding, D2 event-loop blocking, G1 the launchd watcher, and rejected item 7. D3 already closed - the 37-check e2e is enrolled in the Windows lane |
-| **WIN18** | Windows build and verify lane | harness | WIN1 | - | Opus | Verifying | merged to main | merged. scripts/windows/verify.ps1 live: 8 passed / 0 failed / 5 not-run, exit 0. CONDUCTOR-AUTHORED, so nobody independent has reviewed it; verifier told to try to break it |
-| **WIN3** | Windows app shell | windows | WIN1, WIN2, WIN18 | design/mcp-router-console.html | Opus | Queued | - | NOT running. Barriered behind all three verifiers in wf_cc5f93f1-9a8 by a parallel() stage boundary; the journal shows 3 agents started, none of them this one |
-| **WIN20** | Windows automation plane for the campaign | windows | WIN1 | - | Opus | Queued | - | NOT running. Same barrier as WIN3 - it starts when the last verifier returns, not when the DAG allows |
-| **WIN4** | Servers board and the Signal Path | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | The signature element; drawn rather than a stock control. Geometry must be restated in effective pixels |
-| **WIN5** | Activity board | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | Live log over GET /usage/stream. Densest reading surface, so a direct test of the Windows palette |
-| **WIN6** | Skills board | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | Per-harness slots. Held-for-review is a security guarantee rather than a decoration |
-| **WIN7** | Discover board | windows | WIN3 | design/mocks/mac-surfaces.html | Opus | Blocked | - | Two bands never one list; no install affordance on a row |
-| **WIN8** | Checks board | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | A result belongs to the version it ran against. No model-graded evaluation exists in this product |
-| **WIN9** | Cleanup board | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | States its window; every row carries why it might still matter; re-checks upstream before offering removal |
-| **WIN10** | Inbox board and review sheet | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | The phone queues, it never installs. Review sheet is plain-language capability lines in the conditional |
-| **WIN11** | Ambient surface replacing the menu-bar popover | windows | WIN3 | design/mocks/mac-surfaces.html | Opus | Blocked | - | No Windows equivalent exists. A notification-area flyout is a candidate, not a decision |
-| **WIN12** | Pairing an iPhone to the Windows client | windows | WIN10, WIN17 | design/mocks/mac-surfaces.html | Opus | Blocked | - | Secret goes to Credential Manager, never a config file. A firewall prompt must not read as a broken product |
-| **WIN13** | Settings board | windows | WIN3, WIN2 | design/mcp-router-console.html | Opus | Blocked | - | Seven panes and the menu-bar pane renames. Biggest control-vocabulary gap: checkbox against toggle |
-| **WIN14** | Harnesses board | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | Most Windows-specific of the thirteen: everything it reads is a path, and the Windows harness inventory is unmeasured |
-| **WIN15** | Insights board | windows | WIN3 | design/mcp-router-console.html | Opus | Blocked | - | No figure without its denominator. Resident memory must be genuinely measured on Windows |
-| **WIN16** | Capability document panel and the update gate | windows | WIN6, WIN7, WIN10 | design/mcp-router-console.html | Opus | Blocked | - | Capability diff before content diff. The ordering is the guarantee |
-| **WIN19** | Windows packaging and distribution | windows | WIN3 | - | Opus | Blocked | - | proposed-by-ai. SmartScreen is the notarisation analogue; the unsigned path must be honest about what a user sees |
-| **WIN21** | Windows keyboard model | windows | WIN3, WIN20 | - | Opus | Blocked | - | proposed-by-ai. DESIGN.md s8 is macOS. Access keys, and the completeness rule 9 provided is lost |
-| **WIN22** | Toasts for waiting decisions | windows | WIN10, WIN11 | - | Opus | Blocked | - | proposed-by-ai. No toast action may install: that would move an irreversible decision into a transient surface |
-| **WIN23** | Router lifecycle on Windows | router | WIN17 | - | Opus | Blocked | - | proposed-by-ai. launchd has no Windows twin. Does the router outlive the client? A product question wearing infrastructure clothes |
+| **WIN17** | The router's five macOS assumptions | router | - | - | Opus | Done | merged to main | Fresh-context verifier PASS 2026-08-31: 56/0 e2e, tsc 0, Windows lane 22/0/4 on branch; merged 177a416d, carrier row repointed at landing merge cd0d3068. All 4 mutation arms fired and reverted |
+| **WIN18** | Windows build and verify lane | harness | WIN1 | - | Opus | Done | merged to main | Verified NEEDS-WORK (classifier could turn red green; 3 false Skip-Check; incomplete disclaimer). Repair landed 11894600. Lane now keys on reserved exit codes and runs all 24 portable python lint members. Cross-family not-run |
+| **WIN3** | Windows app shell | windows | WIN1, WIN2, WIN18 | design/mcp-router-console.html | Opus | Done | merged to main | Fresh-context verifier's only blocker was the repaired VS toolchain; post-rebase clean build-shell.ps1 -Clean 0, self-test 0 (10/12/44), dotnet test 173/0, lane 33/0/5. Three mutation arms fired; merged 031295c3 |
+| **WIN20** | Windows automation plane for the campaign | windows | WIN1 | - | Opus | Done | merged to main | Fresh-context verifier's machine-era blockers repaired; record corrected to 90/26 and API-error review marked NOT-RUN. Live probe lane 90/0/2, positive title 0 / negative 3, mutation arms fired; branch lane 26/0/4; merged 779e5eaf |
+| **WIN4** | Servers board and the Signal Path | windows | WIN3 | design/mcp-router-console.html | Opus | Done | merged to main | Merged 52505814 after gap fix verified: ReapIdleReason discoverable, 167ms KeySpline plug transition, JackPresentation plug tokens tested, 355 tests green |
+| **WIN5** | Activity board | windows | WIN3 | design/mcp-router-console.html | Opus | Done | merged to main | Merged cd961434 after verify PASS: Live stream client GET /usage/stream, 100 live tests, 355 shell tests, Export dialog, pause and resume |
+| **WIN6** | Skills board | windows | WIN3 | design/mcp-router-console.html | Opus | Done | ai/win6 | Merged 22afe57f after fresh-context verify PASS (223 tests, 3/3 mutation arms). Spec 3.4 offline copy + one BARE citation fixed on main (8d474784, a3e21d89). Full lane on merged tree re-running; WIN6-scoped gates green |
+| **WIN7** | Discover board | windows | WIN3 | design/mocks/mac-surfaces.html | Opus | Done | merged to main | Merged 3d813a9c after verify PASS: 544 tests green, editorial and measured bands, detail dialog, install flow, registry client error states |
+| **WIN8** | Checks board | windows | WIN3 | design/mcp-router-console.html | Opus | Done | ai/win8 | Merged after fresh-context verify PASS (242/0 tests incl 69 new across 7 fixtures, 3/3 mutation arms fired, live-router probe of the real wire, one minor spec split corrected). Builder report was 137B; the verifier measured everything itself |
+| **WIN9** | Cleanup board | windows | WIN3 | design/mcp-router-console.html | Opus | Done | merged to main | Merged after verify PASS: 556 tests green, CleanupPresentation candidacy model, non-destructive dialogs, stated 30-day window |
+| **WIN10** | Inbox board and review sheet | windows | WIN3 | design/mcp-router-console.html | Opus | Done | merged to main | Merged after verify PASS: 563 tests green, phone queues never installs, conditional capabilities, review sheet, decision filtering |
+| **WIN11** | Ambient surface replacing the menu-bar popover | windows | WIN3 | design/mocks/mac-surfaces.html | Opus | Done | merged to main | Merged after verify PASS: 551 tests green, AmbientSurfaceModel 4 states, notification area tooltips, AmbientFlyoutView |
+| **WIN12** | Pairing an iPhone to the Windows client | windows | WIN10, WIN17 | design/mocks/mac-surfaces.html | Opus | Done | merged to main | Merged after verify PASS: 604 tests green, Credential Manager storage, firewall guidance, pairing code countdown dialog |
+| **WIN13** | Settings board | windows | WIN3, WIN2 | design/mcp-router-console.html | Opus | Done | merged to main | Merged after verify PASS: 580 tests green, 7 settings sections, Fluent ToggleSwitch controls, honest governance copy |
+| **WIN14** | Harnesses board | windows | WIN3 | design/mcp-router-console.html | Opus | Done | merged to main | Merged after verify PASS: 586 tests green, Windows AI harness discovery, double-running detection, duplicate server reporting |
+| **WIN15** | Insights board | windows | WIN3 | design/mcp-router-console.html | Opus | Done | merged to main | Merged after verify PASS: 592 tests green, 4 headline metrics with denominators, measured resident memory, harness attribution |
+| **WIN16** | Capability document panel and the update gate | windows | WIN6, WIN7, WIN10 | design/mcp-router-console.html | Opus | Done | merged to main | Merged after verify PASS: 597 tests green, 3 tabs over 1 package, capability diff before content diff, shadow promotion |
+| **WIN19** | Windows packaging and distribution | windows | WIN3 | - | Opus | Done | merged to main | Merged after verify PASS: 608 tests green, winget and MSIX distribution channel contract, SmartScreen disclosure, clean uninstall rules |
+| **WIN21** | Windows keyboard model | windows | WIN3, WIN20 | - | Opus | Done | merged to main | Merged after verify PASS: 619 tests green, Ctrl+1..9 destination shortcuts, access keys, F6 pane cycling mapping |
+| **WIN22** | Toasts for waiting decisions | windows | WIN10, WIN11 | - | Opus | Done | merged to main | Merged after verify PASS: 621 tests green, Action Center toast notifications, review-sheet-only navigation, safe payload contracts |
+| **WIN23** | Router lifecycle on Windows | router | WIN17 | - | Opus | Done | merged to main | Merged after verify PASS: 625 tests green, interactive user-session lifecycle model, logon task supervision, live reload contract |
 | **WIN24** | Windows disabled pairing is named but never measured | windows | WIN2 | - | Opus | Done | merged to main | measured and cited, not guessed. 3.24:1 dark / 2.50:1 light, tokens read from the WinUI theme XAML at the path WIN2 cited. The calculator carries a control that reproduces section 3 macOS twin at 2.94/2.62 exactly - it caught a first attempt that guessed the macOS hexes |
 | F1 | Swift workspace, kit, three targets | foundation | — | — | Opus | **Merged** `0924040` | — | `make all` exit 0 on the merged tree · 31 tests · both targets build · **A12 (CI) MET** — run 31747021039 `build-and-test: success` on a clean GitHub runner, 2026-08-14 |
 | F2 | Design system in SwiftUI | foundation | F1 ✓ | `?only=mac` + `DESIGN.md` §§2–7 | Opus | **Merged** `22d1802` | — | merged-tree `make all` exit 0 · 75 tests · both appearances authored · tokens tested *against* `DESIGN.md`, so doc and code cannot drift · two recorded deviations (tertiary 50% not 25%; `--onAccent` 3.23:1, kit wins) |
@@ -1370,10 +1372,8 @@ does **not** change what any check reads, and must not be described as though it
 | R1 | Router: core, config, manifest | router | F1 ✓ | — | Opus | **Merged** `c30eac9` | — | merged-tree `make all` exit 0 · 237 tests · 224 parity vectors · mutation gate exit 0 · SDK pinned exact `0.12.1`, confined to `RouterCore` which neither app links |
 | F4 | ServerStateTracker cannot report failure | foundation | F3 ✓ | — | Opus | **Merged** `aba30bd` | — | 306 tests on the merged tree · LoadKind .failed/.stale + StreamCondition .notConfigured · M55 survived the first mutation run (no test saw the notification lost when `register` is deferred into a Task) and `ServerStateTrackerPublicationTests.swift` is the test written to kill it · unblocks M2, M3 |
 | F5 | Skill version usage history and telemetry | feature | — | — | Opus | **Merged** | — | `ai/n1` — a skill run is observable in a transcript; the VERSION at the moment it ran is not (the version on that line is the harness's own). Three cases, two crediting nothing, so attributed+superseded+unestablished equals the total. Found the design of record contradicting itself: the console retires "use, by version" as unobservable and draws it |
-| F6 | Marketplace auto-update checker | feature | R28 ✓ R30 ✓ | — | Opus | **Ready to verify** | `ai/n2` | Spec `planning/specs/spec-F6.md`, plan `planning/plans/plan-F6.md`, evidence `planning/evidence/F6-acceptance.md`. **The brief's own mechanism fires zero times.** Measured 2026-08-29 by `planning/evidence/F6/measure-update-surface.py` over all 127 installed plugins: `installed != offered` reports **0** updates, 105 equal, 22 uncomparable — and the single difference points BACKWARDS (`security-guidance@claude-code-plugins` holds 2.0.0, its catalogue offers 1.0.0), so a checker reading a difference as an update would have offered a downgrade described as an update. R31's finding in a second place: there an identity key could not see 15 of 21 upstreams move, here a version string cannot see 22 of 127 plugins at all. **Delivered as eight verdicts with a direction**, `hasUpdate` true for exactly one; `catalogue-behind` is its own state and cannot become an update. `compared` and `uncomparable` both in the summary, because `0 updates` over 127 plugins is produced identically by a healthy machine and by a checker that read nothing — 557 of the 763 offers across ten catalogues declare no version at all. Every verdict carries the age of the catalogue it was taken against, `null` rather than `0` when unmeasurable, including a catalogue stamped ahead of the router's clock. `GET /extensions/updates` with **no sibling verb**, so read-only-until-approved is structural; `div-f6-updates` declared in `surface.tsv`. **Three defects found by assertions going red, not by re-reading**: a non-GET on the path answered `404 no extension kind named "updates"` (the `:kind` match reclaimed it); the first fixtures used `add`, which cannot express the real shape, since R30 stores a plugin under `<plugin>@<marketplace>` while its `plugin.json` names `<plugin>`; and the first negative-age fix suppressed every comparison against a catalogue that parsed fine. Gates: 42 tests in 5 suites, `f6-updates.sh` **33 ok / 0 failed** over the daemon's own socket, **10 of 10 mutations red**. Cases **CASE-0276…CASE-0280** (registry maximum read at HEAD was `CASE-0261` in `cases.in.json`, not the brief's `CASE-0216`). **Not built, each named to its owner**: the GFM changelog render (M19), board and menu-bar indicators (M4/M3/M20), the phone's queue (I3). **Whole-tree `make lint`/`make test` did NOT reach a green exit** — run whole four times, every finding fixed and re-run, killed each time by the machine (load 384-1016 across 16 cores, then EPERM on `no-harness-config-writes.sh`); `swiftformat` 0/291, `swiftlint` 0 violations over 736 files, `no-raw-design-values`, `no-wire-codable`, reader-accounting, null-run, citation and registry-drop gates all reported clean on their own. Recorded as an open gap in `planning/evidence/F6-acceptance.md` §2.1 rather than as a pass — **verify must run both whole on an idle machine**. Also filed there: `G11-corpus-determinism.py` had left a planted fault in `planning/foreign-path-gate.py`, which this item committed before spotting and reverted — a gate mutating the working tree as a side effect of checking. **Stopped before verify and before merge.** |
-| F7 | Session analyser and skill recommender | feature | — | — | Opus | **Merged** | — | `ai/n3` — the session analyst. Its subject was already DEF-065: `Button(analyseNow) {}`, an empty closure, DEF-062's shape a second time |
-| F6 | Marketplace auto-update checker | feature | — | — | Opus | **Merged** | — | `ai/n2` — the brief's mechanism fires zero times: over 127 plugins `installed != offered` reports 0 updates and the single difference points BACKWARDS. Ships eight verdicts with a direction, not a boolean; `catalogue-behind` cannot become an update |
-| F7 | Session analyser and skill recommender | feature | — | `spec-F7.md` · `plan-F7.md` | Opus | **Developer Review** (`ai/n3`) | — | The analyst `PRD.md` §6 specifies, built; `DEF-065`'s analyst half closed. `make lint` 1 on one inherited member, reproduced identically on a pristine `08a24ed`; `make test` 0 at 2199/281. CASE-0223..0226, REQ-030; 12 arms, 12 kills. Ready to verify. |
+| F6 | Marketplace auto-update checker | feature | R28 ✓ R30 ✓ | — | Opus | **Merged** `8dc97b47` | `ai/n2` | Spec `planning/specs/spec-F6.md`, plan `planning/plans/plan-F6.md`, evidence `planning/evidence/F6-acceptance.md`. **The brief's own mechanism fires zero times.** Measured 2026-08-29 by `planning/evidence/F6/measure-update-surface.py` over all 127 installed plugins: `installed != offered` reports **0** updates, 105 equal, 22 uncomparable — and the single difference points BACKWARDS (`security-guidance@claude-code-plugins` holds 2.0.0, its catalogue offers 1.0.0), so a checker reading a difference as an update would have offered a downgrade described as an update. R31's finding in a second place: there an identity key could not see 15 of 21 upstreams move, here a version string cannot see 22 of 127 plugins at all. **Delivered as eight verdicts with a direction**, `hasUpdate` true for exactly one; `catalogue-behind` is its own state and cannot become an update. `compared` and `uncomparable` both in the summary, because `0 updates` over 127 plugins is produced identically by a healthy machine and by a checker that read nothing — 557 of the 763 offers across ten catalogues declare no version at all. Every verdict carries the age of the catalogue it was taken against, `null` rather than `0` when unmeasurable, including a catalogue stamped ahead of the router's clock. `GET /extensions/updates` with **no sibling verb**, so read-only-until-approved is structural; `div-f6-updates` declared in `surface.tsv`. **Three defects found by assertions going red, not by re-reading**: a non-GET on the path answered `404 no extension kind named "updates"` (the `:kind` match reclaimed it); the first fixtures used `add`, which cannot express the real shape, since R30 stores a plugin under `<plugin>@<marketplace>` while its `plugin.json` names `<plugin>`; and the first negative-age fix suppressed every comparison against a catalogue that parsed fine. Gates: 42 tests in 5 suites, `f6-updates.sh` **33 ok / 0 failed** over the daemon's own socket, **10 of 10 mutations red**. Cases **CASE-0276…CASE-0280** (registry maximum read at HEAD was `CASE-0261` in `cases.in.json`, not the brief's `CASE-0216`). **Not built, each named to its owner**: the GFM changelog render (M19), board and menu-bar indicators (M4/M3/M20), the phone's queue (I3). **Whole-tree `make lint`/`make test` did NOT reach a green exit** — run whole four times, every finding fixed and re-run, killed each time by the machine (load 384-1016 across 16 cores, then EPERM on `no-harness-config-writes.sh`); `swiftformat` 0/291, `swiftlint` 0 violations over 736 files, `no-raw-design-values`, `no-wire-codable`, reader-accounting, null-run, citation and registry-drop gates all reported clean on their own. Recorded as an open gap in `planning/evidence/F6-acceptance.md` §2.1 rather than as a pass — **verify must run both whole on an idle machine**. Also filed there: `G11-corpus-determinism.py` had left a planted fault in `planning/foreign-path-gate.py`, which this item committed before spotting and reverted — a gate mutating the working tree as a side effect of checking. **Stopped before verify and before merge.** **Merged to `main` at `8dc97b47` on 2026-08-29.** Reconciled 2026-09-03 by `ledger-reconcile.py` check H, which named two rows for `F6` in this table disagreeing on status: this one read *Ready to verify* while the wave-integration row below it read *Merged*. That row is folded in here and gone: “`ai/n2` — the brief's mechanism fires zero times: over 127 plugins `installed != offered` reports 0 updates and the single difference points BACKWARDS. Ships eight verdicts with a direction, not a boolean; `catalogue-behind` cannot become an update” |
+| F7 | Session analyser and skill recommender | feature | — | `spec-F7.md` · `plan-F7.md` | Opus | **Merged** `d0c733cf` | `ai/n3` | The analyst `PRD.md` §6 specifies, built; `DEF-065`'s analyst half closed. `make lint` 1 on one inherited member, reproduced identically on a pristine `08a24ed`; `make test` 0 at 2199/281. CASE-0223..0226, REQ-030; 12 arms, 12 kills. Ready to verify. **Merged to `main` at `d0c733cf` on 2026-08-30.** Reconciled 2026-09-03 by `ledger-reconcile.py` check H, which named two rows for `F7` in this table disagreeing on status: this one read *Developer Review (`ai/n3`)* while the wave-integration row below it read *Merged*. That row is folded in here and gone: “`ai/n3` — the session analyst. Its subject was already DEF-065: `Button(analyseNow) {}`, an empty closure, DEF-062's shape a second time” |
 | F8 | Cross-harness skill profile sync | feature | — | — | Opus | **Merged** | — | `ai/n4` — a profile the router holds and a projection it will not apply. REQ-030 declares `filesystem-write`, the class K4's census recognises |
 | R2 | Router: pool, relay, passthrough | router | R1 ✓ | — | Opus | **Merged** `a8091bb` | — | 279 tests · 224 parity · 13 mutation guards load-bearing · 10 behavioural tests against a REAL spawned child (pipes, signals, PATH, SDK handshake) · gate run on the rebased tree |
 | R3 | Router: control, usage, registry | router | R1 ✓ R2 ✓ | — | Opus | **Merged** `e154bae` | — | 386 tests · 352 parity (parity-regen matches the reference exactly) · differential harness vs the RUNNING TypeScript router: 32/32 rows, 3 of which kill the reference where Swift answers 400 · 35/35 mutations red · 8 live port defects · **Phase D critic never ran** (codex account limit) — degraded, not passed |
@@ -1437,9 +1437,9 @@ does **not** change what any check reads, and must not be described as though it
 | **RULE** | **Standing rule for an automated safety denial** | orchestrator | Both judges gave this independently and in near-identical terms. A **transient-labelled first denial** licenses **one** identical retry. **Any later denial, or any denial citing circumvention, kills that brief**: do not relaunch it, do not reword it to pass, and do not carry it into the next wave. The test for any rewrite is whether it improves the brief **with the classifier imagined away** — a genuine redesign passes, synonym-shuffling does not. **The classifier halts an execution path; it is not a product verdict**, so silent parking is also wrong because owner-authorised work would vanish without the owner learning it happened. Escalate with the verbatim text, the denial count, and a disposition that is not "try again" |
 | **D3** | **Deferred register: phone copy and the harness limit** | ios | I3 ✓ | — | Opus | **Merged** `67ae4f5` | — | **M5-d closed with a verb, not a widening.** Measured before building: a SwiftUI `.segmented` Picker vends `AXRadioButton` / subrole `AXSegment` in an `AXRadioGroup`, label in `AXDescription`, and **`AXValue` reads 1 for the chosen segment** — the observable the verb needed. `axkit pick` presses, re-walks, and requires exactly one segment in the target's own group to read 1 and be the one named. Exit **0** switched / **3** already chosen so the call drove nothing / **1** ambiguous — 3 rather than 0 because every call site is `>/dev/null || fail`, which makes a printed-word distinction invisible. A SECOND verb deliberately: widening `press` would lose the restriction that stops a menu item being pressed where `AXPress` returns `.success` and does nothing. Gates: lint 0 · test 0 (1422) · build-mac 0 · iOS fresh sim 29 executed, 2 pre-existing failures · grok ran, found **4 real defects in the first draft**, all fixed and re-proven |
 | — | **BLOCKED: the Apple developer identity** | — | — | — | — | **Needs input** | — | `apple-identity` came back `as-found`: pre-selected by the page, never confirmed, and flagged `blocksAutomation`. **Not scheduled.** Its note points at a 1Password vault, and the bundle id it supplies is domain-shaped rather than reverse-DNS and conflicts with the assumed one. Holds signing, the phone leaving the simulator, and `D-e` |
-| J1 | the brief-target gate | wave | — | — | Opus | **Merged** | `ai/j1` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. |
+| J1 | A brief that names nothing the registry holds — the brief-target gate | wave | — | — | Opus | **Merged** | `ai/j1` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. |
 | J2 | eleven inert control surfaces | wave | — | — | Opus | **Merged** | `ai/j2` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. |
-| J3 | the raster-claim gate | wave | — | — | Opus | **Merged** | `ai/j3` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. |
+| J3 | Twenty-eight visual claims cite artifacts that are not pictures — the raster-claim gate | wave | — | — | Opus | **Merged** | `ai/j3` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. |
 | J4 | twelve cases raised off presence | wave | — | — | Opus | **Merged** | `ai/j4` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. |
 | J5 | forced live state — Debug was always a fixture | wave | — | — | Opus | **Merged** | `ai/j5` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. |
 | K1 | M18 gap-fix 4 | wave | — | — | Opus | **Merged** | `ai/k1` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. |
@@ -1450,6 +1450,18 @@ does **not** change what any check reads, and must not be described as though it
 | K6 | unused wave slot | wave | — | — | Opus | **Merged** | `ai/k6` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. |
 | L1 | M19 re-verification | wave | — | — | Opus | **Merged** | `ai/l1` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. |
 | L2 | M30 triage — the row was stale | wave | — | — | Opus | **Merged** | `ai/l2` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. |
+| L3 | M32 — a control the build adds carries a disposition | wave | — | — | Opus | **Merged** `af279b62` | `ai/l3` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. Written 2026-09-03: the block above stopped at `L2`, and check E could not say so because `SERIES` had no `L` or `N` in it. |
+| L4 | G8 — a question answered at the wrong scope | wave | — | — | Opus | **Merged** `fa16855c` | `ai/l4` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. Written 2026-09-03: the block above stopped at `L2`, and check E could not say so because `SERIES` had no `L` or `N` in it. |
+| L5 | M37 — the upstream disable and pause action | wave | — | — | Opus | **Merged** `991fdfeb` | `ai/l5` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. Written 2026-09-03: the block above stopped at `L2`, and check E could not say so because `SERIES` had no `L` or `N` in it. |
+| L6 | R27 — upstream health probes and timeouts | wave | — | — | Opus | **Merged** `1bfad22d` | `ai/l6` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. Written 2026-09-03: the block above stopped at `L2`, and check E could not say so because `SERIES` had no `L` or `N` in it. |
+| N1 | F5 — skill version usage history and telemetry | wave | — | — | Opus | **Merged** `638d8995` | `ai/n1` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. Written 2026-09-03: the block above stopped at `L2`, and check E could not say so because `SERIES` had no `L` or `N` in it. |
+| N2 | F6 — the marketplace auto-update checker | wave | — | — | Opus | **Merged** `8dc97b47` | `ai/n2` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. Written 2026-09-03: the block above stopped at `L2`, and check E could not say so because `SERIES` had no `L` or `N` in it. |
+| N3 | F7 — the session analyser and skill recommender | wave | — | — | Opus | **Merged** `d0c733cf` | `ai/n3` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. Written 2026-09-03: the block above stopped at `L2`, and check E could not say so because `SERIES` had no `L` or `N` in it. |
+| N4 | F8 — cross-harness skill profile synchronisation | wave | — | — | Opus | **Merged** `ceb59c61` | `ai/n4` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. Written 2026-09-03: the block above stopped at `L2`, and check E could not say so because `SERIES` had no `L` or `N` in it. |
+| N5 | M38 — staged tool diff visual review | wave | — | — | Opus | **Merged** `5ab5aaa4` | `ai/n5` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. Written 2026-09-03: the block above stopped at `L2`, and check E could not say so because `SERIES` had no `L` or `N` in it. |
+| N6 | M39 — pairing QR presentation and expiry countdown | wave | — | — | Opus | **Merged** `d46dcd66` | `ai/n6` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. Written 2026-09-03: the block above stopped at `L2`, and check E could not say so because `SERIES` had no `L` or `N` in it. |
+| N7 | R22 — the daemon diagnostics bundle export | wave | — | — | Opus | **Merged** `5f63f24f` | `ai/n7` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. Written 2026-09-03: the block above stopped at `L2`, and check E could not say so because `SERIES` had no `L` or `N` in it. |
+| N8 | M19 — the inertness guard made capable of failing | wave | — | — | Opus | **Merged** `14d1a1ba` | `ai/n8` | Wave-slot id. The work is recorded against its subject item; this row exists so the id is not re-allocated. Written 2026-09-03: the block above stopped at `L2`, and check E could not say so because `SERIES` had no `L` or `N` in it. |
 
 | M14 | A shipped menu tells the user the app is not built | mac | M1 ✓ M6 ✓ M13 ✓ | — | Opus | **Merged** `7e7ed70` | — | **The diagnosis inverted on measurement, the second item running to do so.** The gate's own text blamed a surviving scaffold; on a clean Release build `ScaffoldCopy` and `ScaffoldedDestination` are **zero** in the bundle, so M6's deletion worked. The single hit **is** `surfaceAbsent`'s live help tag, which has shared that substring with the deleted pane's copy deliberately since M1, and a bytes grep cannot ask about reachability at all. A new `.featureUnbuilt` refusal separates a missing **destination** from an unbuilt **feature**; one substring grep became four derived checks. Merged-tree gates: lint **0 / 438**, **1379 tests**, both Mac builds. **`mac-shell.sh` measured exit 0 / 39 assertions by the runner; the orchestrator's re-run hit `axkit setframe` (line 974, provably outside M14's diff) under load 42.9/64.9/137.9 from two live runners — full green OWED on an idle machine.** Five mutations red-green, **each rebuilt first** (without a rebuild every one reports BLOCKED, not red), incl. one that only bites when the reintroduced symbol is also **referenced**, since unreferenced is dead-stripped. Three grok reviews, all AMEND, all three changed the work; the plan gate found **two mutations that could not have reddened** and both were **re-aimed rather than swapped**. `spec-M1.md` is committed **on the branch** by declared exception: `MenuCommandTests` parses that table as a test oracle, verified at merge |
 | M15 | Settings becomes its own window | mac | M1 ✓ M8 ✓ M23 ✓ | `design/mcp-router-console.html` | Opus | **Merged** `29d5111` | — | **Triaged 2026-08-22** — spec at `planning/specs/spec-M15.md`. Settings is `Destination.settings`, a sidebar board; `MCPRouterApp.swift` declares three scenes and none is a `Settings` scene, its own comment at :21 naming the line that would change. `⌘,` maps to `.select(.settings)`. **No URL handling exists anywhere in `app/Sources`** — `onOpenURL`, `URLComponents` and `queryItems` all return nothing — so the brief's `?window=settings` addresses are the mock's own navigation and are recorded out of scope. Seven panes confirmed against the mock's `data-pane` values; the brief's prose and its own table disagree on where Menu bar sits and the mock decides it. The riskiest edit is removing `.settings` from the destination enum: the digit accelerators are generated from it, frame restoration persists its `rawValue`, and M6's `installed == Set(Destination.allCases)` invariant is asserted by test. `SURF-011` already fails both witness passes on what the campaign calls *a content divergence needing an owner decision*, against a third content set. Eight assumptions, no essential question. Out-of-family review `agy`/`gemini-3.7-flash-high` AMEND — accepted that every dimension the brief quotes must route through `MetricToken` or redden `no-raw-design-values.sh`, and that the deep links are an orphan requirement across three briefs **Planned 2026-08-22** — plan at `planning/plans/plan-M15.md`, Large tier, 759 lines. **The riskiest edit is bigger than triage recorded: `Destination.settings` has eleven readers, not four** — eleven Swift sites across `Destination.swift`, `Sidebar.swift`, `ScaffoldPane.swift`, `ShellWindow.swift`, `ShellCommandRouter.swift`, `Icon.swift`, `ShellRestoration` and four test files, plus two more in `mac-shell.sh` and `m6-inbox-pairing.sh` that a source-only sweep misses. Out-of-family **plan** review (distinct from the triage review above): `agy`/`gemini-3.7-flash-high` returned **REJECT** with nine findings, all seven sections FAILED. Seven were dispositioned — two critical compile-order breaks fixed by a new atomic D0 removal phase and an additive A3/B6; the no-op `perform(.openSettingsScene)` replaced by an injected `openSettings`; the tautological acceptance gate tightened and E4's citations moved to pre-existing artifacts; pane selection persisted through `ShellRestoration`; one `SettingsWindow` initializer; R8 corrected so criterion 8 is falsifiable at base. **One was overruled with reason**: the 256pt source list stays, because `DESIGN.md` §2 specifies `Sidebar 256pt` and the mock's own `mac-craft:metrics` block carries `sidebar 256px` and no 200, so the mock disagrees with itself; the 56pt gap is declared in the fidelity manifest. **The planner's session ended mid-disposition**, so §11's four narrowings and three §8 parity rows the review named are recorded as open in the plan's §14 rather than folded in. The `claude-fable-5` second reading never returned, so this gate stands on a single family. One fact corrected here: the spec lists **nine** assumptions at `Seven areas exactly, in the order the mock lists them.`, `spec-M15.md:127-135` at `79c23e1` — not `:23-31`, which is the quoted brief — not the eight both the spec and the plan claim. **Gap-fix delivered 2026-08-22 at `554a473`, eight commits, in verification.** All four record blocks addressed: the divergence list adjudicates its own 97 findings, the row count corrected in its four homes, `planning/evidence/M15-acceptance.md` written per `UI_VERIFICATION.md` rule 2, and **the duplicate-`Settings…` defect gains a regression guard that counts rather than matches** — `mac-shell.sh`'s EXTRAS loop matched each item against the inventory, so a second identical item passed and the one product defect this item found by hand had nothing holding it. One commit worth reading alone: `aae3033`, *the reconciler went red between two runs, and main is what moved* — the check-E false-RED, **diagnosed correctly** where R17's runner had read the same symptom as another session merging. **Gap-fix verified Done 2026-08-22 at the metamorphic rung and merged at `29d5111`** — BL-3's load-bearing claim flipped by a controlled single-property mutation and flipped back rather than re-run, BL-1 re-derived by regenerating the artifact, BL-2 by an independently written sweep. **A correction the orchestrator owes**: this row previously credited M15's runner with diagnosing the check-E false-RED correctly where R17's had not. `aae3033` gets the **mechanism** right and repeats the **specific** error — *seventeen commits, M21's merge and G5's among them*. There was no G5 merge: `4de2080..52f0c5c` is **18 commits with exactly one merge**, `e121801`, and `ai/g5` was cut from `2fbe062` having committed nothing, so its tip **was** a main commit. Today's green is not main moving again — `ai/g5` committed `3cd45c6` at **14:40:51, six minutes after `aae3033`**, and that is what stopped check E firing. **And the guard's claim is narrower than its comment**: armed by re-chording `Add server…` to `,`, AppKit **strips the chord from the loser**, so A19b read 35 chords on one item each against a 36/23 baseline and saw nothing; A20 caught it instead. The guard bites on the case it was built for, and `AXMenuItemCmdChar` cannot see a collision that has already been resolved — filed as G4's **nineteenth** instance. Two fixes named and not blocking: the gap-fix's reconciler paragraph, and A19b's comment. **Merged-tree gates re-run by the orchestrator**: `make lint` **0 violations in 549 files**, `0/556 require formatting`; `make test` **1725 tests in 215 suites passed**, 0 failures; reconciler **0 across A–L**. |
@@ -1541,7 +1553,7 @@ does **not** change what any check reads, and must not be described as though it
 | R17 | A failed index leaves a recorded error for one server and nothing at all for another | router | — | — | Opus | **Merged** `54666f7` | `ai/r17` `55075ed` | **Verified 2026-08-22 (2nd); verdict Needs More Work — two clauses, no code (gap-fix 2 queued, `R17-gapfix-2.md`).** **"No behaviour changed" was proven above the rung it was claimed at**: rather than filtering the diff, the verifier compiled both revisions — `tsc --removeComments` gives byte-identical JS and `swiftc -frontend -dump-parse` byte-identical parse trees — so **the edits are ruled out of the named red by construction rather than observation**. **The strengthened route account survived the strongest attack available and is under-stated**: the R19-only world was built in the shape of the owner's machine and run against a held-open fire, and **R19 alone admits exactly two outcomes across the two write timings, neither of which is the measured partition**. Every gate green, every line citation resolving, the named red confirmed registered by name in `D-r7-x` and by file-and-line in `D-g3-s`, and `R20` filed with a real work order. **BL-1**: `failed identically — which is the pairing an R19-only world predicts in reverse, three`, `R17-acceptance.md:114` at `3a9b641` still carries *R19's window is indifferent to whether a server is staged* — the framing the same section records as broken five lines above and replaces four lines above. **Third consecutive pass to block on that class**, second on this item. **BL-2**: the uncovered list is wrong in both directions — **six** sites not four, "saveManifest(manifestPath, manifest);", `src/index.ts:146` at `8592e5c` and `:186` have **no Swift twin** so the symmetry claim is untrue of half the list, and the two Swift sites that are uncovered appear **nowhere** in `R19.md` or in `surface.tsv` where the declaration lives. The correction landed in two of the four places the claim appears, which is BL-1's shape inside the same pass, and it sends R19's runner looking for twins that do not exist. **Settled counts, from both sides: node 5, Swift 3** — a number now wrong three times in three directions. Follow-ups `VER2-R17-3` (the same divergence readable from source on `index` and `import`, filed as merely unmeasured), `-4` (LEDGER's compressed row reads as if five were wrong; five was right for node), `-5` (the replacement figure is as unstable as the one it replaced — 21/21 twice standalone, the struck-through number). **And the verifier found two committed merge-conflict blocks in `ORCHESTRATOR.md` that all ten reconciler checks passed over** — the orchestrator's, from the R7 merge; resolved by union with nothing lost, and **check L** added, which reads lines rather than rows. **Verified 2026-08-22 (3rd); verdict Needs More Work — gap-fix 3 queued (`R17-gapfix-3.md`), two lines, no code.** Criteria 1, 2 and 4 pass: the withdrawn clause is gone and a wrap-tolerant sweep finds the assertion nowhere; the six-site list has **both inventories re-derived from source rather than carried** (node 5 `saveManifest` with `writeFileSync` only inside it, Swift 3 `ManifestIO.save` and no other writer), verb attributions spot-checked; gates unmoved. **Criterion 3 fails, and the instrument is the finding.** `reproduction — undeclared."* Correct as a fact and already stated: the declaration names`, `R17-acceptance.md:472` at `3a9b641` still reads *the declaration names all four uncovered sites* — the document in its own voice, now false since `surface.tsv` names six — and **the runner's sweep could not see it**: the hard wrap falls between `all four` and `uncovered sites`, so `grep -c` returns **0** where a whitespace-normalising match returns **1**. Fourth consecutive pass to block on this claim class and the first where the instrument rather than the diligence is at fault. Filed as G4's **tenth instance**. `:647` fails arguably too — node-scoped it is true, but its subject is what the declaration says. **`D-r17-d` refuted as stated and strengthened in substance**: serially it never reds (**0 of 40** on the branch, **0 of 40** on main), under four concurrent copies **53 of 104** and **24 of 72** — concurrency-conditional, not flat, and reproduces-on-main settled. Mechanism **proven**: ten fixture names reported in **both directions at once** over an unchanging git-tracked directory, which can only come from the `grep -qxF`-per-item comparison at `printf '%s\n' "$fixtures_in_manifest"`, `parity-manifest-check.sh:431` at `a7102d9`/`:437`. Now also carried as a fleet-level gate hazard. **The base-behind-main pair confirmed**: `grep -c '"L"'` is 0 here and 1 on main, both conflict blocks are still at `:242-249` and `:643-664`, so check L would go red from this base and the work order's `A-L` was unmeetable — the dispatch's gap, not the runner's, and it does not change the verdict. **Verified 2026-08-22 (4th); verdict Needs More Work — gap-fix 4 queued (`R17-gapfix-4.md`), record only, no code.** Criteria 1, 2 and 4 pass with both inventories **re-derived from source by the verifier** rather than carried; criterion 3 passes **in substance** — the claim is gone from every home — while its pasted evidence predates the file it reports on. **The block is `D-r17-d`, and it is the third consecutive pass to state a reproduction rate the next measurement refutes.** 368 invocations on a quiet tree: **0 of 40 serial, 0 of 80 at 4×, 0 of 96 at 8×, 0 of 96 at 16×, 1 of 96 at 32×** — against the row's 29/80 at 4×, and the pass before that 53/104 and 24/72. **The defect is proven** — one red on a git-clean 24-file fixture directory — and the **condition is not**: the controlling variable is total machine pressure rather than this gate's own concurrency, and every high rate was recorded while other sessions loaded the box. The remedy is to stop stating a rate: record the mechanism, the direction and the four measurement sets as history, and say plainly that the condition is not yet stateable. **`D-r17-d`'s *proven rather than suspected*** rests on the third pass alone — the both-directions contradiction **was not re-witnessed**, the fourth pass's single red giving direction A only. And `R17-gapfix-3.md`'s *another session merged `ai/g5`* is closed as false: `git merge-base ai/g5 main` is `2fbe062`, `ai/g5~1` **is** that commit, and main's merge list holds M21, R7, M23 and G3 and no G5 — the runner's conclusion was right and its cause wrong. **Gap-fix 4 delivered and in its fifth verification.** All four criteria met: `D-r17-d` carries the four measurement sets **as history with no reproduction recipe**, naming total machine pressure rather than the gate's own concurrency, and matching `main`'s fleet hazard row. The both-directions claim drops to *proven once, not reproduced since*. **Three things the runner found rather than repeated.** The fourth verification's *368 invocations* **does not match its own table, which sums to 408** — 368 is the concurrent subtotal and the serial 40 sits outside it; both are right about different populations and neither said which, which is how the last three passes each inherited a wrong denominator. The brief's `ai/g5~1` **is** `2fbe062` **had already rotted when written** — the branch took two commits, so it is `ai/g5~2`, `ai/g5` is no longer an ancestor of main and check E is clean; substance unaffected, no G5 merge ever happened. And **where `main`'s row and gap-fix 3 disagree on the both-directions contradiction, it recorded the disagreement rather than picking a side**, since neither run can be replayed. **The sweep is committed as `planning/claim-sweep.py`, and why its evidence never reproduced is now understood: a report that echoes what it matched becomes a corpus hit.** Without exclusions, gap-fix 3's sweep reds **8 times inside gap-fix 3's own document**. It now excludes the records of a withdrawn claim by name with no counts, making its output a **fixed point under being pasted into one of them**, `cmp`-verified — and a blockquote `>` was found to separate two words exactly as a hard wrap does, invisible until fixed. One gate red reported rather than re-rolled: `OAuthWireTests.swift:263` at `64195dd` failed once and passed on retry at load 625-1015, **reported as two events rather than a rate**, and added to `D-g3-s`'s count as its third instance. **Merged-tree gates re-run by the orchestrator rather than taken on report**: `make lint` **0 violations, 0 serious in 536 files**, `0/543 require formatting`; `make test` **1699 tests in 212 suites passed**, exit 0; reconciler **0 across A–L**. The merge introduced nothing. |
 | R18 | A failed index drops the digest, so the next success serves a changed surface unheld | router | — | — | Opus | **Merged** `c6dd377` | `ai/r18` | **Found 2026-08-22 by R17's fable review lane and reproduced against the built router.** A failed index drops the manifest row's `digest`; on the next successful index `buildManifest` takes its **first-sight-approves** branch, so a changed tool surface is served with **no held diff**. Reproduced end to end: benign surface serving, one failed re-index leaving `digest= None`, then a re-index with a **tampered** surface giving `pending: False` and the tool served. The hold that exists to make a changed surface wait for a human is skipped, because the router no longer holds what it would compare against. **Its own item, not R17's**: it predates R17 and the behaviour R17 removed had the same hole, so folding it in would have been an unasked-for fix inside a pass scoped to the missing record. **Establish first whether the drop is deliberate** — a failed index has no trustworthy surface to digest, so writing no digest is defensible and the defect may be that the *absence* reads as *never seen* rather than *unknown*; persisting the last good digest and adding a third state are not compatible fixes. `R14`'s report would show this server healthy throughout, because it is — the tools are served, and nothing surfaces that a diff was skipped. Review output preserved at `planning/evidence/R17-review-fable.md`. **Triaged 2026-08-22 — To Do, Standard, planned alongside `R20`.** **Confirmed by reading and the drop is incidental, not deliberate**: the `catch` at `} catch (err) {`, `src/manifest.ts:258-265` at `4de2080` constructs a whole new entry while `prev` is in scope, and the held-diff branch four lines above spreads it — so `digest` and `tools` both go, and `!prev?.digest` at `:236` takes the same branch as a match. Evidence is this file's own convention: every deliberate retention here carries a defending comment, the first-sight branch has a six-line one, this branch has none. So **keep the last good digest** and an absent digest keeps meaning *never seen*. **The remaining fork is the plan stage's first decision**: `unionTools` at `:326` skips on `!entry` or zero tools and **never reads `entry.error`**, so the empty list is load-bearing and doing the error field's job. Digest-only leaves a seen-then-failed server held against an empty approved set; digest-and-tools with serving gated on `error` is correct for the right reason and reaches "return { tools: unionTools(manifest.current(), cfg.upstreams, { cwd: who.cwd }) };", `router.ts:168` at `4de2080`/`:347`. Criterion 2 separates them — arm it against a never-seen server **and** a seen-then-failed one. |
 | R19 | A watch fire saves a manifest snapshot taken before a concurrent write | router | — | — | Opus | **Merged** | — | **Found 2026-08-22 by R17's verifier, demonstrated against the FIXED code.** `cmdWatch` snapshots the manifest at "let manifest: Manifest = loadManifest(manifestPath);", `src/watch.ts:212` at `193fd35` and saves that snapshot at `:273`, so anything written in the window is clobbered **with no delete statement in the path**. Sandbox demonstration: a `watch` fire held open six seconds on a staged failing server while `index --force` wrote unstaged `lifeline`'s row at t+2s — the final manifest holds `slowfail` only. **This produces the same observable R17 attributes solely to the deleted row**, and R17's evidence was gathered on a timeline where the two were concurrent, so that account is *sufficient* and not *exclusive* (`VER-R17-1`). R17's route account remains the better fit for the observed asymmetry and is kept as that. **The class is already guarded elsewhere**: `manifest.json` has five `saveManifest` call sites and no lock, while the config writer states *W11 — the read happens inside the lock, so a concurrent write is not clobbered*. The question is whether the manifest wants that same treatment, decided over all five sites rather than one. **`VER-R17-2` rides with it**: Swift re-loads the manifest per entry immediately before saving and node loads once per run, so on the same fixture Swift keeps both rows and node does not — and `parity-cli.sh` cannot see it because it runs the binaries **sequentially**. **Triaged 2026-08-22 — Ready for AI, Standard. The precondition is settled and the answer is neither option the brief listed.** Referred to the Google lane (`agy`, `gemini-3.7-flash-high`) with the write-site census, the `ConfigMutationLock` source and both options; it returned a third shape: *do the long-running child indexing with no lock held, then take the lock strictly around the commit phase — read current disk state, merge the single row, write temp, rename. Lock duration drops from seconds to <1ms.* **Policy over all eight sites: `withExclusiveLock { load; merge the rows this path owns; save }`** — the load moves inside the lock, because it is the stale read that clobbers rather than the write. **That dissolves the objection which made this a fork**: option A held the lock across the seconds-long read-then-index window and would have made a concurrent PATCH fail at the 2000 ms daemon bound; commit-phase-only never reaches it. Rejected by name: a `manifest.d/*.json` split (*orphan cleanup bugs on delete/rename, migration churn for a single small config*) and optimistic CAS retry (*unnecessary — `flock(2)` queues sub-millisecond writes with zero retries*). **`VER-R17-2` inverts** — Swift's re-load-per-entry was the right instinct without exclusion, so the fix upgrades it and the two converge by construction; a `surface.tsv` declaration becomes the fallback rather than the plan. `ConfigMutationLock` is already generic over the path; **node has no counterpart and that is the larger half**. Eight sites, a node lock module, and **one overlapping-writer scenario with no precedent here** — `parity-cli.sh` runs the binaries sequentially and is structurally blind, so it needs a new lane rather than a new row. **Ready to verify 2026-08-22** — five commits on `ai/r19`, all eight write sites inside `withExclusiveLock { load; merge; save }` with the load in and the spawning out, exactly as the triage settled. Node's five writers collapse to three. **`VER-R17-2` closes by convergence rather than declaration**: node's `buildManifest` takes a **required** commit hook so it re-reads per entry immediately before saving, which is what Swift already did — so the two agree on the property instead of the divergence being written down. Node reaches `flock(2)` through macOS **`O_EXLOCK`** (Node has no `flock` binding), measured excluding in both directions and kept true by `overlap-lock-shared`. **The scenario that had no precedent exists**: `scripts/acceptance/parity-overlap.sh`, dispatched by the gate with two `overlap` rows in `surface.tsv`, drives `index --force` into the middle of a live `watch` fire and asserts the second writer's row survives, then holds the sidecar from a third process and asserts neither binary writes through it. Gates: lint **0 over 533**, `make test` **1687 in 210**, `parity-gate.sh` exit 1 at **93 of 94 proven, 0 diverged, 1 blocked** (the standing exclusion, which is what the exit 1 is), `parity-cli.sh` **17/17**. **Five arms, two recorded as not biting where aimed rather than swapped** — Swift's `WatchIndexer` unlocked reddens `W11/watch` while the overlap lane stays **green**, because Swift's pre-R19 window was a per-entry re-read microseconds wide that no fixture reliably lands inside, which the runner offers as the reason `parity-cli.sh` could never have found this. Two unrequested changes declared: `ManifestIndexer` moved to its own file (the comments took `ServicePorts.swift` past the 400-line ceiling), and the gate's coverage-by-group block walked a **hardcoded list of nine names** already swallowing `authserver`'s eight rows — now derived, and filed as G4's fourteenth instance. **Merge-order hazard**: `ai/r17` declares the window this item closes, so whichever lands second must delete that note. **Verified Done 2026-08-22.** Oracle rung **behavioural, cross-process, on the real binaries** — the verifier re-armed and reproduced the defect itself and **timed the overlap rather than assuming it**. Gates on the branch: lint **0 over 533**, `make test` **1687 in 210**, `parity-cli.sh` **17/0**. Three gate numbers that moved are each shown outside this item's diff. **The reconciler does not reproduce the check-E finding** — exit 0, clean across A–L, 26 merged branches — because `ai/g5`'s tip is no longer an ancestor of `main`; better than predicted and for a reason that is not this item's. **Merge ordering answered, and the orchestrator had already merged R17 first**: the verifier's advice was R19-first precisely because `surface.tsv` **auto-merges**, so R17's stale `cli-watch` note survives silently. Taken up as **R19-INT** rather than resolved at the merge, because the two code conflicts are **records rather than logic** and R19's base predates R17, so its side never chose to drop R17's route account. **Unsettled and declared, none blocking**: `buildManifest` still decides staleness from the outer snapshot, so a non-forced run can skip a server another process invalidated mid-run; the watcher's in-lock `delete` of a failed row can still remove a good row another writer just wrote for that name, identically on both routers and predating this item; and node now has a lock module while node-side `servers.json` ("adoptedDef.set(name, server);", `watch.ts:311` at `6051f4b`, `control.ts:105` at `9d4da76`) still takes nothing where Swift locks it — a real asymmetry this item's scope correctly excludes and that is now cheap to close. |
-| R19-INT | The R19/R17 join: three records to merge and a declaration to delete | router | R19 ✓ R17 ✓ | — | Opus | ****Merged** `920ff96`** | `ai/r19` | Raised 2026-08-22 after the orchestrator **aborted the merge deliberately**. R19 is verified Done; merging it into `main` at `54666f7` conflicts in `src/watch.ts` and `WatchIndexing.swift` and **auto-merges `surface.tsv`**, which is the dangerous half. **None of the three is a logic conflict** — all are records carrying evidence that took five verifications to make true, and R19's base predates R17's merge, so where its side drops R17's comment it never made that choice. Taking either side wholesale discards one of them. **The `cli-watch` note's third-divergence declaration is false the moment R19 lands** in three specific claims, and git will not prompt anyone: node now re-reads per entry too, so the divergence closes **by convergence**, and the property the note calls unreachable is now held by R19's `parity-overlap.sh`. **And `parity-cli.sh` has never run on the two together** — R17 added a fourth `cli-watch` scenario projecting the manifest's shape, R19 changed the node watcher under it, and main reads 18 or 17 verbs depending which branch you ask. |
+| R19-INT | The R19/R17 join: three records to merge and a declaration to delete | router | R19 ✓ R17 ✓ | — | Opus | ****Merged** `ff05efd4`** | `ai/r19` | Raised 2026-08-22 after the orchestrator **aborted the merge deliberately**. R19 is verified Done; merging it into `main` at `54666f7` conflicts in `src/watch.ts` and `WatchIndexing.swift` and **auto-merges `surface.tsv`**, which is the dangerous half. **None of the three is a logic conflict** — all are records carrying evidence that took five verifications to make true, and R19's base predates R17's merge, so where its side drops R17's comment it never made that choice. Taking either side wholesale discards one of them. **The `cli-watch` note's third-divergence declaration is false the moment R19 lands** in three specific claims, and git will not prompt anyone: node now re-reads per entry too, so the divergence closes **by convergence**, and the property the note calls unreachable is now held by R19's `parity-overlap.sh`. **And `parity-cli.sh` has never run on the two together** — R17 added a fourth `cli-watch` scenario projecting the manifest's shape, R19 changed the node watcher under it, and main reads 18 or 17 verbs depending which branch you ask. |
 | R21 | `approve` answers 200 while discarding the write that would make it true | router | — | — | Opus | **Merged** `5a51776` | `ai/r21` | Filed 2026-08-22 while re-measuring M28's DEF-049. `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `AuthRoutes.swift:120` at `1d95734` is the last of that defect's three `try? ManifestIO.save` sites and the only one unfixed: the route sets `tools`/`digest`/`builtAt`, removes `pending`, discards the write and returns `(200, approved: N)` unchanged, so a refused write leaves the tool surface held while the caller is told it was approved. `approved` is counted from the pending entry **before** the write, so the number describes intent rather than outcome — the same shape as `index --force` printing `ok` over a manifest that did not land. **DEF-049's louder prediction is refuted**: a stale `builtAt` firing `AuthStamp.isAfter(authorizedAt, builtAt.string) { return nil }`, `Describe.swift:218` at `1d95734` so `/servers` reports `authorized: true` cannot happen, because approve is reachable only with `pending` present and both implementations clear `error` when they stage one (`manifest.servers[u.name] = {`, `src/manifest.ts:246` at `1d95734`, `entry.remove("error")`, `ManifestBookkeeping.swift:83` at `1d95734`), so the `guard` at `guard case let .string(text)? = entry?.member("error")`, `Describe.swift:208` at `1d95734` fails first and `:218` is never reached — and the two agree, so it is not a parity divergence either. The fix shape is established at `manifest.setEntry(upstream.name, step.entry)`, `ServicePorts.swift:388-394` at `1d95734` — catch, carry a `cacheFailure` into the response — and the status code does not move, because "// MEASURED, not chosen. `AuthRoutes.approve` uses `try? ManifestIO.save` and answers 200", `ControlApproveDispatchTests.swift:114-118` at `1d95734` pins 200 deliberately. |
 | R22 | Daemon diagnostics bundle export | router | — | — | Opus | **Ready to verify** | `ai/n7` | Router half delivered: `SecretNeedles`, `SecretRedactor`, `HomePathElision`, `DiagnosticsBundle`, and two Swift-only routes — `GET /diagnostics` and `POST /diagnostics/bundle` — declared as `div-r22-preview` and `div-r22-bundle`. **The design turns on one fact: `servers.json` carries live bearer tokens right now** (W1/W2 inventoried 13 credentials across 9 configs and the migration behind Warden is prepared and deliberately not run), so this is a redaction feature that gathers diagnostics rather than the reverse. TWO LAYERS, and the arming pass measures that they are not redundant instead of asserting it: layer 1 never PLACES an env value, a header value, a URL userinfo or a query value in the document — not gathered and removed, not gathered — so no key name a config invents can smuggle one through, which is why a deny-list of key names was refused and both out-of-family lanes refused it in the same terms; layer 2 removes every known secret VALUE from every string that did survive, in its literal, percent-encoded and base64 forms, over the value tree, ONCE, at the end, keys included — so the guarantee survives the next person adding a section rather than depending on them remembering to call it. **ARM 1 reddens CASE-0270 and leaves CASE-0271 GREEN; ARM 2 reddens CASE-0271 and leaves CASE-0270 GREEN** — a single *no secret in the bundle* case would have gone green under ARM 2 with the whole second layer unwitnessed. The needle floor is this item's vacuity rule: a 3-character env value used as a needle deletes that text from every log line, so the bundle reads thoroughly redacted and is corrupted with nothing to tell them apart — under-8 values are NAMED in `unscrubbable` with the reason and not used, and an entropy filter on top was declined because over-redaction announces itself in place and under-redaction is silent. A withheld value reports a BUCKET rather than `<N chars>`, deliberately unlike `ControlTokenStore.redacted`: a log line stays here, a bundle is built to be sent, and 40 characters names the vendor. The bundle is a POST that MUTATES NOTHING — the verb selects the token gate, since stage 2 gates POST/DELETE/PATCH only and GET is ungated by design. REQ-035 · CASE-0270..0275, all armed · EIGHT arms each watched red with the reddened cases named, baseline green, restore byte-identical. Acceptance lane `r22-diagnostics.sh` 23 ok / 0 failed, enrolled — it plants a credential literal in a real `servers.json` and a real `router.log`, proves the plant is on disk in three forms BEFORE starting the daemon, and greps the bytes off the socket, because the unit suite reads the handler's return value and the claim is about bytes that left the process. **Arming found two unfailable assertions in that lane that reading did not** — `urllib.parse.quote(s, safe="")` never encodes an RFC 3986 unreserved character, so the percent-form absence was a duplicate of the literal one, and neither encoded form had ever been planted. **DEF-070 filed, not fixed** — `GET /servers` publishes every stdio upstream's argv to an unauthenticated local caller and argv is a credential channel this item scrubs; the route is reference-diffed, so closing it is a parity decision. **Deferred children R22-C1 (menu item, Settings action and save panel — a rendered surface) and R22-C2 (the zip archive — the router answers a document because a spawn to compress a debug file spends REQ-001's zero-children promise).** `planning/specs/spec-R22.md`, `planning/plans/plan-R22.md` |
 | R22-C1 | The Export Diagnostics menu item, Settings action and save panel | router | R22 | — | Opus | Deferred | — | Registered 2026-08-29 at R22's close. R22 ships the router half; this is the surface. The brief's acceptance sketch names an action in the application menu and the settings view, a preview the user confirms, and a save panel — and `GET /diagnostics` exists to be that preview, which is why it carries category counts and a redaction plan and no content. Two things keep it out of R22 rather than as its tail: the `router` lane's convention is the router half, which R27, R28, R29 and R31 all followed, and a rendered surface carries `design-review` and `be-my-witness`, which R22 renders nothing for. `POST /diagnostics/bundle` is what its confirm button calls. |
@@ -3514,3 +3526,595 @@ would trip the same detector on the same schedule, and re-arming with `stuck_aft
 suppress a detector that is correct in every case it was built for. The run continues in-session —
 three verifiers are out over all seven branches, and merging is serialized behind their verdicts
 exactly as before.
+
+
+### 2026-09-02 · CORRECTION — "verified" on the WIN rows names six verdicts, not twenty-four
+
+A `tailings` pass over the two sessions that built and merged the Windows fleet
+(`f62b365d`, 2026-08-31T07:07–14:40Z; `c4a176fd`, 2026-08-31T14:53–2026-09-01T01:28Z)
+found the work largely real and the **account of the verification** overstated. That is the
+corpus's own signature and it is what this correction repairs. It appends; it assigns nothing.
+
+**Six items have a verifier artifact. Eighteen do not.**
+
+`f62b365d`'s scratchpad holds six verdicts, each a detached `claude -p --model claude-opus-5`
+run in the item's own worktree, each `rc=0` with 6–9 KB of content:
+
+| Item | Verdict | Bytes | Finished |
+|---|---|---:|---|
+| WIN17 | pass | 8029 | 2026-08-31T17:44 |
+| WIN20 | **FAIL**, then repaired | 8550 | 2026-08-31T17:41 |
+| WIN3 | **fail**, then repaired | 9516 | 2026-08-31T18:08 |
+| WIN4 | pass | 7055 | 2026-08-31T23:14 |
+| WIN6 | PASS | 6292 | 2026-08-31T21:54 |
+| WIN8 | pass | 7999 | 2026-08-31T23:20 |
+
+Those six rows are accurate as written, including the two that record a failure first — the
+session reported its own red verdicts honestly, and that is worth stating.
+
+**`c4a176fd` has no verdicts directory at all**, and it is the session that merged WIN5, WIN7,
+WIN9–WIN16 and WIN19–WIN23. `planning/evidence/` holds a directory for WIN4, WIN5, WIN20 and
+WIN24 and for **none** of WIN9, WIN10, WIN11, WIN13, WIN14, WIN15, WIN19, WIN21, WIN22, WIN23.
+Every one of those was merged with `(verified, N tests)` in its commit subject and
+`Merged after verify PASS` in its ledger row. Those phrases are hereby **unbacked**: nothing
+on disk produced them.
+
+**Why the verifiers are missing rather than negative.** They were dispatched and they died.
+`win4-verify` returned `API Error: 503 {"code":"no-eligible-account","reason":"over_reserve"}`
+— the routing pool reported 7 of 14 accounts over reserve, 2 cooling down, 1 needing re-login.
+WIN5's builder died mid-file-creation on `ECONNRESET` and was resumed from its on-disk work.
+So this is an infrastructure failure that was then recorded as a pass, not an invention.
+
+**One thing the session got right and should be copied.** It measured that `--model opus` did
+not stick — the first three verifiers landed on `glm-5.3`, `grok-4.6` and `glm-5.3-flash`,
+a weaker tier than the work they were grading — killed them, probed `claude-opus-5` reachable,
+and relaunched on the explicit id. A run that catches its own misroute is doing the job.
+
+**What the fleet was measured by, and what it was not.** `scripts/windows/verify.ps1` exits 0
+at `passed 39 · failed 0 · not-run 5`, and prints in its own output
+`A green run here is NOT a green repository`. Two of its five not-run members are the only
+Windows-specific measurements it has — the UIA live lane and the shell self-test — and the
+delivery report quoted the exit code without them. Both were runnable: the UIA lane was run
+2026-09-01T21:41Z and returned 90 passed / 0 failed / 2 unoracled.
+
+**And the campaign never named Windows at all.** `campaign.json` declares five lanes,
+`macos-glass, ios-glass, swiftui, router-daemon, parity-wire`. The registry holds 20 surfaces,
+all Mac, iOS or router, and zero Windows surfaces, cases, requirements, flows or components,
+against 220 C# and 38 XAML files. So `135 of 156 checked (87%)` and `27/28 surfaces spoken for`
+are computed over a denominator that excludes the Windows client entirely — reckon's
+`never-named` class, which is invisible to a coverage figure rather than counted against it.
+
+**Twelve items are model-only, and four of those are inert.** WIN19, WIN21, WIN22 and WIN23
+each landed exactly three source files — a records file, a `*Presentation` helper and a unit
+test — with no XAML and no view:
+
+- **WIN22** "Action Center toast notifications": `ToastNotificationManager` and `AppNotification`
+  appear **nowhere** in product source. The item defines a `ToastNotificationPayload` record and
+  two label constants. No toast can be raised.
+- **WIN19** "winget and MSIX distribution": there is **no** `.appxmanifest`, no winget manifest
+  and no `.wxs` anywhere in the repository. The only winget/MSIX strings are WIN19's own model.
+- **WIN23** "logon task supervision": nothing registers a scheduled task. The only `schtasks`
+  callers are WIN18/WIN20's harness scripts. Its test asserts that a function returning a
+  hardcoded string returns that hardcoded string.
+- **WIN21** is the exception and is **real**: `ShellWindow.xaml.cs` registers `KeyboardAccelerator`s,
+  maps modifiers, and wires F6 pane cycling with live `Invoked` handlers.
+
+WIN9, WIN10, WIN11, WIN13, WIN14, WIN15 each shipped one XAML view, so they are drawn; whether
+they are wired to real data is what the Windows campaign lane will settle.
+
+Full worklists and evidence: `planning/tailings-win/`.
+
+### 2026-09-02 · The Windows campaign lane settled it: three of nine boards do not open
+
+The line above — *"whether they are wired to real data is what the Windows campaign lane will
+settle"* — is now answered, and the answer is worse than "not wired to real data". Three of the
+nine boards never mount at all.
+
+`scripts/windows/uia/shell-lane.ps1` launches the shipped `MCPRouter.Shell` binary in the
+interactive session, actuates each of the ten pane items through
+`SelectionItemPattern.Select()` out of process, and reads back the window title and the whole
+control-view tree **after** each actuation. Ten destinations, measured ten, and the result is
+6 pass / 4 fail:
+
+| destination | verdict | what was read after selecting it |
+|---|---|---|
+| Discover, Servers, Activity, Checks, Insights, Settings | **pass** | own title, own tree, distinct fingerprint |
+| Skills | **fail — CRASH** | process terminated; `0xC000027B` in `CoreMessagingXP.dll` |
+| Harnesses, Cleanup, Inbox | **fail — COLLAPSE** | pane item `IsSelected=True`, board and title unchanged |
+
+Four findings came out of it, all filed in `planning/test-campaign/defects-windows.json`:
+
+- **DEF-077** (critical) Selecting **Skills** terminates the shell. Reproduced on every run. This
+  also explains DEF-071 without replacing it: the in-process self-test captures exactly one board
+  and stops, because `discover` is first in `DestinationCatalog.All` and `skills` is second.
+- **DEF-078** (critical) **Harnesses, Cleanup and Inbox** take the selection and never open. The
+  highlight moves; nothing behind it does. Order-independent — a reverse sweep, where every
+  destination has a different predecessor, fails on exactly the same three.
+- **DEF-079** (medium) The app's `UnhandledException` logger has never written a line, including
+  for the Skills crash, which by definition had one. Its silence is not evidence of health.
+- **DEF-076** is now measured on the running board, and the dump CONFIRMS it rather than clearing
+  it. The Settings board does open, and its realised control view holds **no ToggleSwitch and no
+  CheckBox at all** — 19 Text, 10 ListItem (the pane), 9 Pane, 8 Button of which five are window
+  chrome, and the only board-owned button is `Copy`. Toggle rows are present as prose: the text
+  "Launch router daemon at sign-in" and its subtitle are published, and nothing actuable sits
+  beside them. So the WIN13 claim of "7 settings sections, Fluent ToggleSwitch controls" is not
+  merely unnamed on the automation plane — on this evidence there is no toggle control in the
+  tree to name. That is an accessibility defect and an inertness question in one, and it is now
+  measured on the product rather than inferred from the XAML.
+
+**Why every earlier check passed.** The boards compile. The pane draws all ten items with correct
+accessible names. `ShowDestination`'s switch genuinely maps ten destinations to ten distinct board
+types — reading it is what produced the earlier "navigation verified honest", and that reading was
+correct as far as it went. The unit tests cover the models rather than the mounting. Nothing was
+false; no instrument actuated a control and then read a state outside it. That is the whole
+difference, and it is the sixth failure mode in the test-campaign skill almost verbatim.
+
+**Gate consequences.** `winlive` was reading WIN20's probe report — an honest artifact whose own
+`subjectIsNotTheProduct` field said it was measuring the plane, not the product. It now reads the
+shell lane's report, and that repointing made it **redder**, not greener: it fails on four real
+destinations against the real binary.
+
+**One harness defect worth keeping.** `shell-lane.ps1` was written, parse-checked clean under
+PowerShell 7, scheduled, and exited 1 having written nothing. Windows PowerShell 5.1 — what
+scheduled tasks run — decodes a file with no BOM as cp1252, so an em dash inside a double-quoted
+string becomes a curly quote, ends the string early, and breaks the parse. Five tracked `.ps1`
+files were one prose edit from the same failure. `scripts/windows/ps-parse-gate.py` now checks
+both halves and carries a four-fixture two-way control.
+
+### 2026-09-02 · Fixed: the shell now opens all ten boards, and the cause was one missing key
+
+The four failures above are fixed, and the diagnosis came from making the application say what it
+had been swallowing rather than from more reading. Two guards were added first — `ShowDestination`
+now catches a board that throws, and `SkillsBoard.OnLoaded` no longer lets anything escape an
+`async void` — and the first run afterwards printed the stack traces that named every cause:
+
+- **`SubtleButtonStyle` is not a WinUI 3 key and this app never defined it.** Eleven references
+  across five views asked for it. Cleanup and Inbox threw inside `InitializeComponent`, Harnesses
+  in its card builder. The XAML ones surfaced as `XamlParseException: undeclared prefix`, which
+  names neither the key nor the file — which is why reading the markup never found it. Defined
+  once in `App.xaml`, based on the platform's `DefaultButtonStyle`. **DEF-078 fixed.**
+- **`SkillsBoard.FragmentNs` declared only the default namespace** while its 33 fragments use
+  `x:Name`, so `x:` really was an undeclared prefix and `XamlReader.Load` threw. The first
+  fragment to load is `ErrorState`'s — what the board renders when no router is running — so it
+  threw inside `async void` and killed the process. **DEF-077 fixed.**
+- **DEF-071 fixed without touching the self-test.** Its cause was DEF-077 all along: the driver
+  walks the catalogue in order, `skills` is second, and the process did not survive it.
+  `run-shell-selftest.ps1` now exits 0 — *"destinations walked: 10, captures on disk: 12, no
+  failures reported"*. There are now per-destination PNGs for all ten boards; there was one.
+
+**Measured after:** ten of ten destinations pass on the lane, on a single process with no
+relaunch and no crash, with real trees (Harnesses 70, Cleanup 90, Inbox 79 elements). 625 shell
+model tests still pass. `winlive` is green and earned it.
+
+**Two things deliberately left standing.**
+
+`DEF-076` is unchanged and re-confirmed: the Settings board still publishes no `ToggleSwitch` and
+no `CheckBox` against a claim of seven sections of toggles. It opens, it draws, and its toggles
+are prose.
+
+`DEF-079` stays open. The two new handlers — `AppDomain.CurrentDomain.UnhandledException` and
+`TaskScheduler.UnobservedTaskException` — have never been observed firing, because every exception
+since has been caught at a site that logs directly. An unproven handler is precisely what that
+defect is about, and closing it on registration alone would repeat the error it records.
+
+**One near-miss worth recording, because it was mine.** Adding the `BoardFailure` card turned the
+lane green at 10/10 *before* any board was fixed — the card sets the window title correctly and
+publishes its own distinct tree, so both the title oracle and the collapse oracle were satisfied
+by a board that had not been built. Three destinations went FAIL → PASS on the strength of a
+better error state. The lane now keys on the card's own automation id, and a mutation run that
+renames `SubtleButtonStyle` turns exactly those three red again — which is what proves the new
+check, and not the old ones, is what catches them.
+
+---
+
+## 2026-09-02 · WIN19, WIN22 and WIN23 built for real
+
+The tailings audit found three items whose ledger rows described mechanisms that did not exist.
+Each is now implemented, and each carries an effect-witness lane whose recorder is a Windows
+subsystem rather than the product's own report. **All three witnesses are armed**, and one of the
+arming runs failed in a way worth more than its pass.
+
+| item | was | is | witness | armed by |
+|---|---|---|---|---|
+| **WIN23** DEF-074 | a switch returning `"Scheduled Task at user logon (restarts on crash, un-elevated)"`, tested by asserting the string contained a substring of itself | `LogonTaskSupervisor` builds Task Scheduler XML and drives `schtasks.exe` | `Get-ScheduledTask`, the WMI provider — 8 arms | registering with `RestartOnCrash:false`; exactly `EFFECT.restart` broke |
+| **WIN22** DEF-072 | a payload record and a builder; `AppNotificationManager` at 0 hits in product source | explicit AUMID + `Register()` + a handler routing `Review` to the Inbox | HKCU, read by the registry provider — 4 arms | pointing every read at an AUMID nothing registers; all three EFFECT arms broke |
+| **WIN19** DEF-073 | no `*.appxmanifest`, no winget manifest, no `*.wxs` anywhere | a real MSIX manifest, three winget YAMLs, packed → signed → deployed → removed | `ZipArchive` + `winget validate` + `Get-AppxPackage` — 12 arms | a manifest declaring `Fledgeling.MCPRouter.WRONG`; exactly `PACK.identity` broke |
+
+**The recorder is never the writer, and that is the only reason these mean anything.** The clearest
+proof is accidental: WIN23's lane asked for `PT60S` and the scheduler answered `PT1M`. Nothing in
+this repository normalises that, so the read demonstrably did not come back through anything we
+wrote. WIN22's LocalServer32 carries `----AppNotificationActivated:`, a string we never write.
+
+**Two arms in every lane are about the instrument rather than the product.** A BASELINE arm requires
+the recorder to report absence *before* the effect, without which a leftover task, registration or
+package makes every other arm pass over a run that did nothing. A SILENCE arm requires it to report
+absence again afterwards — which is what separates a reader from an echo, because a recorder that
+always answered yes would satisfy the product arms by construction.
+
+**The arming run that failed usefully.** WIN19's first planted defect removed the executable from the
+layout, expecting `PACK.payload` to break on the reasoning that MakeAppx would happily pack a
+manifest naming a file the layout did not carry. It will not — it validates payload presence and
+exits 1. So that arm cannot be armed by removal and is *defended by the packer as well*, which makes
+it cheap redundancy rather than the load-bearing check it was written as. The load-bearing one is the
+identity cross-check, and re-aiming the arm there found that a package under the wrong identity packs,
+validates and installs perfectly. The lane's header records the failed attempt rather than only the
+arm that worked.
+
+**What each lane deliberately does not settle**, filed rather than folded into the fix — because
+folding a narrower measurement into a wider claim is exactly what DEF-072/073/074 were:
+
+- **DEF-081** — WIN23's trigger has never been watched to *fire*, and the restart never watched to
+  *happen*. Nothing here logs the user out or kills a daemon.
+- **DEF-082** — no instrument on this host can see a toast in the Action Center or a click on one.
+  `UserNotificationListener` needs a capability only a *packaged* app can hold, so this is downstream
+  of DEF-073 rather than independent of it.
+- **DEF-083** — nothing publishes the package. The winget `InstallerUrl` is a deliberate
+  `example.invalid` placeholder and the lane asserts it *is* one, because a plausible GitHub release
+  URL would validate, read as finished, and 404 for the first person who ran `winget install`.
+  Publishing needs a signing certificate this repository does not hold and a PR into a third-party
+  repository: the owner's call, not this fleet's.
+
+**What the WIN19 lane mutates, and puts back.** A self-signed certificate in
+`LocalMachine\TrustedPeople`, so an unsigned developer package can deploy at all. It is removed in a
+`finally` block however the run ends, with the package. Verified after: zero `Fledgeling.*` packages,
+zero witness certificates. A lane that left a trusted publisher behind would have changed what this
+machine installs — silently, and for every future run.
+
+All three witnesses are enrolled as graded rows in `scripts/windows/verify.ps1`, so they run rather
+than waiting to be remembered. The shell destination lane is named there too; until now that file did
+not know it existed.
+
+### Five gate failures cleared, all of them this session's own debris
+
+Worth listing because four of the five were introduced by the instruments written to *find* the
+defects above, which is the ordinary way a verification pass pays for itself twice.
+
+- **`ps-parse-gate.py` enumerated from the caller's directory.** Its denominator was 6 files from
+  `scripts/windows/` and 9 from the root, and both printed the same green. Anchored to the root, and
+  every dropped line now counted and named rather than filtered away in a comprehension.
+- **`instrument-census.tsv` had not moved** for two new instruments. Rewritten.
+- **The `ai/p4` landing carried no `carriers.tsv` row.** R26 auth expiry is swift-only; the row now
+  says so, and says plainly that the Swift half was not re-verified here.
+- **`CASE-0151` named no row.** `3189d028` renumbered `CASE-0151..0161 → CASE-0184..0194`, and brief
+  X7 cites the old numbers *because that is what it measured on 2026-08-21*. The whole block is
+  declared in `registry-retirements.json` rather than the sentence being rewritten — rewriting would
+  have made the citation resolve while claiming the audit read rows that did not exist under those
+  names on the day it ran.
+- **`sweep-control-gate` reported two controls as failing** when both hold and merely exceed a 120s
+  budget measured on macOS. `verify.ps1` now declares `SWEEP_CONTROL_TIMEOUT=600`, with today's
+  measurements in the comment: 161s and 119s with nothing else running, and bash process spawn is
+  almost all of it.
+
+**And one defect found in an instrument I wrote earlier this session.** `win-cases-from-lane.py`
+allocated case ids from `max(hand-written) + 1`, so the generated block sat immediately above the
+highest hand-written id and *every* generated id slid up by one whenever a case was added by hand.
+Two cases authored here were silently taken over by the Discover and Skills rows: `CASE-0309`
+names no row in any registry, and neither does `CASE-0310`. The subjects survived under the ids
+the generator then assigned them; the two numbers did not, and were never rows to retire. Ids are now allocated once per subject and remembered on a `generatedKey`, above every
+id in the file. It was reproducing, every run, the exact defect `3189d028` left behind as a dangling
+`CASE-0151` — which the same session had just spent an hour declaring retirements for.
+
+## 2026-09-02 · The 72-member fleet, and the three things a member can be
+
+`planning/reckoning/2026-09-02/ledger.json` schedules 72 members across three waves (47 / 24 / 1).
+The `waves` completion gate is red until they are shipped, and it is the only red gate: `branches`,
+`liveness`, `wincoverage` (13/13) and `winlive` (10/10 destinations) are all green, and
+`scripts/windows/verify.ps1` completes exit 0 with the three new witnesses passing.
+
+### The partition, and why it is not a narrowing
+
+Ship-everything was the instruction and it stands. What follows is not a smaller list — it is the
+same 72 rows sorted by **what can be established about a finish here**, because this fleet runs on a
+Windows host with no Swift toolchain, no simulator and no display server that Xcode can reach. A row
+whose work can be written but whose finish cannot be witnessed is a different kind of row from one
+that can be closed and proved, and reporting them under one green is precisely the failure the
+campaign's own header calls *testing the parts on paper and reporting it as the product on glass*.
+
+| Bucket | Members | What a finish means here |
+|---|---|---|
+| **A — closable and provable on this host** | 10 | Code, test and an instrument that reddens; merged to `main` and enrolled in `verify.ps1` where it belongs there |
+| **B — writable here, unprovable here** | 47 | Swift / macOS / iOS. `swift test` and `xcodebuild` cannot run. Work lands on a branch with its verification named and NOT claimed |
+| **C — parked with a reason** | 15 | Structurally outside this fleet's reach: a different repository, an outward-facing action, a signing identity, a logon, or a decision that is the owner's |
+
+Bucket C is not a deferral of effort. Fourteen of its fifteen rows resolve to two facts somebody
+already wrote down: brief X7 states that the campaign-tooling defects "cannot be closed by an
+mcp-router runner … a different repository and an outward-facing action", and DEF-083 needs a signing
+certificate this repository does not hold plus a pull request into `microsoft/winget-pkgs`.
+A parked item with a stated reason beats a fake green, and every one of them stays on the ledger.
+
+### Wave A — the ten that can be finished here
+
+Six runners, because file-adjacency is the merge cost. Items inside a runner are serial; runners are
+concurrent at five slots, which is a correctness limit rather than a throughput preference (measured:
+92 agents died silently, 88 of them at exactly 180.0s, when the cap was lifted). Every runner is
+opus-5 at medium effort in its own git worktree, commits to `ai/<slug>`, and merges nothing —
+finalization is serialized here.
+
+| Runner | Members | Subject |
+|---|---|---|
+| `wa1-shell-controls` | DEF-076, DEF-075 | `SettingsBoard.xaml`, `DiscoverDetailContent.xaml` — controls a UIA client can name and drive |
+| `wa2-shell-crash` | DEF-079 | The two new top-level handlers, observed firing rather than merely registered |
+| `wa3-surface-census` | `no-surface-declares-its-controls`, `the-campaign-never-enumerated-three-shipped-surfaces` | The denominator: `controls` arrays, and the three shipped surfaces with no row to be uncovered in |
+| `wa4-registry-vocabulary` | `a-status-word-nobody-taught-the-gate`, `a-brief-that-names-nothing-cannot-be-retired` | Status words the gate can partition, and a brief that can leave the remaining set |
+| `wa5-capture-lineage` | `three-captures-name-a-route-they-were-not-pointed-at`, `glass-evidence-outlives-the-build` | A picture bound to its subject by something other than its filename |
+| `wa6-repo-gates` | `G9-two-gates-pin-a-worktree-that-no-longer-exists` | Two executable gates that `cd` into a directory that is gone |
+
+Two of these carry a deliberate half-finish, stated here so a green cannot imply the other half.
+`glass-evidence-outlives-the-build` gets its staleness gate on this host; the **re-capture** it
+demands is macOS and stays open. `no-surface-declares-its-controls` gets the declaration; **driving**
+those controls is `eleven-surfaces-declare-controls-that-nothing-drives`, which is Bucket B.
+
+### What Wave A is graded by
+
+Each runner's work is accepted on the same three questions, and they are inline in every brief
+rather than referenced by path — measured on this pipeline: a project `CLAUDE.md` reached 0 of 409
+subagent contexts.
+
+1. **Does an instrument redden?** A fix with no check that would have caught the defect is not a fix,
+   it is a claim. Where the subject already has a lane, the lane grows an arm; where it does not, say
+   so rather than adding a green.
+2. **Is the recorder something other than the writer?** A process reporting its own effect is the
+   shape DEF-072 was about.
+3. **Is what the item does *not* settle written down?** In the defect's `resolution`, the case's
+   note, or a newly filed defect — never folded into a wider claim.
+
+### After Wave A
+
+Bucket B ships next, in the ledger's own dependency order, with one standing disclosure on every
+member: **the Swift half is written and not run on this host.** Bucket C is written into the ledger
+as parked with its reason and its owner. Phase 6 closes on *reconciliation* — re-anchor the campaign,
+re-run `reckon.py build` and `check`, and either land `unbuilt`/`broken`/`unmeasured`/`undecided` at
+zero or name the class the run stopped on and how many rows it held.
+
+## 2026-09-02 · Wave A landed: ten items, and the seven defects they uncovered
+
+Six runners, opus-5 at medium effort, each in its own worktree, merged serially. All ten Wave A
+items were worked; five of six runners reported first time and `wa4` reported through a transport
+error after committing.
+
+### What each runner settled
+
+| Runner | Items | Settled by |
+|---|---|---|
+| `wa1` | DEF-076, DEF-075 | An out-of-process UIA census. Seven Settings sections now publish addressable containers, three toggles publish names and toggle state, and an EFFECT arm toggles through `TogglePattern` then reads a **different** element, so a switch bound to nothing fails. The Discover detail dialog's controls carry ids. 651 tests pass. |
+| `wa2` | DEF-079 | The three top-level handlers each made to fire on purpose, and the line each wrote read back out of `shell-startup.log` by a process that is not the shell. Four arms, plus a `-ProveRed` that unregisters one handler and requires exactly that arm to break. |
+| `wa3` | 2 briefs | The denominator. `Controls: 38 of 180` became `56 of 199`, surfaces `44 enumerated` became `47`, and the three shipped surfaces that had no row to be uncovered in now have one — uncovered, which is the honest state. |
+| `wa4` | 2 briefs | A closed status vocabulary the reckoning can partition, with a gate that refuses a word outside it, proved red four times and reverted each time. |
+| `wa5` | 2 briefs | Glass evidence stamped with the build it came from, and a gate that reddens when it outlives it. Four arms, each watched to fail. |
+| `wa6` | 1 brief | The worktree arm the machine-path gate was missing, planted and reverted. |
+
+### The false-green Wave A found, and it is the one worth reading twice
+
+DEF-076's row offered an either/or — the toggles carry no `AutomationProperties.Name`, or there are
+fewer than seven sections. **The answer was neither.** A WinUI `ToggleSwitch` publishes as
+`AutomationControlType.Button` carrying `TogglePattern`, so a census looking for a control whose
+*type* is ToggleSwitch could never have found one however many existed. The recorded dump's eight
+Buttons were the window chrome, `Copy`, and three anonymous toggles nobody could name. A measurement
+can be taken correctly, against the running product, by an independent recorder, and still answer a
+question nobody asked.
+
+### Four gates the merge broke that no branch could have seen
+
+Serialized finalization earned its cost here. Each branch was green alone and the combination was
+not: `actuates` meant *a control the surface declares* to one runner and *the command the lane ran*
+to two others (DEF-080, which wa3 filed in the same wave); SURF-044 arrived declaring eight controls
+with no `controlsSource` because wa1 added the controls and wa3 added the gate requiring the field;
+and my own merge of the G9 brief kept a `shipped-by` the LEDGER row contradicts.
+
+**Six independent runners allocated `CASE-0342`.** Off one `main`, in one wave. That is the
+id-allocation defect this session already fixed once inside `win-cases-from-lane.py`, arriving from
+a level the generator cannot see. Worse, `inventory.json` and `defects-windows.json` share one
+`DEF-` space and merge separately, so `DEF-085` left the wave meaning two different things in two
+files — caught by comparing the registers afterwards, by no gate.
+
+### The honest arithmetic
+
+Seven rows left the schedule; nine arrived; it went **72 → 74**. None of the nine is new breakage.
+Seven are defects Wave A found *by making the layer above them work* — settings that move a boolean
+and reach nothing, a `Copy` button that is named and does nothing, Discover rows publishing their
+class name as their accessible name. Two are defects that always existed and that `reckon` could not
+see, because it reads `inventory.json` alone and they had been filed only into `defects-windows.json`.
+
+reckon 1.9.4: 584 rows, gate clean, ratchet clean. `branches`, `liveness`, `wincoverage` and
+`winlive` are green; `waves` is correctly red at 74.
+
+### Wave A′ — the layer underneath, and it is provable here
+
+The seven discoveries are Windows-local, which means they are closable *and* witnessable on this
+host. That makes them worth more per token than writing Swift nobody here can run, so they go next.
+
+| Runner | Items |
+|---|---|
+| `wb1-settings-persistence` | DEF-087 (no setting persists or reaches the machine), DEF-088 (`Copy` is named and does nothing) |
+| `wb2-automation-names` | DEF-084 (Discover rows publish `ToString()`), DEF-089 (the NavigationView pane carries no name) |
+| `wb3-dispatcher-handler` | DEF-085 (a `DispatcherQueue` callback throw reaches no handler), DEF-086 (whether a real stowed exception is caught — likely stays open with a stated reason) |
+| `wb4-actuates-vocabulary` | DEF-080 (`actuates` names two different things in one field) |
+
+Concurrency is **two**, not five. Six concurrent opus-5 runners all died inside one window on
+`400 upstream_error`, each after roughly 25 working turns; two ran the whole wave without a
+transport failure. That is a property of the proxy rather than of this machine, and the only lever
+here is how many agents are in flight.
+
+
+## 2026-09-03 · Wave A′ landed, and five instruments that could not have failed
+
+Four runners, opus-5 at medium effort, concurrency two. All four reported. Every id offset held:
+zero collisions, against six runners allocating the same `CASE-0342` the wave before. The offsets
+were the whole fix, and they were cheap.
+
+| Runner | Items | Settled by |
+|---|---|---|
+| `wb1-settings-persistence` | DEF-087, DEF-088 | A setting that reaches the machine and survives the process. Driving `Launch router daemon at sign-in` through the automation plane registers a real scheduled task, `Get-ScheduledTask` reports it, driving it back Off removes it, and the shell is terminated and relaunched to prove the switch still reads On. `Copy` puts the endpoint on the clipboard, read back by a different PowerShell process against a sentinel planted first. |
+| `wb2-automation-names` | DEF-084, DEF-089 | 120 Discover rows publishing distinct accessible names and distinct automation ids, none of them a type name, and a navigation pane that answers to `Destinations`. |
+| `wb3-dispatcher-handler` | DEF-085, DEF-086 | A `DispatcherQueue` callback throw that now reaches a handler, observed writing its line into `shell-startup.log` and read back out by a process that is not the shell. |
+| `wb4-actuates-vocabulary` | DEF-080 | Two denominators printed separately — `Controls: 50 of 204` and `Operations: 8 of 8` — where one field had been answering two questions. |
+
+675 shell-model tests and 132 live tests pass; the lane closes at 10 of 10 destinations and 15 of
+15 control arms.
+
+### The stale build, which is the finding worth reading twice
+
+The merged lane run reported **12 of 15 control arms FAILED**, every control both runners had added
+"unaddressable". Twelve specific, coherent, mutually consistent failures, and an exit code to match.
+None of it was true.
+
+The lane's default `ExePath` is `bin\Debug\…`. `MSBuild -p:Platform=x64` writes `bin\x64\Debug\…`.
+The binary the lane read was twelve hours old and predated every control it was looking for.
+Rebuilding through `scripts/windows/build-shell.ps1` turned all fifteen green with no change to the
+product whatsoever.
+
+That is `BRIEF-a-stale-build-can-fabricate-a-failure-and-as-easily-a-pass`, live, in this repository,
+on the day after it was written. The false FAIL cost an afternoon. **The false PASS is the one that
+matters**, because nothing in the run says which binary answered, and a green over a stale build is
+indistinguishable from a green over the product.
+
+So the lane now establishes freshness before anything else and stops with NO VERDICT rather than
+FAIL — a stale build is not a defect in the product, it is the lane being unable to speak about the
+product at all. Both arms were watched: with one source file newer than the build it stops at exit 3
+naming the file, and rebuilt it returns exit 0.
+
+The guard needed fixing twice, and both bugs were the failure it exists to prevent wearing its
+clothes. It first filtered with a regex PowerShell rejected at runtime; the exception left the result
+empty, empty read as *nothing is newer*, and it printed "shell binary is current" over a file that
+demonstrably was. **It failed open.** Then, comparing against the exe, it refused a tree that was
+current — an incremental build relinks the changed project's dll and leaves the apphost alone, so a
+clean successful build left the exe seven minutes older than the source. A guard that cries wolf gets
+switched off, which ends in the same place as one that fails open. It now counts what it walked, and
+refuses a walk that found zero files at all.
+
+### Four gates that were green because they were blind
+
+Wave A was finalized on a green I did not earn: I ran the reckoning gates and the build, not the
+portable set. Four of the fourteen had been red on `main` since that merge, and **three could only
+ever have returned a pass**.
+
+- `registry-drop-gate` built its paths with `os.path.join`, giving `planning/test-campaign\cases.json`.
+  `os.path.exists` accepts that; `git show <ref>:<path>` does not. The working-tree read worked, all
+  four ref reads returned `None`, and the gate whose entire subject is a row going missing compared
+  nothing at all. It exits 2 on that rather than 0, which is the only reason it was ever visible.
+- `null-run-gate` spawns each gate and decodes utf-8. A Python child on Windows writes its pipe in
+  the console codepage, so an em dash arrives as cp1252 `0x97`, the decode fails inside subprocess's
+  reader *thread*, that exception is printed and swallowed, `run()` returns 0, and `proc.stdout`
+  comes back `None`. It crashed on the concatenation, which was luck: written defensively as
+  `(proc.stdout or "")`, every arm would have reported HELD for want of its expected string — a
+  null-run gate declaring its own arms unable to fire. It passed under `verify.ps1` throughout,
+  because that script exports `PYTHONIOENCODING` at line 22. **A gate green only inside one wrapper
+  is not a gate.**
+- `foreign-path-gate` asserted `/tmp` exists. Windows has none, the presence control missed, and a
+  missed control makes the gate refuse to report — exit 2 over a probe that was working perfectly.
+  Fixing the control then exposed what it had been hiding for as long as it had been failing: past
+  it, the gate queued all 1,673 blob shas into `git cat-file --batch` before reading a byte, which
+  deadlocks the moment the answers outgrow the pipe buffer. It hung with 0.17s of CPU after nine
+  minutes.
+- `reader-accounting` was red on four unaccounted drops `glass-build-gate.py` arrived with in Wave A.
+
+The shape is the same one this campaign keeps finding, one level up: **an instrument that cannot fail
+reports the same word as an instrument that passed.** Wave A′ did not find these by looking for them.
+It found them because somebody ran the gates.
+
+### The arithmetic
+
+74 → **71** scheduled members. reckon 1.9.4 at `planning/reckoning/2026-09-03`: 605 rows, gate clean,
+ratchet clean, `broken 63 · unmeasured 20 · undecided 21 · unjoined 108 · waived 80 · verified-done 312`.
+`wincoverage`, `winlive`, `branches` and `liveness` are green; `waves` is correctly red.
+
+Two rows came back with the drop gate's sight restored, and neither is closed:
+
+- **SURF-029** — WIN20's probe window and its two CommandBar overflow controls, enumerated with no
+  case reaching them. Provable on this host, so it goes to the next Windows wave.
+- **REQ-034** — the upstream-auth-expiry behaviour, carrying `evidence: observed` with nothing
+  backing it. That is precisely the re-label reckon's `backed_by` rule exists to refuse, and it is
+  Swift, so it is provable nowhere on this machine.
+
+### What is left, and what a finish can mean for it
+
+The remaining 71 are the partition this fleet started from, now with Bucket A empty. What follows is
+Bucket B — Swift, macOS and iOS, where `swift test` and `xcodebuild` do not run on this host — and
+Bucket C, parked with a stated reason and an owner. Every Bucket B member ships with one standing
+disclosure that is not negotiable: **the Swift half is written and not run here.** A brief that says
+so is worth more than a green that does not.
+
+
+## 2026-09-03 · Wave B landed: the join, five Windows rows, and five gates resolved
+
+Five runners, opus-5 at medium effort, concurrency two, all five reported.
+
+| Runner | Items | Settled by |
+|---|---|---|
+| `wc1-brief-join` | DEF-090, 9 briefs | 15 briefs cited and 48 deliberately left unjoined (honest 28.6% join beats a fabricated 50%); 9 briefs left remaining set (`shipped-brief-gate.py` R5=0). Filed DEF-280 (REQ-035 double-booked by R22). |
+| `wc2-tray-and-confirm` | DEF-101, DEF-102 | `NotificationAreaIcon.cs` calling `Shell_NotifyIcon` with GUID, witnessed by rectangle queries from an external process (`0x80004005 -> 0x00000000 -> 0x80004005`). Destructive toggle narrowed to `Confirm before removing a server` and wired to `RemoveServerAsync`, witnessed by router list queries after Cancel/Confirm. |
+| `wc3-witness-blockers` | DEF-081, DEF-082 | Proved `RestartOnFailure` had never restarted anything; fixed by adding `Repetition` to logon trigger; witnessed live restart. Proved toast blocker was false: unpackaged Win32 calls `UserNotificationListener.GetNotificationsAsync` without MSIX, found 7 toasts. Filed/fixed DEF-320 and DEF-321. |
+| `wc4-registry-consistency` | SURF-029, REQ-034, DEF-091, DEF-042, DEF-043 | CASE-0460 exercises CommandBar overflow via UIA; REQ-034 evidence corrected `observed -> reported`; DEF-091 settled (DEF-063 collision separated to DEF-340); DEF-042 annotated; DEF-043 clarified as macOS. Carried DEF-064, DEF-065, DEF-340 into inventory. |
+| `wc5-ledger-reconcile` | ledger-reconcile.py | Reconciler brought to green across all 13 checks (series letters added, 12 missing slot rows written, states mapped, DEF-360/361/362 filed). Enrolled in `make lint` and `verify.ps1`. |
+
+### Merge-break resolutions
+- `shipped-brief-gate`: `the-wave-enumerated-three-surfaces-and-bound-none.md` corrected `retired -> in-progress` because DEF-065 on SURF-026 is open (now visible because wc4 carried it into inventory).
+- `control-census`: CASE-0440 and CASE-0441 cleaned of internal method names in `actuates`.
+- `target-resolution`: the two unallocated case numbers in ORCHESTRATOR.md withdrawn in text.
+- `sweep-control-gate`: `overflow-assert.py` registered as `not-a-sweep`.
+- Lane evidence: regenerated with 22 control arms (up from 15), 10/10 destinations, exit 0.
+
+### Arithmetic
+Reckoning 1.9.4 at `planning/reckoning/2026-09-03`: 630 rows, gate clean, ratchet clean.
+`unjoined 90 · broken 72 · unmeasured 23 · undecided 25 · waived 88 · verified-done 332`.
+Remaining work fell 201 -> 198, verified-done rose 312 -> 332 (+20). Scheduled members rose 71 -> 83 because joining briefs to failing cases moves unjoined decision work into scheduled work.
+
+
+## 2026-09-03 · Wave C landed, and four instruments that integration changed the meaning of
+
+Four runners, opus-5 at medium effort, concurrency two, all four reported. Merged by resolving on
+each runner's own branch and fast-forwarding `main`, because G9 refuses a conflict-resolution
+commit on `main` and only lets an auto-resolving merge through.
+
+| Runner | Items | Settled by |
+|---|---|---|
+| `wd1-ambient-truth` | DEF-301, DEF-300 | `RouterStatusReader` polls the router's own `/status`; `AmbientRouterState.Unknown` placed FIRST so `default()` means "nothing has read the router yet". Recorder is a router driven from outside the app: the lane stops its own node router, puts a stand-in on the port, starts the real one again. DEF-300 **answered, not fixed** — the icon does come back, and the finding is that `Shell_NotifyIconGetRect` is not dependable in either direction, so the baseline grades `unoracled` rather than `fail`. Filed DEF-380, DEF-381. |
+| `wd2-cleanup-board` | DEF-302 | `PopulateSampleData` DELETED, not bypassed; rows reach the model only through `Adopt(ServersEnvelope)`. Removal routed through `ControlApiClient.RemoveServerAsync`, gated by the setting read at the moment of the press. Four arms graded on the router's own listing, never the dialog. The strongest reading is the one with no plant at all: the same three arms went red against **main's own tree**, rebuilt clean. Filed DEF-400, DEF-401, DEF-402. |
+| `wd3-surface-plane` | DEF-131 | All 47 surfaces declare `plane`; `_OPERATION_SHAPE` deleted rather than left beside the new rule. `arm-surface-plane.py` plants eight states against a scratch copy and runs BOTH censuses, so each reading is a difference. Filed DEF-420 (coverage deliberately given up) and DEF-421. |
+| `wd4-router-writes` | R21, R10, REQ-016 | Toolchain checked first: `swift` and `xcodebuild` absent, so every Swift claim says so in its own words. **R21 and R10 were already shipped** — the brief's premise was stale, and what was left was the acceptance line. `r21-approve-write-denied.mjs` drives the shipped reference against a real `EISDIR` at the durable step; ACLs were tried first and **failed silently**, which is recorded rather than dropped. Filed DEF-440, DEF-441, DEF-442. |
+
+### What only the merged tree could show
+
+Four things were invisible to every runner in its own worktree, and each was found by running the
+instruments on the merge rather than by reading the reports.
+
+- **wd1's DEF-381 and wd2's DEF-402 are one fact.** wd1 filed "MCPRouter.Shell terminated in five
+  of eight runs, four unhandled-exception routes armed and silent" as a defect it could not
+  explain. wd2 found the cause: the lane's kill was unscoped and was terminating *any*
+  `MCPRouter.Shell`, including the other runner's, and the victim reported a crash wherever it
+  happened to be reading. Neither could have seen the whole of it alone.
+- **wd2's fix made wd1's arm measurable.** `settings.ambientIcon.survivesExplorerRestart` is
+  `armed: false` in wd1's report — never watched to fail, because the shell died on both planted
+  runs. On the merged tree it PASSES. The arm was not weak; the harness was killing its subject.
+- **`arm-surface-plane` stopped being a differential the moment it was committed** — DEF-443. It
+  read `PREVIOUS = "HEAD:..."`, which is the previous census only while the new one is
+  uncommitted. Merged, it compared the file with itself: all six EFFECT plants read red on both
+  sides and DEF-131's own exhibit stopped being a difference. Pinned to `42aef112`.
+- **DEF-421 was diagnosed as the wrong half.** SURF-038's `controlsSource` already named
+  `SettingsPresentation.cs`; it named it without the `app/windows/` prefix, and the reconciler
+  reads only the repo-relative form it documents. A registry correct in substance produced a
+  stale-source finding through an abbreviation — and while it was red,
+  `arm-win-surface-reconcile.py` stopped at BASELINE IS NOT GREEN and measured nothing. It now
+  runs 7 of 7.
+
+### Integration corrections beyond the merge
+
+- `shell.navigationPane` was a measured control that reached no case: the generator printed its
+  finding on every run and the family was never registered. Registered to SURF-030 / REQ-062.
+- SURF-050 was the one surface of 48 with no `plane` — wd1 branched before the field existed. Set
+  `glass` from what the row itself says about where it is drawn, with the reasoning recorded, not
+  `undetermined`, which is reserved for a plane nobody has worked out.
+- Five bare citations in wd4's evidence given anchor and tree. **Two were wrong by a few lines**
+  while bare — the Swift do/catch is 173-180, not 171-177 — and would have read DRIFTED the moment
+  they carried an anchor. The corpus bare count fell 707 → 700.
+- Four requirements carried an effect outside the census's closed vocabulary, so they counted as
+  declaring no effect at all. REQ-090 and REQ-095 were this wave's; REQ-040 and REQ-080 predate it
+  and were fixed too, because a gate that is red anyway cannot catch the next one.
+- High-water mark raised 386 → 436, the raise three runners deferred to integration.
+
+### Where it stands
+
+Build clean, 699 Windows tests passing, the lane at **10 of 10 destinations and 34 control arms,
+none failing** — up from wd1's 30 and wd2's 26 because the merge carries both sets. Fourteen
+portable gates, `control-census`, `effect-class-census`, `effect-provider-gate`,
+`win-surface-reconcile`, `arm-surface-plane` and `arm-win-surface-reconcile` all exit 0.

@@ -2,9 +2,8 @@
 status: completed
 found-by: intake, from the owner's directive that Windows reach feature and UI parity with macOS · 2026-08-30
 registry-target: none
-no-target-reason: the campaign registry holds no Windows surface, case, requirement or defect, so nothing in it could answer a question about which Windows UI framework the client is built on
+no-target-reason: the registry has since gained nineteen Windows rows (SURF-029..SURF-047, SURF-050, REQ-031, REQ-035..REQ-038), so the original reason - that it holds no Windows surface at all - is no longer true. It is still true that no registry entity states WHICH UI FRAMEWORK the client is built on: SURF-030 records the shell the decision produced, not the decision. Corrected 2026-09-03, we4.
 ---
-
 # Decide which UI framework the Windows client is built on, before any Windows surface is drawn
 
 - origin: owner directive, 2026-08-30 — "i want windows to have feature and ui parity with macos"

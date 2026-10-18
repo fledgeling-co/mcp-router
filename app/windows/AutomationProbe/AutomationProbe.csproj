@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    WIN20 — the automation-plane probe window.
+
+    This is NOT the product shell. WIN3 has not landed a drawable window, and a campaign cannot
+    measure a framework's automation behaviour by reading its documentation. So this project is
+    the smallest WinUI 3 window that carries the vocabulary and the four states WIN20's acceptance
+    names, built so the UIA harness has a real provider to read.
+
+    Every measurement WIN20 publishes was taken against THIS window and says so. When WIN3 lands,
+    the harness is pointed at the product and the numbers are re-taken; nothing here claims to
+    have measured the product.
+
+    Build (dotnet build FAILS MSB4062 here — it resolves MSBuildExtensionsPath to the .NET SDK,
+    which carries no AppxPackage tasks):
+
+      & 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe' `
+          app\windows\AutomationProbe\AutomationProbe.csproj -t:Restore,Build
+  -->
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <RootNamespace>MCPRouter.AutomationProbe</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishProfile>win-$(Platform).pubxml</PublishProfile>
+    <UseWinUI>true</UseWinUI>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableMsixTooling>true</EnableMsixTooling>
+
+    <!-- Unpackaged: the harness has to be able to start this from a script and find its exe on
+         disk. A packaged build would need registration and an identity the lane does not have. -->
+    <WindowsPackageType>None</WindowsPackageType>
+
+    <!-- Self-contained WindowsAppSDK: the machine has Microsoft.WindowsAppRuntime.1.8 in
+         WindowsApps, but an unpackaged app also needs the Main package and a DDLM to reach it
+         through the bootstrapper. Self-contained removes that dependency entirely, so a failure
+         to launch is a fault in this code rather than in the machine's runtime registration. -->
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+
+    <!-- Program.cs replaces the entry point the XAML compiler generates. The generated one has no
+         error handling, so a startup failure surfaces only as STATUS_STOWED_EXCEPTION with no
+         cause attached. See Program.cs. -->
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260804001" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.8249" />
+  </ItemGroup>
+
+  <!-- No ApplicationDefinition / Page items are declared here on purpose. The .NET SDK's default
+       globbing nominates App.xaml as the ApplicationXaml and every other .xaml as a Page; adding
+       either explicitly fails (NETSDK1022 duplicate Page, WMC1012 more than one ApplicationXaml).
+       A first build failed CS5001 "no static Main" against a half-written obj/ — the fix was a
+       clean, not a project-file change, and that dead end is recorded so it is not re-run. -->
+
+
+</Project>

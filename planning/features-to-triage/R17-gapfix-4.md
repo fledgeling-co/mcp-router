@@ -1,3 +1,7 @@
+---
+registry-target: none
+no-target-reason: a gap-fix verdict against parent R17, about stating a rate the next measurement keeps refuting. A record defect; no registry row is about it. Read against the registry 2026-09-03, we4.
+---
 # R17 gap-fix 4 — stop stating a rate that the next measurement keeps refuting
 
 **Parent:** R17 · **Verdict:** Needs More Work, 2026-08-22 (fourth verification)

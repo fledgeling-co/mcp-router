@@ -1,3 +1,7 @@
+---
+reckon-sources: [REQ-015, REQ-016, DEF-001, SURF-010, SURF-014]
+---
+
 # Local Network Device Discovery and Mutual Pairing Handshake
 
 - origin: test-campaign and reckoning ideation · 2026-08-25

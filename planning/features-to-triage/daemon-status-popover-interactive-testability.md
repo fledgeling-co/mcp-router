@@ -1,3 +1,7 @@
+---
+reckon-sources: [SURF-009, REQ-008, CASE-0004, CASE-0006, CASE-0109]
+---
+
 # Background Status Item and Popover Accessible Testability
 
 - origin: test-campaign unmeasured cases and reckoning findings · 2026-08-25

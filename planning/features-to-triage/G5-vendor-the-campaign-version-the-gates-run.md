@@ -100,3 +100,49 @@ that the blocker recorded against them has changed shape.
 that reference `test-campaign` scripts, `LEDGER.md`'s vendoring note and its X7/X8 note, and the
 `ORCHESTRATOR.md` dispatch-hazard row. **No campaign data**: `planning/test-campaign/` belongs to
 another session and this item does not re-run or rewrite its registry.
+
+
+---
+
+## WE3 VERDICT, 2026-09-03 — (A)/DELIVERED. This brief's own acceptance is met; what it did NOT claim to do is what is left.
+
+Adjudicated as one of fifteen scheduled rows naming a script under `vendor/` or
+`.claude/plugins/`, on the question of whether naming a vendored script is proof the fix lives
+there. For G5 it is not a fix question at all: the vendoring landed, and this row's remaining
+weight is a decision the brief itself hands to the owner.
+
+**Acceptance 1 is met and was re-checked rather than taken on trust.** `vendor/test-campaign/`
+carries **0.9.2**, both `plugin.json` and `.claude-plugin/plugin.json` agreeing, pinned by commit
+and tree checksum in `vendor/README.md`, and holding all four things the brief says 0.5.0 lacked:
+`vacuity-check.py`, `capture-lineage.py`, the `effect-witness` rung in `strict-check.py:59` at `5934c38f`, and
+`blindVocabulary` support.
+
+**The vendored copy was RUN this session, from the repository, against this campaign** —
+`vacuity-check.py --gate` (`uncensused: examined=17 findings=1`, naming REQ-016),
+`attach-shots.py --apply --filename-only` against a scratchpad copy, and `campaign.py check`.
+That is not the same as acceptance 2's plugin-cache-renamed-away run, which is still owed, but it
+is a repository-relative invocation producing real numbers.
+
+**One thing acceptance 3 has to survive that was not known when this was written:** the machine's
+cache now holds **0.16.0, 0.16.3 and 0.17.0**, and this campaign's published numbers were produced
+on the Mac by **0.14.1**. All seven scripts differ byte for byte between the pinned 0.9.2 and
+0.17.0, sha256 compared. So "a fresh clone reproduces the campaign's gate numbers" is a claim
+about 0.9.2's numbers, not about the numbers in the artifacts — and whether the pin should move is
+the owner's, recorded in DEF-057's `resolution` rather than decided here.
+
+**The brief's closing prediction came true, and half of it was cashed.** It says vendoring makes
+X7 and X8 *"editable here for the first time, which is a real change in what is possible"*, and
+warns that an edit landing only in the vendored copy is a fork rather than a fix. Nothing under
+`vendor/` was touched. What the vendored copy bought instead was the ability to **read the
+instrument precisely enough to find where the defect actually was** — and for DEF-054 it was not
+in the instrument at all, it was this repository's directory name. That row is fixed. See
+`planning/mock-exclusion-gate.py`.
+
+**A new finding against acceptance 4.** `LEDGER.md`'s vendoring note names the submodule as the
+mechanism; the submodule's own `test-campaign` reports **two different versions from two manifest
+files in the same directory** — `plugin.json` says 0.6.0, `.claude-plugin/plugin.json` says 0.5.0.
+This brief and DEF-057 both quote 0.5.0, so both read the second, and both are right about the
+file they read. Filed as **DEF-500**.
+
+Status word not changed: `shipped-brief-gate` R6 would refuse a terminal word while DEF-057 is
+open, and DEF-057 stays open on the owner's question rather than on any work.

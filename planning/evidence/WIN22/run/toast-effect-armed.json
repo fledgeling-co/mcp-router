@@ -1,0 +1,129 @@
+{
+  "lane": "win22-toast-effect-witness",
+  "rung": "effect-witness",
+  "subject": "the toast MCPRouter.Shell raises, as it exists in the Action Center",
+  "writer": "MCPRouter.Shell, through the Windows App SDK notification platform",
+  "recorder": "app/windows/MCPRouter.Witness.ActionCenter - a separate unpackaged process reading UserNotificationListener",
+  "recorderIsNotWriter": true,
+  "arming": true,
+  "verdict": "PASS (armed)",
+  "reason": "the planted defect - nothing raised a toast - broke EFFECT.toast and nothing else, with toasts of identical text still sitting in the Action Center from earlier runs. The match is bounded by this run's window.",
+  "arms": [
+    {
+      "id": "LISTENER.unpackaged",
+      "what": "an unpackaged process with no package identity can read the Action Center",
+      "held": true,
+      "detail": "packaged=False, RequestAccessAsync=Allowed, toasts visible=8"
+    },
+    {
+      "id": "BASELINE",
+      "what": "no toast carrying this payload has arrived since this run opened its window",
+      "held": true,
+      "detail": "8 toast(s) present, none of them this run's"
+    },
+    {
+      "id": "EFFECT.toast",
+      "what": "the Action Center holds a toast carrying this product's payload, raised inside this run's window",
+      "held": false,
+      "detail": "no matching toast among 8"
+    }
+  ],
+  "armsHeld": 2,
+  "armsTotal": 3,
+  "listenerReport": {
+    "schema": "mcprouter.action-center-witness/1",
+    "ok": true,
+    "failure": null,
+    "access": "Allowed",
+    "packaged": false,
+    "readAtUtc": "2026-09-02T17:38:22.9895972Z",
+    "count": 8,
+    "notifications": [
+      {
+        "id": 2360,
+        "createdUtc": "2026-09-01T09:50:12.8605933Z",
+        "text": [
+          "Docker Desktop Update",
+          "Docker Desktop 4.89.0 is ready to install, click to view update details."
+        ],
+        "appUserModelId": "UNREADABLE: NotImplementedException 0x80004001"
+      },
+      {
+        "id": 2382,
+        "createdUtc": "2026-09-01T22:57:37.1803655Z",
+        "text": [
+          "Look back at your memories",
+          "September 2"
+        ],
+        "appUserModelId": "UNREADABLE: NotImplementedException 0x80004001"
+      },
+      {
+        "id": 2385,
+        "createdUtc": "2026-09-02T02:15:18.3250392Z",
+        "text": [
+          "postgres-mcp is waiting for review",
+          "Queued from win22-toast-witness. Nothing has been installed."
+        ],
+        "appUserModelId": "UNREADABLE: NotImplementedException 0x80004001"
+      },
+      {
+        "id": 2386,
+        "createdUtc": "2026-09-02T02:15:30.1324856Z",
+        "text": [
+          "postgres-mcp is waiting for review",
+          "Queued from win22-toast-witness. Nothing has been installed."
+        ],
+        "appUserModelId": "UNREADABLE: NotImplementedException 0x80004001"
+      },
+      {
+        "id": 2387,
+        "createdUtc": "2026-09-02T02:44:52.0562263Z",
+        "text": [
+          "postgres-mcp is waiting for review",
+          "Queued from win22-toast-witness. Nothing has been installed."
+        ],
+        "appUserModelId": "UNREADABLE: NotImplementedException 0x80004001"
+      },
+      {
+        "id": 2388,
+        "createdUtc": "2026-09-02T03:00:54.4170615Z",
+        "text": [
+          "Resonance: A Plague Tale Legacy",
+          "Play as Sophia and face the Minotaur. Can you survive the trials of the island, or will you join those who never came back?"
+        ],
+        "appUserModelId": "UNREADABLE: NotImplementedException 0x80004001"
+      },
+      {
+        "id": 2411,
+        "createdUtc": "2026-09-02T14:32:46.2736596Z",
+        "text": [
+          "postgres-mcp is waiting for review",
+          "Queued from win22-toast-witness. Nothing has been installed."
+        ],
+        "appUserModelId": "UNREADABLE: NotImplementedException 0x80004001"
+      },
+      {
+        "id": 2442,
+        "createdUtc": "2026-09-02T17:36:44.3399697Z",
+        "text": [
+          "postgres-mcp is waiting for review",
+          "Queued from win22-toast-witness. Nothing has been installed."
+        ],
+        "appUserModelId": "UNREADABLE: NotImplementedException 0x80004001"
+      }
+    ]
+  },
+  "writerSelfReport": null,
+  "writerSelfReportIsNotEvidence": "the shell process reporting that the platform accepted a Show. Graded by nothing here: a process reporting its own effect is the shape DEF-072 was about. It is carried so a reader can see the two accounts side by side.",
+  "correctsDefect": "DEF-082 said the Action Center could not be read without a packaged app holding the userNotificationListener capability. Measured on this host, an unpackaged process with no package identity reads it and is granted access without a prompt. The LISTENER.unpackaged arm below asserts that rather than restating it.",
+  "notMeasured": [
+    "WHO raised the toast - UserNotification.AppInfo throws NotImplementedException for an unpackaged caller, so attribution here is the payload text inside a time window this run opened, and not a publisher identity",
+    "that pressing a toast button re-activates the process through the registered activator - nothing here can press one, and DEF-082 keeps that half"
+  ],
+  "notes": [
+    "shell binary C:\\Dev\\mcp-router\\.worktrees\\wc3-witness-blockers\\app\\windows\\MCPRouter.Shell\\bin\\Debug\\net8.0-windows10.0.19041.0\\win-x64\\MCPRouter.Shell.exe, written 2026-09-02T17:28:54.7592305Z",
+    "ARMING RUN: the shell is not launched at all. EXACTLY EFFECT.toast is required to break. This machine already holds toasts with identical text from earlier runs, so a lane matching on text alone would pass here while the product did nothing."
+  ],
+  "host": "Z13",
+  "psVersion": "7.6.5"
+}

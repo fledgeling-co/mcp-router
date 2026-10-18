@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <RootNamespace>MCPRouter.Shell</RootNamespace>
+    <AssemblyName>MCPRouter.Shell</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <EnableMsixTooling>false</EnableMsixTooling>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <Platforms>x64</Platforms>
+    <SelfContained>true</SelfContained>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="$(WindowsAppSdkVersion)" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="$(WindowsSdkBuildToolsVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MCPRouter.Shell.Model\MCPRouter.Shell.Model.csproj" />
+    <ProjectReference Include="..\MCPRouter.Checks.Model\MCPRouter.Checks.Model.csproj" />
+    <ProjectReference Include="..\MCPRouter.Shell.Live\MCPRouter.Shell.Live.csproj" />
+  </ItemGroup>
+</Project>

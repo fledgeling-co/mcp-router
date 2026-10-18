@@ -1,5 +1,6 @@
 ---
 status: completed
+shipped-by: 03c34c3
 found-by: M20's verifier (F5), 2026-08-23; rescued from a verdict that had no destination for it
 ---
 

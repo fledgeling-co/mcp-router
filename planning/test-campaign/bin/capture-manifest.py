@@ -61,9 +61,16 @@ MANIFEST = CAMPAIGN / "evidence/shots/captures.json"
 SHOTS = CAMPAIGN / "evidence/shots"
 
 # Directories whose contents are renders of the DESIGN rather than photographs of the build.
-# `capture-lineage.py` and `attach-shots.py` both exclude a directory named exactly `mock`,
-# which is why `mock-hidpi/` is still walked by both -- DEF-054 / X8, upstream.
-MOCK_DIRS = {"mock", "mock-hidpi"}
+# `capture-lineage.py` and `attach-shots.py` both exclude a path with a directory part named
+# EXACTLY `mock` — `"mock" not in {part.lower() for part in p.relative_to(shots_dir).parts[:-1]}`,
+# `vendor/test-campaign/skills/test-campaign/scripts/attach-shots.py:101` at `5934c38f`, and
+# byte-identical at `:101` in the machine's 0.17.0. The hi-dpi design renders used to live at
+# `evidence/shots/mock-hidpi/`, which is not that name, so both tools walked them and offered
+# them to a surface on the filename — DEF-054. They now live at `evidence/shots/mock/hidpi/`,
+# INSIDE the exclusion, so the guard the instrument already ships covers them. This set is
+# therefore the same one-word rule the instrument applies, not a second vocabulary that can
+# drift from it; `planning/mock-exclusion-gate.py` is what holds the two together.
+MOCK_DIRS = {"mock"}
 
 
 def sha_of(p: Path) -> str:
@@ -131,11 +138,12 @@ LANE_REASON = {
         "a derived crop, not a capture. `evidence/shots/fidelity/pairs.json` is what be-my-witness "
         "reads, and it names both halves, the image each was cropped from and the box. A crop of one "
         "half of a comparison is not the surface's picture and must never be published as one.",
-    "mock-hidpi":
+    "hidpi":
         "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a "
-        "surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at "
-        "these files, because its mock exclusion matches a directory named exactly `mock` and this one "
-        "is `mock-hidpi`. Kept as the design source the fidelity pairs crop from.",
+        "surface's `shot` is exactly DEF-054, which is why these files sit under `mock/hidpi/` and not "
+        "beside it: the instrument's exclusion matches a path with a directory part named exactly "
+        "`mock`, and at `evidence/shots/mock-hidpi/` they were outside it. Kept as the design source "
+        "the fidelity pairs crop from.",
     "ios":
         "a second state of an iOS surface the wall already shows for that subject. The cases that cite "
         "it carry it.",
@@ -201,9 +209,9 @@ def derive() -> list[dict]:
             "frameStatus": e.get("frameStatus"),
         }
 
-    # --- mock-hidpi: `evidence/shots/mock-hidpi/raw.json`, written by
+    # --- hi-dpi design renders: `evidence/shots/mock/hidpi/raw.json`, written by
     # `bin/capture-mock-refs-hidpi.py` over CDP against the prototype.
-    raw = json.loads((SHOTS / "mock-hidpi/raw.json").read_text(encoding="utf-8"))
+    raw = json.loads((SHOTS / "mock/hidpi/raw.json").read_text(encoding="utf-8"))
     for e in raw["captures"]:
         rows[e["full"]] = {
             "path": e["full"], "subject": None,
@@ -219,10 +227,13 @@ def derive() -> list[dict]:
             # uncorroborated count falls 12 -> 1 and --apply's refusal disarms.
             "target": None,
             "renderedFrom": f"design/mocks/prototype.html?{e['query']}",
-            "attachHazard": "DEF-054 / X8 — `attach-shots.py`'s mock exclusion matches a directory "
-                            "named exactly `mock`, so it walks `mock-hidpi/` and offers this render "
-                            "to a surface on its filename. Any tool that attaches this file to a "
-                            "surface is doing so on the filename alone.",
+            "attachHazard": "DEF-054 / X8 — `attach-shots.py`'s mock exclusion matches a path with "
+                            "a directory part named exactly `mock`. These renders lived at "
+                            "`evidence/shots/mock-hidpi/`, which is not that name, so it walked them "
+                            "and offered them to a surface on the filename; SURF-009, which has a "
+                            "design of record and no build capture, took one. They now live under "
+                            "`mock/hidpi/` and the instrument's own guard excludes them. The row "
+                            "still carries no `target`, because this frame is no subject's capture.",
             "channel": raw["channel"], "derivedFrom": None, "sha256": e["sha256"],
             "conditions": {"viewport": raw["viewport"], "viewportReadback": raw["viewportReadback"],
                            "titleReadback": e["title"]},

@@ -1,0 +1,65 @@
+=== BASELINE — effect-class-vocabulary-gate with no ratchet file: R2 must name all 31
+vocabulary: 9 class(es) read from vendor/test-campaign/skills/test-campaign/scripts/campaign.py at 7cf52c30d7093879… — subprocess, outbound-socket, inbound-socket, packet-filter, multicast, filesystem-write, device, ipc, none
+R1 requirements: 44 declared a class, 0 outside the vocabulary
+R2 cases:        49 named a witness class, 31 outside the vocabulary (ratchet floor 0)
+
+R2 — the ratchet rose by 31: a case names an unrecognised witness class that the roster does not carry, or carries under a different class.
+  case CASE-0342 declares effect class 'file', which the census cannot name. It does not fail there — it drops out of the population, so this row reads as promising nothing observable and needs no witness. One of: subprocess, outbound-socket, inbound-socket, packet-filter, multicast, filesystem-write, device, ipc, none.
+  case CASE-0346 declares effect class 'ui-state', which the census cannot name. It does not fail there — it drops out of the population, so this row reads as promising nothing observable and needs no witness. One of: subprocess, outbound-socket, inbound-socket, packet-filter, multicast, filesystem-write, device, ipc, none.
+  case CASE-0366 declares effect class 'machine-state', which the census cannot name. It does not fail there — it drops out of the population, so this row reads as promising nothing observable and needs no witness. One of: subprocess, outbound-socket, inbound-socket, packet-filter, multicast, filesystem-write, device, ipc, none.
+  case CASE-0367 declares effect class 'machine-state', which the census cannot name. It does not fail there — it drops out of the population, so this row reads as promising nothing observable and needs no witness. One of: subprocess, outbound-socket, inbound-socket, packet-filter, multicast, filesystem-write, device, ipc, none.
+  case CASE-0368 declares effect class 'machine-state', which the census cannot name. It does not fail there — it drops out of the population, so this row reads as promising nothing observable and needs no witness. One of: subprocess, outbound-socket, inbound-socket, packet-filter, multicast, filesystem-write, device, ipc, none.
+  case CASE-0369 declares effect class 'machine-state', which the census cannot name. It does not fail there — it drops out of the population, so this row reads as promising nothing observable and needs no witness. One of: subprocess, outbound-socket, inbound-socket, packet-filter, multicast, filesystem-write, device, ipc, none.
+  case CASE-0370 declares effect class 'machine-state', which the census cannot name. It does not fail there — it drops out of the population, so this row reads as promising nothing observable and needs no witness. One of: subprocess, outbound-socket, inbound-socket, packet-filter, multicast, filesystem-write, device, ipc, none.
+  case CASE-0371 declares effect class 'machine-state', which the census cannot name. It does not fail there — it drops out of the population, so this row reads as promising nothing observable and needs no witness. One of: subprocess, outbound-socket, inbound-socket, packet-filter, multicast, filesystem-write, device, ipc, none.
+  case CASE-0386 declares effect class 'file', which the census cannot name. It does not fail there — it drops out of the population, so this row reads as promising nothing observable and needs no witness. One of: subprocess, outbound-socket, inbound-socket, packet-filter, multicast, filesystem-write, device, ipc, none.
+  case CASE-0387 declares effect class 'os-record', which the census cannot name. It does not fail there — it drops out of the population, so this row reads as promising nothing observable and needs no witness. One of: subprocess, outbound-socket, inbound-socket, packet-filter, multicast, filesystem-write, device, ipc, none.
+  case CASE-0420 declares effect class 'machine-state', which the census cannot name. It does not fail there — it drops out of the population, so this row reads as promising nothing observable and needs no witness. One of: subprocess, outbound-socket, inbound-socket, packet-filter, multicast, filesystem-write, device, ipc, none.
+  case CASE-0421 declares effect class 'machine-state', which the census cannot name. It does not fail there — it drops out of the population, so this row reads as promising nothing observable and needs no witness. One of: subprocess, outbound-socket, inbound-socket, packet-filter, multicast, filesystem-write, device, ipc, none.
+  case CASE-0422 declares effect class 'machine-state', which the census cannot name. It does not fail there — it drops out of the population, so this row reads as promising nothing observable and needs no witness. One of: subprocess, outbound-socket, inbound-socket, packet-filter, multicast, filesystem-write, device, ipc, none.
+  case CASE-0423 declares effect class 'machine-state', which the census cannot name. It does not fail there — it drops out of the population, so this row reads as promising nothing observable and needs no witness. One of: subprocess, outbound-socket, inbound-socket, packet-filter, multicast, filesystem-write, device, ipc, none.
+  case CASE-0424 declares effect class 'machine-state', which the census cannot name. It does not fail there — it drops out of the population, so this row reads as promising nothing observable and needs no witness. One of: subprocess, outbound-socket, inbound-socket, packet-filter, multicast, filesystem-write, device, ipc, none.
+BASELINE EXIT=1
+
+=== EFFECT — ratchet written at the measured 31; gate now green and prints the roster
+vocabulary: 9 class(es) read from vendor/test-campaign/skills/test-campaign/scripts/campaign.py at 7cf52c30d7093879… — subprocess, outbound-socket, inbound-socket, packet-filter, multicast, filesystem-write, device, ipc, none
+R1 requirements: 44 declared a class, 0 outside the vocabulary
+R2 cases:        49 named a witness class, 31 outside the vocabulary (ratchet floor 31)
+R2 roster: 31 of 31 still on it; unchanged
+  the roster, by class:
+    machine-state    25  CASE-0366, CASE-0367, CASE-0368, CASE-0369, CASE-0370, CASE-0371, CASE-0420, CASE-0421, CASE-0422, CASE-0423, CASE-0424, CASE-0425, CASE-0426, CASE-0470, CASE-0471, CASE-0472, CASE-0473, CASE-0474, CASE-0475, CASE-0476, CASE-0477, CASE-0490, CASE-0491, CASE-0492, CASE-0493
+    file              2  CASE-0342, CASE-0386
+    notification      1  CASE-0441
+    os-record         1  CASE-0387
+    process           1  CASE-0440
+    ui-state          1  CASE-0346
+
+R1 clean; R2 at its floor. DEF-502 is what closes R2 for good.
+EXIT=0
+
+
+=== R1 ARM on the real tree. The brief's acceptance clause is 'inventing a class name on
+any requirement turns the check red, WATCHED rather than assumed'. So: plant it, run, revert.
+The same plant run against the instrument moves vacuity-check.py's census the WRONG WAY --
+uncensused examined=17 findings=1 becomes examined=16 findings=0, i.e. greener.
+
+planted: REQ-016 effect := outbound-sockett (one letter)
+vocabulary: 9 class(es) read from vendor/test-campaign/skills/test-campaign/scripts/campaign.py at 7cf52c30d7093879… — subprocess, outbound-socket, inbound-socket, packet-filter, multicast, filesystem-write, device, ipc, none
+R1 requirements: 44 declared a class, 1 outside the vocabulary
+R2 cases:        49 named a witness class, 31 outside the vocabulary (ratchet floor 31)
+
+R1 — 1 finding(s), blocking:
+  requirement REQ-016 declares effect class 'outbound-sockett', which the census cannot name. It does not fail there — it drops out of the population, so this row reads as promising nothing observable and needs no witness. One of: subprocess, outbound-socket, inbound-socket, packet-filter, multicast, filesystem-write, device, ipc, none.
+R2 roster: 31 of 31 still on it; unchanged
+  the roster, by class:
+    machine-state    25  CASE-0366, CASE-0367, CASE-0368, CASE-0369, CASE-0370, CASE-0371, CASE-0420, CASE-0421, CASE-0422, CASE-0423, CASE-0424, CASE-0425, CASE-0426, CASE-0470, CASE-0471, CASE-0472, CASE-0473, CASE-0474, CASE-0475, CASE-0476, CASE-0477, CASE-0490, CASE-0491, CASE-0492, CASE-0493
+    file              2  CASE-0342, CASE-0386
+    notification      1  CASE-0441
+    os-record         1  CASE-0387
+    process           1  CASE-0440
+    ui-state          1  CASE-0346
+ARMED EXIT=1
+
+reverted, and the gate is silent again:
+R1 requirements: 44 declared a class, 0 outside the vocabulary
+SILENCE EXIT=0

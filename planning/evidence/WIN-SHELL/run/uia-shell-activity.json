@@ -1,0 +1,3755 @@
+﻿{
+    "schema":  "win20.uia-dump/1",
+    "capturedAtUtc":  "2026-09-03T04:46:59.2961060Z",
+    "host":  {
+                 "osVersion":  "10.0.26220.0",
+                 "psVersion":  "5.1.26100.9223",
+                 "machine":  "Z13"
+             },
+    "request":  {
+                    "processId":  36364,
+                    "titleContains":  "",
+                    "view":  "Control"
+                },
+    "targets":  [
+                    {
+                        "hwnd":  3344534,
+                        "name":  "Activity",
+                        "className":  "WinUIDesktopWin32WindowClass",
+                        "frameworkId":  "Win32",
+                        "processId":  36364,
+                        "isVisible":  true,
+                        "isMinimised":  false
+                    }
+                ],
+    "foregroundSamples":  [
+                              {
+                                  "when":  "before",
+                                  "hwnd":  3344534,
+                                  "processId":  36364
+                              },
+                              {
+                                  "when":  "midwalk",
+                                  "hwnd":  3344534,
+                                  "processId":  36364
+                              },
+                              {
+                                  "when":  "after",
+                                  "hwnd":  3344534,
+                                  "processId":  36364
+                              }
+                          ],
+    "truncated":  false,
+    "elementCount":  116,
+    "elements":  [
+                     {
+                         "depth":  0,
+                         "path":  "",
+                         "automationId":  "",
+                         "name":  "Activity",
+                         "controlType":  "Window",
+                         "localizedControlType":  "window",
+                         "className":  "WinUIDesktopWin32WindowClass",
+                         "frameworkId":  "Win32",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  true,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  266,
+                                                   "width":  1920,
+                                                   "height":  1124,
+                                                   "x":  266
+                                               },
+                         "patterns":  [
+                                          "TransformPatternIdentifiers.Pattern",
+                                          "WindowPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  1,
+                         "path":  "/0",
+                         "automationId":  "",
+                         "name":  "PopupHost",
+                         "controlType":  "Pane",
+                         "localizedControlType":  "pane",
+                         "className":  "Microsoft.UI.Content.PopupWindowSiteBridge",
+                         "frameworkId":  "Win32",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  601,
+                                                   "width":  467,
+                                                   "height":  87,
+                                                   "x":  235
+                                               },
+                         "patterns":  [
+
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  2,
+                         "path":  "/0/0",
+                         "automationId":  "",
+                         "name":  "",
+                         "controlType":  "Pane",
+                         "localizedControlType":  "pane",
+                         "className":  "InputSiteWindowClass",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  267,
+                                                   "width":  1898,
+                                                   "height":  1112,
+                                                   "x":  277
+                                               },
+                         "patterns":  [
+                                          "TransformPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  3,
+                         "path":  "/0/0/0",
+                         "automationId":  "",
+                         "name":  "Popup",
+                         "controlType":  "Window",
+                         "localizedControlType":  "window",
+                         "className":  "Popup",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  true,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  Infinity,
+                                                   "width":  -Infinity,
+                                                   "height":  -Infinity,
+                                                   "x":  Infinity
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/0/0/0/0",
+                         "automationId":  "",
+                         "name":  "A live log of every call the router has routed, with its arguments and its result.",
+                         "controlType":  "ToolTip",
+                         "localizedControlType":  "tool tip",
+                         "className":  "ToolTip",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  603,
+                                                   "width":  455,
+                                                   "height":  73,
+                                                   "x":  241
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/0/0/0/0/0",
+                         "automationId":  "",
+                         "name":  "A live log of every call the router has routed, with its arguments and its result.",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  614,
+                                                   "width":  424,
+                                                   "height":  48,
+                                                   "x":  256
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  1,
+                         "path":  "/1",
+                         "automationId":  "",
+                         "name":  "Non Client Input Sink Window",
+                         "controlType":  "Pane",
+                         "localizedControlType":  "pane",
+                         "className":  "InputNonClientPointerSource",
+                         "frameworkId":  "Win32",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  266,
+                                                   "width":  1898,
+                                                   "height":  60,
+                                                   "x":  277
+                                               },
+                         "patterns":  [
+
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  1,
+                         "path":  "/2",
+                         "automationId":  "",
+                         "name":  "AppWindow Custom Title Bar",
+                         "controlType":  "Pane",
+                         "localizedControlType":  "pane",
+                         "className":  "ReunionWindowingCaptionControls",
+                         "frameworkId":  "Win32",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  266,
+                                                   "width":  207,
+                                                   "height":  48,
+                                                   "x":  1968
+                                               },
+                         "patterns":  [
+
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  2,
+                         "path":  "/2/0",
+                         "automationId":  "Minimize",
+                         "name":  "Minimize",
+                         "controlType":  "Button",
+                         "localizedControlType":  "button",
+                         "className":  "",
+                         "frameworkId":  "",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  266,
+                                                   "width":  69,
+                                                   "height":  48,
+                                                   "x":  1968
+                                               },
+                         "patterns":  [
+                                          "InvokePatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  2,
+                         "path":  "/2/1",
+                         "automationId":  "Maximize",
+                         "name":  "Maximize",
+                         "controlType":  "Button",
+                         "localizedControlType":  "button",
+                         "className":  "",
+                         "frameworkId":  "",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  266,
+                                                   "width":  69,
+                                                   "height":  48,
+                                                   "x":  2037
+                                               },
+                         "patterns":  [
+                                          "InvokePatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  2,
+                         "path":  "/2/2",
+                         "automationId":  "Close",
+                         "name":  "Close",
+                         "controlType":  "Button",
+                         "localizedControlType":  "button",
+                         "className":  "",
+                         "frameworkId":  "",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  266,
+                                                   "width":  69,
+                                                   "height":  48,
+                                                   "x":  2106
+                                               },
+                         "patterns":  [
+                                          "InvokePatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  1,
+                         "path":  "/3",
+                         "automationId":  "",
+                         "name":  "",
+                         "controlType":  "Pane",
+                         "localizedControlType":  "pane",
+                         "className":  "Microsoft.UI.Content.DesktopChildSiteBridge",
+                         "frameworkId":  "Win32",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  true,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  267,
+                                                   "width":  1898,
+                                                   "height":  1112,
+                                                   "x":  277
+                                               },
+                         "patterns":  [
+
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  2,
+                         "path":  "/3/0",
+                         "automationId":  "",
+                         "name":  "",
+                         "controlType":  "Pane",
+                         "localizedControlType":  "pane",
+                         "className":  "InputSiteWindowClass",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  true,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  267,
+                                                   "width":  1898,
+                                                   "height":  1112,
+                                                   "x":  277
+                                               },
+                         "patterns":  [
+                                          "TransformPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  3,
+                         "path":  "/3/0/0",
+                         "automationId":  "Commands",
+                         "name":  "",
+                         "controlType":  "MenuBar",
+                         "localizedControlType":  "menu bar",
+                         "className":  "",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  267,
+                                                   "width":  534,
+                                                   "height":  60,
+                                                   "x":  337
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/3/0/0/0",
+                         "automationId":  "",
+                         "name":  "File",
+                         "controlType":  "MenuItem",
+                         "localizedControlType":  "menu item",
+                         "className":  "Microsoft.UI.Xaml.Controls.MenuBarItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "Alt, F",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  273,
+                                                   "width":  61,
+                                                   "height":  48,
+                                                   "x":  343
+                                               },
+                         "patterns":  [
+                                          "ExpandCollapsePatternIdentifiers.Pattern",
+                                          "InvokePatternIdentifiers.Pattern",
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "expandCollapseState":  "Collapsed"
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/3/0/0/1",
+                         "automationId":  "",
+                         "name":  "Edit",
+                         "controlType":  "MenuItem",
+                         "localizedControlType":  "menu item",
+                         "className":  "Microsoft.UI.Xaml.Controls.MenuBarItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "Alt, E",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  273,
+                                                   "width":  66,
+                                                   "height":  48,
+                                                   "x":  417
+                                               },
+                         "patterns":  [
+                                          "ExpandCollapsePatternIdentifiers.Pattern",
+                                          "InvokePatternIdentifiers.Pattern",
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "expandCollapseState":  "Collapsed"
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/3/0/0/2",
+                         "automationId":  "",
+                         "name":  "View",
+                         "controlType":  "MenuItem",
+                         "localizedControlType":  "menu item",
+                         "className":  "Microsoft.UI.Xaml.Controls.MenuBarItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "Alt, V",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  273,
+                                                   "width":  74,
+                                                   "height":  48,
+                                                   "x":  495
+                                               },
+                         "patterns":  [
+                                          "ExpandCollapsePatternIdentifiers.Pattern",
+                                          "InvokePatternIdentifiers.Pattern",
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "expandCollapseState":  "Collapsed"
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/3/0/0/3",
+                         "automationId":  "",
+                         "name":  "Router",
+                         "controlType":  "MenuItem",
+                         "localizedControlType":  "menu item",
+                         "className":  "Microsoft.UI.Xaml.Controls.MenuBarItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "Alt, R",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  273,
+                                                   "width":  92,
+                                                   "height":  48,
+                                                   "x":  582
+                                               },
+                         "patterns":  [
+                                          "ExpandCollapsePatternIdentifiers.Pattern",
+                                          "InvokePatternIdentifiers.Pattern",
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "expandCollapseState":  "Collapsed"
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/3/0/0/4",
+                         "automationId":  "",
+                         "name":  "Library",
+                         "controlType":  "MenuItem",
+                         "localizedControlType":  "menu item",
+                         "className":  "Microsoft.UI.Xaml.Controls.MenuBarItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "Alt, L",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  273,
+                                                   "width":  93,
+                                                   "height":  48,
+                                                   "x":  686
+                                               },
+                         "patterns":  [
+                                          "ExpandCollapsePatternIdentifiers.Pattern",
+                                          "InvokePatternIdentifiers.Pattern",
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "expandCollapseState":  "Collapsed"
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/3/0/0/5",
+                         "automationId":  "",
+                         "name":  "Help",
+                         "controlType":  "MenuItem",
+                         "localizedControlType":  "menu item",
+                         "className":  "Microsoft.UI.Xaml.Controls.MenuBarItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "Alt, H",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  273,
+                                                   "width":  74,
+                                                   "height":  48,
+                                                   "x":  791
+                                               },
+                         "patterns":  [
+                                          "ExpandCollapsePatternIdentifiers.Pattern",
+                                          "InvokePatternIdentifiers.Pattern",
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "expandCollapseState":  "Collapsed"
+                                          }
+                     },
+                     {
+                         "depth":  3,
+                         "path":  "/3/0/1",
+                         "automationId":  "BoardTitle",
+                         "name":  "Activity",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  283,
+                                                   "width":  72,
+                                                   "height":  28,
+                                                   "x":  913
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  3,
+                         "path":  "/3/0/2",
+                         "automationId":  "Nav",
+                         "name":  "Destinations",
+                         "controlType":  "Custom",
+                         "localizedControlType":  "custom",
+                         "className":  "",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  327,
+                                                   "width":  1897,
+                                                   "height":  1052,
+                                                   "x":  277
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "SelectionPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "canSelectMultiple":  false,
+                                              "selection":  [
+                                                                "Activity"
+                                                            ]
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/3/0/2/0",
+                         "automationId":  "TogglePaneButton",
+                         "name":  "Close Navigation",
+                         "controlType":  "Button",
+                         "localizedControlType":  "button",
+                         "className":  "Button",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  336,
+                                                   "width":  60,
+                                                   "height":  54,
+                                                   "x":  283
+                                               },
+                         "patterns":  [
+                                          "InvokePatternIdentifiers.Pattern",
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/0/0",
+                         "automationId":  "PaneTitleTextBlock",
+                         "name":  "",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  true,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  Infinity,
+                                                   "width":  -Infinity,
+                                                   "height":  -Infinity,
+                                                   "x":  Infinity
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/3/0/2/1",
+                         "automationId":  "PaneRoot",
+                         "name":  "",
+                         "controlType":  "Window",
+                         "localizedControlType":  "window",
+                         "className":  "SplitViewPane",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  327,
+                                                   "width":  384,
+                                                   "height":  1052,
+                                                   "x":  277
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/1/0",
+                         "automationId":  "MenuItemsScrollViewer",
+                         "name":  "",
+                         "controlType":  "Pane",
+                         "localizedControlType":  "pane",
+                         "className":  "ScrollViewer",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  394,
+                                                   "width":  382,
+                                                   "height":  814,
+                                                   "x":  278
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "ScrollPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/1/0/0",
+                         "automationId":  "MenuItemsHost",
+                         "name":  "Destinations",
+                         "controlType":  "Group",
+                         "localizedControlType":  "group",
+                         "className":  "",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  410,
+                                                   "width":  370,
+                                                   "height":  760,
+                                                   "x":  284
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  7,
+                         "path":  "/3/0/2/1/0/0/0",
+                         "automationId":  "HeaderText",
+                         "name":  "Store",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  410,
+                                                   "width":  49,
+                                                   "height":  28,
+                                                   "x":  302
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  7,
+                         "path":  "/3/0/2/1/0/0/1",
+                         "automationId":  "",
+                         "name":  "Discover",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "list item",
+                         "className":  "Microsoft.UI.Xaml.Controls.NavigationViewItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  457,
+                                                   "width":  370,
+                                                   "height":  54,
+                                                   "x":  284
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "SelectionItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "isSelected":  false
+                                          }
+                     },
+                     {
+                         "depth":  7,
+                         "path":  "/3/0/2/1/0/0/2",
+                         "automationId":  "",
+                         "name":  "Skills",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "list item",
+                         "className":  "Microsoft.UI.Xaml.Controls.NavigationViewItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  517,
+                                                   "width":  370,
+                                                   "height":  54,
+                                                   "x":  284
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "SelectionItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "isSelected":  false
+                                          }
+                     },
+                     {
+                         "depth":  7,
+                         "path":  "/3/0/2/1/0/0/3",
+                         "automationId":  "HeaderText",
+                         "name":  "Routing",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  590,
+                                                   "width":  76,
+                                                   "height":  27,
+                                                   "x":  302
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  7,
+                         "path":  "/3/0/2/1/0/0/4",
+                         "automationId":  "",
+                         "name":  "Servers",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "list item",
+                         "className":  "Microsoft.UI.Xaml.Controls.NavigationViewItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  637,
+                                                   "width":  370,
+                                                   "height":  54,
+                                                   "x":  284
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "SelectionItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "isSelected":  false
+                                          }
+                     },
+                     {
+                         "depth":  7,
+                         "path":  "/3/0/2/1/0/0/5",
+                         "automationId":  "",
+                         "name":  "Activity",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "list item",
+                         "className":  "Microsoft.UI.Xaml.Controls.NavigationViewItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  true,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  697,
+                                                   "width":  370,
+                                                   "height":  54,
+                                                   "x":  284
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "SelectionItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "isSelected":  true
+                                          }
+                     },
+                     {
+                         "depth":  7,
+                         "path":  "/3/0/2/1/0/0/6",
+                         "automationId":  "",
+                         "name":  "Harnesses",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "list item",
+                         "className":  "Microsoft.UI.Xaml.Controls.NavigationViewItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  757,
+                                                   "width":  370,
+                                                   "height":  53,
+                                                   "x":  284
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "SelectionItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "isSelected":  false
+                                          }
+                     },
+                     {
+                         "depth":  7,
+                         "path":  "/3/0/2/1/0/0/7",
+                         "automationId":  "HeaderText",
+                         "name":  "Maintenance",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  830,
+                                                   "width":  124,
+                                                   "height":  28,
+                                                   "x":  302
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  7,
+                         "path":  "/3/0/2/1/0/0/8",
+                         "automationId":  "",
+                         "name":  "Checks",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "list item",
+                         "className":  "Microsoft.UI.Xaml.Controls.NavigationViewItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  877,
+                                                   "width":  370,
+                                                   "height":  54,
+                                                   "x":  284
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "SelectionItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "isSelected":  false
+                                          }
+                     },
+                     {
+                         "depth":  7,
+                         "path":  "/3/0/2/1/0/0/9",
+                         "automationId":  "",
+                         "name":  "Cleanup",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "list item",
+                         "className":  "Microsoft.UI.Xaml.Controls.NavigationViewItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  937,
+                                                   "width":  370,
+                                                   "height":  54,
+                                                   "x":  284
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "SelectionItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "isSelected":  false
+                                          }
+                     },
+                     {
+                         "depth":  7,
+                         "path":  "/3/0/2/1/0/0/10",
+                         "automationId":  "HeaderText",
+                         "name":  "Attention",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  1010,
+                                                   "width":  91,
+                                                   "height":  28,
+                                                   "x":  302
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  7,
+                         "path":  "/3/0/2/1/0/0/11",
+                         "automationId":  "",
+                         "name":  "Inbox",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "list item",
+                         "className":  "Microsoft.UI.Xaml.Controls.NavigationViewItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  1057,
+                                                   "width":  370,
+                                                   "height":  53,
+                                                   "x":  284
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "SelectionItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "isSelected":  false
+                                          }
+                     },
+                     {
+                         "depth":  7,
+                         "path":  "/3/0/2/1/0/0/12",
+                         "automationId":  "",
+                         "name":  "Insights",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "list item",
+                         "className":  "Microsoft.UI.Xaml.Controls.NavigationViewItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  1116,
+                                                   "width":  370,
+                                                   "height":  54,
+                                                   "x":  284
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "SelectionItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "isSelected":  false
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/1/1",
+                         "automationId":  "ambient.status",
+                         "name":  "Router status",
+                         "controlType":  "Group",
+                         "localizedControlType":  "group",
+                         "className":  "NamedContainerAutomationPeer",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  1214,
+                                                   "width":  334,
+                                                   "height":  75,
+                                                   "x":  302
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/1/1/0",
+                         "automationId":  "ambient.status.title",
+                         "name":  "Router ready",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  1214,
+                                                   "width":  334,
+                                                   "height":  24,
+                                                   "x":  302
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/1/1/1",
+                         "automationId":  "ambient.status.detail",
+                         "name":  "All systems quiet. No active calls or queued items.",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  1241,
+                                                   "width":  334,
+                                                   "height":  48,
+                                                   "x":  302
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/1/2",
+                         "automationId":  "FooterItemsScrollViewer",
+                         "name":  "",
+                         "controlType":  "Pane",
+                         "localizedControlType":  "pane",
+                         "className":  "ScrollViewer",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  1313,
+                                                   "width":  382,
+                                                   "height":  60,
+                                                   "x":  278
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "ScrollPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/1/2/0",
+                         "automationId":  "FooterMenuItemsHost",
+                         "name":  "",
+                         "controlType":  "Group",
+                         "localizedControlType":  "group",
+                         "className":  "",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  1316,
+                                                   "width":  370,
+                                                   "height":  54,
+                                                   "x":  284
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  7,
+                         "path":  "/3/0/2/1/2/0/0",
+                         "automationId":  "SettingsItem",
+                         "name":  "Settings",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "list item",
+                         "className":  "Microsoft.UI.Xaml.Controls.NavigationViewItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  1316,
+                                                   "width":  370,
+                                                   "height":  54,
+                                                   "x":  284
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "SelectionItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "isSelected":  false
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/3/0/2/2",
+                         "automationId":  "MissionText",
+                         "name":  "Every tool call every harness made, as it happens. This is the only place that can answer \"which of my agents did that\".",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  349,
+                                                   "width":  1142,
+                                                   "height":  27,
+                                                   "x":  701
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/3/0/2/3",
+                         "automationId":  "activity.status",
+                         "name":  "Showing 7 calls · live",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  379,
+                                                   "width":  196,
+                                                   "height":  28,
+                                                   "x":  701
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/3/0/2/4",
+                         "automationId":  "activity.commands",
+                         "name":  "Activity commands",
+                         "controlType":  "",
+                         "localizedControlType":  "app bar",
+                         "className":  "ApplicationBar",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  349,
+                                                   "width":  271,
+                                                   "height":  72,
+                                                   "x":  1867
+                                               },
+                         "patterns":  [
+                                          "ExpandCollapsePatternIdentifiers.Pattern",
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TogglePatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "toggleState":  "Off",
+                                              "expandCollapseState":  "Collapsed"
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/4/0",
+                         "automationId":  "activity.pause",
+                         "name":  "Pause",
+                         "controlType":  "Button",
+                         "localizedControlType":  "app bar button",
+                         "className":  "AppBarButton",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "Alt, P",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  349,
+                                                   "width":  118,
+                                                   "height":  72,
+                                                   "x":  1873
+                                               },
+                         "patterns":  [
+                                          "InvokePatternIdentifiers.Pattern",
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/4/1",
+                         "automationId":  "activity.export",
+                         "name":  "Export…",
+                         "controlType":  "Button",
+                         "localizedControlType":  "app bar button",
+                         "className":  "AppBarButton",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "Alt, E",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  349,
+                                                   "width":  138,
+                                                   "height":  72,
+                                                   "x":  1991
+                                               },
+                         "patterns":  [
+                                          "InvokePatternIdentifiers.Pattern",
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/3/0/2/5",
+                         "automationId":  "activity.filters",
+                         "name":  "Filters",
+                         "controlType":  "Group",
+                         "localizedControlType":  "group",
+                         "className":  "NamedContainerAutomationPeer",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  436,
+                                                   "width":  375,
+                                                   "height":  71,
+                                                   "x":  701
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/5/0",
+                         "automationId":  "PART_ItemsView",
+                         "name":  "",
+                         "controlType":  "List",
+                         "localizedControlType":  "list",
+                         "className":  "Microsoft.UI.Xaml.Controls.ItemsView",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  436,
+                                                   "width":  375,
+                                                   "height":  71,
+                                                   "x":  701
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "SelectionPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "canSelectMultiple":  false,
+                                              "selection":  [
+                                                                "All"
+                                                            ]
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/5/0/0",
+                         "automationId":  "PART_ScrollPresenter",
+                         "name":  "",
+                         "controlType":  "Pane",
+                         "localizedControlType":  "pane",
+                         "className":  "",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  436,
+                                                   "width":  375,
+                                                   "height":  71,
+                                                   "x":  701
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "ScrollPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  7,
+                         "path":  "/3/0/2/5/0/0/0",
+                         "automationId":  "activity.filter.all",
+                         "name":  "All",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "SelectorBarItem",
+                         "className":  "Microsoft.UI.Xaml.Controls.SelectorBarItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  442,
+                                                   "width":  60,
+                                                   "height":  59,
+                                                   "x":  701
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "SelectionItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "isSelected":  true
+                                          }
+                     },
+                     {
+                         "depth":  8,
+                         "path":  "/3/0/2/5/0/0/0/0",
+                         "automationId":  "PART_TextVisual",
+                         "name":  "All",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  457,
+                                                   "width":  24,
+                                                   "height":  28,
+                                                   "x":  719
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  7,
+                         "path":  "/3/0/2/5/0/0/1",
+                         "automationId":  "activity.filter.errors",
+                         "name":  "Errors",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "SelectorBarItem",
+                         "className":  "Microsoft.UI.Xaml.Controls.SelectorBarItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  442,
+                                                   "width":  89,
+                                                   "height":  59,
+                                                   "x":  761
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "SelectionItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "isSelected":  false
+                                          }
+                     },
+                     {
+                         "depth":  8,
+                         "path":  "/3/0/2/5/0/0/1/0",
+                         "automationId":  "PART_TextVisual",
+                         "name":  "Errors",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  457,
+                                                   "width":  53,
+                                                   "height":  28,
+                                                   "x":  779
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  7,
+                         "path":  "/3/0/2/5/0/0/2",
+                         "automationId":  "activity.filter.slow----2-s-",
+                         "name":  "Slow (\u003e 2 s)",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "SelectorBarItem",
+                         "className":  "Microsoft.UI.Xaml.Controls.SelectorBarItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  442,
+                                                   "width":  145,
+                                                   "height":  59,
+                                                   "x":  851
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "SelectionItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "isSelected":  false
+                                          }
+                     },
+                     {
+                         "depth":  8,
+                         "path":  "/3/0/2/5/0/0/2/0",
+                         "automationId":  "PART_TextVisual",
+                         "name":  "Slow (\u003e 2 s)",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  457,
+                                                   "width":  109,
+                                                   "height":  28,
+                                                   "x":  869
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  7,
+                         "path":  "/3/0/2/5/0/0/3",
+                         "automationId":  "activity.filter.held",
+                         "name":  "Held",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "SelectorBarItem",
+                         "className":  "Microsoft.UI.Xaml.Controls.SelectorBarItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  442,
+                                                   "width":  80,
+                                                   "height":  59,
+                                                   "x":  996
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "SelectionItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "isSelected":  false
+                                          }
+                     },
+                     {
+                         "depth":  8,
+                         "path":  "/3/0/2/5/0/0/3/0",
+                         "automationId":  "PART_TextVisual",
+                         "name":  "Held",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  457,
+                                                   "width":  44,
+                                                   "height":  28,
+                                                   "x":  1014
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/3/0/2/6",
+                         "automationId":  "activity.tallies",
+                         "name":  "Harness tallies",
+                         "controlType":  "Group",
+                         "localizedControlType":  "group",
+                         "className":  "NamedContainerAutomationPeer",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  521,
+                                                   "width":  536,
+                                                   "height":  48,
+                                                   "x":  701
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/6/0",
+                         "automationId":  "activity.harness.pwsh",
+                         "name":  "pwsh · 3",
+                         "controlType":  "Button",
+                         "localizedControlType":  "button",
+                         "className":  "ToggleButton",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  521,
+                                                   "width":  113,
+                                                   "height":  48,
+                                                   "x":  701
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TogglePatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "toggleState":  "On"
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/6/1",
+                         "automationId":  "activity.harness.node",
+                         "name":  "node · 2",
+                         "controlType":  "Button",
+                         "localizedControlType":  "button",
+                         "className":  "ToggleButton",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  521,
+                                                   "width":  112,
+                                                   "height":  48,
+                                                   "x":  826
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TogglePatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "toggleState":  "On"
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/6/2",
+                         "automationId":  "activity.harness.curl",
+                         "name":  "curl · 1",
+                         "controlType":  "Button",
+                         "localizedControlType":  "button",
+                         "className":  "ToggleButton",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  521,
+                                                   "width":  95,
+                                                   "height":  48,
+                                                   "x":  950
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TogglePatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "toggleState":  "On"
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/6/3",
+                         "automationId":  "activity.harness.unattributed",
+                         "name":  "Unattributed · 1",
+                         "controlType":  "Button",
+                         "localizedControlType":  "button",
+                         "className":  "ToggleButton",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  521,
+                                                   "width":  180,
+                                                   "height":  48,
+                                                   "x":  1057
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TogglePatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+                                              "toggleState":  "On"
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/3/0/2/7",
+                         "automationId":  "HeaderTime",
+                         "name":  "Time",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  611,
+                                                   "width":  132,
+                                                   "height":  28,
+                                                   "x":  719
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/3/0/2/8",
+                         "automationId":  "HeaderHarness",
+                         "name":  "Harness",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  611,
+                                                   "width":  180,
+                                                   "height":  28,
+                                                   "x":  869
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/3/0/2/9",
+                         "automationId":  "HeaderTool",
+                         "name":  "Tool",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  611,
+                                                   "width":  735,
+                                                   "height":  28,
+                                                   "x":  1067
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/3/0/2/10",
+                         "automationId":  "HeaderDuration",
+                         "name":  "Duration",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  611,
+                                                   "width":  81,
+                                                   "height":  28,
+                                                   "x":  1871
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/3/0/2/11",
+                         "automationId":  "HeaderResult",
+                         "name":  "Result",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  611,
+                                                   "width":  150,
+                                                   "height":  28,
+                                                   "x":  1970
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/3/0/2/12",
+                         "automationId":  "activity.rows",
+                         "name":  "Calls",
+                         "controlType":  "List",
+                         "localizedControlType":  "list",
+                         "className":  "ListView",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  649,
+                                                   "width":  1437,
+                                                   "height":  336,
+                                                   "x":  701
+                                               },
+                         "patterns":  [
+                                          "ItemContainerPatternIdentifiers.Pattern",
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "ScrollPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/12/0",
+                         "automationId":  "",
+                         "name":  "ok, fixture__echo, on fixture, pwsh, 438 ms, cold - this call is what started the server",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "list item",
+                         "className":  "ListViewItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  649,
+                                                   "width":  1434,
+                                                   "height":  48,
+                                                   "x":  701
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "VirtualizedItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/0/0",
+                         "automationId":  "",
+                         "name":  "23:00:34",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  661,
+                                                   "width":  132,
+                                                   "height":  24,
+                                                   "x":  719
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/0/1",
+                         "automationId":  "",
+                         "name":  "pwsh",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  658,
+                                                   "width":  180,
+                                                   "height":  28,
+                                                   "x":  869
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/0/2",
+                         "automationId":  "",
+                         "name":  "fixture__echo",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  661,
+                                                   "width":  732,
+                                                   "height":  24,
+                                                   "x":  1067
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/0/3",
+                         "automationId":  "",
+                         "name":  "438 ms",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  661,
+                                                   "width":  69,
+                                                   "height":  24,
+                                                   "x":  1880
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/0/4",
+                         "automationId":  "",
+                         "name":  "ok",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  658,
+                                                   "width":  23,
+                                                   "height":  28,
+                                                   "x":  1991
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/12/1",
+                         "automationId":  "",
+                         "name":  "ok, fixture__echo, on fixture, pwsh, 200 ms, cold - this call is what started the server",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "list item",
+                         "className":  "ListViewItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  697,
+                                                   "width":  1434,
+                                                   "height":  48,
+                                                   "x":  701
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "VirtualizedItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/1/0",
+                         "automationId":  "",
+                         "name":  "22:38:15",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  709,
+                                                   "width":  132,
+                                                   "height":  25,
+                                                   "x":  719
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/1/1",
+                         "automationId":  "",
+                         "name":  "pwsh",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  706,
+                                                   "width":  180,
+                                                   "height":  28,
+                                                   "x":  869
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/1/2",
+                         "automationId":  "",
+                         "name":  "fixture__echo",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  709,
+                                                   "width":  732,
+                                                   "height":  25,
+                                                   "x":  1067
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/1/3",
+                         "automationId":  "",
+                         "name":  "200 ms",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  709,
+                                                   "width":  69,
+                                                   "height":  25,
+                                                   "x":  1880
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/1/4",
+                         "automationId":  "",
+                         "name":  "ok",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  706,
+                                                   "width":  23,
+                                                   "height":  28,
+                                                   "x":  1991
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/12/2",
+                         "automationId":  "",
+                         "name":  "ok, fixture__echo, on fixture, pwsh, 198 ms, cold - this call is what started the server",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "list item",
+                         "className":  "ListViewItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  745,
+                                                   "width":  1434,
+                                                   "height":  47,
+                                                   "x":  701
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "VirtualizedItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/2/0",
+                         "automationId":  "",
+                         "name":  "21:42:43",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  757,
+                                                   "width":  132,
+                                                   "height":  24,
+                                                   "x":  719
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/2/1",
+                         "automationId":  "",
+                         "name":  "pwsh",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  755,
+                                                   "width":  180,
+                                                   "height":  28,
+                                                   "x":  869
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/2/2",
+                         "automationId":  "",
+                         "name":  "fixture__echo",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  757,
+                                                   "width":  732,
+                                                   "height":  24,
+                                                   "x":  1067
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/2/3",
+                         "automationId":  "",
+                         "name":  "198 ms",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  757,
+                                                   "width":  69,
+                                                   "height":  24,
+                                                   "x":  1880
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/2/4",
+                         "automationId":  "",
+                         "name":  "ok",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  755,
+                                                   "width":  23,
+                                                   "height":  28,
+                                                   "x":  1991
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/12/3",
+                         "automationId":  "",
+                         "name":  "failed, dieoncall__flaky, on dieoncall, Unattributed, 7 ms, cold - this call is what started the server, unknown upstream server \"dieoncall\"",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "list item",
+                         "className":  "ListViewItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  793,
+                                                   "width":  1434,
+                                                   "height":  48,
+                                                   "x":  701
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "VirtualizedItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/3/0",
+                         "automationId":  "",
+                         "name":  "20:48:31",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  805,
+                                                   "width":  132,
+                                                   "height":  25,
+                                                   "x":  719
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/3/1",
+                         "automationId":  "",
+                         "name":  "Unattributed",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  803,
+                                                   "width":  180,
+                                                   "height":  28,
+                                                   "x":  869
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/3/2",
+                         "automationId":  "",
+                         "name":  "dieoncall__flaky",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  805,
+                                                   "width":  732,
+                                                   "height":  25,
+                                                   "x":  1067
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/3/3",
+                         "automationId":  "",
+                         "name":  "7 ms",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  805,
+                                                   "width":  46,
+                                                   "height":  25,
+                                                   "x":  1903
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/3/4",
+                         "automationId":  "",
+                         "name":  "failed",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  803,
+                                                   "width":  51,
+                                                   "height":  28,
+                                                   "x":  1991
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/12/4",
+                         "automationId":  "",
+                         "name":  "ok, fixture__ping, on fixture, node, 2 ms",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "list item",
+                         "className":  "ListViewItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  841,
+                                                   "width":  1434,
+                                                   "height":  48,
+                                                   "x":  701
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "VirtualizedItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/4/0",
+                         "automationId":  "",
+                         "name":  "20:48:29",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  853,
+                                                   "width":  132,
+                                                   "height":  25,
+                                                   "x":  719
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/4/1",
+                         "automationId":  "",
+                         "name":  "node",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  851,
+                                                   "width":  180,
+                                                   "height":  27,
+                                                   "x":  869
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/4/2",
+                         "automationId":  "",
+                         "name":  "fixture__ping",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  853,
+                                                   "width":  732,
+                                                   "height":  25,
+                                                   "x":  1067
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/4/3",
+                         "automationId":  "",
+                         "name":  "2 ms",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  853,
+                                                   "width":  46,
+                                                   "height":  25,
+                                                   "x":  1903
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/4/4",
+                         "automationId":  "",
+                         "name":  "ok",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  851,
+                                                   "width":  23,
+                                                   "height":  27,
+                                                   "x":  1991
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/12/5",
+                         "automationId":  "",
+                         "name":  "ok, fixture__no_such_tool, on fixture, curl, 2 ms",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "list item",
+                         "className":  "ListViewItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  889,
+                                                   "width":  1434,
+                                                   "height":  48,
+                                                   "x":  701
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "VirtualizedItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/5/0",
+                         "automationId":  "",
+                         "name":  "20:44:34",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  901,
+                                                   "width":  132,
+                                                   "height":  25,
+                                                   "x":  719
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/5/1",
+                         "automationId":  "",
+                         "name":  "curl",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  899,
+                                                   "width":  180,
+                                                   "height":  27,
+                                                   "x":  869
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/5/2",
+                         "automationId":  "",
+                         "name":  "fixture__no_such_tool",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  901,
+                                                   "width":  732,
+                                                   "height":  25,
+                                                   "x":  1067
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/5/3",
+                         "automationId":  "",
+                         "name":  "2 ms",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  901,
+                                                   "width":  46,
+                                                   "height":  25,
+                                                   "x":  1903
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/5/4",
+                         "automationId":  "",
+                         "name":  "ok",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  899,
+                                                   "width":  23,
+                                                   "height":  27,
+                                                   "x":  1991
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  5,
+                         "path":  "/3/0/2/12/6",
+                         "automationId":  "",
+                         "name":  "ok, fixture__ping, on fixture, node, 186 ms, cold - this call is what started the server",
+                         "controlType":  "ListItem",
+                         "localizedControlType":  "list item",
+                         "className":  "ListViewItem",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  true,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  937,
+                                                   "width":  1434,
+                                                   "height":  48,
+                                                   "x":  701
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "VirtualizedItemPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/6/0",
+                         "automationId":  "",
+                         "name":  "20:44:31",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  949,
+                                                   "width":  132,
+                                                   "height":  25,
+                                                   "x":  719
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/6/1",
+                         "automationId":  "",
+                         "name":  "node",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  947,
+                                                   "width":  180,
+                                                   "height":  27,
+                                                   "x":  869
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/6/2",
+                         "automationId":  "",
+                         "name":  "fixture__ping",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  949,
+                                                   "width":  732,
+                                                   "height":  25,
+                                                   "x":  1067
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/6/3",
+                         "automationId":  "",
+                         "name":  "186 ms",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  949,
+                                                   "width":  69,
+                                                   "height":  25,
+                                                   "x":  1880
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  6,
+                         "path":  "/3/0/2/12/6/4",
+                         "automationId":  "",
+                         "name":  "ok",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  947,
+                                                   "width":  23,
+                                                   "height":  27,
+                                                   "x":  1991
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     },
+                     {
+                         "depth":  4,
+                         "path":  "/3/0/2/13",
+                         "automationId":  "FootText",
+                         "name":  "Calls are recorded locally and never leave this PC. The list shows the router\u0027s recent-call window - older calls rotate out as new ones arrive.",
+                         "controlType":  "Text",
+                         "localizedControlType":  "text",
+                         "className":  "TextBlock",
+                         "frameworkId":  "XAML",
+                         "isEnabled":  true,
+                         "isOffscreen":  false,
+                         "isKeyboardFocusable":  false,
+                         "hasKeyboardFocus":  false,
+                         "isContentElement":  true,
+                         "isControlElement":  true,
+                         "accessKey":  "",
+                         "acceleratorKey":  "",
+                         "helpText":  "",
+                         "boundingRectangle":  {
+                                                   "y":  1331,
+                                                   "width":  1437,
+                                                   "height":  24,
+                                                   "x":  701
+                                               },
+                         "patterns":  [
+                                          "ScrollItemPatternIdentifiers.Pattern",
+                                          "TextPatternIdentifiers.Pattern"
+                                      ],
+                         "patternState":  {
+
+                                          }
+                     }
+                 ]
+}

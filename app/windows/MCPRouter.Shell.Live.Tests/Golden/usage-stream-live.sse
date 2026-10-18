@@ -1,0 +1,8 @@
+: connected
+
+data: {"ts":"2026-08-31T10:44:31.583Z","server":"fixture","tool":"ping","ok":true,"ms":186,"cold":true,"pid":32052,"client":"node"}
+
+data: {"ts":"2026-08-31T10:44:34.259Z","server":"fixture","tool":"no_such_tool","ok":true,"ms":2,"cold":false,"pid":32308,"client":"curl"}
+
+: ping
+

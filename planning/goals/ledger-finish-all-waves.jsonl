@@ -1,0 +1,12 @@
+# Goal ledger — finish-all-waves
+
+| turn | at | verdict | failing | note |
+|---|---|---|---|---|
+| 1 | 22:32:36 | block | branches, wincoverage, winlive, waves, lane | iteration 1/200 · repeat ×1 |
+| 2 | 00:56:52 | block | waves, lane | iteration 2/200 · repeat ×1 |
+| 2 | 03:42:01 | api-error | — | turn ended on an API error (unknown) ×1; no gates run, iteration not advanced |
+| 2 | 03:42:03 | api-error | — | turn ended on an API error (unknown) ×1; no gates run, iteration not advanced |
+| 2 | 03:42:06 | api-error | — | turn ended on an API error (unknown) ×2; no gates run, iteration not advanced |
+| 2 | 03:42:06 | api-error | — | turn ended on an API error (unknown) ×2; no gates run, iteration not advanced |
+| 2 | 03:42:09 | api-error | — | turn ended on an API error (unknown) ×2; no gates run, iteration not advanced |
+| 2 | 03:42:10 | api-error | — | turn ended on an API error (unknown) ×3; no gates run, iteration not advanced |

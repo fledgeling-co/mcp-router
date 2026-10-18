@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    A harness binary, not a product one.
+
+    It is a SEPARATE PROCESS from the shell on purpose. DEF-072 was a builder asserting that it had
+    built a payload, and DEF-082 was filed so the same shape could not repeat one layer up: the
+    shell reporting that the notification platform accepted its Show is the writer's own account,
+    and it is carried in the evidence as exactly that. This process never raises a notification and
+    shares no code with the one that does. All it does is read the Action Center back.
+
+    net8.0-windows10.0.19041.0 rather than plain net8.0: the TFM is what brings in the Windows SDK
+    projections, and Windows.UI.Notifications.Management does not exist without them.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>mcprouter-action-center-witness</AssemblyName>
+    <RootNamespace>MCPRouter.Witness.ActionCenter</RootNamespace>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+  </PropertyGroup>
+
+</Project>

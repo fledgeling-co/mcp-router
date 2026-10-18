@@ -1,0 +1,444 @@
+﻿{
+    "schema":  "win-shell.uia-assert/1",
+    "subject":  "MCPRouter.Shell - the Windows client, driven through the automation plane",
+    "capturedAtUtc":  "2026-09-03T04:50:28.4759546Z",
+    "exePath":  "C:\\Dev\\mcp-router\\app\\windows\\MCPRouter.Shell\\bin\\Debug\\net8.0-windows10.0.19041.0\\win-x64\\MCPRouter.Shell.exe",
+    "processId":  4708,
+    "destinations":  10,
+    "measured":  10,
+    "passed":  10,
+    "failed":  0,
+    "crashed":  0,
+    "unoracled":  0,
+    "inconclusive":  0,
+    "controls":  [
+                     {
+                         "id":  "settings.sections",
+                         "status":  "pass",
+                         "detail":  "all 7 declared section(s) publish an addressable container: settings.section.router, settings.section.harnesses, settings.section.sessionanalyst, settings.section.updates, settings.section.security, settings.section.ambientsurface, settings.section.advanced"
+                     },
+                     {
+                         "id":  "settings.toggle.LaunchAtLogin",
+                         "status":  "pass",
+                         "detail":  "named \u0027Launch router daemon at sign-in\u0027, toggle state readable as \u0027Off\u0027"
+                     },
+                     {
+                         "id":  "settings.toggle.RequireConfirmationOnDestructive",
+                         "status":  "pass",
+                         "detail":  "named \u0027Confirm before removing a server\u0027, toggle state readable as \u0027On\u0027"
+                     },
+                     {
+                         "id":  "settings.toggle.ShowAmbientIcon",
+                         "status":  "pass",
+                         "detail":  "named \u0027Show status in notification area\u0027, toggle state readable as \u0027On\u0027"
+                     },
+                     {
+                         "id":  "settings.effect",
+                         "status":  "pass",
+                         "detail":  "toggling \u0027Launch router daemon at sign-in\u0027 through the plane moved the board\u0027s state readout from \u0027LaunchAtLogin=off · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on\u0027 to \u0027LaunchAtLogin=on · RequireConfirmationOnDestructive=on · ShowAmbientIcon=on\u0027 - an effect outside the control that was actuated.",
+                         "actuates":  [
+                                          "Launch router daemon at sign-in"
+                                      ]
+                     },
+                     {
+                         "id":  "settings.launchAtLogin.baseline",
+                         "status":  "pass",
+                         "detail":  "Get-ScheduledTask reports no task at \u0027\\MCPRouter\\WIN-SHELL Settings Witness (transient)\u0027 before the switch is driven, so the arms below measure THIS run\u0027s registration.",
+                         "actuates":  [
+                                          "Launch router daemon at sign-in"
+                                      ],
+                         "recorder":  "Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)"
+                     },
+                     {
+                         "id":  "settings.launchAtLogin.effect",
+                         "status":  "pass",
+                         "detail":  "driving the switch to On through the automation plane registered \u0027\\MCPRouter\\WIN-SHELL Settings Witness (transient)\u0027 in the Windows task scheduler: state=Ready, logon trigger present, RunLevel=Limited (the recorder\u0027s word for the XML\u0027s LeastPrivilege), Execute=C:\\Dev\\mcp-router\\app\\windows\\MCPRouter.Shell\\win-shell-witness-daemon.exe. Read by an API that did not write it.",
+                         "actuates":  [
+                                          "Launch router daemon at sign-in"
+                                      ],
+                         "recorder":  "Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)"
+                     },
+                     {
+                         "id":  "settings.persistence.store",
+                         "status":  "pass",
+                         "detail":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\shell-state\\shell-settings.json holds LaunchAtLogin=true, read off the disk by this script. The file is the recorder; the shell is not asked what it saved.",
+                         "actuates":  [
+                                          "Launch router daemon at sign-in"
+                                      ],
+                         "recorder":  "a read of the settings file by this script"
+                     },
+                     {
+                         "id":  "settings.persistence",
+                         "status":  "pass",
+                         "detail":  "the shell was terminated and launched again as a new process, and the switch reads On in the new one. Closing the shell no longer forgets the setting.",
+                         "actuates":  [
+                                          "Launch router daemon at sign-in"
+                                      ],
+                         "recorder":  "a second MCPRouter.Shell process, launched after the first was terminated"
+                     },
+                     {
+                         "id":  "settings.copyEndpoint",
+                         "status":  "pass",
+                         "detail":  "the clipboard held this lane\u0027s sentinel before the button was invoked and holds \u0027http://127.0.0.1:8879\u0027 after, read out of a separate PowerShell process. It matches the endpoint the board displays at settings.state.endpoint.",
+                         "actuates":  [
+                                          "Copy the loopback endpoint"
+                                      ],
+                         "recorder":  "Get-Clipboard in a separate PowerShell process"
+                     },
+                     {
+                         "id":  "settings.launchAtLogin.silence",
+                         "status":  "pass",
+                         "detail":  "driving the switch back to Off removed \u0027\\MCPRouter\\WIN-SHELL Settings Witness (transient)\u0027: Get-ScheduledTask reports absence again, so its yes above was a reading rather than an echo.",
+                         "actuates":  [
+                                          "Launch router daemon at sign-in"
+                                      ],
+                         "recorder":  "Get-ScheduledTask (ScheduledTasks module over the Task Scheduler WMI provider)"
+                     },
+                     {
+                         "id":  "settings.ambientIcon.baseline",
+                         "status":  "pass",
+                         "detail":  "with the switch driven Off, a separate process asks the shell for the icon at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90} and is told there is none (HRESULT 0x80004005). The recorder is capable of saying no, and any yes below is this run\u0027s.",
+                         "actuates":  [
+                                          "Show status in notification area"
+                                      ],
+                         "recorder":  "Shell_NotifyIconGetRect in a separate powershell.exe process"
+                     },
+                     {
+                         "id":  "settings.ambientIcon.effect",
+                         "status":  "pass",
+                         "detail":  "driving the switch to On through the automation plane put an icon in the Windows notification area at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90}: a separate process asked the shell for its rectangle and got 2109,1528 to 2157,1600 (HRESULT 0x00000000). Read by an API this application never called.",
+                         "actuates":  [
+                                          "Show status in notification area"
+                                      ],
+                         "recorder":  "Shell_NotifyIconGetRect in a separate powershell.exe process"
+                     },
+                     {
+                         "id":  "settings.ambientIcon.silence",
+                         "status":  "pass",
+                         "detail":  "driving the switch back to Off took the icon out of the notification area: the same reader that found it a moment ago now answers HRESULT 0x80004005. Its yes above was a reading rather than an echo, and turning the setting off tells the user something true.",
+                         "actuates":  [
+                                          "Show status in notification area"
+                                      ],
+                         "recorder":  "Shell_NotifyIconGetRect in a separate powershell.exe process"
+                     },
+                     {
+                         "id":  "settings.requireConfirmation.baseline",
+                         "status":  "pass",
+                         "detail":  "the router lists both servers this lane declared - lane-cleanup-delta, lane-witness-beta, lane-cleanup-gamma, lane-witness-alpha - before any removal is attempted, so the arms below measure removals rather than absences that were already there.",
+                         "actuates":  [
+                                          "Confirm before removing a server"
+                                      ],
+                         "recorder":  "the router\u0027s own /servers listing, read over the control API by this script"
+                     },
+                     {
+                         "id":  "settings.requireConfirmation.effect",
+                         "status":  "pass",
+                         "detail":  "with the setting On, Remove raised a confirmation, this lane pressed \u0027Keep it\u0027, and the router still lists lane-witness-alpha (now: lane-cleanup-delta, lane-witness-beta, lane-cleanup-gamma, lane-witness-alpha). The refusal is read out of the router, not out of the dialog: the app\u0027s account of having asked is not evidence that it obeyed the answer.",
+                         "actuates":  [
+                                          "Confirm before removing a server"
+                                      ],
+                         "recorder":  "the router\u0027s own /servers listing, read over the control API by this script"
+                     },
+                     {
+                         "id":  "settings.requireConfirmation.accepted",
+                         "status":  "pass",
+                         "detail":  "pressing \u0027Remove permanently\u0027 removed lane-witness-alpha from the ROUTER - it now lists lane-cleanup-delta, lane-witness-beta, lane-cleanup-gamma. The gate opens as well as closes.",
+                         "actuates":  [
+                                          "Confirm before removing a server"
+                                      ],
+                         "recorder":  "the router\u0027s own /servers listing, read over the control API by this script"
+                     },
+                     {
+                         "id":  "settings.requireConfirmation.silence",
+                         "status":  "pass",
+                         "detail":  "with the setting Off, Remove raised no confirmation at all and the router no longer lists lane-witness-beta (now: lane-cleanup-delta, lane-cleanup-gamma). The prompt above was the setting being obeyed rather than a dialog this board always shows.",
+                         "actuates":  [
+                                          "Confirm before removing a server"
+                                      ],
+                         "recorder":  "the router\u0027s own /servers listing, read over the control API by this script"
+                     },
+                     {
+                         "id":  "cleanup.requireConfirmation.baseline",
+                         "status":  "pass",
+                         "detail":  "the router lists both servers this lane declared for the Cleanup board - lane-cleanup-delta, lane-cleanup-gamma - before any removal is attempted from it, so the arms below measure removals rather than absences that were already there. Neither has ever been called, which is what puts them on this board at all: the rows come from the router\u0027s own usage figures now, not from sample data.",
+                         "actuates":  [
+                                          "Remove selected…"
+                                      ],
+                         "recorder":  "the router\u0027s own /servers listing, read over the control API by this script"
+                     },
+                     {
+                         "id":  "cleanup.requireConfirmation.effect",
+                         "status":  "pass",
+                         "detail":  "with the setting On, the Cleanup board\u0027s Remove selected raised a confirmation, this lane pressed \u0027Keep it\u0027, and the router still lists lane-cleanup-gamma (now: lane-cleanup-delta, lane-cleanup-gamma). The refusal is read out of the ROUTER, not out of the dialog: the app\u0027s account of having asked is not evidence that it obeyed the answer.",
+                         "actuates":  [
+                                          "Remove selected…"
+                                      ],
+                         "recorder":  "the router\u0027s own /servers listing, read over the control API by this script"
+                     },
+                     {
+                         "id":  "cleanup.requireConfirmation.accepted",
+                         "status":  "pass",
+                         "detail":  "pressing \u0027Remove permanently\u0027 on the Cleanup board removed lane-cleanup-gamma from the ROUTER - it now lists lane-cleanup-delta. The board\u0027s button reaches the router at all, which is the half of DEF-302 no dialog check could establish.",
+                         "actuates":  [
+                                          "Remove selected…"
+                                      ],
+                         "recorder":  "the router\u0027s own /servers listing, read over the control API by this script"
+                     },
+                     {
+                         "id":  "cleanup.requireConfirmation.silence",
+                         "status":  "pass",
+                         "detail":  "with the setting Off, Remove selected raised no confirmation at all and the router no longer lists lane-cleanup-delta (now: nothing). The prompt above was THIS SETTING being obeyed by THIS board, rather than a dialog the Cleanup board always shows.",
+                         "actuates":  [
+                                          "Remove selected…"
+                                      ],
+                         "recorder":  "the router\u0027s own /servers listing, read over the control API by this script"
+                     },
+                     {
+                         "id":  "discover.rows.recent",
+                         "status":  "pass",
+                         "detail":  "60 row(s) in \u0027discover.band.recent\u0027 each publish a distinct accessible name, none of them the type name, and a distinct automation id. First three: sap-mcp, 34,350 sessions on Smithery, added 13 Jul 2026, On Smithery | Framesail, 11,533 sessions on Smithery, added 9 Jul 2026, On Smithery | LMK.today MCP, 8,243 sessions on Smithery, added 6 Jul 2026, On Smithery"
+                     },
+                     {
+                         "id":  "discover.rows.used",
+                         "status":  "pass",
+                         "detail":  "60 row(s) in \u0027discover.band.used\u0027 each publish a distinct accessible name, none of them the type name, and a distinct automation id. First three: pipeworx gateway, 419,019 sessions on Smithery, added 22 Apr 2026, On Smithery | Brave Search, 87,579 sessions on Smithery, added 5 Sep 2025, On Smithery, verified by Smithery | uk-due-diligence, 60,881 sessions on Smithery, added 29 Apr 2026, On Smithery"
+                     },
+                     {
+                         "id":  "discover.detail",
+                         "status":  "pass",
+                         "detail":  "opened from the row \u0027sap-mcp, 34,350 sessions on Smithery, added 13 Jul 2026, On Smithery\u0027; all 8 checked control(s) are addressable by id and publish a name."
+                     },
+                     {
+                         "id":  "shell.navigationPane",
+                         "status":  "pass",
+                         "detail":  "the navigation pane publishes the accessible name \u0027Destinations\u0027."
+                     },
+                     {
+                         "id":  "ambient.routerStopped",
+                         "status":  "pass",
+                         "detail":  "the router was stopped from outside the application - this script killed the process and then confirmed, over the loopback port, that nothing answers http://127.0.0.1:62755/status - and the shell\u0027s pane moved to \u0027Cannot reach router\u0027 / \u0027The router daemon is not responding on 127.0.0.1:62755.\u0027. It does not say \u0027Router ready\u0027 over a router that is not running, which is DEF-301 exactly.",
+                         "recorder":  "UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application"
+                     },
+                     {
+                         "id":  "ambient.workInFlight",
+                         "status":  "pass",
+                         "detail":  "a process outside the application answered /status with three tool calls in flight across two upstreams, and the pane moved to \u0027Serving tool calls\u0027 / \u00273 active tool calls in flight.\u0027. The count came from the answer, not from the app.",
+                         "recorder":  "UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application"
+                     },
+                     {
+                         "id":  "ambient.signInWaiting",
+                         "status":  "pass",
+                         "detail":  "/status was answered with two upstreams in pendingAuth and the pane moved to \u0027Decisions waiting\u0027 / \u00272 servers are waiting for you to sign in.\u0027.",
+                         "recorder":  "UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application"
+                     },
+                     {
+                         "id":  "ambient.routerRunning",
+                         "status":  "pass",
+                         "detail":  "the product\u0027s own router was started again outside the application and the pane moved to \u0027Router ready\u0027 / \u0027All systems quiet. No active calls or queued items.\u0027. The surface reads the real router, not only the lane\u0027s stand-in.",
+                         "recorder":  "UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application"
+                     },
+                     {
+                         "id":  "ambient.silence",
+                         "status":  "pass",
+                         "detail":  "taking the router away again put the pane back to \u0027Cannot reach router\u0027 / \u0027The router daemon is not responding on 127.0.0.1:62755.\u0027. Its readings above were readings rather than a state it latched on to.",
+                         "recorder":  "UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application"
+                     },
+                     {
+                         "id":  "ambient.shellSurvivedRouterLoss",
+                         "status":  "pass",
+                         "detail":  "the router was stopped, replaced twice and started again underneath the running shell, and the shell was still on the automation plane at the end of it.",
+                         "recorder":  "UI Automation read of the shell pane, over a router state driven by starting and stopping processes outside the application"
+                     },
+                     {
+                         "id":  "settings.ambientIcon.explorerRestart.baseline",
+                         "status":  "pass",
+                         "detail":  "with no MCPRouter.Shell running at all, Explorer was restarted and a separate process asking the new notification area for {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90} is told there is none (found=False, HRESULT 0x80004005). A fresh notification area does not invent this icon, so a yes below is about an icon that is in it.",
+                         "actuates":  [
+                                          "Show status in notification area"
+                                      ],
+                         "recorder":  "Shell_NotifyIconGetRect in a separate powershell.exe process, across an Explorer restart"
+                     },
+                     {
+                         "id":  "settings.ambientIcon.survivesExplorerRestart",
+                         "status":  "pass",
+                         "detail":  "the notification area held the icon at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90}, Explorer was killed and came back, and a separate powershell.exe asking the new shell for that GUID gets a rectangle again (2157,1528 to 2205,1600, HRESULT 0x00000000) - where the same reader, with nothing owning the icon, was told there was none. The icon comes back without the operator doing anything.",
+                         "actuates":  [
+                                          "Show status in notification area"
+                                      ],
+                         "recorder":  "Shell_NotifyIconGetRect in a separate powershell.exe process, across an Explorer restart"
+                     }
+                 ],
+    "controlsFailed":  0,
+    "results":  [
+                    {
+                        "id":  "discover",
+                        "label":  "Discover",
+                        "relaunched":  false,
+                        "paneItemSelected":  true,
+                        "matchedBy":  "name-and-selection-pattern",
+                        "attempts":  1,
+                        "actuations":  1,
+                        "titleBefore":  "Servers",
+                        "selected":  true,
+                        "windowTitle":  "Discover",
+                        "elements":  903,
+                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-discover.json",
+                        "dumpExit":  0,
+                        "fingerprint":  "82E072FC9D96F067",
+                        "status":  "pass"
+                    },
+                    {
+                        "id":  "skills",
+                        "label":  "Skills",
+                        "relaunched":  false,
+                        "paneItemSelected":  true,
+                        "matchedBy":  "name-and-selection-pattern",
+                        "attempts":  1,
+                        "actuations":  1,
+                        "titleBefore":  "Discover",
+                        "selected":  true,
+                        "windowTitle":  "Skills",
+                        "elements":  60,
+                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-skills.json",
+                        "dumpExit":  0,
+                        "fingerprint":  "07503731F6E38E5C",
+                        "status":  "pass"
+                    },
+                    {
+                        "id":  "servers",
+                        "label":  "Servers",
+                        "relaunched":  false,
+                        "paneItemSelected":  true,
+                        "matchedBy":  "name-and-selection-pattern",
+                        "attempts":  1,
+                        "actuations":  1,
+                        "titleBefore":  "Skills",
+                        "selected":  true,
+                        "windowTitle":  "Servers",
+                        "elements":  119,
+                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-servers.json",
+                        "dumpExit":  0,
+                        "fingerprint":  "584D42AC3B7EF9D0",
+                        "status":  "pass"
+                    },
+                    {
+                        "id":  "activity",
+                        "label":  "Activity",
+                        "relaunched":  false,
+                        "paneItemSelected":  true,
+                        "matchedBy":  "name-and-selection-pattern",
+                        "attempts":  1,
+                        "actuations":  1,
+                        "titleBefore":  "Servers",
+                        "selected":  true,
+                        "windowTitle":  "Activity",
+                        "elements":  117,
+                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-activity.json",
+                        "dumpExit":  0,
+                        "fingerprint":  "41C2792846F44C4E",
+                        "status":  "pass"
+                    },
+                    {
+                        "id":  "harnesses",
+                        "label":  "Harnesses",
+                        "relaunched":  false,
+                        "paneItemSelected":  true,
+                        "matchedBy":  "name-and-selection-pattern",
+                        "attempts":  1,
+                        "actuations":  1,
+                        "titleBefore":  "Activity",
+                        "selected":  true,
+                        "windowTitle":  "Harnesses",
+                        "elements":  74,
+                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-harnesses.json",
+                        "dumpExit":  0,
+                        "fingerprint":  "1748C2878A645D71",
+                        "status":  "pass"
+                    },
+                    {
+                        "id":  "checks",
+                        "label":  "Checks",
+                        "relaunched":  false,
+                        "paneItemSelected":  true,
+                        "matchedBy":  "name-and-selection-pattern",
+                        "attempts":  1,
+                        "actuations":  1,
+                        "titleBefore":  "Harnesses",
+                        "selected":  true,
+                        "windowTitle":  "Checks",
+                        "elements":  73,
+                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-checks.json",
+                        "dumpExit":  0,
+                        "fingerprint":  "4F72D66FD8D6D468",
+                        "status":  "pass"
+                    },
+                    {
+                        "id":  "cleanup",
+                        "label":  "Cleanup",
+                        "relaunched":  false,
+                        "paneItemSelected":  true,
+                        "matchedBy":  "name-and-selection-pattern",
+                        "attempts":  1,
+                        "actuations":  1,
+                        "titleBefore":  "Checks",
+                        "selected":  true,
+                        "windowTitle":  "Cleanup",
+                        "elements":  84,
+                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-cleanup.json",
+                        "dumpExit":  0,
+                        "fingerprint":  "6468D1A031692A00",
+                        "status":  "pass"
+                    },
+                    {
+                        "id":  "inbox",
+                        "label":  "Inbox",
+                        "relaunched":  false,
+                        "paneItemSelected":  true,
+                        "matchedBy":  "name-and-selection-pattern",
+                        "attempts":  1,
+                        "actuations":  1,
+                        "titleBefore":  "Cleanup",
+                        "selected":  true,
+                        "windowTitle":  "Inbox",
+                        "elements":  83,
+                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-inbox.json",
+                        "dumpExit":  0,
+                        "fingerprint":  "FF4228314F0437F8",
+                        "status":  "pass"
+                    },
+                    {
+                        "id":  "insights",
+                        "label":  "Insights",
+                        "relaunched":  false,
+                        "paneItemSelected":  true,
+                        "matchedBy":  "name-and-selection-pattern",
+                        "attempts":  1,
+                        "actuations":  1,
+                        "titleBefore":  "Inbox",
+                        "selected":  true,
+                        "windowTitle":  "Insights",
+                        "elements":  77,
+                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-insights.json",
+                        "dumpExit":  0,
+                        "fingerprint":  "F27321DCEB4E24A9",
+                        "status":  "pass"
+                    },
+                    {
+                        "id":  "settings",
+                        "label":  "Settings",
+                        "relaunched":  false,
+                        "paneItemSelected":  true,
+                        "matchedBy":  "name-and-selection-pattern",
+                        "attempts":  1,
+                        "actuations":  1,
+                        "titleBefore":  "Insights",
+                        "selected":  true,
+                        "windowTitle":  "Settings",
+                        "elements":  86,
+                        "dump":  "C:\\Dev\\mcp-router\\planning\\evidence\\WIN-SHELL\\run\\uia-shell-settings.json",
+                        "dumpExit":  0,
+                        "fingerprint":  "86640BAFA1085885",
+                        "status":  "pass"
+                    }
+                ]
+}

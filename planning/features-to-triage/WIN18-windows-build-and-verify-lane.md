@@ -2,9 +2,8 @@
 status: to-triage
 found-by: intake, measuring the repo's gate spine on Windows while scoping the parity work · 2026-08-30
 registry-target: none
-no-target-reason: the campaign registry records lanes that all run under xcodebuild on macOS, and holds no lane, case or requirement describing a Windows build or its gates
+no-target-reason: the registry has since gained SURF-029 (WIN20's automation probe) and the windows-glass lane, so the original reason - that every lane runs under xcodebuild - is no longer true. It is still true that no requirement, case or surface records the Windows BUILD AND GATE SPINE itself; DEF-074's evidence names scripts/windows harness scripts in passing while being a defect about lifecycle, which is a mention and not a subject. Corrected 2026-09-03, we4.
 ---
-
 # Windows work has no gate spine — every verification target in this repo runs under xcodebuild
 
 - origin: intake, 2026-08-30, measured on this machine while scoping the Windows parity work

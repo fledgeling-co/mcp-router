@@ -1,0 +1,158 @@
+{
+    "lane":  "win-shell-unhandled-witness",
+    "rung":  "effect-witness",
+    "defect":  "DEF-079, DEF-085",
+    "subject":  "MCPRouter.Shell.App top-level unhandled-exception handlers, and the DEF-085 dispatcher guard",
+    "writer":  "the three handlers and the dispatcher guard, running inside the shell process",
+    "recorder":  "shell-startup.log on disk, read by PowerShell in a different process after the writer exited",
+    "recorderIsNotWriter":  true,
+    "arming":  true,
+    "armedHandler":  "task",
+    "verdict":  "PASS (armed)",
+    "reason":  "left the task handler unregistered and EFFECT.task broke while BASELINE and the other EFFECT arms held. So each arm reads the line its own handler or guard wrote, and none of them is satisfied by another\u0027s.",
+    "arms":  [
+                 {
+                     "id":  "BASELINE",
+                     "what":  "a launch with no --fault writes no `unhandled:` line",
+                     "held":  true,
+                     "detail":  "the flag is inert when absent, and the EFFECT lines below are the injection\u0027s"
+                 },
+                 {
+                     "id":  "EFFECT.xaml",
+                     "what":  "Application.UnhandledException wrote its line for a UI-thread throw",
+                     "held":  true,
+                     "detail":  "00:00:25.134 unhandled: [xaml] DEF-079 fault injection: unhandled on the UI thread"
+                 },
+                 {
+                     "id":  "EFFECT.appdomain",
+                     "what":  "AppDomain.CurrentDomain.UnhandledException wrote its line for a non-UI throw",
+                     "held":  true,
+                     "detail":  "00:00:33.345 unhandled: [appdomain terminating=True] System.InvalidOperationException: DEF-079 fault injection: unhandled on a non-UI thread"
+                 },
+                 {
+                     "id":  "EFFECT.task",
+                     "what":  "TaskScheduler.UnobservedTaskException wrote its line for a faulted task nobody awaits",
+                     "held":  false,
+                     "detail":  "ARMED: this handler was never attached, and nothing wrote its line"
+                 },
+                 {
+                     "id":  "EFFECT.dispatcher",
+                     "what":  "the DEF-085 guard wrote its line for a throw inside a DispatcherQueue callback",
+                     "held":  true,
+                     "detail":  "00:02:18.278 unhandled: [dispatcher site=App.InjectFault] System.InvalidOperationException: DEF-085 fault injection: unhandled in a DispatcherQueue callback"
+                 }
+             ],
+    "armsHeld":  4,
+    "armsTotal":  5,
+    "runs":  [
+                 {
+                     "label":  "baseline",
+                     "arguments":  "",
+                     "offset":  32321,
+                     "bytes":  262,
+                     "reachedLaunch":  true,
+                     "reachedInjection":  false,
+                     "writerSelfReport":  "00:00:13.529 handlers: xaml=True, appdomain=True, unobserved-task=True, dispatcher-guard=True, fault=(none)",
+                     "region":  "00:00:13.529 handlers: xaml=True, appdomain=True, unobserved-task=True, dispatcher-guard=True, fault=(none)\r\n00:00:13.572 launched, selftest=(no), skills-fixture=False\r\n00:00:13.750 toast registration: registered\r\n00:00:13.841 loaded at rasterization scale 1.5",
+                     "werCrash":  {
+                                      "when":  "",
+                                      "exceptionCode":  "",
+                                      "module":  "",
+                                      "faultOffset":  "",
+                                      "isStowed":  false,
+                                      "readBy":  "the Application log was read and holds no Application Error for this run - the process did not crash"
+                                  },
+                     "failure":  null
+                 },
+                 {
+                     "label":  "ui",
+                     "arguments":  "--fault ui",
+                     "offset":  32583,
+                     "bytes":  962,
+                     "reachedLaunch":  true,
+                     "reachedInjection":  true,
+                     "writerSelfReport":  "00:00:24.897 handlers: xaml=True, appdomain=True, unobserved-task=True, dispatcher-guard=True, fault=ui",
+                     "region":  "00:00:24.897 handlers: xaml=True, appdomain=True, unobserved-task=True, dispatcher-guard=True, fault=ui\r\n00:00:24.937 launched, selftest=(no), skills-fixture=False\r\n00:00:25.101 toast registration: registered\r\n00:00:25.121 fault: injecting ui\r\n00:00:25.134 unhandled: [xaml] DEF-079 fault injection: unhandled on the UI thread\nSystem.InvalidOperationException: DEF-079 fault injection: unhandled on the UI thread\r\n   at MCPRouter.Shell.App.InjectFault(String kind) in C:\\Dev\\mcp-router\\.worktrees\\wb3-dispatcher-handler\\app\\windows\\MCPRouter.Shell\\App.xaml.cs:line 280\r\n   at MCPRouter.Shell.App.OnLaunched(LaunchActivatedEventArgs args) in C:\\Dev\\mcp-router\\.worktrees\\wb3-dispatcher-handler\\app\\windows\\MCPRouter.Shell\\App.xaml.cs:line 183\r\n   at Microsoft.UI.Xaml.Application.Microsoft.UI.Xaml.IApplicationOverrides.OnLaunched(LaunchActivatedEventArgs args)\r\n   at ABI.Microsoft.UI.Xaml.IApplicationOverrides.Do_Abi_OnLaunched_0(IntPtr thisPtr, IntPtr args)",
+                     "werCrash":  {
+                                      "when":  "",
+                                      "exceptionCode":  "",
+                                      "module":  "",
+                                      "faultOffset":  "",
+                                      "isStowed":  false,
+                                      "readBy":  "the Application log was read and holds no Application Error for this run - the process did not crash"
+                                  },
+                     "failure":  null
+                 },
+                 {
+                     "label":  "appdomain",
+                     "arguments":  "--fault appdomain",
+                     "offset":  33545,
+                     "bytes":  558,
+                     "reachedLaunch":  true,
+                     "reachedInjection":  true,
+                     "writerSelfReport":  "00:00:33.114 handlers: xaml=True, appdomain=True, unobserved-task=True, dispatcher-guard=True, fault=appdomain",
+                     "region":  "00:00:33.114 handlers: xaml=True, appdomain=True, unobserved-task=True, dispatcher-guard=True, fault=appdomain\r\n00:00:33.157 launched, selftest=(no), skills-fixture=False\r\n00:00:33.315 toast registration: registered\r\n00:00:33.335 fault: injecting appdomain\r\n00:00:33.345 unhandled: [appdomain terminating=True] System.InvalidOperationException: DEF-079 fault injection: unhandled on a non-UI thread\r\n   at MCPRouter.Shell.App.\u003c\u003ec.\u003cInjectFault\u003eb__25_2() in C:\\Dev\\mcp-router\\.worktrees\\wb3-dispatcher-handler\\app\\windows\\MCPRouter.Shell\\App.xaml.cs:line 308",
+                     "werCrash":  {
+                                      "when":  "",
+                                      "exceptionCode":  "",
+                                      "module":  "",
+                                      "faultOffset":  "",
+                                      "isStowed":  false,
+                                      "readBy":  "the Application log was read and holds no Application Error for this run - the process did not crash"
+                                  },
+                     "failure":  null
+                 },
+                 {
+                     "label":  "task",
+                     "arguments":  "--fault task --fault-unregister task",
+                     "offset":  34103,
+                     "bytes":  353,
+                     "reachedLaunch":  true,
+                     "reachedInjection":  true,
+                     "writerSelfReport":  "00:00:41.350 handlers: xaml=True, appdomain=True, unobserved-task=False, dispatcher-guard=True, fault=task",
+                     "region":  "00:00:41.350 handlers: xaml=True, appdomain=True, unobserved-task=False, dispatcher-guard=True, fault=task\r\n00:00:41.393 launched, selftest=(no), skills-fixture=False\r\n00:00:41.553 toast registration: registered\r\n00:00:41.577 fault: injecting task\r\n00:00:41.639 loaded at rasterization scale 1.5\r\n00:00:42.598 fault: unobserved-task injection complete",
+                     "werCrash":  {
+                                      "when":  "",
+                                      "exceptionCode":  "",
+                                      "module":  "",
+                                      "faultOffset":  "",
+                                      "isStowed":  false,
+                                      "readBy":  "the Application log was read and holds no Application Error for this run - the process did not crash"
+                                  },
+                     "failure":  null
+                 },
+                 {
+                     "label":  "dispatcher",
+                     "arguments":  "--fault dispatcher",
+                     "offset":  34456,
+                     "bytes":  896,
+                     "reachedLaunch":  true,
+                     "reachedInjection":  true,
+                     "writerSelfReport":  "00:02:18.021 handlers: xaml=True, appdomain=True, unobserved-task=True, dispatcher-guard=True, fault=dispatcher",
+                     "region":  "00:02:18.021 handlers: xaml=True, appdomain=True, unobserved-task=True, dispatcher-guard=True, fault=dispatcher\r\n00:02:18.068 launched, selftest=(no), skills-fixture=False\r\n00:02:18.245 toast registration: registered\r\n00:02:18.265 fault: injecting dispatcher\r\n00:02:18.278 unhandled: [dispatcher site=App.InjectFault] System.InvalidOperationException: DEF-085 fault injection: unhandled in a DispatcherQueue callback\r\nSystem.InvalidOperationException: DEF-085 fault injection: unhandled in a DispatcherQueue callback\r\n   at MCPRouter.Shell.App.\u003c\u003ec.\u003cInjectFault\u003eb__25_1() in C:\\Dev\\mcp-router\\.worktrees\\wb3-dispatcher-handler\\app\\windows\\MCPRouter.Shell\\App.xaml.cs:line 301\r\n   at MCPRouter.Shell.Model.Diagnostics.DispatcherGuard.\u003c\u003ec__DisplayClass2_0.\u003cGuard\u003eb__0() in C:\\Dev\\mcp-router\\.worktrees\\wb3-dispatcher-handler\\app\\windows\\MCPRouter.Shell.Model\\Diagnostics\\DispatcherGuard.cs:line 66",
+                     "werCrash":  {
+                                      "when":  "",
+                                      "exceptionCode":  "",
+                                      "module":  "",
+                                      "faultOffset":  "",
+                                      "isStowed":  false,
+                                      "readBy":  "the Application log was read and holds no Application Error for this run - the process did not crash"
+                                  },
+                     "failure":  null
+                 }
+             ],
+    "writerSelfReportIsNotEvidence":  "each run\u0027s `handlers:` line is the shell reporting which handlers it attached. It is carried in runs[] and graded by nothing: a process reporting its own effect is the shape of claim DEF-079 is about. What is graded is the line each handler wrote.",
+    "notMeasured":  [
+                        "a real stowed exception at 0xC000027B below the managed dispatch boundary - the route DEF-079 was found through. The injected UI fault is an ordinary managed exception in XAML dispatch; nothing on this host can raise the other (DEF-086)",
+                        "that an UNGUARDED DispatcherQueue callback still reaches no handler - the DEF-085 finding is not re-measured on a normal run. -ProveRed dispatcher is where that state is reproduced, and EFFECT.dispatcher grades the guard rather than the framework",
+                        "that the ORIGINAL Skills crash of 2026-09-02 took the same path as the stowed exception this lane now raises when armed on dispatcher. What matches is the exception code, the faulting module and the fault offset in WER; nothing here compares stacks (DEF-086)",
+                        "that a handler fires in a RELEASE build - the injection is compiled out outside DEBUG, so this lane grades the Debug binary only",
+                        "that the log survives a process kill mid-write - StartupLog appends synchronously per line, which is assumed rather than witnessed here"
+                    ],
+    "notes":  [
+                  "WER, read out of the Windows Application log after the process was gone: the dispatcher run left NO Application Error. The guard caught the throw, so the process did not fail-fast at 0xC000027B the way the unguarded callback does - which is a second effect of DEF-085\u0027s fix, recorded by the operating system rather than by the shell.",
+                  "EFFECT.dispatcher was an ungraded probe until DEF-085 was fixed: the route reached no handler and the process vanished after `fault: injecting` with nothing appended. It is graded now because the shell guards its own posting sites, so the line it requires is written by this product rather than by the framework. -ProveRed dispatcher removes that guard and reproduces the silence."
+              ],
+    "host":  "Z13",
+    "psVersion":  "5.1.26100.9223"
+}

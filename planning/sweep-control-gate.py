@@ -118,7 +118,16 @@ for _stream in (sys.stdout, sys.stderr):
         _stream.reconfigure(encoding="utf-8")
 
 REGISTRY = "planning/sweep-controls.json"
-CONTROL_TIMEOUT = 120
+# The budget each declared control runs under, overridable because it is a property of the
+# machine rather than of the tree. Measured 2026-08-31 on the Windows fleet's clone, where the
+# shell this gate resolves is Cygwin bash and eight fleet runners share the box: the two
+# bash-heavy selftests in the registry took 5m22s (no-telemetry-egress-selftest.sh — 3 of 3 arms
+# held, exit 0) and 2m30s (acceptance-lanes-selftest.sh — 13 of 13 arms held, exit 0). Both
+# controls hold; neither approaches 120s, and a timeout there answered nothing about whether the
+# control is rotted. A budget that cannot be stated cannot be compared with another run's — the
+# ACCEPTANCE-ENV lesson one level up — so it is an environment variable the lane can declare,
+# and the default stays 120, the macOS measurement it has always been.
+CONTROL_TIMEOUT = int(os.environ.get("SWEEP_CONTROL_TIMEOUT", "120"))
 
 # Four readers, named. Each is one way a script announces that it treats a zero as an answer.
 MARKERS: dict[str, re.Pattern] = {
@@ -361,7 +370,14 @@ def run_control(root: str, entry: dict) -> tuple[bool, str]:
         done = subprocess.run(command, capture_output=True, text=True, cwd=root,
                               timeout=CONTROL_TIMEOUT, encoding="utf-8")
     except subprocess.TimeoutExpired:
-        return False, f"control did not finish in {CONTROL_TIMEOUT}s"
+        # NOT a failure, and the comment on CONTROL_TIMEOUT above already says why: "a timeout
+        # there answered nothing about whether the control is rotted". Until DEF-444 this returned
+        # False like any other bad outcome, so a control that HOLDS but is slower than the budget
+        # was reported as a control that does not pass - the unmeasured-read-as-failed conflation
+        # this whole campaign is built against, arriving inside one of its own gates. Measured
+        # 2026-09-03 on LUKESFF: planning/hooks/prove-pre-commit.sh exits 0 with 8 assertions over
+        # 6 directions in 258s, and was reported as a finding against the 120s default.
+        return None, f"control did not finish in {CONTROL_TIMEOUT}s"
     except OSError as error:
         return False, f"control would not start: {type(error).__name__}: {error}"
     if done.returncode != 0:
@@ -471,9 +487,14 @@ def self_control(root: str) -> tuple[bool, list[str]]:
         failing = {"path": "planted_sweep.py", "disposition": "control",
                    "control": [sys.executable, "-c", "import sys; sys.exit(1)"]}
         passed, said = run_control(temp, failing)
-        ok = ok and not passed
-        lines.append(f"  {'sees ' if not passed else 'BLIND'} a control that exits 1 is reported "
-                     f"failing — it said: {said}")
+        # `passed is False`, not `not passed`: since DEF-444 a timeout returns None, and `not None`
+        # is True - so a fixture that timed out would have read as "sees the failure" and passed
+        # this control without the runner ever having reported anything. The fixture is a one-line
+        # sys.exit(1) and will not time out, which is exactly why the loose form would have sat
+        # here indefinitely being correct by luck.
+        ok = ok and passed is False
+        lines.append(f"  {'sees ' if passed is False else 'BLIND'} a control that exits 1 is "
+                     f"reported failing — it said: {said}")
 
         working = {"path": "planted_sweep.py", "disposition": "control",
                    "control": [sys.executable, "-c", "import sys; sys.exit(0)"]}
@@ -637,19 +658,35 @@ def report(root: str) -> int:
 
     print("Declared controls, run rather than believed:")
     ran = 0
+    unmeasured: list[str] = []
     for path in sorted(entries):
         entry = entries[path]
         if entry.get("disposition") != "control":
             continue
         ran += 1
         passed, said = run_control(root, entry)
-        print(f"  {'ok  ' if passed else 'FAIL'}  {path:38s} {said}")
-        if not passed:
+        mark = "ok  " if passed else ("....") if passed is None else "FAIL"
+        print(f"  {mark}  {path:38s} {said}")
+        if passed is None:
+            # Listed every run and counted, never folded into the greens: a control that hangs
+            # forever is a real rot and would sit in this list permanently. What it must not do is
+            # read as a control that WENT RED, because that is a claim about the tree.
+            unmeasured.append(f"{path}: {said}")
+        elif not passed:
             findings.append(f"{path}: its declared control does not pass — {said}")
         elif entry.get("proves"):
             print(f"          proves: {entry['proves']}")
     if not ran:
         print("  (none declared)")
+    if unmeasured:
+        print()
+        print(f"  UNMEASURED {len(unmeasured)} of {ran} declared control(s) did not finish inside "
+              f"{CONTROL_TIMEOUT}s. Each is reported and none is counted as a finding: a budget is "
+              f"a property of the machine and a verdict is a property of the tree, and this gate "
+              f"cannot tell a slow control from a rotted one, so it says so instead of guessing.")
+        print(f"  Raise it with SWEEP_CONTROL_TIMEOUT; scripts/windows/verify.ps1 declares one.")
+        for line in unmeasured:
+            print(f"    · {line}")
     print()
 
     stale = sorted(path for path in entries

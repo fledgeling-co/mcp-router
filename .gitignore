@@ -132,3 +132,29 @@ planning/fidelity/dumps/
 
 # better-goal: machine-local cached lane verdict, never evidence
 planning/goals/.lane-verdict.json
+
+# WIN20's Windows client build output. The probe is built self-contained (the machine has the
+# WindowsAppRuntime framework package but no Main package or DDLM, so the framework-dependent
+# unpackaged path cannot launch), which puts 331 redistributable files in bin/. None of them is
+# ours and none of them is evidence.
+app/windows/**/bin/
+app/windows/**/obj/
+
+# ...but DO keep WIN20's run evidence, for the reason the campaign's exemption above gives:
+# `*.log` is unanchored and matches at every depth, and this lane's transcript and the probe's own
+# startup trace are exactly the artifacts its records cite. `planning/evidence-citation-gate.py`
+# fails a citation to a file the repository does not hold, so an ignored transcript is a citation
+# that resolves only on the machine that wrote it.
+!/planning/evidence/WIN20/**/*.log
+
+# The MSIX the WIN19 witness builds. 69 MB of self-contained WinUI payload, rebuilt from
+# app/windows/packaging on every run of scripts/windows/win19-package-witness.ps1, and worthless as
+# a committed artifact: a package in git is a package nobody re-derives, and the whole point of the
+# lane is that the manifest still packs TODAY. The witness.json beside it is the evidence.
+planning/evidence/WIN19/run/*.msix
+
+# The shell lane brings its own router so a removal is never tried on the operator's real server
+# list (DEF-102), and that router mints a control token into its home on startup. The home is a
+# throwaway under the evidence directory; the token in it is still a credential and never belongs
+# in a commit.
+planning/evidence/WIN-SHELL/run/router-home/

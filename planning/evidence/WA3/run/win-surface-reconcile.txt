@@ -1,0 +1,3 @@
+win-surface-reconcile: 10 destination(s) in DestinationCatalog.cs · 19 Windows surface(s) in the registry · 4 requirement(s) sourced from app/windows/
+  R1 every destination has a surface · R2 every pane item is a declared shell control · R3 every measured Windows requirement reaches a surface that exists · R4 every declared control list names its source and holds up against it
+rc=0

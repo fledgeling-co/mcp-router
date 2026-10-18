@@ -1,10 +1,9 @@
 ---
 status: to-triage
 found-by: intake, parity target for SURF-025 · 2026-08-30
-registry-target: none
-no-target-reason: SURF-025 registers the macOS Harnesses board and the registry holds no Windows equivalent, and the Windows harness set and its config paths are themselves unmeasured
+reckon-sources: [SURF-039]
+target-note: SURF-039 `Windows Harnesses board` carries `note: WIN14.`; the row did not exist when the `none` was declared on 2026-08-30.
 ---
-
 # The Windows Harnesses board — which AI tools on this PC actually route through here
 
 - origin: owner directive, 2026-08-30; parity target for the Mac Harnesses board

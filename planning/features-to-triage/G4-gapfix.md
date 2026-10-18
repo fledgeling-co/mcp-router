@@ -1,3 +1,7 @@
+---
+registry-target: none
+no-target-reason: a gap-fix verdict against parent G4, about a census counting the instrument into its own denominator. That is a measurement defect in a campaign script, not a product behaviour, and the registry holds no `G4` row. Read against the registry 2026-09-03, we4.
+---
 # G4 gap-fix — the census counted the instrument into its own denominator
 
 **Parent:** G4 · **Verdict:** Needs More Work, 2026-08-22 (first verification)

@@ -1,0 +1,138 @@
+WD4 arming record - every arm watched to fail before it was believed.
+Machine: LUKESFF, Windows 11. Node 26.7.0. swift and xcodebuild ABSENT (Get-Command found neither).
+Tree: 42aef112 on ai/wd4-router-writes
+
+==============================================================
+ARM 1 - scripts/acceptance/r21-approve-write-denied.mjs
+PLANT: DEF-049's swallowed save restored into the compiled reference,
+       dist/control.js:520 at `42aef112`, reads "saveManifest(deps.cfg.manifestPath"
+       -> wrapped as try { saveManifest(...) } catch {}
+==============================================================
+R21 — the node reference's approve route against a refused manifest write
+  home C:\Users\rhode\AppData\Local\Temp\r21-approve-gKJmDI
+
+2026-09-03T03:22:16.365Z info  approved "fixture"'s new tool surface (2 tools)
+  as expected  BASELINE — a writable home
+      status 200
+      body   {"server":"fixture","approved":2}
+      manifest.json still holds "pending": false
+2026-09-03T03:22:16.368Z info  approved "fixture"'s new tool surface (2 tools)
+  DISAGREED    EFFECT — the save's temp path occupied by a directory
+      status 200
+      body   {"server":"fixture","approved":2}
+      manifest.json still holds "pending": true
+2026-09-03T03:22:16.371Z info  approved "fixture"'s new tool surface (2 tools)
+  as expected  SILENCE — the occupation removed
+      status 200
+      body   {"server":"fixture","approved":2}
+      manifest.json still holds "pending": false
+
+  WHAT THE REFERENCE ANSWERS WHEN THE WRITE IS REFUSED
+    status 200
+    body   {"server":"fixture","approved":2}
+
+  AGAINST THE SWIFT PORT, WHICH THIS LANE CANNOT RUN. `swift` and `xcodebuild` are
+  absent on this machine, so the Swift side below is READ, not measured:
+    AuthRoutes.swift:176 at `42aef112`, reads "failed to write manifest"
+      - catches the save and returns
+      (500, {"error": "failed to write manifest: <error.localizedDescription>"})
+    control.ts:602 at `42aef112`, reads "as Error).message"
+      - catches it and returns
+      (500, {"error": "<err.message>"})
+    The STATUS agrees. The BODY does not: the port prefixes a sentence of its own.
+
+exit: 1  (1 arm(s) disagreed with what this lane expected)
+PLANTED RUN exit 1
+
+--- plant reverted, same command again ---
+R21 — the node reference's approve route against a refused manifest write
+  home C:\Users\rhode\AppData\Local\Temp\r21-approve-luFRXW
+
+2026-09-03T03:22:21.821Z info  approved "fixture"'s new tool surface (2 tools)
+  as expected  BASELINE — a writable home
+      status 200
+      body   {"server":"fixture","approved":2}
+      manifest.json still holds "pending": false
+  as expected  EFFECT — the save's temp path occupied by a directory
+      status 500
+      body   {"error":"EISDIR: illegal operation on a directory, open 'C:\\Users\\rhode\\AppData\\Local\\Temp\\r21-approve-luFRXW\\manifest.json.tmp-41280'"}
+      manifest.json still holds "pending": true
+2026-09-03T03:22:21.827Z info  approved "fixture"'s new tool surface (2 tools)
+  as expected  SILENCE — the occupation removed
+      status 200
+      body   {"server":"fixture","approved":2}
+      manifest.json still holds "pending": false
+
+  WHAT THE REFERENCE ANSWERS WHEN THE WRITE IS REFUSED
+    status 500
+    body   {"error":"EISDIR: illegal operation on a directory, open 'C:\\Users\\rhode\\AppData\\Local\\Temp\\r21-approve-luFRXW\\manifest.json.tmp-41280'"}
+
+  AGAINST THE SWIFT PORT, WHICH THIS LANE CANNOT RUN. `swift` and `xcodebuild` are
+  absent on this machine, so the Swift side below is READ, not measured:
+    AuthRoutes.swift:176 at `42aef112`, reads "failed to write manifest"
+      - catches the save and returns
+      (500, {"error": "failed to write manifest: <error.localizedDescription>"})
+    control.ts:602 at `42aef112`, reads "as Error).message"
+      - catches it and returns
+      (500, {"error": "<err.message>"})
+    The STATUS agrees. The BODY does not: the port prefixes a sentence of its own.
+
+exit: 0
+REVERTED RUN exit 0
+
+==============================================================
+ARM 2 - planning/effect-provider-gate.py, planted into the REAL register
+PLANT A: REQ-016 evidence vacuous -> observed (the shape vacuity-check found it in)
+==============================================================
+effect providers - an effect claim names code that can perform it, or says why none can
+  41 requirement row(s) read; 17 declare an effect
+    16 name a provider, 0 are declared vacuous with a reason
+    40 provider path token(s) checked for resolution; 0 row(s) carried a provider this gate could read no path out of and therefore checked nothing in
+
+  1 row(s) refused:
+    R1  REQ-016 declares a 'outbound-socket' effect, names no provider, and its evidence is 'observed'. Either name production code that can perform it, or re-class the row `vacuous` and say in `providerNote` what is missing.
+
+exit: 1
+PLANT A exit 1
+
+PLANT B: REQ-024's provider renamed to a file that does not exist
+effect providers - an effect claim names code that can perform it, or says why none can
+  41 requirement row(s) read; 17 declare an effect
+    16 name a provider, 1 are declared vacuous with a reason
+    40 provider path token(s) checked for resolution; 0 row(s) carried a provider this gate could read no path out of and therefore checked nothing in
+
+  1 row(s) refused:
+    R3  REQ-024 names provider 'app/Sources/RouterCore/Service/RequestAuthorityRenamed.swift', which resolves to no file under the production roots. A provider that stops resolving is an unbound effect claim wearing a name.
+
+exit: 1
+PLANT B exit 1
+
+--- both plants reverted, register byte-identical to HEAD, same command again ---
+effect providers - an effect claim names code that can perform it, or says why none can
+  41 requirement row(s) read; 17 declare an effect
+    16 name a provider, 1 are declared vacuous with a reason
+    40 provider path token(s) checked for resolution; 0 row(s) carried a provider this gate could read no path out of and therefore checked nothing in
+
+  WHAT THIS GREEN DOES NOT COVER
+    * R3 checks that the FILE exists, never that the symbol inside it does. A renamed
+      function in a surviving file passes, and a `:line` is not followed.
+    * A provider this gate could read no path out of is counted above and checked by
+      nothing. Prose in that field buys a pass on R3.
+    * `vacuous` with a reason is a PASS here and is still a product gap. It is a claim
+      the register admits it cannot keep, not a claim it has kept.
+
+exit: 0
+REVERTED exit 0
+
+==============================================================
+CITATION FRAME ADDED AT WAVE C INTEGRATION, 2026-09-03
+==============================================================
+The five path:line citations above were written BARE - a line number with no anchor phrase and
+no tree - which `planning/citation-gate.py` ratchets because a bare citation cannot be checked
+and so cannot fail. Each has been given its anchor and the tree it was read at, and two were
+WRONG BY A FEW LINES while bare: the Swift do/catch is at 173-180 and not 171-177, and the
+TypeScript catch is at 601-604 and not 600-603. Both would have read DRIFTED the moment they
+carried an anchor, which is the argument for the form rather than an argument against these
+runs - the measurements they wrap are unaffected, and the lane was re-run at integration on the
+merged tree and reproduced: exit 0, EISDIR at the durable step, baseline/effect/silence intact.
+The transcript in r21-approve-write-denied.txt is that re-run, not the original.

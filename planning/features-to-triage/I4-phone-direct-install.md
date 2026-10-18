@@ -1,3 +1,7 @@
+---
+reckon-sources: [REQ-006, SURF-008]
+---
+
 # I4 — Let the phone install directly
 
 **Source:** `phone-install` = `allow-install` (confirmed, the owner's own choice, against the shipped

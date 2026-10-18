@@ -1,10 +1,9 @@
 ---
 status: to-triage
 found-by: intake divergent pass, from the inbox band having no Windows carrier · 2026-08-30
-registry-target: none
-no-target-reason: the inbox band is a macOS menu-bar affordance in the registry and no case describes how a waiting decision would reach a Windows user
+reckon-sources: [SURF-046, REQ-036]
+target-note: SURF-046 `Windows toast notification and its COM activator` records that WIN22 shipped it and REQ-036 states it, and REQ-036 states the toast, its two buttons and what Review opens; neither existed when the `none` was declared on 2026-08-30.
 ---
-
 # How a waiting decision reaches a Windows user who is not looking at the app
 
 - origin: intake divergent pass, 2026-08-30

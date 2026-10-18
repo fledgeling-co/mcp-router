@@ -1,0 +1,24 @@
+DEF-381 - four solo runs of the shell lane on the merged Wave C tree
+=====================================================================
+Machine: LUKESFF, Windows 11. Tree: 8eeb5433 on main. Nothing else running on the machine -
+no second runner, no worktree, no concurrent build. This is the arm's whole limitation and it
+is stated first rather than last: DEF-402's mechanism IS concurrency, so a solo run cannot by
+itself distinguish "the foreign kill is fixed" from "no second runner was present".
+
+  run 0  exit 0   10/10 destinations   34 control arms   0 FAILED   0 crash lines
+  run 1  exit 0   10/10 destinations   34 control arms   0 FAILED   0 crash lines   232s
+  run 2  exit 0   10/10 destinations   34 control arms   0 FAILED   0 crash lines   274s
+  run 3  exit 0   10/10 destinations   34 control arms   0 FAILED   0 crash lines   195s
+
+Against the record this row was filed on: the shell terminated mid-run in FIVE of eight runs
+on 2026-09-03 while Wave C was live, never twice on the same subject.
+
+THE FIRST THREE ATTEMPTS RETURNED NO VERDICT, AND THAT IS PART OF THE READING. Runs taken
+immediately after the ff-only merge stopped at exit 3 in 17-36s: the freshness guard reported
+the shell binary older than the source, naming DestinationCatalog.cs. The content of
+app/windows is byte-identical across the integration commit - `git diff --stat 07d347c7
+8eeb5433 -- app/windows` is empty - so what moved was an MTIME, rewritten by git during
+checkout. The guard is comparing timestamps and cannot tell a rewritten-identical file from a
+changed one, so it refused. That is the conservative direction and it is the right one, but it
+is worth recording that a merge alone can produce a NO VERDICT with nothing whatever having
+changed. Rebuilt, and the four runs above followed.

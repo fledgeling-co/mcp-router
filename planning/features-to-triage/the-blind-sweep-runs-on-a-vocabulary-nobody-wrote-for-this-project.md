@@ -1,8 +1,8 @@
 ---
 status: to-triage
 found-by: `vacuity-check.py --gate` (test-campaign 0.14.1), 2026-08-29
+reckon-sources: [DEF-048, DEF-055]
 ---
-
 # The blind-mutation sweep runs on borrowed vocabulary, so its three findings settle nothing
 
 - origin: test-campaign 0.14.1 run against `planning/test-campaign`, full scope · 2026-08-29
@@ -47,3 +47,47 @@ the reader list to make the number fall suppresses true findings along with fals
   because a verdict reached on the default list would have to be revisited.
 - Assuming recall is measured by planting blind tests rather than by reading the corpus by hand, since
   a hand count over 1257 files is the thing the sweep exists to avoid.
+
+
+---
+
+## WE3 ADJUDICATION, 2026-09-03 — **(B), and it landed on 2026-08-29. The premise of this brief is no longer true of the tree.**
+
+This row names `vacuity-check.py`, which is vendored. It is not a defect in that script: the
+input it complains about is `planning/test-campaign/campaign.json`, which is this repository's
+file, and the fix is there.
+
+**"`campaign.json` declares no `blindVocabulary`" is false today.** It declares one — 19 mutators
+and 34 readers, with `"only": true` — written by K4 against the corpus at `testRoot`, measured at
+`83e5380`, and dated the same day this brief was filed. The brief and the fix crossed.
+
+The acceptance sketch is answered clause by clause by the `note` field that ships with the
+vocabulary, which is worth reading in full because it is the measurement rather than a claim
+about one:
+
+* *declared rather than inherited* — yes, and `only: true` is argued rather than defaulted: the
+  nine shipped defaults are snake_case for a Rust/RPC shape against a camelCase Swift corpus, and
+  unioning them in contributes nothing except `restart`, the verb behind all three unadjudicable
+  findings.
+* *recall stated as a number* — four figures over the same 2282 test bodies: defaults
+  `mutating=3 blind=3`; fitted mutators with no readers `blind=481`; with the ten tightest readers
+  `blind=210`; with the full reader list `blind=111`. The reader list suppresses 370 of 481, and
+  the 99 between 210 and 111 is stated as what the looser half costs.
+* *a verb added is shown not to have suppressed a true finding* — the note records what was
+  deliberately **left out** and why: `expect` (5781 sites) and `require` (383) would collapse the
+  count to near zero without the pass learning anything, and `contains`/`filter`/`map` are
+  transforms over an already-read value. That is the "widening the reader list to make the number
+  fall" trap this brief names, refused on the record.
+* *removing a read makes the sweep report it* — `bin/blind-vocabulary-arm.py` arms the vocabulary
+  two ways on every run.
+
+**What is genuinely still open, and it is not this brief's.** The note says so itself: the 111 is
+a worklist and the campaign claims no blind number, because DEF-055's four structural causes are
+not withdrawn — the pass still examines every `func` rather than every `@Test`, its helper
+exclusion is still file-scoped, and a mutator in a `defer` block still reads as source-early.
+Those four are **(A)**, in `vacuity-check.py`, and they are X8's delivery items 1–4. DEF-055 is
+another runner's member in this wave and was not touched here.
+
+So: the vocabulary half is (B) and done; the precision half is (A) and belongs to DEF-055.
+Status word not changed — `shipped-brief-gate` R6 would refuse a terminal word while DEF-055 is
+open, and it would be right to.

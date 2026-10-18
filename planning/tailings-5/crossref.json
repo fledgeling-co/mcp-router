@@ -1,0 +1,239 @@
+{
+ "schema": 1,
+ "repo": "C:\\Dev\\mcp-router",
+ "window": {
+  "since": null,
+  "until": null,
+  "commits": 1628
+ },
+ "uncommitted_paths": 59,
+ "findings": [
+  {
+   "probe": "R10",
+   "title": "app/Sources/RouterCore/Control/ControlDiagnosticsJSON.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep ControlDiagnosticsJSON \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Sources/RouterCore/Control/ControlDiagnosticsJSON.swift",
+   "referenced_by": [
+    "planning/test-campaign/bin/arm-r22-diagnostics.sh",
+    "planning/test-campaign/requirements.in.json"
+   ]
+  },
+  {
+   "probe": "R10",
+   "title": "app/Tests/MCPRouterUITests/ActuationRecordingClient.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep ActuationRecordingClient \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Tests/MCPRouterUITests/ActuationRecordingClient.swift",
+   "referenced_by": [
+    "app/Tests/MCPRouterUITests/BoardWriteActuationTests.swift"
+   ]
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/MCPRouterIOS/QRScannerView.swift:130",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/MCPRouterIOS/QRScannerView.swift",
+   "line": 130,
+   "quote": "func updateUIViewController(_: QRScannerController, context _: Context) {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Sources/ControlDiff/main.swift:188",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/ControlDiff/main.swift",
+   "line": 188,
+   "quote": "func warmUp() {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Sources/ControlDiff/main.swift:189",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/ControlDiff/main.swift",
+   "line": 189,
+   "quote": "func clearPending(_: JSString) {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Sources/MCPRouterKit/Control/ControlTokenStore.swift:26",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/MCPRouterKit/Control/ControlTokenStore.swift",
+   "line": 26,
+   "quote": "func write(_: ControlLogLevel, _: String) {}"
+  },
+  {
+   "probe": "R9",
+   "title": "SwiftUI button with an empty action: app/Sources/MCPRouterUI/Gallery/GallerySections.swift:151",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/MCPRouterUI/Gallery/GallerySections.swift",
+   "line": 151,
+   "quote": "Button(\"Start\") {}"
+  },
+  {
+   "probe": "R9",
+   "title": "SwiftUI button with an empty action: app/Sources/MCPRouterUI/Gallery/GallerySections.swift:152",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/MCPRouterUI/Gallery/GallerySections.swift",
+   "line": 152,
+   "quote": "Button(\"Inspect\") {}"
+  },
+  {
+   "probe": "R9",
+   "title": "SwiftUI button with an empty action: app/Sources/MCPRouterUI/Gallery/GallerySections.swift:169",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/MCPRouterUI/Gallery/GallerySections.swift",
+   "line": 169,
+   "quote": "Button(\"Add server\u00e2\u20ac\u00a6\") {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Sources/MCPRouterUI/Shell/ShellWindow.swift:266",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/MCPRouterUI/Shell/ShellWindow.swift",
+   "line": 266,
+   "quote": "func updateNSView(_: KeyClaimView, context _: Context) {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Sources/MCPRouterUI/Shell/ShellWindowFrame.swift:42",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/MCPRouterUI/Shell/ShellWindowFrame.swift",
+   "line": 42,
+   "quote": "func updateNSView(_: NSView, context _: Context) {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Sources/RouterCore/Seams/RouterSeams.swift:160",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/RouterCore/Seams/RouterSeams.swift",
+   "line": 160,
+   "quote": "func prefetch(_ connection: ConnectionDescriptor) {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Sources/RouterCore/Seams/RouterSeams.swift:222",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/RouterCore/Seams/RouterSeams.swift",
+   "line": 222,
+   "quote": "func record(_ event: CallEvent) {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Sources/RouterCore/Seams/RouterSeams.swift:251",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/RouterCore/Seams/RouterSeams.swift",
+   "line": 251,
+   "quote": "func challenge(upstreamName: String, url: String) {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Tests/RouterCoreTests/ControlAuthSupport.swift:60",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Tests/RouterCoreTests/ControlAuthSupport.swift",
+   "line": 60,
+   "quote": "func warmUp() {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Tests/RouterCoreTests/PortIdentityTests.swift:63",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Tests/RouterCoreTests/PortIdentityTests.swift",
+   "line": 63,
+   "quote": "func warmUp() {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Tests/RouterCoreTests/PortIdentityTests.swift:64",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Tests/RouterCoreTests/PortIdentityTests.swift",
+   "line": 64,
+   "quote": "func clearPending(_: JSString) {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Tests/RouterCoreTests/SeamTests.swift:166",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Tests/RouterCoreTests/SeamTests.swift",
+   "line": 166,
+   "quote": "func challenge(upstreamName: String, url: String) {}"
+  },
+  {
+   "probe": "R9",
+   "title": "script reports success with no failing path: planning/test-campaign/bin/r14-authserver-probe.sh:1",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "planning/test-campaign/bin/r14-authserver-probe.sh",
+   "line": 1,
+   "quote": "no `set -e`, no non-zero exit"
+  },
+  {
+   "probe": "R9",
+   "title": "SwiftUI button with an empty action: scripts/acceptance/menu-badge-fixture/swiftui-fixture.swift:26",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "scripts/acceptance/menu-badge-fixture/swiftui-fixture.swift",
+   "line": 26,
+   "quote": "Button(\"SwiftUI Badged\") {}"
+  },
+  {
+   "probe": "R9",
+   "title": "SwiftUI button with an empty action: scripts/acceptance/menu-badge-fixture/swiftui-fixture.swift:27",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "scripts/acceptance/menu-badge-fixture/swiftui-fixture.swift",
+   "line": 27,
+   "quote": "Button(\"SwiftUI Badged Chord\") {}"
+  },
+  {
+   "probe": "R9",
+   "title": "SwiftUI button with an empty action: scripts/acceptance/menu-badge-fixture/swiftui-fixture.swift:32",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "scripts/acceptance/menu-badge-fixture/swiftui-fixture.swift",
+   "line": 32,
+   "quote": "Button(\"SwiftUI Help Only\") {}"
+  }
+ ],
+ "notes": [
+  "R4: no capture directory found; capture identity unchecked"
+ ],
+ "probes_that_could_not_run": []
+}

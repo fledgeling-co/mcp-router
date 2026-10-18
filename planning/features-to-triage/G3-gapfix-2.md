@@ -1,3 +1,7 @@
+---
+registry-target: none
+no-target-reason: a gap-fix verdict against parent G3. Its subject is the scanner meant to keep the determinism property holding, which is gate machinery rather than a product behaviour; the registry holds no `G3` row. Read against the registry 2026-09-03, we4.
+---
 # G3 gap-fix 2 — the property holds; the scanner meant to keep it holding does not
 
 **Parent:** G3 — `make test` is not deterministically green

@@ -1,0 +1,239 @@
+{
+  "schema": "win20.expectation/1",
+  "proposedSurfaceId": "SURF-029",
+  "proposedSurfaceIdIsNotYetInTheRegistry": "SURF-029 is PROPOSED, in planning/evidence/WIN20/registry-rows.proposed.json, and does not resolve against inventory.json yet. It is spelled here as a proposal rather than as a citation on purpose: an id that does not resolve reads to reckon as evidence of ABSENCE — 'somebody wrote down what should exist and it is not there' — which is a finding about the product rather than about this file. The first id tried here was SURF-018, which looked free because surfaces.in.json stops at SURF-017 for the glass lanes; inventory.json already holds SURF-018 as an ios-glass surface. The two files disagree because inventory.json is generated from more sources than surfaces.in.json, and only campaign.py on macOS can regenerate it.",
+  "subject": "MCPRouter.AutomationProbe — WIN20's WinUI 3 probe window",
+  "subjectIsNotTheProduct": "WIN3 has not landed a drawable Windows shell. Every figure taken against this manifest is a measurement of WinUI 3's automation behaviour on this machine, not of the MCP Router Windows client. When WIN3 lands, point the harness at it and re-take them.",
+  "provenance": {
+    "vocabularySource": "DESIGN.md §11 (the Windows native floor) for the command surface and control kinds; the campaign's REQ-003 for the eight destination words, so a Windows destination and its Mac twin are the same word rather than two.",
+    "writtenBy": "hand, from those two documents. It is deliberately NOT generated from MainWindow.xaml — a manifest generated from the thing it checks moves whenever the subject moves and can never fail."
+  },
+  "minimums": {
+    "controls": 20,
+    "disabled": 2,
+    "selected": 2,
+    "held": 2,
+    "busy": 1,
+    "overflow": 2
+  },
+  "minimumsNote": "The manifest's own floor, asserted before anything is graded against it. Every check in uia-assert.py iterates a list out of this file, so a manifest emptied — by an edit, a bad merge, a trimmed row — would produce zero failures and exit 0: a green tick meaning 'nothing was asked'. That is the empty-tree hole arriving from the oracle's side instead of the subject's.",
+  "window": {
+    "nameEquals": "Automation probe",
+    "classNameEquals": "WinUIDesktopWin32WindowClass",
+    "frameworkIdEquals": "Win32",
+    "mustBeVisible": true,
+    "mustNotBeMinimised": true
+  },
+  "controls": [
+    {
+      "automationId": "probe.destination.activity",
+      "name": "Activity",
+      "controlType": "ListItem"
+    },
+    {
+      "automationId": "probe.destination.servers",
+      "name": "Servers",
+      "controlType": "ListItem"
+    },
+    {
+      "automationId": "probe.destination.skills",
+      "name": "Skills",
+      "controlType": "ListItem"
+    },
+    {
+      "automationId": "probe.destination.discover",
+      "name": "Discover",
+      "controlType": "ListItem"
+    },
+    {
+      "automationId": "probe.destination.inbox",
+      "name": "Inbox",
+      "controlType": "ListItem"
+    },
+    {
+      "automationId": "probe.destination.checks",
+      "name": "Checks",
+      "controlType": "ListItem"
+    },
+    {
+      "automationId": "probe.destination.cleanup",
+      "name": "Cleanup",
+      "controlType": "ListItem"
+    },
+    {
+      "automationId": "probe.destination.settings",
+      "name": "Settings",
+      "controlType": "ListItem"
+    },
+    {
+      "automationId": "probe.command.addServer",
+      "name": "Add server",
+      "controlType": "Button"
+    },
+    {
+      "automationId": "probe.command.refresh",
+      "name": "Refresh",
+      "controlType": "Button"
+    },
+    {
+      "automationId": "probe.command.holdQueue",
+      "name": "Hold queue",
+      "controlType": "Button"
+    },
+    {
+      "automationId": "probe.serverList",
+      "name": "Servers",
+      "controlType": "List"
+    },
+    {
+      "automationId": "probe.server.filesystem",
+      "name": "Filesystem",
+      "controlType": "ListItem"
+    },
+    {
+      "automationId": "probe.server.github",
+      "name": "GitHub",
+      "controlType": "ListItem"
+    },
+    {
+      "automationId": "probe.server.braveSearch",
+      "name": "Brave Search",
+      "controlType": "ListItem"
+    },
+    {
+      "automationId": "probe.button.removeServer",
+      "name": "Remove server",
+      "controlType": "Button"
+    },
+    {
+      "automationId": "probe.button.pairServer",
+      "name": "Pair server",
+      "controlType": "Button"
+    },
+    {
+      "automationId": "probe.switch.pauseRouting",
+      "name": "Pause routing",
+      "controlType": "Button"
+    },
+    {
+      "automationId": "probe.board.title",
+      "name": "Servers",
+      "controlType": "Text"
+    },
+    {
+      "automationId": "probe.status.busyWord",
+      "name": "Starting upstream",
+      "controlType": "Text"
+    }
+  ],
+  "states": {
+    "disabled": [
+      {
+        "automationId": "probe.button.removeServer",
+        "isEnabled": false,
+        "why": "DESIGN.md §11 rule 4 — disabled dims in place and never disappears. That is what makes it readable rather than inferable from absence."
+      },
+      {
+        "automationId": "probe.button.pairServer",
+        "isEnabled": true
+      }
+    ],
+    "selected": [
+      {
+        "container": "probe.navigation",
+        "selectedAutomationId": "probe.destination.servers",
+        "selectionNames": [
+          "Servers"
+        ],
+        "unselected": [
+          "probe.destination.activity",
+          "probe.destination.skills",
+          "probe.destination.discover",
+          "probe.destination.inbox",
+          "probe.destination.checks",
+          "probe.destination.cleanup",
+          "probe.destination.settings"
+        ]
+      },
+      {
+        "container": "probe.serverList",
+        "selectedAutomationId": "probe.server.github",
+        "selectionNames": [
+          "GitHub"
+        ],
+        "unselected": [
+          "probe.server.filesystem",
+          "probe.server.braveSearch"
+        ]
+      }
+    ],
+    "held": [
+      {
+        "automationId": "probe.command.holdQueue",
+        "toggleState": "On",
+        "why": "an AppBarToggleButton that is currently held on"
+      },
+      {
+        "automationId": "probe.switch.pauseRouting",
+        "toggleState": "On",
+        "why": "DESIGN.md §11 rule 6 — a ToggleSwitch is a binary setting that takes effect the moment it moves"
+      }
+    ],
+    "busy": [
+      {
+        "automationId": "probe.status.busyRing",
+        "controlType": "ProgressBar",
+        "nameContains": "Starting upstream",
+        "busyMarkerInName": "Busy",
+        "mustNotBeOffscreen": true,
+        "why": "WinUI publishes an active ProgressRing as ControlType.ProgressBar and PREPENDS the localised word 'Busy' to the automation name. The busy state is therefore readable, but it is carried in the NAME rather than in a pattern, which is why this row asserts the marker explicitly instead of assuming a RangeValuePattern."
+      }
+    ]
+  },
+  "unoracled": [
+    {
+      "automationId": "probe.command.exportLog",
+      "onScreenName": "Export log",
+      "reason": "a CommandBar's SecondaryCommands are not realised while the overflow is closed, so the element does not exist on the automation plane at rest. It is absent from the control view AND the raw view.",
+      "whatWouldOpenARung": "OPENED. scripts/windows/uia/overflow-lane.ps1 opens the overflow through ExpandCollapsePattern.Expand and reads the command back with its name and ControlType, between a baseline and a silence that both find it absent. The `overflow` block above carries the expectation. The second route named here originally - the command also being reachable from a surface realised at rest - remains the better product fix and is NOT what this arm did; DESIGN.md §11 rule 9 is still unmet by the probe as drawn.",
+      "designRule": "DESIGN.md §11 rule 9 — every command reachable from one enumerable in-window surface",
+      "scope": "AT REST. This row is graded by uia-assert.py against the at-rest dump only, and it still asserts an absence there: with the overflow shut the element is realised on neither view. It is NOT a claim that the control has no oracle anywhere."
+    },
+    {
+      "automationId": "probe.command.resetRouter",
+      "onScreenName": "Reset router",
+      "reason": "same as probe.command.exportLog — SecondaryCommands are unrealised while the overflow is closed.",
+      "whatWouldOpenARung": "OPENED. scripts/windows/uia/overflow-lane.ps1 opens the overflow through ExpandCollapsePattern.Expand and reads the command back with its name and ControlType, between a baseline and a silence that both find it absent. The `overflow` block above carries the expectation. The second route named here originally - the command also being reachable from a surface realised at rest - remains the better product fix and is NOT what this arm did; DESIGN.md §11 rule 9 is still unmet by the probe as drawn.",
+      "designRule": "DESIGN.md §11 rule 9",
+      "scope": "AT REST. This row is graded by uia-assert.py against the at-rest dump only, and it still asserts an absence there: with the overflow shut the element is realised on neither view. It is NOT a claim that the control has no oracle anywhere."
+    }
+  ],
+  "overflow": {
+    "surfaceId": "SURF-029",
+    "gradedBy": "scripts/windows/uia/overflow-assert.py, over the three readings scripts/windows/uia/overflow-lane.ps1 takes. NOT graded by uia-assert.py, which reads the at-rest tree only and must keep asserting these two ids ABSENT.",
+    "container": "probe.commandbar",
+    "openedBy": "ExpandCollapsePattern.Expand on probe.commandbar, called by scripts/windows/uia/overflow-actuate.ps1 in its own process. Not a click, not a keystroke, and not SetFocus.",
+    "why": "SURF-029 enumerates these two controls and, until this arm, no case reached either. They are unrealised while the overflow is shut, so the at-rest lane can only record an absence with its reason - which is honest and is still not coverage. This block is the same two controls read on the one rung that can reach them.",
+    "whatThisGivesUp": "The at-rest guarantee. The overflow is opened on purpose, so this is a reading of a mutated surface rather than of the window as a user finds it. That is why it is a second lane and not a step inside the first one.",
+    "whatThisDoesNotGiveUp": "Nothing, as it turned out. See activationCostNote: this was written expecting ExpandCollapsePattern.Expand to be a mutation and not an activation, and the measurement says it is both. The at-rest lane keeps the never-activated guarantee; this lane does not have it, and says so.",
+    "commands": [
+      {
+        "automationId": "probe.command.exportLog",
+        "name": "Export log",
+        "controlType": "Button",
+        "mustBeEnabled": true,
+        "mustNotBeOffscreen": true
+      },
+      {
+        "automationId": "probe.command.resetRouter",
+        "name": "Reset router",
+        "controlType": "Button",
+        "mustBeEnabled": true,
+        "mustNotBeOffscreen": true
+      }
+    ],
+    "activationCost": "target-takes-foreground",
+    "activationCostNote": "MEASURED, not assumed, and compared both ways by overflow-assert.py. On LUKESFF, 2026-09-02, the probe owned the foreground at none of the three BASELINE samples and at all six EFFECT and SILENCE samples: ExpandCollapsePattern.Expand on a WinUI CommandBar activates the window, and Collapse does not hand the foreground back. `whatThisDoesNotGiveUp` above was written before that run and was WRONG; the note is kept rather than deleted because the correction is the finding. Declaring the cost here rather than asserting the absence of one means the day WinUI stops activating, this arm reddens and the row moves.",
+    "duplicatePublication": "With the overflow open, WinUI publishes the OverflowPopup subtree TWICE under the probe's one top-level window - once through a Microsoft.UI.Content.PopupWindowSiteBridge (\"PopupHost\") child and once in place beneath the ApplicationBar - so each command is reachable at two tree paths. Measured 2026-09-02: both copies agree on name, controlType, className, isEnabled, isOffscreen, accessKey, pattern list and bounding rectangle, which is what makes it one control on two routes rather than two controls sharing an id. overflow-assert.py permits several matches only while they agree on everything a caller would act on, so two genuinely different controls under one id still fails."
+  }
+}

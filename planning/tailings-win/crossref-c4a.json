@@ -1,0 +1,15 @@
+{
+ "schema": 1,
+ "repo": "C:\\Dev\\mcp-router",
+ "window": {
+  "since": "2026-08-31T14:53:25Z",
+  "until": "2026-09-01T01:28:45Z",
+  "commits": 33
+ },
+ "uncommitted_paths": 61,
+ "findings": [],
+ "notes": [
+  "R4: no capture directory found; capture identity unchecked"
+ ],
+ "probes_that_could_not_run": []
+}

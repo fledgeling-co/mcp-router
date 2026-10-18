@@ -1,0 +1,19 @@
+# The winget version manifest: the entry point winget reads first, and the only one that names
+# which of the other two files belong together.
+#
+# WHY THIS EXISTS. DEF-073 recorded that WIN19's "winget and MSIX distribution channel contract"
+# shipped no winget manifest of any kind - a repository-wide search returned nothing, and the only
+# winget string anywhere was the DistributionChannel enum member. There was no channel.
+#
+# Validated by `winget validate --manifest app/windows/packaging/winget`, which is the winget
+# client parsing it: a reader this repository does not implement, applying a schema this repository
+# does not own. scripts/windows/win19-package-witness.ps1 runs it as one of its arms.
+#
+# PackageIdentifier is PackagingPresentation.PackageIdentity, and the witness lane reads it back out
+# of this file and compares. A manifest that drifts from the identity the application states is a
+# red lane rather than a discrepancy nobody looks for.
+PackageIdentifier: Fledgeling.MCPRouter
+PackageVersion: 0.1.0
+DefaultLocale: en-US
+ManifestType: version
+ManifestVersion: 1.6.0

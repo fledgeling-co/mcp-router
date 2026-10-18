@@ -1,0 +1,43 @@
+<Application
+    x:Class="MCPRouter.Shell.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!--
+                  The Fluent control resources and nothing else. Every colour this shell draws is
+                  a WinUI theme resource by key (DESIGN.md §12's provenance rule), so there is no
+                  app palette to merge: the tokens are the platform's, and a hand-authored copy of
+                  them would be a second palette to keep in step with the first.
+                -->
+                <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!--
+              `SubtleButtonStyle` is NOT a WinUI 3 key. Eleven references across five views asked
+              for it - CleanupBoard, InboxBoard, HarnessesBoard, AmbientFlyoutView and
+              CapabilityDocumentPanel - and every one of them threw at runtime with
+              "Cannot find a resource with the given key: SubtleButtonStyle". The XAML ones
+              surfaced as `XamlParseException: undeclared prefix`, which names neither the key nor
+              the file and is why this took a stack trace to find (DEF-078).
+
+              It cost three of the nine boards. Cleanup and Inbox threw inside
+              InitializeComponent, Harnesses threw in its constructor's card builder, and because
+              ShowDestination mounted the board in the same statement that set the window title,
+              the shell simply kept showing the previous board. The two dialog surfaces were never
+              opened by anything, so they had not failed yet - they would have.
+
+              Defined here rather than removed from the call sites: a subtle button is what the
+              design of record asks for in all five places, and eleven deletions would be
+              answering a missing definition by dropping the intent. Based on the platform's own
+              DefaultButtonStyle so it inherits every state, focus visual and theme response
+              rather than reimplementing them.
+            -->
+            <Style x:Key="SubtleButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+                <Setter Property="Background" Value="{ThemeResource SubtleFillColorTransparentBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource ControlFillColorTransparentBrush}" />
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

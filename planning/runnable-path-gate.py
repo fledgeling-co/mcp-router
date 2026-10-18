@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Fail any file the repository can RUN that names a path under /Users or /Volumes.
+"""Fail any file the repository can RUN that pins a path this checkout cannot rely on.
+
+Two blocking classes: a path under /Users or /Volumes, and a directory change into a NAMED
+worktree. The first is G9's defect as it was written; the second is G9's defect as it works.
 
 ## The defect this exists for
 
@@ -77,6 +80,37 @@ An earlier draft of this docstring gave a second, duller reason: that `foreign-p
 landing. **`ai/g6` merged at `03c34c3` and that file is on `main`**, so the clause is deleted rather
 than left to be false the day this branch lands. The two-axis argument above is the reason, and it
 was the reason all along; the second one was scheduling.
+
+## The second blocking class: a directory change into a named worktree
+
+The machine-path arm catches G9 *as it was written* — an absolute home path. It does not catch G9
+*as it works*. Rewrite the same two lines to change directory into `$REPO_ROOT/.worktrees/R2` and
+every word of the finding still holds: the directory is gone, the script exits 90 on every
+invocation, and `spec-R2.md` goes on citing a gate that cannot run. The path is now portable and
+still dead. The machine-root arm was matching the incidental half of the defect, so a repaired
+script could regress into the very shape it was repaired out of without moving N4 off zero.
+
+The example is described rather than written out, for the reason the waiver section gives one line
+down: spelling it would plant the violation in a runnable file and this arm would block it — which
+it did, on the first run after this paragraph was drafted, naming its own docstring under BLOCKING
+at exit 1.
+
+  a runnable file does not change directory into a worktree it did not create.
+
+`cd`, `os.chdir(` or `process.chdir(` whose argument names `.worktrees/<literal name>` blocks,
+whatever the prefix — absolute, derived-and-then-appended, or relative. A file that creates that
+same worktree first (`git worktree add ... .worktrees/<name>`) is exempt by name, because a script
+that makes the directory it enters cannot be pinned to somebody else's. An interpolated name —
+`.worktrees/$W`, `.worktrees/"$W"` — does not match, because a derived name is the remedy.
+
+Deliberately NOT keyed on `git worktree list`. A gate asking whether the named worktree exists
+today would be green on the day the path is written and red six weeks later — a truthful alarm that
+arrives after the citation has been believed. Naming any worktree at all is the fault, because the
+name is what decays. So this arm answers the same on every machine and on every day, which is the
+property the first arm has and the reason a gate was preferred to an inventory.
+
+Its blocking set is counted as N6 and printed apart from N4. They are two findings about two
+different pins and blending them would let one hide inside the other's zero.
 
 ## Waivers
 
@@ -170,6 +204,15 @@ def waiver_reason(line):
         last = m
     return line[last.end():].strip() if last else ""
 
+# A directory change into a LITERALLY NAMED worktree, whatever the prefix. The middle is lazy, so
+# it stops at the first `.worktrees/` on the line. The name must start with an alphanumeric:
+# `.worktrees/$W` and `.worktrees/"$W"` are interpolated — derived, which is the remedy.
+WORKTREE_CD = re.compile(
+    r"""(?:\bcd\s|\bos\.chdir\(|\bprocess\.chdir\()[^\n]*?\.worktrees/(?P<wt>[A-Za-z0-9][A-Za-z0-9._-]*)""")
+# The exemption, read over the whole file rather than the line: a script that creates the worktree
+# it enters is not pinned to one somebody else made, and it is the shape this gate wants.
+WORKTREE_ADD = re.compile(r"""worktree\s+add[^\n]*?\.worktrees/(?P<wt>[A-Za-z0-9][A-Za-z0-9._-]*)""")
+
 RUN_SUFFIX = frozenset(".sh .bash .zsh .py .js .mjs .cjs .rb .pl .command".split())
 
 
@@ -202,7 +245,8 @@ def is_runnable(root, name, mode):
 
 
 def scan(root):
-    runnable, findings, counts = [], [], {"HOME_REL": 0, "SYSTEM": 0, "SCRATCH": 0}
+    runnable, findings, counts = [], [], {"HOME_REL": 0, "SYSTEM": 0, "SCRATCH": 0,
+                                          "WT_SELF_MADE": 0}
     for name, mode in tracked(root):
         p = root / name
         if not p.is_file():
@@ -214,6 +258,7 @@ def scan(root):
             text = p.read_text(encoding="utf-8", errors="replace")
         except OSError:
             continue
+        created = {m.group("wt") for m in WORKTREE_ADD.finditer(text)}
         for lineno, line in enumerate(text.splitlines(), 1):
             # The RIGHTMOST marker wins: a waiver is a trailing comment, and this file's own plant
             # strings carry marker text as data. Reading the first match let a fixture's inner
@@ -221,7 +266,19 @@ def scan(root):
             reason = waiver_reason(line)
             for m in BLOCK.finditer(line):
                 findings.append({"file": name, "line": lineno, "path": m.group("path"),
+                                 "kind": "MACHINE_PATH",
                                  "waived": bool(reason), "reason": reason})
+            for m in WORKTREE_CD.finditer(line):
+                # A worktree the file creates itself is the derived shape, not the pinned one — so
+                # it is exempt. It is COUNTED and printed rather than skipped: an exemption nobody
+                # can see is a discard, and a reader that drops silently cannot be read at its
+                # width. `planning/reader-accounting.py` reds on the silent form, correctly.
+                if m.group("wt") in created:
+                    counts["WT_SELF_MADE"] += 1
+                else:
+                    findings.append({"file": name, "line": lineno, "path": m.group(0).strip(),
+                                     "kind": "WORKTREE_PIN",
+                                     "waived": bool(reason), "reason": reason})
             if HOME_REL.search(line):
                 counts["HOME_REL"] += 1
             if SYSTEM.search(line):
@@ -301,6 +358,14 @@ PLANTS = {
     "scratch.sh": ("#!/bin/sh\necho hi > /tmp/out.log\n", "CLEAN"),
     "notrunnable.md": ("A record citing /Users/someone/Dev/thing/evidence.png\n", "NOT_RUNNABLE"),  # path-gate: ok — a planted fixture for the presence control; the string is the subject under test
     "extensionless": ("#!/bin/bash\ncd /Users/someone/x\n", "BLOCK"),  # path-gate: ok — a planted fixture for the presence control; the string is the subject under test
+    # The second blocking class. `wt_pin.sh` is G9's own defect with the machine root taken off,
+    # so it must block on a line the first arm reads as clean — without this plant the two arms
+    # are indistinguishable and the new one could match nothing while the run still read ok.
+    "wt_pin.sh": ("#!/bin/sh\ncd \"$ROOT/.worktrees/R2\" || exit 90\n", "BLOCK"),
+    # The two shapes that must NOT block, planted because an over-matching arm is how a gate gets
+    # waived into meaninglessness: a derived name, and a worktree the script creates itself.
+    "wt_var.sh": ("#!/bin/sh\ncd \"$ROOT/.worktrees/$W\" || exit 90\n", "CLEAN"),
+    "wt_self.sh": ("#!/bin/sh\ngit worktree add .worktrees/T1 -b t main\ncd .worktrees/T1\n", "CLEAN"),
 }
 
 
@@ -352,7 +417,7 @@ def control():
 
 
 def main():
-    print("runnable-path-gate — /Users/ and /Volumes/ in anything this repository can run")
+    print("runnable-path-gate — machine paths and named worktrees in anything this repository can run")
     print(f"root  : {ROOT}")
     print("scope : every tracked file (git ls-files) whose index mode is 100755, or whose suffix")
     print("        is an interpreter suffix, or whose first two bytes are '#!'. No directory filter.")
@@ -379,21 +444,31 @@ def main():
     print("  control fired: every planted class read exactly.\n")
 
     runnable, findings, counts = scan(ROOT)
+    # The two classes are counted apart the whole way down. A blended "violations" figure would
+    # let one arm's finding hide inside the other arm's zero, which is the reading G9 exists to
+    # refuse.
+    machine = [f for f in findings if f["kind"] == "MACHINE_PATH"]
+    worktree = [f for f in findings if f["kind"] == "WORKTREE_PIN"]
     blocking = [f for f in findings if not f["waived"]]
     waived = [f for f in findings if f["waived"]]
-    n2 = len({f["file"] for f in findings})
-    n4 = len({f["file"] for f in blocking})
+    n2 = len({f["file"] for f in machine})
+    n4 = len({f["file"] for f in machine if not f["waived"]})
+    n5 = len({f["file"] for f in worktree})
+    n6 = len({f["file"] for f in worktree if not f["waived"]})
 
-    print("COUNTS  — four readings, never blended; each answers a different question")
+    print("COUNTS  — six readings, never blended; each answers a different question")
     print(f"  N1 runnable tracked files                    {len(runnable)}")
     print(f"  N2 of those, files with a machine path        {n2}")
-    print(f"  N3 the same, by occurrence                    {len(findings)}")
+    print(f"  N3 the same, by occurrence                    {len(machine)}")
     print(f"  N4 blocking set (N2 less waived files)        {n4}")
+    print(f"  N5 files that cd into a NAMED worktree        {n5}   a worktree they do not create")
+    print(f"  N6 blocking set (N5 less waived files)        {n6}")
     print()
     print("COUNTED, NEVER BLOCKED — different defects, named so they are not forgotten")
     print(f"  lines with ~/ in a runnable file              {counts['HOME_REL']}   user-relative, not machine-pinned")
     print(f"  lines with /Applications /opt /usr/local /Library  {counts['SYSTEM']}   system locations, any Mac has them")
     print(f"  lines with a scratch root                     {counts['SCRATCH']}   planning/foreign-path-gate.py owns this axis")
+    print(f"  cds into a worktree the file itself creates   {counts['WT_SELF_MADE']}   exempt by name, counted not skipped")
     print(f"  NON-runnable tracked files with a machine path {record_diagnostic(ROOT)}   adjudicated in planning/progress/G9.md")
     print()
 
@@ -419,14 +494,16 @@ def main():
     if blocking:
         print("BLOCKING")
         for f in blocking:
-            print(f"  {f['file']}:{f['line']}  {f['path']}")
+            print(f"  {f['kind']:<13} {f['file']}:{f['line']}  {f['path']}")
         print()
-        print(f"FAIL  {n4} runnable file(s) name a path this checkout cannot rely on.")
-        print("      Derive it (git rev-parse --show-toplevel, __file__, the caller's cwd), delete the")
-        print("      file, or waive the line with `# path-gate: ok — <reason>`.")
+        print(f"FAIL  {n4} runnable file(s) name a machine path and {n6} cd into a named worktree.")
+        print("      Derive it (git rev-parse --show-toplevel, __file__, the caller's cwd), create")
+        print("      the worktree the script enters, delete the file, or waive the line with")
+        print("      `# path-gate: ok — <reason>`.")
         return 1
 
-    print("PASS  no runnable tracked file names a /Users/ or /Volumes/ path.")
+    print("PASS  no runnable tracked file names a /Users/ or /Volumes/ path, and none cds")
+    print("      into a worktree it does not create.")
     return 0
 
 

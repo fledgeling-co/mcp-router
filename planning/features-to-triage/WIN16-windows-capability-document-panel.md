@@ -1,10 +1,9 @@
 ---
 status: to-triage
 found-by: intake, parity target for SURF-028 · 2026-08-30
-registry-target: none
-no-target-reason: SURF-028 registers the macOS capability document panel and the registry holds no Windows equivalent, so no recorded case could witness the Windows one
+reckon-sources: [SURF-043]
+target-note: SURF-043 `Windows capability document panel - three tabs over one package` carries `note: WIN16.`; the row did not exist when the `none` was declared on 2026-08-30.
 ---
-
 # The Windows capability document panel — three tabs over one package, and the update gate
 
 - origin: owner directive, 2026-08-30; parity target for the Mac capability document panel

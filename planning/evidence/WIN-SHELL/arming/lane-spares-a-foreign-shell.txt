@@ -1,0 +1,73 @@
+WARNING: Task may not run because /ST is earlier than current time.
+foreign process pid 26104 named MCPRouter.Shell, at C:\Users\rhode\AppData\Local\Temp\mcpr-foreign-shell\MCPRouter.Shell.exe, is running in the interactive session
+window station is 'Service-0x0-5698181$'; scheduling the shell lane into the interactive session
+task name: MCPRouter-WINSHELL-AutomationPlaneLane-687212BA
+WARNING: Task may not run because /ST is earlier than current time.
+SUCCESS: The scheduled task "MCPRouter-WINSHELL-AutomationPlaneLane-687212BA" has successfully been created.
+SUCCESS: Attempted to run the scheduled task "MCPRouter-WINSHELL-AutomationPlaneLane-687212BA".
+
+2026-09-03T02:56:32.3295163Z lane router: pid 32460 on http://127.0.0.1:54069, home C:\Dev\mcp-router\.worktrees\wd2-cleanup-board\planning\evidence\WIN-SHELL\run\router-home
+2026-09-03T02:56:33.0721644Z   the lane's router answers /servers: lane-cleanup-delta, lane-witness-beta, lane-cleanup-gamma, lane-witness-alpha
+2026-09-03T02:56:33.0794676Z shell binary: C:\Dev\mcp-router\.worktrees\wd2-cleanup-board\app\windows\MCPRouter.Shell\bin\Debug\net8.0-windows10.0.19041.0\win-x64\MCPRouter.Shell.exe (written 2026-09-03T02:31:41.9938307Z)
+2026-09-03T02:56:33.4644126Z shell binary is current: none of 209 tracked source file(s) under app\windows is newer than it
+2026-09-03T02:56:33.7295997Z   leaving a shell that is not this lane's subject, pid=18976 at C:\Dev\mcp-router\.worktrees\wd1-ambient-truth\app\windows\MCPRouter.Shell\bin\Debug\net8.0-windows10.0.19041.0\win-x64\MCPRouter.Shell.exe
+2026-09-03T02:56:33.7328760Z   leaving a shell that is not this lane's subject, pid=26104 at C:\Users\rhode\AppData\Local\Temp\mcpr-foreign-shell\MCPRouter.Shell.exe
+2026-09-03T02:56:36.1153384Z   bound to the shell's own window: class 'WinUIDesktopWin32WindowClass', title 'Servers'
+2026-09-03T02:56:36.1399481Z shell pid 35456 is on the automation plane: 'Servers'
+2026-09-03T02:56:36.1705329Z catalogue: 10 destination(s) - discover, skills, servers, activity, harnesses, checks, cleanup, inbox, insights, settings
+2026-09-03T02:56:38.9629576Z   discover: PASS - title 'Discover', 55 element(s), fp 973E33FC1619F7D7
+2026-09-03T02:56:42.1178123Z   skills: PASS - title 'Skills', 57 element(s), fp 0CFAEEC8BC3484CE
+2026-09-03T02:56:43.9551525Z   servers: PASS - title 'Servers', 116 element(s), fp A566730B925F1056
+2026-09-03T02:56:46.4522594Z   activity: PASS - title 'Activity', 114 element(s), fp 548C3D965A42DC7E
+2026-09-03T02:56:48.1475041Z   harnesses: PASS - title 'Harnesses', 71 element(s), fp 79B39EDCA354E1D0
+2026-09-03T02:56:50.7522893Z   checks: PASS - title 'Checks', 70 element(s), fp DBB023D906C8E1E9
+2026-09-03T02:56:52.4209340Z   cleanup: PASS - title 'Cleanup', 81 element(s), fp 5DA6220DA70773F1
+2026-09-03T02:56:54.1517355Z   inbox: PASS - title 'Inbox', 80 element(s), fp 3F25248FD8E0665E
+2026-09-03T02:56:55.7175513Z   insights: PASS - title 'Insights', 74 element(s), fp D23841C16F2D16DB
+2026-09-03T02:56:57.4332796Z   settings: PASS - title 'Settings', 83 element(s), fp 29EF22537F89D54B
+2026-09-03T02:56:57.4531056Z settings census expects 7 section(s) and 3 toggle(s), read out of SettingsPresentation.cs
+2026-09-03T02:56:58.1493890Z   control settings.sections: PASS - all 7 declared section(s) publish an addressable container: settings.section.router, settings.section.harnesses, settings.section.sessionanalyst, settings.section.updates, settings.section.security, settings.section.ambientsurface, settings.section.advanced
+2026-09-03T02:56:58.1749832Z   control settings.toggle.LaunchAtLogin: PASS - named 'Launch router daemon at sign-in', toggle state readable as 'Off'
+2026-09-03T02:56:58.1881936Z   control settings.toggle.RequireConfirmationOnDestructive: PASS - named 'Confirm before removing a server', toggle state readable as 'On'
+2026-09-03T02:56:58.2015395Z   control settings.toggle.ShowAmbientIcon: PASS - named 'Show status in notification area', toggle state readable as 'Off'
+2026-09-03T02:56:58.3039433Z   control settings.effect: PASS - toggling 'Launch router daemon at sign-in' through the plane moved the board's state readout from 'LaunchAtLogin=off ú RequireConfirmationOnDestructive=on ú ShowAmbientIcon=off' to 'LaunchAtLogin=on ú RequireConfirmationOnDestructive=on ú ShowAmbientIcon=off' - an effect outside the control that was actuated.
+2026-09-03T02:57:00.3713038Z   control settings.launchAtLogin.baseline: PASS - Get-ScheduledTask reports no task at '\MCPRouter\WIN-SHELL Settings Witness (transient)' before the switch is driven, so the arms below measure THIS run's registration.
+2026-09-03T02:57:02.6029246Z   control settings.launchAtLogin.effect: PASS - driving the switch to On through the automation plane registered '\MCPRouter\WIN-SHELL Settings Witness (transient)' in the Windows task scheduler: state=Ready, logon trigger present, RunLevel=Limited (the recorder's word for the XML's LeastPrivilege), Execute=C:\Dev\mcp-router\.worktrees\wd2-cleanup-board\app\windows\MCPRouter.Shell\win-shell-witness-daemon.exe. Read by an API that did not write it.
+2026-09-03T02:57:02.6076361Z   control settings.persistence.store: PASS - C:\Dev\mcp-router\.worktrees\wd2-cleanup-board\planning\evidence\WIN-SHELL\run\shell-state\shell-settings.json holds LaunchAtLogin=true, read off the disk by this script. The file is the recorder; the shell is not asked what it saved.
+2026-09-03T02:57:02.6120120Z   closing the shell to measure whether the setting survives it
+2026-09-03T02:57:03.8428007Z   leaving a shell that is not this lane's subject, pid=26104 at C:\Users\rhode\AppData\Local\Temp\mcpr-foreign-shell\MCPRouter.Shell.exe
+2026-09-03T02:57:04.9146072Z   bound to the shell's own window: class 'WinUIDesktopWin32WindowClass', title 'Servers'
+2026-09-03T02:57:05.9368146Z   control settings.persistence: PASS - the shell was terminated and launched again as a new process, and the switch reads On in the new one. Closing the shell no longer forgets the setting.
+2026-09-03T02:57:07.4052697Z   control settings.copyEndpoint: PASS - the clipboard held this lane's sentinel before the button was invoked and holds 'http://127.0.0.1:8879' after, read out of a separate PowerShell process. It matches the endpoint the board displays at settings.state.endpoint.
+2026-09-03T02:57:09.6576305Z   control settings.launchAtLogin.silence: PASS - driving the switch back to Off removed '\MCPRouter\WIN-SHELL Settings Witness (transient)': Get-ScheduledTask reports absence again, so its yes above was a reading rather than an echo.
+2026-09-03T02:57:11.7420040Z   control settings.ambientIcon.baseline: PASS - with the switch driven Off, a separate process asks the shell for the icon at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90} and is told there is none (HRESULT 0x80004005). The recorder is capable of saying no, and any yes below is this run's.
+2026-09-03T02:57:13.9861701Z   control settings.ambientIcon.effect: PASS - driving the switch to On through the automation plane put an icon in the Windows notification area at {0F5B6D3A-8C41-4E2B-9D77-2A6E5C1B4A90}: a separate process asked the shell for its rectangle and got 2108,1528 to 2156,1600 (HRESULT 0x00000000). Read by an API this application never called.
+2026-09-03T02:57:16.2319587Z   control settings.ambientIcon.silence: PASS - driving the switch back to Off took the icon out of the notification area: the same reader that found it a moment ago now answers HRESULT 0x80004005. Its yes above was a reading rather than an echo, and turning the setting off tells the user something true.
+2026-09-03T02:57:16.2525973Z   control settings.requireConfirmation.baseline: PASS - the router lists both servers this lane declared - lane-cleanup-delta, lane-witness-beta, lane-cleanup-gamma, lane-witness-alpha - before any removal is attempted, so the arms below measure removals rather than absences that were already there.
+2026-09-03T02:57:21.1320870Z   control settings.requireConfirmation.effect: PASS - with the setting On, Remove raised a confirmation, this lane pressed 'Keep it', and the router still lists lane-witness-alpha (now: lane-cleanup-delta, lane-witness-beta, lane-cleanup-gamma, lane-witness-alpha). The refusal is read out of the router, not out of the dialog: the app's account of having asked is not evidence that it obeyed the answer.
+2026-09-03T02:57:23.6106586Z   control settings.requireConfirmation.accepted: PASS - pressing 'Remove permanently' removed lane-witness-alpha from the ROUTER - it now lists lane-cleanup-delta, lane-witness-beta, lane-cleanup-gamma. The gate opens as well as closes.
+2026-09-03T02:57:34.3171529Z   control settings.requireConfirmation.silence: PASS - with the setting Off, Remove raised no confirmation at all and the router no longer lists lane-witness-beta (now: lane-cleanup-delta, lane-cleanup-gamma). The prompt above was the setting being obeyed rather than a dialog this board always shows.
+2026-09-03T02:57:34.3312505Z   control cleanup.requireConfirmation.baseline: PASS - the router lists both servers this lane declared for the Cleanup board - lane-cleanup-delta, lane-cleanup-gamma - before any removal is attempted from it, so the arms below measure removals rather than absences that were already there. Neither has ever been called, which is what puts them on this board at all: the rows come from the router's own usage figures now, not from sample data.
+2026-09-03T02:57:40.6392004Z   control cleanup.requireConfirmation.effect: PASS - with the setting On, the Cleanup board's Remove selected raised a confirmation, this lane pressed 'Keep it', and the router still lists lane-cleanup-gamma (now: lane-cleanup-delta, lane-cleanup-gamma). The refusal is read out of the ROUTER, not out of the dialog: the app's account of having asked is not evidence that it obeyed the answer.
+2026-09-03T02:57:43.2988016Z   control cleanup.requireConfirmation.accepted: PASS - pressing 'Remove permanently' on the Cleanup board removed lane-cleanup-gamma from the ROUTER - it now lists lane-cleanup-delta. The board's button reaches the router at all, which is the half of DEF-302 no dialog check could establish.
+2026-09-03T02:57:54.4462441Z   control cleanup.requireConfirmation.silence: PASS - with the setting Off, Remove selected raised no confirmation at all and the router no longer lists lane-cleanup-delta (now: nothing). The prompt above was THIS SETTING being obeyed by THIS board, rather than a dialog the Cleanup board always shows.
+2026-09-03T02:57:58.2694503Z   control discover.rows.recent: PASS - 60 row(s) in 'discover.band.recent' each publish a distinct accessible name, none of them the type name, and a distinct automation id. First three: sap-mcp, 34,350 sessions on Smithery, added 13 Jul 2026, On Smithery | Framesail, 11,533 sessions on Smithery, added 9 Jul 2026, On Smithery | LMK.today MCP, 8,243 sessions on Smithery, added 6 Jul 2026, On Smithery
+2026-09-03T02:57:58.4615339Z   control discover.rows.used: PASS - 60 row(s) in 'discover.band.used' each publish a distinct accessible name, none of them the type name, and a distinct automation id. First three: pipeworx gateway, 419,019 sessions on Smithery, added 22 Apr 2026, On Smithery | Brave Search, 87,579 sessions on Smithery, added 5 Sep 2025, On Smithery, verified by Smithery | uk-due-diligence, 60,881 sessions on Smithery, added 29 Apr 2026, On Smithery
+2026-09-03T02:58:03.7475314Z   control discover.detail: PASS - opened from the row 'sap-mcp, 34,350 sessions on Smithery, added 13 Jul 2026, On Smithery'; all 8 checked control(s) are addressable by id and publish a name.
+2026-09-03T02:58:03.7649228Z   control shell.navigationPane: PASS - the navigation pane publishes the accessible name 'Destinations'.
+2026-09-03T02:58:03.7783528Z wrote C:\Dev\mcp-router\.worktrees\wd2-cleanup-board\planning\evidence\WIN-SHELL\run\assert-report.json
+2026-09-03T02:58:03.7798583Z destinations 10 ú measured 10 ú passed 10 ú FAILED 0 ú unoracled 0 ú inconclusive 0
+2026-09-03T02:58:03.7814090Z controls checked 26 ú FAILED 0
+2026-09-03T02:58:03.7974116Z shell pid 15772 stopped
+2026-09-03T02:58:03.8099712Z lane router pid 32460 stopped
+2026-09-03T02:58:03.8152310Z pass: 10 of 10 destination(s) were actuated through the automation plane and read back distinct, correctly-titled trees, out of process, without the target ever being foregrounded. 0 unreachable and 0 unactuable are reported, not counted as passes.
+
+shell lane verdict: pass (exit 0)
+pass: 10 of 10 destination(s) were actuated through the automation plane and read back distinct, correctly-titled trees, out of process, without the target ever being foregrounded. 0 unreachable and 0 unactuable are reported, not counted as passes.
+lane exit 0
+note: another MCPRouter.Shell was live during this run, at C:\Dev\mcp-router\.worktrees\wd1-ambient-truth\app\windows\MCPRouter.Shell\bin\Debug\net8.0-windows10.0.19041.0\win-x64\MCPRouter.Shell.exe
+PASS  the foreign process (pid 26104) named MCPRouter.Shell, at
+      C:\Users\rhode\AppData\Local\Temp\mcpr-foreign-shell\MCPRouter.Shell.exe,
+      is still running after the lane. The lane stopped only shells at its own
+      ExePath, so a second runner's shell survives a wave. The lane's own verdict
+      on this run: exit 0.

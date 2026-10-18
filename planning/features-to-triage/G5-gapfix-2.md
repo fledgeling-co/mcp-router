@@ -1,3 +1,7 @@
+---
+registry-target: none
+no-target-reason: a gap-fix verdict against parent G5, about a file moved aside and never moved back and two clauses. Build-tree housekeeping; the registry holds no `G5` row. Read against the registry 2026-09-03, we4.
+---
 # G5 gap-fix 2 — a file moved aside and never moved back, and two clauses
 
 **Parent:** G5 · **Verdict:** Needs More Work, 2026-08-22 (second verification) · **Branch:** `ai/g5`

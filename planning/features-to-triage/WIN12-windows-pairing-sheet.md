@@ -1,10 +1,9 @@
 ---
 status: to-triage
 found-by: intake, parity target for SURF-010 · 2026-08-30
-registry-target: none
-no-target-reason: SURF-010 registers the macOS pairing sheet and the registry holds no Windows equivalent, so no recorded case could witness a Windows pairing flow
+reckon-sources: [SURF-042]
+target-note: SURF-042 `Windows pairing dialog` carries `note: WIN12.`; the row did not exist when the `none` was declared on 2026-08-30.
 ---
-
 # Pairing an iPhone to the Windows client
 
 - origin: owner directive, 2026-08-30; parity target for the Mac Pairing sheet

@@ -1,5 +1,6 @@
 ---
 status: completed
+shipped-by: 03c34c3
 found-by: the 08:55:13Z crash, 2026-08-23
 ---
 

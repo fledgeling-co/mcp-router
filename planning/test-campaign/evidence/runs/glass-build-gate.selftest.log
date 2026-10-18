@@ -1,0 +1,17 @@
+# glass-build-gate.py --selftest, 2026-09-02T10:37:16Z, commit e4b4d118
+# Four arms, all on in-memory copies; nothing on disk changes. The green arm matters as much as
+# the red ones, because this gate is red on the tree it ships on and its green cannot be observed
+# by running it.
+
+PASS  a capture taken from THIS build reads current
+        stale=0 unstamped=0 ordering=0
+PASS  one file's content moves (app/Sources/MCPRouterUI/Activity/ActivityBoard.swift)
+        stale=7: 1 artifact(s) stamped c2dd5589ec38 (2026-08-29, 0379199fc) — the lane is being read against acd5
+PASS  an artifact no build record covers
+        unstamped=7: evidence/ax/SURF-001.keyboard.txt: no build record covers it, so nothing can say which build it 
+PASS  a row with no capture timestamp (evidence/shots/SURF-001.shell.png)
+        ordering=1: evidence/shots/SURF-001.shell.png: the row carries no capturedAt, so it cannot be shown to have 
+
+All four arms behaved: the gate is green over a current capture and red over a stale one, an uncovered one and one whose row cannot be dated.
+
+exit: 0

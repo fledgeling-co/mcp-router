@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="MCPRouter.Shell.Shell.ShellWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls">
+
+    <!--
+      One Grid, two rows: the caption band and everything else.
+
+      The caption band carries the MenuBar rather than a second full-width row under it. Windows
+      11's own apps put commanding in the caption band, and a separate 40-epx strip under a
+      32-epx title bar spends a whole row to say nothing. spec-WIN3 §3.1 carries the decision and
+      what the alternatives would have been better at.
+    -->
+    <Grid x:Name="RootGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--
+          The ground the self-test renders over, and nothing else uses it.
+
+          It is a XAML Border with a ThemeResource background rather than a brush looked up in
+          code, and that is the whole point: Application.Current.Resources resolves under the
+          APP's theme, so a capture taken with the root element forced to Light came back as light
+          content sitting on the dark ground - the navigation pane unreadable, dark on dark. A
+          ThemeResource resolves under the element's own ActualTheme and follows it.
+
+          SolidBackgroundFillColorBase is Mica's own fallback, not an invented backdrop: it is
+          what Windows draws when transparency is off, and the ground DESIGN.md §12 states every
+          Windows ratio against.
+        -->
+        <Border
+            x:Name="CaptureGround"
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+            Visibility="Collapsed" />
+
+        <!-- ============================================================ the caption band -->
+        <Grid x:Name="CaptionBand" Grid.Row="0" Height="40">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!--
+              The app mark. Monochrome, drawn in Foreground, from Segoe Fluent Icons through
+              SymbolThemeFontFamily - DESIGN.md §11 rule 7 and §13.
+            -->
+            <FontIcon
+                Grid.Column="0"
+                Margin="14,0,10,0"
+                VerticalAlignment="Center"
+                FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                FontSize="16"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Glyph="&#xE968;" />
+
+            <!--
+              The complete command surface. Its items are built in code from CommandCatalog, so
+              the gates in MCPRouter.Shell.Tests measure the surface this window actually draws
+              rather than a parallel list authored here.
+            -->
+            <muxc:MenuBar x:Name="Commands" Grid.Column="1" VerticalAlignment="Center" />
+
+            <!--
+              The drag region, and the board title inside it.
+
+              SetTitleBar takes one element, so the title lives inside the drag region rather than
+              beside it - a TextBlock is not interactive, so it costs the region nothing. The
+              right margin is set in code from AppWindow.TitleBar.RightInset, because the caption
+              buttons are the system's and their width is not ours to assume.
+            -->
+            <Grid x:Name="DragRegion" Grid.Column="2">
+                <TextBlock
+                    x:Name="BoardTitle"
+                    Margin="28,0,0,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                    Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                    TextTrimming="CharacterEllipsis" />
+            </Grid>
+        </Grid>
+
+        <!-- ============================================================ the destinations -->
+        <!--
+          DEF-089: the pane's own accessible name.
+
+          The ten items INSIDE it are named in code from DestinationCatalog; the container that
+          holds them was not, and a live UIA dump reads its Name back as the empty string - a
+          NavigationView publishes nothing of its own here, so this ADDS a name rather than
+          overriding a better one. Without it the pane is addressable by automation id and by
+          control type and by nothing a person would say out loud, which is how the campaign came
+          to record a control called "NavigationView pane", a phrase in no source file.
+        -->
+        <muxc:NavigationView
+            x:Name="Nav"
+            AutomationProperties.Name="Destinations"
+            Grid.Row="1"
+            IsBackButtonVisible="Collapsed"
+            IsPaneToggleButtonVisible="True"
+            IsSettingsVisible="True"
+            IsTitleBarAutoPaddingEnabled="False"
+            OpenPaneLength="256"
+            PaneDisplayMode="Left"
+            SelectionChanged="OnDestinationChanged">
+
+            <!--
+              THE AMBIENT SURFACE, and what DEF-301 was about.
+
+              The ambient state used to live only in AmbientSurfaceModel, which initialised to
+              AtRest and which nothing in the build ever updated - so every surface that rendered
+              it said "Router ready" whatever the router was doing, including when the router was
+              not running. It is drawn HERE, in the pane, because the pane is on screen whichever
+              destination is selected: an ambient claim about the router that only appears on one
+              board is not ambient.
+
+              The two lines are addressable by automation id so the state can be read back out of
+              process, by something that drove the router from outside this application. A
+              readout the app is the only reader of would be the same defect with a witness
+              attached to it.
+            -->
+            <muxc:NavigationView.PaneFooter>
+                <StackPanel
+                    x:Name="AmbientStatus"
+                    AutomationProperties.AutomationId="ambient.status"
+                    AutomationProperties.Name="Router status"
+                    Margin="16,4,16,12"
+                    Spacing="2">
+                    <TextBlock
+                        x:Name="AmbientStatusTitle"
+                        AutomationProperties.AutomationId="ambient.status.title"
+                        Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                        Style="{ThemeResource CaptionTextBlockStyle}"
+                        TextTrimming="CharacterEllipsis" />
+                    <TextBlock
+                        x:Name="AmbientStatusDetail"
+                        AutomationProperties.AutomationId="ambient.status.detail"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{ThemeResource CaptionTextBlockStyle}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </muxc:NavigationView.PaneFooter>
+
+            <!--
+              The content layer sits on LayerFillColorDefault over the window's Mica base, and
+              nothing else in this window applies a backdrop material - DESIGN.md §11 rule 3's
+              "don't apply backdrop material more than once in an application". The navigation
+              pane stays transparent so the material shows through it.
+            -->
+            <Border
+                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                BorderThickness="1,1,0,0"
+                CornerRadius="8,0,0,0">
+                <ContentControl
+                    x:Name="BoardHost"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    VerticalContentAlignment="Stretch" />
+            </Border>
+        </muxc:NavigationView>
+    </Grid>
+</Window>

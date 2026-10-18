@@ -1,0 +1,553 @@
+<title>mcp-router — what is done, what is left</title>
+<style>
+:root{
+  --ink:#14161a; --ink-2:#4a5058; --ink-3:#7c848f;
+  --paper:#fbfaf7; --card:#ffffff; --line:#e4e1da;
+  --done:#1f7a5c; --done-bg:#e7f4ee;
+  --left:#8a5a1a; --left-bg:#fdf1df;
+  --evid:#4a4599; --evid-bg:#ecebf9;
+  --dec:#8a2f4d; --dec-bg:#fbe9ef;
+  --waive:#5c6068; --waive-bg:#f0efec;
+  --accent:#b4531f;
+  --shadow:0 1px 2px rgba(20,22,26,.05),0 8px 24px -12px rgba(20,22,26,.18);
+}
+:root:not([data-theme="light"]){}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --ink:#eceae5; --ink-2:#b0aca4; --ink-3:#847f76;
+  --paper:#14150f; --card:#1c1e18; --line:#2e3129;
+  --done:#5fc79c; --done-bg:#16281f;
+  --left:#e0a055; --left-bg:#2a2013;
+  --evid:#9d99e8; --evid-bg:#1d1c31;
+  --dec:#e58aa8; --dec-bg:#2c1620;
+  --waive:#9a958c; --waive-bg:#22231d;
+  --accent:#f0824a;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+}}
+:root[data-theme="dark"]{
+  --ink:#eceae5; --ink-2:#b0aca4; --ink-3:#847f76;
+  --paper:#14150f; --card:#1c1e18; --line:#2e3129;
+  --done:#5fc79c; --done-bg:#16281f;
+  --left:#e0a055; --left-bg:#2a2013;
+  --evid:#9d99e8; --evid-bg:#1d1c31;
+  --dec:#e58aa8; --dec-bg:#2c1620;
+  --waive:#9a958c; --waive-bg:#22231d;
+  --accent:#f0824a;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font:15px/1.55 "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;}
+.wrap{max-width:1180px;margin:0 auto;padding:48px 28px 96px}
+h1,h2,h3{font-family:"Avenir Next","Segoe UI",system-ui,sans-serif;letter-spacing:-.015em;margin:0}
+h1{font-size:34px;font-weight:600;line-height:1.15}
+h2{font-size:13px;font-weight:650;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);
+  margin:56px 0 18px;padding-bottom:9px;border-bottom:1px solid var(--line)}
+.lede{font-size:18px;line-height:1.5;color:var(--ink-2);max-width:70ch;margin:16px 0 0}
+.stamp{font:12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink-3);margin-top:22px}
+.caveat{margin:26px 0 0;padding:15px 18px;border-left:3px solid var(--accent);
+  background:var(--card);border-radius:0 8px 8px 0;font-size:14.5px;color:var(--ink-2);max-width:76ch;
+  box-shadow:var(--shadow)}
+.caveat strong{color:var(--ink)}
+.axes{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:12px;margin-top:26px}
+.axis{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:15px 16px;
+  box-shadow:var(--shadow)}
+.axis .n{font:600 27px/1 "Avenir Next",system-ui,sans-serif;letter-spacing:-.02em}
+.axis .of{font-size:13px;color:var(--ink-3);margin-left:3px}
+.axis .lbl{font-size:12.5px;color:var(--ink-2);margin-top:7px;line-height:1.4}
+.bar{height:4px;border-radius:2px;background:var(--line);margin-top:11px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--done);border-radius:2px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start}
+@media (max-width:820px){.cols{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 0;
+  box-shadow:var(--shadow);overflow:hidden}
+.panel h3{font-size:14px;font-weight:650;padding:16px 18px 12px;display:flex;gap:9px;align-items:baseline}
+.panel h3 .c{font:12px/1 ui-monospace,Menlo,monospace;color:var(--ink-3);font-weight:400}
+.feat{display:flex;gap:11px;padding:9px 18px;align-items:flex-start;border-top:1px solid var(--line)}
+.feat:first-of-type{border-top:1px solid var(--line)}
+.tick{flex:0 0 17px;height:17px;border-radius:50%;margin-top:2px;display:grid;place-items:center;
+  font-size:10px;font-weight:700;color:#fff}
+.tick.d{background:var(--done)} .tick.l{background:var(--left)}
+.tick.e{background:var(--evid)} .tick.x{background:var(--dec)} .tick.w{background:var(--waive)}
+.feat .t{flex:1;min-width:0;font-size:14px}
+.feat .t small{display:block;color:var(--ink-3);font-size:12.5px;margin-top:2px;line-height:1.45}
+.est{flex:0 0 auto;font:12px/1 ui-monospace,Menlo,monospace;color:var(--ink-2);
+  background:var(--paper);border:1px solid var(--line);border-radius:5px;padding:4px 7px;white-space:nowrap}
+.more{padding:11px 18px;font-size:13px;color:var(--ink-3);border-top:1px solid var(--line)}
+.wave{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:12px;
+  box-shadow:var(--shadow);overflow:hidden}
+.wave>header{display:flex;flex-wrap:wrap;gap:14px;align-items:baseline;padding:15px 18px;
+  border-bottom:1px solid var(--line);background:linear-gradient(180deg,var(--paper),transparent)}
+.wave>header .n{font:650 15px/1 "Avenir Next",system-ui,sans-serif}
+.wave>header .r{font:13px/1 ui-monospace,Menlo,monospace;color:var(--accent);font-weight:600}
+.wave>header .m{font-size:12.5px;color:var(--ink-3);margin-left:auto}
+.lanes{display:grid;grid-template-columns:repeat(auto-fill,minmax(238px,1fr));gap:11px;padding:15px 18px}
+.item{border:1px solid var(--line);border-radius:9px;padding:11px 12px;background:var(--paper)}
+.item .id{font:11.5px/1 ui-monospace,Menlo,monospace;color:var(--ink-3)}
+.item .h{font-size:13.5px;margin:5px 0 0;line-height:1.4}
+.item .f{display:flex;gap:7px;align-items:center;margin-top:9px;flex-wrap:wrap}
+.pill{font:10.5px/1 "Avenir Next",system-ui,sans-serif;font-weight:650;letter-spacing:.045em;
+  text-transform:uppercase;padding:3.5px 7px;border-radius:4px}
+.pill.p{background:var(--left-bg);color:var(--left)}
+.pill.e{background:var(--evid-bg);color:var(--evid)}
+.pill.d{background:var(--dec-bg);color:var(--dec)}
+.pill.k{background:var(--done-bg);color:var(--done)}
+.item .f .t{font:11.5px/1 ui-monospace,Menlo,monospace;color:var(--ink-2);margin-left:auto}
+.sub{margin:9px 0 0;padding:0 0 0 13px;border-left:2px solid var(--line);list-style:none}
+.sub li{font-size:12px;color:var(--ink-3);padding:2.5px 0;line-height:1.4}
+.wavenote{padding:0 18px 15px;font-size:12.5px;color:var(--ink-3);line-height:1.5}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:6px}
+th{text-align:left;font:600 11.5px/1 "Avenir Next",system-ui,sans-serif;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--ink-3);padding:9px 11px;border-bottom:1px solid var(--line)}
+td{padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n,th.n{text-align:right;font-family:ui-monospace,Menlo,monospace}
+.scroll{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;
+  box-shadow:var(--shadow)}
+footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);
+  font-size:13px;color:var(--ink-3);line-height:1.6;max-width:76ch}
+code{font:12.5px ui-monospace,Menlo,monospace;background:var(--paper);border:1px solid var(--line);
+  padding:1px 4px;border-radius:4px}
+</style>
+<div class="wrap">
+<h1>mcp-router</h1>
+<p class="lede">200 piece(s) of work remain and 332 thing(s) are settled. Everything below is what somebody proved, or an honest statement that nobody did — the two are kept apart on purpose.</p>
+<p class="lede" style="margin-top:14px"><strong>5.5 h – 11 h of agent wall-clock</strong> across 3 wave(s) at up to 8 concurrent agents — about 22 h if the same work ran one item at a time. Plan against the upper figure.</p>
+<div class="caveat"><strong>Every time on this page is an estimate, and every one is a range.</strong> They come from 1,842 measured Opus 4.8 and Opus 5 agent runs across 88 sessions and 31 projects, and they are wall-clock — the time an agent was busy, waiting included. They do not carry a failure rate: an agent that ran for an hour and produced work that was later rejected counts the same as one that landed. Treat a range as a planning figure, never as a commitment.</div>
+<p class="stamp">campaign: planning/test-campaign · briefs: planning/features-to-triage · 630 ledger rows</p>
+<h2>What this can speak for</h2>
+<div class="axes">
+<div class="axis"><div class="n">206<span class="of">/216</span></div><div class="lbl">cases reached a verdict</div><div class="bar"><i style="width:95.4%"></i></div></div>
+<div class="axis"><div class="n">26<span class="of">/41</span></div><div class="lbl">requirements independently observed</div><div class="bar"><i style="width:63.4%"></i></div></div>
+<div class="axis"><div class="n">43<span class="of">/47</span></div><div class="lbl">surfaces with any evidence</div><div class="bar"><i style="width:91.5%"></i></div></div>
+<div class="axis"><div class="n">64<span class="of">/224</span></div><div class="lbl">briefs tied to the registry</div><div class="bar"><i style="width:28.6%"></i></div></div>
+<div class="axis"><div class="n">9<span class="of">/216</span></div><div class="lbl">cases ruled out by decision</div><div class="bar"><i style="width:4.2%"></i></div></div>
+</div>
+<div class="caveat" style="margin-top:16px">Each figure is a lower bound. Every `unnamed` row is a surface the documents never described, which means the true denominator is larger than the one the documents can supply. <strong>There is no single percentage here on purpose</strong> — these axes disagree with each other, and one blended number would hide whichever is weakest.</div>
+<h2>Shipped, and remaining</h2>
+<div class="cols">
+<div class="panel"><h3>Settled <span class="c">134</span></h3>
+<div class="feat"><span class="tick d">✓</span><span class="t">One shared HTTP MCP endpoint lists tools from a disk cache and starts an upstream only when a tool on it is ca<small>measured, and it held</small></span></div>
+<div class="feat"><span class="tick d">✓</span><span class="t">The Mac shell navigates eight destinations — Activity, Servers, Skills, Discover, Inbox, Checks, Cleanup, Sett<small>measured, and it held</small></span></div>
+<div class="feat"><span class="tick d">✓</span><span class="t">The phone queues; it never installs. No path from the phone or a notification can put a server on the Mac with<small>measured, and it held</small></span></div>
+<div class="feat"><span class="tick d">✓</span><span class="t">RouterCore manages live stdio children and HTTP upstreams with single-flight spawn and idle reaping.<small>measured, and it held</small></span></div>
+<div class="feat"><span class="tick d">✓</span><span class="t">The control API is loopback-only, authenticated, and refuses to write command/args/env through PATCH.<small>measured, and it held</small></span></div>
+<div class="feat"><span class="tick d">✓</span><span class="t">Mutations to servers.json use atomic staging and a lock so concurrent writers cannot clobber.<small>measured, and it held</small></span></div>
+<div class="feat"><span class="tick d">✓</span><span class="t">A client's Authenticate action against the router completes successfully rather than failing: discovery answer<small>measured, and it held</small></span></div>
+<div class="feat"><span class="tick d">✓</span><span class="t">The token the router issues authenticates nobody and grants nothing loopback access does not already grant, an<small>measured, and it held</small></span></div>
+<div class="feat"><span class="tick d">✓</span><span class="t">The upstream report distinguishes four states and derives them from live tool count rather than from auth.auth<small>measured, and it held</small></span></div>
+<div class="feat"><span class="tick d">✓</span><span class="t">Every route the router serves refuses a Host header that is not its own authority or a loopback spelling, beca<small>measured, and it held</small></span></div>
+<div class="feat"><span class="tick d">✓</span><span class="t">The authorization server refuses a cross-origin or null Origin on its POST routes, a non-loopback redirect_uri<small>measured, and it held</small></span></div>
+<div class="feat"><span class="tick d">✓</span><span class="t">GET /servers/:name/document serves a package's own read me, changelog and capability list as bytes and never a<small>measured, and it held</small></span></div>
+<div class="feat"><span class="tick d">✓</span><span class="t">A capability's own read me, changelog and capability list are read out of the package directory its server dec<small>measured, and it held</small></span></div>
+<div class="feat"><span class="tick d">✓</span><span class="t">A command the shell cannot run right now dims in place and explains itself rather than disappearing: the short<small>measured, and it held</small></span></div>
+<div class="more">…and 120 more in the ledger</div>
+</div>
+<div class="panel"><h3>Remaining <span class="c">199 + 1 blockers</span></h3>
+<div class="feat"><span class="tick l">•</span><span class="t">G5 — vendor the `test-campaign` version the gates actually run<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
+<div class="feat"><span class="tick l">•</span><span class="t">I1 — iPhone app: shell and pairing<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
+<div class="feat"><span class="tick l">•</span><span class="t">M26 — the Checks board and the design's eval board are two different surfaces<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
+<div class="feat"><span class="tick l">•</span><span class="t">M27 — the sidebar foot's loopback readout is absent, and the child-process card lost its label<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">3 min – 25 min</span></div>
+<div class="feat"><span class="tick l">•</span><span class="t">M28 — five findings that need a decision rather than a runner<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
+<div class="feat"><span class="tick l">•</span><span class="t">The one new user-visible behaviour in M20's Slice A cannot be measured by any lane we have<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
+<div class="feat"><span class="tick l">•</span><span class="t">M6 — Inbox and phone pairing (Mac side)<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
+<div class="feat"><span class="tick l">•</span><span class="t">R10 — `index` prints two counts that disagree, and neither is checked<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
+<div class="feat"><span class="tick l">•</span><span class="t">R21 — `approve` answers 200 while discarding the write that would make it true<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
+<div class="feat"><span class="tick l">•</span><span class="t">R4-C1 — the installer points at Swift, and the TypeScript tree stays<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
+<div class="feat"><span class="tick l">•</span><span class="t">X2 — the iOS on-glass instrument, and the six cases it takes off `n/a`<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
+<div class="feat"><span class="tick l">•</span><span class="t">X7 — the campaign's published artifacts under-report what the campaign knows<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
+<div class="feat"><span class="tick l">•</span><span class="t">X8 — two campaign detectors report findings they cannot support<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
+<div class="feat"><span class="tick l">•</span><span class="t">A brief that names nothing the registry holds can never leave the remaining set<small>the registry records a defect or a failing case against this brief's subject</small></span><span class="est">7 min – 56 min</span></div>
+<div class="more">…and 185 more, every one of them in the ledger</div>
+</div></div>
+<h2>What can run at the same time</h2>
+<p class="lede">A wave is everything whose dependencies all sit in an earlier wave, so its members run in parallel. A wave costs its slowest member, not the sum of its members — measured wall-clock divided by slowest member was 1.05 at the median and 1.8 at p90 across 253 real waves. Dependency edges drawn from a registry citation are firm; edges this reckoning inferred only order the work, they never block it.</p>
+<div class="wave"><header><span class="n">Wave 1</span><span class="r">3.5 h – 6.2 h</span><span class="m">54 item(s) · 8 slots</span></header>
+<div class="lanes">
+<div class="item"><div class="id">BLOCK-0001</div><p class="h">unoracled: the drawn badge on the app's own menu has no channel. SwiftUI does not publish an NSMenuItem's badge to the a</p>
+<ul class="sub">
+<li>CASE-0197</li>
+</ul>
+<div class="f"><span class="pill e">evidence</span><span class="pill k">+0.5 pts coverage</span><span class="t">3 min – 25 min</span></div></div>
+<div class="item"><div class="id">DEF-001</div><p class="h">Pairing transport is unimplemented</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-011</div><p class="h">Cleanup's per-row actions are specified by the design and drawn by nothing</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-055</div><p class="h">vacuity-check's blind-mutation pass examines non-tests and mis-reads Swift idiom; 7 of 7 sampled findings are </p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-057</div><p class="h">the vendored fledgeling-plugins submodule is test-campaign 0.5.0 while every gate in this campaign ran from th</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">REQ-015</div><p class="h">Mac Pairing sheet shows an 8-character Crockford code and QR; the phone can scan or type it.</p>
+<div class="f"><span class="pill e">evidence</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-008</div><p class="h">iOS tab buttons carry the icon name as their accessibility identifier, and it cannot be replaced</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-041</div><p class="h">REQ-016's declared outbound-socket effect has no provider in production source</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-049</div><p class="h"></p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-054</div><p class="h">attach-shots --apply would attach the design mock render as the build's surface shot for 11 surfaces, and its </p>
+<div class="f"><span class="pill p">product</span><span class="pill k">L</span><span class="t">14 min – 68 min</span></div></div>
+<div class="item"><div class="id">DEF-063</div><p class="h">A stdio child that starts and then exits is not noticed, so acquisition waits out the whole startup budget</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">L</span><span class="t">14 min – 68 min</span></div></div>
+<div class="item"><div class="id">DEF-033</div><p class="h">the OAuth parity lane failed once inside a full gate and has not reproduced</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-059</div><p class="h">`Settings` is no longer a sidebar row, so the glass capture filed a neighbouring board's pixels under SURF-011</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-061</div><p class="h">The capture-lineage tie pass has no notion of a route template, so a parameterised surface's capture is report</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-052</div><p class="h">evidence-page.py and campaign.py's ledger writer both skip the defect registry, so no published artifact lists</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">L</span><span class="t">14 min – 68 min</span></div></div>
+<div class="item"><div class="id">DEF-053</div><p class="h">strict-check.py omits effect-witness from EFFECT_RUNGS, so the ladder's top rung scores as 'only proves someth</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">L</span><span class="t">14 min – 68 min</span></div></div>
+<div class="item"><div class="id">DEF-090</div><p class="h">Only 41 of 219 briefs name anything the registry holds, so the reckoning withholds retirement across the board</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">L</span><span class="t">14 min – 68 min</span></div></div>
+<div class="item"><div class="id">DEF-051</div><p class="h"></p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-056</div><p class="h">campaign.py's ledger writer prints only cases filed under a surface, silently dropping 8 of 80 — including all</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-058</div><p class="h">the macos-glass lane is green over window evidence captured from a pre-M22 build, and four of its cases assert</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-060</div><p class="h">A too-large refusal names the file and the cap but never the capability, so its picture cannot say what it ref</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-064</div><p class="h">Three Settings and pairing controls the design draws have no counterpart on the Mac</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">REQ-007</div><p class="h">Numbers the router does not observe are never displayed. There is no fabricated memory saving.</p>
+<div class="f"><span class="pill e">evidence</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">REQ-008</div><p class="h">The menu-bar popover shows a readout, attention rows, and an inbox band of oldest-first arrivals; a partial ro</p>
+<div class="f"><span class="pill e">evidence</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">REQ-020</div><p class="h">install.sh flips to the Swift binary and retires src/*.ts once parity is 82 of 83 and the owner decides.</p>
+<div class="f"><span class="pill e">evidence</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">REQ-034</div><p class="h">The router says when an upstream's credential is running out or has been refused, before a tool call fails on </p>
+<div class="f"><span class="pill e">evidence</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-043</div><p class="h">the sidebar foot's loopback readout is absent from the build on every board, and the child-process card lost i</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">S</span><span class="t">3 min – 25 min</span></div></div>
+<div class="item"><div class="id">DEF-083</div><p class="h">The winget manifest points at a placeholder URL because nothing publishes the package</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">L</span><span class="t">14 min – 68 min</span></div></div>
+<div class="item"><div class="id">BRIEF-M34-the-menu-badge-is-unmeasurable-by-any-lane</div><p class="h">The one new user-visible behaviour in M20's Slice A cannot be measured by any lane we have</p>
+<ul class="sub">
+<li>CASE-0195 — SURF-001 · ?</li>
+<li>CASE-0196 — SURF-001 · ?</li>
+<li>CASE-0197 — SURF-001 · ?</li>
+<li>REQ-028 — A command the shell cannot run right now dims in pla</li>
+<li>SURF-001 — Mac shell — sidebar, title, menus</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-R9-sdk-drops-upstream-message</div><p class="h">R9 — the upstream's own words survive the SDK that drops them</p>
+<ul class="sub">
+<li>DEF-047 — the Swift MCP SDK discards an upstream's error messa</li>
+</ul>
+<div class="f"><span class="pill e">evidence</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-X1-ios-a11y-harness</div><p class="h">X1 — the iOS accessibility-tree harness, and the two surfaces that were still empty</p>
+<ul class="sub">
+<li>DEF-029 — the iOS unit lane read an empty accessibility tree b</li>
+</ul>
+<div class="f"><span class="pill e">evidence</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-an-effect-class-the-census-cannot-name-reads-as-no-effect</div><p class="h">An effect class the census cannot name reads as no effect at all</p>
+<ul class="sub">
+<li>REQ-016 — A pairing exchange actually contacts the other devic</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-eleven-surfaces-declare-controls-that-nothing-drives</div><p class="h">Eleven surfaces declare their controls and no passing case drives one of them</p>
+<ul class="sub">
+<li>SURF-001 — Mac shell — sidebar, title, menus</li>
+<li>SURF-002 — Mac Servers board</li>
+<li>SURF-004 — Mac Skills board</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-062</div><p class="h">The Skills board's held-update sheet offers no decision — its only control is Done</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-065</div><p class="h">The Insights analyst panel is an empty state with a dead button — three readouts and its one action are unbuil</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-070</div><p class="h">GET /servers discloses every stdio upstream's full argv to an unauthenticated local caller</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-081</div><p class="h">WIN23's logon trigger has never been watched to fire; the restart has been, and it did not happen until the re</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-082</div><p class="h">Nothing on this host can press a toast button, or say which application raised a toast it can see</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-131</div><p class="h">The command-shape check cannot see a bare command NAME, so a two-word operation could still be filed as a cont</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-280</div><p class="h">Six diagnostics-bundle cases are filed under REQ-035, which is the Windows logon-task requirement</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-300</div><p class="h">The notification-area icon does not come back after an Explorer restart</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-302</div><p class="h">The Cleanup board's Remove selected button reaches nothing and asks nothing</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-340</div><p class="h">The Discover board draws neither of the design's two scoping controls — no kind toggle, no window</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-361</div><p class="h">Twelve wave-slot landings merged to main with no verify verdict recorded anywhere</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-362</div><p class="h">M18 and R19 carry a standing Needs More Work verdict and their gap-fixes have since merged ungraded</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">REQ-002</div><p class="h">The tool cache is keyed on each server's command/args/env identity and tools are namespaced &lt;server&gt;__&lt;tool&gt;.</p>
+<div class="f"><span class="pill e">evidence</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">REQ-004</div><p class="h">The Servers board reflects live server states from ServerStateTracker (running, tripped, never used, held) wit</p>
+<div class="f"><span class="pill e">evidence</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">REQ-005</div><p class="h">When the tracker is stale or the router is not running, live counts go absent rather than displaying last-know</p>
+<div class="f"><span class="pill e">evidence</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">REQ-009</div><p class="h">Disposing an inbox item immediately withdraws its notification banner; a multi-item banner carries Review only</p>
+<div class="f"><span class="pill e">evidence</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">REQ-010</div><p class="h">The phone exposes Discover, Triage, Queue, Library and Settings; Triage commit is a single-batch undoable enqu</p>
+<div class="f"><span class="pill e">evidence</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">REQ-014</div><p class="h">Swift RouterCore matches the TypeScript reference on the parity corpus; the cutover target is 82 of 83 with fi</p>
+<div class="f"><span class="pill e">evidence</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">REQ-017</div><p class="h">Every data surface ships the nine DESIGN.md §5 states with real copy on the unhappy paths.</p>
+<div class="f"><span class="pill e">evidence</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">REQ-018</div><p class="h">Undo is the Mac contract for reversible acts; a named-consequence dialog is reserved for genuinely destructive</p>
+<div class="f"><span class="pill e">evidence</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">DEF-301</div><p class="h">The ambient surface reports AtRest without anything ever reading the router</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">S</span><span class="t">3 min – 25 min</span></div></div>
+</div>
+<p class="wavenote">costs its slowest member — measured wall-clock ÷ slowest member was 1.05 at the median and 1.8 at p90 across 253 real waves; with 54 item(s) the slowest-member figure would imply a speedup better than the 4.0x p90 ever measured here, so the low end is held to that instead; 54 members is above the observed concurrency ceiling of 8, where the slowest-member property degrades, so the upper bound is widened</p></div>
+<div class="wave"><header><span class="n">Wave 2</span><span class="r">1.8 h – 3.3 h</span><span class="m">29 item(s) · 8 slots</span></header>
+<div class="lanes">
+<div class="item"><div class="id">DEF-035</div><p class="h">an incremental Swift build after adding an enum case reports impossible test failures</p>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-G5-vendor-the-campaign-version-the-gates-run</div><p class="h">G5 — vendor the `test-campaign` version the gates actually run</p>
+<ul class="sub">
+<li>DEF-057 — the vendored fledgeling-plugins submodule is test-ca</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-I1-ios-shell-pairing</div><p class="h">I1 — iPhone app: shell and pairing</p>
+<ul class="sub">
+<li>DEF-001 — Pairing transport is unimplemented</li>
+<li>DEF-008 — iOS tab buttons carry the icon name as their accessi</li>
+<li>DEF-041 — REQ-016's declared outbound-socket effect has no pro</li>
+<li>REQ-015 — Mac Pairing sheet shows an 8-character Crockford cod</li>
+<li>REQ-016 — A pairing exchange actually contacts the other devic</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-M26-checks-board-framing</div><p class="h">M26 — the Checks board and the design's eval board are two different surfaces</p>
+<ul class="sub">
+<li>DEF-011 — Cleanup's per-row actions are specified by the desig</li>
+<li>DEF-012 — three boards renamed a control and the design of rec</li>
+<li>DEF-031 — the Checks board is cross-subject where the design's</li>
+<li>SURF-006 — Mac Checks board</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-M28-decision-docket</div><p class="h">M28 — five findings that need a decision rather than a runner</p>
+<ul class="sub">
+<li>DEF-008 — iOS tab buttons carry the icon name as their accessi</li>
+<li>DEF-033 — the OAuth parity lane failed once inside a full gate</li>
+<li>DEF-042 — the design of record still draws a model-graded eval</li>
+<li>DEF-049</li>
+<li>DEF-057 — the vendored fledgeling-plugins submodule is test-ca</li>
+<li>…and 2 more</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-M6-inbox-pairing</div><p class="h">M6 — Inbox and phone pairing (Mac side)</p>
+<ul class="sub">
+<li>DEF-001 — Pairing transport is unimplemented</li>
+<li>DEF-041 — REQ-016's declared outbound-socket effect has no pro</li>
+<li>REQ-015 — Mac Pairing sheet shows an 8-character Crockford cod</li>
+<li>REQ-016 — A pairing exchange actually contacts the other devic</li>
+<li>SURF-010 — Mac Pairing sheet</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-R10-index-reports-a-write-that-did-not-land</div><p class="h">R10 — `index` prints two counts that disagree, and neither is checked</p>
+<ul class="sub">
+<li>DEF-049</li>
+<li>REQ-007 — Numbers the router does not observe are never displa</li>
+<li>REQ-019 — A refused write is shown as the server's refusal. Su</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-R21-approve-answers-200-over-a-discarded-write</div><p class="h">R21 — `approve` answers 200 while discarding the write that would make it true</p>
+<ul class="sub">
+<li>DEF-049</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-R33-four-features-shipped-to-the-router-that-does-not-run</div><p class="h">R33 — Four merged features shipped into the router that does not run</p>
+<ul class="sub">
+<li>REQ-020 — install.sh flips to the Swift binary and retires src</li>
+</ul>
+<div class="f"><span class="pill e">evidence</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-R4-C1-installer-points-at-swift</div><p class="h">R4-C1 — the installer points at Swift, and the TypeScript tree stays</p>
+<ul class="sub">
+<li>DEF-033 — the OAuth parity lane failed once inside a full gate</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-X2-ios-on-glass</div><p class="h">X2 — the iOS on-glass instrument, and the six cases it takes off `n/a`</p>
+<ul class="sub">
+<li>CASE-0020 — SURF-012 · ?</li>
+<li>CASE-0120 — SURF-012 · ?</li>
+<li>DEF-001 — Pairing transport is unimplemented</li>
+<li>DEF-013 — the ios-glass lane's tab-navigation assertion does n</li>
+<li>DEF-017 — the ios-glass lane built unsigned, and an unsigned b</li>
+<li>…and 3 more</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-X7-campaign-artifacts-underreport</div><p class="h">X7 — the campaign's published artifacts under-report what the campaign knows</p>
+<ul class="sub">
+<li>CASE-0145 — ? · ?</li>
+<li>CASE-0151</li>
+<li>CASE-0184 — SURF-027 · ?</li>
+<li>DEF-051</li>
+<li>DEF-052 — evidence-page.py and campaign.py's ledger writer bot</li>
+<li>…and 4 more</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-X8-detectors-misattribute</div><p class="h">X8 — two campaign detectors report findings they cannot support</p>
+<ul class="sub">
+<li>DEF-054 — attach-shots --apply would attach the design mock re</li>
+<li>DEF-055 — vacuity-check's blind-mutation pass examines non-tes</li>
+<li>DEF-057 — the vendored fledgeling-plugins submodule is test-ca</li>
+<li>DEF-061 — The capture-lineage tie pass has no notion of a rout</li>
+<li>SURF-028 — Mac capability document panel — three tabs over one </li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-a-brief-that-names-nothing-cannot-be-retired</div><p class="h">A brief that names nothing the registry holds can never leave the remaining set</p>
+<ul class="sub">
+<li>DEF-002 — Parity gate exits 1 at 80/83, two real-work rows sho</li>
+<li>DEF-040 — the blind-test pass flags three tests that do read a</li>
+<li>DEF-063 — A stdio child that starts and then exits is not noti</li>
+<li>DEF-090 — Only 41 of 219 briefs name anything the registry hol</li>
+<li>DEF-091 — defects.in.json and inventory.json disagree about th</li>
+<li>…and 1 more</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-a-refusal-that-cannot-say-which-capability-it-refused</div><p class="h">A too-large refusal names the file and the cap but never the capability</p>
+<ul class="sub">
+<li>DEF-060 — A too-large refusal names the file and the cap but n</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-a-status-word-nobody-taught-the-gate-lands-pessimistic</div><p class="h">A defect status nobody taught the gate is still classified by a guess</p>
+<ul class="sub">
+<li>CASE-0355 — None · ?</li>
+<li>CASE-0356 — None · ?</li>
+<li>DEF-011 — Cleanup's per-row actions are specified by the desig</li>
+<li>DEF-048 — test-campaign 0.9.1's blind-mutation pass is dominat</li>
+<li>DEF-055 — vacuity-check's blind-mutation pass examines non-tes</li>
+<li>…and 1 more</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-daemon-status-popover-interactive-testability</div><p class="h">Background Status Item and Popover Accessible Testability</p>
+<ul class="sub">
+<li>CASE-0004 — SURF-009 · ?</li>
+<li>CASE-0006 — SURF-009 · ?</li>
+<li>CASE-0109 — SURF-009 · ?</li>
+<li>REQ-008 — The menu-bar popover shows a readout, attention rows</li>
+<li>SURF-009 — Mac menu-bar popover and inbox band</li>
+</ul>
+<div class="f"><span class="pill e">evidence</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-defect-vocabulary-blocks-the-reckoning-gate</div><p class="h">The remaining-work gate fails every run on words nobody taught it</p>
+<ul class="sub">
+<li>CASE-0355 — None · ?</li>
+<li>CASE-0356 — None · ?</li>
+<li>DEF-011 — Cleanup's per-row actions are specified by the desig</li>
+<li>DEF-048 — test-campaign 0.9.1's blind-mutation pass is dominat</li>
+<li>REQ-040 — The defect register's status vocabulary is a closed </li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-glass-evidence-outlives-the-build-it-was-taken-from</div><p class="h">Committed glass evidence outlives the build it was taken from, and nothing goes red when it does</p>
+<ul class="sub">
+<li>CASE-0001 — SURF-001 · ?</li>
+<li>CASE-0016 — SURF-011 · ?</li>
+<li>CASE-0101 — SURF-001 · ?</li>
+<li>CASE-0111 — SURF-011 · ?</li>
+<li>CASE-0342 — ? · ?</li>
+<li>…and 4 more</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-local-network-device-pairing-handshake</div><p class="h">Local Network Device Discovery and Mutual Pairing Handshake</p>
+<ul class="sub">
+<li>DEF-001 — Pairing transport is unimplemented</li>
+<li>REQ-015 — Mac Pairing sheet shows an 8-character Crockford cod</li>
+<li>REQ-016 — A pairing exchange actually contacts the other devic</li>
+<li>SURF-010 — Mac Pairing sheet</li>
+<li>SURF-014 — iOS Pairing scanner and code entry</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-no-surface-declares-its-controls-so-nothing-counts-them</div><p class="h">No surface declares its controls, so the actuation census has no denominator</p>
+<ul class="sub">
+<li>DEF-008 — iOS tab buttons carry the icon name as their accessi</li>
+<li>DEF-011 — Cleanup's per-row actions are specified by the desig</li>
+<li>SURF-002 — Mac Servers board</li>
+<li>SURF-003 — Mac Activity board</li>
+<li>SURF-007 — Mac Cleanup board</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-phone-pairing-qr-render-and-countdown</div><p class="h">Mobile Companion Pairing QR Code Presentation and Expiry Countdown</p>
+<ul class="sub">
+<li>CASE-0286</li>
+<li>CASE-0287</li>
+<li>CASE-0288</li>
+<li>CASE-0289</li>
+<li>CASE-0290</li>
+<li>…and 5 more</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-req-016-claims-an-outbound-socket-and-names-nothing-that-opens-one</div><p class="h">REQ-016 claims an outbound socket and names nothing that could open one</p>
+<ul class="sub">
+<li>DEF-041 — REQ-016's declared outbound-socket effect has no pro</li>
+<li>REQ-016 — A pairing exchange actually contacts the other devic</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-the-blind-sweep-runs-on-a-vocabulary-nobody-wrote-for-this-project</div><p class="h">The blind-mutation sweep runs on borrowed vocabulary, so its three findings settle nothing</p>
+<ul class="sub">
+<li>DEF-048 — test-campaign 0.9.1's blind-mutation pass is dominat</li>
+<li>DEF-055 — vacuity-check's blind-mutation pass examines non-tes</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-the-oracle-ladders-top-rung-scores-as-its-bottom-one</div><p class="h">The oracle ladder's top rung is scored as its weakest, so the gate penalises the hardest evidence</p>
+<ul class="sub">
+<li>DEF-053 — strict-check.py omits effect-witness from EFFECT_RUN</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-three-captures-name-a-route-they-were-not-pointed-at</div><p class="h">Three captures name a route they were not pointed at, and one manifest was written after the shutter</p>
+<ul class="sub">
+<li>CASE-0001 — SURF-001 · ?</li>
+<li>CASE-0016 — SURF-011 · ?</li>
+<li>CASE-0101 — SURF-001 · ?</li>
+<li>CASE-0111 — SURF-011 · ?</li>
+<li>CASE-0343 — SURF-038 · ?</li>
+<li>…and 10 more</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-upstream-auth-expiry-desktop-notification</div><p class="h">Proactive Desktop Notification for Upstream Authentication Expiry</p>
+<ul class="sub">
+<li>REQ-034 — The router says when an upstream's credential is run</li>
+</ul>
+<div class="f"><span class="pill e">evidence</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-upstream-server-health-probe-settings</div><p class="h">Upstream Server Health Check and Timeout Configuration</p>
+<ul class="sub">
+<li>CASE-0217 — ? · ?</li>
+<li>CASE-0218 — ? · ?</li>
+<li>CASE-0219 — ? · ?</li>
+<li>CASE-0220 — ? · ?</li>
+<li>CASE-0221 — ? · ?</li>
+<li>…and 3 more</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+<div class="item"><div class="id">BRIEF-M27-sidebar-foot-readout</div><p class="h">M27 — the sidebar foot's loopback readout is absent, and the child-process card lost its label</p>
+<ul class="sub">
+<li>DEF-042 — the design of record still draws a model-graded eval</li>
+<li>DEF-043 — the sidebar foot's loopback readout is absent from t</li>
+<li>SURF-001 — Mac shell — sidebar, title, menus</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">S</span><span class="t">3 min – 25 min</span></div></div>
+</div>
+<p class="wavenote">costs its slowest member — measured wall-clock ÷ slowest member was 1.05 at the median and 1.8 at p90 across 253 real waves; with 29 item(s) the slowest-member figure would imply a speedup better than the 4.0x p90 ever measured here, so the low end is held to that instead; 29 members is above the observed concurrency ceiling of 8, where the slowest-member property degrades, so the upper bound is widened</p></div>
+<div class="wave"><header><span class="n">Wave 3</span><span class="r">8 min – 1.7 h</span><span class="m">1 item(s)</span></header>
+<div class="lanes">
+<div class="item"><div class="id">BRIEF-a-stale-build-can-fabricate-a-failure-and-as-easily-a-pass</div><p class="h">A stale incremental build fabricates test failures, and can as easily fabricate a pass</p>
+<ul class="sub">
+<li>DEF-035 — an incremental Swift build after adding an enum case</li>
+</ul>
+<div class="f"><span class="pill p">product</span><span class="pill k">M</span><span class="t">7 min – 56 min</span></div></div>
+</div>
+<p class="wavenote">costs its slowest member — measured wall-clock ÷ slowest member was 1.05 at the median and 1.8 at p90 across 253 real waves</p></div>
+<div class="caveat" style="margin-top:22px"><strong>116 item(s) are not in any wave.</strong> They are decisions — a person reading two documents and ruling — and they have no agent duration. Giving them one would report waiting on a human as though an agent were busy. They gate the waves rather than sitting inside them.</div>
+<h2>What unblocks the most</h2>
+<p class="lede">Blocked cases cluster. Twenty of them are usually a handful of causes, and each row here is a cause with the coverage that resolving it returns.</p>
+<div class="scroll"><table><thead><tr><th>Cause</th><th class="n">Cases</th><th class="n">Coverage</th><th class="n">Estimate</th><th>What it is</th></tr></thead><tbody>
+<tr><td><code>BLOCK-0001</code></td><td class="n">1</td><td class="n">+0.5 pts</td><td class="n">3 min – 25 min</td><td>unoracled: the drawn badge on the app's own menu has no channel. SwiftUI does not publish an NSMenuItem's badge to the accessibility plane; AXSize is </td></tr>
+</tbody></table></div>
+<h2>Every item, in exactly one class</h2>
+<p class="lede">Nothing was filtered out of this list, because there is nowhere to filter to. That is what makes the counts above mean something.</p>
+<div class="scroll"><table><thead><tr><th>Class</th><th class="n">Work</th><th class="n">Rows</th><th>Whose job</th><th>What it means</th></tr></thead><tbody>
+<tr><td><code>unjoined</code></td><td class="n">90</td><td class="n">90</td><td>decision-work</td><td>named in a brief; the join reached nothing either way</td></tr>
+<tr><td><code>broken</code></td><td class="n">65</td><td class="n">73</td><td>product-work</td><td>measured, and the answer was no</td></tr>
+<tr><td><code>unmeasured</code></td><td class="n">18 + 1 blockers</td><td class="n">23</td><td>evidence-work</td><td>nobody found out — the work is becoming able to tell</td></tr>
+<tr><td><code>undecided</code></td><td class="n">26</td><td class="n">26</td><td>decision-work</td><td>the documents and the evidence disagree</td></tr>
+<tr><td><code>waived</code></td><td class="n">0</td><td class="n">86</td><td>exception</td><td>somebody decided not to; it stays visible because the reason expires</td></tr>
+<tr><td><code>verified-done</code></td><td class="n">0</td><td class="n">332</td><td>none</td><td>not remaining; kept so the denominator is honest</td></tr>
+</tbody></table></div>
+<footer>Generated by <code>reckon</code> from <code>ledger.json</code>; every figure on this page exists in that file. The full technical record — every row, the reason for its class, the join edges and what this reckoning could not classify — is in <code>reckoning.md</code> beside it. Estimate provenance and its limits: <code>references/estimation.md</code>.</footer>
+</div>

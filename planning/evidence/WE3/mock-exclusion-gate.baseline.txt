@@ -1,0 +1,36 @@
+=== BASELINE — the tree as it stood at main 5934c38f: renders at evidence/shots/mock-hidpi/, capture-manifest.py MOCK_DIRS={mock, mock-hidpi}
+R1 attach-shots.py: pinned at 4ecf3d2d21b91757…, exclusion line at line 101, verbatim.
+R1 capture-lineage.py: pinned at e767ab1024a4566e…, exclusion line at line 150, verbatim.
+R2/R3 sweep: 28 design render(s) under ['mock', 'mock-hidpi']/, 41 build capture(s) with a recorded target, over planning/test-campaign/evidence/shots.
+
+11 finding(s):
+  R2 mock-hidpi/SURF-001.full.png: this repository calls it a render of the DESIGN (`capture-manifest.py` MOCK_DIRS ['mock', 'mock-hidpi'] matched ['mock-hidpi']), and the instrument does not exclude it — no directory part is exactly `mock`. `attach-shots.py --apply` will offer this file to a surface on its filename. Move it under a `mock/` parent.
+  R2 mock-hidpi/SURF-002.full.png: this repository calls it a render of the DESIGN (`capture-manifest.py` MOCK_DIRS ['mock', 'mock-hidpi'] matched ['mock-hidpi']), and the instrument does not exclude it — no directory part is exactly `mock`. `attach-shots.py --apply` will offer this file to a surface on its filename. Move it under a `mock/` parent.
+  R2 mock-hidpi/SURF-003.full.png: this repository calls it a render of the DESIGN (`capture-manifest.py` MOCK_DIRS ['mock', 'mock-hidpi'] matched ['mock-hidpi']), and the instrument does not exclude it — no directory part is exactly `mock`. `attach-shots.py --apply` will offer this file to a surface on its filename. Move it under a `mock/` parent.
+  R2 mock-hidpi/SURF-004.full.png: this repository calls it a render of the DESIGN (`capture-manifest.py` MOCK_DIRS ['mock', 'mock-hidpi'] matched ['mock-hidpi']), and the instrument does not exclude it — no directory part is exactly `mock`. `attach-shots.py --apply` will offer this file to a surface on its filename. Move it under a `mock/` parent.
+  R2 mock-hidpi/SURF-005.full.png: this repository calls it a render of the DESIGN (`capture-manifest.py` MOCK_DIRS ['mock', 'mock-hidpi'] matched ['mock-hidpi']), and the instrument does not exclude it — no directory part is exactly `mock`. `attach-shots.py --apply` will offer this file to a surface on its filename. Move it under a `mock/` parent.
+  R2 mock-hidpi/SURF-006.full.png: this repository calls it a render of the DESIGN (`capture-manifest.py` MOCK_DIRS ['mock', 'mock-hidpi'] matched ['mock-hidpi']), and the instrument does not exclude it — no directory part is exactly `mock`. `attach-shots.py --apply` will offer this file to a surface on its filename. Move it under a `mock/` parent.
+  R2 mock-hidpi/SURF-007.full.png: this repository calls it a render of the DESIGN (`capture-manifest.py` MOCK_DIRS ['mock', 'mock-hidpi'] matched ['mock-hidpi']), and the instrument does not exclude it — no directory part is exactly `mock`. `attach-shots.py --apply` will offer this file to a surface on its filename. Move it under a `mock/` parent.
+  R2 mock-hidpi/SURF-008.full.png: this repository calls it a render of the DESIGN (`capture-manifest.py` MOCK_DIRS ['mock', 'mock-hidpi'] matched ['mock-hidpi']), and the instrument does not exclude it — no directory part is exactly `mock`. `attach-shots.py --apply` will offer this file to a surface on its filename. Move it under a `mock/` parent.
+  R2 mock-hidpi/SURF-009.full.png: this repository calls it a render of the DESIGN (`capture-manifest.py` MOCK_DIRS ['mock', 'mock-hidpi'] matched ['mock-hidpi']), and the instrument does not exclude it — no directory part is exactly `mock`. `attach-shots.py --apply` will offer this file to a surface on its filename. Move it under a `mock/` parent.
+  R2 mock-hidpi/SURF-010.full.png: this repository calls it a render of the DESIGN (`capture-manifest.py` MOCK_DIRS ['mock', 'mock-hidpi'] matched ['mock-hidpi']), and the instrument does not exclude it — no directory part is exactly `mock`. `attach-shots.py --apply` will offer this file to a surface on its filename. Move it under a `mock/` parent.
+  R2 mock-hidpi/SURF-011.full.png: this repository calls it a render of the DESIGN (`capture-manifest.py` MOCK_DIRS ['mock', 'mock-hidpi'] matched ['mock-hidpi']), and the instrument does not exclude it — no directory part is exactly `mock`. `attach-shots.py --apply` will offer this file to a surface on its filename. Move it under a `mock/` parent.
+BASELINE EXIT=1
+
+=== EFFECT — renders moved to evidence/shots/mock/hidpi/, MOCK_DIRS={mock}
+R1 attach-shots.py: pinned at 4ecf3d2d21b91757…, exclusion line at line 101, verbatim.
+R1 capture-lineage.py: pinned at e767ab1024a4566e…, exclusion line at line 150, verbatim.
+R2/R3 sweep: 28 design render(s) under ['mock']/, 41 build capture(s) with a recorded target, over planning/test-campaign/evidence/shots.
+The set this repository calls a design render and the set the instrument refuses to attach are the same set.
+EFFECT EXIT=0
+
+=== SILENCE / R1 CONTROL — the recorder is not the writer.
+The gate's rule is pinned to two files this fleet may not edit. Re-pointed at a copy of
+attach-shots.py with the exclusion line altered, it must refuse to render a verdict at all
+rather than keep asserting yesterday's rule. Run against a scratchpad copy:
+
+  R1 attach-shots.py: the pinned instrument moved. recorded 4ecf3d2d21b91757…, on disk 547f7eb729e1ab51…. This gate models one line of that file; re-read it, confirm the exclusion rule is still `mock` as a whole directory part, and re-pin. Do not raise the digest without reading the line.
+  R1 capture-lineage.py: the pinned instrument moved. recorded e767ab1024a4566e…, on disk fc80d7ea06d13514…. This gate models one line of that file; re-read it, confirm the exclusion rule is still `mock` as a whole directory part, and re-pin. Do not raise the digest without reading the line.
+
+rc = 2 (NOT COMPARED)
+CONTROL EXIT=0 — nonzero findings means the pin refused; 1 would mean the pin passed a changed file

@@ -1,5 +1,28 @@
 ---
-status: to-triage
+status: consumed
+settled: |
+  `consumed`, not `completed`: G14's LEDGER row was closed on its decomposition's gate verdict
+  and names no commit, so no shipped word is earned here and this is a ruling rather than a merge.
+  2026-09-02, wa3. The three surfaces this brief names were enumerated before it was re-read:
+  `harnesses` is SURF-025, `insights` is SURF-026 and the capability-document viewer is SURF-028,
+  landed by G14/G18 with `bin/surface-reconcile.py` derived from `Destination.swift` so the next
+  shipped Mac destination cannot be absent. `campaign.py check` on `main` reads 44 surfaces, not
+  the 24 quoted here.
+
+  The SHAPE recurred on Windows, which is what wa3 fixed. `bin/surface-reconcile.py` needs
+  `swift` and dies on this host with `FileNotFoundError: [WinError 2]`, so nothing reconciled the
+  ten shipped destinations or the three non-glass Windows planes against the registry. Three of
+  those planes had a passing case and no surface row to be counted in - REQ-035's logon task,
+  REQ-036's toast and its COM activator, and REQ-037's MSIX - which `control-census.py` reported
+  as three cases actuating controls "on no surface". They are now SURF-045, SURF-046 and SURF-047.
+  `bin/win-surface-reconcile.py` is the Windows reconciler, run by `scripts/windows/verify.ps1`.
+
+  Denominators as `campaign.py check` printed them: 44 enumerated -> 47. No case was manufactured;
+  the three rows each carry the case that was already passing over them.
+
+  NOT settled here, and it is this brief's fourth scope line: REQ-008's status. Whether the
+  menu-bar popover gets an opt-in activating lane, a different actuation path, or a recorded
+  limitation is a macOS decision that cannot be measured on this host at all.
 found-by: the orchestrator, 2026-08-27, asked whether the campaign covers every surface
 ---
 

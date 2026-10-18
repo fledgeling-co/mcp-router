@@ -25,7 +25,7 @@ import json, pathlib, sys, hashlib
 from PIL import Image
 
 CAMPAIGN = pathlib.Path(__file__).resolve().parent.parent
-REF_DIR = CAMPAIGN / "evidence/shots/mock-hidpi"
+REF_DIR = CAMPAIGN / "evidence/shots/mock/hidpi"
 BUILD_DIR = CAMPAIGN / "evidence/shots/design-size"
 OUT = CAMPAIGN / "evidence/shots/fidelity"
 
@@ -121,7 +121,7 @@ def main():
             "design": f"evidence/shots/fidelity/{out_r.name}",
             "build": f"evidence/shots/fidelity/{out_b.name}",
             "size": [wr, hr],
-            "designCropFrom": {"image": f"evidence/shots/mock-hidpi/{ref_path.name}", "box": list(rbox)},
+            "designCropFrom": {"image": f"evidence/shots/mock/hidpi/{ref_path.name}", "box": list(rbox)},
             "buildCropFrom": {"image": build[sid]["path"], "box": list(bbox)},
             "designBorderHit": redges,
             "designSha256": hashlib.sha256(out_r.read_bytes()).hexdigest(),

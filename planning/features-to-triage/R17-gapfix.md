@@ -1,3 +1,7 @@
+---
+registry-target: none
+no-target-reason: a gap-fix verdict against parent R17, about a claim being wider than its evidence. A record defect in the item's own write-up; the registry's only `R17` mention is inside DEF-090's list of rejected join candidates. Read against the registry 2026-09-03, we4.
+---
 # R17 gap-fix — the fix is right; the claim is wider than the evidence
 
 **Parent:** R17 · **Verdict:** Needs More Work, 2026-08-22

@@ -1,10 +1,9 @@
 ---
 status: to-triage
 found-by: intake, parity target for SURF-003 · 2026-08-30
-registry-target: none
-no-target-reason: SURF-003 registers the macOS Activity board and the registry holds no Windows equivalent, so no recorded case could witness the Windows one
+reckon-sources: [SURF-032]
+target-note: SURF-032 `Windows Activity board - the live call log` is the surface this brief specifies, registered on lane `windows-glass` at `app://windows/shell#activity` after the `none` was declared on 2026-08-30. The row carries no `WIN5` back-reference, so this citation rests on subject identity between the brief's title and the surface's, not on the registry naming the brief.
 ---
-
 # The Windows Activity board — every tool call every harness made, as it happens
 
 - origin: owner directive, 2026-08-30; parity target for the Mac Activity board

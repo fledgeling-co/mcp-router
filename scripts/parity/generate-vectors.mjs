@@ -9,6 +9,49 @@
 //   node scripts/parity/generate-vectors.mjs
 //
 // Requires `npm run build` first: it drives `dist/*.js`. The vectors are committed; `dist/` is not.
+//
+// ---------------------------------------------------------------------------------------------
+// WHERE WINDOWS BEHAVIOUR STANDS IN THIS CORPUS — it is deliberately OUT, and this is the record.
+// ---------------------------------------------------------------------------------------------
+//
+// WIN17's acceptance asked this harness to state its position on Windows rather than leave it to
+// be inferred from an absence, because an absence reads two ways: "considered and excluded" and
+// "nobody thought about it". This is the first.
+//
+// What this corpus is: a *differential* comparison. Each vector is an input, run through the
+// TypeScript router in `dist/` to produce an expectation, which the Swift `RouterCore` is then
+// required to reproduce byte for byte. It constrains the two implementations to agree — that is
+// the only thing it can do, and it is worth nothing where there is only one implementation.
+//
+// So the rule is mechanical rather than a judgement call: a behaviour belongs in this corpus when
+// both implementations have it, and belongs to a platform oracle when only one does.
+//
+//   · IN, and unaffected by WIN17 — the JSON layer, config parsing, manifest and tool-name rules,
+//     the document layer and the auth layer. All of them are pure functions of their input, both
+//     implementations have them, and none reads `process.platform`. WIN17 changed none of these
+//     files, and the vectors below are the same vectors they were before it.
+//
+//   · OUT, on purpose — everything in `src/platform.ts`. `RouterCore` is a Swift target built by
+//     xcodebuild for macOS; there is no Windows build of it and none is planned, so on the only
+//     host that can run the parity gate, every `IS_WINDOWS` branch in `platform.ts` is dead code
+//     that no vector could reach. A vector for it would not be a weak test — it would be a test
+//     of nothing, run on a machine where the branch cannot execute, which is worse than no test
+//     because it looks like coverage. The same holds for `lock.ts`'s flag word, `pool.ts`'s PATH
+//     separator and `sessions.ts`'s socket presence, all of which now branch through
+//     `platform.ts`.
+//
+// What the Windows behaviour is proved by instead, so the exclusion does not become a gap: it is
+// `scripts/e2e-platform.mjs`, run on the host whose behaviour is in question. That script asserts
+// what *this* host should do — a macOS run and a Windows run are one suite with two expectations —
+// and it is enrolled in `scripts/windows/verify.ps1`, so it runs on the Windows lane rather than
+// only when somebody types the command. It is the oracle; this corpus is not, and does not claim
+// to be.
+//
+// The one thing that would change this position: a second implementation of the platform layer,
+// for instance a C# port inside the Windows client rather than the client talking to this router
+// over the control API. Two implementations of one behaviour is exactly what a parity vector is
+// for, and at that point the platform layer would belong here. WIN12 and WIN23 own that shape;
+// today the Windows client is a client, so it does not arise.
 
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';

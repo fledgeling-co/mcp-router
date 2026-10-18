@@ -1,8 +1,8 @@
 ---
 status: to-triage
 found-by: reckon 1.7.0, 2026-08-29
+checked-2026-09-03-wc1: NOT FINISHED, and this is a correction to a wave report that listed it as landed. The commit offered as its delivery, 88d452d9, guards the WINDOWS UIA shell lane against a stale `bin\Debug` binary; its own message says it is this brief `live`, which is true as a sighting and is not the same as shipping it. This brief is `platforms: mac` and its subject is DEF-035: an incremental SWIFT build after adding an enum case reports impossible test failures, because a choice is encoded in the spare inhabitants of the enum's tag. Nothing on the Mac side has a freshness guard. The Windows guard is a second instance of the class, not a fix for this one.
 ---
-
 # A stale incremental build fabricates test failures, and can as easily fabricate a pass
 
 - origin: reckon 1.7.0, `DEF-035` · 2026-08-29

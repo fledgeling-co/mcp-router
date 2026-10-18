@@ -46,13 +46,60 @@ from input_accounting import Tally  # noqa: E402  — the sys.path line above ha
 
 # The id series this pipeline allocates. `D-<parent>-<letter>` deferred children and
 # `R1-D3`-style defect ids are NOT allocations and are excluded below.
-SERIES = r"(?:F|R|M|I|P|D|G|V|X|W)"
+#
+# `WIN`, `J`, `K`, `L` and `N` were added 2026-09-03, and their absence is the whole of what
+# check E was reporting. `merged_branches` derives an id from ANY `ai/<letters><digits>`
+# branch name, while every table reader here accepted only the ten letters above — so the
+# two halves of E were reading different vocabularies, and E reported 47 ids as "recorded in
+# neither file" when 35 of them had hand-written rows in BOTH. A reader narrower than the
+# allocator it audits reports absence for rows it cannot see, which is the same denominator
+# failure H's skip list and I's unread list exist to make impossible to report by accident.
+# `WIN` must precede `W`: `W\d+` cannot match `WIN2` anyway, but the ordering says why.
+SERIES = r"(?:WIN|F|R|M|I|P|D|G|V|X|W|J|K|L|N)"
 ID = re.compile(rf"(?<![A-Za-z0-9])({SERIES}\d+(?:-[A-Z]\d*)?)(?![0-9])")
 RANGE = re.compile(rf"({SERIES})(\d+)\s*[–—-]\s*({SERIES})?(\d+)")
 
 # Ids that look like allocations and are not. Mutation ids share the M prefix and run
 # to M57; `D1-D7` appears in prose about a spec's own table.
 NOT_ALLOCATIONS = {f"M{n}" for n in range(50, 100)}
+
+
+# The first-column header of the two tables that ALLOCATE an id. Everything else in these
+# files that happens to put an id in its first cell is a report ABOUT allocations rather than
+# an allocation: a wave plan keyed `Wave`, a lane-run table keyed `Item` whose second cell is
+# a verdict, byte-count and worktree-recovery tables, and a verifier's row audit.
+#
+# Measured 2026-09-03, the moment `WIN` entered SERIES: 245 id-bearing rows in ORCHESTRATOR.md,
+# of which 198 sit under `ID` and 9 under the deferred register's `#`. The other 38 are those
+# five report tables — and reading them as allocations put nine false rows into checks A and F
+# in one run. `W0`, `W3` and `W4` are WAVE labels out of `| Wave | Items | Why … |`; `WIN3`,
+# `WIN4`, `WIN6`, `WIN8`, `WIN17` and `WIN20` collided with THEMSELVES, because F read the
+# verdict cell of `| WIN17 | pass | 8029 | … |` as a second title for the same id.
+#
+# This is the discipline `status_rows` already carries one function down, for the reason its
+# docstring gives: a reader that indexes by position rather than by header compares a cell
+# against whatever happens to sit at that offset. The drop is NAMED in the Tally rather than
+# silent, so the denominator says how many rows were set aside and why.
+ALLOCATION_TABLE = {"id", "#"}
+
+
+def _headers(text: str) -> list[list[str]]:
+    """For each line, the header of the nearest table rule above it.
+
+    It does NOT reset at a non-table line, and that is deliberate rather than sloppy: both
+    files write one long table in fragments with prose between them, and only the first
+    fragment repeats the header. Resetting cost 101 of ORCHESTRATOR's 198 rows on the first
+    run of this function — `status_rows` has always carried the nearest-preceding-header
+    rule for the same reason, and this is the same rule spelled the same way.
+    """
+    lines = text.split("\n")
+    out: list[list[str]] = []
+    header: list[str] = []
+    for n, line in enumerate(lines, 1):
+        if re.match(r"^\|[\s:\-]+\|", line) and n >= 2:
+            header = [c.strip().lower() for c in lines[n - 2].split("|")][1:-1]
+        out.append(header)
+    return out
 
 
 def table_ids(text: str, source: str = "") -> tuple[set[str], Tally]:
@@ -67,9 +114,14 @@ def table_ids(text: str, source: str = "") -> tuple[set[str], Tally]:
     """
     tally = Tally("table row scan", source)
     found = set()
-    for line in text.split("\n"):
+    headers = _headers(text)
+    for n, line in enumerate(text.split("\n"), 1):
         if not line.startswith("| "):
             tally.drop(line, "not a table row")
+            continue
+        header = headers[n - 1]
+        if not header or header[0] not in ALLOCATION_TABLE:
+            tally.drop(line, "not a row of a table that allocates ids")
             continue
         cell = line.split("|")[1].strip().replace("**", "").replace("~~", "").strip()
         if not re.fullmatch(rf"{SERIES}\d+(?:-[A-Z]\d*)?", cell):
@@ -108,9 +160,14 @@ def describes(text: str, source: str) -> tuple[dict[str, list[tuple[str, str]]],
     """
     out: dict[str, list[tuple[str, str]]] = {}
     tally = Tally("description scan", source)
-    for line in text.split("\n"):
+    headers = _headers(text)
+    for n, line in enumerate(text.split("\n"), 1):
         if not line.startswith("| "):
             tally.drop(line, "not a table row")
+            continue
+        header = headers[n - 1]
+        if not header or header[0] not in ALLOCATION_TABLE:
+            tally.drop(line, "not a row of a table that allocates ids")
             continue
         cells = line.split("|")
         if len(cells) < 3:
@@ -204,7 +261,16 @@ STATES = [
     # row existed the check that is named for currency read nothing at all for the one moment
     # the two files are most likely to disagree. It announced the skip rather than passing
     # silently, which is the only reason it was cheap to find.
-    (r"ready to verify|ready for verification", "ready-to-verify"),
+    #
+    # `developer review` and `in review` name the SAME phase and were added 2026-09-03 on the
+    # same argument. Both files write them — ORCHESTRATOR "Developer Review (`ai/n3`)" beside
+    # LEDGER "In Review — built on `ai/n4`" — and neither matched anything here, so five ids
+    # (F7, F8, G27, R29, R31) sat in I's unread list where a "Developer Review" on one side and
+    # an "Untriaged" on the other would have satisfied every predicate. They map onto
+    # `ready-to-verify` rather than onto a state of their own because that is what they are:
+    # built, not yet graded. An item that is genuinely one and not the other is a wording
+    # difference, which is exactly what I is built not to flood on.
+    (r"ready to verify|ready for verification|developer review|in review", "ready-to-verify"),
     (r"ready to merge|\bverified\b", "verified"),
     (r"in progress|dispatched", "in-progress"),
     (r"ready for ai", "ready-for-ai"),
@@ -470,25 +536,44 @@ def main() -> int:
     # one of them — and it is worse than a missing row, because a missing row fails membership
     # while a stale duplicate fails nothing and gets scheduled. Found by dev-09 over a file
     # this script cleared at exit 0 with five such pairs in it.
+    #
+    # It read ORCHESTRATOR.md and nothing else until 2026-09-03, and its own argument says why
+    # that was wrong: "a fleet slot filled from the stale one re-plans work that is already
+    # built" is the ORCHESTRATOR consequence of a defect that is not an ORCHESTRATOR defect.
+    # The first run over both files named six ids in LEDGER.md — F7, F8, J2, K3, M38 and M39 —
+    # each carrying a live row and a stale pre-triage row beside it, `Developer Review` on one
+    # line and `To Do` four lines down. Check I could not see them either: it compares the SET
+    # of states each file gives an id, so a LEDGER id whose two rows disagree is only ever
+    # reported against ORCHESTRATOR, never against itself, and an id whose stale row is the
+    # unreadable one (F7, F8, J2, K3, M38 all classify None) leaves I entirely as "unread".
+    l_status_h, l_scan_h = status_rows(ledger, "LEDGER.md")
     o_status, o_scan_status = status_rows(orch, "ORCHESTRATOR.md")
     h = []
-    for i, rs in sorted(o_status.items()):
-        seen = {st.replace("**", "").strip(): n for n, st in rs}
-        if len(seen) > 1:
-            h.append(f"{i} (" + " / ".join(f"line {n}: {st[:44]!r}" for st, n in seen.items()) + ")")
+    for label, table in (("ORCHESTRATOR", o_status), ("LEDGER", l_status_h)):
+        for i, rs in sorted(table.items()):
+            seen = {st.replace("**", "").strip(): n for n, st in rs}
+            if len(seen) > 1:
+                h.append(f"{label} {i} ("
+                         + " / ".join(f"line {n}: {st[:44]!r}" for st, n in seen.items()) + ")")
     if h:
-        findings.append(("H", "two ORCHESTRATOR rows for one id disagreeing on status — a "
+        findings.append(("H", "two rows in one file for one id disagreeing on status — a "
                               "fleet slot filled from the stale one re-plans work that is "
                               "already built", h))
 
     # The denominator H stands on. Printed on every run, pass or fail: "no findings" over an
     # unstated subset is the failure this line exists to make impossible to report by accident.
-    examined = sum(len(v) for v in o_status.values())
-    short = sorted({i for _, i in o_scan_status.named("fewer cells than its header") if i})
-    print(f"H examined {examined} rows with a status cell; "
-          f"skipped {len(o_scan_status.named('fewer cells than its header'))} with fewer cells "
+    # Both files, since H reads both: a denominator naming one of two inputs is the same
+    # under-statement one level up.
+    examined = sum(len(v) for v in o_status.values()) + sum(len(v) for v in l_status_h.values())
+    short = sorted({i for _, i in o_scan_status.named("fewer cells than its header") if i}
+                   | {i for _, i in l_scan_h.named("fewer cells than its header") if i})
+    skipped = (len(o_scan_status.named("fewer cells than its header"))
+               + len(l_scan_h.named("fewer cells than its header")))
+    print(f"H examined {examined} rows with a status cell across both files; "
+          f"skipped {skipped} with fewer cells "
           f"than their header" + (f" ({', '.join(short)})" if short else ""))
     print(f"  {o_scan_status.line()}")
+    print(f"  {l_scan_h.line()}")
     if examined == 0:
         print("usage error: check H examined 0 rows — the table shape changed and H measured "
               "nothing. A gate that never ran is not a gate that passed.", file=sys.stderr)

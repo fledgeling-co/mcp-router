@@ -1,0 +1,114 @@
+<UserControl
+    x:Class="MCPRouter.Shell.Views.CleanupBoard"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid x:Name="RootGrid" Background="Transparent" Loaded="OnLoaded" Unloaded="OnUnloaded">
+        <!-- Ideal / Populated State -->
+        <ScrollViewer x:Name="IdealView" VerticalScrollBarVisibility="Auto">
+            <StackPanel Padding="24,16,24,32" Spacing="16" MaxWidth="1080" HorizontalAlignment="Left">
+                <!-- Board Head -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Cleanup" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="SemiBold" />
+                        <TextBlock x:Name="BoardSubtitle"
+                                   Text="Capabilities that are installed and unused. Nothing is removed automatically and nothing is called rubbish — a server nobody has called might be worthless, or might be the one that matters twice a year."
+                                   Style="{ThemeResource BodyTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   TextWrapping="Wrap" MaxWidth="720" />
+                    </StackPanel>
+                    <Button Grid.Column="1" VerticalAlignment="Top" x:Name="WindowSelectorButton" Content="Unused for 30 days" />
+                </Grid>
+
+                <!-- Explainer Card -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="{ThemeResource ControlCornerRadius}"
+                        Padding="16,12">
+                    <TextBlock Text="Under the router an unused server costs a few kilobytes of cached schema and nothing else — no process, no memory, no start-up. The reason to remove one is that its tools are cluttering the model's list, or that you no longer trust it. Both are your call, and neither is disk space."
+                               Style="{ThemeResource BodyTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               TextWrapping="Wrap" />
+                </Border>
+
+                <!-- What this board can and cannot see. Servers come from the router; skills have
+                     no route on this build, so the board says so instead of inventing them. -->
+                <TextBlock x:Name="ScopeNote"
+                           Style="{ThemeResource CaptionTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                           TextWrapping="Wrap" MaxWidth="720" />
+
+                <!-- The reading's own state: connecting, or the router's refusal. Never left blank
+                     over an empty list, because "nothing to propose" and "nobody answered" look
+                     identical once the rows are gone. -->
+                <TextBlock x:Name="StatusLine"
+                           Style="{ThemeResource BodyTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           TextWrapping="Wrap" MaxWidth="720" Visibility="Collapsed" />
+
+                <!-- Section: Never called -->
+                <TextBlock Text="Never called" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" Margin="0,8,0,0" />
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="{ThemeResource ControlCornerRadius}">
+                    <StackPanel x:Name="NeverCalledContainer" />
+                </Border>
+
+                <!-- Section: Quiet for 30 days or more -->
+                <TextBlock Text="Quiet for 30 days or more" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" Margin="0,8,0,0" />
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="{ThemeResource ControlCornerRadius}">
+                    <StackPanel x:Name="QuietContainer" />
+                </Border>
+
+                <!-- Bottom Action Row -->
+                <Grid Margin="0,16,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="SelectedCountText" Text="0 selected" Style="{ThemeResource BodyTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,16,0" />
+                    <Button Grid.Column="1" x:Name="RemoveSelectedButton" Content="Remove selected…"
+                            Background="{ThemeResource SystemFillColorCriticalBackgroundBrush}"
+                            Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                            Margin="0,0,8,0" Click="OnRemoveSelectedClicked" />
+                    <Button Grid.Column="2" x:Name="KeepAllButton" Content="Mark all as keep" Style="{ThemeResource SubtleButtonStyle}" Click="OnKeepAllClicked" />
+                    <!-- DEF-400: this line used to read "Removing is undoable for 30 days." Nothing
+                         in the product implements that, and the router's DELETE drops the entry and
+                         reloads. The wording now comes from CleanupPresentation so the dialog and
+                         this line cannot drift apart. -->
+                    <TextBlock Grid.Column="3" x:Name="IrreversibleNote" HorizontalAlignment="Right" VerticalAlignment="Center"
+                               TextWrapping="Wrap" MaxWidth="360" TextAlignment="Right"
+                               Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                </Grid>
+
+                <!-- What the removal did, read back after the router answered. -->
+                <TextBlock x:Name="RemoveOutcomeText" Visibility="Collapsed"
+                           Style="{ThemeResource BodyTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           TextWrapping="Wrap" MaxWidth="720" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Empty State -->
+        <StackPanel x:Name="EmptyView" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" MaxWidth="440">
+            <TextBlock Text="Every server here has been called" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="SemiBold" TextAlignment="Center" />
+            <TextBlock Text="Every server the router lists has served at least one call, and none has gone quiet for the window above. There is nothing to propose. Skills are not counted: the router serves no skills route on this build."
+                       Style="{ThemeResource BodyTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextAlignment="Center" TextWrapping="Wrap" />
+        </StackPanel>
+    </Grid>
+</UserControl>

@@ -1,3 +1,7 @@
+---
+registry-target: none
+no-target-reason: a gap-fix verdict against parent M23, about one grep on an existing fixture. Gate machinery; no registry row is about it. Read against the registry 2026-09-03, we4.
+---
 # M23 gap-fix 5 — one grep, on the fixture that already exists
 
 **Parent:** M23 — The mock-to-SwiftUI conversion contract

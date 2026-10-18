@@ -132,7 +132,8 @@ public enum ArgvRedaction {
     /// A query parameter: its separator, its key and its value.
     private static let queryParameter = #"([?&])([A-Za-z0-9._-]+)=([^&#\s]*)"#
     /// A header whose value is a credential: the rest of the argument after the colon is removed.
-    private static let credentialHeader = #"(?i)\b((?:proxy-)?authorization|(?:set-)?cookie)(\s*:\s*)[\s\S]*"#
+    private static let credentialHeader = #"(?i)\b((?:proxy-)?authorization|(?:set-)?cookie)"#
+        + #"(["']?\s*:\s*["']?)[\s\S]*"#
     /// An auth scheme and the credential after it.
     private static let credentialScheme = #"(?i)\b(bearer|basic)(\s+)[A-Za-z0-9._~+/=-]+"#
     /// A lowercase or digit followed by an uppercase letter: the boundary of a camelCase word.

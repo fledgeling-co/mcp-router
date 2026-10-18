@@ -165,6 +165,12 @@ const ARGV_CASES = [
     token: 'ctl_9f8e7d6c5b4a3210'
   },
   {
+    id: 'json-header-argument',
+    servers: { a: { command: 'npx', args: ['{"Cookie": "sid=abcdef123456"}'] } },
+    target: 'a',
+    token: 'ctl_9f8e7d6c5b4a3210'
+  },
+  {
     id: 'bearer-scheme-argument',
     servers: { a: { command: 'npx', args: ['Bearer abcdef123456'] } },
     target: 'a',

@@ -201,10 +201,10 @@ struct VectorRegistryTests {
     /// for the document route, so the floor rises to 427. Same reason: a floor left at 367 would let
     /// the whole document corpus be deleted without failing, and the corpus is the only thing that
     /// can tell a shared misreading of an image reference from a correct one.
-    /// DEF-070 adds twenty-four — the argv redaction cases `generate-argv-vectors.mjs` writes from the
-    /// reference — so the floor rises to 451, for the same reason: a floor left at 427 would let the
+    /// DEF-070 adds twenty-five — the argv redaction cases `generate-argv-vectors.mjs` writes from the
+    /// reference — so the floor rises to 452, for the same reason: a floor left at 427 would let the
     /// argv corpus be deleted without failing.
-    static let executedFloor = 451
+    static let executedFloor = 452
 
     /// B81. A bare total is satisfied by any unrelated vectors, so the auth corpus is asserted
     /// **by name** as well as by count — the substitute out-of-family gate found that a floor alone

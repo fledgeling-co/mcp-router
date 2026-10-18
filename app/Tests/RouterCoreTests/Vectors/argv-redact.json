@@ -408,6 +408,22 @@
       ]
     },
     {
+      "id": "json-header-argument",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "{\"Cookie\": \"sid=abcdef123456\"}"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "{\"Cookie\": \"<redacted>"
+      ]
+    },
+    {
       "id": "bearer-scheme-argument",
       "servers": {
         "a": {

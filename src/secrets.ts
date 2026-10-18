@@ -48,7 +48,7 @@ const USERINFO = /:\/\/([^\/?#\s]*)@/g;
 /** A query parameter: its separator, its key and its value. */
 const QUERY_PARAMETER = /([?&])([A-Za-z0-9._-]+)=([^&#\s]*)/g;
 /** A header whose value is a credential: the rest of the argument after the colon is removed. */
-const CREDENTIAL_HEADER = /\b((?:proxy-)?authorization|(?:set-)?cookie)(\s*:\s*)[\s\S]*/gi;
+const CREDENTIAL_HEADER = /\b((?:proxy-)?authorization|(?:set-)?cookie)(["']?\s*:\s*["']?)[\s\S]*/gi;
 /** An auth scheme and the credential after it. */
 const CREDENTIAL_SCHEME = /\b(bearer|basic)(\s+)[A-Za-z0-9._~+\/=-]+/gi;
 /** A lowercase or digit followed by an uppercase letter: the boundary of a camelCase word. */

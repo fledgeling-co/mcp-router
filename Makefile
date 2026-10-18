@@ -62,6 +62,13 @@ print(out)"
 
 IOS_DEST   ?= generic/platform=iOS Simulator
 MAC_DEST   ?= platform=macOS
+## Which SwiftPM build system every `swift build` / `swift test` below uses. `make test` reads the
+## build description through `scripts/build-description-report.py` (M33), and that report reads
+## llbuild's plan at `.build/<config>.yaml`. SwiftPM 6.4 defaults to `swiftbuild` on Xcode 27, which
+## writes under `.build/out/` and produces no such plan, so the report found nothing to read after
+## every test had passed. `native` still writes the plan. It is deprecated in SwiftPM 6.4 and prints
+## a warning, so this is a stopgap: the report needs porting to `.build/out` before native goes.
+SWIFT_BUILD_SYSTEM ?= native
 ## Which surface `make mock-fidelity` audits. One surface has a filled ledger today (Servers);
 ## M15-M22 add theirs by writing planning/fidelity/<surface>.layers.json beside this one.
 SURFACE    ?= servers
@@ -381,7 +388,7 @@ enum-layout-stamp:
 
 test: enum-layout-stamp
 	@set -eu -o pipefail; cd $(APP_DIR); \
-	  if ! listing=$$(swift test list 2>&1); then \
+	  if ! listing=$$(swift test --build-system $(SWIFT_BUILD_SYSTEM) list 2>&1); then \
 	    echo "error: could not enumerate tests — this is a build or toolchain failure, not an empty suite:"; \
 	    echo "$$listing"; exit 1; \
 	  fi; \
@@ -398,7 +405,7 @@ test: enum-layout-stamp
 	@set -eu -o pipefail; cd $(APP_DIR); \
 	  dir="$$(mktemp -d -t mcprouter-xunit)"; \
 	  trap 'rm -rf "$$dir"' EXIT; \
-	  swift test --xunit-output "$$dir/report.xml"; \
+	  swift test --build-system $(SWIFT_BUILD_SYSTEM) --xunit-output "$$dir/report.xml"; \
 	  reports=$$(find "$$dir" -name '*.xml' -size +0c); \
 	  if [ -z "$$reports" ]; then \
 	    echo "error: swift test wrote no xUnit report, so the number of tests that ran is unknown"; \
@@ -607,7 +614,7 @@ print((d.get('passedTests') or 0) + (d.get('failedTests') or 0))"); \
 ## marker at or above the floor is a pass.
 parity:
 	@set -eu -o pipefail; cd $(APP_DIR); \
-	  output=$$(swift test --filter VectorRegistryTests 2>&1) || { \
+	  output=$$(swift test --build-system $(SWIFT_BUILD_SYSTEM) --filter VectorRegistryTests 2>&1) || { \
 	    echo "$$output"; echo "error: the parity suite failed"; exit 1; }; \
 	  marker=$$(printf '%s\n' "$$output" | grep -oE 'PARITY-VECTORS-EXECUTED: [0-9]+' | tail -1 || true); \
 	  if [ -z "$$marker" ]; then \
@@ -825,7 +832,7 @@ acceptance: build-mac build-mac-release build-ios build-cli-debug
 ## `install-default`, because a lane reading `app/.build/debug/MCPRouterCLI` is not served by a
 ## release binary sitting somewhere else.
 build-cli-debug:
-	cd $(APP_DIR) && swift build --product MCPRouterCLI
+	cd $(APP_DIR) && swift build --build-system $(SWIFT_BUILD_SYSTEM) --product MCPRouterCLI
 
 ## Proves the aggregation above can go red, and that a red lane cannot hide inside a green total.
 ##
@@ -915,7 +922,7 @@ acceptance-r6: build-router-release
 	./scripts/acceptance/r6-child-path.sh
 
 build-router-release:
-	cd $(APP_DIR) && swift build -c release --product MCPRouterCLI
+	cd $(APP_DIR) && swift build --build-system $(SWIFT_BUILD_SYSTEM) -c release --product MCPRouterCLI
 
 ## `raster-claim-gate.py` (`J3`) is the ninth Python gate in `lint`, and it is here rather than
 ## behind a campaign target because the rule it holds is the campaign's strongest claim: that

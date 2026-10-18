@@ -141,6 +141,36 @@ const ARGV_CASES = [
     token: 'ctl_9f8e7d6c5b4a3210'
   },
   {
+    id: 'camel-case-flag-equals',
+    servers: { a: { command: 'npx', args: ['--accessToken=abcdef123456'] } },
+    target: 'a',
+    token: 'ctl_9f8e7d6c5b4a3210'
+  },
+  {
+    id: 'camel-case-flag-space',
+    servers: { a: { command: 'npx', args: ['--clientSecret', 'hunter2hunter2'] } },
+    target: 'a',
+    token: 'ctl_9f8e7d6c5b4a3210'
+  },
+  {
+    id: 'authorization-header-argument',
+    servers: { a: { command: 'npx', args: ['-H', 'Authorization: Bearer abcdef123456'] } },
+    target: 'a',
+    token: 'ctl_9f8e7d6c5b4a3210'
+  },
+  {
+    id: 'cookie-header-flag',
+    servers: { a: { command: 'npx', args: ['--header=Cookie: sid=abcdef123456'] } },
+    target: 'a',
+    token: 'ctl_9f8e7d6c5b4a3210'
+  },
+  {
+    id: 'bearer-scheme-argument',
+    servers: { a: { command: 'npx', args: ['Bearer abcdef123456'] } },
+    target: 'a',
+    token: 'ctl_9f8e7d6c5b4a3210'
+  },
+  {
     id: 'non-string-elements-kept',
     servers: { a: { command: 'node', cwd: '/', args: [1, 2] } },
     target: 'a',

@@ -47,6 +47,12 @@ const ENV_ASSIGN = /^([A-Za-z_][A-Za-z0-9_]*)=([\s\S]*)$/;
 const USERINFO = /:\/\/([^\/?#\s]*)@/g;
 /** A query parameter: its separator, its key and its value. */
 const QUERY_PARAMETER = /([?&])([A-Za-z0-9._-]+)=([^&#\s]*)/g;
+/** A header whose value is a credential: the rest of the argument after the colon is removed. */
+const CREDENTIAL_HEADER = /\b((?:proxy-)?authorization|(?:set-)?cookie)(\s*:\s*)[\s\S]*/gi;
+/** An auth scheme and the credential after it. */
+const CREDENTIAL_SCHEME = /\b(bearer|basic)(\s+)[A-Za-z0-9._~+\/=-]+/gi;
+/** A lowercase or digit followed by an uppercase letter: the boundary of a camelCase word. */
+const CAMEL_BOUNDARY = /([a-z0-9])([A-Z])/g;
 
 /** One literal the router can name as a secret, with the config key it came from. */
 export interface Needle {
@@ -64,6 +70,7 @@ function graphemeCount(text: string): number {
 /** Whether a flag or parameter name marks its value as a secret. */
 export function isSecretName(name: string): boolean {
   return name
+    .replace(CAMEL_BOUNDARY, '$1-$2')
     .toLowerCase()
     .split(/[-_.]/)
     .some((segment) => SECRET_SEGMENTS.has(segment));
@@ -158,7 +165,7 @@ function redactItems(items: unknown[], needles: Needle[]): unknown[] {
   return out;
 }
 
-/** Rules 3, 4 and 5, in that order. */
+/** Rules 3 to 6, in that order. */
 function scrubText(text: string, needles: Needle[]): string {
   const withoutPassword = text.replace(USERINFO, (_match, userinfo: string) => {
     if (userinfo === '') return '://@';
@@ -170,7 +177,17 @@ function scrubText(text: string, needles: Needle[]): string {
     (match, separator: string, key: string) =>
       isSecretName(key) ? `${separator}${key}=${REDACTED}` : match,
   );
-  return scrubLiterals(withoutQueryValue, needles);
+  // Literals go before the header and scheme rules, so a needle that follows `Basic ` keeps its
+  // label rather than being folded into the generic redaction.
+  const literalsRemoved = scrubLiterals(withoutQueryValue, needles);
+  const withoutCredentialHeader = literalsRemoved.replace(
+    CREDENTIAL_HEADER,
+    (_match, name: string, separator: string) => `${name}${separator}${REDACTED}`,
+  );
+  return withoutCredentialHeader.replace(
+    CREDENTIAL_SCHEME,
+    (_match, scheme: string, space: string) => `${scheme}${space}${REDACTED}`,
+  );
 }
 
 /** Every form of every needle, longest first. Equal lengths keep the order the needles came in. */

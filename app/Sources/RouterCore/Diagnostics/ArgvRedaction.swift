@@ -51,9 +51,13 @@ public enum ArgvRedaction {
         }
     }
 
-    /// Whether a flag or parameter name marks its value as a secret.
+    /// Whether a flag or parameter name marks its value as a secret. A camelCase name is split at its
+    /// case boundaries first, so `--accessToken` has the segment `token`.
     static func isSecretName(_ name: String) -> Bool {
-        name.lowercased()
+        let spaced = replacingMatches(of: camelBoundary, in: name) { groups in
+            "\(groups[1])-\(groups[2])"
+        }
+        return spaced.lowercased()
             .split(whereSeparator: { $0 == "-" || $0 == "_" || $0 == "." })
             .contains { secretSegments.contains(String($0)) }
     }
@@ -91,8 +95,8 @@ public enum ArgvRedaction {
         return out
     }
 
-    /// Rules 3, 4 and 5, in that order: the structural URL and query rules first, then the needles,
-    /// so a needle that is itself the password is already gone when the needle pass reads it.
+    /// Rules 3 to 6, in that order. The literals go before the header and scheme rules, so a needle
+    /// that follows `Basic ` keeps its label rather than being folded into the generic redaction.
     private static func scrubText(_ text: String, _ scrubber: SecretRedactor) -> String {
         let withoutPassword = replacingMatches(of: userinfo, in: text) { groups in
             let userinfoText = groups[1]
@@ -105,7 +109,13 @@ public enum ArgvRedaction {
         let withoutQueryValue = replacingMatches(of: queryParameter, in: withoutPassword) { groups in
             isSecretName(groups[2]) ? "\(groups[1])\(groups[2])=\(replacement)" : groups[0]
         }
-        return scrubber.redact(withoutQueryValue)
+        let literalsRemoved = scrubber.redact(withoutQueryValue)
+        let withoutCredentialHeader = replacingMatches(of: credentialHeader, in: literalsRemoved) { groups in
+            "\(groups[1])\(groups[2])\(replacement)"
+        }
+        return replacingMatches(of: credentialScheme, in: withoutCredentialHeader) { groups in
+            "\(groups[1])\(groups[2])\(replacement)"
+        }
     }
 
     // The patterns are built per call. `NSRegularExpression` is not `Sendable`, so a stored one
@@ -121,6 +131,12 @@ public enum ArgvRedaction {
     private static let userinfo = #"://([^/?#\s]*)@"#
     /// A query parameter: its separator, its key and its value.
     private static let queryParameter = #"([?&])([A-Za-z0-9._-]+)=([^&#\s]*)"#
+    /// A header whose value is a credential: the rest of the argument after the colon is removed.
+    private static let credentialHeader = #"(?i)\b((?:proxy-)?authorization|(?:set-)?cookie)(\s*:\s*)[\s\S]*"#
+    /// An auth scheme and the credential after it.
+    private static let credentialScheme = #"(?i)\b(bearer|basic)(\s+)[A-Za-z0-9._~+/=-]+"#
+    /// A lowercase or digit followed by an uppercase letter: the boundary of a camelCase word.
+    private static let camelBoundary = #"([a-z0-9])([A-Z])"#
 
     private static func firstMatch(of pattern: String, in text: String) -> [String]? {
         guard let regex = try? NSRegularExpression(pattern: pattern),

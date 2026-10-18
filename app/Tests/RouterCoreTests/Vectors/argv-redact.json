@@ -340,6 +340,90 @@
       ]
     },
     {
+      "id": "camel-case-flag-equals",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "--accessToken=abcdef123456"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "--accessToken=<redacted>"
+      ]
+    },
+    {
+      "id": "camel-case-flag-space",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "--clientSecret",
+            "hunter2hunter2"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "--clientSecret",
+        "<redacted>"
+      ]
+    },
+    {
+      "id": "authorization-header-argument",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "-H",
+            "Authorization: Bearer abcdef123456"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "-H",
+        "Authorization: <redacted>"
+      ]
+    },
+    {
+      "id": "cookie-header-flag",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "--header=Cookie: sid=abcdef123456"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "--header=Cookie: <redacted>"
+      ]
+    },
+    {
+      "id": "bearer-scheme-argument",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "Bearer abcdef123456"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "Bearer <redacted>"
+      ]
+    },
+    {
       "id": "non-string-elements-kept",
       "servers": {
         "a": {

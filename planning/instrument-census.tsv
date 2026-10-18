@@ -161,6 +161,8 @@ app/Tests/RouterCoreTests/AnalystCorpusTests.swift	swift-suite	app/Tests/RouterC
 app/Tests/RouterCoreTests/AnalystEngineTests.swift	swift-suite	app/Tests/RouterCoreTests/AnalystEngineTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/AttributionTests.swift	swift-suite	app/Tests/RouterCoreTests/AttributionTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/AuthCleanupRaceTests.swift	swift-suite	app/Tests/RouterCoreTests/AuthCleanupRaceTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/RouterCoreTests/AuthExpiryMonitorTests.swift	swift-suite	app/Tests/RouterCoreTests/AuthExpiryMonitorTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/RouterCoreTests/AuthExpiryPolicyTests.swift	swift-suite	app/Tests/RouterCoreTests/AuthExpiryPolicyTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/AuthFlowTests.swift	swift-suite	app/Tests/RouterCoreTests/AuthFlowTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/AuthParityTests.swift	swift-suite	app/Tests/RouterCoreTests/AuthParityTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/AuthRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/AuthRoutesTests.swift	swift	compiled and run by `swift test`	make:test
@@ -185,6 +187,7 @@ app/Tests/RouterCoreTests/ContentIdentityTests.swift	swift-suite	app/Tests/Route
 app/Tests/RouterCoreTests/ControlAnalystRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlAnalystRoutesTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ControlApproveCatalogTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlApproveCatalogTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ControlApproveDispatchTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlApproveDispatchTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/RouterCoreTests/ControlAuthExpiryRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlAuthExpiryRoutesTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ControlAuthStartDispatchTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlAuthStartDispatchTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ControlBoardRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlBoardRoutesTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ControlCacheRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlCacheRoutesTests.swift	swift	compiled and run by `swift test`	make:test
@@ -349,6 +352,7 @@ planning/test-campaign/bin/arm-f7-analyst.py	gate	planning/test-campaign/bin/arm
 planning/test-campaign/bin/arm-headless.py	gate	planning/test-campaign/bin/arm-headless.py	swift	argv ["swift", …]	-
 planning/test-campaign/bin/arm-pipeline.py	gate	planning/test-campaign/bin/arm-pipeline.py	static	no router invocation matched	-
 planning/test-campaign/bin/arm-r22-diagnostics.sh	gate	planning/test-campaign/bin/arm-r22-diagnostics.sh	swift	swift test	-
+planning/test-campaign/bin/arm-r26-auth-expiry.py	gate	planning/test-campaign/bin/arm-r26-auth-expiry.py	static	no router invocation matched	-
 planning/test-campaign/bin/arm-r27-health.sh	gate	planning/test-campaign/bin/arm-r27-health.sh	swift	swift test	-
 planning/test-campaign/bin/arm-suites.py	gate	planning/test-campaign/bin/arm-suites.py	swift	argv ["swift", …]	-
 planning/test-campaign/bin/arm-surface-reconcile.py	gate	planning/test-campaign/bin/arm-surface-reconcile.py	static	no router invocation matched	make:surface-reconcile-arm
@@ -468,6 +472,7 @@ scripts/acceptance/parity-state.sh	lane	scripts/acceptance/parity-state.sh	both	
 scripts/acceptance/parity-stream.sh	lane	scripts/acceptance/parity-stream.sh	both	node <path> + swift router binary	scripts/acceptance/parity-gate.sh
 scripts/acceptance/parity-suite.sh	lane	scripts/acceptance/parity-suite.sh	swift	swift test	scripts/acceptance/parity-gate.sh
 scripts/acceptance/r22-diagnostics.sh	lane	scripts/acceptance/r22-diagnostics.sh	swift	swift router binary	-
+scripts/acceptance/r26-auth-expiry.sh	lane	scripts/acceptance/r26-auth-expiry.sh	swift	swift router binary	-
 scripts/acceptance/r27-health.sh	lane	scripts/acceptance/r27-health.sh	swift	swift router binary	planning/test-campaign/bin/arm-r27-health.sh
 scripts/acceptance/r28-extensions.sh	lane	scripts/acceptance/r28-extensions.sh	swift	swift router binary	-
 scripts/acceptance/r30-ingest.sh	lane	scripts/acceptance/r30-ingest.sh	swift	swift router binary	-

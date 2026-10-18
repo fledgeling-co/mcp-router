@@ -355,7 +355,7 @@ extension ControlHandler {
         _ path: String, _ request: ControlAPIRequest, _ deps: ControlDeps
     ) async -> ControlAPIResponse? {
         if let response = routeReadingSynchronous(path, request, deps) { return response }
-        if let response = await routeHealth(path, request, deps) { return response }
+        if let response = await routeUpstreams(path, request, deps) { return response }
         if let response = await routeAnalyst(path, request, deps) { return response }
         switch (path, request.method) {
         case ("/harnesses", "GET"): return harnessesResponse(deps)

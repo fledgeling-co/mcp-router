@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: intake, from the owner's directive that Windows reach feature and UI parity with macOS · 2026-08-30
 registry-target: none
 no-target-reason: the campaign registry holds no Windows surface, case, requirement or defect, so nothing in it could answer a question about which Windows UI framework the client is built on

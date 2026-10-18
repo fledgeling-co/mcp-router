@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: measuring the reckoning across six merges in one session, 2026-08-27
 ---
 

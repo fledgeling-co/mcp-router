@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: M31's sweep and gap-fix, 2026-08-26
 ---
 

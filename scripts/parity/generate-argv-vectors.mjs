@@ -203,7 +203,7 @@ export function writeArgvVectors({ write, distDir, require }) {
   const { parseServer } = require(join(distDir, 'config.js'));
   const secrets = require(join(distDir, 'secrets.js'));
 
-  // pin-class: src-export — secrets.collectNeedles and secrets.redactArgs (DEF-070).
+  // pin-class: src-export — secrets.collectNeedles, secrets.redactArgs
   write('argv-redact', {
     description: 'secrets.redactArgs(args, collectNeedles(upstreams, token)) — the args GET /servers serves for a stdio server (DEF-070).',
     cases: ARGV_CASES.map((testCase) => {

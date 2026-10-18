@@ -1,5 +1,5 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { StdioClientTransport, type StdioServerParameters } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import { UnauthorizedError } from '@modelcontextprotocol/sdk/client/auth.js';
@@ -8,7 +8,9 @@ import { isStdio, type UpstreamConfig, type HttpUpstream, type StdioUpstream } f
 import { FileOAuthProvider, isAuthFailure } from './auth.js';
 import { log } from './log.js';
 import { readEnvFiles } from './envfile.js';
+import type { ChildProcess } from 'node:child_process';
 import { readdirSync, statSync } from 'node:fs';
+import { constants } from 'node:os';
 import { join } from 'node:path';
 import { PATH_LIST_SEPARATOR, residentKb, IS_WINDOWS } from './platform.js';
 
@@ -143,6 +145,49 @@ export interface PendingAuth {
   reason?: string;
 }
 
+/** How a stdio child ended: by an exit status, or by the signal that stopped it. */
+interface ChildExit {
+  code: number | null;
+  signal: NodeJS.Signals | null;
+}
+
+/**
+ * A stdio transport that reports how its child ended.
+ *
+ * The SDK sees the child's exit only as `close`, and drops the status and signal it was given, so a
+ * child that dies during startup reaches the caller as a bare `Connection closed`. The child exists
+ * only once `start()` has run, and the SDK keeps it in a private field, which is read here. If an
+ * SDK upgrade renames that field, `exited` never settles and a dead child reports the SDK's bare
+ * `Connection closed` again; the exit tests in `test/stdio-exit.test.ts` fail on that rather than
+ * passing quietly.
+ */
+class ExitReportingStdioTransport extends StdioClientTransport {
+  readonly exited: Promise<ChildExit>;
+  private resolveExit!: (exit: ChildExit) => void;
+
+  constructor(params: StdioServerParameters) {
+    super(params);
+    this.exited = new Promise((resolve) => {
+      this.resolveExit = resolve;
+    });
+  }
+
+  override async start(): Promise<void> {
+    await super.start();
+    const child = (this as unknown as { _process?: ChildProcess })._process;
+    child?.once('exit', (code, signal) => this.resolveExit({ code, signal }));
+  }
+}
+
+/** The startup-failure wording for a child that ended. Shared in text with the Swift router. */
+function exitedBeforeInitializing(name: string, exit: ChildExit): string {
+  const how =
+    exit.signal !== null
+      ? `exited on signal ${constants.signals[exit.signal]}`
+      : `exited with status ${exit.code}`;
+  return `upstream "${name}" ${how} before initializing`;
+}
+
 /**
  * Owns the lifecycle of every upstream.
  *
@@ -273,7 +318,7 @@ export class UpstreamPool {
   /** Build the transport for one upstream. stdio spawns a process; http/sse do not. */
   private makeTransport(u: UpstreamConfig): Transport {
     if (isStdio(u)) {
-      const t = new StdioClientTransport({
+      const t = new ExitReportingStdioTransport({
         command: u.command,
         args: u.args,
         env: this.buildEnv(u),
@@ -329,10 +374,19 @@ export class UpstreamPool {
     const client = new Client({ name: 'mcp-router', version: '0.1.0' }, { capabilities: {} });
 
     const timeoutMs = u.startupTimeoutMs ?? this.startupTimeoutMs;
+    // A child that ends before it can answer fails at once rather than running out the budget.
+    // HTTP has no child to watch, so its branch never settles.
+    const childExit =
+      transport instanceof ExitReportingStdioTransport
+        ? transport.exited.then((exit) => {
+            throw new Error(exitedBeforeInitializing(u.name, exit));
+          })
+        : new Promise<never>(() => {});
     let timer: NodeJS.Timeout | undefined;
     try {
       await Promise.race([
         client.connect(transport),
+        childExit,
         new Promise<never>((_, reject) => {
           timer = setTimeout(
             () => reject(new Error(`upstream "${u.name}" did not initialize within ${timeoutMs}ms`)),

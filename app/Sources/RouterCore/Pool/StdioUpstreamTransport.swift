@@ -89,6 +89,7 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
         let outcome = await handshake(
             client: client,
             transport: transport,
+            ending: child.ending,
             timeoutMilliseconds: timeoutMilliseconds
         )
         switch outcome {
@@ -99,6 +100,10 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
             // rather than left for a reaper that will never be told it exists.
             await session.shutdown()
             throw PoolError.startupTimeout(name: upstream.name, milliseconds: timeoutMilliseconds)
+        case let .exited(exit):
+            // The child is already gone, so this closes the descriptors and returns at once.
+            await session.shutdown()
+            throw PoolError.exitedBeforeInitializing(name: upstream.name, exit: exit)
         case let .failed(reason):
             await session.shutdown()
             throw PoolError.spawnFailed(name: upstream.name, reason: reason)
@@ -119,10 +124,10 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
         // the reference's own message rather than sixty seconds later with a timeout.
         //
         // The cause is `/usr/bin/env`, which the spawn below uses on purpose to keep the PATH
-        // semantics the reference has. `env` itself always exists, so `Process.run()` succeeds, the
-        // child then exits immediately, and the handshake sits there until the startup budget runs
-        // out. Measured: `mcp-router import` reported `upstream "broken" did not initialize within
-        // 60000ms` where the reference reported `spawn /nonexistent/... ENOENT` in milliseconds.
+        // semantics the reference has. `env` itself always exists, so `Process.run()` succeeds and the
+        // child then exits at once. Before the exit was noticed, the handshake waited out the whole
+        // startup budget. Measured: `mcp-router import` reported `upstream "broken" did not initialize
+        // within 60000ms` where the reference reported `spawn /nonexistent/... ENOENT` in milliseconds.
         //
         // It resolves against the environment the CHILD is about to get, not the router's own. A
         // pre-check searching a narrower PATH than the child would reject a command `/usr/bin/env`
@@ -152,7 +157,7 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
         process.standardError = pipes.error
 
         let ending = EndSignal()
-        process.terminationHandler = { _ in ending.fire() }
+        process.terminationHandler = { exited in ending.fire(ChildExit(exited)) }
 
         do {
             try process.run()
@@ -216,12 +221,15 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
     enum Handshake {
         case succeeded
         case timedOut
+        case exited(ChildExit)
         case failed(String)
     }
 
-    /// Race the MCP handshake against the startup budget.
+    /// Race the MCP handshake against the startup budget, and against the child's exit.
     ///
-    /// `connect` performs `initialize` itself, so this one call is the whole handshake.
+    /// `connect` performs `initialize` itself, so this one call is the whole handshake. The exit is a
+    /// third racer, because a child that dies before answering can never complete the handshake, and
+    /// waiting for the budget to run out tells the operator nothing the exit does not.
     ///
     /// Deliberately **not** a task group, and this cost a deadlock to learn: a group does not return
     /// until every child task has finished, so racing an uncancellable await against a timer inside
@@ -235,6 +243,7 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
     private func handshake(
         client: Client,
         transport: any Transport,
+        ending: EndSignal,
         timeoutMilliseconds: Int
     ) async -> Handshake {
         let outcome = FirstOutcome<Handshake>()
@@ -250,9 +259,13 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
             try? await Task.sleep(nanoseconds: UInt64(max(0, timeoutMilliseconds)) * 1_000_000)
             outcome.offer(.timedOut)
         }
+        let exiting = Task {
+            if let exit = await ending.wait() { outcome.offer(.exited(exit)) }
+        }
 
         let result = await outcome.wait()
         timing.cancel()
+        exiting.cancel()
         if case .succeeded = result {} else { connecting.cancel() }
         return result
     }
@@ -306,6 +319,13 @@ final class ChildPipes: Sendable {
     let error = Pipe()
     private let closed = Mutex(false)
 
+    init() {
+        // A child that dies while the router is still writing to its stdin must make that write fail
+        // with EPIPE. Without this, the write raises SIGPIPE, which ends the whole router. Set on this
+        // descriptor alone, so nothing else in the process changes its signal disposition.
+        _ = fcntl(input.fileHandleForWriting.fileDescriptor, F_SETNOSIGPIPE, 1)
+    }
+
     func closeAll() {
         let alreadyClosed = closed.withLock { value -> Bool in
             defer { value = true }
@@ -321,41 +341,6 @@ final class ChildPipes: Sendable {
             error.fileHandleForReading, error.fileHandleForWriting
         ] {
             try? handle.close()
-        }
-    }
-}
-
-/// A one-shot "the child exited" signal, awaited by any number of callers.
-final class EndSignal: Sendable {
-    private struct State {
-        var fired = false
-        var waiters: [CheckedContinuation<Void, Never>] = []
-    }
-
-    private let state = Mutex(State())
-
-    func fire() {
-        let waiting = state.withLock { current -> [CheckedContinuation<Void, Never>] in
-            current.fired = true
-            let waiters = current.waiters
-            current.waiters = []
-            return waiters
-        }
-        for continuation in waiting {
-            continuation.resume()
-        }
-    }
-
-    func wait() async {
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            let alreadyFired = state.withLock { current -> Bool in
-                if current.fired { return true }
-                current.waiters.append(continuation)
-                return false
-            }
-            // Resumed outside the lock: resuming a continuation can run arbitrary code, and running
-            // it while holding this mutex is how a deadlock gets built.
-            if alreadyFired { continuation.resume() }
         }
     }
 }

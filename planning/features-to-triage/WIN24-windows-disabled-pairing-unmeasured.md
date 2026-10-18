@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: WIN2's independent verifier, note 2 of 2 · 2026-08-30
 registry-target: none
 no-target-reason: the registry holds no Windows surface or requirement, so nothing in it can witness a contrast ratio measured against a Windows control fill

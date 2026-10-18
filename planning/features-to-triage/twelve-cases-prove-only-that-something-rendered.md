@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: `strict-check.py` (test-campaign 0.14.1), 2026-08-29
 ---
 

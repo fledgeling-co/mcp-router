@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: the 2026-08-28 directive, on the half that keeps the router authoritative over time
 ---
 

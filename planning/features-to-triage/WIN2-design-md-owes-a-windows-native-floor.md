@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: intake, reading DESIGN.md section 3 against the directive's "modern windows 11 aesthetic" · 2026-08-30
 registry-target: none
 no-target-reason: the design authority's native floor is macOS-only and no requirement, case or surface in the registry describes a Windows one, so the registry cannot say whether a Windows surface conforms

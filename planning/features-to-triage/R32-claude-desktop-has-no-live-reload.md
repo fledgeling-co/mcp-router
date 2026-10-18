@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: measuring Claude Desktop against Claude Code, 2026-08-28
 ---
 

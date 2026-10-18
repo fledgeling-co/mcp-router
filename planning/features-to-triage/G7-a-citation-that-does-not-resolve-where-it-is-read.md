@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: lukerhodes-2f, 2026-08-23
 ---
 

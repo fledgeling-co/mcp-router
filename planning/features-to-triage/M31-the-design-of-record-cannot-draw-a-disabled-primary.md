@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: lukerhodes-2f via M18's gap-fix, 2026-08-23
 ---
 

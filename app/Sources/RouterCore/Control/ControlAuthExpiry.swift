@@ -36,6 +36,22 @@ extension ControlHandler {
         }
     }
 
+    /// The two families that answer questions about the upstreams themselves rather than about
+    /// what the router holds: R27's health and R26's credential expiry.
+    ///
+    /// One arm in ``routeReading(_:_:_:)`` rather than two, and that is a constraint rather than a
+    /// preference — `ControlHandler.swift` records that adding M22's two routes inline took
+    /// `handle` to complexity 12 against a cap of 10, and R26's route took `routeReading` to 13 the
+    /// same way. Grouping them here is the same repair applied a second time, and the grouping is
+    /// real: both answer *what is the state of the thing on the other end*, and both are declared
+    /// divergences from `src/control.ts` rather than routes it also serves.
+    func routeUpstreams(
+        _ path: String, _ request: ControlAPIRequest, _ deps: ControlDeps
+    ) async -> ControlAPIResponse? {
+        if let response = await routeHealth(path, request, deps) { return response }
+        return await routeAuthExpiry(path, request, deps)
+    }
+
     private func authExpiryReport(_ deps: ControlDeps) async -> ControlAPIResponse {
         guard let expiry = deps.authExpiry else { return Self.authExpiryUnavailable }
         let now = deps.clock.nowMilliseconds

@@ -7,10 +7,23 @@ import Foundation
 /// (B10). The construction below never receives a value: it maps the pair arrays to their keys
 /// before anything else touches them.
 ///
+/// Argument VALUES that look like secrets are removed from `args` by ``ArgvRedaction`` (DEF-070), and
+/// the `scrubber` carries the literal needles that pass also removes.
+///
 /// Every member is placed in the reference's own order, and a member whose value is `undefined` is
 /// **omitted** rather than emitted as null (S3, B2, B3).
 public enum Describe {
-    public static func row(_ upstream: UpstreamConfig, _ deps: ControlDeps) -> JSONValue {
+    /// The literal needles every row's argv is scrubbed against: the set the diagnostics bundle
+    /// scrubs, built from the live upstream map and the router's own control token (DEF-070).
+    public static func scrubber(_ deps: ControlDeps, controlToken: String) -> SecretRedactor {
+        SecretRedactor(needles: SecretNeedles.collect(
+            upstreams: deps.upstreams.map(\.upstream), controlToken: controlToken
+        ))
+    }
+
+    public static func row(
+        _ upstream: UpstreamConfig, _ deps: ControlDeps, _ scrubber: SecretRedactor
+    ) -> JSONValue {
         let name = upstream.name
         // The same name as UTF-16 code units, which is how every port keyed by a server name
         // compares it. Swift's `==` is canonical equivalence, so a decomposed live row would match
@@ -35,7 +48,7 @@ public enum Describe {
             JSONMember(key: "idleSec", value: .number(Double(live?.idleSec ?? 0)))
         ]
 
-        members.append(contentsOf: transportMembers(upstream))
+        members.append(contentsOf: transportMembers(upstream, scrubber))
         members.append(JSONMember(
             key: "hash", value: .string(JSString(UpstreamHash.hash(upstream)))
         ))
@@ -65,7 +78,9 @@ public enum Describe {
 
     /// The transport-conditional block, which lands between `idleSec` and `hash` — the spread's
     /// position in the reference's object literal, and therefore its position on the wire.
-    private static func transportMembers(_ upstream: UpstreamConfig) -> [JSONMember] {
+    private static func transportMembers(
+        _ upstream: UpstreamConfig, _ scrubber: SecretRedactor
+    ) -> [JSONMember] {
         var members: [JSONMember] = []
         if upstream.isStdio {
             // `command: u.command` and `args: u.args ?? []` in `config.ts`, both **raw**. The typed
@@ -77,7 +92,12 @@ public enum Describe {
                 key: "command",
                 value: upstream.raw.member("command") ?? .string(JSString(upstream.command ?? ""))
             ))
-            members.append(JSONMember(key: "args", value: rawOrEmptyArray(upstream.raw.member("args"))))
+            // The raw shape is kept and its secret-bearing values are removed (DEF-070). `command` is
+            // not passed through the rule: it names the executable the app shows, so a secret written
+            // into `command` itself is outside what this removes.
+            members.append(JSONMember(key: "args", value: ArgvRedaction.redact(
+                rawOrEmptyArray(upstream.raw.member("args")), with: scrubber
+            )))
             // `cwd` is the one member where absent and null are both reachable and different:
             // `JSON.stringify` omits an undefined member and emits `"cwd":null` for a null one, so
             // the raw config is consulted rather than the parsed optional, which collapses them.

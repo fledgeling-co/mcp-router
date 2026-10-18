@@ -106,9 +106,10 @@ public struct ControlHandler: Sendable {
                 JSONMember(key: "url", value: .string(JSString(flow.url)))
             ])))
         }
+        let scrubber = Describe.scrubber(deps, controlToken: token)
         members.append(JSONMember(
             key: "servers",
-            value: .array(deps.upstreams.map { Describe.row($0.upstream, deps) })
+            value: .array(deps.upstreams.map { Describe.row($0.upstream, deps, scrubber) })
         ))
         return .json(200, .object(members))
     }
@@ -199,7 +200,7 @@ public struct ControlHandler: Sendable {
 
         switch (route.sub, request.method) {
         case (nil, "GET"):
-            return .json(200, Describe.row(upstream, deps))
+            return .json(200, Describe.row(upstream, deps, Describe.scrubber(deps, controlToken: token)))
 
         case (nil, "DELETE"):
             return removeServer(name: name, request: request, deps: &deps)
@@ -333,7 +334,7 @@ public struct ControlHandler: Sendable {
         guard let reloaded = deps.upstream(named: name) else {
             return .error(404, "no server named \"\(name.string)\"")
         }
-        return .json(200, Describe.row(reloaded, deps))
+        return .json(200, Describe.row(reloaded, deps, Describe.scrubber(deps, controlToken: token)))
     }
 }
 

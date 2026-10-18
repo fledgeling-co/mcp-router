@@ -26,7 +26,7 @@ struct RawFieldParityTests {
             upstreams.append((entry.key, upstream))
         }
         let deps = try PortIdentityTests.deps(upstreams: upstreams)
-        return JSStringify.compact(Describe.row(deps.upstreams[0].upstream, deps))
+        return JSStringify.compact(Describe.row(deps.upstreams[0].upstream, deps, .withoutNeedles))
     }
 
     @Test("a non-array projects survives to the wire, as `?? []` being nullish requires")

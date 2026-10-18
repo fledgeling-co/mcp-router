@@ -16,6 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { writeDocumentVectors } from './generate-document-vectors.mjs';
 import { writeAuthVectors } from './generate-auth-vectors.mjs';
+import { writeArgvVectors } from './generate-argv-vectors.mjs';
 
 const require = createRequire(import.meta.url);
 const here = dirname(fileURLToPath(import.meta.url));
@@ -912,6 +913,12 @@ writeDocumentVectors({ write, distDir, require });
 // cases, the description and the `PAGE` import — and one standalone entry point — instead of two
 // scripts writing the same committed file.
 writeAuthVectors({ write, distDir, require });
+
+// ---------------------------------------------------------------- DEF-070 · argv redaction
+//
+// In a module of its own, the same as the two above, so the standalone entry point and the full
+// regen write the same file from one definition of the cases.
+writeArgvVectors({ write, distDir, require });
 
 rmSync(usageScratch, { recursive: true, force: true });
 

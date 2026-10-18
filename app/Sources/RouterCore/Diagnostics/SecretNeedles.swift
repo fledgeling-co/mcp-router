@@ -78,6 +78,13 @@ public struct SecretNeedles: Sendable {
     /// is a token *reflected back by an upstream into an error string*, recorded in
     /// `planning/specs/spec-R22.md` §6 as residual rather than claimed closed.
     public static func collect(config: RouterConfig, controlToken: String) -> SecretNeedles {
+        collect(upstreams: config.upstreams, controlToken: controlToken)
+    }
+
+    /// The same set as ``collect(config:controlToken:)``, from the upstreams a caller holds. The
+    /// control API passes its live upstream map here, so a reload is reflected without re-reading
+    /// the config file (DEF-070).
+    public static func collect(upstreams: [UpstreamConfig], controlToken: String) -> SecretNeedles {
         var needles: [Needle] = []
         var unscrubbable: [Unscrubbable] = []
 
@@ -95,7 +102,7 @@ public struct SecretNeedles: Sendable {
             }
         }
 
-        for upstream in config.upstreams {
+        for upstream in upstreams {
             for pair in upstream.env {
                 consider(label: "\(upstream.name).env.\(pair.key.string)", value: pair.value.string)
             }

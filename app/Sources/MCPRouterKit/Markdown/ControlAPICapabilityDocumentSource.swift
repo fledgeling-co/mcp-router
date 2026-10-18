@@ -118,7 +118,7 @@ public struct ControlAPICapabilityDocumentSource: CapabilityDocumentSource {
         case "documentTooLarge":
             .tooLarge(
                 capability: capability,
-                file: refusal.file ?? "This document",
+                file: refusal.file ?? "document",
                 capBytes: refusal.limit ?? 0
             )
         // A reason this version does not know is still the router refusing, and the router's own

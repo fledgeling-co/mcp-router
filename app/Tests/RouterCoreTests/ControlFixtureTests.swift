@@ -143,7 +143,7 @@ struct ControlFixtureTests {
     func stdioRow() throws {
         var deps = try Self.makeDeps()
         let upstream = try #require(deps.upstream(named: JSString("fixture-stdio")))
-        let produced = JSStringify.compact(Describe.row(upstream, deps))
+        let produced = JSStringify.compact(Describe.row(upstream, deps, .withoutNeedles))
         #expect(try produced == (Self.fixture("server-stdio.json")))
         _ = deps
     }
@@ -152,7 +152,7 @@ struct ControlFixtureTests {
     func httpRow() throws {
         var deps = try Self.makeDeps()
         let upstream = try #require(deps.upstream(named: JSString("fixture-http")))
-        let produced = JSStringify.compact(Describe.row(upstream, deps))
+        let produced = JSStringify.compact(Describe.row(upstream, deps, .withoutNeedles))
         #expect(try produced == (Self.fixture("server-http.json")))
         _ = deps
     }
@@ -163,7 +163,7 @@ struct ControlFixtureTests {
     func oauthRow() throws {
         var deps = try Self.makeDeps()
         let upstream = try #require(deps.upstream(named: JSString("fixture-oauth")))
-        let produced = JSStringify.compact(Describe.row(upstream, deps))
+        let produced = JSStringify.compact(Describe.row(upstream, deps, .withoutNeedles))
         #expect(produced.contains(#""auth":{"supported":true,"authorized":false}"#))
         #expect(!produced.contains("authorizedAt"))
         #expect(!produced.contains("pendingUrl"))
@@ -176,7 +176,7 @@ struct ControlFixtureTests {
     func omitsUndefined() throws {
         var deps = try Self.makeDeps()
         let upstream = try #require(deps.upstream(named: JSString("fixture-stdio")))
-        let produced = JSStringify.compact(Describe.row(upstream, deps))
+        let produced = JSStringify.compact(Describe.row(upstream, deps, .withoutNeedles))
         // The config declares no cwd, the manifest has no entry, there is no placard and nothing
         // pending — four members the reference omits entirely.
         for absent in ["cwd", "indexedAt", "indexError", "placard", "pendingChange"] {
@@ -206,7 +206,7 @@ struct ControlFixtureTests {
 
         var deps = try Self.makeDeps(manifest: manifest)
         let upstream = try #require(deps.upstream(named: JSString("fixture-stdio")))
-        let produced = JSStringify.compact(Describe.row(upstream, deps))
+        let produced = JSStringify.compact(Describe.row(upstream, deps, .withoutNeedles))
 
         #expect(produced.contains(#""tools":1"#), "an error:\"\" must not zero the tool count")
         #expect(produced.contains(#""toolNames":["ping"]"#))
@@ -350,7 +350,7 @@ struct ControlDispatchTests {
         }
         var deps = try Fixtures.makeDeps()
         deps.upstreams = [(JSString("s"), upstream)]
-        let produced = JSStringify.compact(Describe.row(upstream, deps))
+        let produced = JSStringify.compact(Describe.row(upstream, deps, .withoutNeedles))
         // The emoji's lead surrogate D83D sorts BEFORE E000 in UTF-16 code-unit order. Swift's
         // default `<` on String compares by scalar and puts it last.
         let emojiFirst = produced.range(of: #""envKeys":["😀""#) != nil

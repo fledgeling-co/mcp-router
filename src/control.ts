@@ -17,6 +17,7 @@ import {
   type HttpUpstream,
 } from './config.js';
 import { UpstreamPool } from './pool.js';
+import { collectNeedles, redactArgs, type Needle } from './secrets.js';
 import {
   buildManifest,
   loadManifest,
@@ -198,9 +199,10 @@ function authTransportFor(u: HttpUpstream) {
  *
  * Env and header VALUES never appear here — only their key names. This endpoint is
  * reachable by anything that can open a loopback socket, and a server's env is
- * where its API keys live.
+ * where its API keys live. Argument values that look like secrets are removed by
+ * `redactArgs` (DEF-070); `needles` carries the literal secrets that pass also removes.
  */
-function describe(u: UpstreamConfig, deps: ControlDeps) {
+function describe(u: UpstreamConfig, deps: ControlDeps, needles: Needle[]) {
   const entry = deps.manifest.current().servers[u.name];
   const live = deps.pool.status().find((s) => s.name === u.name);
   const stat = deps.usage.statFor(u.name);
@@ -257,7 +259,7 @@ function describe(u: UpstreamConfig, deps: ControlDeps) {
     callsServed: live?.callsServed ?? 0,
     idleSec: live?.idleSec ?? 0,
     ...(isStdio(u)
-      ? { command: u.command, args: u.args, cwd: u.cwd, envKeys: Object.keys(u.env).sort(), envFiles: u.envFiles }
+      ? { command: u.command, args: redactArgs(u.args, needles), cwd: u.cwd, envKeys: Object.keys(u.env).sort(), envFiles: u.envFiles }
       : { url: u.url, headerKeys: Object.keys(u.headers).sort() }),
     hash: upstreamHash(u),
     tools: entry?.error ? 0 : (entry?.tools.length ?? 0),
@@ -463,12 +465,13 @@ export async function handleControl(
 
   // ---------------------------------------------------------------- servers
   if (p === '/servers' && req.method === 'GET') {
+    const needles = collectNeedles(deps.upstreams.values(), token);
     json(res, 200, {
       port: deps.cfg.port,
       idleMs: deps.cfg.idleMs,
       since: deps.usage.summary().since,
       pendingAuth: currentFlow(),
-      servers: [...deps.upstreams.values()].map((u) => describe(u, deps)),
+      servers: [...deps.upstreams.values()].map((u) => describe(u, deps, needles)),
     });
     return true;
   }
@@ -525,7 +528,7 @@ export async function handleControl(
     }
 
     if (!sub && req.method === 'GET') {
-      json(res, 200, describe(u, deps));
+      json(res, 200, describe(u, deps, collectNeedles(deps.upstreams.values(), token)));
       return true;
     }
 
@@ -717,7 +720,7 @@ export async function handleControl(
         announceTools(deps, `changed what "${name}" serves`);
       }
       if (b.warm) void deps.pool.warmUp();
-      json(res, 200, describe(deps.upstreams.get(name)!, deps));
+      json(res, 200, describe(deps.upstreams.get(name)!, deps, collectNeedles(deps.upstreams.values(), token)));
       return true;
     }
 

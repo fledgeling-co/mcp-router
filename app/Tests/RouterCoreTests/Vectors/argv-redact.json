@@ -1,0 +1,462 @@
+{
+  "description": "secrets.redactArgs(args, collectNeedles(upstreams, token)) — the args GET /servers serves for a stdio server (DEF-070).",
+  "cases": [
+    {
+      "id": "flag-equals-secret",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "serve",
+            "--token=abcdef123456",
+            "--port=8080"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "serve",
+        "--token=<redacted>",
+        "--port=8080"
+      ]
+    },
+    {
+      "id": "flag-equals-plain-kept",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "--port=8080",
+            "--verbose",
+            "serve"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "--port=8080",
+        "--verbose",
+        "serve"
+      ]
+    },
+    {
+      "id": "flag-space-secret-value",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "--api-key",
+            "sk-live-0123456789"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "--api-key",
+        "<redacted>"
+      ]
+    },
+    {
+      "id": "flag-space-next-is-flag",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "--token",
+            "--verbose"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "--token",
+        "--verbose"
+      ]
+    },
+    {
+      "id": "flag-space-value-then-positional",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "--password",
+            "hunter2hunter2",
+            "run"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "--password",
+        "<redacted>",
+        "run"
+      ]
+    },
+    {
+      "id": "secret-segment-over-redacts",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "--sort-key=name"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "--sort-key=<redacted>"
+      ]
+    },
+    {
+      "id": "word-containing-key-kept",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "--monkey=banana"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "--monkey=banana"
+      ]
+    },
+    {
+      "id": "url-password",
+      "servers": {
+        "a": {
+          "command": "psql-mcp",
+          "args": [
+            "postgres://alice:s3cr3tpass@db.internal:5432/app"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "postgres://alice:<redacted>@db.internal:5432/app"
+      ]
+    },
+    {
+      "id": "url-token-in-user-position",
+      "servers": {
+        "a": {
+          "command": "git-mcp",
+          "args": [
+            "https://ghp_0123456789abcdef@github.com/acme/x.git"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "https://<redacted>@github.com/acme/x.git"
+      ]
+    },
+    {
+      "id": "url-without-userinfo-kept",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "https://example.com/mcp?page=2"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "https://example.com/mcp?page=2"
+      ]
+    },
+    {
+      "id": "query-secret-value",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "https://h.example.com/mcp?api_key=zz99ZZ88&page=2"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "https://h.example.com/mcp?api_key=<redacted>&page=2"
+      ]
+    },
+    {
+      "id": "env-assignment",
+      "servers": {
+        "a": {
+          "command": "env",
+          "args": [
+            "API_TOKEN=abcdef123456",
+            "MODE=prod"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "API_TOKEN=<redacted>",
+        "MODE=prod"
+      ]
+    },
+    {
+      "id": "needle-from-another-server",
+      "servers": {
+        "a": {
+          "command": "node",
+          "args": [
+            "server.js"
+          ],
+          "env": {
+            "GITHUB_TOKEN": "ghp_0123456789abcdef"
+          }
+        },
+        "b": {
+          "command": "node",
+          "args": [
+            "--header=ghp_0123456789abcdef"
+          ]
+        }
+      },
+      "target": "b",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "--header=<redacted:a.env.GITHUB_TOKEN>"
+      ]
+    },
+    {
+      "id": "control-token-needle",
+      "servers": {
+        "b": {
+          "command": "node",
+          "args": [
+            "--listen",
+            "ctl_9f8e7d6c5b4a3210"
+          ]
+        }
+      },
+      "target": "b",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "--listen",
+        "<redacted:control.token>"
+      ]
+    },
+    {
+      "id": "short-needle-kept",
+      "servers": {
+        "a": {
+          "command": "node",
+          "env": {
+            "DEBUG": "1234567"
+          }
+        },
+        "b": {
+          "command": "node",
+          "args": [
+            "1234567"
+          ]
+        }
+      },
+      "target": "b",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "1234567"
+      ]
+    },
+    {
+      "id": "percent-encoded-needle",
+      "servers": {
+        "a": {
+          "command": "node",
+          "env": {
+            "K": "a b&c=d/e"
+          }
+        },
+        "b": {
+          "command": "node",
+          "args": [
+            "https://h.example.com/?q=a%20b%26c%3Dd%2Fe"
+          ]
+        }
+      },
+      "target": "b",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "https://h.example.com/?q=<redacted:a.env.K>"
+      ]
+    },
+    {
+      "id": "base64-needle",
+      "servers": {
+        "a": {
+          "command": "node",
+          "env": {
+            "K": "secretvalue123"
+          }
+        },
+        "b": {
+          "command": "node",
+          "args": [
+            "Basic c2VjcmV0dmFsdWUxMjM="
+          ]
+        }
+      },
+      "target": "b",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "Basic <redacted:a.env.K>"
+      ]
+    },
+    {
+      "id": "non-string-value-after-secret-flag",
+      "servers": {
+        "a": {
+          "command": "node",
+          "cwd": "/",
+          "args": [
+            "--token",
+            12345678
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "--token",
+        "<redacted>"
+      ]
+    },
+    {
+      "id": "camel-case-flag-equals",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "--accessToken=abcdef123456"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "--accessToken=<redacted>"
+      ]
+    },
+    {
+      "id": "camel-case-flag-space",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "--clientSecret",
+            "hunter2hunter2"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "--clientSecret",
+        "<redacted>"
+      ]
+    },
+    {
+      "id": "authorization-header-argument",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "-H",
+            "Authorization: Bearer abcdef123456"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "-H",
+        "Authorization: <redacted>"
+      ]
+    },
+    {
+      "id": "cookie-header-flag",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "--header=Cookie: sid=abcdef123456"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "--header=Cookie: <redacted>"
+      ]
+    },
+    {
+      "id": "json-header-argument",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "{\"Cookie\": \"sid=abcdef123456\"}"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "{\"Cookie\": \"<redacted>"
+      ]
+    },
+    {
+      "id": "bearer-scheme-argument",
+      "servers": {
+        "a": {
+          "command": "npx",
+          "args": [
+            "Bearer abcdef123456"
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        "Bearer <redacted>"
+      ]
+    },
+    {
+      "id": "non-string-elements-kept",
+      "servers": {
+        "a": {
+          "command": "node",
+          "cwd": "/",
+          "args": [
+            1,
+            2
+          ]
+        }
+      },
+      "target": "a",
+      "token": "ctl_9f8e7d6c5b4a3210",
+      "expected": [
+        1,
+        2
+      ]
+    }
+  ]
+}

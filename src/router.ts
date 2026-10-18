@@ -17,6 +17,23 @@ import { log } from './log.js';
 
 const MCP_PATH = '/mcp';
 
+/**
+ * The arguments a tool call is forwarded with, plus the caller's project where the tool declares a
+ * `project` property. Injected only when the caller has not set one, and `identify` is awaited only
+ * when injection could happen, so a tool that does not ask for a project costs no identity lookup.
+ * No cwd means no injection rather than an error.
+ */
+export async function withCallerProject(
+  args: Record<string, unknown>,
+  inputSchema: unknown,
+  identify: () => Promise<{ cwd?: string }>
+): Promise<Record<string, unknown>> {
+  const schema = inputSchema as { properties?: Record<string, unknown> } | undefined;
+  if (!schema?.properties?.project || args.project) return args;
+  const who = await identify().catch(() => ({}) as { cwd?: string });
+  return who.cwd ? { ...args, project: who.cwd } : args;
+}
+
 /*
  * How long a shutdown waits for in-flight connections before destroying them.
  * Long enough for a tool call mid-flight to finish and its client to notice the
@@ -271,13 +288,8 @@ function buildMcpServer(
      * above, so this costs nothing and cannot fail the call: no cwd means no
      * injection rather than an error.
      */
-    const args: Record<string, unknown> = { ...(request.params.arguments ?? {}) };
-    const schema = manifest.current().servers[serverName]?.tools.find((t) => t.name === tool)
-      ?.inputSchema as { properties?: Record<string, unknown> } | undefined;
-    if (schema?.properties?.project && !args.project) {
-      const who = await identify().catch(() => ({}) as { cwd?: string });
-      if (who.cwd) args.project = who.cwd;
-    }
+    const schema = manifest.current().servers[serverName]?.tools.find((t) => t.name === tool)?.inputSchema;
+    const args = await withCallerProject({ ...(request.params.arguments ?? {}) }, schema, identify);
 
     try {
       // First call for this upstream in this idle window is what starts it.

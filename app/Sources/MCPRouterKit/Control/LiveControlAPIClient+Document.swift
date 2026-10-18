@@ -11,16 +11,10 @@ import Foundation
 public extension LiveControlAPIClient {
     func capabilityDocument(for server: String) async throws(CapabilityDocumentError) -> Payload {
         let envelope: DocumentEnvelope
-        do {
-            envelope = try await send(
-                .get,
-                "servers/\(segment(server))/document",
-                // The route's own refusals carry a typed body. Passing them through the generic
-                // failure path would reduce a named state to a status code and a sentence.
-                typedFailureStatuses: [404, 413],
-                as: DocumentEnvelope.self
-            )
-        } catch let error as ControlAPIError {
+        switch await documentEnvelope(for: server) {
+        case let .success(decoded):
+            envelope = decoded
+        case let .failure(error):
             // 405 is what a router built before this route answers: `isControlPath` claims
             // `/servers/…` either way, so the path is owned and the method is refused rather than
             // the path being unknown. That is version skew, and it takes the wording this client
@@ -40,6 +34,27 @@ public extension LiveControlAPIClient {
             throw .notFound(capability: server)
         }
         return payload
+    }
+
+    /// The request behind `capabilityDocument(for:)`, answered as a `Result` rather than thrown.
+    ///
+    /// Swift 6.4 (swiftlang-6.4.0.34.1) crashes in SILGen when a typed `throw` sits inside a
+    /// `catch` clause: `emitCatchDispatch` → `emitThrow` → `createInitExistentialRef` trips
+    /// `isBridgeableObjectType()` for this function. Returning the failure keeps the `throw` out of
+    /// the `catch`, and the caller maps it to `CapabilityDocumentError` where the throw is legal.
+    private func documentEnvelope(for server: String) async -> Result<DocumentEnvelope, ControlAPIError> {
+        do {
+            return try await .success(send(
+                .get,
+                "servers/\(segment(server))/document",
+                // The route's own refusals carry a typed body. Passing them through the generic
+                // failure path would reduce a named state to a status code and a sentence.
+                typedFailureStatuses: [404, 413],
+                as: DocumentEnvelope.self
+            ))
+        } catch {
+            return .failure(error)
+        }
     }
 }
 

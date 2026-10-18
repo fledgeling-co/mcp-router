@@ -383,6 +383,13 @@ def run_control(root: str, entry: dict) -> tuple[bool, str]:
     if done.returncode != 0:
         tail = (done.stdout + done.stderr).strip().splitlines()
         said = tail[-1] if tail else "(no output)"
+        # A control that documents an exit code as "could not run on this machine" declares it as
+        # `couldNotRunExit`, and that exit is unmeasured rather than failed, the same third answer
+        # DEF-444 gave a timeout. Opt-in and exact: an undeclared non-zero exit is still a failure,
+        # so a control cannot drift into this class by accident. First declared 2026-10-19 for
+        # ps-parse-gate.py, which needs Windows PowerShell 5.1 and exits 2 on a Mac.
+        if "couldNotRunExit" in entry and done.returncode == entry["couldNotRunExit"]:
+            return None, f"could not run here (exit {done.returncode}) — it said: {said}"
         return False, f"control exited {done.returncode} — it said: {said}"
     return True, "exited 0"
 
@@ -680,11 +687,13 @@ def report(root: str) -> int:
         print("  (none declared)")
     if unmeasured:
         print()
-        print(f"  UNMEASURED {len(unmeasured)} of {ran} declared control(s) did not finish inside "
-              f"{CONTROL_TIMEOUT}s. Each is reported and none is counted as a finding: a budget is "
-              f"a property of the machine and a verdict is a property of the tree, and this gate "
-              f"cannot tell a slow control from a rotted one, so it says so instead of guessing.")
-        print(f"  Raise it with SWEEP_CONTROL_TIMEOUT; scripts/windows/verify.ps1 declares one.")
+        print(f"  UNMEASURED {len(unmeasured)} of {ran} declared control(s) answered nothing about "
+              f"the tree: each either did not finish inside {CONTROL_TIMEOUT}s or declared that it "
+              f"cannot run on this machine. Each is reported and none is counted as a finding: a "
+              f"budget or a missing host tool is a property of the machine and a verdict is a "
+              f"property of the tree, so this gate says which rather than guessing.")
+        print(f"  A slow one: raise SWEEP_CONTROL_TIMEOUT (scripts/windows/verify.ps1 declares one). "
+              f"One that cannot run here: run it on the host it names.")
         for line in unmeasured:
             print(f"    · {line}")
     print()

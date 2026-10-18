@@ -159,6 +159,7 @@ app/Tests/MCPRouterUITests/TriageModelTests.swift	swift-suite	app/Tests/MCPRoute
 app/Tests/MCPRouterUITests/TriageSourceGuardTests.swift	swift-suite	app/Tests/MCPRouterUITests/TriageSourceGuardTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/AnalystCorpusTests.swift	swift-suite	app/Tests/RouterCoreTests/AnalystCorpusTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/AnalystEngineTests.swift	swift-suite	app/Tests/RouterCoreTests/AnalystEngineTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/RouterCoreTests/ArgvRedactionTests.swift	swift-suite	app/Tests/RouterCoreTests/ArgvRedactionTests.swift	swift	compiled and run by `swift test`; names argv ["node", …], execution unresolved	make:test
 app/Tests/RouterCoreTests/AttributionTests.swift	swift-suite	app/Tests/RouterCoreTests/AttributionTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/AuthCleanupRaceTests.swift	swift-suite	app/Tests/RouterCoreTests/AuthCleanupRaceTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/AuthExpiryMonitorTests.swift	swift-suite	app/Tests/RouterCoreTests/AuthExpiryMonitorTests.swift	swift	compiled and run by `swift test`	make:test
@@ -247,6 +248,7 @@ app/Tests/RouterCoreTests/ProfileProjectionTests.swift	swift-suite	app/Tests/Rou
 app/Tests/RouterCoreTests/ProfileStoreTests.swift	swift-suite	app/Tests/RouterCoreTests/ProfileStoreTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/ProjectScopeAdoptionTests.swift	swift-suite	app/Tests/RouterCoreTests/ProjectScopeAdoptionTests.swift	swift	compiled and run by `swift test`; names argv ["node", …], execution unresolved	make:test
 app/Tests/RouterCoreTests/RawFieldParityTests.swift	swift-suite	app/Tests/RouterCoreTests/RawFieldParityTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/RouterCoreTests/RealProcessStartupTests.swift	swift-suite	app/Tests/RouterCoreTests/RealProcessStartupTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/RealProcessTests.swift	swift-suite	app/Tests/RouterCoreTests/RealProcessTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/RegistryEnrichmentTests.swift	swift-suite	app/Tests/RouterCoreTests/RegistryEnrichmentTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/RouterCoreTests/RegistryTests.swift	swift-suite	app/Tests/RouterCoreTests/RegistryTests.swift	swift	compiled and run by `swift test`	make:test
@@ -523,6 +525,7 @@ scripts/lint/no-telemetry-egress-selftest.sh	gate	scripts/lint/no-telemetry-egre
 scripts/lint/no-telemetry-egress.sh	gate	scripts/lint/no-telemetry-egress.sh	static	no router invocation matched	make:lint
 scripts/lint/no-wire-codable.sh	gate	scripts/lint/no-wire-codable.sh	static	no router invocation matched	make:lint
 scripts/m19-red-green.py	gate	scripts/m19-red-green.py	swift	argv ["swift", …]	-
+scripts/parity/generate-argv-vectors.mjs	gate	scripts/parity/generate-argv-vectors.mjs	node	argv ["node", …]	-
 scripts/parity/generate-auth-vectors.mjs	gate	scripts/parity/generate-auth-vectors.mjs	static	no router invocation matched	-
 scripts/parity/generate-document-vectors.mjs	gate	scripts/parity/generate-document-vectors.mjs	static	no router invocation matched	-
 scripts/parity/generate-vectors.mjs	gate	scripts/parity/generate-vectors.mjs	static	no router invocation matched	make:parity-regen,scripts/acceptance/parity-regen-selftest.sh

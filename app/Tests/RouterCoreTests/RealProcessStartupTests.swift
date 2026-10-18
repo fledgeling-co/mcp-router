@@ -28,16 +28,13 @@ struct RealProcessStartupTests {
 
     @Test("E0/P11b — a write to a child that has closed its stdin is an error, not a signal")
     func writeAfterChildClosesStdinIsAnErrorNotASignal() {
-        // The router's own write end, with the read end gone as it is once a child has exited. Without
-        // the descriptor-level setting this write raises SIGPIPE, which ends the test process — the
-        // same signal that would end the router when a child dies during its handshake.
+        // The router's own write end must carry the descriptor-level no-SIGPIPE setting: without it, a
+        // write after a child has exited raises SIGPIPE, which ends the router. The flag is read back
+        // rather than provoked with a write, because under the full suite a child spawned by another
+        // test can inherit this pipe's read end, keep it open, and let the write succeed.
         let pipes = ChildPipes()
-        try? pipes.input.fileHandleForReading.close()
-        var byte: UInt8 = 0x78
-        let written = write(pipes.input.fileHandleForWriting.fileDescriptor, &byte, 1)
-        let failure = errno
-        #expect(written == -1)
-        #expect(failure == EPIPE)
+        let flag = fcntl(pipes.input.fileHandleForWriting.fileDescriptor, F_GETNOSIGPIPE)
+        #expect(flag == 1)
     }
 
     /// Opens a `/bin/sh -c` upstream expected to fail, and returns the failure's wire text. Fails the

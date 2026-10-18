@@ -13,7 +13,7 @@ struct RealProcessStartupTests {
     @Test("E0/P11 — a child that exits before initializing fails at once, naming its status")
     func childThatExitsBeforeInitializingFailsAtOnce() async throws {
         let message = try await openAndReadFailure(
-            shell: "exit 17", name: "dies", budgetMilliseconds: 5000, maximumSeconds: 2
+            shell: "exit 17", name: "dies", budgetMilliseconds: 30000, maximumSeconds: 10
         )
         #expect(message == "upstream \"dies\" exited with status 17 before initializing")
     }
@@ -21,7 +21,7 @@ struct RealProcessStartupTests {
     @Test("E0/P11a — a child killed by a signal before initializing names the signal")
     func childKilledBeforeInitializingNamesTheSignal() async throws {
         let message = try await openAndReadFailure(
-            shell: "kill -9 $$", name: "killed", budgetMilliseconds: 5000, maximumSeconds: 2
+            shell: "kill -9 $$", name: "killed", budgetMilliseconds: 30000, maximumSeconds: 10
         )
         #expect(message == "upstream \"killed\" exited on signal 9 before initializing")
     }

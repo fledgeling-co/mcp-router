@@ -91,6 +91,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -106,6 +107,11 @@ MARKER = "build-description:"
 # separate from MARKER because the Makefile greps for MARKER at the head of a line, and a verdict
 # line that also began with it would let a FAILING report satisfy the presence check.
 VERDICT = "build-description-verdict:"
+
+# The SwiftPM build system the Makefile builds with (`SWIFT_BUILD_SYSTEM` there). The plan this
+# report reads, `.build/<config>.yaml`, exists only under `native`, so the probe and the root lookup
+# must ask the same system or they describe a build the report never reads.
+BUILD_SYSTEM = os.environ.get("SWIFT_BUILD_SYSTEM", "native")
 
 
 # =============================================================================================
@@ -345,7 +351,7 @@ def probe_remaining_work(
     if output is None:
         try:
             proc = subprocess.run(
-                ["swift", "build", "--build-tests", "--configuration", config],
+                ["swift", "build", "--build-system", BUILD_SYSTEM, "--build-tests", "--configuration", config],
                 cwd=app_dir, capture_output=True, text=True, timeout=1800,
             )
         except (OSError, subprocess.TimeoutExpired) as exc:
@@ -388,7 +394,7 @@ def resolve_build_root(app_dir: Path, config: str) -> Path:
     """
     try:
         proc = subprocess.run(
-            ["swift", "build", "--configuration", config, "--show-bin-path"],
+            ["swift", "build", "--build-system", BUILD_SYSTEM, "--configuration", config, "--show-bin-path"],
             cwd=app_dir, capture_output=True, text=True, timeout=600,
         )
         if proc.returncode == 0 and proc.stdout.strip():

@@ -37,12 +37,14 @@ public enum CapabilityDocumentError: Error, Equatable, Sendable {
     case noPackageDirectory(capability: String)
     /// A directory is declared and is not there any more.
     case packageUnreadable(capability: String)
-    /// A document is larger than the transport will send, and the refusal names which cap.
+    /// A document is larger than the transport will send, and the refusal names the capability, the
+    /// file and the cap.
     ///
     /// `MarkdownLimits` caps the parse, in this app, after the bytes have already crossed. This is
     /// the wire's own bound, and saying "too large" without naming the cap tells a reader nothing
-    /// they could act on.
-    case tooLarge(file: String, capBytes: Int)
+    /// they could act on. The capability is named for the same reason the other refusals name it: a
+    /// headline that does not say which server it refuses cannot be tied to that server (DEF-060).
+    case tooLarge(capability: String, file: String, capBytes: Int)
     /// The router could not be asked. Carried rather than paraphrased, so the two surfaces do not
     /// end up with two wordings for one state (`DESIGN.md` §6).
     case router(ControlAPIError)
@@ -53,7 +55,7 @@ public enum CapabilityDocumentError: Error, Equatable, Sendable {
         case let .notFound(capability): "Nothing is published for \(capability)"
         case let .noPackageDirectory(capability): "\(capability) has no package to read"
         case let .packageUnreadable(capability): "\(capability)'s directory isn't there"
-        case let .tooLarge(file, _): "\(file) is too large to show here"
+        case let .tooLarge(capability, file, _): "\(capability)'s \(file) is too large to show here"
         case let .router(error): error.headline
         }
     }
@@ -81,7 +83,7 @@ public enum CapabilityDocumentError: Error, Equatable, Sendable {
             The directory this server is declared with is no longer on this Mac, so there is \
             nothing left to read. Re-installing the package puts it back.
             """
-        case let .tooLarge(_, capBytes):
+        case let .tooLarge(_, _, capBytes):
             """
             The router sends at most \(capBytes / 1024) KB per document and this one is over it, \
             so nothing was sent rather than a shortened version of it. \

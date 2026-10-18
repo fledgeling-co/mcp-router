@@ -128,11 +128,36 @@ struct ControlAPIDocumentSourceTests {
             ),
             capability: "pkg"
         )
-        #expect(tooLarge == .tooLarge(file: "README.md", capBytes: 524_288))
+        #expect(tooLarge == .tooLarge(capability: "pkg", file: "README.md", capBytes: 524_288))
         // The cap is in the copy, which is the whole point of carrying it: "too large" alone tells
         // a reader nothing they can act on, and `MarkdownLimits` is a different cap entirely.
         #expect(tooLarge.advice.contains("512 KB"))
-        #expect(tooLarge.headline.contains("README.md"))
+        #expect(tooLarge.headline == "pkg's README.md is too large to show here")
+    }
+
+    @Test("every refusal headline names the capability, so a picture of any of them says which server")
+    func refusalHeadlinesNameTheCapability() {
+        let refusals: [CapabilityDocumentError] = [
+            ControlAPICapabilityDocumentSource.error(
+                from: .init(error: "e", reason: "noPackageDirectory"), capability: "pkg"
+            ),
+            ControlAPICapabilityDocumentSource.error(
+                from: .init(error: "e", reason: "packageUnreadable"), capability: "pkg"
+            ),
+            ControlAPICapabilityDocumentSource.error(
+                from: .init(error: "e", reason: "noDocuments"), capability: "pkg"
+            ),
+            ControlAPICapabilityDocumentSource.error(
+                from: .init(
+                    error: "e", reason: "documentTooLarge", cap: "documentBytes",
+                    limit: 524_288, actual: 600_000, file: "README.md"
+                ),
+                capability: "pkg"
+            )
+        ]
+        for refusal in refusals {
+            #expect(refusal.headline.contains("pkg"), "\(refusal.headline)")
+        }
     }
 
     @Test("the default conformance still answers notServed, so the honest absence stays reachable")

@@ -116,7 +116,11 @@ public struct ControlAPICapabilityDocumentSource: CapabilityDocumentSource {
         case "packageUnreadable": .packageUnreadable(capability: capability)
         case "noDocuments": .notFound(capability: capability)
         case "documentTooLarge":
-            .tooLarge(file: refusal.file ?? "This document", capBytes: refusal.limit ?? 0)
+            .tooLarge(
+                capability: capability,
+                file: refusal.file ?? "document",
+                capBytes: refusal.limit ?? 0
+            )
         // A reason this version does not know is still the router refusing, and the router's own
         // sentence is the honest thing to render — not a guess at which of the known states it is.
         default: .router(.server(status: 0, message: refusal.error))

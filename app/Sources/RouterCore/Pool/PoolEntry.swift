@@ -176,6 +176,12 @@ public enum PoolError: Error, Sendable, Equatable, CustomStringConvertible {
     case unknownUpstream(String)
     case superseded(String)
     case startupTimeout(name: String, milliseconds: Int)
+    /// The child ended before its handshake could complete.
+    ///
+    /// Its own case rather than a timeout, because the child's status is the only useful fact here: a
+    /// timeout sends an operator to raise a budget that was never the problem. Measured before this
+    /// case existed: `sh -c 'exit 17'` was waited on for the whole 60 s budget.
+    case exitedBeforeInitializing(name: String, exit: ChildExit)
     case legacySSEUnsupported(String)
     case spawnFailed(name: String, reason: String)
     /// The command could not be resolved on the PATH the child would have been given.
@@ -214,6 +220,8 @@ public enum PoolError: Error, Sendable, Equatable, CustomStringConvertible {
             "upstream \"\(name)\" was superseded while starting"
         case let .startupTimeout(name, milliseconds):
             "upstream \"\(name)\" did not initialize within \(milliseconds)ms"
+        case let .exitedBeforeInitializing(name, exit):
+            "upstream \"\(name)\" \(exit.phrase) before initializing"
         case let .legacySSEUnsupported(name):
             "Upstream \"\(name)\" uses the legacy SSE transport, which the Swift router "
                 + "cannot speak. Keep this server on the TypeScript router until it is migrated "

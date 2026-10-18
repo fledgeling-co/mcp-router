@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: M22, by driving the shipped app, 2026-08-23
 ---
 

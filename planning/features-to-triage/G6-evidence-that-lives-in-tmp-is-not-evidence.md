@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: the 08:55:13Z crash, 2026-08-23
 ---
 

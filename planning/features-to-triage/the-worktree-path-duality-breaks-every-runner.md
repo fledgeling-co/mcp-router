@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: P9's runner, 2026-08-27, after ~60 errors that read as a TypeScript defect
 ---
 

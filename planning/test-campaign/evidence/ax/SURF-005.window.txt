@@ -1,83 +1,89 @@
-0	AXWindow	AXStandardWindow	Discover								SwiftUI.WindowGroup<SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>>-1-AppWindow-1	180.0	140.0	980.0	620.0	0
-1	AXGroup	AXHostingView										180.0	140.0	980.0	620.0	0
-2	AXSplitGroup										SwiftUI.WindowGroup<SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>>-1-AppWindow-1, SidebarNavigationSplitView	180.0	140.0	980.0	620.0	0
-3	AXGroup	AXHostingView										180.0	140.0	256.0	620.0	0
-4	AXScrollArea											180.0	192.0	256.0	427.0	0
-5	AXOutline				Sidebar		1				sidebar	180.0	192.0	256.0	427.0	0
-6	AXRow	AXOutlineRow						0				180.0	192.0	256.0	19.0	
-7	AXCell						1	0				190.0	192.0	236.0	19.0	1
-8	AXGroup	AXHostingView										194.0	192.0	240.0	19.0	0
-9	AXHeading				Running		1					194.0	194.5	45.0	14.0	
-6	AXRow	AXOutlineRow						0				180.0	211.0	256.0	32.0	
-7	AXCell						1	0				190.0	211.0	236.0	32.0	1
-8	AXButton				Activity		1					197.5	219.0	71.0	16.0	
-6	AXRow	AXOutlineRow						0				180.0	243.0	256.0	32.0	
-7	AXCell						1	0				190.0	243.0	236.0	32.0	1
-8	AXButton				Servers, 1 need attention		1					196.0	251.0	224.0	16.0	
-6	AXRow	AXOutlineRow						0				180.0	275.0	256.0	32.0	
-7	AXCell						1	0				190.0	275.0	236.0	32.0	1
-8	AXButton				Skills		1					199.0	283.0	55.0	16.0	
-6	AXRow	AXOutlineRow						0				180.0	307.0	256.0	32.0	
-7	AXCell						1	0				190.0	307.0	236.0	32.0	1
-8	AXButton				Harnesses		1					197.0	315.0	90.0	16.0	
-6	AXRow	AXOutlineRow						0				180.0	352.0	256.0	19.0	
-7	AXCell						1	0				190.0	352.0	236.0	19.0	1
-8	AXGroup	AXHostingView										194.0	352.0	240.0	19.0	0
-9	AXHeading				Library		1					194.0	354.5	39.0	14.0	
-6	AXRow	AXOutlineRow						1				180.0	371.0	256.0	32.0	
-7	AXCell						1	1				190.0	371.0	236.0	32.0	1
-8	AXButton				Discover		1	1				198.0	379.0	77.5	16.0	
-6	AXRow	AXOutlineRow						0				180.0	403.0	256.0	32.0	
-7	AXCell						1	0				190.0	403.0	236.0	32.0	1
-8	AXButton				Inbox		1					196.5	411.0	58.5	16.0	
-6	AXRow	AXOutlineRow						0				180.0	435.0	256.0	32.0	
-7	AXCell						1	0				190.0	435.0	236.0	32.0	1
-8	AXButton				Checks		1	1				196.5	443.0	70.5	16.0	
-6	AXRow	AXOutlineRow						0				180.0	467.0	256.0	32.0	
-7	AXCell						1	0				190.0	467.0	236.0	32.0	1
-8	AXButton				Cleanup, 3 never used		1					197.5	475.0	222.5	16.0	
-6	AXRow	AXOutlineRow						0				180.0	499.0	256.0	32.0	
-7	AXCell						1	0				190.0	499.0	236.0	32.0	1
-8	AXButton				Insights		1					195.5	507.0	75.0	16.0	
-6	AXColumn							0			ListColumn	190.0	192.0	236.0	427.0	
-4	AXStaticText			Child processes, 1 of 4 declared servers running			1				sidebar	196.0	639.0	224.0	16.0	
-4	AXStaticText			last 5s · peak 1			1				sidebar	196.0	692.5	99.0	13.0	
-4	AXStaticText			Router endpoint, 127.0.0.1:8971			1				sidebar	196.0	737.0	95.5	14.0	
-3	AXSplitter			256			0	0				436.0	192.0	0.5	568.0	0
-3	AXGroup	AXHostingView										180.0	140.0	980.0	620.0	0
-4	AXStaticText			none	mcprouter-key-probe						content	1128.5	732.0	72.0	24.0	1
-4	AXScrollArea										content	436.0	192.0	768.5	568.0	0
-5	AXStaticText			Discover			1					438.2	208.0	90.0	26.0	
-5	AXStaticText			Official registry · Smithery · 3 servers			1					438.2	236.0	205.0	14.0	
-5	AXRadioGroup						1					438.5	258.0	576.0	24.0	0
-6	AXRadioButton	AXSegment		1	Best match		1					438.5	258.0	192.0	24.0	0
-6	AXRadioButton	AXSegment		0	Most used on Smithery		1					630.5	258.0	192.0	24.0	0
-6	AXRadioButton	AXSegment		0	Recently added to Smithery		1					822.5	258.0	192.0	24.0	0
-5	AXImage				search		1				magnifyingglass	1032.0	264.0	12.0	12.0	
-5	AXTextField						1					1049.5	262.0	61.0	16.0	0
-5	AXButton				What is official?		1					1126.5	258.0	75.0	24.0	
-5	AXStaticText			server			1					484.2	286.0	32.0	13.0	
-5	AXStaticText			source			1					708.2	286.0	34.5	13.0	
-5	AXStaticText			measured			1					764.2	286.0	50.0	13.0	
-5	AXStaticText			date			1					916.2	286.0	22.5	13.0	
-5	AXOpaqueProviderGroup	AXOpaqueProviderList					1					438.5	303.0	764.0	146.0	
-6	AXButton				GitHub, On Smithery, 2,984 sessions, added 19 Nov 2025		1					438.5	303.0	764.0	48.0	
-6	AXButton				DeepWiki, On Smithery, verified by Smithery, 2,332 sessions, added 9 Oct 2025		1					438.5	352.0	764.0	48.0	
-6	AXButton				Hint-Services-obsidian-github-mcp, In the official registry, 9 stars, updated 15 Sep 2025		1					438.5	401.0	764.0	48.0	
-5	AXStaticText			Showing 3 of 5 that matched. The rest are not ranked lower — they are past the limit this search asked for.			1					438.2	457.0	532.0	13.0	
-5	AXStaticText			Best match is the router's own order: most sessions on Smithery first, then GitHub stars, then date. Only Smithery publishes a session count, so entries that appear only in the official registry sort below entries that have one.			1					438.2	474.0	764.0	27.0	
-5	AXStaticText			No trend or velocity figure is shown. Measuring one needs a history of these indexes over time, which the router does not keep yet.			1					438.2	505.0	656.5	13.0	
-5	AXScrollBar			0			1					1186.5	191.0	19.0	562.5	0
-6	AXValueIndicator			0								1195.5	195.0	6.0	419.0	
-6	AXButton	AXIncrementArrow										1187.5	192.0	0.0	0.0	
-6	AXButton	AXDecrementArrow										1187.5	192.0	0.0	0.0	
-6	AXButton	AXIncrementPage										1195.5	614.5	6.0	135.0	
-6	AXButton	AXDecrementPage										1195.5	195.0	6.0	0.0	
-1	AXToolbar											180.0	140.0	980.0	52.0	0
-2	AXButton				Hide Sidebar	Hide Sidebar	1	0				392.0	140.0	40.0	52.0	0
-1	AXButton	AXCloseButton					1					198.0	158.0	16.0	16.0	0
-1	AXButton	AXFullScreenButton				this button also has an action to zoom the window	1					244.0	158.0	16.0	16.0	0
-2	AXGroup											245.0	159.0	14.0	14.0	0
-3	AXGroup											245.0	159.0	14.0	14.0	0
-1	AXButton	AXMinimizeButton					1					221.0	158.0	16.0	16.0	0
-1	AXStaticText			Discover			1					440.0	140.0	716.0	52.0	0
+0	AXWindow	AXStandardWindow	Discover								SwiftUI.WindowGroup<SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>>-1-AppWindow-1	0.0	30.0	948.0	517.0	0
+1	AXGroup	AXHostingView										0.0	30.0	948.0	517.0	0
+2	AXSplitGroup										SwiftUI.WindowGroup<SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>>-1-AppWindow-1, SidebarNavigationSplitView	0.0	30.0	948.0	517.0	0
+3	AXGroup	AXHostingView										0.0	30.0	256.0	517.0	0
+4	AXScrollArea											0.0	82.0	256.0	324.0	0
+5	AXOutline				Sidebar		1				sidebar	0.0	82.0	256.0	324.0	0
+6	AXRow	AXOutlineRow						0				0.0	82.0	256.0	19.0	
+7	AXCell						1	0				10.0	82.0	236.0	19.0	1
+8	AXGroup	AXHostingView										14.0	82.0	240.0	19.0	0
+9	AXHeading				Running		1					14.0	84.5	45.0	14.0	
+6	AXRow	AXOutlineRow						0				0.0	101.0	256.0	32.0	
+7	AXCell						1	0				10.0	101.0	236.0	32.0	1
+8	AXButton				Activity		1					17.5	109.0	71.0	16.0	
+6	AXRow	AXOutlineRow						0				0.0	133.0	256.0	32.0	
+7	AXCell						1	0				10.0	133.0	236.0	32.0	1
+8	AXButton				Servers, 1 need attention		1					16.0	141.0	224.0	16.0	
+6	AXRow	AXOutlineRow						0				0.0	165.0	256.0	32.0	
+7	AXCell						1	0				10.0	165.0	236.0	32.0	1
+8	AXButton				Skills		1					19.0	173.0	55.0	16.0	
+6	AXRow	AXOutlineRow						0				0.0	197.0	256.0	32.0	
+7	AXCell						1	0				10.0	197.0	236.0	32.0	1
+8	AXButton				Harnesses		1					17.0	205.0	90.0	16.0	
+6	AXRow	AXOutlineRow						0				0.0	242.0	256.0	19.0	
+7	AXCell						1	0				10.0	242.0	236.0	19.0	1
+8	AXGroup	AXHostingView										14.0	242.0	240.0	19.0	0
+9	AXHeading				Library		1					14.0	244.5	39.0	14.0	
+6	AXRow	AXOutlineRow						1				0.0	261.0	256.0	32.0	
+7	AXCell						1	1				10.0	261.0	236.0	32.0	1
+8	AXButton				Discover		1	1				18.0	269.0	77.5	16.0	
+6	AXRow	AXOutlineRow						0				0.0	293.0	256.0	32.0	
+7	AXCell						1	0				10.0	293.0	236.0	32.0	1
+8	AXButton				Inbox		1					16.5	301.0	58.5	16.0	
+6	AXRow	AXOutlineRow						0				0.0	325.0	256.0	32.0	
+7	AXCell						1	0				10.0	325.0	236.0	32.0	1
+8	AXButton				Checks		1	1				16.5	333.0	70.5	16.0	
+6	AXRow	AXOutlineRow						0				0.0	357.0	256.0	32.0	
+7	AXCell						1	0				10.0	357.0	236.0	32.0	1
+8	AXButton				Cleanup, 3 never used		1					17.5	365.0	222.5	16.0	
+6	AXRow	AXOutlineRow						0				0.0	389.0	256.0	32.0	
+7	AXCell						1	0				10.0	389.0	236.0	32.0	1
+8	AXButton				Insights		1					15.5	397.0	75.0	16.0	
+6	AXColumn							0			ListColumn	10.0	82.0	236.0	349.0	
+5	AXScrollBar			0			1					238.0	81.0	19.0	326.0	0
+6	AXValueIndicator			0								247.0	85.0	6.0	298.0	
+6	AXButton	AXIncrementArrow										239.0	82.0	0.0	0.0	
+6	AXButton	AXDecrementArrow										239.0	82.0	0.0	0.0	
+6	AXButton	AXIncrementPage										247.0	383.5	6.0	19.5	
+6	AXButton	AXDecrementPage										247.0	85.0	6.0	0.0	
+4	AXStaticText			Child processes, 1 of 4 declared servers running			1				sidebar	16.0	426.0	224.0	16.0	
+4	AXStaticText			last 5s · peak 1			1				sidebar	16.0	479.5	99.0	13.0	
+4	AXStaticText			Router endpoint, 127.0.0.1:8971			1				sidebar	16.0	524.0	95.5	14.0	
+3	AXSplitter			256			0	0				256.0	82.0	0.5	465.0	0
+3	AXGroup	AXHostingView										0.0	30.0	948.0	517.0	0
+4	AXStaticText			none	mcprouter-key-probe						content	936.0	519.0	72.0	24.0	1
+4	AXScrollArea										content	256.0	82.0	756.0	465.0	0
+5	AXStaticText			Discover			1					255.5	98.0	90.0	26.0	
+5	AXStaticText			Official registry · Smithery · 3 servers			1					255.5	126.0	205.0	14.0	
+5	AXRadioGroup						1					255.5	148.0	576.0	24.0	0
+6	AXRadioButton	AXSegment		1	Best match		1					255.5	148.0	192.0	24.0	0
+6	AXRadioButton	AXSegment		0	Most used on Smithery		1					447.5	148.0	192.0	24.0	0
+6	AXRadioButton	AXSegment		0	Recently added to Smithery		1					639.5	148.0	192.0	24.0	0
+5	AXImage				search		1				magnifyingglass	849.0	154.0	12.0	12.0	
+5	AXTextField						1					866.5	152.0	61.0	16.0	0
+5	AXButton				What is official?		1					943.5	148.0	75.0	24.0	
+5	AXStaticText			server			1					301.5	176.0	32.0	13.0	
+5	AXStaticText			source			1					525.5	176.0	34.5	13.0	
+5	AXStaticText			measured			1					581.5	176.0	50.0	13.0	
+5	AXStaticText			date			1					733.5	176.0	22.5	13.0	
+5	AXOpaqueProviderGroup	AXOpaqueProviderList					1					255.5	193.0	757.0	146.0	
+6	AXButton				GitHub, On Smithery, 2,984 sessions, added 19 Nov 2025		1					255.5	193.0	757.0	48.0	
+6	AXButton				DeepWiki, On Smithery, verified by Smithery, 2,332 sessions, added 9 Oct 2025		1					255.5	242.0	757.0	48.0	
+6	AXButton				Hint-Services-obsidian-github-mcp, In the official registry, 9 stars, updated 15 Sep 2025		1					255.5	291.0	757.0	48.0	
+5	AXStaticText			Showing 3 of 5 that matched. The rest are not ranked lower — they are past the limit this search asked for.			1					255.5	347.0	532.0	13.0	
+5	AXStaticText			Best match is the router's own order: most sessions on Smithery first, then GitHub stars, then date. Only Smithery publishes a session count, so entries that appear only in the official registry sort below entries that have one.			1					255.5	364.0	726.5	27.0	
+5	AXStaticText			No trend or velocity figure is shown. Measuring one needs a history of these indexes over time, which the router does not keep yet.			1					255.5	395.0	656.5	13.0	
+5	AXScrollBar			0			1					994.0	81.0	19.0	459.5	0
+6	AXValueIndicator			0								1003.0	85.0	6.0	284.5	
+6	AXButton	AXIncrementArrow										995.0	82.0	0.0	0.0	
+6	AXButton	AXDecrementArrow										995.0	82.0	0.0	0.0	
+6	AXButton	AXIncrementPage										1003.0	370.0	6.0	166.5	
+6	AXButton	AXDecrementPage										1003.0	85.0	6.0	0.0	
+1	AXToolbar											0.0	30.0	948.0	52.0	0
+2	AXButton				Hide Sidebar	Hide Sidebar	1	0				212.0	30.0	40.0	52.0	0
+1	AXButton	AXCloseButton					1					18.0	48.0	16.0	16.0	0
+1	AXButton	AXFullScreenButton				this button also has an action to zoom the window	1					64.0	48.0	16.0	16.0	0
+2	AXGroup											65.0	49.0	14.0	14.0	0
+3	AXGroup											65.0	49.0	14.0	14.0	0
+1	AXButton	AXMinimizeButton					1					41.0	48.0	16.0	16.0	0
+1	AXStaticText			Discover			1					260.0	30.0	684.0	52.0	0

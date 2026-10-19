@@ -1,19 +1,7 @@
 3 upstreams, 3 need indexing
-2026-10-19T00:19:42.130Z info  spawning upstream "j5-alpha-20261019T001942Z-75321" (/usr/bin/python3 /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/mcprouter-j5.Zd5SZoenYO/fixture-server.py)
-2026-10-19T00:19:42.164Z info  upstream "j5-alpha-20261019T001942Z-75321" ready in 34ms
-2026-10-19T00:19:42.165Z info  indexed "j5-alpha-20261019T001942Z-75321": 1 tools
-2026-10-19T00:19:42.165Z info  spawning upstream "j5-beta-20261019T001942Z-75321" (/usr/bin/python3 /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/mcprouter-j5.Zd5SZoenYO/fixture-server.py)
-2026-10-19T00:19:42.191Z info  upstream "j5-beta-20261019T001942Z-75321" ready in 26ms
-2026-10-19T00:19:42.191Z info  indexed "j5-beta-20261019T001942Z-75321": 1 tools
-2026-10-19T00:19:42.192Z info  spawning upstream "j5-gamma-20261019T001942Z-75321" (/usr/bin/python3 /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/mcprouter-j5.Zd5SZoenYO/fixture-server.py)
-2026-10-19T00:19:42.216Z info  upstream "j5-gamma-20261019T001942Z-75321" ready in 24ms
-2026-10-19T00:19:42.217Z info  indexed "j5-gamma-20261019T001942Z-75321": 1 tools
-  ok    j5-alpha-20261019T001942Z-75321 (1 tools)
-  ok    j5-beta-20261019T001942Z-75321 (1 tools)
-  ok    j5-gamma-20261019T001942Z-75321 (1 tools)
+  ok    j5-alpha-20261019T023354Z-43993 (1 tools)
+  ok    j5-beta-20261019T023354Z-43993 (1 tools)
+  ok    j5-gamma-20261019T023354Z-43993 (1 tools)
 
-3 tools cached -> /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/mcprouter-j5.Zd5SZoenYO/manifest.json
+3 tools cached -> /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/mcprouter-j5.VBBiHSzhMi/manifest.json
 All upstreams closed; none will open again until a tool is called.
-2026-10-19T00:19:42.217Z info  closing idle child "j5-alpha-20261019T001942Z-75321" after 1 call(s), 0s alive
-2026-10-19T00:19:42.217Z info  closing idle child "j5-beta-20261019T001942Z-75321" after 1 call(s), 0s alive
-2026-10-19T00:19:42.217Z info  closing idle child "j5-gamma-20261019T001942Z-75321" after 1 call(s), 0s alive

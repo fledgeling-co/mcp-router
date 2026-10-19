@@ -28,6 +28,7 @@ interface Harness {
   fp: string;
   pairing: Pairing;
   dir: string;
+  open(): number;
   close(): Promise<void>;
 }
 
@@ -39,7 +40,7 @@ async function harness(pairing = new Pairing()): Promise<Harness> {
   );
   if (!running) throw new Error('an enabled listener did not start');
   const { fingerprint } = await loadOrCreatePairingIdentity(dir);
-  return { port: running.port, fp: fingerprint, pairing, dir, close: () => running.close() };
+  return { port: running.port, fp: fingerprint, pairing, dir, open: () => running.openConnections(), close: () => running.close() };
 }
 
 /** A frame as the phone writes it: a four-byte big-endian length, then UTF-8 JSON. */
@@ -66,15 +67,24 @@ function request(code: string, over: Record<string, unknown> = {}) {
  * router. The pin is the check instead: it runs straight after the handshake and before a single frame is written, which is
  * the trust model in planning/plans/plan-pairing-handshake.md §2.2.
  */
-function dial(port: number, pin: string, opts: { minVersion?: 'TLSv1.2' | 'TLSv1.3'; maxVersion?: 'TLSv1.2' | 'TLSv1.3' } = {}) {
+function dial(
+  port: number,
+  pin: string,
+  opts: { minVersion?: 'TLSv1.2' | 'TLSv1.3'; maxVersion?: 'TLSv1.2' | 'TLSv1.3'; allowHalfOpen?: boolean } = {}
+) {
   return new Promise<TLSSocket | 'identityMismatch'>((resolve, reject) => {
-    const socket = connect({
+    // allowHalfOpen is honoured by tls.connect at runtime but is missing from its typings. Off by default, as Node has it.
+    // A test that needs a phone which keeps writing after the router's FIN sets it. The options live in a variable so the
+    // object-literal excess-property check does not see it.
+    const options = {
       host: '127.0.0.1',
       port,
       minVersion: opts.minVersion ?? 'TLSv1.3',
       maxVersion: opts.maxVersion,
       rejectUnauthorized: false,
-    });
+      allowHalfOpen: opts.allowHalfOpen ?? false,
+    };
+    const socket = connect(options);
     socket.once('error', reject);
     socket.once('secureConnect', () => {
       const der = socket.getPeerCertificate(true).raw;
@@ -89,8 +99,8 @@ function dial(port: number, pin: string, opts: { minVersion?: 'TLSv1.2' | 'TLSv1
 }
 
 /** A pinned connection. A mismatch here is a test bug, not a verdict under test, so it throws. */
-async function pinned(port: number, pin: string): Promise<TLSSocket> {
-  const socket = await dial(port, pin);
+async function pinned(port: number, pin: string, opts?: { allowHalfOpen?: boolean }): Promise<TLSSocket> {
+  const socket = await dial(port, pin, opts);
   if (socket === 'identityMismatch') throw new Error('the pinned fingerprint did not match the router');
   return socket;
 }
@@ -360,6 +370,29 @@ describe('pairing listener, the wire is fenced to pairing frames', () => {
       head.writeUInt32BE(PAIRING_FRAME_MAX + 1);
       link.write(head);
       assert.deepEqual(await nextFrame(link), { type: 'pair.refused', v: 1, reason: 'frameTooLarge' });
+    } finally {
+      await h.close();
+    }
+  });
+
+  test('a refused connection closes once the refusal is flushed, even if the phone keeps sending', async () => {
+    const h = await harness();
+    try {
+      // A phone that holds its half open, so the router's FIN does not end the client from underneath the test.
+      const link = await pinned(h.port, h.fp, { allowHalfOpen: true });
+      link.on('error', () => undefined);
+      const head = Buffer.alloc(4);
+      head.writeUInt32BE(PAIRING_FRAME_MAX + 1);
+      link.write(head);
+      assert.deepEqual(await nextFrame(link), { type: 'pair.refused', v: 1, reason: 'frameTooLarge' });
+
+      // Each write is activity, and activity resets the idle timer, so only an explicit close ends this.
+      const keepSending = setInterval(() => link.write(Buffer.alloc(1024)), 20);
+      try {
+        await until(() => h.open() === 0, 1000);
+      } finally {
+        clearInterval(keepSending);
+      }
     } finally {
       await h.close();
     }

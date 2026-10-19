@@ -40,6 +40,8 @@ const PHONE_NAME_MAX = 64;
 
 export interface RunningPairingListener {
   port: number;
+  /** Connections the listener holds open right now. A refused connection is not counted once it has closed. */
+  openConnections(): number;
   close(): Promise<void>;
 }
 
@@ -100,6 +102,7 @@ export async function startPairing(
 
   return {
     port,
+    openConnections: () => sockets.size,
     close: () =>
       new Promise<void>((resolve) => {
         for (const socket of sockets) socket.destroy();
@@ -129,13 +132,25 @@ function serve(socket: TLSSocket, deps: ServeDeps): void {
     if (pending) deps.pairing.release(pending.phoneId);
   });
   socket.on('data', (chunk: Buffer) => {
+    // Once decided, the phone's bytes are not read. Idle time resets on activity, so reading on would let a
+    // client hold a decided connection open by talking. Before that, the buffer holds at most one partial
+    // frame, since a header over PAIRING_FRAME_MAX is refused before its body arrives.
+    if (finished) return;
     buffered = Buffer.concat([buffered, chunk]);
     drain();
   });
 
-  function refuse(reason: string, detail: Record<string, unknown> = {}): void {
+  /** Decide the connection: send any final frame, then destroy the socket once that has flushed. */
+  function close(frame?: Buffer): void {
     finished = true;
-    socket.end(encodeFrame({ type: 'pair.refused', v: PAIRING_WIRE_VERSION, reason, ...detail }));
+    buffered = Buffer.alloc(0);
+    const destroy = () => socket.destroy();
+    if (frame) socket.end(frame, destroy);
+    else socket.end(destroy);
+  }
+
+  function refuse(reason: string, detail: Record<string, unknown> = {}): void {
+    close(encodeFrame({ type: 'pair.refused', v: PAIRING_WIRE_VERSION, reason, ...detail }));
   }
 
   function drain(): void {
@@ -174,8 +189,7 @@ function serve(socket: TLSSocket, deps: ServeDeps): void {
       deps.pairing.release(pending.phoneId);
       log.info(`pairing: confirmed a phone (${pending.phoneId})`);
       pending = undefined;
-      finished = true;
-      socket.end();
+      close();
       return;
     }
 

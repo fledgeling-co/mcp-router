@@ -63,6 +63,7 @@ app/Tests/MCPRouterKitTests/PairingBehaviourTests.swift	swift-suite	app/Tests/MC
 app/Tests/MCPRouterKitTests/PairingCodeTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingCodeTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingFrameCodecTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingFrameCodecTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingPayloadTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingPayloadTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterKitTests/PairingRediscoveryTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingRediscoveryTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingWireVectorsTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingWireVectorsTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PhoneKeyStoreTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PhoneKeyStoreTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PopoverContentTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PopoverContentTests.swift	swift	compiled and run by `swift test`	make:test

@@ -8,4 +8,10 @@ public enum PairingFingerprint {
     public static func render(certificateDER: Data) -> String {
         SHA256.hash(data: certificateDER).map { String(format: "%02x", $0) }.joined()
     }
+
+    /// Whether a presented certificate is the one the QR named. An exact string comparison in the
+    /// rendered form, so a `SHA256:` prefix or an upper-case digit is a mismatch, not a near miss.
+    public static func matches(certificateDER: Data, expecting fingerprint: String) -> Bool {
+        render(certificateDER: certificateDER) == fingerprint
+    }
 }

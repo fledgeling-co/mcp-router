@@ -46,6 +46,7 @@ app/Tests/MCPRouterKitTests/InboxBandTests.swift	swift-suite	app/Tests/MCPRouter
 app/Tests/MCPRouterKitTests/InboxEnvelopeTests.swift	swift-suite	app/Tests/MCPRouterKitTests/InboxEnvelopeTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/JackPresentationTests.swift	swift-suite	app/Tests/MCPRouterKitTests/JackPresentationTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/LightAppearanceTests.swift	swift-suite	app/Tests/MCPRouterKitTests/LightAppearanceTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterKitTests/LivePairingOutcomeTests.swift	swift-suite	app/Tests/MCPRouterKitTests/LivePairingOutcomeTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/LivePairingServiceTests.swift	swift-suite	app/Tests/MCPRouterKitTests/LivePairingServiceTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/LoopbackReadoutTests.swift	swift-suite	app/Tests/MCPRouterKitTests/LoopbackReadoutTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/M22BoardModelTests.swift	swift-suite	app/Tests/MCPRouterKitTests/M22BoardModelTests.swift	swift	compiled and run by `swift test`	make:test
@@ -60,13 +61,16 @@ app/Tests/MCPRouterKitTests/MenuReasonBadgePairingTests.swift	swift-suite	app/Te
 app/Tests/MCPRouterKitTests/MockTokenLiteralTests.swift	swift-suite	app/Tests/MCPRouterKitTests/MockTokenLiteralTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/MockTokenMetricMapTests.swift	swift-suite	app/Tests/MCPRouterKitTests/MockTokenMetricMapTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/MockTokenParityTests.swift	swift-suite	app/Tests/MCPRouterKitTests/MockTokenParityTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterKitTests/NetworkPairingTransportTests.swift	swift-suite	app/Tests/MCPRouterKitTests/NetworkPairingTransportTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingBehaviourTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingBehaviourTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingCodeTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingCodeTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingFrameCodecTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingFrameCodecTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingPayloadTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingPayloadTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterKitTests/PairingRecordSaveTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingRecordSaveTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingRediscoveryTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingRediscoveryTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingWireVectorsTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingWireVectorsTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PhoneKeyStoreTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PhoneKeyStoreTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterKitTests/PhonePairingFactoryTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PhonePairingFactoryTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PopoverContentTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PopoverContentTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/ReadoutModelTests.swift	swift-suite	app/Tests/MCPRouterKitTests/ReadoutModelTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/RegistryCapabilityTests.swift	swift-suite	app/Tests/MCPRouterKitTests/RegistryCapabilityTests.swift	swift	compiled and run by `swift test`	make:test
@@ -90,6 +94,7 @@ app/Tests/MCPRouterKitTests/SignalPathParityTests.swift	swift-suite	app/Tests/MC
 app/Tests/MCPRouterKitTests/SkillModelsTests.swift	swift-suite	app/Tests/MCPRouterKitTests/SkillModelsTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/SkillPresentationStateTests.swift	swift-suite	app/Tests/MCPRouterKitTests/SkillPresentationStateTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/SkillPresentationTests.swift	swift-suite	app/Tests/MCPRouterKitTests/SkillPresentationTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterKitTests/SkillUpdateOffersTests.swift	swift-suite	app/Tests/MCPRouterKitTests/SkillUpdateOffersTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/TrackerRouterFactsTests.swift	swift-suite	app/Tests/MCPRouterKitTests/TrackerRouterFactsTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/TrackerStateMatrixTests.swift	swift-suite	app/Tests/MCPRouterKitTests/TrackerStateMatrixTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/TriageBucketTests.swift	swift-suite	app/Tests/MCPRouterKitTests/TriageBucketTests.swift	swift	compiled and run by `swift test`	make:test
@@ -134,6 +139,7 @@ app/Tests/MCPRouterUITests/PhoneFlowTests.swift	swift-suite	app/Tests/MCPRouterU
 app/Tests/MCPRouterUITests/PhoneIndicatorTests.swift	swift-suite	app/Tests/MCPRouterUITests/PhoneIndicatorTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/PhoneProminentDisabledRenderTests.swift	swift-suite	app/Tests/MCPRouterUITests/PhoneProminentDisabledRenderTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/PhoneSettingsPlacementTests.swift	swift-suite	app/Tests/MCPRouterUITests/PhoneSettingsPlacementTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterUITests/PhoneShellPairingDefaultTests.swift	swift-suite	app/Tests/MCPRouterUITests/PhoneShellPairingDefaultTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/PhoneSourceGuardTests.swift	swift-suite	app/Tests/MCPRouterUITests/PhoneSourceGuardTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/PhoneStorageFailureTests.swift	swift-suite	app/Tests/MCPRouterUITests/PhoneStorageFailureTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/QueueModelTests.swift	swift-suite	app/Tests/MCPRouterUITests/QueueModelTests.swift	swift	compiled and run by `swift test`	make:test

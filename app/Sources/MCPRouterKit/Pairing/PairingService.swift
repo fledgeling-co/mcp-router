@@ -44,6 +44,12 @@ public struct FixturePairingService: PairingService {
         case pairedThenUnreachable
         /// Paired and answering, but it has not reported since the app opened: the Partial state.
         case pairedNeverReported
+        /// The Mac answers with an identity other than the code's.
+        case identityMismatch
+        /// The Mac accepts the code, and this phone cannot keep the pairing.
+        case notSaved
+        /// A typed code, which cannot be checked against the Mac's identity yet.
+        case typedEntryUnavailable
     }
 
     public let scenario: Scenario
@@ -119,6 +125,9 @@ public struct FixturePairingService: PairingService {
         )
     }
 
+    // Exhaustive over `Scenario` on purpose: a scenario added later fails to compile until it has an
+    // outcome, so the switch cannot be split without losing that guarantee.
+    // swiftlint:disable cyclomatic_complexity
     /// Every scenario that does not pair, mapped to its own outcome — never a generic failure.
     ///
     /// Exhaustive over `Scenario` rather than defaulted, so a scenario added later fails to compile
@@ -135,8 +144,13 @@ public struct FixturePairingService: PairingService {
         case .refused: .refused(macName: macName)
         case .notAPairingCode: .notAPairingCode
         case .malformedPayload: .malformedPayload
+        case .identityMismatch: .identityMismatch
+        case .notSaved: .notSaved(macName: macName)
+        case .typedEntryUnavailable: .typedEntryUnavailable
         }
     }
+
+    // swiftlint:enable cyclomatic_complexity
 
     public func reachability(of _: PairedMac) async -> ConnectionState {
         switch scenario {

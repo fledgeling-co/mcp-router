@@ -19,7 +19,10 @@ struct PairingOutcomeCoverageTests {
         .unreachable(macName: "Luke's MacBook Pro"),
         .refused(macName: "Luke's MacBook Pro"),
         .notAPairingCode,
-        .malformedPayload
+        .malformedPayload,
+        .identityMismatch,
+        .notSaved(macName: "Luke's MacBook Pro"),
+        .typedEntryUnavailable
     ]
 
     @Test("every outcome has copy")
@@ -51,6 +54,8 @@ struct PairingOutcomeCoverageTests {
         }
     }
 
+    // Exhaustive by design, as in the production switches it mirrors.
+    // swiftlint:disable:next cyclomatic_complexity
     private func label(for outcome: PairingOutcome) -> String {
         switch outcome {
         case .paired: "paired"
@@ -62,7 +67,39 @@ struct PairingOutcomeCoverageTests {
         case .refused: "refused"
         case .notAPairingCode: "notAPairingCode"
         case .malformedPayload: "malformedPayload"
+        case .identityMismatch: "identityMismatch"
+        case .notSaved: "notSaved"
+        case .typedEntryUnavailable: "typedEntryUnavailable"
         }
+    }
+
+    /// The Mac that answered is not the one the code names. The copy must not call that unreachable,
+    /// which is what every failure used to say, and it must say nothing was sent.
+    @Test("an identity mismatch says nothing was sent, and is not called unreachable")
+    func identityMismatchCopy() {
+        let entry = PairingCopy.entry(.outcomeIdentityMismatch)
+        #expect(entry.body.contains("nothing was sent"))
+        #expect(!entry.body.contains("can't reach") && !entry.body.contains("Can't reach"))
+        #expect(entry.actionLabel == "Scan a new code")
+    }
+
+    /// Typed entry is refused until the SPAKE2 item lands. The copy says that and says nothing was
+    /// sent, because the typed code was never checked against anything.
+    @Test("typed entry says it is unavailable, and that nothing was sent")
+    func typedEntryUnavailableCopy() {
+        let entry = PairingCopy.entry(.outcomeTypedEntryUnavailable)
+        #expect(entry.headline == "Typed codes aren't available yet")
+        #expect(entry.body.contains("nothing was sent"))
+        #expect(entry.actionLabel == "Scan instead")
+    }
+
+    /// The Mac never confirmed a save that failed before the ack, so the copy must not say paired.
+    @Test("a pairing that could not be saved does not claim the Mac paired")
+    func notSavedCopyDoesNotClaimPairing() {
+        let entry = PairingCopy.entry(.outcomeNotSaved)
+        #expect(entry.body.contains("doesn't list this phone as paired"))
+        #expect(entry.headline?.hasPrefix("Paired") == false)
+        #expect(entry.actionLabel == "Pair again")
     }
 
     /// A refusal is a decision someone made at the Mac. Retrying against it is the app arguing with

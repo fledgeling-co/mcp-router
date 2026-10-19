@@ -45,11 +45,31 @@ public enum PairingFrame {
         return frame
     }
 
-    public static func decode(_ frame: Data) throws(PairingFrameError) -> PairingMessage {
-        guard frame.count >= 4 else { throw .truncated }
-        let length = frame.prefix(4).reduce(0) { ($0 << 8) | Int($1) }
+    /// Reads one whole frame through `readExactly`, which returns exactly the number of bytes asked for.
+    ///
+    /// The prefix is read first and refused on its own, so an oversized frame costs four bytes of
+    /// buffering and never a request for its body. Every transport reads frames through here, so the
+    /// limit is one line rather than one per transport.
+    public nonisolated(nonsending) static func readFrame(
+        readingExactly readExactly: (Int) async throws -> Data
+    ) async throws -> Data {
+        let prefix = try await readExactly(4)
+        let length = try bodyLength(prefix: prefix)
+        let body = try await readExactly(length)
+        return prefix + body
+    }
+
+    /// The body length a four-byte prefix announces, or the reason it cannot be read.
+    static func bodyLength(prefix: Data) throws(PairingFrameError) -> Int {
+        guard prefix.count >= 4 else { throw .truncated }
+        let length = prefix.prefix(4).reduce(0) { ($0 << 8) | Int($1) }
         // Refused on the prefix alone, so an oversized frame is never buffered or parsed.
         guard length <= maxBodyLength else { throw .oversized(length: length) }
+        return length
+    }
+
+    public static func decode(_ frame: Data) throws(PairingFrameError) -> PairingMessage {
+        let length = try bodyLength(prefix: frame.prefix(4))
         let body = frame.dropFirst(4)
         guard body.count >= length else { throw .truncated }
         guard body.count == length else { throw .malformed(detail: "bytes after the frame") }

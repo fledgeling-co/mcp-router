@@ -165,8 +165,8 @@ final class PairingTransportProbeTests: XCTestCase {
         let issued = MacPairing.issue(at: Date())
         let payload = MacPairing.payload(for: issued, endpoint: endpoint, macName: "I5 Wire Tap")
 
-        // The service the shipping app composes. `testShippingAppComposesThisExactService` below is
-        // what stops that being an assumption.
+        // The fixture, as I5 measured it. Release no longer composes this service (B5), so this test
+        // records what the fixture did at I5, not what the shipping app does now.
         let service = FixturePairingService()
         let outcome = await service.pair(using: .scanned(payload))
 
@@ -185,33 +185,39 @@ final class PairingTransportProbeTests: XCTestCase {
 
     // MARK: - 3. What the shipping app actually composes
 
-    /// The shipping iOS app passes `FixturePairingService` — unconditionally, with no build
-    /// configuration or environment guard.
+    /// The shipping iOS app composes pairing through `PhonePairingFactory`, and does not name the fixture.
+    ///
+    /// **This guard was red on purpose once B5 landed.** It asserted the fixture was composed
+    /// unconditionally, which was I5's finding. B5 replaced that with the factory, so the finding is
+    /// stale, and the I5 experiment has to be re-run against the live service before its result is
+    /// quoted again. The recorded I5 evidence is not edited here.
     ///
     /// Read off the app's own source with comments and string literals stripped, the method
     /// `PhoneSourceGuardTests` established in this codebase, so the guard cannot be satisfied by
     /// the very prose that documents it.
-    ///
-    /// This is what makes the behavioural test above a statement about the product rather than
-    /// about a type that happens to exist. It goes red the day a live client is wired in — which is
-    /// the day I5's finding stops being true, and exactly when someone should be made to look.
-    func testShippingAppComposesTheFixtureService() throws {
+    func testShippingAppComposesThePairingFactory() throws {
         let source = try Self.strippedAppSource()
         XCTAssertTrue(
-            source.contains("pairing: FixturePairingService()"),
+            source.contains("PhonePairingFactory.makeService"),
             """
-            MCPRouterIOSApp no longer composes FixturePairingService. If a real client has been
-            wired in, I5's finding is stale and the transport experiment must be re-run.
+            MCPRouterIOSApp no longer composes pairing through PhonePairingFactory. Release must
+            reach LivePairingService, and the factory is the one place that decides.
             """
         )
-        // No conditional compilation around the pairing seam: the fixture is not Debug-only the way
-        // the Mac's `ShellPairingFactory` is. That asymmetry is I5's second finding, and it is
-        // pinned here so a later change to either side is visible.
+        XCTAssertFalse(
+            source.contains("FixturePairingService"),
+            """
+            MCPRouterIOSApp names FixturePairingService directly. The fixture is reachable only through
+            PhonePairingFactory, from a Debug build, so a direct reference bypasses the Release rule.
+            """
+        )
+        // No conditional compilation around the pairing seam. The Debug/Release decision lives in the
+        // factory, where a Debug test run can assert the Release branch.
         XCTAssertFalse(
             source.contains("#if DEBUG"),
             """
-            MCPRouterIOSApp has grown a build-configuration branch. I5 recorded that it had none —
-            that the fixture pairing service ships in Release unguarded — so this needs re-reading.
+            MCPRouterIOSApp has grown a build-configuration branch. The Debug/Release rule belongs in
+            PhonePairingFactory, where it is testable from the host.
             """
         )
     }

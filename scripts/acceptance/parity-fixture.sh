@@ -124,6 +124,10 @@ SUBS = [
     # It is [^"/]+ and not [^"]+ because a greedy match to the closing quote swallows the rest of
     # the path: `.worktrees/P4/app/Sources` would collapse to one marker and take real structure
     # with it.
+    # The sibling layout, `<parent>/mcp-router-wt/<name>`, which the worktrees now use. It was not
+    # covered, so a capture run from one of them left its absolute path in the body and every
+    # argv-bearing fixture read DRIFTED for a reason that was about where the checkout sits.
+    (r'/[^"]*?/mcp-router-wt/[^"/]+',       '<repo>'),
     (r'/Users/[^"]*?/mcp-router/\.worktrees/[^"/]+', '<repo>'),
     (r'/Users/[^"]*?/mcp-router',           '<repo>'),
     # The scratch home each run mints.

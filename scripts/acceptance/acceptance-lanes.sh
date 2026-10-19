@@ -122,6 +122,7 @@ LANES=(
     r22-diagnostics.sh
     r26-auth-expiry.sh
     f6-updates.sh
+    pairing-loopback.sh
 )
 
 # Both overrides exist for the selftest, which must be able to plant lanes with known exits. Neither

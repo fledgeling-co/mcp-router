@@ -206,6 +206,18 @@ launchctl kickstart -k "gui/$UID/gg.rhodes.mcp-router"
 
 Worth saying that the reason people reach for this has mostly gone. Removing a server used to be how you stopped paying for one you rarely called, because every declared server started at session init whether you touched it or not. Under the router an unused server costs a few kilobytes of cached tool schema and nothing else: no process, no memory, no startup time. So the honest advice is to leave it, unless the tools themselves are cluttering the model's tool list or the server has become a liability.
 
+### The log file
+
+The router writes `router.log` under `MCP_ROUTER_HOME` and rotates it when the next line would take it past the cap. The defaults are 10 MB and five rotated files, and `servers.json` can set both:
+
+```json
+"log": { "maxBytes": 10485760, "keep": 5 }
+```
+
+Rotated files are `router.log.1` (newest) through `router.log.<keep>`, and the oldest is deleted when a new one is made. `keep: 0` keeps none, so the active file just restarts. `maxBytes` must be a whole number of at least 1 and `keep` a whole number of at least 0; anything else stops the router at startup with a message naming the field. The policy is read at startup, so a change takes effect on the next restart.
+
+The cap does not cover launchd's `serve.out.log` and `serve.err.log` in the same directory. The router writes each line to stderr as well as to `router.log`, and launchd holds those two files open, so they grow without bound.
+
 ---
 
 ## Reaching sessions that are already running

@@ -237,3 +237,68 @@ test('R9 — a name arrives percent-decoded, and a malformed escape is 400', asy
   assert.equal(malformed.status, 400);
   assert.equal(malformed.text, '{"error":"URI malformed"}');
 });
+
+// F6: GET /extensions/updates is claimed before the :kind parse, so `updates` is never read as a kind.
+
+test('R10 — /extensions/updates answers the report, and /extensions/nonsense still refuses as a kind', async () => {
+  const deps = { extensions: scratchStore() };
+  await answer({ method: 'POST', path: '/extensions/skills', body: SKILL_BODY }, deps);
+
+  const updates = await answer({ method: 'GET', path: '/extensions/updates' }, deps);
+  assert.equal(updates.status, 200);
+  const report = updates.json as { summary: { total: number }; entries: Array<{ name: string }> };
+  assert.equal(report.summary.total, 1);
+  assert.equal(report.entries[0].name, 'alpha');
+  assert.doesNotMatch(updates.text, /no extension kind named/);
+
+  const nonsense = await answer({ method: 'GET', path: '/extensions/nonsense' }, deps);
+  assert.equal(nonsense.status, 404);
+  assert.match(nonsense.text, /no extension kind named \\"nonsense\\"/);
+});
+
+test('R11 — /extensions/updates needs the token, as every /extensions route does', async () => {
+  const deps = { extensions: scratchStore() };
+  const untokened = await answer({ method: 'GET', path: '/extensions/updates', token: false }, deps);
+  assert.equal(untokened.status, 401);
+});
+
+test('R12 — a mutating verb on /extensions/updates is 405 and changes nothing', async () => {
+  const store = scratchStore();
+  const deps = { extensions: store };
+  await answer({ method: 'POST', path: '/extensions/skills', body: SKILL_BODY }, deps);
+
+  for (const method of ['POST', 'DELETE']) {
+    const answered = await answer({ method, path: '/extensions/updates', body: {} }, deps);
+    assert.equal(answered.status, 405, `${method} must be 405, not 404`);
+  }
+  const listed = await answer({ method: 'GET', path: '/extensions/skills' }, deps);
+  assert.equal((listed.json as { count: number }).count, 1);
+});
+
+test('R13 — kind narrows the rows, name asks about one entry, and a bad window or kind is refused', async () => {
+  const deps = { extensions: scratchStore() };
+  await answer({ method: 'POST', path: '/extensions/skills', body: SKILL_BODY }, deps);
+
+  const narrowed = await answer({ method: 'GET', path: '/extensions/updates?kind=plugins' }, deps);
+  assert.equal(narrowed.status, 200);
+  assert.equal((narrowed.json as { summary: { total: number } }).summary.total, 0);
+
+  const named = await answer({ method: 'GET', path: '/extensions/updates?name=alpha' }, deps);
+  assert.equal((named.json as { summary: { total: number } }).summary.total, 1);
+
+  const kind = await answer({ method: 'GET', path: '/extensions/updates?kind=widgets' }, deps);
+  assert.equal(kind.status, 404);
+  assert.match(kind.text, /no extension kind named \\"widgets\\"/);
+
+  const window = await answer({ method: 'GET', path: '/extensions/updates?staleAfterMs=1h' }, deps);
+  assert.equal(window.status, 400, 'an unreadable window is asked about, not silently defaulted');
+
+  const defaulted = await answer({ method: 'GET', path: '/extensions/updates' }, deps);
+  assert.equal((defaulted.json as { staleAfterMs: number }).staleAfterMs, 86_400_000);
+});
+
+test('R14 — with no store /extensions/updates says the capability is missing, not that nothing is stale', async () => {
+  const response = await answer({ method: 'GET', path: '/extensions/updates' }, { extensions: undefined });
+  assert.equal(response.status, 503);
+  assert.match(response.text, /extension storage is unavailable/);
+});

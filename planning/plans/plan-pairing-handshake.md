@@ -246,3 +246,18 @@ exercised, so it is the gate on any claim that pairing works.
   (`InboxService.swift`, header). The inbox is a separate item. This plan only covers pairing.
 - REQ-016's status. It moves from vacuous only when B6 passes against the router and the
   inventory row is updated by the register, not by this plan.
+
+## 11. Decided 2026-10-19
+
+- **D1 — answered by the owner.** The Swift router is retired as the replacement (owner decision,
+  2026-10-19); the TypeScript router is the only router that runs. `README.md:65` is stale on this
+  and is corrected by the retirement work, not here.
+- **D2 — scan path first.** Typed entry refuses with a named outcome until B8 lands. Taken by the
+  orchestrator: an unauthenticated typed code is collectable by anyone on the LAN, and the scan
+  path loses nothing by waiting for B8.
+- **D3 — 0600 files under `ROUTER_HOME`.** Same storage class as `control.token`, which the router
+  already relies on; the router runs headless under launchd and on Windows, where a Keychain
+  dependency would split the implementation.
+- **D4 — exact-pinned npm packages** for certificate generation and mDNS, one each, chosen for
+  being maintained and dependency-light; the Windows router path needs the same ones.
+- **D5 — open.** The copy goes through design review when B5 builds it.

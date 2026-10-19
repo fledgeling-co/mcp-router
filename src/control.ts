@@ -910,9 +910,18 @@ export async function handleControl(
 
   // Names the code only while it can still be paired with. An expired code is not pending, so it is
   // not named here, even though `submit` still answers it as expired.
+  //
+  // `awaitingAck` lists the phones whose request was accepted and whose `pair.ack` has not come yet. It
+  // names the phone and the time, never a key or an id, and it empties the moment the phone acks or drops.
   if (p === '/pairing/state' && req.method === 'GET') {
     const live = deps.pairing.current();
-    json(res, 200, { code: live ? codeBody(live) : null });
+    json(res, 200, {
+      code: live ? codeBody(live) : null,
+      awaitingAck: deps.pairing.awaitingAck().map((a) => ({
+        phoneName: a.phoneName,
+        requestedAt: wireInstant(a.requestedAt),
+      })),
+    });
     return true;
   }
 

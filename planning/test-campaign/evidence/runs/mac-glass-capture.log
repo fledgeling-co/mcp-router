@@ -1,46 +1,46 @@
-frontmost before: Tailscale
-attached pid=74079
-winid=105091
-180,140,980,620
+frontmost before: Ghostty
+attached pid=42679
+winid=106002
+0,30,948,517
 Servers
 select Servers -> SURF-002
 OK
 Servers
-  captured SURF-002.build bytes=491995 sha=80e4762ed36a137f target=app://mac/servers
-  captured SURF-001.build (declared share of SURF-002) sha=80e4762ed36a137f
-  captured SURF-001.shell (sidebar crop of SURF-001.build) bytes=100177 sha=a2162d9f12d02f3e
+  captured SURF-002.build bytes=438731 sha=4170a276ab4adbc1 target=app://mac/servers
+  captured SURF-001.build (declared share of SURF-002) sha=4170a276ab4adbc1
+  captured SURF-001.shell (sidebar crop of SURF-001.build) bytes=92976 sha=2a1807ee39651dcc
 select Activity -> SURF-003
 OK
 Activity
-  captured SURF-003.build bytes=486086 sha=2ea3d02dbd2b9aef target=app://mac/activity
+  captured SURF-003.build bytes=461678 sha=e398f1f27f594649 target=app://mac/activity
 select Skills -> SURF-004
 OK
 Skills
-  captured SURF-004.build bytes=511041 sha=41104a6313e99803 target=app://mac/skills
+  captured SURF-004.build bytes=454129 sha=a38b6e7283cfac3e target=app://mac/skills
 select Harnesses -> SURF-025
 OK
 Harnesses
-  captured SURF-025.build bytes=529685 sha=6d1e7c939811a564 target=app://mac/harnesses
+  captured SURF-025.build bytes=456789 sha=a232ccb9560e3556 target=app://mac/harnesses
 select Discover -> SURF-005
 OK
 Discover
-  captured SURF-005.build bytes=484985 sha=29b9dfaef99fbc6c target=app://mac/discover
+  captured SURF-005.build bytes=446753 sha=53b4c21758c054fc target=app://mac/discover
 select Inbox -> SURF-008
 OK
 Inbox
-  captured SURF-008.build bytes=400221 sha=6c22f9d1dd8c28c5 target=app://mac/inbox
+  captured SURF-008.build bytes=363151 sha=c433d82486272f8e target=app://mac/inbox
 select Checks -> SURF-006
 OK
 Checks
-  captured SURF-006.build bytes=562066 sha=c5a036a0eb4819ac target=app://mac/checks
+  captured SURF-006.build bytes=487441 sha=1031766b06dd8a5f target=app://mac/checks
 select Cleanup -> SURF-007
 OK
 Cleanup
-  captured SURF-007.build bytes=501638 sha=390af67286af4511 target=app://mac/cleanup
+  captured SURF-007.build bytes=466698 sha=8dd7cffcca3ceaea target=app://mac/cleanup
 select Insights -> SURF-026
 OK
 Insights
-  captured SURF-026.build bytes=485562 sha=b7e1928768001277 target=app://mac/insights
+  captured SURF-026.build bytes=429120 sha=3e0dae42ebb38f72 target=app://mac/insights
 select Settings -> SURF-011
 axkit: no sidebar row starting 'Settings'
   select failed for Settings
@@ -52,37 +52,37 @@ OK
   add-server control not pressable in background — sheet uncaptured
 try pairing sheet
 OK
-  captured SURF-010.build bytes=419780 sha=361b34620fa46d70 target=app://mac/pairing
+  captured SURF-010.build bytes=370218 sha=90e592eab29a1cc4 target=app://mac/pairing
 sent
 try status item / popover
   status item not pressable in background — SURF-009 uncaptured
 OK
 OK
-  captured SURF-002.empty bytes=277957 sha=34378157c80d5d0b target=app://mac/servers
+  captured SURF-002.empty bytes=238449 sha=0c72208673367295 target=app://mac/servers
 OK
 OK
-  captured SURF-002.offline bytes=272863 sha=64eb07bfcbb96e9c target=app://mac/servers
+  captured SURF-002.offline bytes=240766 sha=15564c6682a503d5 target=app://mac/servers
 OK
 OK
-  captured SURF-007.cleanup-skills bytes=546503 sha=ffd9b323470b29bd target=app://mac/cleanup
+  captured SURF-007.cleanup-skills bytes=510977 sha=55f55560013a8563 target=app://mac/cleanup
 OK
 OK
-  captured SURF-025.empty bytes=279109 sha=83ceb48701b7eeb5 target=app://mac/harnesses
+  captured SURF-025.empty bytes=242052 sha=cdcf1e0b5d19d847 target=app://mac/harnesses
 OK
 OK
-  captured SURF-025.failure bytes=273917 sha=1eac1dfd63f957f4 target=app://mac/harnesses
+  captured SURF-025.failure bytes=241778 sha=dd7006d19477fe39 target=app://mac/harnesses
 OK
 OK
-  captured SURF-026.empty bytes=330940 sha=e2747e4496985dd3 target=app://mac/insights
+  captured SURF-026.empty bytes=242081 sha=a6a01d032337efef target=app://mac/insights
 OK
 OK
-  captured SURF-026.failure bytes=273269 sha=a0cad49bf0189b58 target=app://mac/insights
+  captured SURF-026.failure bytes=241134 sha=f16996b44e403ff1 target=app://mac/insights
 try provenance sheet
   Read first… was not pressable in the background — provenance sheet uncaptured,
   and no picture is filed under it.
 OK
 manifest: 19 capture(s) from this run, 74 total -> /Volumes/LLMs/Dev/mcp-router/planning/test-campaign/evidence/shots/captures.json
 board width: examined=25 overflowing=0 (DEF-015)
-  stamped 62 artifact(s) with build 5a7c06969d69 (bundle 0.1.0 build 1)
-frontmost after: Tailscale
+  stamped 61 artifact(s) with build b4db1f7ca098 (bundle 0.1.0 build 1)
+frontmost after: Ghostty
 glass capture done, MCPRouter never frontmost

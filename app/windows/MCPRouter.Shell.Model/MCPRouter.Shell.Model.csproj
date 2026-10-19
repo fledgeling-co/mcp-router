@@ -12,4 +12,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>MCPRouter.Shell.Model</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- The skill checks return the same CheckResult the server checks do, so the vocabulary is shared. -->
+    <ProjectReference Include="..\MCPRouter.Checks.Model\MCPRouter.Checks.Model.csproj" />
+  </ItemGroup>
 </Project>

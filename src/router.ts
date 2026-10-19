@@ -15,6 +15,8 @@ import { splitToolName, unionTools, visibleTo, placardFor, type ManifestStore } 
 import { ClientResolver, UsageStore, projectOf } from './usage.js';
 import { handleControl, controlToken, isControlPath } from './control.js';
 import { diskHarnessInventory } from './harness.js';
+import { AnalystEngine } from './analyst.js';
+import { cliJudge, processRunner } from './analyst-judge.js';
 import { LiveReload } from './livereload.js';
 import { handleAuthServer, isAuthServerPath, instructionsFor } from './oauth.js';
 import { log } from './log.js';
@@ -395,6 +397,15 @@ export async function startRouter(
     extensions: new ExtensionStore(join(ROUTER_HOME, 'extensions')),
     claudeHome: join(homedir(), '.claude'),
     harnesses: diskHarnessInventory(),
+    analyst: new AnalystEngine({
+      home: homedir(),
+      statePath: join(ROUTER_HOME, 'analyst.json'),
+      judge: cliJudge(processRunner()),
+      // spec-F7 §3.5: no analyst route opens a socket. The Swift router sent the first word of each recurring
+      // signal to two public registries; that step is off here, so the analyst reports candidatesUnavailable.
+      candidates: null,
+      now: () => Date.now(),
+    }),
   };
 
   const http = createServer((req, res) => {

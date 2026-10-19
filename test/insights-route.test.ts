@@ -9,8 +9,8 @@ import type { UpstreamConfig } from '../src/config.js';
 import type { HarnessReport, MCPClient } from '../src/harness.js';
 
 /*
- * GET /insights, through handleControl. Ported from the base of ControlInsights.swift. The analyst
- * member is null until P6 ports the session analyst, and no test here reads it as anything else.
+ * GET /insights, through handleControl. Ported from the base of ControlInsights.swift. The analyst member is null
+ * here because no analyst is wired into these deps; its readout is covered by insights-analyst-route.test.ts.
  *
  * The router home is set before control.ts loads, because config.ts reads it at import. Without this,
  * a usage log a test writes could be read from the operator's own home.
@@ -31,7 +31,7 @@ const { UpstreamPool } = await import('../src/pool.js');
 const TOKEN = 'insights-test-token-0123456789abcdef';
 const HOUR = 3_600_000;
 
-/** Every member the Mac model's InsightsResponse reads, and the one the route always sends null. */
+/** Every member the Mac model's InsightsResponse reads. The analyst member is null when the router has no analyst. */
 const ENVELOPE_KEYS = [
   'analyst',
   'calls',
@@ -92,6 +92,8 @@ async function send(
 ): Promise<{ handled: boolean; status: number; json: any }> {
   const headers: Record<string, string> = {};
   if (token !== null) headers['x-mcpr-token'] = token;
+  // Mutating requests must declare JSON, or the control API answers 415 before the route is reached.
+  if (method === 'POST' || method === 'PATCH') headers['content-type'] = 'application/json';
   const req = { method, headers } as unknown as IncomingMessage;
 
   let status = 0;
@@ -160,7 +162,7 @@ test('the envelope carries every member the Mac model reads, with the nested sha
   for (const hour of body.callsPerHour) assert.deepEqual(Object.keys(hour).sort(), HOUR_KEYS);
   for (const row of body.callsByHarness) assert.deepEqual(Object.keys(row).sort(), HARNESS_ROW_KEYS);
 
-  assert.equal(body.analyst, null, 'the analyst is null until P6 ports it');
+  assert.equal(body.analyst, null, 'no analyst is wired into these deps, so the member is null');
   assert.equal(typeof body.generatedAt, 'string');
   assert.equal(body.windowHours, 24, 'the window is fixed at 24 hours, the same as the reference');
 });
@@ -287,10 +289,12 @@ test('a running child with a measured figure reports resident memory with its de
   assert.deepEqual(body.children, { alive: 1, declared: 2 });
 });
 
-test('the two analyst paths stay unclaimed until P6, so they still fall through to /mcp', async () => {
+test('the two analyst paths are claimed, and with no analyst they answer 503 rather than falling through to /mcp', async () => {
   const deps = { pool: new UpstreamPool(UPSTREAMS, 0, 1000), usage: usageFrom(undefined) };
   const analyse = await send('POST', '/insights/analyse', deps);
   const analyst = await send('PATCH', '/insights/analyst', deps);
-  assert.equal(analyse.handled, false);
-  assert.equal(analyst.handled, false);
+  assert.equal(analyse.handled, true);
+  assert.equal(analyse.status, 503);
+  assert.equal(analyst.handled, true);
+  assert.equal(analyst.status, 503);
 });

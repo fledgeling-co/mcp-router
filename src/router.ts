@@ -14,6 +14,7 @@ import { UpstreamPool } from './pool.js';
 import { splitToolName, unionTools, visibleTo, placardFor, type ManifestStore } from './manifest.js';
 import { ClientResolver, UsageStore, projectOf } from './usage.js';
 import { handleControl, controlToken, isControlPath } from './control.js';
+import { diskHarnessInventory } from './harness.js';
 import { LiveReload } from './livereload.js';
 import { handleAuthServer, isAuthServerPath, instructionsFor } from './oauth.js';
 import { log } from './log.js';
@@ -389,6 +390,7 @@ export async function startRouter(
     liveReload,
     pairing: new Pairing(),
     extensions: new ExtensionStore(join(ROUTER_HOME, 'extensions')),
+    harnesses: diskHarnessInventory(),
   };
 
   const http = createServer((req, res) => {

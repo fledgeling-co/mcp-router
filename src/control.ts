@@ -43,6 +43,7 @@ import {
 } from './auth.js';
 import { LiveReload } from './livereload.js';
 import { askSessionsToReload, listSessions } from './sessions.js';
+import { harnessEnvelope, type HarnessInventory } from './harness.js';
 import { log } from './log.js';
 import { wireInstant, type IssuedCode, type Pairing } from './pairing.js';
 import { extensionRoute, isExtensionsPath } from './extension-routes.js';
@@ -94,6 +95,8 @@ export interface ControlDeps {
   pairing: Pairing;
   /** R28. Absent answers 503 on every /extensions route, as the Swift router does. */
   extensions?: ExtensionStore;
+  /** Reads each agent client's config for GET /harnesses. Absent means the route answers 503. */
+  harnesses?: HarnessInventory;
 }
 
 /** The wire shape of an issued code. Shared by the route that mints one and the route that names it. */
@@ -448,6 +451,7 @@ export function isControlPath(pathname: string): boolean {
     pathname.startsWith('/usage/') ||
     pathname === '/sessions' ||
     pathname.startsWith('/sessions/') ||
+    pathname === '/harnesses' ||
     pathname.startsWith('/registry/') ||
     pathname.startsWith('/pairing/') ||
     isExtensionsPath(pathname)
@@ -914,6 +918,27 @@ export async function handleControl(
       : await deps.liveReload.announceToolsChanged(reason);
     const sessions = await askSessionsToReload(reason, { dryRun });
     json(res, 200, { reason, dryRun, tools, sessions });
+    return true;
+  }
+
+  // ---------------------------------------------------------------- harnesses
+  /*
+   * Read-only, and gated. Unlike the GETs above, which answer without the token (decision 3 of the
+   * retirement plan leaves them for their own item), this one carries session-adjacent data: which
+   * servers each agent client has declared and where its config lives. So it checks the token here,
+   * on this route alone.
+   */
+  if (p === '/harnesses' && req.method === 'GET') {
+    if (!tokenOk(req, token)) {
+      json(res, 401, { error: `unauthorized; the token is in ${TOKEN_PATH}` });
+      return true;
+    }
+    if (!deps.harnesses) {
+      json(res, 503, { error: 'harness detection is unavailable: this router has no inventory source' });
+      return true;
+    }
+    const reports = deps.harnesses.reports([...deps.upstreams.values()], deps.cfg.port);
+    json(res, 200, harnessEnvelope(reports, deps.cfg.port, Date.now()));
     return true;
   }
 

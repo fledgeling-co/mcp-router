@@ -7,8 +7,7 @@ import {
   ListToolsRequestSchema,
   type CallToolResult,
 } from '@modelcontextprotocol/sdk/types.js';
-import type { RouterConfig, UpstreamConfig } from './config.js';
-import { ROUTER_HOME } from './config.js';
+import { ROUTER_HOME, type RouterConfig, type UpstreamConfig } from './config.js';
 import { ExtensionStore } from './extensions.js';
 import { UpstreamPool } from './pool.js';
 import { splitToolName, unionTools, visibleTo, placardFor, type ManifestStore } from './manifest.js';
@@ -19,6 +18,7 @@ import { LiveReload } from './livereload.js';
 import { handleAuthServer, isAuthServerPath, instructionsFor } from './oauth.js';
 import { log } from './log.js';
 import { Pairing } from './pairing.js';
+import { startPairing, type RunningPairingListener } from './pairing-listener.js';
 
 const MCP_PATH = '/mcp';
 
@@ -381,6 +381,7 @@ export async function startRouter(
   const resolver = new ClientResolver();
   const token = controlToken();
   const liveReload = new LiveReload();
+  const pairing = new Pairing();
   const deps = {
     cfg,
     upstreams,
@@ -388,7 +389,7 @@ export async function startRouter(
     manifest,
     usage,
     liveReload,
-    pairing: new Pairing(),
+    pairing,
     extensions: new ExtensionStore(join(ROUTER_HOME, 'extensions')),
     harnesses: diskHarnessInventory(),
   };
@@ -527,6 +528,19 @@ export async function startRouter(
   });
 
   /*
+   * The phone-pairing listener, off unless `pairing.enabled` is set. It binds after the main socket, so a
+   * pairing port that is already taken closes the main socket again and the router fails to start, rather
+   * than running with pairing silently absent.
+   */
+  let pairingListener: RunningPairingListener | undefined;
+  try {
+    pairingListener = await startPairing(cfg.pairing, { dir: ROUTER_HOME, pairing });
+  } catch (err) {
+    http.close();
+    throw err;
+  }
+
+  /*
    * Identify a caller the instant its connection is accepted, not when its first
    * request is parsed. The lookup asks the OS who holds the other end of the socket,
    * so it can only answer while that process is alive, and it takes about 80ms — long
@@ -595,6 +609,7 @@ export async function startRouter(
       force.unref();
       await closed;
       clearTimeout(force);
+      await pairingListener?.close();
       await pool.shutdown();
     },
   };

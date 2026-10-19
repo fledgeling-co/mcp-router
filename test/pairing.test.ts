@@ -238,13 +238,24 @@ describe('pairing routes', () => {
   test('GET names the live code, and names nothing once it has expired', async () => {
     let now = NOW;
     const p = new Pairing(() => now);
-    assert.deepEqual((await call(p, 'GET', '/pairing/state', { token: TOKEN })).body, { code: null });
+    assert.deepEqual((await call(p, 'GET', '/pairing/state', { token: TOKEN })).body, { code: null, awaitingAck: [] });
     const { code } = p.issue();
     const live = await call(p, 'GET', '/pairing/state', { token: TOKEN });
     assert.equal(live.status, 200);
     assert.equal((live.body.code as { code: string }).code, code);
     now = new Date(NOW.getTime() + PAIRING_LIFETIME_MS);
-    assert.deepEqual((await call(p, 'GET', '/pairing/state', { token: TOKEN })).body, { code: null });
+    assert.deepEqual((await call(p, 'GET', '/pairing/state', { token: TOKEN })).body, { code: null, awaitingAck: [] });
+  });
+
+  test('GET names a phone whose request is awaiting its ack, by name and time, until it is released', async () => {
+    const p = new Pairing(() => NOW);
+    p.hold('11111111-1111-1111-1111-111111111111', "Luke's iPhone");
+    assert.deepEqual((await call(p, 'GET', '/pairing/state', { token: TOKEN })).body, {
+      code: null,
+      awaitingAck: [{ phoneName: "Luke's iPhone", requestedAt: '2026-10-19T10:00:00Z' }],
+    });
+    p.release('11111111-1111-1111-1111-111111111111');
+    assert.deepEqual((await call(p, 'GET', '/pairing/state', { token: TOKEN })).body, { code: null, awaitingAck: [] });
   });
 
   test('DELETE revokes once and reports nothing to revoke the second time', async () => {

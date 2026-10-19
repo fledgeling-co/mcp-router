@@ -33,6 +33,17 @@ export interface IssuedCode {
 }
 
 /**
+ * A phone whose request was accepted and whose `pair.ok` is on the wire, held until its `pair.ack`.
+ * Held only while its connection is open: a phone that drops before the ack is released, and nothing
+ * is recorded for it (planning/plans/plan-pairing-handshake.md §2.2).
+ */
+export interface AwaitingAck {
+  phoneId: string;
+  phoneName: string;
+  requestedAt: Date;
+}
+
+/**
  * Why the router refused a submitted code. The `declined` case of `PairingRefusal` is not here: a
  * human at the Mac dismissing a request is a decision the Mac takes, never the router.
  */
@@ -89,6 +100,7 @@ export class Pairing {
   private live: IssuedCode | undefined;
   private wrongAttempts = 0;
   private readonly spent = new Set<string>();
+  private readonly awaiting = new Map<string, AwaitingAck>();
 
   constructor(private readonly clock: () => Date = () => new Date()) {}
 
@@ -139,5 +151,20 @@ export class Pairing {
       }
     }
     return refusal;
+  }
+
+  /** A phone's request was accepted and its `pair.ok` sent. Held until `release`. */
+  hold(phoneId: string, phoneName: string): void {
+    this.awaiting.set(phoneId, { phoneId, phoneName, requestedAt: this.clock() });
+  }
+
+  /** Drop a held request, on its ack or on its connection closing. Nothing is recorded here. */
+  release(phoneId: string): void {
+    this.awaiting.delete(phoneId);
+  }
+
+  /** The requests whose phones have not yet acked, oldest first. */
+  awaitingAck(): AwaitingAck[] {
+    return [...this.awaiting.values()];
   }
 }

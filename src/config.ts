@@ -93,6 +93,8 @@ export interface RouterConfig {
   logPath: string;
   /** Size cap and retained-generation count for `logPath`. Defaults are 10 MB and five. */
   log: LogPolicy;
+  /** The phone-pairing listener. Off unless `pairing.enabled` is set; see PairingConfig. */
+  pairing: PairingConfig;
   usagePath: string;
   statsPath: string;
   authDir: string;
@@ -346,6 +348,42 @@ export function parseLogPolicy(raw: unknown, source: string): LogPolicy {
   return { maxBytes, keep };
 }
 
+/** The port the phone-pairing listener takes when `pairing.port` is left out. 8879 is the router, 8880 the OAuth callback. */
+export const DEFAULT_PAIRING_PORT = 8882;
+
+/**
+ * The `pairing` block of the server list. Off unless `enabled` is set, so a router that has not been
+ * asked to take phones binds no second socket at all.
+ *
+ * `host` defaults to every interface because a phone reaches the Mac over the LAN. It is not the
+ * control API's address, which stays on loopback however this is set.
+ */
+export interface PairingConfig {
+  enabled: boolean;
+  host: string;
+  port: number;
+}
+
+/** The `pairing` block, with defaults for whatever it leaves out. Refuses rather than clamps, as `parseLogPolicy` does. */
+export function parsePairingConfig(raw: unknown, source: string): PairingConfig {
+  const defaults: PairingConfig = { enabled: false, host: '0.0.0.0', port: DEFAULT_PAIRING_PORT };
+  if (raw === undefined) return defaults;
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+    throw new Error(`${source}: "pairing" must be an object, with enabled, port and host`);
+  }
+  const { enabled = defaults.enabled, port = defaults.port, host = defaults.host } = raw as Record<string, unknown>;
+  if (typeof enabled !== 'boolean') {
+    throw new Error(`${source}: pairing.enabled must be true or false, got ${JSON.stringify(enabled)}`);
+  }
+  if (!isCount(port, 1) || (port as number) > 65535) {
+    throw new Error(`${source}: pairing.port must be a port from 1 to 65535, got ${JSON.stringify(port)}`);
+  }
+  if (typeof host !== 'string' || host === '') {
+    throw new Error(`${source}: pairing.host must be a non-empty string, got ${JSON.stringify(host)}`);
+  }
+  return { enabled, host, port: port as number };
+}
+
 /**
  * Reads the router's own server list.
  *
@@ -375,6 +413,7 @@ export function loadConfig(opts: {
     idleMs?: number;
     startupTimeoutMs?: number;
     log?: unknown;
+    pairing?: unknown;
   };
 
   const upstreams: UpstreamConfig[] = [];
@@ -396,6 +435,7 @@ export function loadConfig(opts: {
       manifestPath: join(ROUTER_HOME, 'manifest.json'),
       logPath: join(ROUTER_HOME, 'router.log'),
       log: parseLogPolicy(raw.log, configPath),
+      pairing: parsePairingConfig(raw.pairing, configPath),
       usagePath: join(ROUTER_HOME, 'usage.jsonl'),
       statsPath: join(ROUTER_HOME, 'usage-stats.json'),
       authDir: AUTH_DIR,

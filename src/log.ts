@@ -70,7 +70,8 @@ function rotateFor(file: string, bytes: number): void {
 function emit(level: string, msg: string): void {
   const line = `${new Date().toISOString()} ${level.padEnd(5)} ${msg}`;
   // stdout is never used for logs: it stays clean in case this is ever run over stdio.
-  process.stderr.write(line + '\n');
+  // With a log file, stderr is launchd's uncapped capture, so only errors go there; the file keeps every line.
+  if (!logFile || level === 'error') process.stderr.write(line + '\n');
   if (logFile) {
     // Everything here is synchronous, so two emits never interleave, and a rotation finishes before the line it precedes is written.
     try {

@@ -392,7 +392,7 @@ public sealed partial class ShellWindow : Window
             {
                 "servers" => new ServersBoard(),
                 "skills" => new SkillsBoard(
-                    _skillsClient ?? new LiveSkillsControlClient(),
+                    _skillsClient ?? new LiveSkillsControlClient(tokenFile: new RouterTokenFile()),
                     SelectDestination),
                 "checks" => new ChecksBoard(),
                 "activity" => new ActivityBoard(destination, this, SelectDestination),

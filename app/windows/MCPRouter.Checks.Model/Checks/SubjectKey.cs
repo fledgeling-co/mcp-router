@@ -99,6 +99,11 @@ public sealed record StoredResult(
         "surfaceApproved" => CheckId.SurfaceApproved,
         "operative" => CheckId.Operative,
         "callsSucceed" => CheckId.CallsSucceed,
+        "reachable" => CheckId.Reachable,
+        "versioned" => CheckId.Versioned,
+        "originUnchanged" => CheckId.OriginUnchanged,
+        "updateWantsNoMore" => CheckId.UpdateWantsNoMore,
+        "described" => CheckId.Described,
         _ => throw new FormatException($"no such check on disk: '{raw}'"),
     };
 

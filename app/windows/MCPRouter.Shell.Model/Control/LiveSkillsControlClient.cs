@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using MCPRouter.Shell.Model.Skills;
@@ -61,9 +62,9 @@ public sealed class RouterTokenFile
 /// <c>/marketplaces</c> a 404 is the expected answer from the router a user runs today, and the
 /// honest reading of it is "the router may be newer or older than this app".
 ///
-/// Reads carry no Authorization header: the router requires the token on mutating requests only
-/// (<c>src/control.ts</c>). This client performs no mutating request, so it never needs the
-/// token, and never reads the token file except to decide the router has likely never run.
+/// <c>GET /skills</c> is token-gated on every method (<c>src/control.ts</c>), so each read sends the
+/// router's control token when its file is present, read at call time so a rotated token is the one
+/// sent. The token is never logged, and an absent file sends no header.
 /// </summary>
 public sealed class LiveSkillsControlClient : ISkillsControlClient
 {
@@ -108,6 +109,10 @@ public sealed class LiveSkillsControlClient : ISkillsControlClient
         try
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, path);
+            if (_tokenFile?.Read() is { } token)
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
             response = await _http.SendAsync(request, cancellationToken);
         }
         catch (HttpRequestException exception)

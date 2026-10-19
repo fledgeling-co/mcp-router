@@ -117,6 +117,42 @@ test('a bare query token is replaced whole, because its name is the secret', () 
   assert.ok(!JSON.stringify(doc).includes(PLANTED.bareQuery));
 });
 
+test('a query name that is not a plain word is replaced by its position, because the name can be the token', () => {
+  const doc = buildExport(
+    { x: { url: 'https://x.example.com/mcp?sk_live_0123456789abcdef=1&team=platform', headers: {} } },
+    PLANTED.controlToken,
+  );
+  assert.equal(
+    doc.mcpServers.x.url,
+    'https://x.example.com<redacted:url.path>?<redacted:url.query.0>&team=<redacted:url.query.team>',
+  );
+  assert.ok(!JSON.stringify(doc).includes('sk_live_0123456789abcdef'));
+});
+
+test('a query name that matches a known literal is replaced by its position', () => {
+  const doc = buildExport(
+    {
+      x: { command: 'node', args: [], env: { NAME: 'pinned-query-name' } },
+      y: { url: 'https://y.example.com/mcp?pinned-query-name=1', headers: {} },
+    },
+    PLANTED.controlToken,
+  );
+  assert.equal(doc.mcpServers.y.url, 'https://y.example.com<redacted:url.path>?<redacted:url.query.0>');
+});
+
+test('a literal in an entry the parser refuses still scrubs the servers that are exported', () => {
+  const doc = buildExport(
+    {
+      'bad__name': { command: 'node', args: [], env: { K: 'unparsed-literal-0099' } },
+      ok: { command: 'node', args: ['--k=unparsed-literal-0099'], env: {} },
+    },
+    PLANTED.controlToken,
+    ['ok'],
+  );
+  assert.equal(doc.mcpServers.ok.args?.[0], '--k=<redacted:args.0>');
+  assert.ok(!JSON.stringify(doc).includes('unparsed-literal-0099'));
+});
+
 test('a kept field whose value has an unexpected shape is replaced, not copied', () => {
   const doc = buildExport(
     { x: { command: 'node', args: [], env: {}, cwd: { token: PLANTED.envLong } } as unknown as RawServer },

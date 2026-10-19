@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { DEFAULT_CONFIG_PATH, parseServer, type RawServer } from './config.js';
-import { collectNeedles, redactArgs, type Needle } from './secrets.js';
+import { DEFAULT_CONFIG_PATH, type RawServer } from './config.js';
+import { collectRawNeedles, redactArgs, type Needle } from './secrets.js';
 
 /**
  * The server list as a file a person can share, with every secret value replaced.
@@ -75,17 +75,7 @@ export function buildExport(
   if (missing.length) {
     throw new Error(`no server named ${missing.map((name) => `"${name}"`).join(', ')} in the server list`);
   }
-  const upstreams = Object.entries(servers).flatMap(([name, s]) => {
-    try {
-      const parsed = parseServer(name, s);
-      return 'upstream' in parsed ? [parsed.upstream] : [];
-    } catch {
-      // An entry the parser cannot read is still exported, with its values replaced by position; it
-      // simply contributes no literals to the scrub of the others.
-      return [];
-    }
-  });
-  const needles = collectNeedles(upstreams, controlToken);
+  const needles = collectRawNeedles(servers, controlToken);
   return {
     mcpServers: Object.fromEntries(names.map((name) => [name, exportOne(servers[name], needles)])),
   };
@@ -160,20 +150,26 @@ function exportUrl(text: unknown, needles: Needle[]): string {
   }
   const userinfo = url.username || url.password ? `${placeholder('url.userinfo')}@` : '';
   const path = url.pathname && url.pathname !== '/' ? placeholder('url.path') : '';
-  const query = url.search ? `?${url.search.slice(1).split('&').map(queryPair).join('&')}` : '';
+  const query = url.search ? `?${url.search.slice(1).split('&').map((pair, i) => queryPair(pair, i, needles)).join('&')}` : '';
   const fragment = url.hash ? placeholder('url.fragment') : '';
   return `${url.protocol}//${userinfo}${scrubString(url.host, 'url.host', needles)}${path}${query}${fragment}`;
 }
 
+/** A query name is kept only as a plain word, because a name can be the token itself. */
+const PLAIN_NAME = /^[A-Za-z][A-Za-z_-]{0,31}$/;
+
 /**
- * One query pair, its value replaced and its name kept. A pair with no `=` is a bare token, so the
- * whole pair is replaced by its position: its name is the secret, and keeping it would keep it.
+ * One query pair, its value replaced and its name kept when the name is a plain word that no known
+ * literal matches. Otherwise the whole pair is replaced by its position: a bare token's name is the
+ * secret, and so is a name that is itself a token.
  */
-function queryPair(pair: string, index: number): string {
+function queryPair(pair: string, index: number, needles: Needle[]): string {
   if (pair === '') return pair;
   const eq = pair.indexOf('=');
-  if (eq < 0) return placeholder(`url.query.${index}`);
-  const key = pair.slice(0, eq);
+  const key = eq < 0 ? pair : pair.slice(0, eq);
+  if (eq < 0 || !PLAIN_NAME.test(key) || scrubString(key, 'url.query', needles) !== key) {
+    return placeholder(`url.query.${index}`);
+  }
   return `${key}=${placeholder(`url.query.${key}`)}`;
 }
 

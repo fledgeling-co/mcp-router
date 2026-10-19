@@ -124,27 +124,36 @@
               process, by something that drove the router from outside this application. A
               readout the app is the only reader of would be the same defect with a witness
               attached to it.
+
+              Pressing the readout opens the ambient flyout (DEF-380): the same model, mounted
+              as a Flyout so the operator can reach Review Inbox from the pane.
             -->
             <muxc:NavigationView.PaneFooter>
-                <StackPanel
+                <Button
                     x:Name="AmbientStatus"
                     AutomationProperties.AutomationId="ambient.status"
                     AutomationProperties.Name="Router status"
                     Margin="16,4,16,12"
-                    Spacing="2">
-                    <TextBlock
-                        x:Name="AmbientStatusTitle"
-                        AutomationProperties.AutomationId="ambient.status.title"
-                        Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                        Style="{ThemeResource CaptionTextBlockStyle}"
-                        TextTrimming="CharacterEllipsis" />
-                    <TextBlock
-                        x:Name="AmbientStatusDetail"
-                        AutomationProperties.AutomationId="ambient.status.detail"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Style="{ThemeResource CaptionTextBlockStyle}"
-                        TextWrapping="Wrap" />
-                </StackPanel>
+                    Padding="0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch">
+                    <StackPanel Spacing="2">
+                        <TextBlock
+                            x:Name="AmbientStatusTitle"
+                            AutomationProperties.AutomationId="ambient.status.title"
+                            Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            TextTrimming="CharacterEllipsis" />
+                        <TextBlock
+                            x:Name="AmbientStatusDetail"
+                            AutomationProperties.AutomationId="ambient.status.detail"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Button>
             </muxc:NavigationView.PaneFooter>
 
             <!--

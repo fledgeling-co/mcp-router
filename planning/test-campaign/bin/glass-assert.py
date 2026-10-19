@@ -99,9 +99,11 @@ SURFACES = {
     "SURF-001": {
         "dump": "SURF-001.window.txt", "title": None,
         "shot": "SURF-001.shell.png", "kind": "shell",
+        # The nine boards of PRD.md §9.4. Settings is not among them: M15 (29829e6b) made it a
+        # window of its own, and the mock's App menu carries `Settings…` rather than a sidebar row.
         "copy": [
-            "Activity", "Servers", "Skills", "Discover",
-            "Inbox", "Checks", "Cleanup", "Settings",
+            "Activity", "Servers", "Skills", "Harnesses", "Discover",
+            "Inbox", "Checks", "Cleanup", "Insights",
         ],
         # REQ-003's other half. CASE-0002 is n/a because posting ⌘1–7 to a background pid does
         # not change SwiftUI's focused scene — measured, and a fact about the platform rather
@@ -111,11 +113,18 @@ SURFACES = {
         # requirement and it is not nothing: a binding silently lost would be invisible today.
         # Scoped to `menuAction:` rows, because the Window menu lists the same board names with
         # `makeKeyAndOrderFront:` and no key of their own.
-        "menu": {"Activity": "1", "Servers": "2", "Skills": "3", "Discover": "4",
-                 "Inbox": "5", "Checks": "6", "Cleanup": "7", "Settings": ","},
-        "asserts": "the shell offers all eight sidebar destinations in every window it "
-                   "draws, which is a claim about persistence rather than identity, and its "
-                   "live menu bar declares ⌘1–7 and ⌘, against those eight destinations",
+        #
+        # The digits are DESIGN.md §8's, which the mock's View menu repeats (design/
+        # mcp-router-console.html, Discover ⌘1 … Insights ⌘9) and which DESIGN.md says M22 ships.
+        # The build's M22 map (Destination.selectionDigit, 8952a5b1) disagrees on eight of the
+        # nine digits. That disagreement is DEF-522: this dict follows the design of record and
+        # must not be re-mapped from the build to turn the check green.
+        "menu": {"Discover": "1", "Skills": "2", "Servers": "3", "Activity": "4",
+                 "Harnesses": "5", "Checks": "6", "Cleanup": "7", "Inbox": "8",
+                 "Insights": "9", "Settings…": ","},
+        "asserts": "the shell offers all nine boards in every window it draws, which is a "
+                   "claim about persistence rather than identity, and its live menu bar declares "
+                   "⌘1–9 and ⌘, against DESIGN.md §8",
     },
     "SURF-002": {
         "dump": "SURF-002.window.txt", "title": "Servers",
@@ -256,7 +265,9 @@ SURFACES = {
         # copy list above, which requires the board to BE discussing memory and duty cycle.
         "absentAny": ["Savings", "saved", "vs unrouted", "unrouted", "would have been",
                       "99.8", "99.7"],
-        "controls": {"Analyse now": False},
+        # The analyst is live (404d7832, 2026-08-29). planning/specs/spec-F7.md §3 item 8:
+        # "`Analyse now` is enabled exactly when the router serves the route."
+        "controls": {"Analyse now": True},
         "asserts": "the Insights board states that nothing on it is modelled, carries the "
                    "provenance line under the memory reading, says why a bar can read nothing "
                    "at all, states the duty cycle's mechanism and window rather than a "
@@ -619,10 +630,9 @@ RELATIONS = {
                    "present only in the reading that returned harnesses — so the control column "
                    "is computed from what was read rather than drawn regardless",
     },
-    # CASE-0176. Nothing here claims the analyst runs: PRD.md §6 specifies one and
-    # app/Sources implements none, so `Analyse now` is drawn disabled and there is
-    # no run to observe. What CAN be measured is that the board's single action is
-    # chosen by its state, which a board drawing one fixed action would fail.
+    # CASE-0176. The board's single action is chosen by its state, which a board
+    # drawing one fixed action would fail. Where the router serves the analyst route,
+    # `Analyse now` is the populated reading's action and is enabled (spec-F7.md §3 item 8).
     "SURF-026/action-tracks-state": {
         "case": "CASE-0176",
         "dumps": ["SURF-026.window.txt", "SURF-026.empty.window.txt",
@@ -637,7 +647,7 @@ RELATIONS = {
         },
         "kind": "distinct-action",
         "expected": {
-            "SURF-026.window.txt": ("Analyse now", "0"),
+            "SURF-026.window.txt": ("Analyse now", "1"),
             "SURF-026.empty.window.txt": ("Watch the live log instead", "1"),
             "SURF-026.failure.window.txt": ("Start the router", "1"),
         },

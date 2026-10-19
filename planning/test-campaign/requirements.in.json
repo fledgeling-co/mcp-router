@@ -179,7 +179,7 @@
   "evidence": "reported",
   "effect": "none",
   "providerNote": "deferred; install.sh is not built.",
-  "note": "Superseded 2026-10-19. The owner retired the Swift router. install.sh defaults to node and src/*.ts stays. See planning/plans/plan-retire-swift-router.md. The class stays deferred: registry-drop-gate.py exempts only that class from its coverage check, and this requirement carries no case, so any other class reads as an uncovered requirement. The text above is the original requirement and is kept as history."
+  "note": "Superseded 2026-10-19. The owner retired the Swift router. install.sh defaults to node and src/*.ts stays. See planning/plans/plan-retire-swift-router.md. The class stays deferred: registry-drop-gate.py exempts only that class from its coverage check, and this requirement carries no case, so any other class reads as an uncovered requirement. The text above is the original requirement and is kept as history. Unbuilt 2026-10-19 (plan G2 to G4): the Swift sources stay in the tree, no longer declared in app/Package.swift, and the Swift parity make targets are removed. app/Retired/README.md lists them."
  },
  {
   "id": "REQ-035",

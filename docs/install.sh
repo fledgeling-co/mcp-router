@@ -6,8 +6,7 @@
 #
 # What it does, in order, and nothing else:
 #   0. fetches the source into ~/.local/share/mcp-router, if you piped this in
-#   1. builds the TypeScript router, which serves by default and is the parity harness's reference;
-#      with MCPR_ROUTER=swift it also builds the Swift one
+#   1. builds the TypeScript router, the only router this installer runs;
 #   2. copies your stdio MCP servers out of ~/.claude.json into the router's own list
 #   3. indexes them once, so `tools/list` can be served with nothing running
 #   4. writes two launchd agents with THIS machine's absolute paths and loads them
@@ -25,24 +24,23 @@ die()  { printf '%sxxx%s %s\n' "$RED" "$RST" "$1" >&2; exit 1; }
 [[ "$(uname -s)" == "Darwin" ]] || die "This installer is macOS-only: it uses launchd. On Linux, build with \`npm run build\` and run \`node dist/index.js serve\` under systemd."
 
 # ---------------------------------------------------------------- prerequisites
-# Node is a prerequisite on every path: the TypeScript router is always built, and it is the default
-# daemon. A fallback you cannot run is not a fallback, so Node stays required even for MCPR_ROUTER=swift.
+# Node is a prerequisite on every path: the TypeScript router is always built, and it is the daemon.
+# A fallback you cannot run is not a fallback, so Node is required on the one path there is.
 command -v node >/dev/null 2>&1 || die "node not found on PATH. Install Node 20 or newer."
 NODE_BIN="$(command -v node)"
 NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]')"
 (( NODE_MAJOR >= 20 )) || die "Node $NODE_MAJOR is too old; this needs 20 or newer (tested on 22)."
 
-# Which router the two launchd agents run. `node` is the default. `swift` is the opt-in and needs a
-# Swift toolchain; it is documented so that either router is one reinstall away.
+# Which router the two launchd agents run. Only `node` is offered. `swift` was the opt-in until the
+# owner retired the Swift router on 2026-10-19 (planning/plans/plan-retire-swift-router.md). It is
+# refused here, before anything is built, so the installer never tries to build a target that no
+# longer exists.
 MCPR_ROUTER="${MCPR_ROUTER:-node}"
 case "$MCPR_ROUTER" in
-  swift|node) ;;
-  *) die "MCPR_ROUTER is \"$MCPR_ROUTER\"; it takes swift or node." ;;
+  swift) die "MCPR_ROUTER=swift is refused: the Swift router was retired on 2026-10-19 (planning/plans/plan-retire-swift-router.md). This installer runs the TypeScript router only. Unset MCPR_ROUTER or set it to node." ;;
+  node) ;;
+  *) die "MCPR_ROUTER is \"$MCPR_ROUTER\"; it takes node." ;;
 esac
-
-if [ "$MCPR_ROUTER" = swift ]; then
-  command -v swift >/dev/null 2>&1 || die "swift not found on PATH. Install Xcode or the Swift toolchain, or run with MCPR_ROUTER=node."
-fi
 
 # ---------------------------------------------------------------- source
 # Resolve the repo from this script's own location so the launchd agents point
@@ -84,23 +82,13 @@ say "port    $PORT"
 mkdir -p "$ROUTER_HOME" "$AGENTS"
 
 # ---------------------------------------------------------------- build
-# The TypeScript router is built whichever one is selected, and that is deliberate rather than wasteful.
-#
-# The TypeScript router is the oracle the differential parity harness compares against — 83 rows,
-# both routers driven on the wire, byte-compared. `dist/index.js` is what that harness runs as the
-# reference, so a machine that stops building it stops being able to answer "did the Swift router
-# change behaviour" at all. It is also what a `MCPR_ROUTER=swift` install leaves built and on disk.
-say "building the TypeScript router (the fallback, and the harness's reference)"
+# The TypeScript router is the only router this installer builds. Its `dist/index.js` is also what the
+# retained acceptance lanes drive, so a machine that stops building it stops being able to run them.
+say "building the TypeScript router"
 ( cd "$REPO_ROOT" && npm install --silent && npm run build --silent )
 [[ -f "$REPO_ROOT/dist/index.js" ]] || die "build produced no dist/index.js"
 
 SWIFT_BIN=""
-if [ "$MCPR_ROUTER" = swift ]; then
-  say "building the Swift router (release)"
-  ( cd "$REPO_ROOT/app" && swift build -c release --product MCPRouterCLI )
-  SWIFT_BIN="$REPO_ROOT/app/.build/release/MCPRouterCLI"
-  [ -x "$SWIFT_BIN" ] || die "swift build produced no executable at $SWIFT_BIN"
-fi
 
 # ---------------------------------------------------------------- adopt + index
 if [[ -f "$CLAUDE_JSON" ]]; then
@@ -119,11 +107,13 @@ say "indexing (spawns each server once, then shuts it down)"
 NODE_DIR="$(dirname "$NODE_BIN")"
 LAUNCHD_PATH="$NODE_DIR:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
 
-# The seam between the two routers. The TypeScript side is the default; the Swift side is opt-in
-# with MCPR_ROUTER=swift, and it is being retired, so the opt-in goes when that lands.
+# The seam between the two routers. Until 2026-10-19 the TypeScript side was the default and the Swift
+# side was opt-in with MCPR_ROUTER=swift. The owner retired the Swift router that day
+# (planning/plans/plan-retire-swift-router.md), and the selector above refuses `swift`, so the Swift
+# arm below cannot run. It stays only because scripts/acceptance/install-router-default.sh extracts this
+# block by anchor, and that lane needs a block of the expected size to read.
 #
-# MCPR_ROUTER_BINARY overrides which Swift binary is used, which is what the install parity lanes
-# drive.
+# MCPR_ROUTER_BINARY overrides which Swift binary is used. It is read only by the refused Swift arm.
 #
 # BOTH agents move together. They used to not: the `watch` agent stayed on node because there was no
 # Swift watcher, and a variable that moved both would have left the second one running a verb the

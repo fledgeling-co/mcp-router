@@ -24,24 +24,19 @@ let measureDefine: [SwiftSetting] = measuring ? [.define("MEASURE")] : []
 /// frameworks so the router's own tests can import it. Putting the shared views in each app instead
 /// would give the product two design systems that drift, so both app targets link this one.
 ///
-/// `RouterCore` is the Swift router's data layer and is linked by **neither app**. It is where the
-/// MCP SDK dependency lives, pinned to an exact version, so the SDK's instability is contained to
-/// the target that actually speaks the protocol — which is what keeps the "no external
-/// dependencies" promise above true for everything the apps compile.
+/// The Swift router (`RouterCore`, `MCPRouterCLI`, `ControlDiff` and `RouterCoreTests`) is retired and
+/// not built. The owner decided on 2026-10-19 to keep its sources in the tree and take them out of
+/// every build and release gate (`planning/plans/plan-retire-swift-router.md`, G2). Its targets are
+/// not declared here, so nothing in it compiles, and the MCP SDK it alone depended on is not
+/// resolved. `app/Retired/README.md` says what to restore to build it again.
 let package = Package(
     name: "MCPRouterKit",
     platforms: [.macOS(.v15), .iOS(.v18)],
     products: [
         .library(name: "MCPRouterKit", targets: ["MCPRouterKit"]),
-        .library(name: "MCPRouterUI", targets: ["MCPRouterUI"]),
-        .library(name: "RouterCore", targets: ["RouterCore"])
+        .library(name: "MCPRouterUI", targets: ["MCPRouterUI"])
     ],
-    dependencies: [
-        // Pinned to an EXACT version, never a range: the SDK is pre-1.0 and its own README warns
-        // that a minor bump may break the API. Probe-built against Swift 6 strict concurrency
-        // before adopting.
-        .package(url: "https://github.com/modelcontextprotocol/swift-sdk.git", exact: "0.12.1")
-    ],
+    dependencies: [],
     targets: [
         .target(
             name: "MCPRouterKit",
@@ -59,16 +54,6 @@ let package = Package(
             path: "Sources/MCPRouterUI",
             swiftSettings: [.swiftLanguageMode(.v6)] + measureDefine
         ),
-        // The Swift router's data layer. Deliberately NOT linked by either app target: the Mac app
-        // talks to the router only over the loopback control API, and leaving this out of the
-        // app's dependency graph means reading `servers.json` directly would have to be added on
-        // purpose rather than reached for by import.
-        .target(
-            name: "RouterCore",
-            dependencies: [.product(name: "MCP", package: "swift-sdk")],
-            path: "Sources/RouterCore",
-            swiftSettings: [.swiftLanguageMode(.v6)]
-        ),
         .testTarget(
             name: "MCPRouterKitTests",
             dependencies: ["MCPRouterKit"],
@@ -79,40 +64,6 @@ let package = Package(
             name: "MCPRouterUITests",
             dependencies: ["MCPRouterUI"],
             path: "Tests/MCPRouterUITests",
-            swiftSettings: [.swiftLanguageMode(.v6)]
-        ),
-        .testTarget(
-            name: "RouterCoreTests",
-            dependencies: ["RouterCore"],
-            path: "Tests/RouterCoreTests",
-            // `Vectors` is the PARITY corpus and `planning/pin-class-gate.py` holds every file in
-            // it to a generator region that imports a production export of the TypeScript
-            // reference. `Pins` is deliberately a different directory, for a pin that has no
-            // reference to be derived out of — M37's is a request the *app* composes, so there is
-            // no export to import and no second implementation for a parity vector to catch
-            // diverging. Same bundle, different claim.
-            //
-            // Keep prose in this file clear of the four range spellings the SDK-pin guard scans
-            // for. `StandingConstraintsTests.theSDKPinIsExact` greps the whole manifest as text,
-            // comments included, so an ordinary English sentence can redden it — this comment's
-            // first draft did, on the preposition in "derived out of". The guard is right about
-            // the constraint and blunt about where it looks.
-            resources: [.copy("Vectors"), .copy("Pins")],
-            swiftSettings: [.swiftLanguageMode(.v6)]
-        ),
-        // The one check a stub cannot stand in for. Every other test in this package talks to a
-        // stub we wrote ourselves, which proves the client agrees with our belief about the wire;
-        // this talks to the actual router. It is an executable rather than a test because it needs
-        // a running daemon, and a unit suite that needs a daemon is a unit suite that fails on a
-        // machine where one is not running.
-        // The differential acceptance oracle: answers one control request through the Swift
-        // handler so a script can diff its bytes against the running TypeScript router's. Every
-        // other check in this package compares the port against something we wrote; this one
-        // compares it against the reference, running, now.
-        .executableTarget(
-            name: "ControlDiff",
-            dependencies: ["RouterCore"],
-            path: "Sources/ControlDiff",
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         // M23's conversion harness driver. Renders one surface in a hosted view, reads what the
@@ -128,22 +79,6 @@ let package = Package(
             name: "ControlProbe",
             dependencies: ["MCPRouterKit"],
             path: "Sources/ControlProbe",
-            swiftSettings: [.swiftLanguageMode(.v6)]
-        ),
-        // The router itself: the process the cutover would point a launchd agent at.
-        //
-        // R2 shipped the pool, the supervision and the passthrough value layer and deferred the
-        // process that uses them, so until this target existed `RouterCore` was a library nothing
-        // ran — and R4's parity gate had five lanes it could not measure at all, because there was
-        // no Swift binary to invoke, no listener to drive and no long-lived process to hold state
-        // or write a log.
-        //
-        // It ships **alongside** `node dist/index.js`, which stays the installed default until
-        // R4's differential parity gate passes.
-        .executableTarget(
-            name: "MCPRouterCLI",
-            dependencies: ["RouterCore"],
-            path: "Sources/MCPRouterCLI",
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .executableTarget(

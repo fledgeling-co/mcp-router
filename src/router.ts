@@ -1,4 +1,5 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+import { join } from 'node:path';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import {
@@ -7,6 +8,8 @@ import {
   type CallToolResult,
 } from '@modelcontextprotocol/sdk/types.js';
 import type { RouterConfig, UpstreamConfig } from './config.js';
+import { ROUTER_HOME } from './config.js';
+import { ExtensionStore } from './extensions.js';
 import { UpstreamPool } from './pool.js';
 import { splitToolName, unionTools, visibleTo, placardFor, type ManifestStore } from './manifest.js';
 import { ClientResolver, UsageStore, projectOf } from './usage.js';
@@ -377,7 +380,16 @@ export async function startRouter(
   const resolver = new ClientResolver();
   const token = controlToken();
   const liveReload = new LiveReload();
-  const deps = { cfg, upstreams, pool, manifest, usage, liveReload, pairing: new Pairing() };
+  const deps = {
+    cfg,
+    upstreams,
+    pool,
+    manifest,
+    usage,
+    liveReload,
+    pairing: new Pairing(),
+    extensions: new ExtensionStore(join(ROUTER_HOME, 'extensions')),
+  };
 
   const http = createServer((req, res) => {
     void (async () => {

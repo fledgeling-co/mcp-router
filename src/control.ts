@@ -45,6 +45,8 @@ import { LiveReload } from './livereload.js';
 import { askSessionsToReload, listSessions } from './sessions.js';
 import { log } from './log.js';
 import { wireInstant, type IssuedCode, type Pairing } from './pairing.js';
+import { extensionRoute, isExtensionsPath } from './extension-routes.js';
+import type { ExtensionStore } from './extensions.js';
 
 export const TOKEN_PATH = join(ROUTER_HOME, 'control.token');
 
@@ -90,6 +92,8 @@ export interface ControlDeps {
   liveReload: LiveReload;
   /** The phone-pairing codes this router has issued. One per process, shared by every pairing route. */
   pairing: Pairing;
+  /** R28. Absent answers 503 on every /extensions route, as the Swift router does. */
+  extensions?: ExtensionStore;
 }
 
 /** The wire shape of an issued code. Shared by the route that mints one and the route that names it. */
@@ -445,7 +449,8 @@ export function isControlPath(pathname: string): boolean {
     pathname === '/sessions' ||
     pathname.startsWith('/sessions/') ||
     pathname.startsWith('/registry/') ||
-    pathname.startsWith('/pairing/')
+    pathname.startsWith('/pairing/') ||
+    isExtensionsPath(pathname)
   );
 }
 
@@ -464,6 +469,25 @@ export async function handleControl(
   const p = url.pathname;
   const mutating = req.method === 'POST' || req.method === 'DELETE' || req.method === 'PATCH';
   if (!isControlPath(p)) return false;
+
+  // The extension family is gated on every method, GET included. Its listings name what the router holds and
+  // where, so a page on this machine must not read them. The existing GETs on this API stay open (decision 3).
+  if (isExtensionsPath(p)) {
+    if (!tokenOk(req, token)) {
+      json(res, 401, { error: `unauthorized; the token is in ${TOKEN_PATH}` });
+      return true;
+    }
+    const ct = String(req.headers['content-type'] ?? '');
+    const writes = req.method === 'POST' || req.method === 'PATCH';
+    if (writes && !ct.startsWith('application/json')) {
+      json(res, 415, { error: 'expected content-type: application/json' });
+      return true;
+    }
+    const answer = extensionRoute(req.method ?? '', p, body, deps);
+    if (answer) json(res, answer.status, answer.body);
+    else json(res, 405, { error: `${req.method} not allowed on ${p}` });
+    return true;
+  }
 
   // The pairing routes are gated on every method, GET included: `/pairing/state` names the code a
   // phone would type, and a page that could read it could pair itself.

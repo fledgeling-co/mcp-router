@@ -452,4 +452,16 @@ print(f"wrote {(shots / 'captures.json').relative_to(campaign)} — {len(manifes
 PY
 
 rm -f "$OUT/.states.ndjson"
+# Stamp what this run photographed with the build it came from, in the run that took the pictures.
+# capture-mac-glass.sh does this for its own shots; this lane photographed SURF-002's live states
+# and wrote no stamp, so a re-capture here left glass-build-gate reading the August build for it.
+FS_STAMPED=()
+while IFS= read -r f; do FS_STAMPED+=("evidence/shots/forced-state/${f}"); done < <(cd "$SHOTS" && ls *.png 2>/dev/null || true)
+if [ "${#FS_STAMPED[@]}" -gt 0 ]; then
+  python3 "$CAMPAIGN/bin/glass-build-gate.py" --emit "$MAC_APP" "${FS_STAMPED[@]}" || {
+    echo "FAIL: this run's pictures could not be stamped with the build they came from."
+    exit 1
+  }
+fi
+
 echo "forced-state: three states arranged and read; MCPRouter never frontmost"

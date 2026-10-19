@@ -299,9 +299,21 @@ def analyse(now_pairs: dict[str, str] | None = None,
     stale, unstamped, ordering = [], [], []
     covered: set[str] = set()
 
+    # An artifact a CURRENT group stamps has been re-captured against this build, and an older
+    # group naming it is history, not a claim. Without this the gate's own remedy ("re-capture on
+    # a macOS host") could never clear it: the capture channel appends a group rather than
+    # rewriting the old one, so every superseded group stayed red after the re-capture it asked
+    # for. Measured 2026-10-19: 55 of 56 artifacts re-stamped at 5a7c06969d69, all still STALE.
+    current = {path for g in (record.get("groups") or {}).values()
+               if g.get("buildIdentity") == now for path in g.get("artifacts", [])}
+
     for sha, g in sorted((record.get("groups") or {}).items()):
         for path in g.get("artifacts", []):
             covered.add(path)
+        if g.get("buildIdentity") != now and current:
+            g = dict(g, artifacts=[a for a in g.get("artifacts", []) if a not in current])
+            if not g["artifacts"]:
+                continue
         if sha == "UNCOMMITTED":
             for path in g.get("artifacts", []):
                 unstamped.append(f"{path}: never committed, so no build identity can be "
@@ -515,12 +527,23 @@ def emit(app_bundle: str, artifacts: list[str]) -> int:
     record = load_record() or {"lane": LANE, "groups": {}}
     key = f"capture:{git('rev-parse', 'HEAD').strip()[:9]}"
     record["stampProvenance"] = "capture-channel"
-    record.setdefault("groups", {})[key] = {
+    # Two lanes can stamp at one HEAD (capture-mac-glass.sh, then forced-state.sh). Replacing the
+    # group here dropped the first lane's artifacts from the record: measured 2026-10-19, 55
+    # artifacts lost their current stamp to a forced-state run one minute later. A group for the
+    # same build keeps what it already covers; a different build at the same HEAD (a dirty tree)
+    # gets its own key rather than overwriting.
+    prior_group = record.setdefault("groups", {}).get(key)
+    identity = _identity_from_pairs(pairs)
+    if prior_group and prior_group.get("buildIdentity") == identity:
+        artifacts = set(artifacts) | set(prior_group.get("artifacts", []))
+    elif prior_group:
+        key = f"{key}:{identity[:12]}"
+    record["groups"][key] = {
         "artifacts": sorted(artifacts),
         "provenance": "capture-channel",
         "writtenAt": _now(),
         "subject": "written by bin/capture-mac-glass.sh in the run that took these pictures",
-        "buildIdentity": _identity_from_pairs(pairs),
+        "buildIdentity": identity,
         "byInput": group_identities(pairs),
         "bundleVersion": version,
         "bundleBuild": build,

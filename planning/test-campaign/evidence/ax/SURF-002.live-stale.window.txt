@@ -1,86 +1,86 @@
-0	AXWindow	AXStandardWindow	Servers								SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1	180.0	140.0	980.0	620.0	0
+0	AXWindow	AXStandardWindow	Servers								SwiftUI.WindowGroup<SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>>-1-AppWindow-1	180.0	140.0	980.0	620.0	0
 1	AXGroup	AXHostingView										180.0	140.0	980.0	620.0	0
-2	AXSplitGroup										SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1, SidebarNavigationSplitView	180.0	-605.5	980.0	2163.0	0
-3	AXGroup	AXHostingView										188.0	-597.5	256.0	2147.0	0
-4	AXScrollArea											188.0	-553.5	256.0	1964.0	0
-5	AXOutline				Sidebar		1				sidebar	188.0	-553.5	256.0	1964.0	0
-6	AXRow	AXOutlineRow						0				188.0	-553.5	256.0	19.0	
-7	AXCell						1	0				198.0	-553.5	236.0	19.0	1
-8	AXGroup	AXHostingView										202.0	-553.5	240.0	19.0	0
-9	AXHeading				Running		1					202.0	-551.0	45.0	14.0	
-6	AXRow	AXOutlineRow						0				188.0	-534.5	256.0	32.0	
-7	AXCell						1	0				198.0	-534.5	236.0	32.0	1
-8	AXButton				Activity		1					205.5	-526.5	71.0	16.0	
-6	AXRow	AXOutlineRow						1				188.0	-502.5	256.0	32.0	
-7	AXCell						1	1				198.0	-502.5	236.0	32.0	1
-8	AXButton				Servers		1	1				204.0	-494.5	72.5	16.0	
-6	AXRow	AXOutlineRow						0				188.0	-470.5	256.0	32.0	
-7	AXCell						1	0				198.0	-470.5	236.0	32.0	1
-8	AXButton				Skills		1					207.0	-462.5	55.0	16.0	
-6	AXRow	AXOutlineRow						0				188.0	-438.5	256.0	32.0	
-7	AXCell						1	0				198.0	-438.5	236.0	32.0	1
-8	AXButton				Harnesses		1					205.0	-430.5	90.0	16.0	
-6	AXRow	AXOutlineRow						0				188.0	-393.5	256.0	19.0	
-7	AXCell						1	0				198.0	-393.5	236.0	19.0	1
-8	AXGroup	AXHostingView										202.0	-393.5	240.0	19.0	0
-9	AXHeading				Library		1					202.0	-391.0	39.0	14.0	
-6	AXRow	AXOutlineRow						0				188.0	-374.5	256.0	32.0	
-7	AXCell						1	0				198.0	-374.5	236.0	32.0	1
-8	AXButton				Discover		1					206.0	-366.5	77.5	16.0	
-6	AXRow	AXOutlineRow						0				188.0	-342.5	256.0	32.0	
-7	AXCell						1	0				198.0	-342.5	236.0	32.0	1
-8	AXButton				Inbox		1					204.5	-334.5	58.5	16.0	
-6	AXRow	AXOutlineRow						0				188.0	-310.5	256.0	32.0	
-7	AXCell						1	0				198.0	-310.5	236.0	32.0	1
-8	AXButton				Checks		1	1				204.5	-302.5	70.5	16.0	
-6	AXRow	AXOutlineRow						0				188.0	-278.5	256.0	32.0	
-7	AXCell						1	0				198.0	-278.5	236.0	32.0	1
-8	AXButton				Cleanup, 3 never used		1					205.5	-270.5	222.5	16.0	
-6	AXRow	AXOutlineRow						0				188.0	-246.5	256.0	32.0	
-7	AXCell						1	0				198.0	-246.5	236.0	32.0	1
-8	AXButton				Insights		1					203.5	-238.5	75.0	16.0	
-6	AXColumn							0			ListColumn	198.0	-553.5	236.0	1964.0	
-4	AXStaticText			The router isn't running, Nothing is listening on the control port, so there is nothing to show yet. Starting it takes a moment and your servers stay exactly as you left them.			1				sidebar	204.0	1426.5	214.5	74.0	
-4	AXStaticText			Router endpoint, 127.0.0.1:8955			1				sidebar	204.0	1526.5	95.5	14.0	
-3	AXSplitter			264			0	0				444.0	989.5	0.0	568.0	0
-3	AXGroup	AXHostingView										180.0	-605.5	980.0	2163.0	0
-4	AXStaticText			none	mcprouter-key-probe						content	1084.0	1529.5	72.0	24.0	1
-4	AXScrollArea										content	444.0	-553.5	716.0	2111.0	0
-5	AXStaticText			Servers			1					460.0	-537.5	79.5	26.0	
-5	AXButton				Add Server…		1					1047.0	-533.5	97.0	24.0	0
-5	AXStaticText			3 tools from 3 servers · last reading, not current			1					460.0	-507.5	302.0	16.0	
-5	AXButton				bolt, The router isn't running. These servers are the last reading the router gave, kept rather than cleared. Nothing about them is current. Nothing is listening on the control port, so there is nothing to show yet. Starting it takes a moment and your servers stay exactly as you left them., MCP Router can't start the daemon itself yet. Start it the way you normally do and this fills in on its own.	MCP Router can't start the daemon itself yet. Start it the way you normally do and this fills in on its own., MCP Router can't start the daemon itself yet. Start it the way you normally do and this fills in on its own.	1					460.0	-483.5	684.0	116.0	
-5	AXStaticText			Signal path			1					472.0	-347.5	71.0	16.0	
-5	AXStaticText			1 endpoint → 3 upstreams			1					551.0	-346.5	163.5	14.0	
-5	AXStaticText			awake is green			1					915.0	-346.5	46.5	14.0	
-5	AXStaticText			dormant is unlit			1					969.5	-346.5	58.5	14.0	
-5	AXStaticText			held is amber			1					1036.0	-346.5	36.0	14.0	
-5	AXStaticText			tripped is red			1					1080.0	-346.5	52.0	14.0	
-5	AXStaticText			Router, :8,955			1					472.0	-319.5	76.0	36.0	
-5	AXOpaqueProviderGroup	AXOpaqueProviderGrid			Upstream servers		1					584.0	-323.5	548.0	44.0	
-6	AXButton			never reaped	j5-alpha-20260828T170738Z-5616		1					584.0	-323.5	177.5	44.0	
-6	AXButton			dormant	j5-beta-20260828T170738Z-5616		1					769.5	-323.5	177.0	44.0	
-6	AXButton			dormant	j5-gamma-20260828T170738Z-5616		1					954.5	-323.5	177.5	44.0	
-5	AXRadioGroup				Filter servers		1					460.0	-259.5	336.0	24.0	0
-6	AXRadioButton	AXSegment		1	All 3		1					460.0	-259.5	83.5	24.0	0
-6	AXRadioButton	AXSegment		0	Running		1					544.5	-259.5	82.5	24.0	0
-6	AXRadioButton	AXSegment		0	Idle		1					628.0	-259.5	82.5	24.0	0
-6	AXRadioButton	AXSegment		0	Needs you		1					711.5	-259.5	84.5	24.0	0
-5	AXImage				search		1				magnifyingglass	937.5	-253.5	12.0	12.0	
-5	AXTextField						1					955.0	-255.5	181.0	16.0	0
-5	AXOpaqueProviderGroup	AXOpaqueProviderList					1					460.0	-210.5	684.0	170.0	
-6	AXGroup				j5-alpha-20260828T170738Z-5616		1					460.0	-210.5	684.0	56.0	
-7	AXButton				j5-alpha-20260828T170738Z-5616, warm · never reaped, stdio, 1, 0 calls, Never		1					460.0	-210.5	684.0	56.0	0
-6	AXGroup				j5-beta-20260828T170738Z-5616		1					460.0	-153.5	684.0	56.0	
-7	AXButton				j5-beta-20260828T170738Z-5616, dormant, stdio, 1, 0 calls, Never		1					460.0	-153.5	684.0	56.0	0
-6	AXGroup				j5-gamma-20260828T170738Z-5616		1					460.0	-96.5	684.0	56.0	
-7	AXButton				j5-gamma-20260828T170738Z-5616, dormant, stdio, 1, 0 calls, Never		1					460.0	-96.5	684.0	56.0	0
-5	AXStaticText			3 of 3 servers · 3 tools indexed			1					460.0	-32.5	198.0	13.0	
+2	AXSplitGroup										SwiftUI.WindowGroup<SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>>-1-AppWindow-1, SidebarNavigationSplitView	180.0	-601.5	980.0	2155.0	0
+3	AXGroup	AXHostingView										180.0	-601.5	256.0	2155.0	0
+4	AXScrollArea											180.0	-549.5	256.0	1964.0	0
+5	AXOutline				Sidebar		1				sidebar	180.0	-549.5	256.0	1964.0	0
+6	AXRow	AXOutlineRow						0				180.0	-549.5	256.0	19.0	
+7	AXCell						1	0				190.0	-549.5	236.0	19.0	1
+8	AXGroup	AXHostingView										194.0	-549.5	240.0	19.0	0
+9	AXHeading				Running		1					194.0	-547.0	45.0	14.0	
+6	AXRow	AXOutlineRow						0				180.0	-530.5	256.0	32.0	
+7	AXCell						1	0				190.0	-530.5	236.0	32.0	1
+8	AXButton				Activity		1					197.5	-522.5	71.0	16.0	
+6	AXRow	AXOutlineRow						1				180.0	-498.5	256.0	32.0	
+7	AXCell						1	1				190.0	-498.5	236.0	32.0	1
+8	AXButton				Servers		1	1				196.0	-490.5	72.5	16.0	
+6	AXRow	AXOutlineRow						0				180.0	-466.5	256.0	32.0	
+7	AXCell						1	0				190.0	-466.5	236.0	32.0	1
+8	AXButton				Skills		1					199.0	-458.5	55.0	16.0	
+6	AXRow	AXOutlineRow						0				180.0	-434.5	256.0	32.0	
+7	AXCell						1	0				190.0	-434.5	236.0	32.0	1
+8	AXButton				Harnesses		1					197.0	-426.5	90.0	16.0	
+6	AXRow	AXOutlineRow						0				180.0	-389.5	256.0	19.0	
+7	AXCell						1	0				190.0	-389.5	236.0	19.0	1
+8	AXGroup	AXHostingView										194.0	-389.5	240.0	19.0	0
+9	AXHeading				Library		1					194.0	-387.0	39.0	14.0	
+6	AXRow	AXOutlineRow						0				180.0	-370.5	256.0	32.0	
+7	AXCell						1	0				190.0	-370.5	236.0	32.0	1
+8	AXButton				Discover		1					198.0	-362.5	77.5	16.0	
+6	AXRow	AXOutlineRow						0				180.0	-338.5	256.0	32.0	
+7	AXCell						1	0				190.0	-338.5	236.0	32.0	1
+8	AXButton				Inbox		1					196.5	-330.5	58.5	16.0	
+6	AXRow	AXOutlineRow						0				180.0	-306.5	256.0	32.0	
+7	AXCell						1	0				190.0	-306.5	236.0	32.0	1
+8	AXButton				Checks		1	1				196.5	-298.5	70.5	16.0	
+6	AXRow	AXOutlineRow						0				180.0	-274.5	256.0	32.0	
+7	AXCell						1	0				190.0	-274.5	236.0	32.0	1
+8	AXButton				Cleanup, 3 never used		1					197.5	-266.5	222.5	16.0	
+6	AXRow	AXOutlineRow						0				180.0	-242.5	256.0	32.0	
+7	AXCell						1	0				190.0	-242.5	236.0	32.0	1
+8	AXButton				Insights		1					195.5	-234.5	75.0	16.0	
+6	AXColumn							0			ListColumn	190.0	-549.5	236.0	1964.0	
+4	AXStaticText			The router isn't running, Nothing is listening on the control port, so there is nothing to show yet. Starting it takes a moment and your servers stay exactly as you left them.			1				sidebar	196.0	1430.5	214.5	74.0	
+4	AXStaticText			Router endpoint, 127.0.0.1:8955			1				sidebar	196.0	1530.5	95.5	14.0	
+3	AXSplitter			256			0	0				436.0	985.5	0.5	568.0	0
+3	AXGroup	AXHostingView										180.0	-601.5	980.0	2155.0	0
+4	AXStaticText			none	mcprouter-key-probe						content	1084.0	1525.5	72.0	24.0	1
+4	AXScrollArea										content	436.0	-549.5	724.0	2103.0	0
+5	AXStaticText			Servers			1					452.0	-533.5	79.5	26.0	
+5	AXButton				Add Server…		1					1047.0	-529.5	97.0	24.0	
+5	AXStaticText			3 tools from 3 servers · last reading, not current			1					452.0	-503.5	302.0	16.0	
+5	AXButton				bolt, The router isn't running. These servers are the last reading the router gave, kept rather than cleared. Nothing about them is current. Nothing is listening on the control port, so there is nothing to show yet. Starting it takes a moment and your servers stay exactly as you left them., Start the router, MCP Router can't start the daemon itself yet. Start it the way you normally do and this fills in on its own.	MCP Router can't start the daemon itself yet. Start it the way you normally do and this fills in on its own., MCP Router can't start the daemon itself yet. Start it the way you normally do and this fills in on its own.	1					452.0	-479.5	692.0	116.0	
+5	AXStaticText			Signal path			1					464.0	-343.5	71.0	16.0	
+5	AXStaticText			1 endpoint → 3 upstreams			1					543.0	-342.5	163.5	14.0	
+5	AXStaticText			awake is green			1					915.0	-342.5	46.5	14.0	
+5	AXStaticText			dormant is unlit			1					969.5	-342.5	58.5	14.0	
+5	AXStaticText			held is amber			1					1036.0	-342.5	36.0	14.0	
+5	AXStaticText			tripped is red			1					1080.0	-342.5	52.0	14.0	
+5	AXStaticText			Router, :8,955			1					464.0	-315.5	76.0	36.0	
+5	AXOpaqueProviderGroup	AXOpaqueProviderGrid			Upstream servers		1					576.0	-319.5	415.0	44.0	
+6	AXButton			never reaped	j5-alpha-20261019T001942Z-75321		1					576.0	-319.5	133.0	44.0	
+6	AXButton			dormant	j5-beta-20261019T001942Z-75321		1					717.0	-319.5	133.0	44.0	
+6	AXButton			dormant	j5-gamma-20261019T001942Z-75321		1					858.0	-319.5	133.0	44.0	
+5	AXRadioGroup				Filter servers		1					452.0	-255.5	336.0	24.0	0
+6	AXRadioButton	AXSegment		1	All 3		1					452.0	-255.5	82.5	24.0	0
+6	AXRadioButton	AXSegment		0	Running		1					534.5	-255.5	82.5	24.0	0
+6	AXRadioButton	AXSegment		0	Idle		1					617.0	-255.5	82.5	24.0	0
+6	AXRadioButton	AXSegment		0	Needs you		1					699.5	-255.5	88.5	24.0	0
+5	AXImage				search		1				magnifyingglass	937.5	-249.5	12.0	12.0	
+5	AXTextField						1					955.0	-251.5	181.0	16.0	0
+5	AXOpaqueProviderGroup	AXOpaqueProviderList					1					452.0	-206.5	692.0	170.0	
+6	AXGroup				j5-alpha-20261019T001942Z-75321		1					452.0	-206.5	692.0	56.0	
+7	AXButton				j5-alpha-20261019T001942Z-75321, warm · never reaped, stdio, 1, 0 calls, Never		1					452.0	-206.5	692.0	56.0	
+6	AXGroup				j5-beta-20261019T001942Z-75321		1					452.0	-149.5	692.0	56.0	
+7	AXButton				j5-beta-20261019T001942Z-75321, dormant, stdio, 1, 0 calls, Never		1					452.0	-149.5	692.0	56.0	
+6	AXGroup				j5-gamma-20261019T001942Z-75321		1					452.0	-92.5	692.0	56.0	
+7	AXButton				j5-gamma-20261019T001942Z-75321, dormant, stdio, 1, 0 calls, Never		1					452.0	-92.5	692.0	56.0	
+5	AXStaticText			3 of 3 servers · 3 tools indexed			1					452.0	-28.5	198.0	13.0	
 1	AXToolbar											180.0	140.0	980.0	52.0	0
-2	AXButton				Hide Sidebar		1	0				397.0	140.0	47.0	52.0	0
+2	AXButton				Hide Sidebar	Hide Sidebar	1	0				392.0	140.0	40.0	52.0	0
 1	AXButton	AXCloseButton					1					198.0	158.0	16.0	16.0	0
 1	AXButton	AXFullScreenButton				this button also has an action to zoom the window	1					244.0	158.0	16.0	16.0	0
 2	AXGroup											245.0	159.0	14.0	14.0	0
 3	AXGroup											245.0	159.0	14.0	14.0	0
 1	AXButton	AXMinimizeButton					1					221.0	158.0	16.0	16.0	0
-1	AXStaticText			Servers			1					448.0	140.0	708.0	52.0	0
+1	AXStaticText			Servers			1					440.0	140.0	716.0	52.0	0

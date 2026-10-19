@@ -5,19 +5,19 @@
   "target": "app://mac/servers",
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": null,
-  "sha256": "91627b536a8fcef513930d0849ca1fd5e8eebc90e2a0f1944de6b6532bc50612",
-  "capturedAt": "2026-08-28T17:07:56Z",
+  "sha256": "bc2e308d945b018f505a0f0b6ad7da55aae2416315ff8418df3e007df68987df",
+  "capturedAt": "2026-10-19T00:19:49Z",
   "conditions": {
    "windowTitleReadback": "Servers",
    "frame": "180,140,980,620",
-   "cgWindowID": "88539",
+   "cgWindowID": "105118",
    "appearance": "system",
-   "frontmostAtShutter": "Google Chrome",
+   "frontmostAtShutter": "Tailscale",
    "scenario": "live",
    "forcedState": "running",
    "arrangement": "a reference router is up on http://127.0.0.1:8955 under a scratch MCP_ROUTER_HOME, declaring three servers whose names carry this run's nonce",
    "routerReachable": true
   },
-  "witnessed": "axkit attached pid=9080 owns CGWindowID 88539, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/J5/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": "axkit attached pid=75436 owns CGWindowID 105118, bundle /Volumes/LLMs/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app"
  }
 ]

@@ -242,7 +242,7 @@ public sealed partial class InsightsBoard : UserControl
         string text,
         string styleKey,
         Brush? foreground = null,
-        Microsoft.UI.Text.FontWeight? fontWeight = null)
+        Windows.UI.Text.FontWeight? fontWeight = null)
     {
         var line = new TextBlock
         {

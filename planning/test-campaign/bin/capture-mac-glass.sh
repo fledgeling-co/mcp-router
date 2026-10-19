@@ -45,15 +45,19 @@ echo "winid=$WINID"
 "$AXKIT" title "$PID"
 "$AXKIT" dump "$PID" menu > "$AX/SURF-001.menu.txt"
 
-# capture <name> <subject> <route-suffix-or-READBACK> [sharesWith,…] [shareReason]
+# capture <name> <subject> <route-suffix-or-READBACK> [sharesWith,…] [shareReason] [window-title]
+#
+# A window title names a second window — the Settings scene. Its readback, frame and CGWindowID are
+# read from THAT window and the shutter photographs it; the main window's values are never used for it.
 capture() {
-  local name="$1" subject="$2" want="$3" shares="${4:-}" reason="${5:-}"
+  local name="$1" subject="$2" want="$3" shares="${4:-}" reason="${5:-}" window="${6:-}"
   local dest="$SHOTS/${name}.png"
-  local title frame
+  local title frame winid="$WINID"
+  if [ -n "$window" ]; then winid="$("$AXKIT" winid "$PID" "$window")"; fi
   # Read back what the window is showing BEFORE the shutter, and again after, so
   # a destination that changed mid-capture cannot be recorded as settled.
-  title="$("$AXKIT" title "$PID")"
-  frame="$("$AXKIT" frame "$PID")"
+  title="$("$AXKIT" title "$PID" ${window:+"$window"})"
+  frame="$("$AXKIT" frame "$PID" ${window:+"$window"})"
   # Who is in front at the shutter. The invariant this campaign owes is that MCPRouter is
   # never activated, and that is a fact about MCPRouter rather than about whichever app the
   # window server promoted while a launch and a terminate went past. Sampled here so every
@@ -65,15 +69,15 @@ capture() {
     echo "FAIL $name: MCPRouter was frontmost at the shutter — this campaign never activates it"
     exit 1
   fi
-  screencapture -x -l"$WINID" "$dest"
+  screencapture -x -l"$winid" "$dest"
   local title_after
-  title_after="$("$AXKIT" title "$PID")"
+  title_after="$("$AXKIT" title "$PID" ${window:+"$window"})"
   if [ "$title" != "$title_after" ]; then
     echo "  UNSETTLED $name: title moved $title -> $title_after during capture"
     title="UNSETTLED:$title->$title_after"
   fi
   SUBJECT="$subject" NAME="$name" DEST="$dest" TITLE="$title" FRAME="$frame" \
-  WANT="$want" WINID="$WINID" PID="$PID" APP="$MAC_APP" SHARES="$shares" \
+  WANT="$want" WINID="$winid" PID="$PID" APP="$MAC_APP" SHARES="$shares" \
   FRONT="$front_at_shutter" \
   REASON="$reason" MANIFEST_NDJSON="$SHOTS/.captures.ndjson" python3 - <<'PY'
 import hashlib, json, os, datetime, pathlib
@@ -114,11 +118,14 @@ PY
 
 SHELL_SHARE_REASON="the shell is window chrome and the sidebar; it has no board of its own, so it is photographed on the Servers board and is the same window and the same pixels"
 
-# Ten boards, each selected then read back. SURF-026 joined on 2026-08-27 (G16): the
+# Nine boards, each selected then read back. SURF-026 joined on 2026-08-27 (G16): the
 # Insights board shipped with M22 and was never enumerated, so it was never selected
 # here. SURF-001 is the shell — chrome that
 # has no board of its own — so it is photographed on the Servers board and says
 # so, rather than being filed as "whatever was restored".
+#
+# SURF-011 is not a board: M15 made Settings a `Settings` scene, so no sidebar row selects it. It is
+# opened and photographed after this loop, by its own block, rather than through `select`.
 #
 # **SURF-025 joined this loop on 2026-08-27 and that is the whole of G15.** The
 # Harnesses board shipped with M22 and was never enumerated, so it was never
@@ -135,8 +142,7 @@ for pair in \
   "SURF-008:Inbox" \
   "SURF-006:Checks" \
   "SURF-007:Cleanup" \
-  "SURF-026:Insights" \
-  "SURF-011:Settings"
+  "SURF-026:Insights"
 do
   sid="${pair%%:*}"
   row="${pair##*:}"
@@ -270,6 +276,50 @@ print(f"  captured SURF-001.shell (sidebar crop of SURF-001.build) "
 CROP
   fi
 done
+
+# SURF-011, the Settings window (DEF-059).
+#
+# M15 made Settings a `Settings` scene, so `axkit select Settings` cannot take and the loop above
+# never reaches it. It is opened the way `m8-settings-menubar.sh` opens it: `⌘,` posted to the process,
+# which measured as producing a window titled `Settings` on a backgrounded app with Ghostty frontmost,
+# 2026-08-22. Nothing here activates the app, and the per-shutter check in `capture` still names it.
+#
+# While the window is open every read of it names it: the readback, the frame, the CGWindowID and the
+# AX dump. The main window is not read until it is closed again, because `standardWindow` takes the
+# first window the app reports and the Settings window can be that one.
+#
+# Refusal path: if no window titled `Settings` appears, nothing is photographed and no AX dump is filed
+# under SURF-011. The window that IS showing is not substituted, for the reason the loop gives.
+echo "open Settings (⌘, to the process)"
+SETTINGS_OPENED=0
+if "$AXKIT" key "$PID" 43 cmd >/dev/null; then
+  for _ in $(seq 1 20); do
+    if "$AXKIT" windows "$PID" | awk -F'\t' '$1 == "Settings" { found = 1 } END { exit !found }'; then
+      SETTINGS_OPENED=1
+      break
+    fi
+    sleep 0.25
+  done
+fi
+if [ "$SETTINGS_OPENED" = "1" ]; then
+  sleep 0.5
+  "$AXKIT" dump "$PID" window Settings > "$AX/SURF-011.window.txt"
+  capture SURF-011.build SURF-011 READBACK "" "" Settings
+  "$AXKIT" close "$PID" Settings >/dev/null || echo "  axkit could not press the Settings window's close button"
+  for _ in $(seq 1 20); do
+    "$AXKIT" windows "$PID" | awk -F'\t' '$1 == "Settings" { found = 1 } END { exit !found }' || break
+    sleep 0.25
+  done
+  # A Settings window left open would make every later `standardWindow` read it. Stop rather than
+  # photograph the rest of the run through it.
+  if "$AXKIT" windows "$PID" | awk -F'\t' '$1 == "Settings" { found = 1 } END { exit !found }'; then
+    echo "FAIL: the Settings window did not close, and every step after this reads the main window"
+    exit 1
+  fi
+else
+  echo "  no window titled Settings appeared after ⌘, — SURF-011 NOT PHOTOGRAPHED, and no AX dump is"
+  echo "  filed under it. DEF-059 stays open on this run."
+fi
 
 # The add-server sheet. It is a state of the Servers board, not a surface of its
 # own — the registry's SURF-013 is "iOS Triage, Queue, Library", and an earlier

@@ -261,8 +261,10 @@ case "selected":
     }
 
 case "title":
+    // The optional second window title names WHICH window. It is needed once the Settings scene is
+    // open, because that window is not necessarily the first one the app reports.
     let (_, app) = application(args[2])
-    guard let window = standardWindow(app) else { die("no window") }
+    guard let window = subjectWindow(app, args.count >= 4 ? args[3] : nil) else { die("no window") }
     print(string(window, kAXTitleAttribute as String))
 
 case "close":
@@ -279,7 +281,7 @@ case "close":
 
 case "frame":
     let (_, app) = application(args[2])
-    guard let window = standardWindow(app) else { die("no window") }
+    guard let window = subjectWindow(app, args.count >= 4 ? args[3] : nil) else { die("no window") }
     let p = pair(window, kAXPositionAttribute as String) ?? (-1, -1)
     let s = pair(window, kAXSizeAttribute as String) ?? (-1, -1)
     print(String(format: "%.0f,%.0f,%.0f,%.0f", p.0, p.1, s.0, s.1))
@@ -288,6 +290,35 @@ case "winid":
     // The CGWindowID, for `screencapture -l` — the only capture that photographs *this* window
     // rather than whatever is on top of its screen region.
     guard let pid = pid_t(args[2]) else { die("bad pid") }
+    if args.count >= 4 {
+        // A NAMED window. CGWindowList will not reliably give another process's window titles, so the
+        // match is on the frame the accessibility tree reports for that window, which is the same
+        // global coordinate space. It must match exactly one on-screen window or the verb refuses.
+        let (_, app) = application(args[2])
+        guard let named = namedWindow(app, args[3]),
+              let origin = pair(named, kAXPositionAttribute as String),
+              let size = pair(named, kAXSizeAttribute as String)
+        else { die("no window titled '\(args[3])'", 1) }
+        var matches: [Int] = []
+        for window in (CGWindowListCopyWindowInfo([.optionAll, .excludeDesktopElements], kCGNullWindowID)
+            as? [[String: Any]]) ?? []
+        {
+            guard (window[kCGWindowOwnerPID as String] as? pid_t) == pid,
+                  (window[kCGWindowLayer as String] as? Int) == 0,
+                  let bounds = window[kCGWindowBounds as String] as? [String: Any],
+                  let x = bounds["X"] as? Double, let y = bounds["Y"] as? Double,
+                  let w = bounds["Width"] as? Double, let h = bounds["Height"] as? Double,
+                  let id = window[kCGWindowNumber as String] as? Int else { continue }
+            if abs(x - origin.0) < 1, abs(y - origin.1) < 1, abs(w - size.0) < 1, abs(h - size.1) < 1 {
+                matches.append(id)
+            }
+        }
+        guard matches.count == 1 else {
+            die("\(matches.count) on-screen windows sit at the frame of '\(args[3])', expected one", 1)
+        }
+        print(matches[0])
+        exit(0)
+    }
     let info = CGWindowListCopyWindowInfo([.optionAll, .excludeDesktopElements], kCGNullWindowID)
     for window in (info as? [[String: Any]]) ?? [] {
         guard (window[kCGWindowOwnerPID as String] as? pid_t) == pid,

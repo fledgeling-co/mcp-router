@@ -3,6 +3,7 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { resolveEnvFiles, envFilesDigest } from './envfile.js';
+import { DEFAULT_LOG_POLICY, type LogPolicy } from './log.js';
 
 interface UpstreamBase {
   /** Logical name; becomes the namespace prefix on every tool it exposes. */
@@ -90,6 +91,8 @@ export interface RouterConfig {
   upstreams: UpstreamConfig[];
   manifestPath: string;
   logPath: string;
+  /** Size cap and retained-generation count for `logPath`. Defaults are 10 MB and five. */
+  log: LogPolicy;
   usagePath: string;
   statsPath: string;
   authDir: string;
@@ -314,6 +317,35 @@ export function isSelfReference(name: string, s: RawServer, port: number): boole
   }
 }
 
+function isCount(v: unknown, min: number): v is number {
+  return typeof v === 'number' && Number.isSafeInteger(v) && v >= min;
+}
+
+/**
+ * The `log` block of the server list, with defaults for whatever it leaves out.
+ *
+ * Refuses rather than clamps. A `maxBytes` of 0, or the string "10485760", would otherwise be
+ * accepted and quietly mean something other than what was written, and the symptom would be a
+ * log that never rotates. The message names the file and the field so the fix is one lookup.
+ */
+export function parseLogPolicy(raw: unknown, source: string): LogPolicy {
+  if (raw === undefined) return { ...DEFAULT_LOG_POLICY };
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+    throw new Error(`${source}: "log" must be an object, with maxBytes and keep`);
+  }
+  const { maxBytes = DEFAULT_LOG_POLICY.maxBytes, keep = DEFAULT_LOG_POLICY.keep } = raw as Record<
+    string,
+    unknown
+  >;
+  if (!isCount(maxBytes, 1)) {
+    throw new Error(`${source}: log.maxBytes must be a positive integer, got ${JSON.stringify(maxBytes)}`);
+  }
+  if (!isCount(keep, 0)) {
+    throw new Error(`${source}: log.keep must be a non-negative integer, got ${JSON.stringify(keep)}`);
+  }
+  return { maxBytes, keep };
+}
+
 /**
  * Reads the router's own server list.
  *
@@ -342,6 +374,7 @@ export function loadConfig(opts: {
     host?: string;
     idleMs?: number;
     startupTimeoutMs?: number;
+    log?: unknown;
   };
 
   const upstreams: UpstreamConfig[] = [];
@@ -362,6 +395,7 @@ export function loadConfig(opts: {
       upstreams,
       manifestPath: join(ROUTER_HOME, 'manifest.json'),
       logPath: join(ROUTER_HOME, 'router.log'),
+      log: parseLogPolicy(raw.log, configPath),
       usagePath: join(ROUTER_HOME, 'usage.jsonl'),
       statsPath: join(ROUTER_HOME, 'usage-stats.json'),
       authDir: AUTH_DIR,

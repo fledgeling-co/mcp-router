@@ -115,6 +115,7 @@ async function cmdImport(): Promise<void> {
     else candidates.push({ raw: s, upstream: parsed.upstream });
   }
 
+  // `import` reads ~/.claude.json and no server list, so it has no `log` policy to honour.
   configureLogging(join(ROUTER_HOME, 'router.log'), has('verbose'));
   process.stdout.write(`checking ${candidates.length} server(s) before adopting any\n`);
 
@@ -194,7 +195,7 @@ async function withPool<T>(
   fn: (pool: UpstreamPool, upstreams: UpstreamConfig[], cfgPath: string) => Promise<T>
 ): Promise<T> {
   const { config, skipped } = loadConfig({ port: numArg('port'), idleMs: numArg('idle-ms') });
-  configureLogging(config.logPath, has('verbose'));
+  configureLogging(config.logPath, has('verbose'), config.log);
   if (skipped.length) log.warn(`not proxied: ${skipped.join(', ')}`);
 
   const map = new Map(config.upstreams.map((u) => [u.name, u]));
@@ -247,10 +248,10 @@ async function cmdIndex(): Promise<void> {
 
 async function cmdServe(): Promise<void> {
   const { config, skipped } = loadConfig({ port: numArg('port'), idleMs: numArg('idle-ms') });
-  configureLogging(config.logPath, has('verbose'));
+  configureLogging(config.logPath, has('verbose'), config.log);
   if (skipped.length) log.warn(`not proxied: ${skipped.join(', ')}`);
 
-  const store = new ManifestStore(config.manifestPath);
+const store = new ManifestStore(config.manifestPath);
   const manifest = store.current();
   /*
    * Disabled servers are excluded from this warning rather than from the manifest. Their

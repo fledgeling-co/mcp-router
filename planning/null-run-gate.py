@@ -412,7 +412,7 @@ ARMS: list[Arm] = [
               sub("ORCHESTRATOR.md", "| F1 | the first item | **Merged** `abc1234` |\n",
                   "| F1 | the first item | **Merged** `abc1234` |\n"
                   "| F1 | the first item | **To Do** |\n")),
-        1, expect="H. two ORCHESTRATOR rows for one id"),
+        1, expect="H. two rows in one file for one id"),
     Arm("I", RECONCILE, "poison", "the two files disagreeing about whether an item shipped",
         chain(reconciler_tree, sub(LEDGER_MD, "**Done** — merged to `main` at `abc1234`",
                                    "**Ready for AI**")),

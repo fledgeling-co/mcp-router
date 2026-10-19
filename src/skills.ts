@@ -115,7 +115,9 @@ export function skillsValue(claudeHome: string, store: ExtensionStore): Record<s
       provenance: null,
     }));
 
-  return { skills, clients: clientsFor(skillsDirectory, listing, register) };
+  // `promoteFromCache` says this router serves POST /extensions/plugins/<plugin>@<marketplace>/promote with
+  // `source: "cache"`, so the Mac enables Promote only where the route exists. An older router omits the member.
+  return { skills, clients: clientsFor(skillsDirectory, listing, register), promoteFromCache: true };
 }
 
 /** The per-skill presence map: Claude Code is the directory this router listed; every other client is unknown. */

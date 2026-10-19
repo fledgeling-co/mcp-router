@@ -203,6 +203,34 @@ public enum SkillFixtures {
         return SkillsResponse(skills: updated, clients: clients)
     }
 
+    /// What the update check holds in the populated fixture: trawl offers 2.3.0 with its changelog, and
+    /// design-craft is
+    /// current, so it is compared and carries no changelog.
+    public static let updateEntries: [ExtensionUpdateEntry] = [
+        ExtensionUpdateEntry(
+            kind: .plugins,
+            name: "trawl@fledgeling-plugins",
+            state: "update-available",
+            installed: "2.2.0",
+            available: "2.3.0",
+            hasUpdate: true,
+            reason: "2.3.0 is offered and 2.2.0 is installed",
+            changelog: ExtensionChangelog(
+                text: "## 2.3.0\n- Adds a network call to api.fledgeling.app.\n",
+                note: "CHANGELOG.md from the cached 2.3.0 copy"
+            )
+        ),
+        ExtensionUpdateEntry(
+            kind: .plugins,
+            name: "design-craft@diolog-plugins",
+            state: "current",
+            installed: "1.14.0",
+            available: "1.14.0",
+            hasUpdate: false,
+            reason: "1.14.0 is installed and is what the catalogue offers"
+        )
+    ]
+
     public static let marketplaces: [Marketplace] = [
         Marketplace(
             name: "claude-plugins-official", source: .github(repo: "anthropics/claude-plugins-official"),

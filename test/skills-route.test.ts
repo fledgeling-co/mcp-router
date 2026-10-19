@@ -170,11 +170,12 @@ function snapshot(root: string): string[] {
 const PRESENCE_VALUES = ['present', 'absent', 'unreadable'];
 const CLIENT_STATUSES = ['read', 'absent', 'unreadable', 'unsupported'];
 
-test('S1 — GET /skills answers the two members the board decodes, each with the fields its model requires', async () => {
+test('S1 — GET /skills answers the members the board decodes, each with the fields its model requires', async () => {
   const claude = claudeTree('1.1.0');
   const body = await getSkills(claude);
 
-  assert.deepEqual(Object.keys(body).sort(), ['clients', 'skills']);
+  // promoteFromCache is the one member the router adds beside the two the board read before it: Promote is enabled on it.
+  assert.deepEqual(Object.keys(body).sort(), ['clients', 'promoteFromCache', 'skills']);
   assert.ok(body.skills.length >= 2);
   for (const skill of body.skills) {
     // SkillModels.swift: Skill has name, path, source and presence required; description, held and provenance optional.

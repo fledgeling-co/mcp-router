@@ -6,18 +6,23 @@ import {
   type ExtensionListing,
   type ExtensionRecord,
   type ExtensionStore,
+  type PromoteOutcome,
   type Refusal,
 } from './extensions.js';
 import type { UpstreamConfig } from './config.js';
-import { buildFreshnessReport, DEFAULT_STALE_AFTER_MS, freshnessValue } from './extension-updates.js';
+import { buildFreshnessReport, DEFAULT_STALE_AFTER_MS, freshnessValue, type FreshnessRow } from './extension-updates.js';
+import { cachedFiles, changelogFor, pluginIdentity, type Changelog } from './plugin-cache.js';
 
 /*
  * The /extensions family: GET /extensions, the three collections under it, and GET /extensions/updates, the
  * marketplace update check (F6). The update route is matched before the kind parse, or `updates` reads as a kind.
  *
  * A collection answers GET and POST, an item answers GET and DELETE, an add that would collide is 409, and
- * an unknown item is 404 in the words `no <kind> named "x"`. Nothing here reads or writes Claude's own
- * directories; the inventory counts what the router holds.
+ * an unknown item is 404 in the words `no <kind> named "x"`. The inventory counts what the router holds.
+ *
+ * Two reads reach Claude's files, and both are confined to its plugin cache (plugin-cache.ts): a promotion sent as
+ * `{source: "cache", pluginVersion}` installs the cached copy of that version, and the update check carries the
+ * changelog of the version it offers. Neither writes under Claude's home.
  *
  * This file answers a request to a body and a status. The token and content-type gates, and the write of
  * the reply, belong to control.ts, which calls this only for paths `isExtensionsPath` claims.
@@ -37,7 +42,7 @@ export function extensionRoute(
   method: string,
   pathname: string,
   body: unknown,
-  deps: { extensions?: ExtensionStore; upstreams: Map<string, UpstreamConfig> },
+  deps: { extensions?: ExtensionStore; upstreams: Map<string, UpstreamConfig>; claudeHome?: string },
   query: URLSearchParams = new URLSearchParams()
 ): RouteAnswer | null {
   if (!deps.extensions) {
@@ -47,14 +52,14 @@ export function extensionRoute(
   const rest = pathname.slice('/extensions'.length);
   if (rest === '') return method === 'GET' ? { status: 200, body: inventory(store, deps.upstreams) } : null;
   // Before the kind parse, or `updates` is read as a kind and answered 404. Any verb but GET is 405.
-  if (rest === '/updates') return method === 'GET' ? updates(store, query) : null;
+  if (rest === '/updates') return method === 'GET' ? updates(store, query, deps.claudeHome) : null;
 
   const segments = rest.split('/').slice(1);
   const kind = KINDS.find((candidate) => candidate === segments[0]);
   if (!kind) return { status: 404, body: { error: `no extension kind named "${segments[0]}"` } };
   if (segments.length === 1) return collection(kind, store, method, body);
   if (segments.length === 2) return item(kind, segments[1], store, method);
-  if (segments.length === 3) return action(kind, segments[1], segments[2], store, method, body);
+  if (segments.length === 3) return action(kind, segments[1], segments[2], store, method, body, deps.claudeHome);
   // Deeper than an action is a path this family claims and does not route.
   return null;
 }
@@ -64,7 +69,7 @@ export function extensionRoute(
  * caller who typed `staleAfterMs=1h` asked a question, and the default would report every catalogue against a
  * window they did not choose.
  */
-function updates(store: ExtensionStore, query: URLSearchParams): RouteAnswer {
+function updates(store: ExtensionStore, query: URLSearchParams, claudeHome: string | undefined): RouteAnswer {
   const requested = query.get('kind');
   let kinds: readonly ExtensionKind[] = KINDS;
   if (requested !== null) {
@@ -78,7 +83,14 @@ function updates(store: ExtensionStore, query: URLSearchParams): RouteAnswer {
   }
   const name = query.get('name') ?? undefined;
   const report = buildFreshnessReport(store, { kinds, staleAfterMs, now: Date.now(), name });
-  return { status: 200, body: freshnessValue(report) };
+  return { status: 200, body: freshnessValue(report, (row) => updateChangelog(row, claudeHome)) };
+}
+
+/** The changelog of the version an entry offers, for an entry that has one to offer. Nothing else is read. */
+function updateChangelog(row: FreshnessRow, claudeHome: string | undefined): Changelog | null {
+  const { hasUpdate, available } = row.verdict;
+  if (!hasUpdate || available === null || row.kind !== 'plugins') return null;
+  return changelogFor(claudeHome, row.name, available);
 }
 
 /** The default when absent, the number when it is ASCII digits, and null when it is present and unreadable. */
@@ -100,12 +112,13 @@ function action(
   verb: string,
   store: ExtensionStore,
   method: string,
-  body: unknown
+  body: unknown,
+  claudeHome: string | undefined
 ): RouteAnswer | null {
   if (method !== 'POST') return null;
   const name = decodeName(rawName);
   if (name === null) return { status: 400, body: { error: 'URI malformed' } };
-  if (verb === 'promote') return promote(kind, name, store, body);
+  if (verb === 'promote') return promote(kind, name, store, body, claudeHome);
   if (verb === 'keep') return keep(kind, name, store, body);
   if (verb === 'undo-promote') return undoPromote(kind, name, store, body);
   return null;
@@ -150,21 +163,61 @@ function add(kind: ExtensionKind, store: ExtensionStore, body: unknown): RouteAn
   };
 }
 
-function promote(kind: ExtensionKind, name: string, store: ExtensionStore, body: unknown): RouteAnswer {
-  const request = (body ?? {}) as { pluginVersion?: unknown; files?: unknown };
+/**
+ * Installs a newer version of an entry. A request sends the files (the original form), or sends `source: "cache"` and
+ * the router reads the version from Claude's plugin cache. The two are not mixed: a cache request that also sends
+ * files is refused, because the router would not know which copy the caller meant.
+ */
+function promote(
+  kind: ExtensionKind,
+  name: string,
+  store: ExtensionStore,
+  body: unknown,
+  claudeHome: string | undefined
+): RouteAnswer {
+  const request = (body ?? {}) as { source?: unknown; pluginVersion?: unknown; files?: unknown };
   if (typeof request.pluginVersion !== 'string' || request.pluginVersion === '') {
     return { status: 400, body: { error: 'pluginVersion is required' } };
   }
+  if (request.source === 'cache') return promoteFromCache(kind, name, request.pluginVersion, store, request.files, claudeHome);
+  if (request.source !== undefined) {
+    return { status: 400, body: { error: 'source must be "cache" when it is sent, or absent when files are sent' } };
+  }
   const parsed = parseFiles(request.files);
   if ('error' in parsed) return { status: 400, body: { error: parsed.error } };
-  const outcome = store.promote(kind, name, request.pluginVersion, parsed.files);
+  return promoted(kind, name, request.pluginVersion, store.promote(kind, name, request.pluginVersion, parsed.files));
+}
+
+/** Only a plugin has a cache directory, so only a plugin is promoted from the cache. The files are read there, not sent. */
+function promoteFromCache(
+  kind: ExtensionKind,
+  name: string,
+  pluginVersion: string,
+  store: ExtensionStore,
+  files: unknown,
+  claudeHome: string | undefined
+): RouteAnswer {
+  if (kind !== 'plugins') {
+    return { status: 400, body: { error: `a ${SINGULAR[kind]} cannot be promoted from the plugin cache, only a plugin can` } };
+  }
+  if (files !== undefined) {
+    return { status: 400, body: { error: 'files is not read for source "cache": the router reads the cached copy itself' } };
+  }
+  const cached = cachedFiles(claudeHome, name, pluginVersion);
+  if (!cached.ok) return refusalValue(cached.refusal);
+  // The manifest names the plugin, not `<plugin>@<marketplace>`, so the store is told which title to hold it to.
+  const title = pluginIdentity(name)?.plugin ?? name;
+  return promoted(kind, name, pluginVersion, store.promote(kind, name, pluginVersion, cached.files, title));
+}
+
+function promoted(kind: ExtensionKind, name: string, pluginVersion: string, outcome: PromoteOutcome): RouteAnswer {
   if (outcome.outcome === 'refused') return refusalValue(outcome.refusal);
   return {
     status: 200,
     body: {
       promoted: name,
       kind,
-      pluginVersion: request.pluginVersion,
+      pluginVersion,
       replaced: outcome.replaced,
       restore: outcome.restore,
       files: outcome.record.files,

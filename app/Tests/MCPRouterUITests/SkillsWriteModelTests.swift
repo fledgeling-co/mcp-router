@@ -5,14 +5,16 @@
 
     /// The held-version sheet's writes, through the board model, against the fixture client.
     ///
-    /// The refusal path uses the fixture's error scenario, which refuses every call. That is the only
-    /// refusal the fixture can produce without a second client, and it is enough to show the model
-    /// keeps a refusal visible and claims no success for it.
+    /// A promotion names only the version: the router reads the files from Claude's plugin cache, so the
+    /// board never
+    /// holds what it installs. The refusal path uses the fixture's error scenario, which refuses every call.
+    /// That is the
+    /// only refusal the fixture can produce without a second client, and it is enough to show the model keeps
+    /// a refusal
+    /// visible and claims no success for it.
     @Suite("The held-version sheet's writes")
     @MainActor
     struct SkillsWriteModelTests {
-        private let file = ExtensionFileBody(path: ".claude-plugin/plugin.json", text: #"{"name":"trawl"}"#)
-
         /// The trawl row as the board reads it from the populated fixture.
         private func loadedTrawl() async throws -> (SkillsBoardModel, Skill) {
             let board = SkillsBoardModel(client: FixtureControlAPIClient(.populated))
@@ -82,7 +84,7 @@
         func promoteThenUndo() async throws {
             let (board, skill) = try await loadedTrawl()
 
-            await board.promoteHeldVersion(skill, files: [file])
+            await board.promoteHeldVersion(skill)
 
             #expect(board.writeFailure == nil)
             #expect(board.lastPromotion?.name == "trawl@fledgeling-plugins")
@@ -99,7 +101,7 @@
         func promoteRefusalIsShown() async {
             let board = SkillsBoardModel(client: FixtureControlAPIClient(.error))
 
-            await board.promoteHeldVersion(heldSkill(), files: [file])
+            await board.promoteHeldVersion(heldSkill())
 
             #expect(board.writeFailure == refusal)
             #expect(board.lastPromotion == nil)

@@ -238,10 +238,15 @@ public struct Skill: Codable, Hashable, Sendable, Identifiable {
 public struct SkillsResponse: Codable, Hashable, Sendable {
     public var skills: [Skill]
     public var clients: [SkillClient]
+    /// Whether the router serves a promotion from Claude's plugin cache. Nil on a router that predates the
+    /// route,
+    /// where Promote has nothing to call and stays dimmed with its reason.
+    public var promoteFromCache: Bool?
 
-    public init(skills: [Skill] = [], clients: [SkillClient] = []) {
+    public init(skills: [Skill] = [], clients: [SkillClient] = [], promoteFromCache: Bool? = nil) {
         self.skills = skills
         self.clients = clients
+        self.promoteFromCache = promoteFromCache
     }
 
     /// The clients that have a skills mechanism, in the router's order — which is the slot order.

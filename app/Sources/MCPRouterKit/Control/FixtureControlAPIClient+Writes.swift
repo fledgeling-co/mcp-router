@@ -83,6 +83,16 @@ public extension FixtureControlAPIClient {
         )
     }
 
+    func promoteFromCache(
+        _ name: String, pluginVersion: String
+    ) async throws(ControlAPIError) -> PromotionAck {
+        try guardFailure()
+        return PromotionAck(
+            promoted: name, kind: .plugins, pluginVersion: pluginVersion, replaced: "2.2.0",
+            restore: "1700000000000"
+        )
+    }
+
     func undoPromotion(
         _ name: String, kind: StoredExtensionKind, restore _: String
     ) async throws(ControlAPIError) -> UndoAck {

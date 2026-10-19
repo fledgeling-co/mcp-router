@@ -333,9 +333,20 @@ export class ExtensionStore {
    * Replace an installed entry with a newer version of it. The entry it replaces is moved aside, never deleted,
    * and the promotion is written down before anything moves, so an undo can check what it reverses. Every
    * refusal happens before a byte moves, and a failure part-way puts the entry back where it was.
+   *
+   * `descriptorTitle` is the name the descriptor must give. It is the entry's own name for a request that sends
+   * files, and the plugin part of `<plugin>@<marketplace>` for a copy read from Claude's cache, because a
+   * plugin's own manifest names the plugin and not the marketplace it came from.
    */
-  promote(kind: ExtensionKind, name: string, pluginVersion: string, files: ExtensionFile[]): PromoteOutcome {
-    const refusal = refuseAdd(kind, name, files) ?? refuseVersion(kind, pluginVersion, files);
+  promote(
+    kind: ExtensionKind,
+    name: string,
+    pluginVersion: string,
+    files: ExtensionFile[],
+    descriptorTitle: string = name
+  ): PromoteOutcome {
+    const refusal = refuseAdd(kind, name, files, descriptorTitle) ?? refuseVersion(kind, pluginVersion, files);
+
     if (refusal) return { outcome: 'refused', refusal };
     const current = this.read(kind, name);
     if (!current) return { outcome: 'refused', refusal: unknownEntry(kind, name) };
@@ -555,7 +566,7 @@ function unread(name: string, files: number, bytes: number, problem: string): Ex
   return { name, title: null, description: null, version: null, files, bytes, problem };
 }
 
-function refuseAdd(kind: ExtensionKind, name: string, files: ExtensionFile[]): Refusal | null {
+function refuseAdd(kind: ExtensionKind, name: string, files: ExtensionFile[], descriptorTitle: string = name): Refusal | null {
   if (!isWellFormedName(name)) return invalidName(name);
   if (files.length === 0) {
     return { status: 400, reason: 'noFiles', message: `a ${SINGULAR[kind]} needs at least ${DESCRIPTOR_PATH[kind]}` };
@@ -590,11 +601,11 @@ function refuseAdd(kind: ExtensionKind, name: string, files: ExtensionFile[]): R
   // descriptor disagree, and ingestion could not tell one entry from two.
   const outcome = readDescriptor(kind, descriptor.text);
   if (!outcome.ok) return { status: 400, reason: 'malformedDescriptor', message: outcome.problem };
-  if (outcome.reading.title !== name) {
+  if (outcome.reading.title !== descriptorTitle) {
     return {
       status: 400,
       reason: 'nameMismatch',
-      message: `${DESCRIPTOR_PATH[kind]} names "${outcome.reading.title}", which is not the "${name}" it is being added as`,
+      message: `${DESCRIPTOR_PATH[kind]} names "${outcome.reading.title}", which is not the "${descriptorTitle}" it is being added as`,
     };
   }
   return null;

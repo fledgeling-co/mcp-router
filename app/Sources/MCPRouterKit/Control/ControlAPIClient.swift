@@ -164,6 +164,18 @@ public protocol ControlAPIClient: Sendable {
         _ name: String, kind: StoredExtensionKind, restore: String
     ) async throws(ControlAPIError) -> UndoAck
 
+    /// Replace an installed plugin with the version Claude's plugin cache holds for it. The router reads the
+    /// files
+    /// itself, so nothing is sent but the version; it refuses when the cache does not hold that version.
+    func promoteFromCache(
+        _ name: String, pluginVersion: String
+    ) async throws(ControlAPIError) -> PromotionAck
+
+    /// The marketplace update check over the router's own store: which entries have a newer version, and the
+    /// changelog
+    /// of that version where the cache holds one.
+    func extensionUpdates() async throws(ControlAPIError) -> ExtensionUpdatesResponse
+
     /// Record a held version as kept, so the router stops offering it until a newer one arrives.
     func keepHeldVersion(
         _ name: String, kind: StoredExtensionKind, pluginVersion: String
@@ -289,6 +301,16 @@ public extension ControlAPIClient {
         _: String, kind _: StoredExtensionKind, pluginVersion _: String
     ) async throws(ControlAPIError) -> KeepAck {
         throw ControlAPIError.malformedResponse(detail: "this router has no extension writes")
+    }
+
+    func promoteFromCache(
+        _: String, pluginVersion _: String
+    ) async throws(ControlAPIError) -> PromotionAck {
+        throw ControlAPIError.malformedResponse(detail: "this router has no extension writes")
+    }
+
+    func extensionUpdates() async throws(ControlAPIError) -> ExtensionUpdatesResponse {
+        throw ControlAPIError.malformedResponse(detail: "this router has no update check")
     }
 
     /// A client that cannot ask for a document answers the state that says so.

@@ -29,11 +29,27 @@ public extension SkillPresentation {
         return writesNotYetAvailable
     }
 
-    /// Why Promote is dimmed. Promoting needs the held version's files, and the router cannot read them from
-    /// the plugin cache yet, so there is nothing to send. Said plainly rather than as "not yet available".
+    /// Why Promote is dimmed on a router that does not serve the cache route. It reads the held version from
+    /// Claude's
+    /// plugin cache, so an older router has nothing to read it with, and the sentence says that rather than
+    /// claiming a
+    /// fault.
     static let promoteUnavailable = """
-    Promoting needs the held version's files, and the router cannot read them from the plugin cache yet.
+    Promoting reads the held version from Claude's plugin cache, and this router does not serve that yet.
     """
+
+    /// The board's offer to take a promotion back, read beside the promotion it reverses.
+    static func promotionCanBeUndone(plugin: String) -> String {
+        "\(plugin) was promoted. Undo puts back the version it replaced."
+    }
+
+    /// The heading over the update check's offers.
+    static let updatesHeading = "Updates available"
+
+    /// What the update check said when it found nothing to offer. It names the scope, because a clean check
+    /// over the
+    /// router's own store is not a claim about every plugin Claude has installed.
+    static let updatesNone = "The update check found no newer version among the entries this router holds."
 
     // MARK: - Held-version writes
 

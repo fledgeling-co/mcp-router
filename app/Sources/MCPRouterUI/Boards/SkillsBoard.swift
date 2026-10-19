@@ -111,6 +111,15 @@
                     .padding(.bottom, SkillsBoardMetrics.gap)
             }
 
+            if let promoted = board.lastPromotion {
+                PromotionUndoBar(board: board, promoted: promoted)
+                    .padding(.bottom, SkillsBoardMetrics.gap)
+            }
+            if board.updatesChecked || board.updatesError != nil {
+                SkillUpdatesSection(board: board)
+                    .padding(.bottom, SkillsBoardMetrics.gap)
+            }
+
             controls(response)
             columnHeaders(response)
 

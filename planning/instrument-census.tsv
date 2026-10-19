@@ -36,6 +36,8 @@ app/Tests/MCPRouterKitTests/DiscoverCopyTests.swift	swift-suite	app/Tests/MCPRou
 app/Tests/MCPRouterKitTests/DiscoverHonestyTests.swift	swift-suite	app/Tests/MCPRouterKitTests/DiscoverHonestyTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/DiscoverStateTests.swift	swift-suite	app/Tests/MCPRouterKitTests/DiscoverStateTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/DismissalStoreTests.swift	swift-suite	app/Tests/MCPRouterKitTests/DismissalStoreTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterKitTests/ExtensionUpdatesWireTests.swift	swift-suite	app/Tests/MCPRouterKitTests/ExtensionUpdatesWireTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterKitTests/ExtensionWritesTests.swift	swift-suite	app/Tests/MCPRouterKitTests/ExtensionWritesTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/FindingAnnouncementTests.swift	swift-suite	app/Tests/MCPRouterKitTests/FindingAnnouncementTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/FixtureClientTests.swift	swift-suite	app/Tests/MCPRouterKitTests/FixtureClientTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/InboxAnnouncementTests.swift	swift-suite	app/Tests/MCPRouterKitTests/InboxAnnouncementTests.swift	swift	compiled and run by `swift test`	make:test
@@ -62,6 +64,7 @@ app/Tests/MCPRouterKitTests/PairingBehaviourTests.swift	swift-suite	app/Tests/MC
 app/Tests/MCPRouterKitTests/PairingCodeTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingCodeTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingFrameCodecTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingFrameCodecTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingPayloadTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingPayloadTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterKitTests/PairingWireVectorsTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingWireVectorsTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PhoneKeyStoreTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PhoneKeyStoreTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PopoverContentTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PopoverContentTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/ReadoutModelTests.swift	swift-suite	app/Tests/MCPRouterKitTests/ReadoutModelTests.swift	swift	compiled and run by `swift test`	make:test
@@ -157,6 +160,8 @@ app/Tests/MCPRouterUITests/ShellTests.swift	swift-suite	app/Tests/MCPRouterUITes
 app/Tests/MCPRouterUITests/SidebarFocusRulesTests.swift	swift-suite	app/Tests/MCPRouterUITests/SidebarFocusRulesTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/SidebarFootTests.swift	swift-suite	app/Tests/MCPRouterUITests/SidebarFootTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/SkillsMenuTests.swift	swift-suite	app/Tests/MCPRouterUITests/SkillsMenuTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterUITests/SkillsUpdatesModelTests.swift	swift-suite	app/Tests/MCPRouterUITests/SkillsUpdatesModelTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterUITests/SkillsWriteModelTests.swift	swift-suite	app/Tests/MCPRouterUITests/SkillsWriteModelTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/TriageFailureTests.swift	swift-suite	app/Tests/MCPRouterUITests/TriageFailureTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/TriageModelTests.swift	swift-suite	app/Tests/MCPRouterUITests/TriageModelTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/TriageSourceGuardTests.swift	swift-suite	app/Tests/MCPRouterUITests/TriageSourceGuardTests.swift	swift	compiled and run by `swift test`	make:test

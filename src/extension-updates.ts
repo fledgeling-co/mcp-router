@@ -1,6 +1,7 @@
 import { existsSync, lstatSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { DESCRIPTOR_PATH, isWellFormedName, KINDS, type ExtensionKind, type ExtensionRecord, type ExtensionStore } from './extensions.js';
+import type { Changelog } from './plugin-cache.js';
 
 /*
  * F6, the marketplace update check. A port of ExtensionFreshness, ExtensionFreshnessScan, MarketplaceCatalogue and
@@ -450,8 +451,14 @@ function isRealDirectory(path: string): boolean {
 /**
  * The JSON `GET /extensions/updates` answers with, member for member in the Swift order. Every member is always
  * present, and an unobserved figure is null rather than 0.
+ *
+ * `changelogOf` adds a `changelog` member to each entry. The router supplies it, because only the router can read
+ * Claude's cache; without it the entries carry no changelog member, as the Swift router's do.
  */
-export function freshnessValue(report: FreshnessReport): Record<string, unknown> {
+export function freshnessValue(
+  report: FreshnessReport,
+  changelogOf?: (row: FreshnessRow) => Changelog | null
+): Record<string, unknown> {
   return {
     checkedAtMs: report.checkedAtMs,
     staleAfterMs: report.staleAfterMs,
@@ -478,6 +485,7 @@ export function freshnessValue(report: FreshnessReport): Record<string, unknown>
       hasUpdate: row.verdict.hasUpdate,
       compared: row.verdict.compared,
       reason: row.verdict.sentence,
+      ...(changelogOf ? { changelog: changelogOf(row) } : {}),
     })),
     unreadable: report.unreadable,
   };

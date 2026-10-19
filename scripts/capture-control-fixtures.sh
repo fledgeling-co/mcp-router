@@ -208,6 +208,14 @@ save added.json                  grab -X POST "${auth[@]}" \
 
 save removed.json                grab -X DELETE "${auth[@]}" "http://127.0.0.1:$PORT/servers/fixture-added"
 
+# --- phone pairing ------------------------------------------------------------------------------
+# The Mac's sheet asks for a code, reads the code back, and takes it back on close. Captured in that
+# order: the state names the code the issue minted, and the revoke takes that code back. Nothing
+# earlier in this script reads the pairing state, so the order is the only dependency.
+save pairing-code.json           grab -X POST "${auth[@]}" -d '{}' "http://127.0.0.1:$PORT/pairing/codes"
+save pairing-state.json          grab "${auth[@]}" "http://127.0.0.1:$PORT/pairing/state"
+save pairing-revoke.json         grab -X DELETE "${auth[@]}" "http://127.0.0.1:$PORT/pairing/codes"
+
 for f in "$OUT"/*.json; do
   python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f" \
     || { echo "error: $f is not valid JSON"; exit 1; }

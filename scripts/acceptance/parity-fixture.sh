@@ -100,6 +100,10 @@ SUBS = [
     # contract. The recording caught 0s; a machine under load catches 2s. Normalised rather than
     # deleted, so a body that stops carrying idleSec at all is still a mismatch.
     (r'"idleSec":\d+',                      '"idleSec":"<idleSec>"'),
+    # A pairing code is drawn at random on every mint, so no two runs carry the same one. The value
+    # is normalised; the shape is the rule's own match, so a body whose code is not eight characters
+    # of the router's alphabet still differs from the recording.
+    (r'"code":"[0-9ABCDEFGHJKMNPQRSTVWXYZ]{8}"', '"code":"<pairing-code>"'),
     # `+` not `*`. With `*`, a body carrying "hash":"" normalised to the same marker as a real
     # digest, so a reference that stopped hashing would have passed. The normalisation itself is
     # unavoidable — the digest covers a config that embeds the capturing worktree's absolute path,

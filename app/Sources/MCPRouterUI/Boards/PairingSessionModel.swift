@@ -9,6 +9,10 @@
     /// minutes whether or not anyone is looking at the inbox, and the countdown has to keep running
     /// while the sheet is open over any board — the sheet is reachable from the File menu as well as
     /// from the pane.
+    ///
+    /// **The code is the router's.** The sheet asks the router to mint it and takes it back on
+    /// close, so the router's `pairing` state is the one record of what can be paired with. The
+    /// Mac draws the code and encodes the payload; it does not decide whether a code is live.
     @MainActor
     @Observable
     public final class PairingSessionModel {
@@ -16,7 +20,7 @@
         public enum Phase: Sendable, Equatable {
             /// No transport. **The only phase a Release build reaches.**
             case noEndpoint
-            /// An endpoint exists and a code is being minted.
+            /// An endpoint exists and the router is being asked for a code.
             case preparing
             /// A code is on screen, with the text the QR encodes.
             case live(IssuedPairingCode, encoded: String)
@@ -27,6 +31,7 @@
         }
 
         @ObservationIgnored private let service: any InboxService
+        @ObservationIgnored private let client: any ControlAPIClient
         @ObservationIgnored private let clock: @MainActor () -> Date
         /// Resolved when a code is issued rather than at init.
         ///
@@ -34,6 +39,9 @@
         /// `ShellModel.init` — on the launch path, before the first frame. A Release build never
         /// issues a payload at all, so it should never pay for a host name it will not render.
         @ObservationIgnored private let macNameProvider: () -> String
+        /// Bumped by every open, reissue and close. A router answer carries the generation it was
+        /// asked under, and an answer whose generation has been overtaken is not shown.
+        @ObservationIgnored private var issueGeneration = 0
 
         public private(set) var phase: Phase = .noEndpoint
         public var isOpen = false
@@ -50,10 +58,12 @@
 
         public init(
             service: any InboxService,
+            client: any ControlAPIClient,
             macName: @autoclosure @escaping () -> String = PairingSessionModel.hostName(),
             clock: @escaping @MainActor () -> Date = { Date() }
         ) {
             self.service = service
+            self.client = client
             macNameProvider = macName
             self.clock = clock
             now = clock()
@@ -72,34 +82,76 @@
 
         // MARK: - Opening
 
-        /// Open the sheet and, where this build can, issue a code.
+        /// Open the sheet and, where this build has an endpoint, ask the router for a code.
         ///
-        /// **No endpoint means no code and no payload** — not a code with placeholder values. The
-        /// early return is the control: there is no path from here to `MacPairing.encode` without a
-        /// `PairingEndpoint`, which is itself failable, so an endpoint that could not produce a
-        /// decodable payload cannot reach the encoder either.
+        /// **No endpoint means no request and no payload** — not a code with placeholder values. The
+        /// early return is the control: a code only reaches the encoder through `requestCode(from:)`,
+        /// which takes a `PairingEndpoint`, and an endpoint that could not produce a decodable payload
+        /// cannot be constructed at all.
         public func open() {
             isOpen = true
             guard case let .available(endpoint) = service.availability() else {
                 phase = .noEndpoint
                 return
             }
-            phase = .preparing
-            issue(from: endpoint)
+            requestCode(from: endpoint)
             startTicking()
         }
 
+        /// Close the sheet and take the router's code back.
+        ///
+        /// A code left live on the router is pairable by a phone for as long as its window runs, with
+        /// nobody looking at it, so the revoke is sent here rather than left to expiry. A request that
+        /// is still in flight when this runs is handled where its answer arrives.
         public func close() {
             isOpen = false
+            issueGeneration += 1
             stopTicking()
+            switch phase {
+            case .preparing, .live:
+                Task { await revokeOnRouter() }
+            case .noEndpoint, .expired, .failed:
+                break
+            }
         }
 
-        private func issue(from endpoint: PairingEndpoint) {
-            // The window comes from the service rather than from the constant, so a build whose
-            // transport mints shorter-lived codes is described accurately — and so the near-expiry
-            // state is reachable in the running app at all. A five-minute countdown cannot be driven
-            // by an acceptance script, which is why the `expiring` scenario existed and did nothing.
-            let issued = MacPairing.issue(at: clock(), lifetime: service.pairingLifetime())
+        /// Mint a fresh code, which is what the expired state offers.
+        public func reissue() {
+            guard case let .available(endpoint) = service.availability() else {
+                phase = .noEndpoint
+                return
+            }
+            requestCode(from: endpoint)
+        }
+
+        // MARK: - Asking the router
+
+        private func requestCode(from endpoint: PairingEndpoint) {
+            phase = .preparing
+            issueGeneration += 1
+            let generation = issueGeneration
+            Task { await issue(from: endpoint, generation: generation) }
+        }
+
+        /// Show the code the router answered with, unless the answer has been overtaken.
+        ///
+        /// The router keeps one live code, so an answer from a request that a newer open or a close has
+        /// overtaken names a code the router has already replaced or is about to lose. It is not shown.
+        /// If the sheet has closed since the request, the code it minted is taken back here: the close
+        /// revoked before the router had minted anything, and nothing else would.
+        private func issue(from endpoint: PairingEndpoint, generation: Int) async {
+            let issued: IssuedPairingCode
+            do {
+                issued = try await client.issuePairingCode()
+            } catch {
+                guard generation == issueGeneration else { return }
+                phase = .failed("The code could not be prepared.")
+                return
+            }
+            guard generation == issueGeneration else {
+                if !isOpen { await revokeOnRouter() }
+                return
+            }
             let payload = MacPairing.payload(for: issued, endpoint: endpoint, macName: macNameProvider())
             do {
                 phase = try .live(issued, encoded: MacPairing.encode(payload))
@@ -111,13 +163,10 @@
             }
         }
 
-        /// Mint a fresh code, which is what the expired state offers.
-        public func reissue() {
-            guard case let .available(endpoint) = service.availability() else {
-                phase = .noEndpoint
-                return
-            }
-            issue(from: endpoint)
+        /// Take the router's live code back. A revoke that does not reach the router leaves a code
+        /// that the router's five-minute window still bounds, so nothing here retries it.
+        private func revokeOnRouter() async {
+            _ = try? await client.revokePairingCode()
         }
 
         // MARK: - The clock

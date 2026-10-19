@@ -147,7 +147,7 @@
             self.client = client
             self.service = service
             self.notifier = notifier
-            pairing = PairingSessionModel(service: service)
+            pairing = PairingSessionModel(service: service, client: client)
         }
 
         // MARK: - Reading

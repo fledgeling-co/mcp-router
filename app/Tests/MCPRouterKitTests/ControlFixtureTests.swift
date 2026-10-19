@@ -54,7 +54,10 @@ struct ControlFixtureTests {
         expect("signout", SignedOut.self),
         expect("add-refused", RouterErrorBody.self),
         expect("approve-conflict", RouterErrorBody.self),
-        expect("unauthorized", RouterErrorBody.self)
+        expect("unauthorized", RouterErrorBody.self),
+        expect("pairing-code", PairingCodeWire.self),
+        expect("pairing-state", PairingStateWire.self),
+        expect("pairing-revoke", PairingRevokeWire.self)
     ]
 
     // MARK: - A14 / A17: every recording still decodes

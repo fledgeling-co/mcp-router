@@ -66,7 +66,24 @@
         public static func makeService(
             environment: [String: String] = ProcessInfo.processInfo.environment
         ) -> any InboxService {
-            switch currentChoice(environment: environment) {
+            service(for: currentChoice(environment: environment))
+        }
+
+        /// Whether the sheet can offer a code in the build and environment given. A Release build
+        /// reports `.noEndpoint` whatever the environment names, so the sheet issues nothing and
+        /// revokes nothing: pairing is disabled until a listener ships.
+        ///
+        /// Takes the build configuration as a parameter for the same reason `choice` does, so a Debug
+        /// test run can assert the Release answer.
+        public static func availability(
+            isDebugBuild: Bool,
+            environment: [String: String]
+        ) -> PairingAvailability {
+            service(for: choice(isDebugBuild: isDebugBuild, environment: environment)).availability()
+        }
+
+        private static func service(for choice: Choice) -> any InboxService {
+            switch choice {
             case .noTransport: NoTransportInboxService()
             case let .fixture(scenario): FixtureInboxService(scenario)
             }

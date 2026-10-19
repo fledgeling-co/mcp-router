@@ -1,5 +1,5 @@
-frontmost before: ghostty
-router up on 8894 (reference implementation, node /Volumes/LLMs/Dev/mcp-router/.worktrees/J4/dist/index.js), scratch home /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/tmp.X0zIuBuMfF
+frontmost before: ChatGPT
+router up on 8894 (reference implementation, node /Volumes/LLMs/Dev/mcp-router/dist/index.js), scratch home /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/tmp.ZtVobmfNBl
 wrote 5 capture rows
 --- assertions
   ok   G17-W1 — the route serves all three of the constructed package's documents: ['capabilities', 'changelog', 'readMe']
@@ -20,26 +20,26 @@ wrote 5 capture rows
   ok   G17-P7R — the capabilities tab REPAINTED the body: 21.8% of its 1572864-pixel body region differs from the read me's (floor 1%) — a tab that changed no pixels would read 0
   ok   G17-P8 — the three tabs draw three different documents out of one package: distinct bodies=3, all three name g17-capability=True
   ok   G17-R1 — the nothing-served refusal draws its own state and no figure: ['g17-no-package has no package to read']
-  ok   G17-R2 — the too-large refusal names the file and the cap it broke: ['README.md is too large to show here']
+  ok   G17-R2 — the too-large refusal names the file and the cap it broke: ["g17-oversize's README.md is too large to show here"]
   ok   G17-R3 — the three refusals are pairwise distinguishable in the words they draw: 3 distinct
-  ok   G17-L1 — each of the 5 pictures names the surface and the step it is of, carries the sha256 of the file on disk, and — for the 4 that draw their own subject — is corroborated by what the frame itself drew
-  ok   G17-L2 — 1 of 5 frames cannot corroborate their own manifest row and are named here rather than counted as corroborated: ['refusal.toolarge'] (DEF-060)
+  ok   G17-L1 — each of the 5 pictures names the surface and the step it is of, carries the sha256 of the file on disk, and — for the 5 that draw their own subject — is corroborated by what the frame itself drew
+  ok   G17-L2 — 0 of 5 frames cannot corroborate their own manifest row and are named here rather than counted as corroborated: none (DEF-060)
 g17-document-assert: 22 checks, all green
 --- controls
   ARMED  G17-P4 — the served figure's bytes replaced with something that cannot decode
-  RESTORED readme.served byte-identical — sha256 a54c084a5e62dbc396aabbc614a4b40968d5e3b8c794fa56d99dae50be30cd82
+  RESTORED readme.served byte-identical — sha256 2360e782930b8da7a366722324d691e553f847b8a92b4ab0b73c0fc88396c6e5
   ARMED  G17-P1 — the read me frame rendered against g17-no-package under its own filename
-  RESTORED readme.served byte-identical — sha256 a54c084a5e62dbc396aabbc614a4b40968d5e3b8c794fa56d99dae50be30cd82
+  RESTORED readme.served byte-identical — sha256 2360e782930b8da7a366722324d691e553f847b8a92b4ab0b73c0fc88396c6e5
   ARMED  G17-P8 — the changelog and capabilities frames both rendered on the read me tab
   ARMED  G17-P6W — the changelog frame rendered on the read me tab
   ARMED  G17-P7W — the capability list frame rendered on the read me tab
   ARMED  G17-P6R — the changelog frame rendered on the read me tab
   ARMED  G17-P7R — the capability list frame rendered on the read me tab
-  RESTORED changelog.served byte-identical — sha256 5563977a462a643d927596543857c4f9d46546bfb25ca166e3d7780c67d4c069
-  RESTORED capabilities.served byte-identical — sha256 3c5aa28b93bd06ca8d63369d1cda29c6da5ab2357d181c250fcc8eadf118ba93
+  RESTORED changelog.served byte-identical — sha256 b756d6efd1c33db5ab81ac1c0ad840e95ccd96715996d52e364d38581fe8a3c5
+  RESTORED capabilities.served byte-identical — sha256 b81e266c463373d874e08b4e5fe86af55114b9a094f31e68278f983b58f5bf2f
   ARMED  G17-R3 — the too-large frame rendered against the no-package server, so two refusals
                        draw the same words
-  RESTORED refusal.toolarge byte-identical — sha256 5462034f32270ed0c716cf96d3d2dc39e8d2e5af381e5a642741d5a3a99e7547
+  RESTORED refusal.toolarge byte-identical — sha256 ab5e3ee7338e37ed0e734e2f3ca8fb9cc45fa5dc80e4ad47eec393c4d2c29c59
 --- re-assert after restoration
   ok   G17-W1 — the route serves all three of the constructed package's documents: ['capabilities', 'changelog', 'readMe']
   ok   G17-W2 — one figure arrives as image/png and the escaping reference is refused: images=1 refused=['escapesPackage']
@@ -59,10 +59,11 @@ g17-document-assert: 22 checks, all green
   ok   G17-P7R — the capabilities tab REPAINTED the body: 21.8% of its 1572864-pixel body region differs from the read me's (floor 1%) — a tab that changed no pixels would read 0
   ok   G17-P8 — the three tabs draw three different documents out of one package: distinct bodies=3, all three name g17-capability=True
   ok   G17-R1 — the nothing-served refusal draws its own state and no figure: ['g17-no-package has no package to read']
-  ok   G17-R2 — the too-large refusal names the file and the cap it broke: ['README.md is too large to show here']
+  ok   G17-R2 — the too-large refusal names the file and the cap it broke: ["g17-oversize's README.md is too large to show here"]
   ok   G17-R3 — the three refusals are pairwise distinguishable in the words they draw: 3 distinct
-  ok   G17-L1 — each of the 5 pictures names the surface and the step it is of, carries the sha256 of the file on disk, and — for the 4 that draw their own subject — is corroborated by what the frame itself drew
-  ok   G17-L2 — 1 of 5 frames cannot corroborate their own manifest row and are named here rather than counted as corroborated: ['refusal.toolarge'] (DEF-060)
+  ok   G17-L1 — each of the 5 pictures names the surface and the step it is of, carries the sha256 of the file on disk, and — for the 5 that draw their own subject — is corroborated by what the frame itself drew
+  ok   G17-L2 — 0 of 5 frames cannot corroborate their own manifest row and are named here rather than counted as corroborated: none (DEF-060)
 g17-document-assert: 22 checks, all green
-frontmost after:  ghostty (98 samples over the run)
-  ok — neither MeasureDump nor the router was frontmost in any of the 98 samples
+frontmost after:  ChatGPT (58 samples over the run)
+  ok — neither MeasureDump nor the router was frontmost in any of the 58 samples
+g17-document-flow: ok

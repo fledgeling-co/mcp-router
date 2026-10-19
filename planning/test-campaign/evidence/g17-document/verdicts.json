@@ -9,9 +9,9 @@
      "top": 582
     },
     "derivedFrom": "readme.served.png",
-    "derivedFromSha256": "a54c084a5e62dbc396aabbc614a4b40968d5e3b8c794fa56d99dae50be30cd82",
+    "derivedFromSha256": "2360e782930b8da7a366722324d691e553f847b8a92b4ab0b73c0fc88396c6e5",
     "path": "readme.served.figure-card.png",
-    "sha256": "89d55cf51514329eb341646da3feaff5029791ee55a38b5a74f80a8b360ce0b4"
+    "sha256": "e4162c5c142aa9223b8a73012f06309e72243081a20ba729307b927022e074bf"
    },
    "readme.served.figure-refusal": {
     "box": {
@@ -21,15 +21,15 @@
      "top": 1001
     },
     "derivedFrom": "readme.served.png",
-    "derivedFromSha256": "a54c084a5e62dbc396aabbc614a4b40968d5e3b8c794fa56d99dae50be30cd82",
+    "derivedFromSha256": "2360e782930b8da7a366722324d691e553f847b8a92b4ab0b73c0fc88396c6e5",
     "path": "readme.served.figure-refusal.png",
-    "sha256": "83d6831e34a6bf4cf0962a6ad42aa4995fc8dcca64f265f710542567e5460834"
+    "sha256": "bc4fc5f5e146a22264dbe98db348e04672823e995a463281912f8d532020dfb1"
    }
   },
   "manifest": [
    {
-    "bytes": 177879,
-    "capturedAt": "2026-08-28T15:43:49Z",
+    "bytes": 178537,
+    "capturedAt": "2026-10-19T00:28:35Z",
     "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
     "derivedFrom": null,
     "documentServer": "g17-capability",
@@ -40,14 +40,14 @@
     "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh \u2014 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
     "path": "evidence/g17-document/readme.served.png",
     "servedBy": "http://127.0.0.1:8894/servers/g17-capability/document (reference router, node dist/index.js)",
-    "sha256": "a54c084a5e62dbc396aabbc614a4b40968d5e3b8c794fa56d99dae50be30cd82",
+    "sha256": "2360e782930b8da7a366722324d691e553f847b8a92b4ab0b73c0fc88396c6e5",
     "step": "FLOW-006.02",
     "subject": "SURF-028",
     "target": "app://mac/servers/g17-capability/document"
    },
    {
-    "bytes": 118311,
-    "capturedAt": "2026-08-28T15:43:49Z",
+    "bytes": 118734,
+    "capturedAt": "2026-10-19T00:28:35Z",
     "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
     "derivedFrom": null,
     "documentServer": "g17-capability",
@@ -58,14 +58,14 @@
     "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh \u2014 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
     "path": "evidence/g17-document/changelog.served.png",
     "servedBy": "http://127.0.0.1:8894/servers/g17-capability/document (reference router, node dist/index.js)",
-    "sha256": "5563977a462a643d927596543857c4f9d46546bfb25ca166e3d7780c67d4c069",
+    "sha256": "b756d6efd1c33db5ab81ac1c0ad840e95ccd96715996d52e364d38581fe8a3c5",
     "step": "FLOW-006.03",
     "subject": "SURF-028",
     "target": "app://mac/servers/g17-capability/document"
    },
    {
-    "bytes": 118939,
-    "capturedAt": "2026-08-28T15:43:49Z",
+    "bytes": 119280,
+    "capturedAt": "2026-10-19T00:28:35Z",
     "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
     "derivedFrom": null,
     "documentServer": "g17-capability",
@@ -76,14 +76,14 @@
     "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh \u2014 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
     "path": "evidence/g17-document/capabilities.served.png",
     "servedBy": "http://127.0.0.1:8894/servers/g17-capability/document (reference router, node dist/index.js)",
-    "sha256": "3c5aa28b93bd06ca8d63369d1cda29c6da5ab2357d181c250fcc8eadf118ba93",
+    "sha256": "b81e266c463373d874e08b4e5fe86af55114b9a094f31e68278f983b58f5bf2f",
     "step": "FLOW-006.04",
     "subject": "SURF-028",
     "target": "app://mac/servers/g17-capability/document"
    },
    {
-    "bytes": 85588,
-    "capturedAt": "2026-08-28T15:43:49Z",
+    "bytes": 86524,
+    "capturedAt": "2026-10-19T00:28:35Z",
     "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
     "derivedFrom": null,
     "documentServer": "g17-no-package",
@@ -94,40 +94,38 @@
     "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh \u2014 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
     "path": "evidence/g17-document/refusal.nopackage.png",
     "servedBy": "http://127.0.0.1:8894/servers/g17-no-package/document (reference router, node dist/index.js)",
-    "sha256": "0b2e1e75479b5f29cffc3d54803c3d0e3dc5935ccd00068691f4dc12050dddbd",
+    "sha256": "a6789d1d82f6f1a5c988ebcb6913a04549d4ba4ada01f72f0d7a42de928cab2b",
     "step": "FLOW-006.02",
     "subject": "SURF-028",
     "target": "app://mac/servers/g17-no-package/document"
    },
    {
-    "bytes": 89571,
-    "capturedAt": "2026-08-28T15:43:49Z",
+    "bytes": 92114,
+    "capturedAt": "2026-10-19T00:28:35Z",
     "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
     "derivedFrom": null,
     "documentServer": "g17-oversize",
     "documentTab": "readMe",
     "frame": "refusal.toolarge",
-    "marker": null,
-    "markerRole": null,
+    "marker": "g17-oversize",
+    "markerRole": "state-title",
     "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh \u2014 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
     "path": "evidence/g17-document/refusal.toolarge.png",
     "servedBy": "http://127.0.0.1:8894/servers/g17-oversize/document (reference router, node dist/index.js)",
-    "sha256": "5462034f32270ed0c716cf96d3d2dc39e8d2e5af381e5a642741d5a3a99e7547",
+    "sha256": "ab5e3ee7338e37ed0e734e2f3ca8fb9cc45fa5dc80e4ad47eec393c4d2c29c59",
     "step": "FLOW-006.02",
     "subject": "SURF-028",
     "target": "app://mac/servers/g17-oversize/document"
    }
   ],
   "sha256": {
-   "capabilities.served": "3c5aa28b93bd06ca8d63369d1cda29c6da5ab2357d181c250fcc8eadf118ba93",
-   "changelog.served": "5563977a462a643d927596543857c4f9d46546bfb25ca166e3d7780c67d4c069",
-   "readme.served": "a54c084a5e62dbc396aabbc614a4b40968d5e3b8c794fa56d99dae50be30cd82",
-   "refusal.nopackage": "0b2e1e75479b5f29cffc3d54803c3d0e3dc5935ccd00068691f4dc12050dddbd",
-   "refusal.toolarge": "5462034f32270ed0c716cf96d3d2dc39e8d2e5af381e5a642741d5a3a99e7547"
+   "capabilities.served": "b81e266c463373d874e08b4e5fe86af55114b9a094f31e68278f983b58f5bf2f",
+   "changelog.served": "b756d6efd1c33db5ab81ac1c0ad840e95ccd96715996d52e364d38581fe8a3c5",
+   "readme.served": "2360e782930b8da7a366722324d691e553f847b8a92b4ab0b73c0fc88396c6e5",
+   "refusal.nopackage": "a6789d1d82f6f1a5c988ebcb6913a04549d4ba4ada01f72f0d7a42de928cab2b",
+   "refusal.toolarge": "ab5e3ee7338e37ed0e734e2f3ca8fb9cc45fa5dc80e4ad47eec393c4d2c29c59"
   },
-  "unidentifiable": [
-   "refusal.toolarge"
-  ]
+  "unidentifiable": []
  },
  "checks": [
   {
@@ -222,7 +220,7 @@
   },
   {
    "id": "G17-R2",
-   "message": "the too-large refusal names the file and the cap it broke: ['README.md is too large to show here']",
+   "message": "the too-large refusal names the file and the cap it broke: [\"g17-oversize's README.md is too large to show here\"]",
    "pass": true
   },
   {
@@ -232,12 +230,12 @@
   },
   {
    "id": "G17-L1",
-   "message": "each of the 5 pictures names the surface and the step it is of, carries the sha256 of the file on disk, and \u2014 for the 4 that draw their own subject \u2014 is corroborated by what the frame itself drew",
+   "message": "each of the 5 pictures names the surface and the step it is of, carries the sha256 of the file on disk, and \u2014 for the 5 that draw their own subject \u2014 is corroborated by what the frame itself drew",
    "pass": true
   },
   {
    "id": "G17-L2",
-   "message": "1 of 5 frames cannot corroborate their own manifest row and are named here rather than counted as corroborated: ['refusal.toolarge'] (DEF-060)",
+   "message": "0 of 5 frames cannot corroborate their own manifest row and are named here rather than counted as corroborated: none (DEF-060)",
    "pass": true
   }
  ]

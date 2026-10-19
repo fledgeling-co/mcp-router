@@ -138,7 +138,7 @@
                 ],
                 "frame" : {
                   "height" : 19,
-                  "width" : 268,
+                  "width" : 376,
                   "x" : 16,
                   "y" : 49
                 },
@@ -153,7 +153,7 @@
 
                 },
                 "role" : "state-title",
-                "text" : "README.md is too large to show here",
+                "text" : "g17-oversize's README.md is too large to show here",
                 "tokens" : {
                   "type" : "Title3"
                 }

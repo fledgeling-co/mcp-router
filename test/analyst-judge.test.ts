@@ -116,3 +116,9 @@ test('each lane runs its pinned model, and the Claude lane is the cheap rung', (
   assert.ok(laneArguments('codex', 'p').includes('model_reasoning_effort="low"'));
   assert.ok(laneArguments('grok', 'p').includes('grok-4.6'));
 });
+
+test('no lane is given a flag that approves tool calls, since the prompt carries shell history', () => {
+  for (const lane of ['claude', 'cursor', 'grok', 'codex', 'gemini'] as const) {
+    assert.ok(!laneArguments(lane, 'p').includes('--force'), `${lane} must not auto-approve tool calls`);
+  }
+});

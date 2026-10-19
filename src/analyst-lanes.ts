@@ -34,7 +34,9 @@ const LANES: Record<AnalystLane, LaneSpec> = {
     binary: 'cursor-agent',
     model: 'composer',
     label: 'Cursor CLI · composer',
-    arguments: (prompt) => ['-p', '--force', '--model', 'composer', prompt],
+    // No --force: that flag approves every tool call without asking. The prompt carries the user's own shell history,
+    // so a command written into it must not be able to run. Print mode without it answers with text and nothing else.
+    arguments: (prompt) => ['-p', '--model', 'composer', prompt],
   },
   grok: {
     binary: 'grok',

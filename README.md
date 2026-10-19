@@ -216,7 +216,7 @@ The router writes `router.log` under `MCP_ROUTER_HOME` and rotates it when the n
 
 Rotated files are `router.log.1` (newest) through `router.log.<keep>`, and the oldest is deleted when a new one is made. `keep: 0` keeps none, so the active file just restarts. `maxBytes` must be a whole number of at least 1 and `keep` a whole number of at least 0; anything else stops the router at startup with a message naming the field. The policy is read at startup, so a change takes effect on the next restart.
 
-The cap does not cover launchd's `serve.out.log` and `serve.err.log` in the same directory. The router writes each line to stderr as well as to `router.log`, and launchd holds those two files open, so they grow without bound.
+While the router writes `router.log`, it sends only error lines to stderr; info and warning lines go to `router.log` alone. The cap does not cover launchd's `serve.err.log`, which holds the error lines and anything Node prints for an uncaught exception, and launchd holds that file open without a limit, so it grows with the errors. `serve` writes no log lines to `serve.out.log`. `index` and `refresh` open `router.log` too, so their info and warning lines appear there rather than on the terminal. A verb that does not open the log file, such as `status` or `tools`, still prints every line to stderr.
 
 ---
 

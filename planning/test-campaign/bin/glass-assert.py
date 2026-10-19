@@ -274,7 +274,9 @@ SURFACES = {
                    "percentage about a world the router never ran, and speaks no saving anywhere",
     },
     "SURF-011": {
-        "dump": "SURF-011.window.txt", "title": "Settings",
+        # Its own window, not a board in the main window: PRD.md §9.5 "Settings is a separate
+        # window". The shell chrome is therefore not in its dump, and the shell check skips it.
+        "dump": "SURF-011.window.txt", "title": "Settings", "window": "Settings",
         "shot": "SURF-011.build.png",
         "copy": [
             "Read from the router, not set here",
@@ -866,9 +868,13 @@ def main() -> int:
         # A shell surface owes the stronger claim: its chrome is in EVERY window, and
         # its own capture is not one of the board captures wearing a second id.
         if spec.get("kind") == "shell":
-            missing = [o for o in SURFACES
+            # The main-window population. A surface with its own `"window"` is a separate window
+            # (PRD.md §9.5 "Settings is a separate window"), so the main window's chrome is not in its
+            # dump by construction, and requiring it there would test the wrong window.
+            population = [o for o in SURFACES if "window" not in SURFACES[o]]
+            missing = [o for o in population
                        if not all(carries(p, dump_text(o, decoy)) for p in spec["copy"])]
-            check(case, f"shell chrome present in all {len(SURFACES)} window dumps",
+            check(case, f"shell chrome present in all {len(population)} main-window dumps",
                   not missing)
             twins = [o for o in SURFACES if o != surface
                      and (SHOTS / SURFACES[o]["shot"]).exists()

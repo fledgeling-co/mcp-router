@@ -1,17 +1,17 @@
 {
  "tool": "planning/test-campaign/bin/forced-state.sh",
- "capturedAt": "2026-10-19T02:34:05Z",
+ "capturedAt": "2026-10-19T04:11:46Z",
  "endpoint": "http://127.0.0.1:8955",
- "bundle": "/Volumes/LLMs/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
+ "bundle": "/Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
  "declared": {
   "names": [
-   "j5-alpha-20261019T023354Z-43993",
-   "j5-beta-20261019T023354Z-43993",
-   "j5-gamma-20261019T023354Z-43993"
+   "j5-alpha-20261019T041134Z-10178",
+   "j5-beta-20261019T041134Z-10178",
+   "j5-gamma-20261019T041134Z-10178"
   ],
   "count": 3
  },
- "nonce": "20261019T023354Z-43993",
+ "nonce": "20261019T041134Z-10178",
  "oracle": "`curl $ENDPOINT/servers`, taken by this script at each state, independently of the app. Every figure asserted about a board is compared against this reading rather than against the app's own account of what it drew.",
  "states": [
   {
@@ -23,14 +23,14 @@
    "routerReading": null,
    "ax": "evidence/ax/SURF-002.live-cold.window.txt",
    "shot": null,
-   "unphotographedReason": "the window is 948x516 at (0,30) and its sidebar reports 256x1964 at (0,-695), which is outside it. A laid-out window contains its own sidebar, so this frame is a photograph of a window that never finished laying out rather than a photograph of the board. (read 60 row(s) of the dump, skipped 0 blank line(s))",
+   "unphotographedReason": "the window is 980x620 at (180,140) and its sidebar reports 256x1964 at (180,-533), which is outside it. A laid-out window contains its own sidebar, so this frame is a photograph of a window that never finished laying out rather than a photograph of the board. (read 60 row(s) of the dump, skipped 0 blank line(s))",
    "sha256": null,
    "windowTitleReadback": "Servers",
-   "frame": "0,30,948,516",
-   "cgWindowID": "106044",
-   "frontmostAtShutter": "Ghostty",
-   "capturedAt": "2026-10-19T02:33:58Z",
-   "witnessed": "axkit attached pid=44051 owns CGWindowID 106044, bundle /Volumes/LLMs/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app"
+   "frame": "180,140,980,620",
+   "cgWindowID": "106906",
+   "frontmostAtShutter": "SecurityAgent",
+   "capturedAt": "2026-10-19T04:11:38Z",
+   "witnessed": "axkit attached pid=10221 owns CGWindowID 106906, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
    "state": "running",
@@ -42,13 +42,13 @@
    "ax": "evidence/ax/SURF-002.live-running.window.txt",
    "shot": "evidence/shots/forced-state/SURF-002.live-running.png",
    "unphotographedReason": null,
-   "sha256": "7f3fc823f57f29611db13a0d87545cb6285fe1529eb62a6d31b99917d1e5206d",
+   "sha256": "ea5672d27a23550ca7d2a8a97510cd8bff597c36496ab9d4ee432bb4ddfa24b3",
    "windowTitleReadback": "Servers",
-   "frame": "0,30,948,516",
-   "cgWindowID": "106050",
-   "frontmostAtShutter": "Ghostty",
-   "capturedAt": "2026-10-19T02:34:02Z",
-   "witnessed": "axkit attached pid=44210 owns CGWindowID 106050, bundle /Volumes/LLMs/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app"
+   "frame": "180,140,980,620",
+   "cgWindowID": "106912",
+   "frontmostAtShutter": "SecurityAgent",
+   "capturedAt": "2026-10-19T04:11:42Z",
+   "witnessed": "axkit attached pid=10308 owns CGWindowID 106912, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
    "state": "stale",
@@ -59,14 +59,14 @@
    "routerReading": null,
    "ax": "evidence/ax/SURF-002.live-stale.window.txt",
    "shot": null,
-   "unphotographedReason": "the window is 948x516 at (0,30) and its sidebar reports 256x1964 at (0,-712), which is outside it. A laid-out window contains its own sidebar, so this frame is a photograph of a window that never finished laying out rather than a photograph of the board. (read 86 row(s) of the dump, skipped 0 blank line(s))",
+   "unphotographedReason": "the window is 980x620 at (180,140) and its sidebar reports 256x1964 at (180,-550), which is outside it. A laid-out window contains its own sidebar, so this frame is a photograph of a window that never finished laying out rather than a photograph of the board. (read 86 row(s) of the dump, skipped 0 blank line(s))",
    "sha256": null,
    "windowTitleReadback": "Servers",
-   "frame": "0,30,948,516",
-   "cgWindowID": "106050",
-   "frontmostAtShutter": "Ghostty",
-   "capturedAt": "2026-10-19T02:34:05Z",
-   "witnessed": "axkit attached pid=44210 owns CGWindowID 106050, bundle /Volumes/LLMs/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app"
+   "frame": "180,140,980,620",
+   "cgWindowID": "106912",
+   "frontmostAtShutter": "SecurityAgent",
+   "capturedAt": "2026-10-19T04:11:46Z",
+   "witnessed": "axkit attached pid=10308 owns CGWindowID 106912, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
   }
  ]
 }

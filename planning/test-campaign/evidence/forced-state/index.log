@@ -1,7 +1,7 @@
 3 upstreams, 3 need indexing
-  ok    j5-alpha-20261019T023354Z-43993 (1 tools)
-  ok    j5-beta-20261019T023354Z-43993 (1 tools)
-  ok    j5-gamma-20261019T023354Z-43993 (1 tools)
+  ok    j5-alpha-20261019T041134Z-10178 (1 tools)
+  ok    j5-beta-20261019T041134Z-10178 (1 tools)
+  ok    j5-gamma-20261019T041134Z-10178 (1 tools)
 
-3 tools cached -> /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/mcprouter-j5.VBBiHSzhMi/manifest.json
+3 tools cached -> /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/mcprouter-j5.axClPUXlE9/manifest.json
 All upstreams closed; none will open again until a tool is called.

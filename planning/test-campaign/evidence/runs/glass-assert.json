@@ -1,13 +1,7 @@
 {
  "checked": 435,
  "failures": [
-  "CASE-0016: window title is Settings",
-  "CASE-0016: window carries: Read from the router, not set here",
-  "CASE-0016: window carries: no endpoint that rewrites the router's own configuration",
   "CASE-0016: window carries: Forget the stored token",
-  "CASE-0111: window title is Settings",
-  "CASE-0111: window carries: Read from the router, not set here",
-  "CASE-0111: window carries: no endpoint that rewrites the router's own configuration",
   "CASE-0111: window carries: Forget the stored token"
  ],
  "cases": {
@@ -54,7 +48,7 @@
      "pass": true
     },
     {
-     "label": "shell chrome present in all 11 window dumps",
+     "label": "shell chrome present in all 10 main-window dumps",
      "pass": true
     },
     {
@@ -271,15 +265,15 @@
    "checks": [
     {
      "label": "window title is Settings",
-     "pass": false
+     "pass": true
     },
     {
      "label": "window carries: Read from the router, not set here",
-     "pass": false
+     "pass": true
     },
     {
      "label": "window carries: no endpoint that rewrites the router's own configuration",
-     "pass": false
+     "pass": true
     },
     {
      "label": "window carries: Forget the stored token",
@@ -639,7 +633,7 @@
      "pass": true
     },
     {
-     "label": "shell chrome present in all 11 window dumps",
+     "label": "shell chrome present in all 10 main-window dumps",
      "pass": true
     },
     {
@@ -1016,15 +1010,15 @@
    "checks": [
     {
      "label": "window title is Settings",
-     "pass": false
+     "pass": true
     },
     {
      "label": "window carries: Read from the router, not set here",
-     "pass": false
+     "pass": true
     },
     {
      "label": "window carries: no endpoint that rewrites the router's own configuration",
-     "pass": false
+     "pass": true
     },
     {
      "label": "window carries: Forget the stored token",
@@ -1951,96 +1945,96 @@
   "CASE-0101": {
    "path": "SURF-001.shell.png",
    "exists": true,
-   "bytes": 92976,
-   "sha": "2a1807ee39651dcc",
+   "bytes": 100402,
+   "sha": "fd8f0356a52fb0d9",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0102": {
    "path": "SURF-002.build.png",
    "exists": true,
-   "bytes": 438731,
-   "sha": "4170a276ab4adbc1",
+   "bytes": 492644,
+   "sha": "75eb3703dfb1fdbb",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0103": {
    "path": "SURF-003.build.png",
    "exists": true,
-   "bytes": 461678,
-   "sha": "e398f1f27f594649",
+   "bytes": 497640,
+   "sha": "1c62a60a9445c005",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0104": {
    "path": "SURF-004.build.png",
    "exists": true,
-   "bytes": 454129,
-   "sha": "a38b6e7283cfac3e",
+   "bytes": 533924,
+   "sha": "e402c667799c1452",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0105": {
    "path": "SURF-005.build.png",
    "exists": true,
-   "bytes": 446753,
-   "sha": "53b4c21758c054fc",
+   "bytes": 485596,
+   "sha": "08a2e2267cd8582c",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0106": {
    "path": "SURF-006.build.png",
    "exists": true,
-   "bytes": 487441,
-   "sha": "1031766b06dd8a5f",
+   "bytes": 567840,
+   "sha": "5e6d30e2470c98cc",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0107": {
    "path": "SURF-007.build.png",
    "exists": true,
-   "bytes": 466698,
-   "sha": "8dd7cffcca3ceaea",
+   "bytes": 502798,
+   "sha": "65fecc48dfa03963",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0108": {
    "path": "SURF-008.build.png",
    "exists": true,
-   "bytes": 363151,
-   "sha": "c433d82486272f8e",
+   "bytes": 401272,
+   "sha": "48d3be028dae271f",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0111": {
    "path": "SURF-011.build.png",
    "exists": true,
-   "bytes": 475178,
-   "sha": "3b5a26ef6016a38c",
+   "bytes": 402032,
+   "sha": "22b7e763606d5a2c",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0161": {
    "path": "SURF-025.build.png",
    "exists": true,
-   "bytes": 456789,
-   "sha": "a232ccb9560e3556",
+   "bytes": 530559,
+   "sha": "372b90d94572a6a0",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0171": {
    "path": "SURF-026.build.png",
    "exists": true,
-   "bytes": 429120,
-   "sha": "3e0dae42ebb38f72",
+   "bytes": 486480,
+   "sha": "8b55fd1bdc0ffdc2",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0139": {
    "path": "SURF-007.cleanup-skills.png",
    "exists": true,
-   "bytes": 510977,
-   "sha": "55f55560013a8563",
+   "bytes": 546238,
+   "sha": "3491bdd126553187",
    "isPNG": true,
    "sharedWith": null
   },
@@ -2055,40 +2049,40 @@
   "CASE-0143": {
    "path": "SURF-010.build.png",
    "exists": true,
-   "bytes": 370218,
-   "sha": "90e592eab29a1cc4",
+   "bytes": 418596,
+   "sha": "5febd73ecb2fd2dd",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0163": {
    "path": "SURF-025.empty.png",
    "exists": true,
-   "bytes": 242052,
-   "sha": "cdcf1e0b5d19d847",
+   "bytes": 279109,
+   "sha": "83ceb48701b7eeb5",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0165": {
    "path": "SURF-025.failure.png",
    "exists": true,
-   "bytes": 241778,
-   "sha": "dd7006d19477fe39",
+   "bytes": 273917,
+   "sha": "1eac1dfd63f957f4",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0173": {
    "path": "SURF-026.empty.png",
    "exists": true,
-   "bytes": 242081,
-   "sha": "a6a01d032337efef",
+   "bytes": 330940,
+   "sha": "e2747e4496985dd3",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0175": {
    "path": "SURF-026.failure.png",
    "exists": true,
-   "bytes": 241134,
-   "sha": "f16996b44e403ff1",
+   "bytes": 273269,
+   "sha": "a0cad49bf0189b58",
    "isPNG": true,
    "sharedWith": null
   }

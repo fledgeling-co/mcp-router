@@ -1,110 +1,104 @@
-0	AXWindow	AXStandardWindow	Cleanup								SwiftUI.WindowGroup<SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>>-1-AppWindow-1	0.0	30.0	948.0	517.0	0
-1	AXGroup	AXHostingView										0.0	30.0	948.0	517.0	0
-2	AXSplitGroup										SwiftUI.WindowGroup<SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>>-1-AppWindow-1, SidebarNavigationSplitView	0.0	30.0	948.0	517.0	0
-3	AXGroup	AXHostingView										0.0	30.0	256.0	517.0	0
-4	AXScrollArea											0.0	82.0	256.0	324.0	0
-5	AXOutline				Sidebar		1				sidebar	0.0	82.0	256.0	324.0	0
-6	AXRow	AXOutlineRow						0				0.0	82.0	256.0	19.0	
-7	AXCell						1	0				10.0	82.0	236.0	19.0	1
-8	AXGroup	AXHostingView										14.0	82.0	240.0	19.0	0
-9	AXHeading				Running		1					14.0	84.5	45.0	14.0	
-6	AXRow	AXOutlineRow						0				0.0	101.0	256.0	32.0	
-7	AXCell						1	0				10.0	101.0	236.0	32.0	1
-8	AXButton				Activity		1					17.5	109.0	71.0	16.0	
-6	AXRow	AXOutlineRow						0				0.0	133.0	256.0	32.0	
-7	AXCell						1	0				10.0	133.0	236.0	32.0	1
-8	AXButton				Servers, 1 need attention		1					16.0	141.0	224.0	16.0	
-6	AXRow	AXOutlineRow						0				0.0	165.0	256.0	32.0	
-7	AXCell						1	0				10.0	165.0	236.0	32.0	1
-8	AXButton				Skills		1					19.0	173.0	55.0	16.0	
-6	AXRow	AXOutlineRow						0				0.0	197.0	256.0	32.0	
-7	AXCell						1	0				10.0	197.0	236.0	32.0	1
-8	AXButton				Harnesses		1					17.0	205.0	90.0	16.0	
-6	AXRow	AXOutlineRow						0				0.0	242.0	256.0	19.0	
-7	AXCell						1	0				10.0	242.0	236.0	19.0	1
-8	AXGroup	AXHostingView										14.0	242.0	240.0	19.0	0
-9	AXHeading				Library		1					14.0	244.5	39.0	14.0	
-6	AXRow	AXOutlineRow						0				0.0	261.0	256.0	32.0	
-7	AXCell						1	0				10.0	261.0	236.0	32.0	1
-8	AXButton				Discover		1					18.0	269.0	77.5	16.0	
-6	AXRow	AXOutlineRow						0				0.0	293.0	256.0	32.0	
-7	AXCell						1	0				10.0	293.0	236.0	32.0	1
-8	AXButton				Inbox		1					16.5	301.0	58.5	16.0	
-6	AXRow	AXOutlineRow						0				0.0	325.0	256.0	32.0	
-7	AXCell						1	0				10.0	325.0	236.0	32.0	1
-8	AXButton				Checks		1	1				16.5	333.0	70.5	16.0	
-6	AXRow	AXOutlineRow						1				0.0	357.0	256.0	32.0	
-7	AXCell						1	1				10.0	357.0	236.0	32.0	1
-8	AXButton				Cleanup, 3 never used		1	1				17.5	365.0	222.5	16.0	
-6	AXRow	AXOutlineRow						0				0.0	389.0	256.0	32.0	
-7	AXCell						1	0				10.0	389.0	236.0	32.0	1
-8	AXButton				Insights		1					15.5	397.0	75.0	16.0	
-6	AXColumn							0			ListColumn	10.0	82.0	236.0	349.0	
-5	AXScrollBar			0			1					238.0	81.0	19.0	326.0	0
-6	AXValueIndicator			0								247.0	85.0	6.0	298.0	
-6	AXButton	AXIncrementArrow										239.0	82.0	0.0	0.0	
-6	AXButton	AXDecrementArrow										239.0	82.0	0.0	0.0	
-6	AXButton	AXIncrementPage										247.0	383.5	6.0	19.5	
-6	AXButton	AXDecrementPage										247.0	85.0	6.0	0.0	
-4	AXStaticText			Child processes, 1 of 4 declared servers running			1				sidebar	16.0	426.0	224.0	16.0	
-4	AXStaticText			last 8s · peak 1			1				sidebar	16.0	479.5	99.0	13.0	
-4	AXStaticText			Router endpoint, 127.0.0.1:8971			1				sidebar	16.0	524.0	95.5	14.0	
-3	AXSplitter			256			0	0				256.0	82.0	0.5	465.0	0
-3	AXGroup	AXHostingView										0.0	30.0	948.0	517.0	0
-4	AXStaticText			none	mcprouter-key-probe						content	872.0	519.0	72.0	24.0	1
-4	AXScrollArea										content	256.0	82.0	692.0	465.0	0
-5	AXStaticText			Cleanup			1					272.0	98.0	85.5	26.0	
-5	AXButton				Reset history…		1					821.5	102.0	110.5	24.0	
-5	AXStaticText			Capabilities MCP Router has never seen used, judged over the calls it has recorded across the past 2mo. It proposes; you decide.			1					272.0	126.0	542.0	29.0	
-5	AXStaticText			The sidebar badge counts the 3 servers nobody has called. This list also includes servers that failed to index or declared no tools.			1					272.0	157.0	650.5	13.0	
-5	AXStaticText			Observed over			1					272.0	178.0	73.5	13.0	
-5	AXStaticText			Observation window: 66d recorded			1					353.5	178.0	226.5	13.0	
-5	AXRadioGroup						1					272.0	199.0	246.0	24.0	0
-6	AXRadioButton	AXSegment		1	All 3		1					272.0	199.0	82.0	24.0	0
-6	AXRadioButton	AXSegment		0	Servers 3		1					354.0	199.0	82.0	24.0	0
-6	AXRadioButton	AXSegment		0	Skills		1					436.0	199.0	82.0	24.0	0
-5	AXImage				search		1				magnifyingglass	535.5	205.0	12.0	12.0	
-5	AXTextField						1					553.0	203.0	181.0	16.0	0
-5	AXStaticText			capability			1					318.0	231.0	49.5	13.0	
-5	AXStaticText			kind			1					506.0	231.0	21.5	13.0	
-5	AXStaticText			why it is here			1					574.0	231.0	66.5	13.0	
-5	AXOpaqueProviderGroup	AXOpaqueProviderList					1					253.0	248.0	698.0	146.0	
-6	AXGroup				fixture-stdio, Server. The router has recorded no calls to it over the window below.		1					253.0	248.0	698.0	48.0	
-7	AXImage				servers		1				square.stack.3d.up	269.0	265.0	14.5	14.5	
-7	AXStaticText			fixture-stdio			1					299.0	256.5	79.5	16.0	
-7	AXStaticText			stdio			1					299.0	274.5	25.5	13.0	
-7	AXStaticText			Server			1					487.0	265.5	33.0	13.0	
-7	AXStaticText			The router has recorded no calls to it over the window below.			1					555.0	265.5	215.0	13.0	
-7	AXButton				Inspect		1					799.5	260.0	63.5	24.0	
-7	AXButton				Remove…		1					865.0	260.0	78.0	24.0	
-6	AXGroup				fixture-http, Server. The router has recorded no calls to it over the window below.		1					253.0	297.0	698.0	48.0	
-7	AXImage				servers		1				square.stack.3d.up	269.0	314.0	14.5	14.5	
-7	AXStaticText			fixture-http			1					299.0	305.5	74.0	16.0	
-7	AXStaticText			http			1					299.0	323.5	21.0	13.0	
-7	AXStaticText			Server			1					487.0	314.5	33.0	13.0	
-7	AXStaticText			The router has recorded no calls to it over the window below.			1					555.0	314.5	215.0	13.0	
-7	AXButton				Inspect		1					799.5	309.0	63.5	24.0	
-7	AXButton				Remove…		1					865.0	309.0	78.0	24.0	
-6	AXGroup				fixture-oauth, Server. The router has recorded no calls to it over the window below.		1					253.0	346.0	698.0	48.0	
-7	AXImage				servers		1				square.stack.3d.up	269.0	363.0	14.5	14.5	
-7	AXStaticText			fixture-oauth			1					299.0	354.5	84.0	16.0	
-7	AXStaticText			http			1					299.0	372.5	21.0	13.0	
-7	AXStaticText			Server			1					487.0	363.5	33.0	13.0	
-7	AXStaticText			The router has recorded no calls to it over the window below.			1					555.0	363.5	215.0	13.0	
-7	AXButton				Inspect		1					799.5	358.0	63.5	24.0	
-7	AXButton				Remove…		1					865.0	358.0	78.0	24.0	
-5	AXStaticText			These sit in every session's tool list, where a model reads them. Nothing here claims a memory saving: MCP Router never runs the world in which every server is resident, so it has no figure to subtract from. Nothing is removed unless you remove it, and what you remove is not counted.			1					272.0	402.0	658.5	41.0	
-5	AXScrollBar			0			1					930.0	81.0	19.0	459.5	0
-6	AXValueIndicator			0								939.0	85.0	6.0	284.5	
-6	AXButton	AXIncrementArrow										931.0	82.0	0.0	0.0	
-6	AXButton	AXDecrementArrow										931.0	82.0	0.0	0.0	
-6	AXButton	AXIncrementPage										939.0	370.0	6.0	166.5	
-6	AXButton	AXDecrementPage										939.0	85.0	6.0	0.0	
-1	AXToolbar											0.0	30.0	948.0	52.0	0
-2	AXButton				Hide Sidebar	Hide Sidebar	1	0				212.0	30.0	40.0	52.0	0
-1	AXButton	AXCloseButton					1					18.0	48.0	16.0	16.0	0
-1	AXButton	AXFullScreenButton				this button also has an action to zoom the window	1					64.0	48.0	16.0	16.0	0
-2	AXGroup											65.0	49.0	14.0	14.0	0
-3	AXGroup											65.0	49.0	14.0	14.0	0
-1	AXButton	AXMinimizeButton					1					41.0	48.0	16.0	16.0	0
-1	AXStaticText			Cleanup			1					260.0	30.0	684.0	52.0	0
+0	AXWindow	AXStandardWindow	Cleanup								SwiftUI.WindowGroup<SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>>-1-AppWindow-1	180.0	140.0	980.0	620.0	0
+1	AXGroup	AXHostingView										180.0	140.0	980.0	620.0	0
+2	AXSplitGroup										SwiftUI.WindowGroup<SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>>-1-AppWindow-1, SidebarNavigationSplitView	180.0	140.0	980.0	620.0	0
+3	AXGroup	AXHostingView										180.0	140.0	256.0	620.0	0
+4	AXScrollArea											180.0	192.0	256.0	427.0	0
+5	AXOutline				Sidebar		1				sidebar	180.0	192.0	256.0	427.0	0
+6	AXRow	AXOutlineRow						0				180.0	192.0	256.0	19.0	
+7	AXCell						1	0				190.0	192.0	236.0	19.0	1
+8	AXGroup	AXHostingView										194.0	192.0	240.0	19.0	0
+9	AXHeading				Running		1					194.0	194.5	45.0	14.0	
+6	AXRow	AXOutlineRow						0				180.0	211.0	256.0	32.0	
+7	AXCell						1	0				190.0	211.0	236.0	32.0	1
+8	AXButton				Activity		1					197.5	219.0	71.0	16.0	
+6	AXRow	AXOutlineRow						0				180.0	243.0	256.0	32.0	
+7	AXCell						1	0				190.0	243.0	236.0	32.0	1
+8	AXButton				Servers, 1 need attention		1					196.0	251.0	224.0	16.0	
+6	AXRow	AXOutlineRow						0				180.0	275.0	256.0	32.0	
+7	AXCell						1	0				190.0	275.0	236.0	32.0	1
+8	AXButton				Skills		1					199.0	283.0	55.0	16.0	
+6	AXRow	AXOutlineRow						0				180.0	307.0	256.0	32.0	
+7	AXCell						1	0				190.0	307.0	236.0	32.0	1
+8	AXButton				Harnesses		1					197.0	315.0	90.0	16.0	
+6	AXRow	AXOutlineRow						0				180.0	352.0	256.0	19.0	
+7	AXCell						1	0				190.0	352.0	236.0	19.0	1
+8	AXGroup	AXHostingView										194.0	352.0	240.0	19.0	0
+9	AXHeading				Library		1					194.0	354.5	39.0	14.0	
+6	AXRow	AXOutlineRow						0				180.0	371.0	256.0	32.0	
+7	AXCell						1	0				190.0	371.0	236.0	32.0	1
+8	AXButton				Discover		1					198.0	379.0	77.5	16.0	
+6	AXRow	AXOutlineRow						0				180.0	403.0	256.0	32.0	
+7	AXCell						1	0				190.0	403.0	236.0	32.0	1
+8	AXButton				Inbox		1					196.5	411.0	58.5	16.0	
+6	AXRow	AXOutlineRow						0				180.0	435.0	256.0	32.0	
+7	AXCell						1	0				190.0	435.0	236.0	32.0	1
+8	AXButton				Checks		1	1				196.5	443.0	70.5	16.0	
+6	AXRow	AXOutlineRow						1				180.0	467.0	256.0	32.0	
+7	AXCell						1	1				190.0	467.0	236.0	32.0	1
+8	AXButton				Cleanup, 3 never used		1	1				197.5	475.0	222.5	16.0	
+6	AXRow	AXOutlineRow						0				180.0	499.0	256.0	32.0	
+7	AXCell						1	0				190.0	499.0	236.0	32.0	1
+8	AXButton				Insights		1					195.5	507.0	75.0	16.0	
+6	AXColumn							0			ListColumn	190.0	192.0	236.0	427.0	
+4	AXStaticText			Child processes, 1 of 4 declared servers running			1				sidebar	196.0	639.0	224.0	16.0	
+4	AXStaticText			last 8s · peak 1			1				sidebar	196.0	692.5	99.0	13.0	
+4	AXStaticText			Router endpoint, 127.0.0.1:8971			1				sidebar	196.0	737.0	95.5	14.0	
+3	AXSplitter			256			0	0				436.0	192.0	0.5	568.0	0
+3	AXGroup	AXHostingView										180.0	140.0	980.0	620.0	0
+4	AXStaticText			none	mcprouter-key-probe						content	1084.0	732.0	72.0	24.0	1
+4	AXScrollArea										content	436.0	192.0	724.0	568.0	0
+5	AXStaticText			Cleanup			1					452.0	208.0	85.5	26.0	
+5	AXButton				Reset history…		1					1033.5	212.0	110.5	24.0	
+5	AXStaticText			Capabilities MCP Router has never seen used, judged over the calls it has recorded across the past 2mo. It proposes; you decide.			1					452.0	236.0	581.5	29.0	
+5	AXStaticText			The sidebar badge counts the 3 servers nobody has called. This list also includes servers that failed to index or declared no tools.			1					452.0	267.0	650.5	13.0	
+5	AXStaticText			Observed over			1					452.0	288.0	73.5	13.0	
+5	AXStaticText			Observation window: 66d recorded			1					533.5	288.0	226.5	13.0	
+5	AXRadioGroup						1					452.0	309.0	246.0	24.0	0
+6	AXRadioButton	AXSegment		1	All 3		1					452.0	309.0	82.0	24.0	0
+6	AXRadioButton	AXSegment		0	Servers 3		1					534.0	309.0	82.0	24.0	0
+6	AXRadioButton	AXSegment		0	Skills		1					616.0	309.0	82.0	24.0	0
+5	AXImage				search		1				magnifyingglass	715.5	315.0	12.0	12.0	
+5	AXTextField						1					733.0	313.0	181.0	16.0	0
+5	AXStaticText			capability			1					498.0	341.0	49.5	13.0	
+5	AXStaticText			kind			1					686.0	341.0	21.5	13.0	
+5	AXStaticText			why it is here			1					754.0	341.0	66.5	13.0	
+5	AXOpaqueProviderGroup	AXOpaqueProviderList					1					449.0	358.0	698.0	146.0	
+6	AXGroup				fixture-stdio, Server. The router has recorded no calls to it over the window below.		1					449.0	358.0	698.0	48.0	
+7	AXImage				servers		1				square.stack.3d.up	465.0	375.0	14.5	14.5	
+7	AXStaticText			fixture-stdio			1					495.0	366.5	79.5	16.0	
+7	AXStaticText			stdio			1					495.0	384.5	25.5	13.0	
+7	AXStaticText			Server			1					683.0	375.5	33.0	13.0	
+7	AXStaticText			The router has recorded no calls to it over the window below.			1					751.0	375.5	215.0	13.0	
+7	AXButton				Inspect		1					995.5	370.0	63.5	24.0	
+7	AXButton				Remove…		1					1061.0	370.0	78.0	24.0	
+6	AXGroup				fixture-http, Server. The router has recorded no calls to it over the window below.		1					449.0	407.0	698.0	48.0	
+7	AXImage				servers		1				square.stack.3d.up	465.0	424.0	14.5	14.5	
+7	AXStaticText			fixture-http			1					495.0	415.5	74.0	16.0	
+7	AXStaticText			http			1					495.0	433.5	21.0	13.0	
+7	AXStaticText			Server			1					683.0	424.5	33.0	13.0	
+7	AXStaticText			The router has recorded no calls to it over the window below.			1					751.0	424.5	215.0	13.0	
+7	AXButton				Inspect		1					995.5	419.0	63.5	24.0	
+7	AXButton				Remove…		1					1061.0	419.0	78.0	24.0	
+6	AXGroup				fixture-oauth, Server. The router has recorded no calls to it over the window below.		1					449.0	456.0	698.0	48.0	
+7	AXImage				servers		1				square.stack.3d.up	465.0	473.0	14.5	14.5	
+7	AXStaticText			fixture-oauth			1					495.0	464.5	84.0	16.0	
+7	AXStaticText			http			1					495.0	482.5	21.0	13.0	
+7	AXStaticText			Server			1					683.0	473.5	33.0	13.0	
+7	AXStaticText			The router has recorded no calls to it over the window below.			1					751.0	473.5	215.0	13.0	
+7	AXButton				Inspect		1					995.5	468.0	63.5	24.0	
+7	AXButton				Remove…		1					1061.0	468.0	78.0	24.0	
+5	AXStaticText			These sit in every session's tool list, where a model reads them. Nothing here claims a memory saving: MCP Router never runs the world in which every server is resident, so it has no figure to subtract from. Nothing is removed unless you remove it, and what you remove is not counted.			1					452.0	512.0	685.5	41.0	
+5	AXScrollBar			0			1					1142.0	191.0	19.0	562.5	0
+6	AXValueIndicator			0								1151.0	195.0	6.0	419.0	
+6	AXButton	AXIncrementArrow										1143.0	192.0	0.0	0.0	
+6	AXButton	AXDecrementArrow										1143.0	192.0	0.0	0.0	
+6	AXButton	AXIncrementPage										1151.0	614.5	6.0	135.0	
+6	AXButton	AXDecrementPage										1151.0	195.0	6.0	0.0	
+1	AXToolbar											180.0	140.0	980.0	52.0	0
+2	AXButton				Hide Sidebar	Hide Sidebar	1	0				392.0	140.0	40.0	52.0	0
+1	AXButton	AXCloseButton					1					198.0	158.0	16.0	16.0	0
+1	AXButton	AXFullScreenButton				this button also has an action to zoom the window	1					244.0	158.0	16.0	16.0	0
+2	AXGroup											245.0	159.0	14.0	14.0	0
+3	AXGroup											245.0	159.0	14.0	14.0	0
+1	AXButton	AXMinimizeButton					1					221.0	158.0	16.0	16.0	0
+1	AXStaticText			Cleanup			1					440.0	140.0	716.0	52.0	0

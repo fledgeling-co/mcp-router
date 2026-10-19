@@ -1,94 +1,89 @@
-0	AXWindow	AXStandardWindow	Skills								SwiftUI.WindowGroup<SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>>-1-AppWindow-1	0.0	30.0	948.0	517.0	0
-1	AXGroup	AXHostingView										0.0	30.0	948.0	517.0	0
-2	AXSplitGroup										SwiftUI.WindowGroup<SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>>-1-AppWindow-1, SidebarNavigationSplitView	0.0	30.0	948.0	517.0	0
-3	AXGroup	AXHostingView										0.0	30.0	256.0	517.0	0
-4	AXScrollArea											0.0	82.0	256.0	324.0	0
-5	AXOutline				Sidebar		1				sidebar	0.0	82.0	256.0	324.0	0
-6	AXRow	AXOutlineRow						0				0.0	82.0	256.0	19.0	
-7	AXCell						1	0				10.0	82.0	236.0	19.0	1
-8	AXGroup	AXHostingView										14.0	82.0	240.0	19.0	0
-9	AXHeading				Running		1					14.0	84.5	45.0	14.0	
-6	AXRow	AXOutlineRow						0				0.0	101.0	256.0	32.0	
-7	AXCell						1	0				10.0	101.0	236.0	32.0	1
-8	AXButton				Activity		1					17.5	109.0	71.0	16.0	
-6	AXRow	AXOutlineRow						0				0.0	133.0	256.0	32.0	
-7	AXCell						1	0				10.0	133.0	236.0	32.0	1
-8	AXButton				Servers, 1 need attention		1					16.0	141.0	224.0	16.0	
-6	AXRow	AXOutlineRow						1				0.0	165.0	256.0	32.0	
-7	AXCell						1	1				10.0	165.0	236.0	32.0	1
-8	AXButton				Skills		1	1				19.0	173.0	55.0	16.0	
-6	AXRow	AXOutlineRow						0				0.0	197.0	256.0	32.0	
-7	AXCell						1	0				10.0	197.0	236.0	32.0	1
-8	AXButton				Harnesses		1					17.0	205.0	90.0	16.0	
-6	AXRow	AXOutlineRow						0				0.0	242.0	256.0	19.0	
-7	AXCell						1	0				10.0	242.0	236.0	19.0	1
-8	AXGroup	AXHostingView										14.0	242.0	240.0	19.0	0
-9	AXHeading				Library		1					14.0	244.5	39.0	14.0	
-6	AXRow	AXOutlineRow						0				0.0	261.0	256.0	32.0	
-7	AXCell						1	0				10.0	261.0	236.0	32.0	1
-8	AXButton				Discover		1					18.0	269.0	77.5	16.0	
-6	AXRow	AXOutlineRow						0				0.0	293.0	256.0	32.0	
-7	AXCell						1	0				10.0	293.0	236.0	32.0	1
-8	AXButton				Inbox		1					16.5	301.0	58.5	16.0	
-6	AXRow	AXOutlineRow						0				0.0	325.0	256.0	32.0	
-7	AXCell						1	0				10.0	325.0	236.0	32.0	1
-8	AXButton				Checks		1	1				16.5	333.0	70.5	16.0	
-6	AXRow	AXOutlineRow						0				0.0	357.0	256.0	32.0	
-7	AXCell						1	0				10.0	357.0	236.0	32.0	1
-8	AXButton				Cleanup, 3 never used		1					17.5	365.0	222.5	16.0	
-6	AXRow	AXOutlineRow						0				0.0	389.0	256.0	32.0	
-7	AXCell						1	0				10.0	389.0	236.0	32.0	1
-8	AXButton				Insights		1					15.5	397.0	75.0	16.0	
-6	AXColumn							0			ListColumn	10.0	82.0	236.0	349.0	
-5	AXScrollBar			0			1					238.0	81.0	19.0	326.0	0
-6	AXValueIndicator			0								247.0	85.0	6.0	298.0	
-6	AXButton	AXIncrementArrow										239.0	82.0	0.0	0.0	
-6	AXButton	AXDecrementArrow										239.0	82.0	0.0	0.0	
-6	AXButton	AXIncrementPage										247.0	383.5	6.0	19.5	
-6	AXButton	AXDecrementPage										247.0	85.0	6.0	0.0	
-4	AXStaticText			Child processes, 1 of 4 declared servers running			1				sidebar	16.0	426.0	224.0	16.0	
-4	AXStaticText			last 3s · peak 1			1				sidebar	16.0	479.5	99.0	13.0	
-4	AXStaticText			Router endpoint, 127.0.0.1:8971			1				sidebar	16.0	524.0	95.5	14.0	
-3	AXSplitter			256			0	0				256.0	82.0	0.5	465.0	0
-3	AXGroup	AXHostingView										0.0	30.0	948.0	517.0	0
-4	AXStaticText			none	mcprouter-key-probe						content	872.0	519.0	72.0	24.0	1
-4	AXScrollArea										content	256.0	82.0	692.0	465.0	0
-5	AXStaticText			Skills			1					272.0	98.0	55.0	26.0	
-5	AXButton				Add marketplace…		1					797.0	102.0	135.0	24.0	
-5	AXStaticText			6 skills from 4 marketplaces · 1 held for review			1					272.0	126.0	254.0	14.0	
-5	AXGroup						1					280.0	156.0	272.0	90.0	
-6	AXStaticText			Updates available			1					280.0	156.0	97.0	14.0	
-6	AXStaticText			trawl@fledgeling-plugins			1					280.0	174.0	159.0	16.0	
-6	AXStaticText			2.3.0 is offered and 2.2.0 is installed			1					280.0	191.0	183.0	13.0	
-6	AXStaticText			## 2.3.0 - Adds a network call to api.fledgeling.app. 			1					280.0	205.0	272.0	41.0	
-5	AXRadioGroup						1					272.0	262.0	528.0	24.0	0
-6	AXRadioButton	AXSegment		1	All 6		1					272.0	262.0	132.0	24.0	0
-6	AXRadioButton	AXSegment		0	Held 1		1					404.0	262.0	132.0	24.0	0
-6	AXRadioButton	AXSegment		0	Local 2		1					536.0	262.0	132.0	24.0	0
-6	AXRadioButton	AXSegment		0	Needs attention 2		1					668.0	262.0	132.0	24.0	0
-5	AXImage				search		1				magnifyingglass	817.5	268.0	12.0	12.0	
-5	AXTextField						1					835.0	266.0	81.0	16.0	0
-5	AXStaticText			skill			1					318.0	294.0	20.5	13.0	
-5	AXStaticText			installed into			1					518.0	294.0	65.5	13.0	
-5	AXStaticText			plugin version			1					658.0	294.0	71.0	13.0	
-5	AXOpaqueProviderGroup	AXOpaqueProviderList					1					272.0	311.0	660.0	244.0	
-6	AXStaticText			design-craft, diolog-plugins, 1.14.0, In Claude Code, Cursor and opencode			1					272.0	311.0	660.0	48.0	
-6	AXButton				trawl, fledgeling-plugins, 2.2.0 → 2.3.0, In Claude Code, Codex and Cursor		1					272.0	360.0	660.0	48.0	
-6	AXStaticText			changelog-writer, community, 0.4.1, In Claude Code, Owner changed — was github:acme-tools/skills			1					272.0	409.0	660.0	48.0	
-6	AXStaticText			intent-layer, local — not from a marketplace, unversioned, In Claude Code, Codex, Cursor and opencode			1					272.0	458.0	660.0	48.0	
-6	AXStaticText			ai-gateway, vercel · claude-plugins-official, 0.45.1, In Claude Code			1					272.0	507.0	660.0	48.0	
-5	AXStaticText			Run counts and evaluation results are not shown. A skill is loaded into an agent's context by the client and never reaches the router, so the router does not see it run. Checks reports what the router observed for itself, and no model-graded evaluation exists in this product.			1					272.0	612.0	658.0	41.0	
-5	AXScrollBar			0			1					930.0	81.0	19.0	459.5	0
-6	AXValueIndicator			0								939.0	85.0	6.0	284.5	
-6	AXButton	AXIncrementArrow										931.0	82.0	0.0	0.0	
-6	AXButton	AXDecrementArrow										931.0	82.0	0.0	0.0	
-6	AXButton	AXIncrementPage										939.0	370.0	6.0	166.5	
-6	AXButton	AXDecrementPage										939.0	85.0	6.0	0.0	
-1	AXToolbar											0.0	30.0	948.0	52.0	0
-2	AXButton				Hide Sidebar	Hide Sidebar	1	0				212.0	30.0	40.0	52.0	0
-1	AXButton	AXCloseButton					1					18.0	48.0	16.0	16.0	0
-1	AXButton	AXFullScreenButton				this button also has an action to zoom the window	1					64.0	48.0	16.0	16.0	0
-2	AXGroup											65.0	49.0	14.0	14.0	0
-3	AXGroup											65.0	49.0	14.0	14.0	0
-1	AXButton	AXMinimizeButton					1					41.0	48.0	16.0	16.0	0
-1	AXStaticText			Skills			1					260.0	30.0	684.0	52.0	0
+0	AXWindow	AXStandardWindow	Skills								SwiftUI.WindowGroup<SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>>-1-AppWindow-1	180.0	140.0	980.0	620.0	0
+1	AXGroup	AXHostingView										180.0	140.0	980.0	620.0	0
+2	AXSplitGroup										SwiftUI.WindowGroup<SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>>-1-AppWindow-1, SidebarNavigationSplitView	180.0	140.0	980.0	620.0	0
+3	AXGroup	AXHostingView										180.0	140.0	256.0	620.0	0
+4	AXScrollArea											180.0	192.0	256.0	427.0	0
+5	AXOutline				Sidebar		1				sidebar	180.0	192.0	256.0	427.0	0
+6	AXRow	AXOutlineRow						0				180.0	192.0	256.0	19.0	
+7	AXCell						1	0				190.0	192.0	236.0	19.0	1
+8	AXGroup	AXHostingView										194.0	192.0	240.0	19.0	0
+9	AXHeading				Running		1					194.0	194.5	45.0	14.0	
+6	AXRow	AXOutlineRow						0				180.0	211.0	256.0	32.0	
+7	AXCell						1	0				190.0	211.0	236.0	32.0	1
+8	AXButton				Activity		1					197.5	219.0	71.0	16.0	
+6	AXRow	AXOutlineRow						0				180.0	243.0	256.0	32.0	
+7	AXCell						1	0				190.0	243.0	236.0	32.0	1
+8	AXButton				Servers, 1 need attention		1					196.0	251.0	224.0	16.0	
+6	AXRow	AXOutlineRow						1				180.0	275.0	256.0	32.0	
+7	AXCell						1	1				190.0	275.0	236.0	32.0	1
+8	AXButton				Skills		1	1				199.0	283.0	55.0	16.0	
+6	AXRow	AXOutlineRow						0				180.0	307.0	256.0	32.0	
+7	AXCell						1	0				190.0	307.0	236.0	32.0	1
+8	AXButton				Harnesses		1					197.0	315.0	90.0	16.0	
+6	AXRow	AXOutlineRow						0				180.0	352.0	256.0	19.0	
+7	AXCell						1	0				190.0	352.0	236.0	19.0	1
+8	AXGroup	AXHostingView										194.0	352.0	240.0	19.0	0
+9	AXHeading				Library		1					194.0	354.5	39.0	14.0	
+6	AXRow	AXOutlineRow						0				180.0	371.0	256.0	32.0	
+7	AXCell						1	0				190.0	371.0	236.0	32.0	1
+8	AXButton				Discover		1					198.0	379.0	77.5	16.0	
+6	AXRow	AXOutlineRow						0				180.0	403.0	256.0	32.0	
+7	AXCell						1	0				190.0	403.0	236.0	32.0	1
+8	AXButton				Inbox		1					196.5	411.0	58.5	16.0	
+6	AXRow	AXOutlineRow						0				180.0	435.0	256.0	32.0	
+7	AXCell						1	0				190.0	435.0	236.0	32.0	1
+8	AXButton				Checks		1	1				196.5	443.0	70.5	16.0	
+6	AXRow	AXOutlineRow						0				180.0	467.0	256.0	32.0	
+7	AXCell						1	0				190.0	467.0	236.0	32.0	1
+8	AXButton				Cleanup, 3 never used		1					197.5	475.0	222.5	16.0	
+6	AXRow	AXOutlineRow						0				180.0	499.0	256.0	32.0	
+7	AXCell						1	0				190.0	499.0	236.0	32.0	1
+8	AXButton				Insights		1					195.5	507.0	75.0	16.0	
+6	AXColumn							0			ListColumn	190.0	192.0	236.0	427.0	
+4	AXStaticText			Child processes, 1 of 4 declared servers running			1				sidebar	196.0	639.0	224.0	16.0	
+4	AXStaticText			last 3s · peak 1			1				sidebar	196.0	692.5	99.0	13.0	
+4	AXStaticText			Router endpoint, 127.0.0.1:8971			1				sidebar	196.0	737.0	95.5	14.0	
+3	AXSplitter			256			0	0				436.0	192.0	0.5	568.0	0
+3	AXGroup	AXHostingView										180.0	140.0	980.0	620.0	0
+4	AXStaticText			none	mcprouter-key-probe						content	1084.0	732.0	72.0	24.0	1
+4	AXScrollArea										content	436.0	192.0	724.0	568.0	0
+5	AXStaticText			Skills			1					452.0	208.0	55.0	26.0	
+5	AXButton				Add marketplace…		1					1009.0	212.0	135.0	24.0	
+5	AXStaticText			6 skills from 4 marketplaces · 1 held for review			1					452.0	236.0	254.0	14.0	
+5	AXGroup						1					460.0	266.0	272.0	90.0	
+6	AXStaticText			Updates available			1					460.0	266.0	97.0	14.0	
+6	AXStaticText			trawl@fledgeling-plugins			1					460.0	284.0	159.0	16.0	
+6	AXStaticText			2.3.0 is offered and 2.2.0 is installed			1					460.0	301.0	183.0	13.0	
+6	AXStaticText			## 2.3.0 - Adds a network call to api.fledgeling.app. 			1					460.0	315.0	272.0	41.0	
+5	AXRadioGroup						1					452.0	372.0	528.0	24.0	0
+6	AXRadioButton	AXSegment		1	All 6		1					452.0	372.0	132.0	24.0	0
+6	AXRadioButton	AXSegment		0	Held 1		1					584.0	372.0	132.0	24.0	0
+6	AXRadioButton	AXSegment		0	Local 2		1					716.0	372.0	132.0	24.0	0
+6	AXRadioButton	AXSegment		0	Needs attention 2		1					848.0	372.0	132.0	24.0	0
+5	AXImage				search		1				magnifyingglass	997.5	378.0	12.0	12.0	
+5	AXTextField						1					1015.0	376.0	113.0	16.0	0
+5	AXStaticText			skill			1					498.0	404.0	20.5	13.0	
+5	AXStaticText			installed into			1					698.0	404.0	65.5	13.0	
+5	AXStaticText			plugin version			1					838.0	404.0	71.0	13.0	
+5	AXOpaqueProviderGroup	AXOpaqueProviderList					1					452.0	421.0	692.0	293.0	
+6	AXStaticText			design-craft, diolog-plugins, 1.14.0, In Claude Code, Cursor and opencode			1					452.0	421.0	692.0	48.0	
+6	AXButton				trawl, fledgeling-plugins, 2.2.0 → 2.3.0, In Claude Code, Codex and Cursor		1					452.0	470.0	692.0	48.0	
+6	AXStaticText			changelog-writer, community, 0.4.1, In Claude Code, Owner changed — was github:acme-tools/skills			1					452.0	519.0	692.0	48.0	
+6	AXStaticText			intent-layer, local — not from a marketplace, unversioned, In Claude Code, Codex, Cursor and opencode			1					452.0	568.0	692.0	48.0	
+6	AXStaticText			ai-gateway, vercel · claude-plugins-official, 0.45.1, In Claude Code			1					452.0	617.0	692.0	48.0	
+6	AXStaticText			graphify, local — not from a marketplace, unversioned, In Claude Code			1					452.0	666.0	692.0	48.0	
+5	AXStaticText			Run counts and evaluation results are not shown. A skill is loaded into an agent's context by the client and never reaches the router, so the router does not see it run. Checks reports what the router observed for itself, and no model-graded evaluation exists in this product.			1					452.0	722.0	683.5	27.0	
+5	AXScrollBar			0			1					1142.0	191.0	19.0	562.5	0
+6	AXValueIndicator			0								1151.0	195.0	6.0	419.0	
+6	AXButton	AXIncrementArrow										1143.0	192.0	0.0	0.0	
+6	AXButton	AXDecrementArrow										1143.0	192.0	0.0	0.0	
+6	AXButton	AXIncrementPage										1151.0	614.5	6.0	135.0	
+6	AXButton	AXDecrementPage										1151.0	195.0	6.0	0.0	
+1	AXToolbar											180.0	140.0	980.0	52.0	0
+2	AXButton				Hide Sidebar	Hide Sidebar	1	0				392.0	140.0	40.0	52.0	0
+1	AXButton	AXCloseButton					1					198.0	158.0	16.0	16.0	0
+1	AXButton	AXFullScreenButton				this button also has an action to zoom the window	1					244.0	158.0	16.0	16.0	0
+2	AXGroup											245.0	159.0	14.0	14.0	0
+3	AXGroup											245.0	159.0	14.0	14.0	0
+1	AXButton	AXMinimizeButton					1					221.0	158.0	16.0	16.0	0
+1	AXStaticText			Skills			1					440.0	140.0	716.0	52.0	0

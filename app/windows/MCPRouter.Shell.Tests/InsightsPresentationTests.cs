@@ -5,13 +5,11 @@ namespace MCPRouter.Shell.Tests;
 
 public sealed class InsightsPresentationTests
 {
-    [Theory]
-    [InlineData(InsightsPeriod.Last24Hours, "Last 24 hours")]
-    [InlineData(InsightsPeriod.Last7Days, "Last 7 days")]
-    [InlineData(InsightsPeriod.Last30Days, "Last 30 days")]
-    public void PeriodLabel_ReturnsExpectedCopy(InsightsPeriod period, string expected)
+    [Fact]
+    public void WindowLabel_NamesTheWindowTheRouterAnswersOver()
     {
-        Assert.Equal(expected, InsightsPresentation.PeriodLabel(period));
+        // The router answers over one fixed window, so the board names that window and offers no selector.
+        Assert.Equal("Last 24 hours", InsightsPresentation.WindowLabel(24));
     }
 
     [Fact]

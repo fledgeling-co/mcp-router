@@ -46,7 +46,8 @@ below is built but unreachable. This is D1.
 
 The router holds a self-signed certificate (P-256). Its SHA-256 fingerprint is the `fp` field
 that `PairingPayload` already carries (`PairingPayload.swift:28-44`). The QR carries `host`,
-`port`, `fp`, `code` and `exp`. The fields already exist; nothing new goes in the QR.
+`port`, `fp`, `code` and `exp`. The fields already exist; nothing new goes in the QR. The `fp` is the
+lowercase hex SHA-256 of the certificate's DER, rendered as §2.4 fixes.
 
 ### 2.2 Scan path (primary)
 
@@ -56,12 +57,12 @@ phone's camera. So the phone does not need a password exchange.
 1. The phone opens TLS 1.3 to `host:port`. It accepts the server certificate only if its
    SHA-256 equals the QR's `fp`. There is no CA. A mismatch is a new outcome, `identityMismatch`
    (section 5).
-2. The phone sends `pair.request`: `{v, code, phoneName, phoneKey}`. `phoneKey` is the public
-   half of a P-256 key the phone generates and keeps in its Keychain.
+2. The phone sends `pair.request` (table in §2.4). `phoneKey` is the public half of a P-256 key the
+   phone generates and keeps in its Keychain.
 3. The router runs `decide` on `code`. A refusal returns `pair.refused` with the reason. On
-   success it writes a **pending** record for the phone and returns `pair.ok: {v, macName,
-   phoneId}`.
-4. The phone writes its own record (section 4), then sends `pair.ack: {phoneId}`.
+   success it writes a **pending** record for the phone and returns `pair.ok` with the Mac's name and
+   the `phoneId` it issued.
+4. The phone writes its own record (section 4), then sends `pair.ack` with that `phoneId`.
 5. The router moves the record from pending to **confirmed**. Only a confirmed record is listed
    as a paired device.
 
@@ -85,11 +86,58 @@ attempts.
 
 ### 2.4 Wire format
 
-Four-byte big-endian length, then UTF-8 JSON. The `v` field is checked against
-`PairingPayload.supportedVersions` (`PairingPayload.swift:33`), so a version mismatch is a named
-refusal and not a parse error. Frames over 4 KiB are refused. The message set is fixed:
-`pair.request`, `pair.ok`, `pair.refused`, `pair.ack`. Nothing else is accepted on this listener,
-so a request to any other route gets a closed socket.
+Four-byte big-endian length, then UTF-8 JSON. The length counts the body alone. A header over
+4096 bytes is refused before the body is read. The message set is fixed: `pair.request`, `pair.ok`,
+`pair.refused`, `pair.ack`. Nothing else is accepted on this listener, so a request to any other route
+gets a closed socket.
+
+Every frame is a JSON object with two required keys. `type` is the message name. `v` is an integer that
+must be a member of `PairingPayload.supportedVersions` (`{1}` today). A frame whose `v` is not supported
+is refused by name: `pair.refused` with `unsupportedVersion` where the router can answer, and a closed
+socket for `pair.ack`, which is never answered. Keys a side does not use are ignored.
+
+| Frame | Field | Type | Rule |
+|---|---|---|---|
+| `pair.request` | `type` | string | `"pair.request"` |
+| `pair.request` | `v` | integer | `1` |
+| `pair.request` | `code` | string | Eight Crockford characters, uppercase, no separator. Compared exactly. |
+| `pair.request` | `phoneName` | string | Non-empty after trimming, at most 64 characters |
+| `pair.request` | `phoneKey` | string | Standard base64 of the SPKI DER encoding of a P-256 public key: 91 bytes. Not the raw X9.63 point. |
+| `pair.request` | `entry` | string | `"scan"`. The phone always sends this. `"typed"` is refused with `typedEntryUnavailable`, and no code is spent. |
+| `pair.ok` | `type`, `v` | | As above |
+| `pair.ok` | `macName` | string | Non-empty |
+| `pair.ok` | `phoneId` | string | Non-empty. A UUID the router issues for this connection. |
+| `pair.refused` | `type`, `v` | | As above |
+| `pair.refused` | `reason` | string | One of `notRecognised`, `expired`, `alreadyUsed`, `unsupportedVersion`, `badRequest`, `frameTooLarge`, `typedEntryUnavailable`. `declined` is reserved: the router never sends it, because only the Mac's user declines. |
+| `pair.refused` | `found` | integer | Present only with `unsupportedVersion`: the `v` the router was sent |
+| `pair.ack` | `type`, `v` | | As above |
+| `pair.ack` | `phoneId` | string | Must equal the `phoneId` of the `pair.ok` on this connection. Any other value closes the connection with no record. |
+
+A `pair.request` is answered with exactly one of `pair.ok` or `pair.refused`. A refusal closes the
+connection once it has flushed. After `pair.ok` the router accepts only `pair.ack` for that `phoneId`;
+anything else closes the connection with no record.
+
+**Phone decoding.** The codec refuses a frame as `oversized`, `truncated`, `malformed`, `unknownType`
+or `unsupportedVersion`. A `pair.refused` whose `reason` is `badRequest`, `frameTooLarge` or
+`typedEntryUnavailable` means the phone sent a request the contract does not allow. The phone reports
+that as `protocolViolation`, since it has no outcome of its own for those reasons.
+
+**Fingerprint.** The QR's `fp`, and the value the phone computes from the certificate the handshake
+presented, are the lowercase hexadecimal SHA-256 digest of that certificate's DER encoding: 64 characters
+from `0-9a-f`, with no `SHA256:` prefix, no colons and no whitespace. The phone compares the two strings
+exactly, after the handshake and before it writes a frame. Both sides render it. The router does so in
+`certificateFingerprint` (`src/pairing-identity.ts`), and the phone in `PairingFingerprint.render`
+(`app/Sources/MCPRouterKit/Pairing/PairingFingerprint.swift`). Both are checked against the committed
+certificate `planning/pairing/wire-test-cert.pem`, whose fingerprint is recorded in
+`planning/pairing/wire-vectors.json`.
+
+**Vectors.** `planning/pairing/wire-vectors.json` is this section in executable form. Each vector names
+the side that acts on it. `test/pairing-listener.test.ts` runs the router's vectors over TLS, and
+`PairingWireVectorsTests` runs the phone's. A change to a frame changes the vector and both sides' tests
+together, or one side goes red.
+
+The QR envelope is not a frame. It keeps its own discriminator, `t` with `mcp-router-pair`, which
+`PairingPayload` decodes. Its fields are the ones §2.1 names.
 
 ## 3. Discovery
 
@@ -261,3 +309,8 @@ exercised, so it is the gate on any claim that pairing works.
 - **D4 — exact-pinned npm packages** for certificate generation and mDNS, one each, chosen for
   being maintained and dependency-light; the Windows router path needs the same ones.
 - **D5 — open.** The copy goes through design review when B5 builds it.
+
+- **Wire contract — taken by the pairing wire item (2026-10-19).** §2.4 was silent on the envelope key,
+  the `entry` field, the `phoneKey` encoding and the `fp` rendering, so each takes the router's (B2)
+  choice: `type`, `entry: "scan"`, SPKI DER, lowercase hex SHA-256. The phone conformed; the router was
+  unchanged except for refusing an ack whose `v` it does not speak.

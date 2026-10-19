@@ -5,6 +5,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, wri
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { connect, type TLSSocket } from 'node:tls';
+import { fileURLToPath } from 'node:url';
 import { Pairing, PAIRING_LIFETIME_MS } from '../src/pairing.js';
 import { certificateFingerprint, loadOrCreatePairingIdentity } from '../src/pairing-identity.js';
 import { startPairing, PAIRING_FRAME_MAX } from '../src/pairing-listener.js';
@@ -169,7 +170,7 @@ describe('pairing listener, the happy path', () => {
       );
       assert.deepEqual(readPairedPhones(h.dir), [], 'nothing is recorded before the ack');
 
-      link.write(frame({ type: 'pair.ack', phoneId }));
+      link.write(frame({ type: 'pair.ack', v: 1, phoneId }));
       assert.equal(await nextFrame(link), undefined, 'the router closes the connection once the record is written');
 
       const phones = readPairedPhones(h.dir);
@@ -193,7 +194,7 @@ describe('pairing listener, the happy path', () => {
         const link = await pinned(h.port, h.fp);
         link.write(frame(request(code, { phoneName: name })));
         const ok = await nextFrame(link);
-        link.write(frame({ type: 'pair.ack', phoneId: ok?.phoneId }));
+        link.write(frame({ type: 'pair.ack', v: 1, phoneId: ok?.phoneId }));
         await nextFrame(link);
       }
       assert.deepEqual(
@@ -486,4 +487,100 @@ describe('pairing listener configuration', () => {
     assert.throws(() => configWith({ enabled: true, port: 70000 }), /pairing\.port/);
     assert.throws(() => configWith({ enabled: 'yes' }), /pairing\.enabled/);
   });
+});
+
+/*
+ * The shared wire vectors (planning/pairing/wire-vectors.json, plan §2.4). The phone reads the same file
+ * in app/Tests/MCPRouterKitTests/PairingWireVectorsTests.swift. Here each frame the router receives is
+ * written as the vector gives it, and the router's answer is checked against `expect.router`.
+ */
+interface WireVector {
+  name: string;
+  direction: 'toRouter' | 'toPhone';
+  valid: boolean;
+  after?: string;
+  body?: Record<string, unknown>;
+  rawBody?: string;
+  declaredLength?: number;
+  trailing?: string;
+  expect: {
+    router?: { reply: 'pair.ok' | 'pair.refused' | 'closed'; reason?: string; found?: number; recorded?: boolean };
+    phone?: Record<string, unknown>;
+  };
+}
+
+interface WireVectors {
+  placeholders: Record<string, string>;
+  fingerprint: { certificate: string; sha256: string };
+  frames: WireVector[];
+}
+
+const fromRepo = (path: string) => fileURLToPath(new URL(`../../${path}`, import.meta.url));
+const VECTORS = JSON.parse(readFileSync(fromRepo('planning/pairing/wire-vectors.json'), 'utf8')) as WireVectors;
+
+function vectorNamed(name: string): WireVector {
+  const found = VECTORS.frames.find((f) => f.name === name);
+  if (!found) throw new Error(`no wire vector named ${name}`);
+  return found;
+}
+
+/** The bytes a vector puts on the wire. `{{key}}` is replaced by `subs[key]`; a missing key is a test bug. */
+function wireBytes(vector: WireVector, subs: Record<string, string>): Buffer {
+  const text =
+    vector.rawBody ??
+    JSON.stringify(vector.body).replace(/\{\{(\w+)\}\}/g, (_, key: string) => {
+      if (!(key in subs)) throw new Error(`${vector.name} has no value for {{${key}}}`);
+      return subs[key];
+    });
+  const payload = Buffer.from(text, 'utf8');
+  const head = Buffer.alloc(4);
+  head.writeUInt32BE(vector.declaredLength ?? payload.length);
+  return Buffer.concat([head, payload, Buffer.from(vector.trailing ?? '', 'utf8')]);
+}
+
+describe('pairing identity, the committed certificate', () => {
+  test('renders the fingerprint the shared vectors carry, so both sides pin the same value', () => {
+    const pem = readFileSync(fromRepo(VECTORS.fingerprint.certificate), 'utf8');
+    assert.equal(certificateFingerprint(pem), VECTORS.fingerprint.sha256);
+  });
+});
+
+describe('pairing wire vectors, as the router receives them', () => {
+  for (const vector of VECTORS.frames.filter((f) => f.direction === 'toRouter' && f.expect.router)) {
+    test(`${vector.name} (${vector.valid ? 'valid' : 'invalid'})`, async () => {
+      const h = await harness();
+      const subs: Record<string, string> = { code: h.pairing.issue().code };
+      const socket = await pinned(h.port, h.fp);
+      try {
+        if (vector.after) {
+          socket.write(wireBytes(vectorNamed(vector.after), subs));
+          const ok = await nextFrame(socket);
+          assert.equal(ok?.type, 'pair.ok', `${vector.after} is accepted before ${vector.name} is sent`);
+          subs.phoneId = String(ok?.phoneId);
+        }
+        socket.write(wireBytes(vector, subs));
+        const reply = await nextFrame(socket);
+
+        const expected = vector.expect.router;
+        if (!expected) throw new Error(`${vector.name} has no router expectation`);
+        if (expected.reply === 'closed') {
+          assert.equal(reply, undefined, 'the router answers nothing and closes');
+        } else {
+          assert.equal(reply?.type, expected.reply);
+          if (expected.reason !== undefined) assert.equal(reply?.reason, expected.reason);
+          if (expected.found !== undefined) assert.equal(reply?.found, expected.found);
+          // The router's answer has exactly the keys the valid vector for that answer has, so the two cannot drift.
+          const twinName = reply?.type === 'pair.ok' ? 'pair.ok' : `pair.refused.${String(reply?.reason)}`;
+          const twin = VECTORS.frames.find((f) => f.name === twinName);
+          if (twin?.body && reply) assert.deepEqual(Object.keys(reply).sort(), Object.keys(twin.body).sort());
+        }
+        if (expected.recorded !== undefined) {
+          assert.equal(readPairedPhones(h.dir).length > 0, expected.recorded, 'a confirmed record exists only after the ack');
+        }
+      } finally {
+        socket.destroy();
+        await h.close();
+      }
+    });
+  }
 });

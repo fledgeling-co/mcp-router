@@ -13,7 +13,9 @@ const PLANTED = {
   argEquals: 'argtok-aaaa1111bbbb',
   argNext: 'sk-live-argkey-2222',
   argUrlPassword: 'pg-pass-cafe0123',
+  argObject: 'obj-token-value-5150',
   queryValue: 'qk-secret-4444ffff',
+  bareQuery: 'bare-query-token-6161',
   bearerArg: 'bearer-tok-55556666',
   sharedAcrossServers: 'shared-literal-8888aaaa',
   controlToken: 'ctl_planted_control_token_3333',
@@ -30,6 +32,7 @@ const SERVERS: Record<string, RawServer> = {
       `postgres://dbuser:${PLANTED.argUrlPassword}@db.internal:5432/app`,
       `--header=Authorization: Bearer ${PLANTED.bearerArg}`,
       `--note=${PLANTED.sharedAcrossServers}`,
+      { token: PLANTED.argObject } as unknown as string,
     ],
     env: {
       API_KEY: PLANTED.envLong,
@@ -92,11 +95,35 @@ test('a header value becomes a placeholder naming its header, and the header nam
   });
 });
 
-test('a URL keeps its scheme, host and path, and each removed secret is named in place', () => {
+test('a URL keeps its scheme and host, and every part that can carry a credential is named in place', () => {
   const doc = buildExport(SERVERS, PLANTED.controlToken);
-  assert.equal(doc.mcpServers.beta.url, 'https://beta.example.com/mcp?api_key=<redacted:url>');
-  assert.equal(doc.mcpServers.delta.url, 'https://user:<redacted:url>@delta.example.com/mcp');
-  assert.equal(doc.mcpServers.gamma.url, 'https://<redacted:url>@github.com/acme/repo.git');
+  assert.equal(
+    doc.mcpServers.beta.url,
+    'https://beta.example.com<redacted:url.path>?api_key=<redacted:url.query.api_key>',
+  );
+  assert.equal(doc.mcpServers.delta.url, 'https://<redacted:url.userinfo>@delta.example.com<redacted:url.path>');
+  assert.equal(doc.mcpServers.gamma.url, 'https://<redacted:url.userinfo>@github.com<redacted:url.path>');
+});
+
+test('a bare query token is replaced whole, because its name is the secret', () => {
+  const doc = buildExport(
+    { x: { url: `https://x.example.com/mcp?${PLANTED.bareQuery}&team=platform`, headers: {} } },
+    PLANTED.controlToken,
+  );
+  assert.equal(
+    doc.mcpServers.x.url,
+    'https://x.example.com<redacted:url.path>?<redacted:url.query.0>&team=<redacted:url.query.team>',
+  );
+  assert.ok(!JSON.stringify(doc).includes(PLANTED.bareQuery));
+});
+
+test('a kept field whose value has an unexpected shape is replaced, not copied', () => {
+  const doc = buildExport(
+    { x: { command: 'node', args: [], env: {}, cwd: { token: PLANTED.envLong } } as unknown as RawServer },
+    PLANTED.controlToken,
+  );
+  assert.equal(doc.mcpServers.x.cwd, '<redacted:cwd>');
+  assert.ok(!JSON.stringify(doc).includes(PLANTED.envLong));
 });
 
 test('argv keeps its shape, and each removed value is named by its argument index', () => {
@@ -109,6 +136,7 @@ test('argv keeps its shape, and each removed value is named by its argument inde
     'postgres://dbuser:<redacted:args.4>@db.internal:5432/app',
     '--header=Authorization: <redacted:args.5>',
     '--note=<redacted:args.6>',
+    '<redacted:args.7>',
   ]);
 });
 

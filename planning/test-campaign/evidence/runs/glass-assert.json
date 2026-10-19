@@ -12,6 +12,8 @@
   "CASE-0016: window carries: Read from the router, not set here",
   "CASE-0016: window carries: no endpoint that rewrites the router's own configuration",
   "CASE-0016: window carries: Forget the stored token",
+  "CASE-0170: the Analyse now control is drawn disabled",
+  "CASE-0176: the Analyse now control is drawn disabled",
   "CASE-0101: window carries: Settings",
   "CASE-0101: shell chrome present in all 11 window dumps",
   "CASE-0101: menu bar binds \u23184 to Discover",
@@ -22,7 +24,9 @@
   "CASE-0111: window title is Settings",
   "CASE-0111: window carries: Read from the router, not set here",
   "CASE-0111: window carries: no endpoint that rewrites the router's own configuration",
-  "CASE-0111: window carries: Forget the stored token"
+  "CASE-0111: window carries: Forget the stored token",
+  "CASE-0171: the Analyse now control is drawn disabled",
+  "CASE-0176: SURF-026/action-tracks-state: each reading draws the action its state calls for ({'SURF-026.window.txt': ('Analyse now', '1'), 'SURF-026.empty.window.txt': ('Watch the live log instead', '1'), 'SURF-026.failure.window.txt': ('Start the router', '1')})"
  ],
  "cases": {
   "CASE-0001": {
@@ -492,10 +496,10 @@
     },
     {
      "label": "the Analyse now control is drawn disabled",
-     "pass": true
+     "pass": false
     }
    ],
-   "pass": true
+   "pass": false
   },
   "CASE-0176": {
    "checks": [
@@ -565,7 +569,7 @@
     },
     {
      "label": "the Analyse now control is drawn disabled",
-     "pass": true
+     "pass": false
     },
     {
      "label": "SURF-026/action-tracks-state: SURF-026.window.txt is an AXWindow tree",
@@ -584,8 +588,8 @@
      "pass": true
     },
     {
-     "label": "SURF-026/action-tracks-state: each reading draws the action its state calls for ({'SURF-026.window.txt': ('Analyse now', '0'), 'SURF-026.empty.window.txt': ('Watch the live log instead', '1'), 'SURF-026.failure.window.txt': ('Start the router', '1')})",
-     "pass": true
+     "label": "SURF-026/action-tracks-state: each reading draws the action its state calls for ({'SURF-026.window.txt': ('Analyse now', '1'), 'SURF-026.empty.window.txt': ('Watch the live log instead', '1'), 'SURF-026.failure.window.txt': ('Start the router', '1')})",
+     "pass": false
     },
     {
      "label": "SURF-026/action-tracks-state: the 3 actions are pairwise distinct (['Analyse now', 'Watch the live log instead', 'Start the router'])",
@@ -596,7 +600,7 @@
      "pass": true
     }
    ],
-   "pass": true
+   "pass": false
   },
   "CASE-0101": {
    "checks": [
@@ -1184,7 +1188,7 @@
     },
     {
      "label": "the Analyse now control is drawn disabled",
-     "pass": true
+     "pass": false
     },
     {
      "label": "capture exists on disk",
@@ -1207,7 +1211,7 @@
      "pass": true
     }
    ],
-   "pass": true
+   "pass": false
   },
   "CASE-0138": {
    "checks": [
@@ -1941,64 +1945,64 @@
   "CASE-0101": {
    "path": "SURF-001.shell.png",
    "exists": true,
-   "bytes": 107363,
-   "sha": "5531328c00628d62",
+   "bytes": 101931,
+   "sha": "e4d2c6d615f7ad96",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0102": {
    "path": "SURF-002.build.png",
    "exists": true,
-   "bytes": 482756,
-   "sha": "396f7a823d19d3df",
+   "bytes": 496156,
+   "sha": "17db29f7caa4e285",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0103": {
    "path": "SURF-003.build.png",
    "exists": true,
-   "bytes": 510431,
-   "sha": "c1c7fb459167edfd",
+   "bytes": 489561,
+   "sha": "dcbfad222d859630",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0104": {
    "path": "SURF-004.build.png",
    "exists": true,
-   "bytes": 490780,
-   "sha": "d5e4d4fec406a9e3",
+   "bytes": 510174,
+   "sha": "c7e964c7a3cc8ef5",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0105": {
    "path": "SURF-005.build.png",
    "exists": true,
-   "bytes": 469690,
-   "sha": "c730d766467f7373",
+   "bytes": 488383,
+   "sha": "abc12748419156f1",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0106": {
    "path": "SURF-006.build.png",
    "exists": true,
-   "bytes": 546945,
-   "sha": "5aa88f0cf5d03704",
+   "bytes": 565923,
+   "sha": "44c4aa44f2d39ec0",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0107": {
    "path": "SURF-007.build.png",
    "exists": true,
-   "bytes": 486763,
-   "sha": "94df3c584c6b0a5f",
+   "bytes": 505734,
+   "sha": "70dcd8b35e0d1022",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0108": {
    "path": "SURF-008.build.png",
    "exists": true,
-   "bytes": 385186,
-   "sha": "39d97570c50a7fc5",
+   "bytes": 403988,
+   "sha": "82a482a1fe60ad81",
    "isPNG": true,
    "sharedWith": null
   },
@@ -2013,24 +2017,24 @@
   "CASE-0161": {
    "path": "SURF-025.build.png",
    "exists": true,
-   "bytes": 515422,
-   "sha": "c9edbe374e7444d7",
+   "bytes": 533495,
+   "sha": "9f8b4cf2375c061e",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0171": {
    "path": "SURF-026.build.png",
    "exists": true,
-   "bytes": 476716,
-   "sha": "8adecf368f3ad9e9",
+   "bytes": 489710,
+   "sha": "99204c27475578ba",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0139": {
    "path": "SURF-007.cleanup-skills.png",
    "exists": true,
-   "bytes": 530528,
-   "sha": "57f694c88ddd12a9",
+   "bytes": 546503,
+   "sha": "ffd9b323470b29bd",
    "isPNG": true,
    "sharedWith": null
   },
@@ -2045,40 +2049,40 @@
   "CASE-0143": {
    "path": "SURF-010.build.png",
    "exists": true,
-   "bytes": 440316,
-   "sha": "780a70277d35d286",
+   "bytes": 420866,
+   "sha": "c766b85b55e6e09c",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0163": {
    "path": "SURF-025.empty.png",
    "exists": true,
-   "bytes": 271204,
-   "sha": "50939d373cbf6912",
+   "bytes": 279109,
+   "sha": "83ceb48701b7eeb5",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0165": {
    "path": "SURF-025.failure.png",
    "exists": true,
-   "bytes": 267477,
-   "sha": "7fabf84e7062ebe3",
+   "bytes": 279371,
+   "sha": "df6d320aecd07024",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0173": {
    "path": "SURF-026.empty.png",
    "exists": true,
-   "bytes": 272435,
-   "sha": "c60c0a62ec46e0c7",
+   "bytes": 330940,
+   "sha": "e2747e4496985dd3",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0175": {
    "path": "SURF-026.failure.png",
    "exists": true,
-   "bytes": 267564,
-   "sha": "ad1f088b9ac4941f",
+   "bytes": 273269,
+   "sha": "a0cad49bf0189b58",
    "isPNG": true,
    "sharedWith": null
   }
@@ -2215,7 +2219,7 @@
     "SURF-026.window.txt": [
      [
       "Analyse now",
-      "0"
+      "1"
      ]
     ],
     "SURF-026.empty.window.txt": [

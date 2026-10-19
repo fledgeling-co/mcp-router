@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MCPRouter.Shell.Model.Insights;
+using MCPRouter.Shell.Model.Registry;
 using MCPRouter.Shell.Model.Servers;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -159,7 +160,7 @@ public sealed partial class InsightsBoard : UserControl
         }
     }
 
-    private UIElement CreateTile(InsightsFigure figure)
+    private Border CreateTile(InsightsFigure figure)
     {
         var stack = new StackPanel { Spacing = 4 };
         stack.Children.Add(Line(figure.Value, "TitleTextBlockStyle", fontWeight: Microsoft.UI.Text.FontWeights.Bold));

@@ -119,6 +119,12 @@ export interface UpstreamHandle {
   calls: number;
 }
 
+/** How long each declared upstream has been alive, and how long the pool has existed: the denominator. */
+export interface DutyCycleReading {
+  uptimeMilliseconds: number;
+  servers: Array<{ name: string; aliveMilliseconds: number }>;
+}
+
 interface PoolEntry {
   handle?: UpstreamHandle;
   /** Single-flight: concurrent callers await the same connect rather than racing two. */
@@ -203,6 +209,10 @@ export class UpstreamPool {
   private entries = new Map<string, PoolEntry>();
   private shuttingDown = false;
   private pendingAuth = new Map<string, PendingAuth>();
+  /** Alive time of every child incarnation that has closed, per upstream, in milliseconds. */
+  private closedAliveMs = new Map<string, number>();
+  /** When this pool was built: the denominator the duty cycle is taken over. */
+  private readonly startedAtMs = Date.now();
 
   constructor(
     private upstreams: Map<string, UpstreamConfig>,
@@ -434,6 +444,7 @@ export class UpstreamPool {
       log.warn(`upstream "${u.name}" closed on its own; evicting so the next call reopens it`);
       if (e.reapTimer) clearTimeout(e.reapTimer);
       e.reapTimer = undefined;
+      this.recordAlive(u.name, e.handle.startedAt);
       e.handle = undefined;
       e.inFlight = 0;
     };
@@ -549,14 +560,36 @@ export class UpstreamPool {
    * relabelled RSS. The mechanism and the numbers behind choosing it are in `platform.ts`.
    */
   async residentMb(): Promise<Record<string, number>> {
+    const pids = this.childPids();
+    if (!pids.length) return {};
+    const kbByPid = await residentKb(pids.map(([, p]) => p));
+    return Object.fromEntries(pids.map(([name, pid]) => [name, Math.round((kbByPid.get(pid) ?? 0) / 1024)]));
+  }
+
+  /**
+   * The reading `residentMb` takes, one entry per child whose figure the OS gave. A child with no figure is
+   * omitted rather than reported as zero, because a zero is a measurement and this is an absence.
+   */
+  async residentReadings(): Promise<Array<{ server: string; megabytes: number }>> {
+    const pids = this.childPids();
+    if (!pids.length) return [];
+    const kbByPid = await residentKb(pids.map(([, p]) => p));
+    const out: Array<{ server: string; megabytes: number }> = [];
+    for (const [server, pid] of pids) {
+      const kb = kbByPid.get(pid);
+      if (kb !== undefined) out.push({ server, megabytes: Math.round(kb / 1024) });
+    }
+    return out;
+  }
+
+  /** Each live child that has a process, with its pid. An HTTP upstream has none and is not listed. */
+  private childPids(): Array<[string, number]> {
     const pids: Array<[string, number]> = [];
     for (const [name, entry] of this.entries) {
       const pid = (entry.handle?.transport as { pid?: number } | undefined)?.pid;
       if (pid) pids.push([name, pid]);
     }
-    if (!pids.length) return {};
-    const kbByPid = await residentKb(pids.map(([, p]) => p));
-    return Object.fromEntries(pids.map(([name, pid]) => [name, Math.round((kbByPid.get(pid) ?? 0) / 1024)]));
+    return pids;
   }
 
   /** What `residentMb` is measuring on this host, for anything that displays the figure. */
@@ -576,6 +609,7 @@ export class UpstreamPool {
     handle.transport.onclose = undefined;
 
     const aliveMs = Date.now() - handle.startedAt;
+    this.recordAlive(serverName, handle.startedAt);
     const kind = isStdio(this.upstreams.get(serverName)!) ? 'child' : 'connection';
     log.info(
       `closing idle ${kind} "${serverName}" after ${handle.calls} call(s), ${Math.round(aliveMs / 1000)}s alive`
@@ -590,6 +624,31 @@ export class UpstreamPool {
     } catch {
       /* best effort */
     }
+  }
+
+  /**
+   * Add one finished incarnation's alive time. Called from both close paths, the reaper and a child that closed
+   * on its own, because counting only deliberate closes would under-report exactly the servers that fall over.
+   */
+  recordAlive(name: string, startedAt: number, now: number = Date.now()): void {
+    const elapsed = now - startedAt;
+    if (elapsed <= 0) return;
+    this.closedAliveMs.set(name, (this.closedAliveMs.get(name) ?? 0) + elapsed);
+  }
+
+  /**
+   * Alive time per upstream since this pool was built, including the incarnation still open. Every declared
+   * upstream is listed, in configuration order, including the ones at zero: a server never opened is a reading,
+   * and dropping it would make the list look shorter rather than show a zero.
+   */
+  dutyCycle(now: number = Date.now()): DutyCycleReading {
+    const servers = [...this.upstreams.keys()].map((name) => {
+      let aliveMilliseconds = this.closedAliveMs.get(name) ?? 0;
+      const open = this.entries.get(name)?.handle;
+      if (open) aliveMilliseconds += Math.max(0, now - open.startedAt);
+      return { name, aliveMilliseconds };
+    });
+    return { uptimeMilliseconds: Math.max(0, now - this.startedAtMs), servers };
   }
 
   /**

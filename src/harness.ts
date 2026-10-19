@@ -61,6 +61,71 @@ const DISPLAY_NAMES: Record<MCPClient, string> = {
   opencode: 'opencode',
 };
 
+/** The name a harness is shown under, as the Harnesses and Insights boards spell it. */
+export function harnessDisplayName(client: MCPClient): string {
+  return DISPLAY_NAMES[client];
+}
+
+/**
+ * What a harness's calls look like to the router when they arrive, and who established it. The router observes
+ * the peer process, not the harness, so turning `claude` into Claude Code is a naming claim. The case carries
+ * its provenance so a zero produced by a wrong name cannot pass for a finding. Ported from ClientProcessName.swift.
+ */
+export type ClientProcessName =
+  | { kind: 'measured'; name: string; probe: string; on: string }
+  | { kind: 'ambiguous'; name: string; reason: string }
+  | { kind: 'unknown' };
+
+/** The process name a harness's calls arrive under, measured where it was measured and marked ambiguous where two harnesses share it. */
+export function clientProcessName(client: MCPClient): ClientProcessName {
+  switch (client) {
+    case 'claudeCode':
+      return {
+        kind: 'measured',
+        name: 'claude',
+        probe: 'file $(command -v claude) — Mach-O 64-bit executable arm64',
+        on: '2026-08-22',
+      };
+    case 'geminiCLI':
+      return {
+        kind: 'measured',
+        name: 'agy',
+        probe: 'file $(command -v agy) — Mach-O 64-bit executable arm64',
+        on: '2026-08-22',
+      };
+    case 'grokCLI':
+      return {
+        kind: 'measured',
+        name: 'grok',
+        probe: 'file $(command -v grok) — Mach-O 64-bit executable arm64',
+        on: '2026-08-22',
+      };
+    // One binary, two harness entries. The calls behind them cannot be told apart, so neither may claim the total.
+    case 'codexCLI':
+    case 'chatGPTCLI':
+      return {
+        kind: 'ambiguous',
+        name: 'codex',
+        reason: 'the Codex and ChatGPT entries are the same binary, so a count cannot be split',
+      };
+    // A bash wrapper that execs a bundled node, so `proc_name` is the executable's own name, which every node MCP process shares.
+    case 'cursor':
+      return {
+        kind: 'ambiguous',
+        name: 'node',
+        reason: 'cursor-agent execs a bundled node, which every node MCP process shares',
+      };
+    case 'opencode':
+      return {
+        kind: 'ambiguous',
+        name: 'node',
+        reason: 'opencode is a node script, which every node MCP process shares',
+      };
+    case 'claudeDesktop':
+      return { kind: 'unknown' };
+  }
+}
+
 /** Every path a harness's config could live at, most current first. Empty when the harness is project-scoped and no project is named. */
 export function candidatePaths(client: MCPClient, home: string, project?: string): string[] {
   switch (client) {

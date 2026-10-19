@@ -44,6 +44,7 @@ app/Tests/MCPRouterKitTests/InboxAnnouncementTests.swift	swift-suite	app/Tests/M
 app/Tests/MCPRouterKitTests/InboxApprovalTests.swift	swift-suite	app/Tests/MCPRouterKitTests/InboxApprovalTests.swift	swift	compiled and run by `swift test`; names argv ["node", …], execution unresolved	make:test
 app/Tests/MCPRouterKitTests/InboxBandTests.swift	swift-suite	app/Tests/MCPRouterKitTests/InboxBandTests.swift	swift	compiled and run by `swift test`; names argv ["node", …], execution unresolved	make:test
 app/Tests/MCPRouterKitTests/InboxEnvelopeTests.swift	swift-suite	app/Tests/MCPRouterKitTests/InboxEnvelopeTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterKitTests/InsightsEnvelopeDecodingTests.swift	swift-suite	app/Tests/MCPRouterKitTests/InsightsEnvelopeDecodingTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/JackPresentationTests.swift	swift-suite	app/Tests/MCPRouterKitTests/JackPresentationTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/LightAppearanceTests.swift	swift-suite	app/Tests/MCPRouterKitTests/LightAppearanceTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/LivePairingServiceTests.swift	swift-suite	app/Tests/MCPRouterKitTests/LivePairingServiceTests.swift	swift	compiled and run by `swift test`	make:test
@@ -90,6 +91,7 @@ app/Tests/MCPRouterKitTests/SignalPathParityTests.swift	swift-suite	app/Tests/MC
 app/Tests/MCPRouterKitTests/SkillModelsTests.swift	swift-suite	app/Tests/MCPRouterKitTests/SkillModelsTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/SkillPresentationStateTests.swift	swift-suite	app/Tests/MCPRouterKitTests/SkillPresentationStateTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/SkillPresentationTests.swift	swift-suite	app/Tests/MCPRouterKitTests/SkillPresentationTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterKitTests/SkillUpdateOffersTests.swift	swift-suite	app/Tests/MCPRouterKitTests/SkillUpdateOffersTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/TrackerRouterFactsTests.swift	swift-suite	app/Tests/MCPRouterKitTests/TrackerRouterFactsTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/TrackerStateMatrixTests.swift	swift-suite	app/Tests/MCPRouterKitTests/TrackerStateMatrixTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/TriageBucketTests.swift	swift-suite	app/Tests/MCPRouterKitTests/TriageBucketTests.swift	swift	compiled and run by `swift test`	make:test

@@ -44,6 +44,7 @@ import {
 import { LiveReload } from './livereload.js';
 import { askSessionsToReload, listSessions } from './sessions.js';
 import { harnessEnvelope, type HarnessInventory } from './harness.js';
+import { INSIGHTS_WINDOW_HOURS, insightsEnvelope } from './insights.js';
 import { log } from './log.js';
 import { wireInstant, type IssuedCode, type Pairing } from './pairing.js';
 import { extensionRoute, isExtensionsPath } from './extension-routes.js';
@@ -455,6 +456,7 @@ export function isControlPath(pathname: string): boolean {
     pathname === '/sessions' ||
     pathname.startsWith('/sessions/') ||
     pathname === '/harnesses' ||
+    pathname === '/insights' ||
     pathname.startsWith('/registry/') ||
     pathname.startsWith('/pairing/') ||
     pathname === '/skills' ||
@@ -962,6 +964,32 @@ export async function handleControl(
     }
     const reports = deps.harnesses.reports([...deps.upstreams.values()], deps.cfg.port);
     json(res, 200, harnessEnvelope(reports, deps.cfg.port, Date.now()));
+    return true;
+  }
+
+  // ---------------------------------------------------------------- insights
+  /*
+   * Read-only, and gated, for the reason /harnesses is. The call log names the process behind every call, and the
+   * hourly counts and duty cycle describe what this machine has been doing. Only the GET is claimed here: the
+   * analyst's writes come with P6, and until then `/insights/analyse` and `/insights/analyst` stay unclaimed.
+   */
+  if (p === '/insights' && req.method === 'GET') {
+    if (!tokenOk(req, token)) {
+      json(res, 401, { error: `unauthorized; the token is in ${TOKEN_PATH}` });
+      return true;
+    }
+    const now = Date.now();
+    json(res, 200, insightsEnvelope({
+      now,
+      usage: deps.usage.insights(now, INSIGHTS_WINDOW_HOURS),
+      children: {
+        alive: deps.pool.status().filter((s) => s.state === 'running').length,
+        declared: deps.upstreams.size,
+      },
+      resident: await deps.pool.residentReadings(),
+      duty: deps.pool.dutyCycle(now),
+      reports: deps.harnesses?.reports([...deps.upstreams.values()], deps.cfg.port),
+    }));
     return true;
   }
 

@@ -303,8 +303,31 @@ if "$AXKIT" key "$PID" 43 cmd >/dev/null; then
 fi
 if [ "$SETTINGS_OPENED" = "1" ]; then
   sleep 0.5
+  # The window restores to whichever pane it last showed, and SURF-011's copy is the Router pane's
+  # (the Router card's help text, glass-assert.py). Select that row in THIS window's own source list,
+  # the way the board loop selects a row, and do not photograph a select that did not take. The title
+  # and the dump are written either way, from what the window is actually showing.
+  SETTINGS_SELECTED=1
+  "$AXKIT" select "$PID" "Router" Settings || SETTINGS_SELECTED=0
+  sleep 0.5
+  "$AXKIT" title "$PID" Settings | tee "$AX/SURF-011.title.txt"
   "$AXKIT" dump "$PID" window Settings > "$AX/SURF-011.window.txt"
-  capture SURF-011.build SURF-011 READBACK "" "" Settings
+  if [ "$SETTINGS_SELECTED" = "1" ]; then
+    capture SURF-011.build SURF-011 READBACK "" "" Settings
+    # The window is the surface, and its copy spans panes: "Forget the stored token" is drawn by the
+    # Security pane, not the Router pane. The Security pane is read as a second dump of the SAME
+    # surface (glass-assert.py's SURF-011 `panes`); it is not photographed and claims no surface.
+    if "$AXKIT" select "$PID" "Security" Settings; then
+      sleep 0.5
+      "$AXKIT" dump "$PID" window Settings > "$AX/SURF-011.security.window.txt"
+    else
+      echo "  select of the Security pane in Settings did not take — its dump is not written."
+      rm -f "$AX/SURF-011.security.window.txt"
+    fi
+  else
+    echo "  select of the Router pane in Settings did not take — SURF-011 NOT PHOTOGRAPHED."
+    echo "  The Settings window is showing another pane. Filing that picture under SURF-011 is DEF-059."
+  fi
   "$AXKIT" close "$PID" Settings >/dev/null || echo "  axkit could not press the Settings window's close button"
   for _ in $(seq 1 20); do
     "$AXKIT" windows "$PID" | awk -F'\t' '$1 == "Settings" { found = 1 } END { exit !found }' || break

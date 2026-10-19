@@ -1,22 +1,22 @@
-scratch home: /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/mcprouter-j5.VBBiHSzhMi
-declared: j5-alpha-20261019T023354Z-43993 j5-beta-20261019T023354Z-43993 j5-gamma-20261019T023354Z-43993
+scratch home: /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/mcprouter-j5.Nt7OvT07Xs
+declared: j5-alpha-20261019T041539Z-14453 j5-beta-20261019T041539Z-14453 j5-gamma-20261019T041539Z-14453
 == state: cold (the router was never started) ==
   router reading (cold): did not answer on http://127.0.0.1:8955
 OK
-  NOT PHOTOGRAPHED cold: the window is 948x516 at (0,30) and its sidebar reports 256x1964 at (0,-695), which is outside it. A laid-out window contains its own sidebar, so this frame is a photograph of a window that never finished laying out rather than a photograph of the board. (read 60 row(s) of the dump, skipped 0 blank line(s))
+  NOT PHOTOGRAPHED cold: the window is 980x620 at (180,140) and its sidebar reports 256x1964 at (180,-533), which is outside it. A laid-out window contains its own sidebar, so this frame is a photograph of a window that never finished laying out rather than a photograph of the board. (read 60 row(s) of the dump, skipped 0 blank line(s))
   observed cold: settled=True routerReachable=False sha=NOT PHOTOGRAPHED title=Servers
 OK
 == state: running (a real router, declaring three servers this run named) ==
 OK
   router reading (running): answered, 1649 bytes
-  painted running: sidebar 256x323 at (0,82) lies inside the 948x516 window; its column (46, 46, 558, 1078) holds 1121 distinct colour(s) at scale 2 (reported, not judged); read 98 row(s) of the dump and skipped 0 blank line(s)
-  observed running: settled=True routerReachable=True sha=7f3fc823f57f2961 title=Servers
+  painted running: sidebar 256x427 at (180,192) lies inside the 980x620 window; its column (46, 46, 558, 1286) holds 1106 distinct colour(s) at scale 2 (reported, not judged); read 92 row(s) of the dump and skipped 0 blank line(s)
+  observed running: settled=True routerReachable=True sha=d44a7b4b62b6de7c title=Servers
 == state: stale (the same app, with the router killed underneath it) ==
   router reading (stale): did not answer on http://127.0.0.1:8955
-  NOT PHOTOGRAPHED stale: the window is 948x516 at (0,30) and its sidebar reports 256x1964 at (0,-712), which is outside it. A laid-out window contains its own sidebar, so this frame is a photograph of a window that never finished laying out rather than a photograph of the board. (read 86 row(s) of the dump, skipped 0 blank line(s))
+  NOT PHOTOGRAPHED stale: the window is 980x620 at (180,140) and its sidebar reports 256x1964 at (180,-550), which is outside it. A laid-out window contains its own sidebar, so this frame is a photograph of a window that never finished laying out rather than a photograph of the board. (read 86 row(s) of the dump, skipped 0 blank line(s))
   observed stale: settled=True routerReachable=False sha=NOT PHOTOGRAPHED title=Servers
 OK
 wrote evidence/forced-state/observations.json — 3 state(s)
 wrote evidence/shots/forced-state/captures.json — 1 capture(s)
-  stamped 62 artifact(s) with build b4db1f7ca098 (bundle 0.1.0 build 1)
+  stamped 63 artifact(s) with build 548983c9288e (bundle 0.1.0 build 1)
 forced-state: three states arranged and read; MCPRouter never frontmost

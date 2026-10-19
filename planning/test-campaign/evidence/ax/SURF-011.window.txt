@@ -1,111 +1,65 @@
-0	AXWindow	AXStandardWindow	Insights								SwiftUI.WindowGroup<SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>>-1-AppWindow-1	0.0	30.0	948.0	517.0	0
-1	AXGroup	AXHostingView										0.0	30.0	948.0	517.0	0
-2	AXSplitGroup										SwiftUI.WindowGroup<SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>>-1-AppWindow-1, SidebarNavigationSplitView	0.0	30.0	948.0	517.0	0
-3	AXGroup	AXHostingView										0.0	30.0	256.0	517.0	0
-4	AXScrollArea											0.0	82.0	256.0	324.0	0
-5	AXOutline				Sidebar		1				sidebar	0.0	82.0	256.0	324.0	0
-6	AXRow	AXOutlineRow						0				0.0	82.0	256.0	19.0	
-7	AXCell						1	0				10.0	82.0	236.0	19.0	1
-8	AXGroup	AXHostingView										14.0	82.0	240.0	19.0	0
-9	AXHeading				Running		1					14.0	84.5	45.0	14.0	
-6	AXRow	AXOutlineRow						0				0.0	101.0	256.0	32.0	
-7	AXCell						1	0				10.0	101.0	236.0	32.0	1
-8	AXButton				Activity		1					17.5	109.0	71.0	16.0	
-6	AXRow	AXOutlineRow						0				0.0	133.0	256.0	32.0	
-7	AXCell						1	0				10.0	133.0	236.0	32.0	1
-8	AXButton				Servers, 1 need attention		1					16.0	141.0	224.0	16.0	
-6	AXRow	AXOutlineRow						0				0.0	165.0	256.0	32.0	
-7	AXCell						1	0				10.0	165.0	236.0	32.0	1
-8	AXButton				Skills		1					19.0	173.0	55.0	16.0	
-6	AXRow	AXOutlineRow						0				0.0	197.0	256.0	32.0	
-7	AXCell						1	0				10.0	197.0	236.0	32.0	1
-8	AXButton				Harnesses		1					17.0	205.0	90.0	16.0	
-6	AXRow	AXOutlineRow						0				0.0	242.0	256.0	19.0	
-7	AXCell						1	0				10.0	242.0	236.0	19.0	1
-8	AXGroup	AXHostingView										14.0	242.0	240.0	19.0	0
-9	AXHeading				Library		1					14.0	244.5	39.0	14.0	
-6	AXRow	AXOutlineRow						0				0.0	261.0	256.0	32.0	
-7	AXCell						1	0				10.0	261.0	236.0	32.0	1
-8	AXButton				Discover		1					18.0	269.0	77.5	16.0	
-6	AXRow	AXOutlineRow						0				0.0	293.0	256.0	32.0	
-7	AXCell						1	0				10.0	293.0	236.0	32.0	1
-8	AXButton				Inbox		1					16.5	301.0	58.5	16.0	
-6	AXRow	AXOutlineRow						0				0.0	325.0	256.0	32.0	
-7	AXCell						1	0				10.0	325.0	236.0	32.0	1
-8	AXButton				Checks		1	1				16.5	333.0	70.5	16.0	
-6	AXRow	AXOutlineRow						0				0.0	357.0	256.0	32.0	
-7	AXCell						1	0				10.0	357.0	236.0	32.0	1
-8	AXButton				Cleanup, 3 never used		1					17.5	365.0	222.5	16.0	
-6	AXRow	AXOutlineRow						1				0.0	389.0	256.0	32.0	
-7	AXCell						1	1				10.0	389.0	236.0	32.0	1
-8	AXButton				Insights		1	1				15.5	397.0	75.0	16.0	
-6	AXColumn							0			ListColumn	10.0	82.0	236.0	349.0	
-5	AXScrollBar			0			1					238.0	81.0	19.0	326.0	0
-6	AXValueIndicator			0								247.0	85.0	6.0	298.0	
-6	AXButton	AXIncrementArrow										239.0	82.0	0.0	0.0	
-6	AXButton	AXDecrementArrow										239.0	82.0	0.0	0.0	
-6	AXButton	AXIncrementPage										247.0	383.5	6.0	19.5	
-6	AXButton	AXDecrementPage										247.0	85.0	6.0	0.0	
-4	AXStaticText			Child processes, 1 of 4 declared servers running			1				sidebar	16.0	426.0	224.0	16.0	
-4	AXStaticText			last 9s · peak 1			1				sidebar	16.0	479.5	99.0	13.0	
-4	AXStaticText			Router endpoint, 127.0.0.1:8971			1				sidebar	16.0	524.0	95.5	14.0	
-3	AXSplitter			256			0	0				256.0	82.0	0.5	465.0	0
-3	AXGroup	AXHostingView										0.0	30.0	948.0	517.0	0
-4	AXStaticText			none	mcprouter-key-probe						content	872.0	519.0	72.0	24.0	1
-4	AXScrollArea										content	256.0	82.0	692.0	465.0	0
-5	AXStaticText			Insights			1					272.0	98.0	82.5	26.0	
-5	AXStaticText			What your agents actually used. Every number here is counted from calls this router served or from processes it opened — none of it is modelled.			1					272.0	126.0	628.5	32.5	
-5	AXStaticText			Child processes running, 2, of 11 declared			1					272.0	174.5	159.0	96.0	
-5	AXStaticText			Resident, all children, 214 MB, measured, not modelled			1					439.0	174.5	159.0	96.0	
-5	AXStaticText			Tool calls, last 24 hours, 853			1					606.0	174.5	159.0	96.0	
-5	AXStaticText			Failed calls, 1.41%, 12 of 853			1					773.0	174.5	159.0	96.0	
-5	AXStaticText			Where the calls came from			1					272.0	286.5	146.0	14.0	
-5	AXStaticText			Claude Code, 604			1					272.0	312.5	660.0	16.0	
-5	AXStaticText			grok, 91			1					272.0	340.5	660.0	16.0	
-5	AXStaticText			Gemini CLI, 0			1					272.0	368.5	660.0	16.0	
-5	AXStaticText			Cursor, no figure — calls arrive as node — cursor-agent execs a bundled node, which every node MCP process shares			1					272.0	396.5	660.0	16.0	
-5	AXStaticText			Codex CLI, no figure — calls arrive as codex — the Codex and ChatGPT entries are the same binary, so a count cannot be split			1					272.0	424.5	660.0	16.0	
-5	AXStaticText			Other callers, 158			1					272.0	452.5	660.0	16.0	
-5	AXStaticText			A row with no bar is one whose calls the router cannot tell apart from another program's. It sees the process on the other end of the connection, not the harness that started it.			1					272.0	476.5	644.5	27.0	
-5	AXStaticText			Calls per hour, last 24 hours			1					272.0	519.5	153.5	14.0	
-5	AXUnknown				Calls per hour over the last 24 hours: 853 in total, peaking at 96 in one hour		1					272.0	541.5	660.0	48.0	
-5	AXStaticText			Duty cycle, per server			1					272.0	605.5	120.5	14.0	
-5	AXStaticText			obscura, 37			1					272.0	631.5	660.0	16.0	
-5	AXStaticText			dossier, 18			1					272.0	659.5	660.0	16.0	
-5	AXStaticText			google-search, 6			1					272.0	687.5	660.0	16.0	
-5	AXStaticText			ref-tools-mcp, 3			1					272.0	715.5	660.0	16.0	
-5	AXStaticText			docker-mcp, 0			1					272.0	743.5	660.0	16.0	
-5	AXStaticText			The share of wall-clock time each child was alive, since the router started. A server a harness starts for itself has no reaper: it is spawned when the session begins and stays alive until the session ends.			1					272.0	767.5	645.0	27.0	
-5	AXStaticText			The analyst			1					272.0	810.5	63.5	14.0	
-5	AXStaticText			Primary			1					272.0	832.5	39.5	13.0	
-5	AXStaticText			Fallback			1					437.0	832.5	42.0	13.0	
-5	AXStaticText			Runs			1					660.0	832.5	25.0	13.0	
-5	AXStaticText			Last run			1					799.0	832.5	41.5	13.0	
-5	AXButton				Analyse now		1					876.0	832.5	56.0	24.0	
-5	AXMenuButton		Claude CLI · haiku				1					272.0	847.5	157.0	24.0	
-5	AXMenuButton		Grok CLI · grok-4.6 medium				1					437.0	847.5	215.0	24.0	
-5	AXMenuButton		Every 6 hours				1					660.0	847.5	131.0	24.0	
-5	AXStaticText			12400 lines · 2 findings			1					799.0	847.5	52.5	49.0	
-5	AXStaticText			Docker MCP			1					272.0	904.5	88.5	19.0	
-5	AXStaticText			You ran docker logs by hand 31 times this week; this server lets the agent read them itself.			1					272.0	925.5	568.5	16.0	
-5	AXStaticText			31 observations · judged by Grok CLI · grok-4.6 medium			1					272.0	943.5	351.0	16.0	
-5	AXStaticText			pgcli			1					272.0	963.5	35.0	19.0	
-5	AXStaticText			Your shell reported pgcli missing 4 times.			1					272.0	984.5	261.5	16.0	
-5	AXStaticText			4 observations · judged by Grok CLI · grok-4.6 medium			1					272.0	1002.5	345.0	16.0	
-5	AXStaticText			grokCLI: no .jsonl file in this directory · cursor: this store is SQLite; the analyst reads JSON Lines only			1					272.0	1026.5	636.5	16.0	
-5	AXStaticText			Nothing runs the analyst on a timer yet, so this is the cadence it would use rather than one it is keeping. Press Analyse now to run it.			1					272.0	1050.5	654.5	32.5	
-5	AXStaticText			Excerpts are read locally and passed to a CLI you are already signed into, so there is no API bill and nothing leaves this Mac. If the primary hits a usage limit the fallback runs and the finding says which model judged it.			1					272.0	1091.0	634.0	49.0	
-5	AXScrollBar			0			1					930.0	81.0	19.0	459.5	0
-6	AXValueIndicator			0								939.0	85.0	6.0	207.0	
-6	AXButton	AXIncrementArrow										931.0	82.0	0.0	0.0	
-6	AXButton	AXDecrementArrow										931.0	82.0	0.0	0.0	
-6	AXButton	AXIncrementPage										939.0	292.5	6.0	244.0	
-6	AXButton	AXDecrementPage										939.0	85.0	6.0	0.0	
-1	AXToolbar											0.0	30.0	948.0	52.0	0
-2	AXButton				Hide Sidebar	Hide Sidebar	1	0				212.0	30.0	40.0	52.0	0
-1	AXButton	AXCloseButton					1					18.0	48.0	16.0	16.0	0
-1	AXButton	AXFullScreenButton				this button also has an action to zoom the window	1					64.0	48.0	16.0	16.0	0
-2	AXGroup											65.0	49.0	14.0	14.0	0
-3	AXGroup											65.0	49.0	14.0	14.0	0
-1	AXButton	AXMinimizeButton					1					41.0	48.0	16.0	16.0	0
-1	AXStaticText			Insights			1					260.0	30.0	684.0	52.0	0
+0	AXWindow	AXStandardWindow	Settings								com_apple_SwiftUI_Settings_window	414.0	313.0	900.0	450.0	1
+1	AXGroup	AXHostingView										414.0	313.0	900.0	450.0	0
+2	AXSplitGroup										com_apple_SwiftUI_Settings_window, SidebarNavigationSplitView	414.0	313.0	900.0	450.0	0
+3	AXGroup	AXHostingView										414.0	313.0	256.0	450.0	0
+4	AXScrollArea											414.0	401.0	256.0	362.0	0
+5	AXOutline				Sidebar		1				settings-source-list	414.0	401.0	256.0	362.0	0
+6	AXRow	AXOutlineRow						1				414.0	401.0	256.0	32.0	
+7	AXCell						1	1				424.0	401.0	236.0	32.0	1
+8	AXButton				Router		1	1				430.0	409.0	66.5	16.0	
+6	AXRow	AXOutlineRow						0				414.0	433.0	256.0	32.0	
+7	AXCell						1	0				424.0	433.0	236.0	32.0	1
+8	AXButton				Harnesses		1					431.5	441.0	89.5	16.0	
+6	AXRow	AXOutlineRow						0				414.0	465.0	256.0	32.0	
+7	AXCell						1	0				424.0	465.0	236.0	32.0	1
+8	AXButton				Session analyst		1					433.5	473.0	119.0	16.0	
+6	AXRow	AXOutlineRow						0				414.0	497.0	256.0	32.0	
+7	AXCell						1	0				424.0	497.0	236.0	32.0	1
+8	AXButton				Updates		1					430.5	505.0	77.0	16.0	
+6	AXRow	AXOutlineRow						0				414.0	529.0	256.0	32.0	
+7	AXCell						1	0				424.0	529.0	236.0	32.0	1
+8	AXButton				Security		1					432.5	537.0	74.5	16.0	
+6	AXRow	AXOutlineRow						0				414.0	561.0	256.0	32.0	
+7	AXCell						1	0				424.0	561.0	236.0	32.0	1
+8	AXButton				Menu bar		1					431.5	569.0	82.0	16.0	
+6	AXRow	AXOutlineRow						0				414.0	593.0	256.0	32.0	
+7	AXCell						1	0				424.0	593.0	236.0	32.0	1
+8	AXButton				Advanced		1					431.0	601.0	86.0	16.0	
+6	AXColumn							0			ListColumn	424.0	401.0	236.0	362.0	
+3	AXSplitter			256			0	0				670.0	401.0	0.5	362.0	0
+3	AXGroup	AXHostingView										414.0	313.0	900.0	450.0	0
+4	AXScrollArea										settings-detail	670.0	401.0	644.0	362.0	0
+5	AXStaticText			Router			1					686.0	417.0	69.0	26.0	
+5	AXStaticText			The endpoint your harnesses point at, and how long a child stays alive after its last call.			1					686.0	447.0	513.5	15.0	
+5	AXGroup				Router		1					686.0	482.0	612.0	234.0	
+6	AXStaticText			Router			1					686.0	482.0	36.5	14.0	
+6	AXStaticText			Endpoint			1					698.0	512.0	56.5	16.0	
+6	AXStaticText			http://127.0.0.1:8971/mcp	http://127.0.0.1:8971/mcp	http://127.0.0.1:8971/mcp	1					1100.5	512.5	185.5	15.0	
+6	AXStaticText			Home			1					698.0	544.0	37.5	16.0	
+6	AXStaticText			~/.claude/mcp-router	~/.claude/mcp-router	~/.claude/mcp-router	1					1137.5	544.5	148.5	15.0	
+6	AXStaticText			Idle reaper			1					698.0	576.0	68.0	16.0	
+6	AXStaticText			300s	300s	300s	1					1256.0	576.5	30.0	15.0	
+6	AXStaticText			Counting since			1					698.0	608.0	94.5	16.0	
+6	AXStaticText			25 Aug, 21:45	25 Aug, 21:45	25 Aug, 21:45	1					1189.5	608.5	96.5	15.0	
+6	AXButton				Copy		1					1249.0	640.0	49.0	24.0	
+6	AXStaticText			Read from the router, not set here. The app reaches the router over one loopback channel and that channel has no endpoint that rewrites the router's own configuration — deliberately, because an API that can rewrite a command line can run anything. Change these in ~/.claude/mcp-router/servers.json and restart the router.			1					686.0	672.0	608.0	44.0	
+5	AXGroup				Warm set		1					686.0	736.0	612.0	123.0	
+6	AXStaticText			Warm set			1					686.0	736.0	52.0	14.0	
+6	AXStaticText			Kept resident			1					698.0	766.0	85.0	16.0	
+6	AXStaticText			None of 4 servers	None of 4 servers	None of 4 servers	1					1159.5	766.5	126.5	15.0	
+6	AXButton				Show in Servers		1					1180.5	798.0	117.5	24.0	
+6	AXStaticText			Every server is started when something first calls it and closed when the reaper reaches it. Keep one warm from its row in Servers when its cold start is the thing you keep waiting on.			1					686.0	830.0	612.0	29.0	
+5	AXScrollBar			0			1					1296.0	400.0	19.0	356.5	0
+6	AXValueIndicator			0								1305.0	404.0	6.0	279.0	
+6	AXButton	AXIncrementArrow										1297.0	401.0	0.0	0.0	
+6	AXButton	AXDecrementArrow										1297.0	401.0	0.0	0.0	
+6	AXButton	AXIncrementPage										1305.0	683.5	6.0	69.0	
+6	AXButton	AXDecrementPage										1305.0	404.0	6.0	0.0	
+1	AXToolbar											414.0	345.0	900.0	56.0	0
+2	AXButton				Hide Sidebar	Hide Sidebar	1	0				523.5	345.0	38.0	56.0	0
+1	AXButton	AXCloseButton					1					422.0	321.0	16.0	16.0	0
+1	AXButton	AXZoomButton					0					468.0	321.0	16.0	16.0	0
+2	AXGroup											469.0	322.0	14.0	14.0	0
+3	AXGroup											469.0	322.0	14.0	14.0	0
+1	AXButton	AXMinimizeButton					0					445.0	321.0	16.0	16.0	0
+1	AXStaticText			Settings			1					962.0	320.0	59.0	16.0	0

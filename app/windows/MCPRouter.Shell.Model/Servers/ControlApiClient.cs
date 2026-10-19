@@ -121,7 +121,8 @@ public static class RouterHome
 /// <summary>
 /// The one boundary between this board and the router.
 ///
-/// <para>Real loopback HTTP: GET is ungated exactly as the router gates it; every mutating call
+/// <para>Real loopback HTTP: GET is ungated exactly as the router gates it, except GET /harnesses,
+/// which the router gates and which therefore carries the token; every mutating call
 /// reads the bearer token from <see cref="RouterHome.TokenPath"/> at call time and sends it as
 /// <c>Authorization: Bearer …</c> with a JSON content type — the pair the router's gate requires,
 /// and the reason a web page cannot forge a write. <b>The token is never logged, never echoed and
@@ -159,8 +160,8 @@ public sealed class ControlApiClient : IDisposable
         }
         catch (IOException)
         {
-            // A missing or unreadable token is not a reason to refuse the call: GET is ungated,
-            // and a write the router cannot authenticate answers 401 on its own terms.
+            // A missing or unreadable token is not a reason to refuse the call: most GETs are ungated,
+            // and a call the router cannot authenticate answers 401 on its own terms.
             return "";
         }
     }
@@ -175,7 +176,9 @@ public sealed class ControlApiClient : IDisposable
 
     public async Task<HarnessesEnvelope> GetHarnessesAsync(CancellationToken cancellation = default)
     {
-        using var response = await SendAsync(HttpMethod.Get, "harnesses", write: false, cancellation);
+        // The router gates this one read behind the control token (src/control.ts), unlike the GETs
+        // above, so it carries the token the way a write does.
+        using var response = await SendAsync(HttpMethod.Get, "harnesses", write: false, cancellation, gated: true);
         return await DecodeAsync<HarnessesEnvelope>(response, cancellation);
     }
 
@@ -224,12 +227,12 @@ public sealed class ControlApiClient : IDisposable
     // ------------------------------------------------------------------ the one send
 
     private async Task<HttpResponseMessage> SendAsync(
-        HttpMethod method, string path, bool write, CancellationToken cancellation, HttpContent? content = null)
+        HttpMethod method, string path, bool write, CancellationToken cancellation, HttpContent? content = null, bool gated = false)
     {
         using var request = new HttpRequestMessage(method, path);
         if (content is not null) request.Content = content;
 
-        if (write)
+        if (write || gated)
         {
             // Read at call time, not at construction: a router that rotates its token between
             // this app starting and the user acting is answered with the token it minted last.

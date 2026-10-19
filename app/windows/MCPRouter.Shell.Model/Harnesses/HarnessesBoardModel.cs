@@ -1,79 +1,110 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using MCPRouter.Shell.Model.Servers;
 
 namespace MCPRouter.Shell.Model.Harnesses;
 
-public sealed class HarnessesBoardModel
+/// <summary>What the Harnesses board is holding at a moment.</summary>
+public enum HarnessesBoardState
 {
-    private readonly List<DetectedHarness> _harnesses = new();
+    /// <summary>No read has finished yet.</summary>
+    Loading,
 
-    public IReadOnlyList<DetectedHarness> Harnesses => _harnesses;
-    public int DoubleRunningCount => _harnesses.Count(h => h.State == HarnessReading.RoutedWithDirectServers);
+    /// <summary>The router answered, and at least one harness is declared on this machine.</summary>
+    Populated,
 
-    public void PopulateSampleData()
+    /// <summary>The router answered, and no harness is declared on this machine. A finding, not a failure.</summary>
+    Empty,
+
+    /// <summary>An earlier read answered and the latest did not. The earlier rows stay, and say so.</summary>
+    Stale,
+
+    /// <summary>The router was never reached: nothing is listening, or the request did not complete.</summary>
+    Unreachable,
+
+    /// <summary>The router answered and refused, or answered with something this build cannot read.</summary>
+    Refused,
+}
+
+/// <summary>Everything the Harnesses board draws, at a moment, as values a test can compare.</summary>
+public sealed record HarnessesBoardSnapshot
+{
+    public required HarnessesBoardState State { get; init; }
+
+    /// <summary>The router's own harness order, which is the order the rows are drawn in.</summary>
+    public IReadOnlyList<HarnessRow> Harnesses { get; init; } = Array.Empty<HarnessRow>();
+
+    /// <summary>When the rows were read. Null when no read has answered.</summary>
+    public string? ReadAt { get; init; }
+
+    /// <summary>The failure of the latest read, when it failed. Carries the wording the board shows.</summary>
+    public ControlApiException? Error { get; init; }
+}
+
+/// <summary>
+/// The Harnesses board's states and row readings, derived in one place so the view cannot reach a
+/// state the model did not decide. Holds no I/O: every value is a function of the last reading that
+/// answered and the failure of the latest read.
+/// </summary>
+public static class HarnessesBoardModel
+{
+    public static HarnessesBoardSnapshot Snapshot(HarnessesEnvelope? lastAnswered, ControlApiException? latestError)
     {
-        _harnesses.Clear();
-
-        _harnesses.Add(new DetectedHarness(
-            Harness: "claude",
-            DisplayName: "Claude Desktop",
-            Path: @"%APPDATA%\Claude\claude_desktop_config.json",
-            Exists: true,
-            State: HarnessReading.RoutedOverHTTP,
-            Route: HarnessTransport.Http,
-            Entries: 1,
-            DuplicateCount: 0,
-            Duplicates: Array.Empty<HarnessDuplicate>(),
-            HttpCapability: "Speaks streamable HTTP natively without a bridge."
-        ));
-
-        _harnesses.Add(new DetectedHarness(
-            Harness: "cursor",
-            DisplayName: "Cursor",
-            Path: @"%USERPROFILE%\.cursor\mcp.json",
-            Exists: true,
-            State: HarnessReading.RoutedWithDirectServers,
-            Route: HarnessTransport.StdioShim,
-            Entries: 4,
-            DuplicateCount: 2,
-            Duplicates: new List<HarnessDuplicate>
+        if (lastAnswered is null)
+        {
+            if (latestError is null)
             {
-                new("postgres", "postgres-mcp", "name"),
-                new("fetch", "fetch", "identity")
-            },
-            HttpCapability: "Routes through stdio bridge.",
-            Bridge: "mcp-remote"
-        ));
+                return new HarnessesBoardSnapshot { State = HarnessesBoardState.Loading };
+            }
 
-        _harnesses.Add(new DetectedHarness(
-            Harness: "antigravity",
-            DisplayName: "Antigravity",
-            Path: @"%USERPROFILE%\.antigravity\mcp.json",
-            Exists: true,
-            State: HarnessReading.RoutedWithDirectServers,
-            Route: HarnessTransport.StdioShim,
-            Entries: 18,
-            DuplicateCount: 10,
-            Duplicates: new List<HarnessDuplicate>
+            return new HarnessesBoardSnapshot
             {
-                new("docker", "docker-mcp", "name")
-            },
-            HttpCapability: "Routes via per-session shim.",
-            Bridge: "shim"
-        ));
+                State = IsUnreached(latestError) ? HarnessesBoardState.Unreachable : HarnessesBoardState.Refused,
+                Error = latestError,
+            };
+        }
 
-        _harnesses.Add(new DetectedHarness(
-            Harness: "vscode",
-            DisplayName: "VS Code / Codex",
-            Path: @"%USERPROFILE%\.vscode\mcp.json",
-            Exists: false,
-            State: HarnessReading.NotRouted,
-            Route: HarnessTransport.None,
-            Entries: 0,
-            DuplicateCount: 0,
-            Duplicates: Array.Empty<HarnessDuplicate>(),
-            HttpCapability: "Not installed or configured."
-        ));
+        if (latestError is not null)
+        {
+            return new HarnessesBoardSnapshot
+            {
+                State = HarnessesBoardState.Stale,
+                Harnesses = lastAnswered.Harnesses,
+                ReadAt = lastAnswered.ReadAt,
+                Error = latestError,
+            };
+        }
+
+        return new HarnessesBoardSnapshot
+        {
+            State = lastAnswered.Harnesses.Count == 0 ? HarnessesBoardState.Empty : HarnessesBoardState.Populated,
+            Harnesses = lastAnswered.Harnesses,
+            ReadAt = lastAnswered.ReadAt,
+        };
     }
+
+    /// <summary>
+    /// The row's own word, beside its name. An unreadable file says so: its wire state is the empty
+    /// report's <c>not-wired</c>, and a row that borrowed "Not routed" would present a file nobody
+    /// could read as a clean absence.
+    /// </summary>
+    public static string RowLabel(HarnessRow harness) =>
+        harness.Unreadable is not null
+            ? "Unreadable"
+            : HarnessPresentation.StateLabel(HarnessPresentation.ReadingOf(harness.State));
+
+    /// <summary>
+    /// Whether the row is a thing a person should look at: it runs servers this router already
+    /// fronts. An unreadable row is not a caution here; it is its own note.
+    /// </summary>
+    public static bool IsCaution(HarnessRow harness) =>
+        harness.Unreadable is null
+        && HarnessPresentation.ReadingOf(harness.State) == HarnessReading.RoutedWithDirectServers;
+
+    /// <summary>
+    /// A failure to reach the router, as opposed to one the router sent back. Both a refused
+    /// connection and a request that did not complete mean the router was not reached at all.
+    /// </summary>
+    private static bool IsUnreached(ControlApiException error) =>
+        error.Kind is ControlApiFailure.RouterNotRunning or ControlApiFailure.Transport;
 }

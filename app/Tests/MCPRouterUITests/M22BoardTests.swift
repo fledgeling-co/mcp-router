@@ -113,7 +113,7 @@
         func destinationsAreWired() {
             #expect(BoardRegistry.hasBoard(.harnesses))
             #expect(BoardRegistry.hasBoard(.insights))
-            #expect(Destination.harnesses.selectionDigit == 4)
+            #expect(Destination.harnesses.selectionDigit == 5)
             #expect(Destination.insights.selectionDigit == 9)
             // Neither carries a badge. A count there would have to mean "how many want a decision",
             // and neither board's readings reduce to that without deciding for the user which of

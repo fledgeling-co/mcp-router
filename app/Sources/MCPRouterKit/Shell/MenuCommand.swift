@@ -143,9 +143,9 @@ public enum MenuCommand: Hashable, Sendable {
     /// never fall out of step with the sidebar.
     ///
     /// **Ordered by accelerator digit rather than by sidebar order since M20.** The mock draws the
-    /// View menu in digit order and the digits are no longer contiguous with the sidebar's order —
-    /// `⌘5` and `⌘9` belong to Harnesses and Insights, which M22 ships. A menu reading 4, 3, 2, 1
-    /// is what sidebar order would produce, and the digit is the only thing this menu is for.
+    /// View menu in digit order, and the digits are not the sidebar's: the sidebar lists Activity
+    /// first and the menu lists Discover, at `⌘1`. A menu in sidebar order would print `⌘4` above
+    /// `⌘1`, and the digit is the only thing this menu is for.
     public static var allCases: [MenuCommand] {
         let destinations = Destination.allCases
             .filter { $0.selectionDigit != nil }

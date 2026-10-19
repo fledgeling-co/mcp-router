@@ -12,9 +12,9 @@ public extension FixtureControlAPIClient {
         return try decode("pairing-code", as: PairingCodeWire.self).issued
     }
 
-    func pairingState() async throws(ControlAPIError) -> IssuedPairingCode? {
+    func pairingState() async throws(ControlAPIError) -> PairingState {
         try guardFailure()
-        return try decode("pairing-state", as: PairingStateWire.self).code?.issued
+        return try decode("pairing-state", as: PairingStateWire.self).state
     }
 
     func revokePairingCode() async throws(ControlAPIError) -> Bool {

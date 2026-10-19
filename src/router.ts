@@ -394,6 +394,12 @@ export async function startRouter(
     usage,
     liveReload,
     pairing,
+    // Read from the listener itself, not from config: a bind that failed leaves nothing here to report.
+    pairingListener: () => ({
+      enabled: pairingListener !== undefined,
+      port: pairingListener?.port ?? null,
+      advertising: pairingListener?.advertising ?? false,
+    }),
     extensions: new ExtensionStore(join(ROUTER_HOME, 'extensions')),
     claudeHome: join(homedir(), '.claude'),
     harnesses: diskHarnessInventory(),

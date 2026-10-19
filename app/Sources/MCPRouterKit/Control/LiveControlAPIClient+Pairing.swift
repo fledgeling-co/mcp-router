@@ -14,8 +14,8 @@ public extension LiveControlAPIClient {
         ).issued
     }
 
-    func pairingState() async throws(ControlAPIError) -> IssuedPairingCode? {
-        try await send(.get, "pairing/state", as: PairingStateWire.self).code?.issued
+    func pairingState() async throws(ControlAPIError) -> PairingState {
+        try await send(.get, "pairing/state", as: PairingStateWire.self).state
     }
 
     func revokePairingCode() async throws(ControlAPIError) -> Bool {

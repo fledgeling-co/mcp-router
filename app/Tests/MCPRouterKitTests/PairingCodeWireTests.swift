@@ -12,7 +12,7 @@ import Testing
 struct PairingCodeWireTests {
     /// The instant `pairing-code.json` was issued at. Every clock in the pairing tests is pinned here,
     /// so the code the fixture carries is inside its window when the sheet reads it.
-    static let captured = Date(timeIntervalSince1970: 1_792_375_158)
+    static let captured = Date(timeIntervalSince1970: 1_792_425_131)
 
     @Test("the captured issue body decodes, with the window the router chose")
     func issueBodyDecodes() async throws {
@@ -26,8 +26,17 @@ struct PairingCodeWireTests {
     func stateBodyNamesTheLiveCode() async throws {
         let client = FixtureControlAPIClient(.populated)
         let issued = try await client.issuePairingCode()
-        let live = try #require(try await client.pairingState())
+        let live = try #require(try await client.pairingState().code)
         #expect(live == issued)
+    }
+
+    /// The sheet decides whether to ask for a code from this, so the captured state has to say the
+    /// router's listener was bound. A state that did not would send the sheet to the pairing-off copy.
+    @Test("the captured state body says the listener is bound, on the port the router took")
+    func stateBodyReportsTheListener() async throws {
+        let state = try await FixtureControlAPIClient(.populated).pairingState()
+        #expect(state.listener.enabled)
+        #expect(state.listener.port != nil)
     }
 
     @Test("the captured revoke body reports that a code was revoked")
@@ -35,10 +44,22 @@ struct PairingCodeWireTests {
         #expect(try await FixtureControlAPIClient(.populated).revokePairingCode() == true)
     }
 
-    @Test("a state body with no live code decodes to nothing rather than to a code")
+    @Test("a state body with no live code decodes to nothing rather than to a code, and says pairing is off")
     func emptyStateDecodes() throws {
-        let decoded = try JSONDecoder().decode(PairingStateWire.self, from: Data(#"{"code":null}"#.utf8))
+        let body = Data(#"{"code":null,"awaitingAck":[],"listener":{"enabled":false,"port":null,"advertising":false}}"#.utf8)
+        let decoded = try JSONDecoder().decode(PairingStateWire.self, from: body)
         #expect(decoded.code == nil)
+        #expect(decoded.listener.enabled == false)
+        #expect(decoded.listener.port == nil)
+    }
+
+    /// The router has always sent `listener` since the route gained it. A body without it is not a
+    /// router the sheet knows how to read, so it is refused rather than read as "pairing off".
+    @Test("a state body that does not say whether the listener is bound is refused, not defaulted")
+    func refusesAStateWithNoListener() {
+        #expect(throws: DecodingError.self) {
+            try JSONDecoder().decode(PairingStateWire.self, from: Data(#"{"code":null}"#.utf8))
+        }
     }
 
     /// A code the Mac cannot type is not a code the router issued, whatever the transport said. The
@@ -76,11 +97,15 @@ struct PairingCodeWireTests {
     func liveClientReachesTheRoutes() async throws {
         let stub = try HTTPStub()
         defer { stub.stop() }
-        let issuedAt = "2026-10-19T01:59:18Z"
-        let expiresAt = "2026-10-19T02:04:18Z"
+        let issuedAt = "2026-10-19T15:52:11Z"
+        let expiresAt = "2026-10-19T15:57:11Z"
         let body = #"{"code":"ABCD2345","issuedAt":"\#(issuedAt)","expiresAt":"\#(expiresAt)"}"#
         stub.on("POST", "/pairing/codes", .json(201, body))
-        stub.on("GET", "/pairing/state", .json(200, #"{"code":\#(body)}"#))
+        stub.on(
+            "GET",
+            "/pairing/state",
+            .json(200, #"{"code":\#(body),"awaitingAck":[],"listener":{"enabled":true,"port":8882,"advertising":true}}"#)
+        )
         stub.on("DELETE", "/pairing/codes", .json(200, #"{"revoked":true}"#))
         let subject = LiveControlAPIClient(
             baseURL: stub.baseURL,
@@ -92,7 +117,7 @@ struct PairingCodeWireTests {
 
         let issued = try await subject.issuePairingCode()
         #expect(issued.issuedAt == Self.captured)
-        #expect(try await subject.pairingState() == issued)
+        #expect(try await subject.pairingState().code == issued)
         #expect(try await subject.revokePairingCode())
 
         let heads = stub.requests

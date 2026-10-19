@@ -20,6 +20,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT="${1:-$REPO_ROOT/app/Sources/MCPRouterKit/Control/Fixtures}"
 PORT="${PORT:-8971}"
 OAUTH_PORT="${OAUTH_PORT:-8972}"
+PAIRING_PORT="${PAIRING_PORT:-8973}"
 HOME_DIR="$(mktemp -d -t mcprouter-fixtures)"
 ROUTER_PID=""
 OAUTH_PID=""
@@ -67,7 +68,8 @@ cat > "$HOME_DIR/servers.json" <<JSON
       "env": { "FIXTURE_TOOLSET_FILE": "$TOOLSET_FILE" }
     },
     "fixture-oauth": { "url": "http://127.0.0.1:$OAUTH_PORT/mcp", "type": "http", "oauth": true }
-  }
+  },
+  "pairing": { "enabled": true, "host": "127.0.0.1", "port": $PAIRING_PORT }
 }
 JSON
 
@@ -212,6 +214,10 @@ save removed.json                grab -X DELETE "${auth[@]}" "http://127.0.0.1:$
 # The Mac's sheet asks for a code, reads the code back, and takes it back on close. Captured in that
 # order: the state names the code the issue minted, and the revoke takes that code back. Nothing
 # earlier in this script reads the pairing state, so the order is the only dependency.
+#
+# The router runs with `pairing.enabled` set above, because POST /pairing/codes refuses while the
+# listener is not bound. The state then records a bound listener, and that is the recording the
+# sheets decode. The listener is on loopback so the capture never answers a phone on the LAN.
 save pairing-code.json           grab -X POST "${auth[@]}" -d '{}' "http://127.0.0.1:$PORT/pairing/codes"
 save pairing-state.json          grab "${auth[@]}" "http://127.0.0.1:$PORT/pairing/state"
 save pairing-revoke.json         grab -X DELETE "${auth[@]}" "http://127.0.0.1:$PORT/pairing/codes"

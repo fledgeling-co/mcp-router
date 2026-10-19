@@ -14,7 +14,7 @@
     @MainActor
     struct PairingRouterCodeTests {
         /// The instant the captured fixture was issued at, so the clock and the router agree.
-        static let now = Date(timeIntervalSince1970: 1_792_375_158)
+        static let now = Date(timeIntervalSince1970: 1_792_425_131)
 
         static func session(
             _ scenario: FixtureInboxService.Scenario,
@@ -66,6 +66,52 @@
             try await Task.sleep(for: .milliseconds(50))
             #expect(recorder.calls.pairingIssue == 0)
             #expect(recorder.calls.pairingRevoke == 0)
+        }
+
+        /// The router is the one that says whether a listener is bound. Off, the sheet names that and asks for
+        /// no code, because a code minted then would name a port nothing answers on.
+        @Test("with the router's listener off the sheet says pairing is off and asks for no code")
+        func listenerOffAsksForNothing() async throws {
+            let recorder = RecordingControlAPIClient(
+                wrapping: FixtureControlAPIClient(.populated),
+                listener: PairingListener(enabled: false, port: nil, advertising: false)
+            )
+            let session = Self.session(.paired, client: recorder)
+            session.open()
+            try await ShellTestSupport.waitUntil { session.phase == .listenerOff }
+            #expect(recorder.calls.pairingIssue == 0)
+
+            session.close()
+            try await Task.sleep(for: .milliseconds(50))
+            #expect(recorder.calls.pairingIssue == 0)
+            #expect(recorder.calls.pairingRevoke == 0, "nothing was minted, so nothing is revoked")
+        }
+
+        /// Closing before the router has answered the state read must not let the answer mint a code the
+        /// sheet no longer owns. The check is the first thing the open does, so this is the window that matters.
+        @Test("closing straight after opening mints no code, even though the state was being read")
+        func closingDuringTheStateCheckMintsNothing() async throws {
+            let recorder = RecordingControlAPIClient(wrapping: FixtureControlAPIClient(.populated))
+            let session = Self.session(.paired, client: recorder)
+            session.open()
+            session.close()
+            try await Task.sleep(for: .milliseconds(50))
+            #expect(recorder.calls.pairingIssue == 0)
+        }
+
+        @Test("a state read that fails shows the sheet's failure and mints no code")
+        func aFailedStateReadMintsNothing() async throws {
+            let recorder = RecordingControlAPIClient(
+                wrapping: FixtureControlAPIClient(.populated),
+                stateFailure: .malformedResponse(detail: "no state")
+            )
+            let session = Self.session(.paired, client: recorder)
+            session.open()
+            try await ShellTestSupport.waitUntil {
+                if case .failed = session.phase { return true }
+                return false
+            }
+            #expect(recorder.calls.pairingIssue == 0)
         }
 
         @Test("a Release build's service reports no endpoint whatever the environment says")

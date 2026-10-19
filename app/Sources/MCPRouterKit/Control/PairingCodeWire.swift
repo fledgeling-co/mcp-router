@@ -59,9 +59,27 @@ struct PairingCodeWire: Codable {
     }
 }
 
-/// The body `GET /pairing/state` answers: the live code, or `null` once there is none to pair with.
+/// The `listener` member of `GET /pairing/state`, as the router writes it. Every key is required and read
+/// by its own type: a router that does not say whether its listener is bound is not one the sheet can read.
+struct PairingListenerWire: Codable {
+    let enabled: Bool
+    let port: Int?
+    let advertising: Bool
+
+    var listener: PairingListener {
+        PairingListener(enabled: enabled, port: port, advertising: advertising)
+    }
+}
+
+/// The body `GET /pairing/state` answers: the live code, or `null` once there is none to pair with, and
+/// whether the router's phone listener is bound.
 struct PairingStateWire: Codable {
     let code: PairingCodeWire?
+    let listener: PairingListenerWire
+
+    var state: PairingState {
+        PairingState(code: code?.issued, listener: listener.listener)
+    }
 }
 
 /// The body `DELETE /pairing/codes` answers: whether a live code was there to revoke.

@@ -272,6 +272,11 @@ public enum InboxCopy {
         listen for one. Nothing is wrong with your phone or your network.
         """
 
+        /// The router is running but is not listening for a phone. Named as the router's state, not the
+        /// build's, because the build can listen and the router is what is off. Matches the Windows copy.
+        public static let listenerOffTitle = "Pairing is turned off on this router"
+        public static let listenerOffDetail = "There is no code to show while it is off. Your servers are unchanged."
+
         public static let preparing = "Preparing a code…"
 
         public static func paired(with name: String) -> String {

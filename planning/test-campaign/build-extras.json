@@ -64,10 +64,15 @@
     },
     {
       "surface": "SURF-011",
-      "control": "analyse now",
-      "disposition": "misattributed",
-      "ref": "planning/features-to-triage/three-captures-name-a-route-they-were-not-pointed-at.md",
-      "reason": "`SURF-011.window.txt` names the window `Insights`. The filed item calls this the serious one of its three — a picture of the Insights board published as Settings — so this surface's build half is the wrong board's, and `Analyse now` is SURF-026's control, already filed there as DEF-065. Nothing about the Settings board is established by this row, and the surface's other figures rest on the same dump."
+      "control": "show in servers",
+      "disposition": "intended",
+      "reason": "The Warm set row's one action, and the pane's only pointer to the per-server switch. The pane counts the set and does not edit it (`warmSetPopulatedHelp`, app/Sources/MCPRouterKit/Shell/SettingsPresentation.swift:154 at `5eefec64`), which matches DESIGN.md's rule that Keep warm lives on each server's own row (`Space` toggles the selected row's Keep warm, DESIGN.md:726). M8 draws this button (design/mocks/html/m8-settings-popover.html:346). The design of record draws `Choose…` in this slot instead (design/mcp-router-console.html:1587) and the build does not, so which of the two the pane follows is open for the owner."
+    },
+    {
+      "surface": "SURF-011",
+      "control": "forget the stored token",
+      "disposition": "intended",
+      "reason": "The Token row's one recovery action. The build keeps the control token in the keychain and falls back to the router's file, and forgetting a token the router has rejected is the fix after a router reset (`tokenStoredHelp`, app/Sources/MCPRouterKit/Shell/SettingsPresentation.swift:223 at `5eefec64`). Its disabled reason is written in the build (`forgetDisabledReason`, SettingsPresentation.swift:221). M8 specifies it (design/mocks/html/m8-settings-popover.html:363, 833). The design of record has no token-rejected state and draws only `Rotate…` for the token (design/mcp-router-console.html:1675), so it is silent on this rather than against it."
     },
     {
       "surface": "SURF-025",

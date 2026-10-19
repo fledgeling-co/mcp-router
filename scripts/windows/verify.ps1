@@ -91,12 +91,20 @@ if (Test-Path (Join-Path $root 'node_modules')) {
     # when a human typed the command - no gate, no target, and not here, on the lane built to be
     # that path. An oracle enrolled in nothing is evidence nobody will re-run.
     if (Test-Path (Join-Path $root 'scripts/e2e-platform.mjs')) {
+        # dist/ is the build the e2e runs against, and it is gitignored, so a fresh checkout has
+        # none. Build it here when it is absent, with the same tsc the typecheck above uses;
+        # --no-install stops npx fetching anything. An existing dist/ is run as it is, not rebuilt.
+        if (-not (Test-Path (Join-Path $root 'dist/index.js'))) {
+            Invoke-Check 'router build (tsc -p tsconfig.json)' {
+                & npx --no-install tsc -p tsconfig.json
+            }
+        }
         if (Test-Path (Join-Path $root 'dist/index.js')) {
             Invoke-Check 'platform e2e (scripts/e2e-platform.mjs)' {
                 & node (Join-Path $root 'scripts/e2e-platform.mjs')
             }
         } else {
-            Skip-Check 'platform e2e' 'dist/ absent - run npx tsc -p tsconfig.json first'
+            Skip-Check 'platform e2e' 'dist/ absent after the router build above'
         }
     }
 } else {
@@ -412,7 +420,9 @@ $gates = @(
     @{ Cmd = 'planning/pin-class-gate.py';                           NoVerdict = @(2) },
     @{ Cmd = 'planning/shipped-brief-gate.py';                       NoVerdict = @(3) },
     @{ Cmd = 'planning/brief-target-gate.py';     Args = @('--quiet') },
-    @{ Cmd = 'planning/carrier-parity-gate.py';                      NoVerdict = @(2) },
+    # carrier-parity-gate.py was retired with the Swift router on 2026-10-19 (owner decision,
+    # plan-retire-swift-router.md G4) and `make lint` stopped running it (Makefile:937). It is
+    # removed here too, rather than left to report NOT-RUN on every run.
     @{ Cmd = 'planning/test-campaign/bin/capture-manifest.py' },
     @{ Cmd = 'planning/test-campaign/bin/raster-claim-gate.py';      NoVerdict = @(4) },
     @{ Cmd = 'planning/test-campaign/bin/forced-state-assert.py'; Args = @('--control') },

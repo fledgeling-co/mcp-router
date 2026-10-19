@@ -14,6 +14,7 @@ import { handleControl, controlToken, isControlPath } from './control.js';
 import { LiveReload } from './livereload.js';
 import { handleAuthServer, isAuthServerPath, instructionsFor } from './oauth.js';
 import { log } from './log.js';
+import { Pairing } from './pairing.js';
 
 const MCP_PATH = '/mcp';
 
@@ -376,7 +377,7 @@ export async function startRouter(
   const resolver = new ClientResolver();
   const token = controlToken();
   const liveReload = new LiveReload();
-  const deps = { cfg, upstreams, pool, manifest, usage, liveReload };
+  const deps = { cfg, upstreams, pool, manifest, usage, liveReload, pairing: new Pairing() };
 
   const http = createServer((req, res) => {
     void (async () => {

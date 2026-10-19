@@ -208,6 +208,23 @@ Worth saying that the reason people reach for this has mostly gone. Removing a s
 
 ---
 
+### Exporting a server list
+
+`mcpr export` writes the server list with every secret value replaced:
+
+```bash
+mcpr export --out servers-shareable.json   # every server, to a file (created 0600)
+mcpr export --only github,linear           # only the named servers, to stdout
+```
+
+`GET /export` on the control API returns the same document. It needs the control token, as the routes that read or change config do.
+
+Each removed value becomes `<redacted:WHERE>`, where WHERE says what it was: `env.API_KEY` for an environment variable, `headers.Authorization` for a header, `url` for a password or query value in a URL, and `args.N` for the Nth argument. Keys, names and structure are kept, so the file has the shape of `servers.json`.
+
+Every environment and header value is replaced, including the ones that are not secret, because the router cannot tell them apart. A field the router does not recognise is dropped rather than copied. An `envFile` keeps its path, and its contents are never read.
+
+**Fill the placeholders in by hand.** Importing an exported file is not built, so nothing reads the placeholders back. Replace each `<redacted:…>` with its real value before the file is used as a server list. A placeholder left in place is sent to the server as literal text.
+
 ## Reaching sessions that are already running
 
 Two mechanisms, and the difference between them is the whole of what this section is for. One

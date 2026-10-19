@@ -25,6 +25,7 @@ import { lockTimeoutMs, WATCHER_TIMEOUT_MS } from './lock.js';
 import { startRouter } from './router.js';
 import { UsageStore } from './usage.js';
 import { controlToken, TOKEN_PATH } from './control.js';
+import { buildExport, parseOnly, readServers } from './export.js';
 import { hasTokens, isAuthFailure } from './auth.js';
 import { cmdWatch } from './watch.js';
 import { askSessionsToReload, sweepSessions, type Reach } from './sessions.js';
@@ -53,6 +54,10 @@ function usage(): void {
   process.stdout.write(`mcp-router — one shared MCP endpoint, upstreams opened on demand
 
   mcp-router import [--from <path>]   Adopt servers from ~/.claude.json (stdio and http)
+  mcp-router export [--out <file>] [--only <name,...>]
+                                      The server list with every secret value replaced
+                                      by <redacted:WHERE>. Fill the placeholders by hand
+                                      before using the file; nothing imports it yet.
   mcp-router index [--force]          Build/refresh the cached tool manifest
   mcp-router serve [--port N] [--idle-ms N] [--verbose]
   mcp-router status [--port N]        Query a running router
@@ -562,11 +567,34 @@ async function cmdSessions(): Promise<void> {
   }
 }
 
+/**
+ * Write the server list with every secret value replaced by a placeholder naming it.
+ *
+ * The token is read only so that a literal equal to it is removed wherever it appears in an
+ * argument; it is never written out. The file is created 0600 although it holds no secret, because
+ * it still records where each one lives on this machine.
+ */
+function cmdExport(): void {
+  if (has('out') && !arg('out')) throw new Error('usage: mcp-router export [--out <file>] [--only <name,...>]');
+  if (has('only') && !arg('only')) throw new Error('usage: mcp-router export [--out <file>] [--only <name,...>]');
+  const doc = buildExport(readServers(), controlToken(), parseOnly(arg('only')));
+  const text = `${JSON.stringify(doc, null, 2)}\n`;
+  const out = arg('out');
+  if (!out) {
+    process.stdout.write(text);
+    return;
+  }
+  writeFileSync(out, text, { mode: 0o600 });
+  process.stdout.write(`wrote ${Object.keys(doc.mcpServers).length} servers to ${out}\n`);
+}
+
 const cmd = process.argv[2] ?? 'serve';
 const run = async (): Promise<void> => {
   switch (cmd) {
     case 'import':
       return cmdImport();
+    case 'export':
+      return cmdExport();
     case 'index':
     case 'refresh':
       return cmdIndex();

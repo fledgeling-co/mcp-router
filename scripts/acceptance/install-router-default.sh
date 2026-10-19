@@ -2,9 +2,10 @@
 #
 # R4-C, first half — which router `docs/install.sh` points the two launchd agents at.
 #
-# The installer's default moved from the TypeScript router to the Swift one. That is the change the
-# owner licensed once parity read 82 of 83, and it is the change that decides what serves their own
-# live Claude Code sessions, so it gets an assertion rather than a reading of the diff.
+# The installer's default is `node`. It was `swift` from R4-C1 (2026-08-20) until the owner retired
+# the Swift router on 2026-10-19 (`planning/plans/plan-retire-swift-router.md`, O1). Which router
+# serves the user's live Claude Code sessions is decided here, so it gets an assertion rather than a
+# reading of the diff.
 #
 # **It extracts the decision out of install.sh and drives it; it never runs the installer.**
 # `parity-install.sh` says why in its own header: running `docs/install.sh` would rewrite the
@@ -43,7 +44,7 @@ require_block() { # variable-name description minimum-lines
   exit 2
 }
 
-SELECTOR="$(extract '/^MCPR_ROUTER="\$\{MCPR_ROUTER:-swift\}"$/,/^esac$/')"
+SELECTOR="$(extract '/^MCPR_ROUTER="\$\{MCPR_ROUTER:-[a-z]+\}"$/,/^esac$/')"
 require_block SELECTOR 'the router selector' 5
 CHOICE="$(extract '/^ROUTER_BINARY=""$/,/^fi$/')"
 require_block CHOICE 'the binary choice' 10
@@ -89,21 +90,27 @@ NODE_ARGS='<string>/usr/bin/node</string> <string>/scratch/repo/dist/index.js</s
 
 out="$(arm '')"
 case "$out" in
-  *"$SWIFT_ARGS"*) ok "the default is the Swift binary" "no MCPR_ROUTER set" ;;
-  *) bad "the default is the Swift binary" "got: $out" ;;
+  *"$NODE_ARGS"*) ok "the default is the TypeScript router" "no MCPR_ROUTER set" ;;
+  *) bad "the default is the TypeScript router" "got: $out" ;;
+esac
+
+out="$(arm 'MCPR_ROUTER=swift')"
+case "$out" in
+  *"$SWIFT_ARGS"*) ok "MCPR_ROUTER=swift selects the Swift binary" "the explicit opt-in" ;;
+  *) bad "MCPR_ROUTER=swift selects the Swift binary" "got: $out" ;;
 esac
 
 out="$(arm 'MCPR_ROUTER=node')"
 case "$out" in
-  *"$NODE_ARGS"*) ok "MCPR_ROUTER=node is the way back" "node dist/index.js serve" ;;
-  *) bad "MCPR_ROUTER=node is the way back" "got: $out" ;;
+  *"$NODE_ARGS"*) ok "MCPR_ROUTER=node is node dist/index.js" "node dist/index.js serve" ;;
+  *) bad "MCPR_ROUTER=node is node dist/index.js" "got: $out" ;;
 esac
 
-# The way back has to be reachable, and the way back is the only thing keeping this reversible.
+# The node arm must not leave the Swift binary half-applied; the choice is one or the other.
 out="$(arm 'MCPR_ROUTER=node')"
 case "$out" in
   *"$FAKE_SWIFT_BIN"*) bad "MCPR_ROUTER=node names no Swift binary" "got: $out" ;;
-  *) ok "MCPR_ROUTER=node names no Swift binary" "the fallback is not half-applied" ;;
+  *) ok "MCPR_ROUTER=node names no Swift binary" "the choice is not half-applied" ;;
 esac
 
 out="$(arm 'MCPR_ROUTER=bogus')"
@@ -112,14 +119,15 @@ case "$out" in
   *) bad "an unrecognised MCPR_ROUTER is refused" "got: $out" ;;
 esac
 
-out="$(arm 'MCPR_ROUTER_BINARY=/bin/echo')"
+# The override only applies to the Swift arm, so these pin MCPR_ROUTER=swift explicitly.
+out="$(arm 'MCPR_ROUTER=swift MCPR_ROUTER_BINARY=/bin/echo')"
 case "$out" in
   *'<string>/bin/echo</string> <string>serve</string>'*)
     ok "MCPR_ROUTER_BINARY overrides the built path" "the install lanes drive this" ;;
   *) bad "MCPR_ROUTER_BINARY overrides the built path" "got: $out" ;;
 esac
 
-out="$(arm 'MCPR_ROUTER_BINARY=/no/such/binary')"
+out="$(arm 'MCPR_ROUTER=swift MCPR_ROUTER_BINARY=/no/such/binary')"
 case "$out" in
   DIED:*) ok "a non-executable MCPR_ROUTER_BINARY is refused" "${out%%$'\n'*}" ;;
   *) bad "a non-executable MCPR_ROUTER_BINARY is refused" "got: $out" ;;
@@ -128,4 +136,4 @@ esac
 echo
 echo "$((pass + fail)) checks — examined=$((pass + fail)) failures=$fail"
 [ "$fail" = 0 ] || exit 1
-echo "the installer's default is Swift, and MCPR_ROUTER=node is one reinstall away."
+echo "the installer's default is the TypeScript router, and MCPR_ROUTER=swift is the one explicit way to the Swift binary."

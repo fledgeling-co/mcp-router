@@ -62,13 +62,13 @@ Start a new Claude Code session afterwards. A session already attached to the ro
 
 Already have a clone? `./docs/install.sh` from inside it works the same way and skips the fetch, so the agents point at your working copy.
 
-**The two launchd agents run the Swift router.** Both routers are built and both stay on disk — the TypeScript one is the reference the differential parity harness compares against, and it is the way back:
+**The two launchd agents run the TypeScript router.** It is the default the installer builds and points them at. The Swift router is still available as an explicit opt-in, and it needs a Swift toolchain on `PATH`:
 
 ```bash
-MCPR_ROUTER=node /bin/bash -c "$(curl -fsSL https://mcp-router.fledgeling.app/install.sh)"
+MCPR_ROUTER=swift /bin/bash -c "$(curl -fsSL https://mcp-router.fledgeling.app/install.sh)"
 ```
 
-That reinstall puts `serve` and `watch` back on `node dist/index.js`. Swift needs a toolchain on `PATH`; Node 20+ is still required either way, because a fallback you cannot build is not a fallback.
+That reinstall puts `serve` and `watch` on the Swift binary. Node 20+ is required either way, because the TypeScript router is always built.
 
 **Note:** the installer is macOS-only because it uses launchd. On Linux, `npm run build` then run `node dist/index.js serve` under systemd; everything else in the router is platform-neutral.
 
@@ -304,10 +304,7 @@ tell them apart.
 
 ### Which router this is in
 
-Both mechanisms are in the **TypeScript** router. The two launchd agents currently run the Swift
-one, so on a stock install `mcpr sessions` reports the registry correctly and then says the router
-answered `404` for `/sessions` — that is the port, not a fault. Porting the notification to the
-Swift router is R4's parity surface, not this feature's.
+Both mechanisms are in the **TypeScript** router, and a stock install runs it, so `mcpr sessions` reports the registry and the notification reaches it. A machine reinstalled with `MCPR_ROUTER=swift` answers `404` for `/sessions`, because the Swift router has no such route. That is the port, not a fault. Porting the notification to the Swift router is R4's parity surface, not this feature's.
 
 ### What neither reaches
 

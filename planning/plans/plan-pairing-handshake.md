@@ -29,13 +29,13 @@ Ten decisions below are recommendations. Four are the owner's (D1 to D4) and one
 - The loopback-only rule governs the Mac app's path to the router: it talks to `127.0.0.1:8879`
   and nothing else. That rule still holds. The pairing listener is a second socket, bound to a
   LAN address, serving only pairing routes, and off by default (`pairing.enabled: false`). The
-  control API stays bound to loopback (`src/config.ts:359` defaults `host` to `127.0.0.1`).
+  control API stays bound to loopback (`host: opts.host ?? raw.host ?? '127.0.0.1'`, `src/config.ts:392` at `a64e4b9f` defaults `host` to `127.0.0.1`).
 - The Mac app learns about pairing through loopback routes it calls on the control API: issue a
   code, revoke it when the sheet closes, and list phones in `pending` and `confirmed`. There is
   no pairing route in `src/control.ts` today. That is build item B1.
 
-**Open conflict, and it blocks the end-to-end claim.** `README.md:65` says "The two launchd
-agents run the Swift router", and `ORCHESTRATOR.md:1382` records that cutover was not performed.
+**Open conflict, and it blocks the end-to-end claim.** `README.md:65` at `6917ebc4` says "The two launchd
+agents run the Swift router", and `Cutover NOT performed and NOT recommended`, `ORCHESTRATOR.md:1382` at `a64e4b9f` records that cutover was not performed.
 The brief says the TypeScript router is the only router that runs. These cannot both be true.
 If the agents still run Swift, a phone reaches a process that has no listener, and every item
 below is built but unreachable. This is D1.
@@ -45,7 +45,7 @@ below is built but unreachable. This is D1.
 ### 2.1 Identity
 
 The router holds a self-signed certificate (P-256). Its SHA-256 fingerprint is the `fp` field
-that `PairingPayload` already carries (`PairingPayload.swift:28-44`). The QR carries `host`,
+that `PairingPayload` already carries (`let fp: String`, `PairingPayload.swift:60` at `a64e4b9f`). The QR carries `host`,
 `port`, `fp`, `code` and `exp`. The fields already exist; nothing new goes in the QR.
 
 ### 2.2 Scan path (primary)
@@ -86,7 +86,7 @@ attempts.
 ### 2.4 Wire format
 
 Four-byte big-endian length, then UTF-8 JSON. The `v` field is checked against
-`PairingPayload.supportedVersions` (`PairingPayload.swift:33`), so a version mismatch is a named
+`PairingPayload.supportedVersions` (`public static let supportedVersions`, `PairingPayload.swift:33` at `a64e4b9f`), so a version mismatch is a named
 refusal and not a parse error. Frames over 4 KiB are refused. The message set is fixed:
 `pair.request`, `pair.ok`, `pair.refused`, `pair.ack`. Nothing else is accepted on this listener,
 so a request to any other route gets a closed socket.
@@ -105,8 +105,8 @@ Node has none built in (D4). The phone needs `NSBonjourServices` for this type (
 | Side | What | Where | Why |
 |---|---|---|---|
 | Phone | P-256 private key | Keychain, `ThisDeviceOnly` | Never leaves the device, never restored to another. Written first. |
-| Phone | `PairedMac` record | Keychain, existing `KeychainPairingStore` (`PairingRecordStore.swift:79`) | Already `ThisDeviceOnly`. Written after `pair.ok` and after the key is stored, so a record never exists without its key. |
-| Router | TLS identity (key and cert) | `ROUTER_HOME`, mode 0600 | Same as `control.token`, which is written 0600 under the same directory (`src/control.ts:47,67`). |
+| Phone | `PairedMac` record | Keychain, existing `KeychainPairingStore` (`public struct KeychainPairingStore`, `PairingRecordStore.swift:79` at `a64e4b9f`) | Already `ThisDeviceOnly`. Written after `pair.ok` and after the key is stored, so a record never exists without its key. |
+| Router | TLS identity (key and cert) | `ROUTER_HOME`, mode 0600 | Same as `control.token`, which is written 0600 under the same directory (`writeFileSync(TOKEN_PATH`, `src/control.ts:69` at `a64e4b9f`). |
 | Router | Paired phones: id, name, `pairedAt`, public key, `pending`/`confirmed` | `ROUTER_HOME`, mode 0600 | The router stores public keys only. A stolen router file pairs nothing. |
 | Mac app | nothing secret | — | Reads the phone list over the loopback control API. |
 
@@ -126,7 +126,7 @@ cannot trigger it early. Proposed copy, to go through design review (D5):
 > MCP Router uses your local network to connect to the Mac you pair with. It connects only to
 > that Mac.
 
-The camera copy at `project.yml:106` is the model: one narrow use, and what does not happen.
+The camera copy at `NSCameraUsageDescription`, `project.yml:106` at `a64e4b9f` is the model: one narrow use, and what does not happen.
 
 **macOS.** The router's first listen can trigger the application firewall dialog. That dialog
 names the binary that listens. Under launchd that binary is `node`, not MCP Router, and the copy
@@ -138,7 +138,7 @@ connects to this Mac over your local network."
 launchd-run `node` at all, and under what name. This must be measured on this machine before the
 Mac copy is final. It is not established here.
 
-**Windows.** `spec-WIN12.md:14` already specifies firewall guidance for "the incoming pairing
+**Windows.** `blocks the incoming pairing port`, `spec-WIN12.md:14` at `a64e4b9f` already specifies firewall guidance for "the incoming pairing
 port", which assumes the desktop listens. That matches section 1. The Windows pairing model
 (`app/windows/MCPRouter.Shell.Model/Pairing/PairingSessionModel.cs`) has no listener and no
 socket code. The same wire contract (section 2.4) should serve it. Out of this plan's build
@@ -148,11 +148,11 @@ items; see B9.
 
 Today the phone's pairing is a fixture in Release:
 
-- `MCPRouterIOSApp.swift:54` passes `FixturePairingService()` with no configuration branch,
+- `pairing: FixturePairingService(),`, `MCPRouterIOSApp.swift:54` at `a64e4b9f` passes `FixturePairingService()` with no configuration branch,
   beside `KeychainPairingStore()` at line 55. A Release phone writes a fixture-paired Mac into
   the Keychain. This is the I5 open finding, confirmed in the file.
-- `PhoneShell.swift:63` and `:183` default to the same fixture.
-- `FixturePairingService.reachability` (`PairingService.swift:141`) answers `.reachable` for
+- `pairing: any PairingService = FixturePairingService()`, `PhoneShell.swift:63` at `a64e4b9f` and `:183` default to the same fixture.
+- `FixturePairingService.reachability` (`public func reachability(of _: PairedMac)`, `PairingService.swift:141` at `a64e4b9f`) answers `.reachable` for
   every scenario except two.
 
 The replacement:
@@ -188,7 +188,7 @@ exchange runs against an in-memory transport:
   configured address, and the control API stays on `127.0.0.1`.
 - A phone record stays pending until `pair.ack`. A tampered fingerprint is refused.
 
-**One loopback end-to-end test, no second device.** `scripts/acceptance/pairing-loopback.sh`:
+**One loopback end-to-end test, no second device.** Create `scripts/acceptance/pairing-loopback.sh`:
 
 1. Start the TypeScript router with pairing enabled on `127.0.0.1` at an ephemeral port. The
    test build sets the bind address to loopback. Production never does.
@@ -213,7 +213,7 @@ Each one merges on its own. Sizes are S, M or L.
 | B2 | M | Router pairing listener: TLS identity, off by default, config key `pairing.enabled`, frames, `pair.request` to pending to `pair.ok`, `pair.ack` to confirmed. | B1, D3, D4 |
 | B3 | S | Mac sheet asks the router for its code, not the fixture. Revoke on close. `ShellPairingFactory` reports no endpoint (`PairingAvailability.noEndpoint`) while pairing is disabled. | B1 |
 | B4 | M | Phone: `LivePairingService`, transport seam, codec, Keychain key, record ordering. Host-tested, not wired. | — |
-| B5 | S | Phone wiring: Release uses the live service, fixture Debug only (`MCPRouterIOSApp.swift:54`). Add `NSLocalNetworkUsageDescription` and `NSBonjourServices` to `project.yml`. Add `identityMismatch` with copy, and extend the coverage test. | B4, D5 |
+| B5 | S | Phone wiring: Release uses the live service, fixture Debug only (`pairing: FixturePairingService(),`, `MCPRouterIOSApp.swift:54` at `a64e4b9f`). Add `NSLocalNetworkUsageDescription` and `NSBonjourServices` to `project.yml`. Add `identityMismatch` with copy, and extend the coverage test. | B4, D5 |
 | B6 | M | `scripts/acceptance/pairing-loopback.sh` (section 7). | B2, B4 |
 | B7 | M | Bonjour advertise and browse, and a reachability probe that rediscovers a moved Mac. | B2, D4 |
 | B8 | L | Typed path via SPAKE2 (RFC 9382) bound to the TLS exporter. Until it lands, typed entry refuses with a named outcome. | B2, D2 |
@@ -224,7 +224,7 @@ exercised, so it is the gate on any claim that pairing works.
 
 ## 9. Decisions
 
-- **D1, owner: is the Swift router retired?** `README.md:65` says the launchd agents run it.
+- **D1, owner: is the Swift router retired?** `The two launchd agents run the Swift router`, `README.md:65` at `6917ebc4` says the launchd agents run it.
   If they do, B6 cannot pass against the process a phone reaches. Blocks any end-to-end claim.
 - **D2, owner: typed entry.** Lean: ship the scan path first, and refuse typed entry until
   SPAKE2 (B8) is vetted. The cost is that the typed path is absent for a while, and the security
@@ -250,7 +250,7 @@ exercised, so it is the gate on any claim that pairing works.
 ## 11. Decided 2026-10-19
 
 - **D1 — answered by the owner.** The Swift router is retired as the replacement (owner decision,
-  2026-10-19); the TypeScript router is the only router that runs. `README.md:65` is stale on this
+  2026-10-19); the TypeScript router is the only router that runs. `The two launchd agents run the Swift router`, `README.md:65` at `6917ebc4` is stale on this
   and is corrected by the retirement work, not here.
 - **D2 — scan path first.** Typed entry refuses with a named outcome until B8 lands. Taken by the
   orchestrator: an unauthenticated typed code is collectable by anyone on the LAN, and the scan

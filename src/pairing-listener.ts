@@ -45,6 +45,20 @@ export interface RunningPairingListener {
   close(): Promise<void>;
 }
 
+/** What the listener asks an advertiser to announce: the bound port, and the name a phone shows. */
+export interface PairingAdvertisementRequest {
+  name: string;
+  port: number;
+  txt: Record<string, string>;
+}
+
+/** An announcement that is live until `stop` is awaited. */
+export interface PairingAdvertisement {
+  stop(): Promise<void>;
+}
+
+export type PairingAdvertiser = (request: PairingAdvertisementRequest) => PairingAdvertisement;
+
 export interface PairingListenerDeps {
   /** The router home: where the identity and the paired-phones file live. */
   dir: string;
@@ -53,6 +67,11 @@ export interface PairingListenerDeps {
   /** The name a phone sees. Defaults to this host's name without `.local`. */
   macName?: string;
   idleMs?: number;
+  /**
+   * Announces the listener on the local network. Omitted, nothing is announced. The router passes the Bonjour
+   * one; a test passes a fake, so no multicast is sent from a unit test.
+   */
+  advertise?: PairingAdvertiser;
 }
 
 /** The decoded `pair.request`. Every field is checked by type and never coerced. */
@@ -100,15 +119,47 @@ export async function startPairing(
   const { port } = server.address() as AddressInfo;
   log.info(`pairing listening on ${cfg.host}:${port} (TLS 1.3, certificate ${identity.fingerprint})`);
 
+  // Announced only once the port is bound, so the advertisement names the port a phone can actually reach.
+  const advertisement = announce(deps.advertise, { name: macName, port, txt: { name: macName } });
+
   return {
     port,
     openConnections: () => sockets.size,
-    close: () =>
-      new Promise<void>((resolve) => {
+    close: async () => {
+      // Withdrawn first, so a phone stops seeing a listener that is about to refuse it.
+      await withdraw(advertisement);
+      await new Promise<void>((resolve) => {
         for (const socket of sockets) socket.destroy();
         server.close(() => resolve());
-      }),
+      });
+    },
   };
+}
+
+/**
+ * Announce the listener, or return nothing. A failed announcement is logged and leaves the listener up: the
+ * QR carries the endpoint, so a phone can still pair without discovery (plan §3).
+ */
+function announce(
+  advertise: PairingAdvertiser | undefined,
+  request: PairingAdvertisementRequest
+): PairingAdvertisement | undefined {
+  if (!advertise) return undefined;
+  try {
+    return advertise(request);
+  } catch (err) {
+    log.warn(`pairing: not announced on the local network: ${(err as Error).message}`);
+    return undefined;
+  }
+}
+
+async function withdraw(advertisement: PairingAdvertisement | undefined): Promise<void> {
+  if (!advertisement) return;
+  try {
+    await advertisement.stop();
+  } catch (err) {
+    log.warn(`pairing: announcement could not be withdrawn: ${(err as Error).message}`);
+  }
 }
 
 interface ServeDeps {

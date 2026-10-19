@@ -19,6 +19,7 @@ import { handleAuthServer, isAuthServerPath, instructionsFor } from './oauth.js'
 import { log } from './log.js';
 import { Pairing } from './pairing.js';
 import { startPairing, type RunningPairingListener } from './pairing-listener.js';
+import { createBonjourAdvertiser } from './pairing-advertise.js';
 
 const MCP_PATH = '/mcp';
 
@@ -530,11 +531,12 @@ export async function startRouter(
   /*
    * The phone-pairing listener, off unless `pairing.enabled` is set. It binds after the main socket, so a
    * pairing port that is already taken closes the main socket again and the router fails to start, rather
-   * than running with pairing silently absent.
+   * than running with pairing silently absent. Once bound it is announced over Bonjour, and that announcement
+   * is withdrawn when the listener closes.
    */
   let pairingListener: RunningPairingListener | undefined;
   try {
-    pairingListener = await startPairing(cfg.pairing, { dir: ROUTER_HOME, pairing });
+    pairingListener = await startPairing(cfg.pairing, { dir: ROUTER_HOME, pairing, advertise: createBonjourAdvertiser() });
   } catch (err) {
     http.close();
     throw err;

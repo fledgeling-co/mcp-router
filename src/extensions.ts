@@ -230,6 +230,12 @@ export class ExtensionStore {
     return this.record(kind, name);
   }
 
+  /** The text of one entry's descriptor, or null when the name is not well formed or the file is not readable UTF-8. */
+  descriptorText(kind: ExtensionKind, name: string): string | null {
+    if (!isWellFormedName(name)) return null;
+    return readUtf8(join(this.entryPath(kind, name), DESCRIPTOR_PATH[kind]));
+  }
+
   /**
    * Validate everything, stage the whole entry, then move it into place. Every refusal happens before a
    * byte is written, so a malformed request leaves nothing behind.

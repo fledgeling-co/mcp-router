@@ -487,7 +487,7 @@ export async function handleControl(
       json(res, 415, { error: 'expected content-type: application/json' });
       return true;
     }
-    const answer = extensionRoute(req.method ?? '', p, body, deps);
+    const answer = extensionRoute(req.method ?? '', p, body, deps, url.searchParams);
     if (answer) json(res, answer.status, answer.body);
     else json(res, 405, { error: `${req.method} not allowed on ${p}` });
     return true;

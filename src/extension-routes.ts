@@ -9,9 +9,11 @@ import {
   type Refusal,
 } from './extensions.js';
 import type { UpstreamConfig } from './config.js';
+import { buildFreshnessReport, DEFAULT_STALE_AFTER_MS, freshnessValue } from './extension-updates.js';
 
 /*
- * The /extensions family: GET /extensions, and the three collections under it.
+ * The /extensions family: GET /extensions, the three collections under it, and GET /extensions/updates, the
+ * marketplace update check (F6). The update route is matched before the kind parse, or `updates` reads as a kind.
  *
  * A collection answers GET and POST, an item answers GET and DELETE, an add that would collide is 409, and
  * an unknown item is 404 in the words `no <kind> named "x"`. Nothing here reads or writes Claude's own
@@ -35,7 +37,8 @@ export function extensionRoute(
   method: string,
   pathname: string,
   body: unknown,
-  deps: { extensions?: ExtensionStore; upstreams: Map<string, UpstreamConfig> }
+  deps: { extensions?: ExtensionStore; upstreams: Map<string, UpstreamConfig> },
+  query: URLSearchParams = new URLSearchParams()
 ): RouteAnswer | null {
   if (!deps.extensions) {
     return { status: 503, body: { error: 'extension storage is unavailable: this router has no store' } };
@@ -43,6 +46,8 @@ export function extensionRoute(
   const store = deps.extensions;
   const rest = pathname.slice('/extensions'.length);
   if (rest === '') return method === 'GET' ? { status: 200, body: inventory(store, deps.upstreams) } : null;
+  // Before the kind parse, or `updates` is read as a kind and answered 404. Any verb but GET is 405.
+  if (rest === '/updates') return method === 'GET' ? updates(store, query) : null;
 
   const segments = rest.split('/').slice(1);
   const kind = KINDS.find((candidate) => candidate === segments[0]);
@@ -51,6 +56,34 @@ export function extensionRoute(
   if (segments.length === 2) return item(kind, segments[1], store, method);
   // Deeper than an item is a path this family claims and does not route.
   return null;
+}
+
+/**
+ * The marketplace update check. A window that cannot be read is refused rather than replaced by the default: a
+ * caller who typed `staleAfterMs=1h` asked a question, and the default would report every catalogue against a
+ * window they did not choose.
+ */
+function updates(store: ExtensionStore, query: URLSearchParams): RouteAnswer {
+  const requested = query.get('kind');
+  let kinds: readonly ExtensionKind[] = KINDS;
+  if (requested !== null) {
+    const kind = KINDS.find((candidate) => candidate === requested);
+    if (!kind) return { status: 404, body: { error: `no extension kind named "${requested}"` } };
+    kinds = [kind];
+  }
+  const staleAfterMs = staleWindow(query.get('staleAfterMs'));
+  if (staleAfterMs === null) {
+    return { status: 400, body: { error: 'staleAfterMs must be a non-negative whole number of milliseconds' } };
+  }
+  const name = query.get('name') ?? undefined;
+  const report = buildFreshnessReport(store, { kinds, staleAfterMs, now: Date.now(), name });
+  return { status: 200, body: freshnessValue(report) };
+}
+
+/** The default when absent, the number when it is ASCII digits, and null when it is present and unreadable. */
+function staleWindow(raw: string | null): number | null {
+  if (raw === null) return DEFAULT_STALE_AFTER_MS;
+  return /^[0-9]+$/.test(raw) ? Number(raw) : null;
 }
 
 function collection(kind: ExtensionKind, store: ExtensionStore, method: string, body: unknown): RouteAnswer | null {

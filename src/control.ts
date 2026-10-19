@@ -43,6 +43,7 @@ import {
 import { LiveReload } from './livereload.js';
 import { askSessionsToReload, listSessions } from './sessions.js';
 import { log } from './log.js';
+import { wireInstant, type IssuedCode, type Pairing } from './pairing.js';
 
 export const TOKEN_PATH = join(ROUTER_HOME, 'control.token');
 
@@ -86,6 +87,17 @@ export interface ControlDeps {
   usage: UsageStore;
   /** The open standalone GET /mcp streams. R29: telling attached sessions the tool list moved. */
   liveReload: LiveReload;
+  /** The phone-pairing codes this router has issued. One per process, shared by every pairing route. */
+  pairing: Pairing;
+}
+
+/** The wire shape of an issued code. Shared by the route that mints one and the route that names it. */
+function codeBody(issued: IssuedCode) {
+  return {
+    code: issued.code,
+    issuedAt: wireInstant(issued.issuedAt),
+    expiresAt: wireInstant(issued.expiresAt),
+  };
 }
 
 function json(res: ServerResponse, status: number, body: unknown): void {
@@ -430,7 +442,8 @@ export function isControlPath(pathname: string): boolean {
     pathname.startsWith('/usage/') ||
     pathname === '/sessions' ||
     pathname.startsWith('/sessions/') ||
-    pathname.startsWith('/registry/')
+    pathname.startsWith('/registry/') ||
+    pathname.startsWith('/pairing/')
   );
 }
 
@@ -450,11 +463,15 @@ export async function handleControl(
   const mutating = req.method === 'POST' || req.method === 'DELETE' || req.method === 'PATCH';
   if (!isControlPath(p)) return false;
 
-  if (mutating) {
+  // The pairing routes are gated on every method, GET included: `/pairing/state` names the code a
+  // phone would type, and a page that could read it could pair itself.
+  if (mutating || p.startsWith('/pairing/')) {
     if (!tokenOk(req, token)) {
       json(res, 401, { error: `unauthorized; the token is in ${TOKEN_PATH}` });
       return true;
     }
+  }
+  if (mutating) {
     // Cross-origin JSON forces a preflight, which is never answered.
     const ct = String(req.headers['content-type'] ?? '');
     if (req.method !== 'DELETE' && !ct.startsWith('application/json')) {
@@ -872,6 +889,30 @@ export async function handleControl(
     } catch (err) {
       json(res, 502, { error: (err as Error).message });
     }
+    return true;
+  }
+
+  // ---------------------------------------------------------------- pairing
+  /*
+   * The Mac's side of the phone handshake. Only this route mints a code, and nothing here spends one:
+   * a code is spent when the listener decides a phone's request (`pairing.submit`), which the
+   * listener owns. Revoking never forgets a code that was already paired.
+   */
+  if (p === '/pairing/codes' && req.method === 'POST') {
+    json(res, 201, codeBody(deps.pairing.issue()));
+    return true;
+  }
+
+  if (p === '/pairing/codes' && req.method === 'DELETE') {
+    json(res, 200, { revoked: deps.pairing.revoke() });
+    return true;
+  }
+
+  // Names the code only while it can still be paired with. An expired code is not pending, so it is
+  // not named here, even though `submit` still answers it as expired.
+  if (p === '/pairing/state' && req.method === 'GET') {
+    const live = deps.pairing.current();
+    json(res, 200, { code: live ? codeBody(live) : null });
     return true;
   }
 

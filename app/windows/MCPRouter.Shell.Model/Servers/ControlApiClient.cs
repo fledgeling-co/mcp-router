@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Net.Sockets;
+using System.Text;
 using System.Text.Json;
 using MCPRouter.Shell.Model.Pairing;
 
@@ -223,15 +224,33 @@ public sealed class ControlApiClient : IDisposable
     }
 
     // ------------------------------------------------------------------ pairing
+    //
+    // Every call under /pairing/ is token-gated, GET included (src/control.ts), because the state
+    // read names the code a phone would type. So each of these sends the bearer, which is what the
+    // write flag on SendAsync attaches.
 
-    public Task<IssuedPairingCode> IssuePairingCodeAsync(CancellationToken cancellation = default) =>
-        throw new NotImplementedException();
+    /// <summary>Asks the router to mint a code, replacing whatever it had live.</summary>
+    public async Task<IssuedPairingCode> IssuePairingCodeAsync(CancellationToken cancellation = default)
+    {
+        using var response = await SendAsync(
+            HttpMethod.Post, "pairing/codes", write: true, cancellation,
+            content: new StringContent("{}", Encoding.UTF8, "application/json"));
+        return (await DecodeAsync<PairingCodeBody>(response, cancellation)).ToIssued();
+    }
 
-    public Task<IssuedPairingCode?> GetPairingStateAsync(CancellationToken cancellation = default) =>
-        throw new NotImplementedException();
+    /// <summary>The code a phone could still pair with, or null once there is none.</summary>
+    public async Task<IssuedPairingCode?> GetPairingStateAsync(CancellationToken cancellation = default)
+    {
+        using var response = await SendAsync(HttpMethod.Get, "pairing/state", write: true, cancellation);
+        return (await DecodeAsync<PairingStateBody>(response, cancellation)).Code?.ToIssued();
+    }
 
-    public Task<bool> RevokePairingCodeAsync(CancellationToken cancellation = default) =>
-        throw new NotImplementedException();
+    /// <summary>Takes the live code back. True when there was one to take. A revoke never forgets a code already paired.</summary>
+    public async Task<bool> RevokePairingCodeAsync(CancellationToken cancellation = default)
+    {
+        using var response = await SendAsync(HttpMethod.Delete, "pairing/codes", write: true, cancellation);
+        return (await DecodeAsync<PairingRevokeBody>(response, cancellation)).Revoked;
+    }
 
     // ------------------------------------------------------------------ the one send
 

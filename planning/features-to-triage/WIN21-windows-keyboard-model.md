@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: intake divergent pass, from DESIGN.md section 8 being a macOS keyboard specification · 2026-08-30
 registry-target: none
 no-target-reason: the registry has since gained nineteen Windows rows, so the original reason - that nothing in it describes a Windows surface - is no longer true. It is still true that no requirement, case, surface or defect describes a Windows KEYBOARD MODEL: searching the registry for accelerator, shortcut or keyboard against any Windows row returns nothing. Corrected 2026-09-03, we4.

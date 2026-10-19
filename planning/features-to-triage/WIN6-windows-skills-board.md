@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: intake, parity target for SURF-004 · 2026-08-30
 reckon-sources: [SURF-033]
 target-note: SURF-033 `Windows Skills board` carries `note: WIN6.`; the row did not exist when the `none` was declared on 2026-08-30.

@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: intake, parity target for SURF-001 · 2026-08-30
 reckon-sources: [SURF-030]
 target-note: SURF-030 `Windows shell - NavigationView, caption band, title, menus` is this brief's surface and its own `note` field opens `WIN3.`; the row did not exist when the `none` was declared on 2026-08-30.

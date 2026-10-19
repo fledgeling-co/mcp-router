@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: intake, parity target for SURF-028 · 2026-08-30
 reckon-sources: [SURF-043]
 target-note: SURF-043 `Windows capability document panel - three tabs over one package` carries `note: WIN16.`; the row did not exist when the `none` was declared on 2026-08-30.

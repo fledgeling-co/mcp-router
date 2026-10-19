@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: intake, parity target for SURF-026 · 2026-08-30
 reckon-sources: [SURF-040]
 target-note: SURF-040 `Windows Insights board` carries `note: WIN15.`; the row did not exist when the `none` was declared on 2026-08-30.

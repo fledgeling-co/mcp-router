@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: intake, parity target for SURF-003 · 2026-08-30
 reckon-sources: [SURF-032]
 target-note: SURF-032 `Windows Activity board - the live call log` is the surface this brief specifies, registered on lane `windows-glass` at `app://windows/shell#activity` after the `none` was declared on 2026-08-30. The row carries no `WIN5` back-reference, so this citation rests on subject identity between the brief's title and the surface's, not on the registry naming the brief.

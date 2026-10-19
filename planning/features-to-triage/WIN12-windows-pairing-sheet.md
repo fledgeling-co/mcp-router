@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: intake, parity target for SURF-010 · 2026-08-30
 reckon-sources: [SURF-042]
 target-note: SURF-042 `Windows pairing dialog` carries `note: WIN12.`; the row did not exist when the `none` was declared on 2026-08-30.

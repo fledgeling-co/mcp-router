@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: intake, parity target for SURF-025 · 2026-08-30
 reckon-sources: [SURF-039]
 target-note: SURF-039 `Windows Harnesses board` carries `note: WIN14.`; the row did not exist when the `none` was declared on 2026-08-30.

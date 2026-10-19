@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: intake divergent pass, from the inbox band having no Windows carrier · 2026-08-30
 reckon-sources: [SURF-046, REQ-036]
 target-note: SURF-046 `Windows toast notification and its COM activator` records that WIN22 shipped it and REQ-036 states it, and REQ-036 states the toast, its two buttons and what Review opens; neither existed when the `none` was declared on 2026-08-30.

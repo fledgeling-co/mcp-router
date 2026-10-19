@@ -19,26 +19,41 @@
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                        TextAlignment="Center" TextWrapping="Wrap" />
 
-            <!-- Code Display -->
-            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            <!-- Code Display. The router mints the code on open; nothing here is a placeholder. -->
+            <Border x:Name="CodeCard"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1"
                     CornerRadius="{ThemeResource ControlCornerRadius}"
                     Padding="16" HorizontalAlignment="Center">
-                <TextBlock x:Name="PairingCodeText" Text="K7X9-W4M2"
+                <TextBlock x:Name="PairingCodeText" Text=""
                            Style="{ThemeResource TitleTextBlockStyle}"
                            FontFamily="Consolas" FontWeight="Bold" HorizontalAlignment="Center" />
             </Border>
 
-            <TextBlock x:Name="ExpiresText" Text="expires in 4:45"
+            <TextBlock x:Name="ExpiresText" Text=""
                        Style="{ThemeResource CaptionTextBlockStyle}"
                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                        HorizontalAlignment="Center" />
 
-            <TextBlock Text="Treat this code like a password. Anyone who scans it can put items in your inbox until it expires."
+            <StackPanel x:Name="UnavailablePanel" Spacing="4" HorizontalAlignment="Center" Visibility="Collapsed">
+                <TextBlock x:Name="UnavailableHeadlineText" Text=""
+                           Style="{ThemeResource BodyStrongTextBlockStyle}"
+                           TextAlignment="Center" TextWrapping="Wrap" />
+                <TextBlock x:Name="UnavailableAdviceText" Text=""
+                           Style="{ThemeResource BodyTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           TextAlignment="Center" TextWrapping="Wrap" />
+            </StackPanel>
+
+            <TextBlock x:Name="WarningText"
+                       Text="Treat this code like a password. Anyone who scans it can put items in your inbox until it expires."
                        Style="{ThemeResource CaptionTextBlockStyle}"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                        TextAlignment="Center" TextWrapping="Wrap" />
+
+            <Button x:Name="ReissueButton" Content="New code" HorizontalAlignment="Center" MinWidth="120"
+                    Visibility="Collapsed" />
 
             <Button Content="Done" HorizontalAlignment="Center" Width="120" />
         </StackPanel>

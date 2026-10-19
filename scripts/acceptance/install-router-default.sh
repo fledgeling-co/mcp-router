@@ -3,7 +3,8 @@
 # R4-C, first half — which router `docs/install.sh` points the two launchd agents at.
 #
 # The installer's default is `node`. It was `swift` from R4-C1 (2026-08-20) until the owner retired
-# the Swift router on 2026-10-19 (`planning/plans/plan-retire-swift-router.md`, O1). Which router
+# the Swift router on 2026-10-19 (`planning/plans/plan-retire-swift-router.md`, O1). Since G2 the
+# `swift` value is refused before anything is built, and this lane asserts that refusal. Which router
 # serves the user's live Claude Code sessions is decided here, so it gets an assertion rather than a
 # reading of the diff.
 #
@@ -85,7 +86,6 @@ trap 'rm -f "$FAKE_SWIFT_BIN"' EXIT
 echo "install-router-default — what docs/install.sh points the agents at"
 echo
 
-SWIFT_ARGS="<string>$FAKE_SWIFT_BIN</string> <string>serve</string>"
 NODE_ARGS='<string>/usr/bin/node</string> <string>/scratch/repo/dist/index.js</string> <string>serve</string>'
 
 out="$(arm '')"
@@ -96,8 +96,8 @@ esac
 
 out="$(arm 'MCPR_ROUTER=swift')"
 case "$out" in
-  *"$SWIFT_ARGS"*) ok "MCPR_ROUTER=swift selects the Swift binary" "the explicit opt-in" ;;
-  *) bad "MCPR_ROUTER=swift selects the Swift binary" "got: $out" ;;
+  *"DIED:"*"retired"*) ok "MCPR_ROUTER=swift is refused, not built" "the Swift router was retired 2026-10-19" ;;
+  *) bad "MCPR_ROUTER=swift is refused, not built" "got: $out" ;;
 esac
 
 out="$(arm 'MCPR_ROUTER=node')"
@@ -119,21 +119,15 @@ case "$out" in
   *) bad "an unrecognised MCPR_ROUTER is refused" "got: $out" ;;
 esac
 
-# The override only applies to the Swift arm, so these pin MCPR_ROUTER=swift explicitly.
+# The override is read only by the Swift arm, and that arm is refused before any override is read, so
+# an override cannot put a binary back in the plist.
 out="$(arm 'MCPR_ROUTER=swift MCPR_ROUTER_BINARY=/bin/echo')"
 case "$out" in
-  *'<string>/bin/echo</string> <string>serve</string>'*)
-    ok "MCPR_ROUTER_BINARY overrides the built path" "the install lanes drive this" ;;
-  *) bad "MCPR_ROUTER_BINARY overrides the built path" "got: $out" ;;
-esac
-
-out="$(arm 'MCPR_ROUTER=swift MCPR_ROUTER_BINARY=/no/such/binary')"
-case "$out" in
-  DIED:*) ok "a non-executable MCPR_ROUTER_BINARY is refused" "${out%%$'\n'*}" ;;
-  *) bad "a non-executable MCPR_ROUTER_BINARY is refused" "got: $out" ;;
+  *"DIED:"*"retired"*) ok "MCPR_ROUTER_BINARY cannot select a binary while swift is refused" "refused before the override is read" ;;
+  *) bad "MCPR_ROUTER_BINARY cannot select a binary while swift is refused" "got: $out" ;;
 esac
 
 echo
 echo "$((pass + fail)) checks — examined=$((pass + fail)) failures=$fail"
 [ "$fail" = 0 ] || exit 1
-echo "the installer's default is the TypeScript router, and MCPR_ROUTER=swift is the one explicit way to the Swift binary."
+echo "the installer's default is the TypeScript router, and MCPR_ROUTER=swift is refused."

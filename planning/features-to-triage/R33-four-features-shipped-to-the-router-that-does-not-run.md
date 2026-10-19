@@ -72,4 +72,4 @@ numerator alone.
 Dispositioned 2026-10-19 in `planning/plans/plan-retire-swift-router.md`. The one-sided landings are
 the port list: R28 and the R30 undo path port (P1, P2), R31 and R32 are dropped, and R29 stays
 TypeScript-only. The carrier-parity gate stays non-blocking until P1 to P6 land. The owner retired
-the Swift router on 2026-10-19, which is the decision REQ-020 reserved to them.
+the Swift router on 2026-10-19, which is the decision REQ-020 reserved to them. Unbuilt 2026-10-19 (plan G2 to G4): the carrier gate is no longer run by `lint`, and the pool mutation self-test left `lint` with it. The gate's script stays in the tree.

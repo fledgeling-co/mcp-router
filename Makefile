@@ -74,7 +74,7 @@ SWIFT_BUILD_SYSTEM ?= native
 SURFACE    ?= servers
 
 .PHONY: node-e2e
-.PHONY: build-cli-debug all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation mutation-selftest acceptance acceptance-lanes-selftest mock-fidelity mock-fidelity-selftest role-intersection green-streak lint format clean install-default surface-reconcile surface-reconcile-arm
+.PHONY: all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity-regen mutation-selftest acceptance acceptance-lanes-selftest mock-fidelity mock-fidelity-selftest role-intersection lint format clean install-default surface-reconcile surface-reconcile-arm
 
 ## G4's two harness gates run inside `lint` rather than as a stage of their own. Both are
 ## hermetic and finish in under ten seconds, and `lint` is where the other four script gates
@@ -285,8 +285,8 @@ SURFACE    ?= servers
 ## a booted simulator — and it is the only stage here that proves the app runs rather than that its
 ## views construct.
 ## `parity` and `parity-selftest` left `all` on 2026-10-19. The owner retired the Swift router, and
-## parity stopped gating a release (plan-retire-swift-router.md, G1). Both targets stay runnable by
-## hand until G2 and G3 delete them.
+## parity stopped gating a release (plan-retire-swift-router.md, G1). Their targets were removed with
+## the Swift router's build gates (G2), and the scripts stay in the tree.
 all: tools lint build test test-ios test-ios-glass mutation-selftest mock-fidelity-selftest acceptance-lanes-selftest install-default surface-reconcile
 
 ## Fail loudly and specifically when a required tool is missing, rather than skipping the gate.
@@ -305,10 +305,10 @@ tools:
 	    echo "error: $$t is not installed. brew install $$t"; exit 1; }; \
 	done
 	@[ -d node_modules ] || { \
-	  echo "error: node_modules is missing — a fresh worktree needs it before the parity lanes."; \
+	  echo "error: node_modules is missing — a fresh worktree needs it before the TypeScript gates."; \
 	  echo "       run: npm install && npm run build"; exit 1; }
 	@[ -f dist/index.js ] || { \
-	  echo "error: dist/index.js is missing, so parity-lane-selftest would SKIP rather than run."; \
+	  echo "error: dist/index.js is missing, and the acceptance lanes drive the TypeScript router from it."; \
 	  echo "       A skip is not a pass. Run: npm run build"; exit 1; }
 	@echo "tools: $$(xcodegen --version | tr -d '\n') · swiftlint $$(swiftlint version) · swiftformat $$(swiftformat --version)"
 
@@ -604,34 +604,6 @@ print((d.get('passedTests') or 0) + (d.get('failedTests') or 0))"); \
 	  python3 scripts/acceptance/name-glass-attachments.py "$(IOS_GLASS_SHOTS)"; \
 	  exit $$status
 
-## The parity corpus specifically — A41.
-##
-## `make test` proves *some* number of tests ran. That is not the claim this item needs: a port can
-## delete half the vector corpus, keep every test name, and watch the test count rise because it
-## added tests elsewhere. So the attestation test prints how many vector cases it actually compared,
-## and this target reads that number back.
-##
-## Three outcomes, kept apart on purpose. A missing marker means the attestation did not run at all,
-## which is the failure that looks most like success — a suite that silently stopped matching its
-## own test prints nothing and exits 0. A count below the floor means the corpus shrank. Only a
-## marker at or above the floor is a pass.
-parity:
-	@set -eu -o pipefail; cd $(APP_DIR); \
-	  output=$$(swift test --build-system $(SWIFT_BUILD_SYSTEM) --filter VectorRegistryTests 2>&1) || { \
-	    echo "$$output"; echo "error: the parity suite failed"; exit 1; }; \
-	  marker=$$(printf '%s\n' "$$output" | grep -oE 'PARITY-VECTORS-EXECUTED: [0-9]+' | tail -1 || true); \
-	  if [ -z "$$marker" ]; then \
-	    echo "error: the suite printed no PARITY-VECTORS-EXECUTED marker, so the attestation did"; \
-	    echo "       not run. A corpus nobody read cannot be distinguished from a corpus that passed."; \
-	    exit 1; \
-	  fi; \
-	  count=$${marker##*: }; \
-	  floor=$$(grep -oE 'executedFloor = [0-9]+' Tests/RouterCoreTests/VectorRegistry.swift | grep -oE '[0-9]+'); \
-	  echo "parity: $$count vector cases compared (floor $$floor)"; \
-	  if [ "$$count" -lt "$$floor" ]; then \
-	    echo "error: the corpus executed $$count cases, below the floor of $$floor"; exit 1; \
-	  fi
-
 ## A39 — the committed vectors are what the TypeScript reference produces *today*, not what it
 ## produced whenever they were last written by hand.
 ##
@@ -659,16 +631,6 @@ parity-regen:
 	    exit 1; \
 	  fi
 
-## Every named behaviour is load-bearing — plan P6.
-##
-## Breaks the behaviour each named vector guards, one at a time, and requires the gate to go red.
-## A vector that is present, unique and compared still proves nothing until this passes; that is the
-## difference between a corpus and a decoration.
-##
-## Kept out of `all` because each mutation is a rebuild plus a test run. Run it before a merge.
-mutation:
-	./scripts/parity/mutation-gate.sh
-
 ## Can the mutation harness's FILTER go red? — G12.
 ##
 ## `mutation` is what other checks are measured against, so a filter typo silently converting it
@@ -677,7 +639,8 @@ mutation:
 ## both oracles with exit 0 — the same success a run that killed all thirty-five produces. It was
 ## read as evidence twice in one session before a third filter happened to match.
 ##
-## In `all`, unlike `mutation` itself, and the reason is the whole point: the harness resolves its
+## In `all`, unlike the rebuild-bound mutation gate (`scripts/parity/mutation-gate.sh`, which compiles
+## RouterCore and so no longer has a make target), and the reason is the whole point: the harness resolves its
 ## filter before the dirty-tree guard and before the baseline, so these eleven cases cost
 ## milliseconds and need no build. A selftest that needed a rebuild would be run before a merge —
 ## which is exactly when nobody runs it.
@@ -706,68 +669,6 @@ mutation-selftest:
 ## drives it. Exit 2 means an anchor went stale, which is a locator failure and not a pass.
 install-default:
 	./scripts/acceptance/install-router-default.sh
-
-## P10: the five selftests are dispatched by `parity-selftests.sh`, which runs ALL of them and
-## aggregates.
-##
-## They used to be five recipe lines. make stops a target at the first line that fails,
-## `parity-manifest-selftest.sh` is first, and it was red on `main` from `b1160ef` onward because
-## `planning/parity/surface.tsv` pinned `# rows: 95` against a file holding 97 — so the four behind
-## it had not been reached at all. `grep -c parity-regen-selftest` over a full run log returns 0,
-## and one of the four it silenced was P9's own new selftest, merged the same evening into a target
-## that could not reach it.
-##
-## Exactly `make acceptance`'s finding (G10), one target over, and repaired the same way: the runner
-## keeps going past a red selftest and prints a per-selftest table with every exit code, so the risk
-## continuing carries — a green summary over a red selftest — is what the table makes impossible
-## rather than what the ordering hopes to avoid.
-##
-## It preserves the 1-vs-2 distinction at the aggregate: 1 means a selftest failed, 2 means none
-## failed but at least one could not run. make itself collapses both to 2, so run the script
-## directly when the caller needs to tell them apart.
-parity-selftest:
-	./scripts/acceptance/parity-selftests.sh
-
-## Proves the lanes can actually GO RED, by running each against a deliberately broken Swift
-## router. It also reports failability per ROW, which is the only place that number exists: on this
-## tree it reads 16 of 19 demonstrated, and names the 3 rows that are "recorded proven by a lane
-## whose ability to fail on THAT row is unproven" — along with what each of those three would need,
-## because all three were attempted and none has a lever through the shim.
-##
-## It was written as a script rather than a paragraph of evidence "for one reason: a paragraph is
-## re-run by nothing" — and then nothing re-ran the script either. It appeared in no Makefile target
-## and in no LANES list, so from R2-R until now it was executable, passing, and dispatched by
-## nothing. `parity-manifest-check.sh` grew a guard for exactly this class, and this is the live
-## instance that guard found.
-##
-## It needs the TypeScript reference and takes ~4.5 minutes, so it announces a skip loudly rather
-## than failing a selftest that must stay runnable in a fresh worktree. A silent skip would be the
-## same defect again.
-parity-lane-selftest:
-	@if [ -f dist/index.js ]; then \
-	  ./scripts/acceptance/parity-lane-selftest.sh; \
-	else \
-	  echo "parity-lane-selftest: SKIPPED — no dist/index.js. This is a skip, not a pass:"; \
-	  echo "  run 'npm install && npm run build' and re-run 'make parity-lane-selftest' to prove"; \
-	  echo "  the lanes can still go red."; \
-	fi
-
-## Proves `install-launchd-watch`'s two terms can go red, by mutating the launchd agent this lane
-## generates — a decoy WatchPaths, a blinded HOME, a resident program — and requiring each term to
-## fail under the mutation aimed at it. It runs the install lane's own watch observation — the file
-## `parity-install.sh` sources — rather than a copy of it, so the demonstration cannot drift from
-## the thing demonstrated.
-##
-## Out of `all`, and out of `parity-selftest`, for a reason that is not squeamishness about cost:
-## every trial waits out a 10s ThrottleInterval, a 60s settling bound and a 90s restaging bound, so
-## the default 27 trials take roughly 40 minutes of mostly-sleeping wall clock. It is run when this
-## row's terms change, and its numbers are recorded in the row note in planning/parity/surface.tsv.
-##
-## This row does not get to be proven on a series. It was `proven` once on a term that agreed
-## sixteen consecutive times and measured the wrong thing (D-p1-e), so the claim now rests on the
-## mutations here and the rate each one is caught at.
-parity-watch-mutations:
-	./scripts/acceptance/parity-install-watch-mutations.sh
 
 ## Launches both shells and asserts each renders a value that came from MCPRouterKit.
 ##
@@ -828,14 +729,8 @@ node-e2e:
 	  echo; echo "== e2e-live-reload (the tool-list tell) =="; \
 	  node scripts/e2e-live-reload.mjs
 
-acceptance: build-mac build-mac-release build-ios build-cli-debug
+acceptance: build-mac build-mac-release build-ios
 	./scripts/acceptance/acceptance-lanes.sh
-
-## The debug CLI three acceptance lanes assert against. Separate from the release build at
-## `install-default`, because a lane reading `app/.build/debug/MCPRouterCLI` is not served by a
-## release binary sitting somewhere else.
-build-cli-debug:
-	cd $(APP_DIR) && swift build --build-system $(SWIFT_BUILD_SYSTEM) --product MCPRouterCLI
 
 ## Proves the aggregation above can go red, and that a red lane cannot hide inside a green total.
 ##
@@ -915,17 +810,6 @@ surface-reconcile:
 surface-reconcile-arm:
 	/usr/bin/python3 planning/test-campaign/bin/arm-surface-reconcile.py
 
-## R6 — the PATH a spawned child inherits, measured at both routers under a scratch HOME.
-##
-## Its own target rather than a line in `acceptance`: it builds the release Swift CLI and indexes a
-## fixture server at each router, which is a minute of work that the Mac acceptance run does not
-## need. It writes nothing outside its own mktemp directory.
-acceptance-r6: build-router-release
-	npm run build
-	./scripts/acceptance/r6-child-path.sh
-
-build-router-release:
-	cd $(APP_DIR) && swift build --build-system $(SWIFT_BUILD_SYSTEM) -c release --product MCPRouterCLI
 
 ## `raster-claim-gate.py` (`J3`) is the ninth Python gate in `lint`, and it is here rather than
 ## behind a campaign target because the rule it holds is the campaign's strongest claim: that
@@ -1050,12 +934,9 @@ build-router-release:
 ## a comment each read as reach or containment in this reader's first cut, and a census that
 ## over-claims is the same defect as the paragraph it exists to bound.
 
-## `planning/carrier-parity-gate.py` prints its findings here, but its exit does not set `fail`. The
-## owner made it non-blocking on 2026-10-19 (plan-retire-swift-router.md, decision 5), because a
-## blocking carrier gate would keep `make lint` red for the whole port period (P1 to P6). Its output
-## is the list of Swift-only landings still waiting for a port or a drop. When this changed it
-## reported one undispositioned landing, f53242b5 (the log rotation), and that finding stays open.
-## G4 retires the gate.
+## `planning/carrier-parity-gate.py` is no longer run by `lint` (plan-retire-swift-router.md, G4).
+## When it last ran it reported one undispositioned landing, f53242b5 (the log rotation), and that
+## finding stays open.
 lint: tools
 	@fail=0; \
 	swiftformat --lint . --config .swiftformat || fail=1; \
@@ -1106,8 +987,6 @@ lint: tools
 	python3 planning/pin-class-gate.py || fail=1; \
 	python3 planning/shipped-brief-gate.py || fail=1; \
 	python3 planning/brief-target-gate.py --quiet || fail=1; \
-	python3 planning/carrier-parity-gate.py || echo "carrier-parity-gate: exit $$? (non-blocking, see the note above lint)"; \
-	zsh app/Scripts/pool-mutation-gate-selftest.sh || fail=1; \
 	exit $$fail
 
 ## Does the committed glass evidence still depict the build this tree would produce?
@@ -1142,19 +1021,6 @@ role-intersection:
 	echo "role-intersection: exit $$ec  (0 clean · 1 findings · 3 inconclusive · 4 control failed · 2 usage)"; \
 	echo "  make collapses ANY failing recipe to its own exit 2, which collides with this"; \
 	echo "  gate's usage code. The line above is the verdict; make's status is not."; \
-	exit $$ec
-
-## R33 — the green streak, measured. NOT in `all` and NOT in `lint`, because it exits 2 today and
-## that 2 is the correct answer: no whole-gate run has ever been recorded, so the streak is
-## unmeasured rather than zero. Putting it in `lint` would make the honest state a red build, and
-## the pressure would then be on the instrument rather than on the runs.
-##
-## `planning/parity/green-streak.md` defines a whole-gate pass and the cold port-reuse path.
-## `planning/carrier-parity-gate.py` is the half of R33 that used to block; it runs in `lint` and is
-## non-blocking since 2026-10-19.
-green-streak:
-	@bash scripts/acceptance/green-streak.sh; ec=$$?; \
-	echo "green-streak: exit $$ec  (0 measured · 1 the ledger contradicts itself · 2 nothing recorded yet)"; \
 	exit $$ec
 
 ## Writes formatting changes in place. Not part of `all` — a gate that edits your files is a gate

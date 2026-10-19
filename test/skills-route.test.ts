@@ -81,6 +81,16 @@ function offer(claude: string, version: string): void {
  * A Claude tree with one plugin skill, reached through a symlink the way Claude lays it out, one standalone skill,
  * and an installed demo plugin at 1.0.0 whose marketplace offers `offered`.
  */
+/**
+ * A version of the demo plugin in Claude's plugin cache, with its CHANGELOG.md when one is given. A held version's
+ * changelog is read from this copy, so a version the cache never saw has none.
+ */
+function cached(claude: string, version: string, changelog?: string): void {
+  const directory = join(claude, 'plugins', 'cache', 'market', 'demo', version);
+  write(join(directory, 'skills', 'alpha', 'SKILL.md'), skillFile('alpha', 'a plugin skill'));
+  if (changelog !== undefined) write(join(directory, 'CHANGELOG.md'), changelog);
+}
+
 function claudeTree(offered: string): string {
   const claude = join(scratch(), '.claude');
   const install = join(claude, 'plugins', 'cache', 'market', 'demo', '1.0.0');
@@ -378,4 +388,52 @@ test('K4 — a kept version that cannot be ordered against the offer does not su
   // Neither side is orderable, so "newer than the kept one" cannot be said, and a held update that asks for more is
   // shown rather than hidden on a guess.
   assert.equal(skillNamed(await getSkills(claude, store), 'alpha').held?.pluginVersion, '1.1.0');
+});
+
+test('H1 — a held version carries the changelog its cached copy ships, and the note says where it was read', async () => {
+  const claude = claudeTree('1.1.0');
+  cached(claude, '1.1.0', '## 1.1.0\n- Adds a tool.\n');
+  const alpha = skillNamed(await getSkills(claude), 'alpha');
+
+  assert.deepEqual(alpha.held?.changelog, {
+    text: '## 1.1.0\n- Adds a tool.\n',
+    note: 'CHANGELOG.md from the cached 1.1.0 copy',
+  });
+});
+
+test('H2 — a held version whose cached copy ships no CHANGELOG.md says none was published, with no text', async () => {
+  const claude = claudeTree('1.1.0');
+  cached(claude, '1.1.0');
+  const alpha = skillNamed(await getSkills(claude), 'alpha');
+
+  assert.deepEqual(alpha.held?.changelog, { text: null, note: 'no changelog was published with 1.1.0' });
+});
+
+test('H3 — a held version the cache holds no copy of says so, rather than reading a changelog from elsewhere', async () => {
+  const claude = claudeTree('1.1.0');
+  const alpha = skillNamed(await getSkills(claude), 'alpha');
+
+  assert.deepEqual(alpha.held?.changelog, {
+    text: null,
+    note: "the router's plugin cache holds no copy of 1.1.0, so no changelog was read",
+  });
+});
+
+test('H4 — a changelog over the document cap is not sent, and the note names the cap', async () => {
+  const claude = claudeTree('1.1.0');
+  cached(claude, '1.1.0', 'x'.repeat(524_289));
+  const alpha = skillNamed(await getSkills(claude), 'alpha');
+
+  const changelog = alpha.held?.changelog as { text: string | null; note: string } | undefined;
+  assert.equal(changelog?.text, null);
+  assert.match(changelog?.note ?? '', /over the 524288-byte cap, so it is not sent/);
+});
+
+test('H5 — a row that is not held carries no changelog member at all', async () => {
+  const claude = claudeTree('1.0.0');
+  cached(claude, '1.0.0', '## 1.0.0\n');
+  const body = await getSkills(claude);
+
+  assert.equal(skillNamed(body, 'alpha').held, null);
+  assert.equal(skillNamed(body, 'solo').held, null);
 });

@@ -2,36 +2,37 @@
     import MCPRouterKit
     import SwiftUI
 
-    /// The update check's offers, on the Skills board: each installed item the router holds a newer version
-    /// of, with
-    /// that version's changelog where the router could read one. The check reads the router's own store, so
-    /// an item
-    /// missing from this list is not thereby current; `SkillPresentation.updatesNone` says what the check
-    /// covered.
+    /// The update check's offers, on the Skills board: each installed plugin Claude's register holds a newer
+    /// version of, and each stored offer the router holds, with the changelog of that version where one could
+    /// be read. An offer missing from this list is not thereby current; `SkillPresentation.updatesNone` says
+    /// what the check covered.
     struct SkillUpdatesSection: View {
         @Bindable var board: SkillsBoardModel
 
         var body: some View {
+            let offers = board.offers
             VStack(alignment: .leading, spacing: SkillsBoardMetrics.tightGap) {
                 Text(SkillPresentation.updatesHeading)
                     .typeRole(.subheadline)
                     .foregroundStyle(ColorToken.t1.color)
 
                 if let error = board.updatesError {
-                    // The router refused the check. Its own two strings, as the marketplaces read says them
-                    // (§6).
+                    // The router refused the store's check. Its own two strings, as the marketplaces read
+                    // says them (§6). The register's offers, when there are any, still stand beneath it.
                     Banner(icon: error == .routerNotRunning ? .bolt : .warn, tint: .attention) {
                         Text("\(error.headline). \(error.advice)")
                     }
-                } else if board.updates.allSatisfy({ !$0.hasUpdate }) {
+                }
+
+                if !offers.isEmpty {
+                    ForEach(offers) { entry in
+                        UpdateOfferRow(entry: entry)
+                    }
+                } else if board.updatesError == nil {
                     Text(SkillPresentation.updatesNone)
                         .typeRole(.caption)
                         .foregroundStyle(ColorToken.t2.color)
                         .fixedSize(horizontal: false, vertical: true)
-                } else {
-                    ForEach(board.updates.filter(\.hasUpdate)) { entry in
-                        UpdateOfferRow(entry: entry)
-                    }
                 }
             }
             .padding(SkillsBoardMetrics.rowPadding)

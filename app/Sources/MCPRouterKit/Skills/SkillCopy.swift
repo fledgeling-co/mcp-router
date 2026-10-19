@@ -46,10 +46,16 @@ public extension SkillPresentation {
     /// The heading over the update check's offers.
     static let updatesHeading = "Updates available"
 
+    /// What an offer reads beside its row, naming the two versions rather than saying something was wrong.
+    static func offered(_ available: String, installed: String) -> String {
+        "\(available) is offered and \(installed) is installed"
+    }
+
     /// What the update check said when it found nothing to offer. It names the scope, because a clean check
-    /// over the
-    /// router's own store is not a claim about every plugin Claude has installed.
-    static let updatesNone = "The update check found no newer version among the entries this router holds."
+    /// over Claude's register and the router's own store is not a claim about every skill or plugin on this
+    /// machine.
+    static let updatesNone = "The update check found no newer version among the plugins Claude has installed "
+        + "and the entries this router holds."
 
     // MARK: - Held-version writes
 

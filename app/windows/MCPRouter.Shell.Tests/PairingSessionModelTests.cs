@@ -20,7 +20,7 @@ public sealed class PairingSessionModelTests
     private static PairingSessionModel Model(ControlApiClient client, Clock clock, bool available = true) =>
         new(client, available, () => clock.Now);
 
-    private const string SecondCode = "{\"code\":\"K7X9W4M2\",\"issuedAt\":\"2026-10-19T02:04:20Z\",\"expiresAt\":\"2026-10-19T02:09:20Z\"}";
+    private const string SecondCode = "{\"code\":\"K7X9W4M2\",\"issuedAt\":\"2026-10-19T15:57:12Z\",\"expiresAt\":\"2026-10-19T16:02:12Z\"}";
 
     [Fact]
     public void ANewSessionAsksForNothingAndShowsNoCode()

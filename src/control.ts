@@ -48,6 +48,7 @@ import { log } from './log.js';
 import { wireInstant, type IssuedCode, type Pairing } from './pairing.js';
 import { extensionRoute, isExtensionsPath } from './extension-routes.js';
 import type { ExtensionStore } from './extensions.js';
+import { skillsValue } from './skills.js';
 
 export const TOKEN_PATH = join(ROUTER_HOME, 'control.token');
 
@@ -95,6 +96,8 @@ export interface ControlDeps {
   pairing: Pairing;
   /** R28. Absent answers 503 on every /extensions route, as the Swift router does. */
   extensions?: ExtensionStore;
+  /** Claude Code's home, which GET /skills reads and never writes. Absent answers 503 on /skills. */
+  claudeHome?: string;
   /** Reads each agent client's config for GET /harnesses. Absent means the route answers 503. */
   harnesses?: HarnessInventory;
 }
@@ -454,6 +457,7 @@ export function isControlPath(pathname: string): boolean {
     pathname === '/harnesses' ||
     pathname.startsWith('/registry/') ||
     pathname.startsWith('/pairing/') ||
+    pathname === '/skills' ||
     isExtensionsPath(pathname)
   );
 }
@@ -473,6 +477,25 @@ export async function handleControl(
   const p = url.pathname;
   const mutating = req.method === 'POST' || req.method === 'DELETE' || req.method === 'PATCH';
   if (!isControlPath(p)) return false;
+
+  // GET /skills names every skill on this machine and the plugin each came from, so it is gated on every method, as the
+  // extension family is. It is read-only: nothing it answers writes under Claude's home.
+  if (p === '/skills') {
+    if (!tokenOk(req, token)) {
+      json(res, 401, { error: `unauthorized; the token is in ${TOKEN_PATH}` });
+      return true;
+    }
+    if (req.method !== 'GET') {
+      json(res, 405, { error: `${req.method} not allowed on ${p}` });
+      return true;
+    }
+    if (!deps.claudeHome || !deps.extensions) {
+      json(res, 503, { error: 'skills are unavailable: this router has no Claude home or extension store' });
+      return true;
+    }
+    json(res, 200, skillsValue(deps.claudeHome, deps.extensions));
+    return true;
+  }
 
   // The extension family is gated on every method, GET included. Its listings name what the router holds and
   // where, so a page on this machine must not read them. The existing GETs on this API stay open (decision 3).

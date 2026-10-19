@@ -490,6 +490,19 @@ export class ExtensionStore {
     return { outcome: 'kept' };
   }
 
+  /** The held version a keep recorded for this entry, or null when none was kept or the record cannot be read. */
+  keptVersion(kind: ExtensionKind, name: string): string | null {
+    if (!isWellFormedName(name)) return null;
+    const text = readUtf8(this.keptPath(kind, name));
+    if (text === null) return null;
+    try {
+      const parsed = JSON.parse(text) as { pluginVersion?: unknown };
+      return typeof parsed.pluginVersion === 'string' ? parsed.pluginVersion : null;
+    } catch {
+      return null;
+    }
+  }
+
   private promotionPath(kind: ExtensionKind, name: string, stamp: string): string {
     return join(this.root, '.promotions', kind, name, `${stamp}.json`);
   }

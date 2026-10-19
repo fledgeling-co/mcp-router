@@ -44,6 +44,7 @@ app/Tests/MCPRouterKitTests/InboxBandTests.swift	swift-suite	app/Tests/MCPRouter
 app/Tests/MCPRouterKitTests/InboxEnvelopeTests.swift	swift-suite	app/Tests/MCPRouterKitTests/InboxEnvelopeTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/JackPresentationTests.swift	swift-suite	app/Tests/MCPRouterKitTests/JackPresentationTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/LightAppearanceTests.swift	swift-suite	app/Tests/MCPRouterKitTests/LightAppearanceTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterKitTests/LivePairingServiceTests.swift	swift-suite	app/Tests/MCPRouterKitTests/LivePairingServiceTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/LoopbackReadoutTests.swift	swift-suite	app/Tests/MCPRouterKitTests/LoopbackReadoutTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/M22BoardModelTests.swift	swift-suite	app/Tests/MCPRouterKitTests/M22BoardModelTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/M7DesignedStateTests.swift	swift-suite	app/Tests/MCPRouterKitTests/M7DesignedStateTests.swift	swift	compiled and run by `swift test`	make:test
@@ -59,7 +60,9 @@ app/Tests/MCPRouterKitTests/MockTokenMetricMapTests.swift	swift-suite	app/Tests/
 app/Tests/MCPRouterKitTests/MockTokenParityTests.swift	swift-suite	app/Tests/MCPRouterKitTests/MockTokenParityTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingBehaviourTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingBehaviourTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingCodeTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingCodeTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterKitTests/PairingFrameCodecTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingFrameCodecTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingPayloadTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingPayloadTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterKitTests/PhoneKeyStoreTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PhoneKeyStoreTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PopoverContentTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PopoverContentTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/ReadoutModelTests.swift	swift-suite	app/Tests/MCPRouterKitTests/ReadoutModelTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/RegistryCapabilityTests.swift	swift-suite	app/Tests/MCPRouterKitTests/RegistryCapabilityTests.swift	swift	compiled and run by `swift test`	make:test

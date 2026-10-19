@@ -12,8 +12,9 @@ public protocol PairingTransport: Sendable {
 
 /// One open connection. The codec in `PairingFrame` turns its bytes into messages.
 public protocol PairingChannel: Sendable {
-    /// The SHA-256 fingerprint of the certificate the handshake presented, in the form the QR's `fp`
-    /// field uses. The service compares the two; a transport never decides the match itself.
+    /// The SHA-256 fingerprint of the certificate the handshake presented, rendered by
+    /// `PairingFingerprint.render` as the QR's `fp` field carries it (plan §2.4). The service compares the
+    /// two; a transport never decides the match itself.
     var peerFingerprint: String { get }
 
     /// Writes one encoded frame.

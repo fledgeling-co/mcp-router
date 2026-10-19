@@ -2,7 +2,7 @@ import Foundation
 
 /// The messages on the pairing listener. Nothing else is accepted on it (plan §2.4).
 public enum PairingMessage: Sendable, Equatable {
-    /// Phone to Mac. `phoneKey` is the X9.63 public half of the phone's P-256 key.
+    /// Phone to Mac. `phoneKey` is the DER (SubjectPublicKeyInfo) form of the phone's P-256 public key.
     case request(code: PairingCode, phoneName: String, phoneKey: Data)
     /// Mac to phone, once the code is accepted and the pending record is written.
     case ok(macName: String, phoneId: String)
@@ -71,7 +71,7 @@ public enum PairingFrame {
     /// Every field the four messages use, optional where a message does not carry it. A missing
     /// required field is a named failure in `message(from:)`, not a decoding default.
     private struct Wire: Codable {
-        let t: String
+        let type: String
         let v: Int
         var code: String?
         var phoneName: String?
@@ -80,29 +80,31 @@ public enum PairingFrame {
         var phoneId: String?
         var reason: String?
         var found: Int?
+        var entry: String?
     }
 
     private static func wire(for message: PairingMessage) -> Wire {
         switch message {
         case let .request(code, phoneName, phoneKey):
             Wire(
-                t: "pair.request",
+                type: "pair.request",
                 v: version,
                 code: code.canonical,
                 phoneName: phoneName,
-                phoneKey: phoneKey.base64EncodedString()
+                phoneKey: phoneKey.base64EncodedString(),
+                entry: "scan"
             )
         case let .ok(macName, phoneId):
-            Wire(t: "pair.ok", v: version, macName: macName, phoneId: phoneId)
+            Wire(type: "pair.ok", v: version, macName: macName, phoneId: phoneId)
         case let .refused(refusal):
             refusedWire(refusal)
         case let .ack(phoneId):
-            Wire(t: "pair.ack", v: version, phoneId: phoneId)
+            Wire(type: "pair.ack", v: version, phoneId: phoneId)
         }
     }
 
     private static func refusedWire(_ refusal: PairingRefusal) -> Wire {
-        var wire = Wire(t: "pair.refused", v: version)
+        var wire = Wire(type: "pair.refused", v: version)
         switch refusal {
         case .notRecognised: wire.reason = "notRecognised"
         case .expired: wire.reason = "expired"
@@ -116,10 +118,11 @@ public enum PairingFrame {
     }
 
     private static func message(from wire: Wire) throws(PairingFrameError) -> PairingMessage {
-        switch wire.t {
+        switch wire.type {
         case "pair.request":
             let code = try pairingCode(wire.code)
             let key = try phoneKey(wire.phoneKey)
+            try checkEntry(wire.entry)
             return try .request(code: code, phoneName: required(wire.phoneName, "phoneName"), phoneKey: key)
         case "pair.ok":
             return try .ok(
@@ -131,7 +134,7 @@ public enum PairingFrame {
         case "pair.ack":
             return try .ack(phoneId: required(wire.phoneId, "phoneId"))
         default:
-            throw .unknownType(wire.t)
+            throw .unknownType(wire.type)
         }
     }
 
@@ -161,6 +164,14 @@ public enum PairingFrame {
             throw .malformed(detail: "phoneKey is not base64")
         }
         return key
+    }
+
+    /// `entry` says how the code was typed in. The phone sends `scan`; the router refuses `typed` by name.
+    private static func checkEntry(_ text: String?) throws(PairingFrameError) {
+        switch try required(text, "entry") {
+        case "scan", "typed": return
+        default: throw .malformed(detail: "entry is not scan or typed")
+        }
     }
 
     private static func required(_ value: String?, _ field: String) throws(PairingFrameError) -> String {

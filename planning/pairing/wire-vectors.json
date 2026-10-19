@@ -1,0 +1,321 @@
+{
+  "$comment": "Shared vectors for the pairing wire (planning/plans/plan-pairing-handshake.md §2.4). Read by test/pairing-listener.test.ts (router) and app/Tests/MCPRouterKitTests/PairingWireVectorsTests.swift (phone). Each frame names the side that must act on it. `direction` is who sends it. `expect.router` is what the router must do when it receives the frame; `expect.phone` is what the phone's codec must do with it. A side with no `expect` entry does not check that vector. `body` is the JSON object; `rawBody` replaces it with literal bytes. `declaredLength` overrides the length prefix. `trailing` is appended after the frame. `{{code}}` is the live code the router issued for the run; `{{phoneId}}` is the phoneId the router sent in pair.ok. Swift substitutes `placeholders` instead, since it has no router to ask.",
+  "wireVersion": 1,
+  "placeholders": {
+    "code": "K7QN4FMB",
+    "phoneId": "6f1c2a7e-3b0d-4e5a-9c1d-2a7f8e9b0c12"
+  },
+  "fingerprint": {
+    "certificate": "planning/pairing/wire-test-cert.pem",
+    "sha256": "fcbc813cdaf05832b37e9ae1b5af68341d0e254d913c2eb02638a2ab03ee49ea"
+  },
+  "frames": [
+    {
+      "name": "request.scan",
+      "direction": "toRouter",
+      "valid": true,
+      "body": {
+        "type": "pair.request",
+        "v": 1,
+        "code": "{{code}}",
+        "phoneName": "Luke's iPhone",
+        "phoneKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE3FKt/v9Cc2nAckHdLhAdNPCqmecpHdkAwkPiRoA/lQRwNhoQg1NVX3ICF4ZawXwLEwvQtT9FYj6b3hvUHhwb5w==",
+        "entry": "scan"
+      },
+      "expect": {
+        "router": { "reply": "pair.ok" },
+        "phone": { "encodes": "pair.request" }
+      }
+    },
+    {
+      "name": "ack.valid",
+      "direction": "toRouter",
+      "valid": true,
+      "after": "request.scan",
+      "body": { "type": "pair.ack", "v": 1, "phoneId": "{{phoneId}}" },
+      "expect": {
+        "router": { "reply": "closed", "recorded": true },
+        "phone": { "encodes": "pair.ack" }
+      }
+    },
+    {
+      "name": "request.typed",
+      "direction": "toRouter",
+      "valid": false,
+      "body": {
+        "type": "pair.request",
+        "v": 1,
+        "code": "{{code}}",
+        "phoneName": "Luke's iPhone",
+        "phoneKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE3FKt/v9Cc2nAckHdLhAdNPCqmecpHdkAwkPiRoA/lQRwNhoQg1NVX3ICF4ZawXwLEwvQtT9FYj6b3hvUHhwb5w==",
+        "entry": "typed"
+      },
+      "expect": {
+        "router": { "reply": "pair.refused", "reason": "typedEntryUnavailable" }
+      }
+    },
+    {
+      "name": "request.missingEntry",
+      "direction": "toRouter",
+      "valid": false,
+      "body": {
+        "type": "pair.request",
+        "v": 1,
+        "code": "{{code}}",
+        "phoneName": "Luke's iPhone",
+        "phoneKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE3FKt/v9Cc2nAckHdLhAdNPCqmecpHdkAwkPiRoA/lQRwNhoQg1NVX3ICF4ZawXwLEwvQtT9FYj6b3hvUHhwb5w=="
+      },
+      "expect": {
+        "router": { "reply": "pair.refused", "reason": "badRequest" },
+        "phone": { "error": "malformed" }
+      }
+    },
+    {
+      "name": "request.phoneKeyX963",
+      "direction": "toRouter",
+      "valid": false,
+      "note": "The raw 65-byte point the phone used to send. The router takes SPKI DER only.",
+      "body": {
+        "type": "pair.request",
+        "v": 1,
+        "code": "{{code}}",
+        "phoneName": "Luke's iPhone",
+        "phoneKey": "BNxSrf7/QnNpwHJB3S4QHTTwqpnnKR3ZAMJD4kaAP5UEcDYaEINTVV9yAheGWsF8CxML0LU/RWI+m94b1B4cG+c=",
+        "entry": "scan"
+      },
+      "expect": {
+        "router": { "reply": "pair.refused", "reason": "badRequest" }
+      }
+    },
+    {
+      "name": "request.emptyPhoneName",
+      "direction": "toRouter",
+      "valid": false,
+      "body": {
+        "type": "pair.request",
+        "v": 1,
+        "code": "{{code}}",
+        "phoneName": "   ",
+        "phoneKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE3FKt/v9Cc2nAckHdLhAdNPCqmecpHdkAwkPiRoA/lQRwNhoQg1NVX3ICF4ZawXwLEwvQtT9FYj6b3hvUHhwb5w==",
+        "entry": "scan"
+      },
+      "expect": {
+        "router": { "reply": "pair.refused", "reason": "badRequest" }
+      }
+    },
+    {
+      "name": "request.wrongVersion",
+      "direction": "toRouter",
+      "valid": false,
+      "body": {
+        "type": "pair.request",
+        "v": 2,
+        "code": "{{code}}",
+        "phoneName": "Luke's iPhone",
+        "phoneKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE3FKt/v9Cc2nAckHdLhAdNPCqmecpHdkAwkPiRoA/lQRwNhoQg1NVX3ICF4ZawXwLEwvQtT9FYj6b3hvUHhwb5w==",
+        "entry": "scan"
+      },
+      "expect": {
+        "router": { "reply": "pair.refused", "reason": "unsupportedVersion", "found": 2 },
+        "phone": { "error": "unsupportedVersion", "found": 2 }
+      }
+    },
+    {
+      "name": "request.notRecognised",
+      "direction": "toRouter",
+      "valid": false,
+      "body": {
+        "type": "pair.request",
+        "v": 1,
+        "code": "ZZZZZZZZ",
+        "phoneName": "Luke's iPhone",
+        "phoneKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE3FKt/v9Cc2nAckHdLhAdNPCqmecpHdkAwkPiRoA/lQRwNhoQg1NVX3ICF4ZawXwLEwvQtT9FYj6b3hvUHhwb5w==",
+        "entry": "scan"
+      },
+      "expect": {
+        "router": { "reply": "pair.refused", "reason": "notRecognised" }
+      }
+    },
+    {
+      "name": "request.notJson",
+      "direction": "toRouter",
+      "valid": false,
+      "rawBody": "not json",
+      "expect": {
+        "router": { "reply": "pair.refused", "reason": "badRequest" },
+        "phone": { "error": "malformed" }
+      }
+    },
+    {
+      "name": "request.oversized",
+      "direction": "toRouter",
+      "valid": false,
+      "declaredLength": 4097,
+      "body": { "type": "pair.request", "v": 1 },
+      "expect": {
+        "router": { "reply": "pair.refused", "reason": "frameTooLarge" },
+        "phone": { "error": "oversized" }
+      }
+    },
+    {
+      "name": "frame.unknownType",
+      "direction": "toRouter",
+      "valid": false,
+      "body": { "type": "pair.hello", "v": 1 },
+      "expect": {
+        "router": { "reply": "closed" },
+        "phone": { "error": "unknownType", "type": "pair.hello" }
+      }
+    },
+    {
+      "name": "ack.wrongPhoneId",
+      "direction": "toRouter",
+      "valid": false,
+      "after": "request.scan",
+      "body": { "type": "pair.ack", "v": 1, "phoneId": "not-the-phone" },
+      "expect": {
+        "router": { "reply": "closed", "recorded": false }
+      }
+    },
+    {
+      "name": "ack.wrongVersion",
+      "direction": "toRouter",
+      "valid": false,
+      "after": "request.scan",
+      "body": { "type": "pair.ack", "v": 2, "phoneId": "{{phoneId}}" },
+      "expect": {
+        "router": { "reply": "closed", "recorded": false },
+        "phone": { "error": "unsupportedVersion", "found": 2 }
+      }
+    },
+    {
+      "name": "pair.ok",
+      "direction": "toPhone",
+      "valid": true,
+      "body": { "type": "pair.ok", "v": 1, "macName": "Luke's MacBook Pro", "phoneId": "phone-1" },
+      "expect": {
+        "phone": { "decodes": "pair.ok" }
+      }
+    },
+    {
+      "name": "pair.refused.notRecognised",
+      "direction": "toPhone",
+      "valid": true,
+      "body": { "type": "pair.refused", "v": 1, "reason": "notRecognised" },
+      "expect": {
+        "phone": { "decodes": "pair.refused", "reason": "notRecognised" }
+      }
+    },
+    {
+      "name": "pair.refused.expired",
+      "direction": "toPhone",
+      "valid": true,
+      "body": { "type": "pair.refused", "v": 1, "reason": "expired" },
+      "expect": {
+        "phone": { "decodes": "pair.refused", "reason": "expired" }
+      }
+    },
+    {
+      "name": "pair.refused.alreadyUsed",
+      "direction": "toPhone",
+      "valid": true,
+      "body": { "type": "pair.refused", "v": 1, "reason": "alreadyUsed" },
+      "expect": {
+        "phone": { "decodes": "pair.refused", "reason": "alreadyUsed" }
+      }
+    },
+    {
+      "name": "pair.refused.unsupportedVersion",
+      "direction": "toPhone",
+      "valid": true,
+      "body": { "type": "pair.refused", "v": 1, "reason": "unsupportedVersion", "found": 2 },
+      "expect": {
+        "phone": { "decodes": "pair.refused", "reason": "unsupportedVersion", "found": 2 }
+      }
+    },
+    {
+      "name": "reply.oversized",
+      "direction": "toPhone",
+      "valid": false,
+      "declaredLength": 4097,
+      "body": { "type": "pair.ok", "v": 1, "macName": "m", "phoneId": "p" },
+      "expect": {
+        "phone": { "error": "oversized" }
+      }
+    },
+    {
+      "name": "reply.truncated",
+      "direction": "toPhone",
+      "valid": false,
+      "declaredLength": 200,
+      "body": { "type": "pair.ok", "v": 1, "macName": "m", "phoneId": "p" },
+      "expect": {
+        "phone": { "error": "truncated" }
+      }
+    },
+    {
+      "name": "reply.trailingBytes",
+      "direction": "toPhone",
+      "valid": false,
+      "body": { "type": "pair.ok", "v": 1, "macName": "m", "phoneId": "p" },
+      "trailing": "}",
+      "expect": {
+        "phone": { "error": "malformed" }
+      }
+    },
+    {
+      "name": "reply.notJson",
+      "direction": "toPhone",
+      "valid": false,
+      "rawBody": "not json",
+      "expect": {
+        "phone": { "error": "malformed" }
+      }
+    },
+    {
+      "name": "reply.noType",
+      "direction": "toPhone",
+      "valid": false,
+      "body": { "v": 1, "macName": "m", "phoneId": "p" },
+      "expect": {
+        "phone": { "error": "malformed" }
+      }
+    },
+    {
+      "name": "reply.okWithoutPhoneId",
+      "direction": "toPhone",
+      "valid": false,
+      "body": { "type": "pair.ok", "v": 1, "macName": "m" },
+      "expect": {
+        "phone": { "error": "malformed" }
+      }
+    },
+    {
+      "name": "reply.unsupportedVersion",
+      "direction": "toPhone",
+      "valid": false,
+      "body": { "type": "pair.ok", "v": 9, "macName": "m", "phoneId": "p" },
+      "expect": {
+        "phone": { "error": "unsupportedVersion", "found": 9 }
+      }
+    },
+    {
+      "name": "reply.refusedUnknownReason",
+      "direction": "toPhone",
+      "valid": false,
+      "body": { "type": "pair.refused", "v": 1, "reason": "nope" },
+      "expect": {
+        "phone": { "error": "malformed" }
+      }
+    },
+    {
+      "name": "reply.refusedUnsupportedVersionWithoutFound",
+      "direction": "toPhone",
+      "valid": false,
+      "body": { "type": "pair.refused", "v": 1, "reason": "unsupportedVersion" },
+      "expect": {
+        "phone": { "error": "malformed" }
+      }
+    }
+  ]
+}

@@ -65,7 +65,7 @@ struct PairingFrameCodecTests {
 
     @Test("a frame shorter than its prefix says is truncated")
     func truncated() {
-        let frame = rawFrame(body: #"{"t":"pair.ack","v":1,"phoneId":"p"}"#).dropLast(3)
+        let frame = rawFrame(body: #"{"type":"pair.ack","v":1,"phoneId":"p"}"#).dropLast(3)
         #expect(throws: PairingFrameError.truncated) {
             try PairingFrame.decode(frame)
         }
@@ -80,7 +80,7 @@ struct PairingFrameCodecTests {
 
     @Test("bytes after one complete frame are malformed")
     func trailingBytes() {
-        var frame = rawFrame(body: #"{"t":"pair.ack","v":1,"phoneId":"p"}"#)
+        var frame = rawFrame(body: #"{"type":"pair.ack","v":1,"phoneId":"p"}"#)
         frame.append(0x7D)
         #expect(throws: PairingFrameError.self) {
             try PairingFrame.decode(frame)
@@ -90,14 +90,14 @@ struct PairingFrameCodecTests {
     @Test("a message type this build does not know is named")
     func unknownType() {
         #expect(throws: PairingFrameError.unknownType("pair.bogus")) {
-            try PairingFrame.decode(rawFrame(body: #"{"t":"pair.bogus","v":1}"#))
+            try PairingFrame.decode(rawFrame(body: #"{"type":"pair.bogus","v":1}"#))
         }
     }
 
     @Test("a version outside the supported set is a named refusal, not a parse error")
     func badVersion() {
         #expect(throws: PairingFrameError.unsupportedVersion(found: 9)) {
-            try PairingFrame.decode(rawFrame(body: #"{"t":"pair.ack","v":9,"phoneId":"p"}"#))
+            try PairingFrame.decode(rawFrame(body: #"{"type":"pair.ack","v":9,"phoneId":"p"}"#))
         }
     }
 
@@ -110,15 +110,29 @@ struct PairingFrameCodecTests {
 
     @Test("a request whose code is not eight Crockford characters is malformed")
     func badCode() {
-        let body = #"{"t":"pair.request","v":1,"code":"nope","phoneName":"x","phoneKey":"AA=="}"#
+        let head = #"{"type":"pair.request","v":1,"code":"nope","phoneName":"x","phoneKey":"AA==""#
+        let body = head + #","entry":"scan"}"#
         #expect(throws: PairingFrameError.self) {
             try PairingFrame.decode(rawFrame(body: body))
         }
     }
 
+    @Test("a request must say how its code was entered, scan or typed, and anything else is malformed")
+    func entryIsRequired() {
+        let head = #"{"type":"pair.request","v":1,"code":"K7QN4FMB","phoneName":"x","phoneKey":"AA==""#
+        let missing = head + "}"
+        let unknown = head + #","entry":"nope"}"#
+        #expect(throws: PairingFrameError.self) {
+            try PairingFrame.decode(rawFrame(body: missing))
+        }
+        #expect(throws: PairingFrameError.self) {
+            try PairingFrame.decode(rawFrame(body: unknown))
+        }
+    }
+
     @Test("a version refusal without the version it refused is malformed")
     func refusalWithoutFound() {
-        let body = #"{"t":"pair.refused","v":1,"reason":"unsupportedVersion"}"#
+        let body = #"{"type":"pair.refused","v":1,"reason":"unsupportedVersion"}"#
         #expect(throws: PairingFrameError.self) {
             try PairingFrame.decode(rawFrame(body: body))
         }

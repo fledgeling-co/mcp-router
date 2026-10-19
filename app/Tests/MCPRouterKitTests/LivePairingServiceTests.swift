@@ -10,7 +10,19 @@ import Testing
 @Suite("Live pairing service")
 struct LivePairingServiceTests {
     static let macName = "Luke's MacBook Pro"
-    static let fingerprint = "SHA256:5f2b9c0e"
+    /// The fingerprint `planning/pairing/wire-test-cert.pem` renders to, the form §2.4 fixes.
+    static let fingerprint = "fcbc813cdaf05832b37e9ae1b5af68341d0e254d913c2eb02638a2ab03ee49ea"
+
+    @Test("the request carries the phone key as SPKI DER, the form the router records")
+    func phoneKeyIsSPKI() async throws {
+        var rig = Rig()
+        rig.reply = try okReply()
+        _ = try await rig.service().result(for: .scanned(payload()))
+
+        let sent = try #require(await rig.trace.phoneKeys.first)
+        #expect(sent.count == 91)
+        _ = try P256.Signing.PublicKey(derRepresentation: sent)
+    }
 
     @Test("a record is written after pair.ok, and the ack follows it")
     func recordOrdering() async throws {
@@ -256,9 +268,14 @@ enum FakeReply: Sendable {
 /// key store.
 actor Trace {
     private(set) var events: [String] = []
+    private(set) var phoneKeys: [Data] = []
 
     func record(_ event: String) {
         events.append(event)
+    }
+
+    func recordPhoneKey(_ key: Data) {
+        phoneKeys.append(key)
     }
 }
 
@@ -321,7 +338,9 @@ struct FakeChannel: PairingChannel {
     func send(_ frame: Data) async throws {
         let message = try? PairingFrame.decode(frame)
         switch message {
-        case .request?: await trace.record("send request")
+        case let .request(_, _, phoneKey)?:
+            await trace.record("send request")
+            await trace.recordPhoneKey(phoneKey)
         case .ack?:
             await trace.record("send ack")
             if failsOnAck { throw PairingTransportError.closed }

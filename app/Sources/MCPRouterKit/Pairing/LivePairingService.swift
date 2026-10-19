@@ -95,7 +95,7 @@ public struct LivePairingService: PairingService {
             return .failed(transportFailure())
         }
 
-        let result = await converse(on: channel, payload, phoneKey: key.publicKey.x963Representation)
+        let result = await converse(on: channel, payload, phoneKey: key.publicKey.derRepresentation)
         await channel.close()
         return result
     }

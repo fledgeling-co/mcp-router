@@ -175,7 +175,12 @@ function serve(socket: TLSSocket, deps: ServeDeps): void {
     const message = parseMessage(body);
 
     if (phase === 'ack') {
-      if (message?.type !== 'pair.ack' || !pending || message.phoneId !== pending.phoneId) {
+      if (
+        message?.type !== 'pair.ack' ||
+        message.v !== PAIRING_WIRE_VERSION ||
+        !pending ||
+        message.phoneId !== pending.phoneId
+      ) {
         finished = true;
         socket.destroy();
         return;

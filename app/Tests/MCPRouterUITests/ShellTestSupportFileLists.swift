@@ -100,6 +100,7 @@
             "app/Sources/MCPRouterUI/Boards/SkillsBoardModel.swift",
             "app/Sources/MCPRouterUI/Boards/SkillInspector.swift",
             "app/Sources/MCPRouterUI/Boards/SkillSheets.swift",
+            "app/Sources/MCPRouterUI/Boards/SkillUpdatesSection.swift",
             // Split out of ServerSheets.swift for the same reason. It is also the view M8
             // changed, so keeping it separately gated is the honest arrangement.
             "app/Sources/MCPRouterUI/Boards/ToolChangeCard.swift",

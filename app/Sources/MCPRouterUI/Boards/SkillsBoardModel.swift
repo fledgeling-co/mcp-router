@@ -51,6 +51,16 @@
         /// follow none" from "the router would not say", and those two want different words.
         /// `SWIFT_PRACTICES.md` §3 — never swallow an error to keep a surface tidy.
         public private(set) var marketplacesError: ControlAPIError?
+        /// The marketplace update check: the entries the router compared, with the changelog of any newer
+        /// version it
+        /// could read. Its own read, so its failure leaves the rows standing, as the marketplace read does.
+        public private(set) var updates: [ExtensionUpdateEntry] = []
+        /// Why the update check is missing, when it is. Nil while it has not been read and after a good read.
+        public private(set) var updatesError: ControlAPIError?
+        /// Whether the update check has answered at all, so an empty list is read as a check that found
+        /// nothing
+        /// rather than as a check still in flight.
+        public private(set) var updatesChecked = false
         public var selection: String?
         public var filter: SkillPresentation.Filter = .all
         public var search: String = ""
@@ -110,6 +120,30 @@
                 marketplaces = []
                 marketplacesError = error
             }
+            // The update check is a third independent read, for the same reason: its failure must not blank
+            // the board.
+            guard !Task.isCancelled else { return }
+            do {
+                updates = try await client.extensionUpdates().entries
+                updatesError = nil
+            } catch {
+                guard !Task.isCancelled else { return }
+                updates = []
+                updatesError = error
+            }
+            updatesChecked = true
+        }
+
+        /// Whether Promote can be taken: the router serves the cache route. A held row is the other half,
+        /// which the sheet
+        /// checks on the row it is drawing.
+        public var promotesFromCache: Bool { state.response?.promoteFromCache == true }
+
+        /// The update check's entry for a plugin's installed copy, when the check offers that plugin a newer
+        /// version.
+        public func offer(for skill: Skill) -> ExtensionUpdateEntry? {
+            guard let origin = skill.source.pluginOrigin else { return nil }
+            return updates.first { $0.kind == .plugins && $0.name == origin.storeName && $0.hasUpdate }
         }
 
         /// Keep a held version: the router records that it was declined. Plugin-held versions only, because a
@@ -127,14 +161,18 @@
             }
         }
 
-        /// Promote a held version over the installed one. The router keeps the copy it replaces, so the
-        /// promotion is reversible and needs no confirmation first (`DESIGN.md` §9).
-        public func promoteHeldVersion(_ skill: Skill, files: [ExtensionFileBody]) async {
+        /// Promote a held version over the installed one. The router reads that version from Claude's plugin
+        /// cache and
+        /// keeps the copy it replaces, so the promotion is reversible and needs no confirmation first
+        /// (`DESIGN.md` §9).
+        /// Nothing is sent but the version: the board never holds the files it installs.
+        public func promoteHeldVersion(_ skill: Skill) async {
             guard let origin = skill.source.pluginOrigin, let held = skill.held, beginWrite() else { return }
             defer { writing = false }
             do throws(ControlAPIError) {
-                let ack = try await client.promote(
-                    origin.storeName, kind: .plugins, pluginVersion: held.pluginVersion, files: files
+                let ack = try await client.promoteFromCache(
+                    origin.storeName,
+                    pluginVersion: held.pluginVersion
                 )
                 lastPromotion = PromotedEntry(
                     plugin: origin.plugin,

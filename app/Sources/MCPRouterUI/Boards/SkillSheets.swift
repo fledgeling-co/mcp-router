@@ -34,17 +34,17 @@
 
         var body: some View {
             VStack(alignment: .leading, spacing: SkillsBoardMetrics.gap) {
-                Text(SkillPresentation.heldTitle(skill))
-                    .typeRole(.title2)
-                    .foregroundStyle(ColorToken.t1.color)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                Text(SkillPresentation.heldBody(skill))
-                    .typeRole(.body)
-                    .foregroundStyle(ColorToken.t2.color)
-                    .fixedSize(horizontal: false, vertical: true)
-
                 if let held = skill.held {
+                    Text(SkillPresentation.heldTitle(skill))
+                        .typeRole(.title2)
+                        .foregroundStyle(ColorToken.t1.color)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Text(SkillPresentation.heldBody(skill))
+                        .typeRole(.body)
+                        .foregroundStyle(ColorToken.t2.color)
+                        .fixedSize(horizontal: false, vertical: true)
+
                     VStack(alignment: .leading, spacing: SkillsBoardMetrics.tightGap) {
                         ForEach(held.addedCapabilities, id: \.self) { capability in
                             HStack(alignment: .firstTextBaseline, spacing: SkillsBoardMetrics.tightGap) {
@@ -67,20 +67,29 @@
                         )
                         .fill(ColorToken.f3.color)
                     }
-                }
 
-                // Names how the list was derived, so it is not mistaken for something the plugin's
-                // author declared.
-                Text(SkillPresentation.capabilityDerivation)
-                    .typeRole(.caption)
-                    .foregroundStyle(ColorToken.t3.color)
-                    .fixedSize(horizontal: false, vertical: true)
+                    // Names how the list was derived, so it is not mistaken for something the plugin's
+                    // author declared.
+                    Text(SkillPresentation.capabilityDerivation)
+                        .typeRole(.caption)
+                        .foregroundStyle(ColorToken.t3.color)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    // The changelog the update check read for this version, with what it observed when it
+                    // read none.
+                    if let changelog = board.offer(for: skill)?.changelog {
+                        Text(changelog.text ?? changelog.note)
+                            .typeRole(.caption, monospaced: changelog.text != nil)
+                            .foregroundStyle(ColorToken.t2.color)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
 
                 Divider()
 
-                // Keep is the one write this sheet can make: it records a decision the router holds, and
-                // nothing is installed. Promote stays dimmed in place with its reason, because the router
-                // has no copy of the held version's files to promote (§3.4).
+                // Keep records a decision the router holds, and Promote reads the held version from the
+                // plugin cache
+                // and installs it. Each is dimmed in place with its reason where it cannot run (§3.4).
                 VStack(alignment: .leading, spacing: SkillsBoardMetrics.tightGap) {
                     if let failure = board.writeFailure {
                         // The router's own refusal, beside the control that made it (§6). Never a success.
@@ -94,15 +103,15 @@
                             .foregroundStyle(ColorToken.t2.color)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    Button("Keep \(skill.source.pluginOrigin?.pluginVersion ?? "the installed version")") {
-                        Task { await board.keepHeldVersion(skill) }
+                    if let held = skill.held {
+                        let installed = skill.source.pluginOrigin?.pluginVersion ?? "the installed version"
+                        Button("Keep \(installed)") {
+                            Task { await board.keepHeldVersion(skill) }
+                        }
+                        .buttonStyle(StandardButtonStyle())
+                        .disabled(board.writing)
+                        promoteControl(to: held.pluginVersion)
                     }
-                    .buttonStyle(StandardButtonStyle())
-                    .disabled(board.writing)
-                    DisabledAction(
-                        label: "Promote to \(skill.held?.pluginVersion ?? "")",
-                        reason: SkillPresentation.promoteUnavailable
-                    )
                     if board.lastPromotion != nil {
                         Button("Undo") { Task { await board.undoLastPromotion() } }
                             .buttonStyle(StandardButtonStyle())
@@ -119,6 +128,19 @@
             }
             .padding(SkillsBoardMetrics.panePadding)
             .frame(width: SkillsBoardMetrics.sheetWidth)
+        }
+
+        /// Promote is live where the router serves the cache route, and dimmed with its reason where it does
+        /// not.
+        @ViewBuilder
+        private func promoteControl(to version: String) -> some View {
+            if board.promotesFromCache {
+                Button("Promote to \(version)") { Task { await board.promoteHeldVersion(skill) } }
+                    .buttonStyle(StandardButtonStyle())
+                    .disabled(board.writing)
+            } else {
+                DisabledAction(label: "Promote to \(version)", reason: SkillPresentation.promoteUnavailable)
+            }
         }
     }
 

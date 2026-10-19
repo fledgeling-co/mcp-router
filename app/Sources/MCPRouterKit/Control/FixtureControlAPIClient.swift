@@ -149,7 +149,9 @@ public struct FixtureControlAPIClient: ControlAPIClient {
                 clients: SkillFixtures.clients
             )
         default:
-            return SkillsResponse(skills: SkillFixtures.populated, clients: SkillFixtures.clients)
+            return SkillsResponse(
+                skills: SkillFixtures.populated, clients: SkillFixtures.clients, promoteFromCache: true
+            )
         }
     }
 

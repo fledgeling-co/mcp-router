@@ -17,6 +17,21 @@ public extension LiveControlAPIClient {
         )
     }
 
+    func promoteFromCache(
+        _ name: String, pluginVersion: String
+    ) async throws(ControlAPIError) -> PromotionAck {
+        try await send(
+            .post,
+            entryPath(.plugins, name, "promote"),
+            body: jsonBody(CachePromoteBody(pluginVersion: pluginVersion)),
+            as: PromotionAck.self
+        )
+    }
+
+    func extensionUpdates() async throws(ControlAPIError) -> ExtensionUpdatesResponse {
+        try await send(.get, "extensions/updates", as: ExtensionUpdatesResponse.self)
+    }
+
     func undoPromotion(
         _ name: String, kind: StoredExtensionKind, restore: String
     ) async throws(ControlAPIError) -> UndoAck {
@@ -63,5 +78,13 @@ private struct UndoBody: Encodable {
 }
 
 private struct KeepBody: Encodable {
+    let pluginVersion: String
+}
+
+/// The body of a promotion from Claude's cache. `source` is the router's word for "read the files yourself",
+/// and the
+/// body carries no files: the router would not know which copy to believe if both came.
+struct CachePromoteBody: Encodable, Equatable {
+    let source = "cache"
     let pluginVersion: String
 }

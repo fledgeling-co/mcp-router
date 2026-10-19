@@ -1,4 +1,5 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
@@ -391,6 +392,7 @@ export async function startRouter(
     liveReload,
     pairing,
     extensions: new ExtensionStore(join(ROUTER_HOME, 'extensions')),
+    claudeHome: join(homedir(), '.claude'),
     harnesses: diskHarnessInventory(),
   };
 

@@ -4118,3 +4118,11 @@ Build clean, 699 Windows tests passing, the lane at **10 of 10 destinations and 
 none failing** — up from wd1's 30 and wd2's 26 because the merge carries both sets. Fourteen
 portable gates, `control-census`, `effect-class-census`, `effect-provider-gate`,
 `win-surface-reconcile`, `arm-surface-plane` and `arm-win-surface-reconcile` all exit 0.
+
+## 2026-10-20 · Stale Windows records, and DEF-280 re-filed
+
+- **DEF-072, DEF-073 and DEF-074 are `fixed` in both defect registers.** Each names the effect witness that measures it: `scripts/windows/win22-toast-effect-witness.ps1`, `scripts/windows/win19-package-witness.ps1` and `scripts/windows/win23-logon-task-witness.ps1`. Read on 2026-10-20, this file has no line that still calls any of the three deferred. The lines that call WIN19, WIN22 and WIN23 inert (the 2026-09-02 fleet section, around line 3587) describe the tree before those three were built for real (the section at line 3710), so they stay as the audit record and are superseded by it.
+- **DEF-280 is `fixed`, by re-filing.** CASE-0270 to CASE-0275 now name REQ-096, the diagnostics-bundle requirement added to `inventory.json`. CASE-0308, the logon task, stays under REQ-035, which is unchanged.
+- **DEF-082 is narrowed.** Its read half is measured by Wave B. What remains open is pressing a toast and attributing one to its application.
+- **DEF-300 and DEF-381 stay `answered`.** Wave C's merged-tree evidence disagrees with the cause each record gives, and each record names the one interactive run that settles it.
+- **DEF-401 is wired and DEF-380's headless half is mounted.** Both stay open, pending a lane arm for DEF-401 and a desktop for the tooltip and tray press in DEF-380.

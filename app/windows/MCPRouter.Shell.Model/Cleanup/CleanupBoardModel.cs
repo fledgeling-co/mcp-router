@@ -44,7 +44,19 @@ public sealed class CleanupBoardModel
     /// </remarks>
     private readonly HashSet<string> _selected = new(StringComparer.Ordinal);
 
-    public int SelectedDaysWindow { get; set; } = 30;
+    /// <summary>The last router answer adopted, and the clock it was adopted at, so a change of
+    /// window can re-derive the rows without waiting for the next poll.</summary>
+    private (ServersEnvelope Envelope, DateTimeOffset At)? _reading;
+
+    /// <summary>
+    /// The window the quiet list is judged over, in days. Changed only through
+    /// <see cref="SetQuietWindow"/>, so the list cannot be judged over a window the board never offers.
+    /// </summary>
+    public int SelectedDaysWindow { get; private set; } = 30;
+
+    /// <summary>The windows the operator may pick between: the two the design names. The design
+    /// captions the selector "Unused for 30 days", and its loading state counts "90 days of calls".</summary>
+    public static IReadOnlyList<int> QuietWindowChoices { get; } = new[] { 30, 90 };
 
     /// <summary>True until the first answer or the first failure. Not a spinner: it is the state
     /// that keeps the board from drawing "nothing to propose" over a router it has not asked.</summary>
@@ -65,6 +77,33 @@ public sealed class CleanupBoardModel
         "Only MCP servers are listed. The router serves no skills route on this build, so whether "
         + "a skill is unused is something this board has no reading for and does not guess.";
 
+    /// <summary>The caption on the window selector, and the sentence it states the window with.</summary>
+    public static string WindowCaption(int days) => $"Unused for {days} days";
+
+    /// <summary>The heading over the quiet list, which moves with the window it is judged over.</summary>
+    public static string QuietHeading(int days) => $"Quiet for {days} days or more";
+
+    /// <summary>
+    /// Change the window the quiet list is judged over, and re-derive the rows from the last answer
+    /// at once rather than at the next poll.
+    /// </summary>
+    /// <param name="days">One of <see cref="QuietWindowChoices"/>.</param>
+    /// <exception cref="ArgumentOutOfRangeException">The window is not one the board offers.</exception>
+    public void SetQuietWindow(int days)
+    {
+        if (!QuietWindowChoices.Contains(days))
+        {
+            throw new ArgumentOutOfRangeException(nameof(days), days,
+                "The board offers only the windows the design names.");
+        }
+
+        SelectedDaysWindow = days;
+        if (_reading is { } reading)
+        {
+            Adopt(reading.Envelope, reading.At);
+        }
+    }
+
     /// <summary>
     /// Take the router's answer and derive the candidates from it.
     /// </summary>
@@ -79,9 +118,7 @@ public sealed class CleanupBoardModel
         IsLoading = false;
         ErrorMessage = null;
         AnsweredAt = now;
-
-        // A tick over a server the router no longer lists cannot be acted on, so it is not kept.
-        _selected.IntersectWith(envelope.Servers.Select(s => s.Name));
+        _reading = (envelope, now);
 
         foreach (var server in envelope.Servers.OrderBy(s => s.Name, StringComparer.Ordinal))
         {
@@ -116,6 +153,11 @@ public sealed class CleanupBoardModel
                     IsSelected: selected));
             }
         }
+
+        // A tick is kept only while its row is on the board. A server the router stopped listing,
+        // or one that is no longer a candidate under the current window, cannot be acted on from
+        // here, so its tick is dropped rather than waiting to re-arm itself.
+        _selected.IntersectWith(_neverCalledRows.Select(r => r.Id).Concat(_quietRows.Select(r => r.Id)));
     }
 
     /// <summary>The router did not answer. The rows already on screen are dropped rather than
@@ -128,6 +170,7 @@ public sealed class CleanupBoardModel
         IsLoading = false;
         ErrorMessage = message;
         AnsweredAt = null;
+        _reading = null;
     }
 
     public void SetSelection(string id, bool isSelected)

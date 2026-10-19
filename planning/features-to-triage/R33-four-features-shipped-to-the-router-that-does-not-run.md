@@ -66,3 +66,10 @@ numerator alone.
 - Assuming the divergence gate belongs beside the parity harness rather than inside it, since the
   harness compares behaviour of rows that exist on both sides and this is about a row existing on
   only one.
+
+## Disposition — 2026-10-19
+
+Dispositioned 2026-10-19 in `planning/plans/plan-retire-swift-router.md`. The one-sided landings are
+the port list: R28 and the R30 undo path port (P1, P2), R31 and R32 are dropped, and R29 stays
+TypeScript-only. The carrier-parity gate stays non-blocking until P1 to P6 land. The owner retired
+the Swift router on 2026-10-19, which is the decision REQ-020 reserved to them.

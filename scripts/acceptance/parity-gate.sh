@@ -20,12 +20,25 @@
 #   3. A lane that exits 0 having printed nothing did not run. A lane that produces no result rows
 #      is recorded as an environment failure, not as a lane with nothing to say.
 #
-# Exit codes:
+# INFORMATIONAL since 2026-10-19. The owner retired the Swift router (plan-retire-swift-router.md,
+# G1), so parity no longer gates a release. This script still runs every lane and prints the same
+# report, but it exits 0 whatever the report says. The verdict it would have exited with is printed
+# on the line before its end, so read the report, not the exit code. The one refusal that keeps its
+# own code is the lock in parity-lock.sh, which exits before any report exists.
+#
+# Verdicts, as the report prints them:
 #   0  every row proven. Not reachable today, and the report says why.
 #   1  a row is blocked, or a lane reported a mismatch.
 #   2  the environment could not run a lane. Distinct because a skipped lane is not a pass.
 
 set -uo pipefail
+
+# Every non-zero verdict routes through here. The report keeps the verdict and the exit status does
+# not carry it, which is the whole of the informational change.
+informational_exit() {
+  echo "verdict: this run would have exited $1. Parity is informational, so the exit is 0."
+  exit 0
+}
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 MANIFEST="${PARITY_MANIFEST:-$REPO_ROOT/planning/parity/surface.tsv}"
@@ -65,12 +78,12 @@ if [ "$manifest_status" = 2 ]; then
   echo
   echo "the manifest could not be checked — the reason is printed above. There is no surface to"
   echo "report against, so no coverage is computed."
-  exit 2
+  informational_exit 2
 fi
 if [ "$manifest_status" != 0 ]; then
   echo
   echo "the manifest disagrees with the source. Coverage is not computed from a stale census."
-  exit 1
+  informational_exit 1
 fi
 echo
 
@@ -296,7 +309,7 @@ if [ "$orphans" -gt 0 ]; then
   done
   echo
   echo "The lane tested it, so the row existed when the lane was written. A row that leaves the"
-  echo "manifest leaves the denominator, and the coverage fraction goes up. Exit 1."
+  echo "manifest leaves the denominator, and the coverage fraction goes up. Verdict 1."
   echo
 fi
 
@@ -338,7 +351,7 @@ fi
 
 if [ "$total" = 0 ]; then
   echo "parity: the manifest enumerates no rows. An unrun gate is not a passing one."
-  exit 2
+  informational_exit 2
 fi
 
 if [ "$mismatched" -gt 0 ]; then
@@ -549,22 +562,22 @@ fi
 # exited 2 and printed a reassuring line about coverage, burying the one result someone must act
 # on. Both are non-zero; which non-zero it is decides what gets read first.
 if [ "$mismatched" -gt 0 ]; then
-  echo "A mismatch is a divergence from the reference that nothing declared. Exit 1."
-  exit 1
+  echo "A mismatch is a divergence from the reference that nothing declared. Verdict 1."
+  informational_exit 1
 fi
 
 # Ranked directly below a divergence and above a lost lane. A row that has left the manifest is a
 # claim quietly withdrawn, and unlike a lost lane it makes the number LOOK BETTER, so it must not
 # be reported behind a line about an incomplete run.
 if [ "$orphans" -gt 0 ]; then
-  echo "$orphans row(s) were tested by a lane and are not in the manifest. Exit 1."
-  exit 1
+  echo "$orphans row(s) were tested by a lane and are not in the manifest. Verdict 1."
+  informational_exit 1
 fi
 
 if [ "$env_failed" = 1 ]; then
-  echo "No divergence was found, but the run is incomplete. Exit 2, distinctly, because a"
+  echo "No divergence was found, but the run is incomplete. Verdict 2, distinctly, because a"
   echo "skipped lane is not a pass."
-  exit 2
+  informational_exit 2
 fi
 
 if [ "$blocked" -gt 0 ]; then
@@ -587,7 +600,7 @@ if [ "$blocked" -gt 0 ]; then
     echo "can tell an exclusion apart from a regression."
   fi
   echo "Flipping the installer on this evidence is the one outcome this gate exists to prevent."
-  exit 1
+  informational_exit 1
 fi
 
 echo "Every enumerated row is proven. The Swift router answers what the reference answers."

@@ -21,7 +21,7 @@
     @Suite("M39 — the expiry ring, and a fallback stated rather than offered")
     @MainActor
     struct PairingExpiryTests {
-        static let now = Date(timeIntervalSince1970: 1_755_000_000)
+        static let now = Date(timeIntervalSince1970: 1_792_375_158)
 
         static func session(
             _ scenario: FixtureInboxService.Scenario,
@@ -29,6 +29,7 @@
         ) -> PairingSessionModel {
             PairingSessionModel(
                 service: FixtureInboxService(scenario),
+                client: FixtureControlAPIClient(.populated),
                 macName: "Luke's MacBook Pro",
                 clock: { now }
             )
@@ -40,10 +41,11 @@
         /// satisfy any single-instant assertion — and a full ring that never depletes is precisely
         /// the indeterminate spinner this item replaced.
         @Test("the fraction the ring draws is observed, and it falls as the clock runs")
-        func theFractionFalls() throws {
+        func theFractionFalls() async throws {
             var instant = Self.now
             let session = PairingSessionModel(
                 service: FixtureInboxService(.paired),
+                client: FixtureControlAPIClient(.populated),
                 macName: "Mac",
                 clock: { instant }
             )
@@ -53,6 +55,7 @@
             #expect(dark.fractionRemaining == nil, "no code means no window to draw")
 
             session.open()
+            try await ShellTestSupport.waitUntil { session.liveCode != nil }
             #expect(session.fractionRemaining == 1)
 
             instant = Self.now.addingTimeInterval(MacPairing.lifetime / 2)

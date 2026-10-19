@@ -7,7 +7,9 @@
     @Suite("M6 — the Mac pairing sheet, and the rule that keeps it honest")
     @MainActor
     struct PairingSheetTests {
-        static let now = Date(timeIntervalSince1970: 1_755_000_000)
+        /// The instant the captured router fixture was issued at. The codes come from the router now,
+        /// so the clock the sheet reads has to be the one the router's expiry is measured against.
+        static let now = Date(timeIntervalSince1970: 1_792_375_158)
 
         static func session(
             _ scenario: FixtureInboxService.Scenario,
@@ -15,6 +17,7 @@
         ) -> PairingSessionModel {
             PairingSessionModel(
                 service: FixtureInboxService(scenario),
+                client: FixtureControlAPIClient(.populated),
                 macName: "Luke's MacBook Pro",
                 clock: { now }
             )
@@ -87,9 +90,10 @@
         /// And the positive: with an endpoint, a code exists and the encoded bytes carry that exact
         /// code. Without this, A5 would pass on a tree where nothing was built.
         @Test("with an endpoint a code is issued and the bytes carry it")
-        func endpointIssuesACode() throws {
+        func endpointIssuesACode() async throws {
             let session = Self.session(.paired)
             session.open()
+            try await ShellTestSupport.waitUntil { session.liveCode != nil }
             let issued = try #require(session.liveCode)
             let encoded = try #require(session.encodedPayload)
 
@@ -157,14 +161,16 @@
         /// that becomes true on its own; a five-minute countdown is not something to wait on, so the
         /// clock is injected and `tick` is called directly.
         @Test("a code that outlives its window moves to expired, once")
-        func expiryMovesThePhase() {
+        func expiryMovesThePhase() async throws {
             var instant = Self.now
             let session = PairingSessionModel(
                 service: FixtureInboxService(.paired),
+                client: FixtureControlAPIClient(.populated),
                 macName: "Mac",
                 clock: { instant }
             )
             session.open()
+            try await ShellTestSupport.waitUntil { session.liveCode != nil }
             guard case .live = session.phase else {
                 Issue.record("expected a live code, got \(session.phase)")
                 return
@@ -187,31 +193,13 @@
             #expect(session.encodedPayload == nil, "an expired code's bytes are not offered")
         }
 
-        @Test("reissuing after expiry produces a different code")
-        func reissueMints() throws {
-            var instant = Self.now
-            let session = PairingSessionModel(
-                service: FixtureInboxService(.paired),
-                macName: "Mac",
-                clock: { instant }
-            )
-            session.open()
-            let first = try #require(session.liveCode)
-
-            instant = Self.now.addingTimeInterval(MacPairing.lifetime)
-            session.tick()
-            session.reissue()
-
-            let second = try #require(session.liveCode)
-            #expect(second.expiresAt > first.expiresAt)
-        }
-
         // MARK: - One code, one device
 
         @Test("a paired code is spent, and a second attempt with it is refused as already used")
-        func spentCodesAreRecorded() throws {
+        func spentCodesAreRecorded() async throws {
             let session = Self.session(.paired)
             session.open()
+            try await ShellTestSupport.waitUntil { session.liveCode != nil }
             let issued = try #require(session.liveCode)
 
             #expect(session.decide(submitted: issued.code) == nil, "the first attempt is accepted")

@@ -33,11 +33,16 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
         public var addForced = 0
         public var remove = 0
         public var searchRegistry = 0
+        public var pairingIssue = 0
+        public var pairingRevoke = 0
 
         public init() {}
     }
 
     private let wrapped: any ControlAPIClient
+    /// Holds a pairing issue in flight after it is counted, so a test can close the sheet while the
+    /// router is still answering.
+    private let issueGate: (@Sendable () async -> Void)?
     private let lock = NSLock()
     private var _calls = Calls()
 
@@ -45,8 +50,12 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
         lock.withLock { _calls }
     }
 
-    public init(wrapping wrapped: any ControlAPIClient) {
+    public init(
+        wrapping wrapped: any ControlAPIClient,
+        issueGate: (@Sendable () async -> Void)? = nil
+    ) {
         self.wrapped = wrapped
+        self.issueGate = issueGate
     }
 
     private func record(_ mutate: (inout Calls) -> Void) {
@@ -77,6 +86,23 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
     ) async throws(ControlAPIError) -> RegistrySearchResponse {
         record { $0.searchRegistry += 1 }
         return try await wrapped.searchRegistry(query: query, limit: limit)
+    }
+
+    // MARK: - Pairing
+
+    public func issuePairingCode() async throws(ControlAPIError) -> IssuedPairingCode {
+        record { $0.pairingIssue += 1 }
+        if let issueGate { await issueGate() }
+        return try await wrapped.issuePairingCode()
+    }
+
+    public func pairingState() async throws(ControlAPIError) -> IssuedPairingCode? {
+        try await wrapped.pairingState()
+    }
+
+    public func revokePairingCode() async throws(ControlAPIError) -> Bool {
+        record { $0.pairingRevoke += 1 }
+        return try await wrapped.revokePairingCode()
     }
 
     // MARK: - Straight passthrough

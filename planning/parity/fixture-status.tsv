@@ -23,6 +23,9 @@ registry-search	200
 reindex-failure	422
 reindex-held	200
 removed	200
+pairing-code	201
+pairing-revoke	200
+pairing-state	200
 server-http	200
 server-pending-change	200
 server-placarded	200

@@ -250,6 +250,20 @@ public protocol ControlAPIClient: Sendable {
 
     /// Clear the usage counters.
     func resetUsage() async throws(ControlAPIError) -> UsageReset
+
+    // MARK: Pairing
+
+    /// Mint the Mac's pairing code. The router replaces any code that was live, so asking again is
+    /// how the sheet reissues.
+    func issuePairingCode() async throws(ControlAPIError) -> IssuedPairingCode
+
+    /// The code a phone could still pair with, or `nil` once there is none. Expired codes are not
+    /// named, matching the router.
+    func pairingState() async throws(ControlAPIError) -> IssuedPairingCode?
+
+    /// Take the live code back. Returns whether there was one to take back. A code already paired
+    /// stays paired: revoking forgets nothing.
+    func revokePairingCode() async throws(ControlAPIError) -> Bool
 }
 
 public extension ControlAPIClient {
@@ -320,6 +334,21 @@ public extension ControlAPIClient {
     /// the absence M30 closed: a surface with nothing to ask is not a router that answered.
     func capabilityDocument(for _: String) async throws(CapabilityDocumentError) -> Payload {
         throw CapabilityDocumentError.notServed
+    }
+
+    /// A client with no pairing behind it answers as a router without the routes, the same
+    /// convention as the boards above. The sheet never reaches these on a build with no endpoint,
+    /// so the default is what a conformer without a router returns, not what the sheet shows.
+    func issuePairingCode() async throws(ControlAPIError) -> IssuedPairingCode {
+        throw ControlAPIError.malformedResponse(detail: "this router has no /pairing/codes endpoint")
+    }
+
+    func pairingState() async throws(ControlAPIError) -> IssuedPairingCode? {
+        throw ControlAPIError.malformedResponse(detail: "this router has no /pairing/state endpoint")
+    }
+
+    func revokePairingCode() async throws(ControlAPIError) -> Bool {
+        throw ControlAPIError.malformedResponse(detail: "this router has no /pairing/codes endpoint")
     }
 
     /// Defaults so a caller that wants the ordinary behaviour does not have to name the flag.

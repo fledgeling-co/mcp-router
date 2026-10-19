@@ -68,4 +68,32 @@ public extension FixtureControlAPIClient {
         try guardFailure()
         return try decode("usage-reset", as: UsageReset.self)
     }
+
+    // The held-version writes answer the router's shapes and keep no state. The fixture board does not
+    // re-derive its rows from a write, so a fixture answer is an echo of what was asked, and the error
+    // scenario refuses every one of them, which is how the refusal path is exercised.
+
+    func promote(
+        _ name: String, kind: StoredExtensionKind, pluginVersion: String, files _: [ExtensionFileBody]
+    ) async throws(ControlAPIError) -> PromotionAck {
+        try guardFailure()
+        return PromotionAck(
+            promoted: name, kind: kind, pluginVersion: pluginVersion, replaced: "2.2.0",
+            restore: "1700000000000"
+        )
+    }
+
+    func undoPromotion(
+        _ name: String, kind: StoredExtensionKind, restore _: String
+    ) async throws(ControlAPIError) -> UndoAck {
+        try guardFailure()
+        return UndoAck(restored: name, kind: kind, version: "2.2.0", withdrawn: "2.3.0")
+    }
+
+    func keepHeldVersion(
+        _ name: String, kind: StoredExtensionKind, pluginVersion: String
+    ) async throws(ControlAPIError) -> KeepAck {
+        try guardFailure()
+        return KeepAck(kept: name, kind: kind, pluginVersion: pluginVersion)
+    }
 }

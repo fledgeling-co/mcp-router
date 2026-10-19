@@ -88,6 +88,26 @@ struct PairingRediscoveryTests {
         #expect(await rig.store.load() == .loaded(storedMac()))
     }
 
+    @Test("a browse is dialled no further than the cap, however many endpoints it lists")
+    func browseIsCapped() async throws {
+        var rig = Rig()
+        // The Mac is the twelfth endpoint advertised, past the eight a probe will dial.
+        rig.addresses = ["192.168.1.112:7333": Self.fingerprint]
+        rig.discovered = (1 ... 12).map { DiscoveredMac(
+            name: "Other \($0)",
+            host: "192.168.1.\(100 + $0)",
+            port: 7333
+        ) }
+        try await rig.store.save(storedMac())
+
+        let state = await rig.service().reachability(of: storedMac())
+
+        #expect(state == .notReachable)
+        // The stored address, then the first eight endpoints the browse named, and nothing after them.
+        #expect(await rig.trace.dialled.count == 9)
+        #expect(await rig.store.load() == .loaded(storedMac()))
+    }
+
     // MARK: Fixtures
 
     /// The record as the pairing wrote it. Fixed dates, so a stored record compares equal to the one read

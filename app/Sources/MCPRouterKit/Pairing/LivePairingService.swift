@@ -221,12 +221,15 @@ public struct LivePairingService: PairingService {
     /// Pins each endpoint the browse names, and keeps the first the stored certificate answers from.
     ///
     /// Endpoints that advertise the stored name are tried first, since that is the likely one. The name only
-    /// orders the attempts: a Mac is the endpoint whose certificate matches, whatever it calls itself.
+    /// orders the attempts: a Mac is the endpoint whose certificate matches, whatever it calls itself. At
+    /// most
+    /// `maxCandidates` are dialled, because anyone on the LAN can advertise a name and each dial costs a
+    /// connection.
     private func rediscover(_ mac: PairedMac) async -> Bool {
         let found = await discovery.browse()
         let likely = found.filter { $0.name == mac.name }
         let others = found.filter { $0.name != mac.name }
-        for candidate in likely + others {
+        for candidate in (likely + others).prefix(Self.maxCandidates) {
             guard await answers(host: candidate.host, port: candidate.port, as: mac.fingerprint)
             else { continue }
             await moveRecord(of: mac, to: candidate)
@@ -234,6 +237,9 @@ public struct LivePairingService: PairingService {
         }
         return false
     }
+
+    /// How many browse endpoints one probe will dial, the stored address not counted.
+    private static let maxCandidates = 8
 
     /// Writes the Mac's new address, and only if the stored record is still this Mac. A pairing that replaced
     /// the record while the probe ran is not overwritten. The identity fields are kept as they were stored.

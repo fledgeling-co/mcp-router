@@ -1,4 +1,5 @@
 import Bonjour from 'bonjour-service';
+import { log } from './log.js';
 import type { PairingAdvertisement, PairingAdvertiser } from './pairing-listener.js';
 
 /*
@@ -34,7 +35,9 @@ export interface BonjourResponder {
  * bound for the life of the process.
  */
 export function createBonjourAdvertiser(
-  makeResponder: () => BonjourResponder = () => new Bonjour()
+  makeResponder: () => BonjourResponder = () =>
+    // Without a callback the package rethrows a responder error inside its own event handler, which would end the router.
+    new Bonjour({}, (err: unknown) => log.warn(`pairing: mDNS responder error: ${String(err)}`))
 ): PairingAdvertiser {
   return (request) => {
     const responder = makeResponder();

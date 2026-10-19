@@ -240,6 +240,21 @@ export class UsageStore {
     return { since: this.stats.since, servers: this.stats.servers };
   }
 
+  /**
+   * The window `GET /insights` answers over. Reads the current log only, as the reference does: the rotated
+   * generation is not read, so the window is only as long as what survived, and `horizon` says how far back
+   * it actually reaches. A log that does not exist yet is an empty window, which is a reading, not an error.
+   */
+  insights(nowMs: number, windowHours: number): UsageWindow {
+    let text = '';
+    try {
+      text = readFileSync(this.logPath, 'utf8');
+    } catch {
+      /* no log yet */
+    }
+    return usageWindow(text.split('\n'), nowMs, windowHours);
+  }
+
   statFor(server: string): ServerStat | undefined {
     return this.stats.servers[server];
   }
@@ -281,3 +296,99 @@ export class UsageStore {
 
 export const projectOf = (cwd: string | undefined): string | undefined =>
   cwd ? basename(cwd) : undefined;
+
+/** The name given to calls whose peer process could not be identified. A real category, not a leftover bucket. */
+export const UNATTRIBUTED = 'unattributed';
+
+/** What the call log says about the last `windowHours` hours. Ported from UsageInsights.swift. */
+export interface UsageWindow {
+  windowHours: number;
+  windowStart: string;
+  totalCalls: number;
+  failedCalls: number;
+  /** Calls per peer process name. A process name identifies a process, not a harness. */
+  callers: ReadonlyMap<string, number>;
+  /** Exactly `windowHours` buckets, oldest first, including the empty ones. */
+  hours: Array<{ start: string; calls: number }>;
+  /** The oldest record inside the window, or null when the window holds none. */
+  horizon: string | null;
+  /** Lines the reader could not use. A count of what parsed is not a count of what was there. */
+  unreadableLines: number;
+}
+
+const HOUR_MS = 3_600_000;
+const HOUR_KEY = /^\d{4}-\d{2}-\d{2}T\d{2}/;
+
+const isoAt = (ms: number): string => new Date(ms).toISOString();
+
+/**
+ * Fold a log into the window ending at `nowMs`.
+ *
+ * Time is compared as text, deliberately: every timestamp the router writes is `toISOString()`, which is fixed
+ * width, UTC and zero-padded, so it sorts in the order it happened. A timestamp in any other shape is counted
+ * as unreadable rather than bucketed by whatever characters it starts with.
+ */
+export function usageWindow(lines: Iterable<string>, nowMs: number, windowHours: number): UsageWindow {
+  // The window starts at the top of the hour `windowHours - 1` back, so every bucket is a whole hour and the
+  // last one is the hour in progress. A window that started at "now minus 24h" to the millisecond would make
+  // its end buckets partial, and a chart with short end columns reads as a fall in traffic.
+  const currentHour = Math.floor(nowMs / HOUR_MS) * HOUR_MS;
+  const startMs = currentHour - Math.max(0, windowHours - 1) * HOUR_MS;
+  const windowStart = isoAt(startMs);
+  const buckets = Array.from({ length: Math.max(0, windowHours) }, (_, i) => {
+    const start = isoAt(startMs + i * HOUR_MS);
+    return { start, key: start.slice(0, 13), calls: 0 };
+  });
+
+  let total = 0;
+  let failed = 0;
+  let unreadable = 0;
+  let horizon: string | null = null;
+  const callers = new Map<string, number>();
+
+  for (const line of lines) {
+    if (!line) continue;
+    const record = parseRecord(line);
+    const key = record ? HOUR_KEY.exec(record.ts)?.[0] : undefined;
+    if (!record || !key) {
+      unreadable += 1;
+      continue;
+    }
+    if (record.ts < windowStart) continue;
+
+    total += 1;
+    if (!record.ok) failed += 1;
+    if (horizon === null || record.ts < horizon) horizon = record.ts;
+    // A record stamped after the hour in progress is counted in the total but has no bucket to fall into.
+    const bucket = buckets.find((b) => b.key === key);
+    if (bucket) bucket.calls += 1;
+
+    const name = record.client || UNATTRIBUTED;
+    callers.set(name, (callers.get(name) ?? 0) + 1);
+  }
+
+  return {
+    windowHours,
+    windowStart,
+    totalCalls: total,
+    failedCalls: failed,
+    callers,
+    hours: buckets.map(({ start, calls }) => ({ start, calls })),
+    horizon,
+    unreadableLines: unreadable,
+  };
+}
+
+/** One log line, if it carries the three fields a record cannot exist without. `ok` defaults to false, as the reference reads it. */
+function parseRecord(line: string): { ts: string; ok: boolean; client?: string } | undefined {
+  let value: unknown;
+  try {
+    value = JSON.parse(line);
+  } catch {
+    return undefined;
+  }
+  if (typeof value !== 'object' || value === null) return undefined;
+  const r = value as Record<string, unknown>;
+  if (typeof r.ts !== 'string' || typeof r.server !== 'string' || typeof r.tool !== 'string') return undefined;
+  return { ts: r.ts, ok: r.ok === true, client: typeof r.client === 'string' ? r.client : undefined };
+}

@@ -16,80 +16,48 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Insights" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="SemiBold" />
-                        <TextBlock Text="What your agents actually used, and what the analyst found in your own session logs. Every number here is counted from calls this router served — none of it is modelled."
+                        <TextBlock x:Name="TitleText" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="SemiBold" />
+                        <TextBlock x:Name="DescriptionText"
                                    Style="{ThemeResource BodyTextBlockStyle}"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                    TextWrapping="Wrap" MaxWidth="720" />
                     </StackPanel>
-                    <Button Grid.Column="1" VerticalAlignment="Top" Content="Last 7 days" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
+                        <TextBlock x:Name="WindowText" VerticalAlignment="Center"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <Button x:Name="RefreshButton" Content="Refresh" Click="RefreshButton_Click" />
+                    </StackPanel>
                 </Grid>
 
-                <!-- 4 Headline Metric Tiles -->
-                <Grid Margin="0,8,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="16" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="16" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="16" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+                <!-- Notices: a stale reading, an unreachable router, the qualifications on the figures -->
+                <StackPanel x:Name="NoticeContainer" Spacing="4" />
 
-                    <!-- Tile 1: Processes -->
-                    <Border Grid.Column="0" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
-                            CornerRadius="{ThemeResource ControlCornerRadius}" Padding="16,12">
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="0" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="Bold" />
-                            <TextBlock Text="Processes at rest" FontWeight="SemiBold" />
-                            <TextBlock Text="peak 4 · 11 declared" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Tile 2: Memory -->
-                    <Border Grid.Column="2" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
-                            CornerRadius="{ThemeResource ControlCornerRadius}" Padding="16,12">
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="214 MB" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="Bold" />
-                            <TextBlock Text="Resident memory" FontWeight="SemiBold" />
-                            <TextBlock Text="measured, not modelled" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Tile 3: Calls -->
-                    <Border Grid.Column="4" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
-                            CornerRadius="{ThemeResource ControlCornerRadius}" Padding="16,12">
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="9,418" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="Bold" />
-                            <TextBlock Text="Tool calls (7 d)" FontWeight="SemiBold" />
-                            <TextBlock Text="1,482 in last 24 h" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Tile 4: Failures -->
-                    <Border Grid.Column="6" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
-                            CornerRadius="{ThemeResource ControlCornerRadius}" Padding="16,12">
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="0.13%" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="Bold" />
-                            <TextBlock Text="Failed calls" FontWeight="SemiBold" />
-                            <TextBlock Text="12 of 9,418 · 9 docker-mcp" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        </StackPanel>
-                    </Border>
-                </Grid>
+                <!-- Headline figures, drawn from the snapshot -->
+                <Grid x:Name="FigureContainer" Margin="0,8,0,0" />
 
                 <!-- Section: Harness Breakdown -->
-                <TextBlock Text="Where calls came from" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" Margin="0,12,0,0" />
-                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1"
-                        CornerRadius="{ThemeResource ControlCornerRadius}">
-                    <StackPanel x:Name="HarnessBreakdownContainer" />
-                </Border>
+                <StackPanel x:Name="HarnessSection" Spacing="8">
+                    <TextBlock Text="Where calls came from" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" Margin="0,12,0,0" />
+                    <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="{ThemeResource ControlCornerRadius}">
+                        <StackPanel x:Name="HarnessBreakdownContainer" />
+                    </Border>
+                </StackPanel>
+
+                <!-- Section: Session analyst. Its one action is enabled exactly when the router serves the route. -->
+                <StackPanel x:Name="AnalystSection" Spacing="8">
+                    <TextBlock Text="Session analyst" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" Margin="0,12,0,0" />
+                    <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="{ThemeResource ControlCornerRadius}"
+                            Padding="16">
+                        <StackPanel x:Name="AnalystContainer" Spacing="8" />
+                    </Border>
+                    <Button x:Name="AnalyseNowButton" Content="Analyse now" Click="AnalyseNowButton_Click" HorizontalAlignment="Left" />
+                </StackPanel>
             </StackPanel>
         </ScrollViewer>
     </Grid>

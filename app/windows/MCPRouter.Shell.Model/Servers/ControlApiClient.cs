@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using System.Net.Sockets;
 using System.Text.Json;
+using MCPRouter.Shell.Model.Insights;
 
 namespace MCPRouter.Shell.Model.Servers;
 
@@ -121,8 +122,8 @@ public static class RouterHome
 /// <summary>
 /// The one boundary between this board and the router.
 ///
-/// <para>Real loopback HTTP: GET is ungated exactly as the router gates it, except GET /harnesses,
-/// which the router gates and which therefore carries the token; every mutating call
+/// <para>Real loopback HTTP: GET is ungated exactly as the router gates it, except GET /harnesses and
+/// GET /insights, which the router gates and which therefore carry the token; every mutating call
 /// reads the bearer token from <see cref="RouterHome.TokenPath"/> at call time and sends it as
 /// <c>Authorization: Bearer …</c> with a JSON content type — the pair the router's gate requires,
 /// and the reason a web page cannot forge a write. <b>The token is never logged, never echoed and
@@ -136,6 +137,16 @@ public sealed class ControlApiClient : IDisposable
 {
     private const string DefaultBase = "http://127.0.0.1:8879/";
 
+    /// <summary>A read answers in milliseconds, so a read that has not answered in this long is a read the board will not wait on.</summary>
+    private static readonly TimeSpan ReadTimeout = TimeSpan.FromSeconds(3);
+
+    /// <summary>
+    /// An analysis runs a judge CLI, and the router's ladder gives each of its two lanes 120 seconds. The
+    /// limit is the ladder's worst case plus headroom, so a run that is still working is not reported as
+    /// timed out.
+    /// </summary>
+    private static readonly TimeSpan AnalyseTimeout = TimeSpan.FromMinutes(5);
+
     private readonly HttpClient _http;
     private readonly Func<string> _readToken;
 
@@ -147,7 +158,8 @@ public sealed class ControlApiClient : IDisposable
         _http = new HttpClient(handler ?? new HttpClientHandler())
         {
             BaseAddress = baseAddress ?? new Uri(DefaultBase),
-            Timeout = TimeSpan.FromSeconds(3),
+            // Each call carries its own limit (see SendAsync), so one slow call cannot be cut short by another's.
+            Timeout = System.Threading.Timeout.InfiniteTimeSpan,
         };
         _readToken = tokenProvider ?? ReadRouterToken;
     }
@@ -180,6 +192,27 @@ public sealed class ControlApiClient : IDisposable
         // above, so it carries the token the way a write does.
         using var response = await SendAsync(HttpMethod.Get, "harnesses", write: false, cancellation, gated: true);
         return await DecodeAsync<HarnessesEnvelope>(response, cancellation);
+    }
+
+    public async Task<InsightsEnvelope> GetInsightsAsync(CancellationToken cancellation = default)
+    {
+        // Gated like /harnesses (src/control.ts): the call log names the process behind every call.
+        using var response = await SendAsync(HttpMethod.Get, "insights", write: false, cancellation, gated: true);
+        return await DecodeAsync<InsightsEnvelope>(response, cancellation);
+    }
+
+    /// <summary>
+    /// Runs one analysis now. The router answers with the analyst member, but the board reads the outcome back
+    /// from <see cref="GetInsightsAsync"/> rather than trusting this answer: the proof that a run happened is the
+    /// state the router reports afterwards.
+    /// </summary>
+    public async Task<InsightsAnalystWire> AnalyseInsightsAsync(CancellationToken cancellation = default)
+    {
+        using var response = await SendAsync(
+            HttpMethod.Post, "insights/analyse", write: true, cancellation,
+            content: JsonContent.Create(new { }, options: ServersWire.Options),
+            limit: AnalyseTimeout);
+        return await DecodeAsync<InsightsAnalystWire>(response, cancellation);
     }
 
     public async Task<HeldChanges> GetChangesAsync(string serverName, CancellationToken cancellation = default)
@@ -227,7 +260,8 @@ public sealed class ControlApiClient : IDisposable
     // ------------------------------------------------------------------ the one send
 
     private async Task<HttpResponseMessage> SendAsync(
-        HttpMethod method, string path, bool write, CancellationToken cancellation, HttpContent? content = null, bool gated = false)
+        HttpMethod method, string path, bool write, CancellationToken cancellation,
+        HttpContent? content = null, bool gated = false, TimeSpan? limit = null)
     {
         using var request = new HttpRequestMessage(method, path);
         if (content is not null) request.Content = content;
@@ -240,10 +274,14 @@ public sealed class ControlApiClient : IDisposable
             if (token.Length > 0) request.Headers.Add("Authorization", $"Bearer {token}");
         }
 
+        // Linked to the caller's token, so the caller's own cancellation still wins over this limit.
+        using var limited = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+        limited.CancelAfter(limit ?? ReadTimeout);
+
         HttpResponseMessage response;
         try
         {
-            response = await _http.SendAsync(request, cancellation);
+            response = await _http.SendAsync(request, limited.Token);
         }
         catch (OperationCanceledException) when (!cancellation.IsCancellationRequested)
         {

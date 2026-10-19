@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using System.Net.Sockets;
 using System.Text.Json;
+using MCPRouter.Shell.Model.Pairing;
 
 namespace MCPRouter.Shell.Model.Servers;
 
@@ -220,6 +221,17 @@ public sealed class ControlApiClient : IDisposable
             write: true,
             cancellation);
     }
+
+    // ------------------------------------------------------------------ pairing
+
+    public Task<IssuedPairingCode> IssuePairingCodeAsync(CancellationToken cancellation = default) =>
+        throw new NotImplementedException();
+
+    public Task<IssuedPairingCode?> GetPairingStateAsync(CancellationToken cancellation = default) =>
+        throw new NotImplementedException();
+
+    public Task<bool> RevokePairingCodeAsync(CancellationToken cancellation = default) =>
+        throw new NotImplementedException();
 
     // ------------------------------------------------------------------ the one send
 

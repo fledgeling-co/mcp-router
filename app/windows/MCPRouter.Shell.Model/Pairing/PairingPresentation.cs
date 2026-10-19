@@ -10,7 +10,19 @@ public static class PairingPresentation
     public const string TypeInsteadDetail = "Can't scan? Type those eight characters into your phone instead — it is the same pairing.";
     public const string DoneAction = "Done";
 
+    public const string ExpiredHeadline = "This code has expired.";
+    public const string PairingOffHeadline = "Pairing is turned off on this router";
+    public const string PairingOffAdvice = "There is no code to show while it is off. Your servers are unchanged.";
+
     public const string SecretStorageNote = "Pairing secrets are securely stored in Windows Credential Manager and never logged or written to disk in plaintext.";
+
+    public static string Formatted(string canonical) => throw new NotImplementedException();
+
+    public static string StatusLine(PairingSessionState state) => throw new NotImplementedException();
+
+    public static string UnavailableHeadline(PairingSessionState state) => throw new NotImplementedException();
+
+    public static string UnavailableAdvice(PairingSessionState state) => throw new NotImplementedException();
 
     public static string ExpiresIn(TimeSpan remaining)
     {

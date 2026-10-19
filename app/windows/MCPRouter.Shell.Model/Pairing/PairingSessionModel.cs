@@ -1,4 +1,5 @@
 using System;
+using MCPRouter.Shell.Model.Servers;
 
 namespace MCPRouter.Shell.Model.Pairing;
 
@@ -16,6 +17,19 @@ public sealed class PairingSessionModel
             null
         );
     }
+
+    public PairingSessionModel(ControlApiClient client, bool pairingAvailable = true, Func<DateTimeOffset>? clock = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task OpenAsync(CancellationToken cancellation = default) => throw new NotImplementedException();
+
+    public Task ReissueAsync(CancellationToken cancellation = default) => throw new NotImplementedException();
+
+    public Task CloseAsync(CancellationToken cancellation = default) => throw new NotImplementedException();
+
+    public void Tick() => throw new NotImplementedException();
 
     public void CompletePairing(string deviceName)
     {

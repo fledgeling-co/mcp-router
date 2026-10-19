@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: intake, reading src/ for platform assumptions while scoping the Windows client · 2026-08-30
 registry-target: none
 no-target-reason: the registry has since gained SURF-045 (the daemon's Scheduled Task) and REQ-035, so the original reason - that no case exercises the daemon on Windows - is no longer true of supervision. It remains true of this brief's subject: no registry entity records the daemon's macOS-shaped path, signal and process assumptions in src/, which is what this brief is about and which SURF-045 does not cover. Corrected 2026-09-03, we4.

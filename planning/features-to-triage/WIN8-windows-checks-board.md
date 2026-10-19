@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: intake, parity target for SURF-006 · 2026-08-30
 reckon-sources: [SURF-035]
 target-note: SURF-035 `Windows Checks board` carries `note: WIN8.`; the row did not exist when the `none` was declared on 2026-08-30.

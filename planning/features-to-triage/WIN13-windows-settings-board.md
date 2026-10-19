@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: intake, parity target for SURF-011 · 2026-08-30
 reckon-sources: [SURF-038, REQ-038]
 target-note: SURF-038 `Windows Settings board` and REQ-038, which states the seven sections this brief specifies, both name WIN13; neither existed when the `none` was declared on 2026-08-30.

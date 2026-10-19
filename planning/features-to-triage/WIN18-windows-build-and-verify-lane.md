@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: intake, measuring the repo's gate spine on Windows while scoping the parity work · 2026-08-30
 registry-target: none
 no-target-reason: the registry has since gained SURF-029 (WIN20's automation probe) and the windows-glass lane, so the original reason - that every lane runs under xcodebuild - is no longer true. It is still true that no requirement, case or surface records the Windows BUILD AND GATE SPINE itself; DEF-074's evidence names scripts/windows harness scripts in passing while being a defect about lifecycle, which is a mention and not a subject. Corrected 2026-09-03, we4.

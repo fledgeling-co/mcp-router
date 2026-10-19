@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: intake divergent pass, from the macOS signing and notarisation work having no Windows counterpart · 2026-08-30
 reckon-sources: [SURF-047, REQ-037]
 target-note: SURF-047 `The MSIX package - pack, validate, install, uninstall` and REQ-037, which states the MSIX identity and the uninstall contract this brief asks for, both name WIN19; neither existed when the `none` was declared on 2026-08-30.

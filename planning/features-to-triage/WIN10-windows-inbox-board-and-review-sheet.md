@@ -1,5 +1,5 @@
 ---
-status: to-triage
+status: completed
 found-by: intake, parity target for SURF-008 · 2026-08-30
 reckon-sources: [SURF-037]
 target-note: SURF-037 `Windows Inbox board and review sheet` carries `note: WIN10.`; the row did not exist when the `none` was declared on 2026-08-30.

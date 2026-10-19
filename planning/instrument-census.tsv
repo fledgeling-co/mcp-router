@@ -66,6 +66,7 @@ app/Tests/MCPRouterKitTests/MockTokenParityTests.swift	swift-suite	app/Tests/MCP
 app/Tests/MCPRouterKitTests/NetworkPairingTransportTests.swift	swift-suite	app/Tests/MCPRouterKitTests/NetworkPairingTransportTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingBehaviourTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingBehaviourTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingCodeTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingCodeTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterKitTests/PairingCodeWireTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingCodeWireTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingFrameCodecTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingFrameCodecTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingPayloadTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingPayloadTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingRecordSaveTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingRecordSaveTests.swift	swift	compiled and run by `swift test`	make:test
@@ -133,6 +134,7 @@ app/Tests/MCPRouterUITests/M7ExercisedRequestTests.swift	swift-suite	app/Tests/M
 app/Tests/MCPRouterUITests/MenuBadgeTrailingAreaTests.swift	swift-suite	app/Tests/MCPRouterUITests/MenuBadgeTrailingAreaTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/MockButtonFidelityTests.swift	swift-suite	app/Tests/MCPRouterUITests/MockButtonFidelityTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/PairingExpiryTests.swift	swift-suite	app/Tests/MCPRouterUITests/PairingExpiryTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterUITests/PairingRouterCodeTests.swift	swift-suite	app/Tests/MCPRouterUITests/PairingRouterCodeTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/PairingSheetTests.swift	swift-suite	app/Tests/MCPRouterUITests/PairingSheetTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/PhoneCameraFactoryTests.swift	swift-suite	app/Tests/MCPRouterUITests/PhoneCameraFactoryTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/PhoneCopyTests.swift	swift-suite	app/Tests/MCPRouterUITests/PhoneCopyTests.swift	swift	compiled and run by `swift test`	make:test

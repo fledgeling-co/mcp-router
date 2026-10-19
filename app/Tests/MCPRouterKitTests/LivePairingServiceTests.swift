@@ -182,7 +182,7 @@ struct LivePairingServiceTests {
         let rig = Rig()
         let outcome = try await rig.service().pair(using: .typed(code()))
 
-        #expect(outcome == .unreachable(macName: nil))
+        #expect(outcome == .typedEntryUnavailable)
         #expect(await rig.trace.events.isEmpty)
     }
 
@@ -214,9 +214,41 @@ struct LivePairingServiceTests {
         #expect(state == .notReachable)
     }
 
+    @Test("the connection is pinned to the fingerprint the QR named, and to no other")
+    func pinnedToTheQR() async throws {
+        var rig = Rig()
+        rig.reply = try okReply()
+        _ = try await rig.service().result(for: .scanned(payload()))
+
+        #expect(await rig.trace.pins == [Self.fingerprint])
+    }
+
+    @Test("a handshake that presents another identity is an identity mismatch and sends nothing")
+    func handshakeRefused() async throws {
+        var rig = Rig()
+        rig.handshakeRefused = true
+        rig.reply = try okReply()
+        let outcome = try await rig.service().pair(using: .scanned(payload()))
+
+        #expect(outcome == .identityMismatch)
+        #expect(await !(rig.trace.events).contains("send request"))
+        #expect(await rig.store.load() == .missing)
+    }
+
+    @Test("an oversized reply is a protocol violation, and nothing is written")
+    func oversizedReply() async throws {
+        var rig = Rig()
+        rig.reply = .oversized
+        let result = try await rig.service().result(for: .scanned(payload()))
+
+        #expect(result == .failed(.protocolViolation))
+        #expect(await rig.store.load() == .missing)
+        #expect(await !(rig.trace.events).contains("send ack"))
+    }
+
     // MARK: Fixtures
 
-    private func okReply() throws -> FakeReply {
+    func okReply() throws -> FakeReply {
         try .frame(PairingFrame.encode(.ok(macName: Self.macName, phoneId: "phone-1")))
     }
 
@@ -225,7 +257,7 @@ struct LivePairingServiceTests {
         return code
     }
 
-    private func payload(expiresIn: TimeInterval = 300) throws -> PairingPayload {
+    func payload(expiresIn: TimeInterval = 300) throws -> PairingPayload {
         try PairingPayload(
             version: 1,
             code: code(),

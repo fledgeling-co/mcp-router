@@ -2,6 +2,10 @@ import CryptoKit
 import Foundation
 @testable import MCPRouterKit
 
+// The doubles the live pairing suites run against: a scripted Mac, a shared trace of what the phone
+// did, and stores that can be told to fail. One set, shared by `LivePairingServiceTests`,
+// `LivePairingOutcomeTests` and `PairingRediscoveryTests`, so a double cannot drift between them.
+
 /// A store or key write the test has chosen to refuse.
 enum FixtureFailure: Error {
     case write
@@ -11,6 +15,8 @@ enum FixtureFailure: Error {
 enum FakeReply: Sendable {
     case frame(Data)
     case hang
+    /// The framing layer refused a length prefix before reading the body.
+    case oversized
 }
 
 /// A shared, ordered record of everything the phone did, across the transport, the stores and the
@@ -18,6 +24,8 @@ enum FakeReply: Sendable {
 actor Trace {
     private(set) var events: [String] = []
     private(set) var phoneKeys: [Data] = []
+    /// The fingerprint each connection was pinned to, in order.
+    private(set) var pins: [String] = []
     /// Every address the transport was asked to connect to, in order. Kept apart from `events` so the
     /// ordering assertions above do not change with it.
     private(set) var dialled: [String] = []
@@ -28,6 +36,10 @@ actor Trace {
 
     func recordPhoneKey(_ key: Data) {
         phoneKeys.append(key)
+    }
+
+    func recordPin(_ fingerprint: String) {
+        pins.append(fingerprint)
     }
 
     func recordDial(_ address: String) {
@@ -57,10 +69,13 @@ struct Rig {
     var failsOnAck = false
     var failsOnSave = false
     var failsOnKey = false
+    var handshakeRefused = false
     var timeout: Duration = .seconds(5)
     /// When set, each "host:port" answers with the fingerprint given, and every other address refuses.
     /// Nil keeps the single-address behaviour above, which every older test depends on.
     var addresses: [String: String]?
+    /// Addresses whose connection never completes, so a probe that dials one holds until it is cancelled.
+    var stalled: Set<String> = []
     /// What a browse of the local network returns.
     var discovered: [DiscoveredMac] = []
 
@@ -72,7 +87,9 @@ struct Rig {
                 peerFingerprint: peerFingerprint,
                 reply: reply,
                 failsOnAck: failsOnAck,
-                addresses: addresses
+                handshakeRefused: handshakeRefused,
+                addresses: addresses,
+                stalled: stalled
             ),
             keys: FakeKeyStore(trace: trace, inner: keys, fails: failsOnKey),
             records: RecordingStore(trace: trace, inner: store, failsOnSave: failsOnSave),
@@ -89,13 +106,47 @@ struct FakeTransport: PairingTransport {
     let peerFingerprint: String
     let reply: FakeReply
     let failsOnAck: Bool
+    let handshakeRefused: Bool
     let addresses: [String: String]?
+    let stalled: Set<String>
 
-    func connect(host: String, port: Int) async throws -> any PairingChannel {
+    init(
+        trace: Trace,
+        connectFails: Bool,
+        peerFingerprint: String,
+        reply: FakeReply,
+        failsOnAck: Bool,
+        handshakeRefused: Bool = false,
+        addresses: [String: String]? = nil,
+        stalled: Set<String> = []
+    ) {
+        self.trace = trace
+        self.connectFails = connectFails
+        self.peerFingerprint = peerFingerprint
+        self.reply = reply
+        self.failsOnAck = failsOnAck
+        self.handshakeRefused = handshakeRefused
+        self.addresses = addresses
+        self.stalled = stalled
+    }
+
+    func connect(host: String, port: Int, expecting fingerprint: String) async throws -> any PairingChannel {
+        let address = "\(host):\(port)"
+        // As the network transport does: a connection begun after its caller has given up is never made,
+        // so a probe that has hit its deadline dials nothing further.
+        try Task.checkCancellation()
         await trace.record("connect")
-        await trace.recordDial("\(host):\(port)")
+        await trace.recordDial(address)
+        await trace.recordPin(fingerprint)
+        if stalled.contains(address) {
+            // Holds until the caller cancels it, as a peer that accepts the socket and says nothing would.
+            try await Task.sleep(for: .seconds(3600))
+        }
+        if connectFails { throw PairingTransportError.connectFailed }
+        if handshakeRefused { throw PairingTransportError.identityMismatch }
         if let addresses {
-            guard let presented = addresses["\(host):\(port)"] else {
+            // This double does not pin, so the service's own check of `peerFingerprint` is what is tested.
+            guard let presented = addresses[address] else {
                 throw PairingTransportError.connectFailed
             }
             return FakeChannel(
@@ -105,7 +156,6 @@ struct FakeTransport: PairingTransport {
                 failsOnAck: failsOnAck
             )
         }
-        if connectFails { throw PairingTransportError.connectFailed }
         return FakeChannel(
             trace: trace,
             peerFingerprint: peerFingerprint,
@@ -142,6 +192,8 @@ struct FakeChannel: PairingChannel {
         case .hang:
             try await Task.sleep(for: .seconds(3600))
             return Data()
+        case .oversized:
+            throw PairingFrameError.oversized(length: PairingFrame.maxBodyLength + 1)
         }
     }
 
@@ -173,7 +225,12 @@ struct RecordingStore: PairingRecordStore {
 
     func save(_ mac: PairedMac) async throws {
         await trace.record("save record")
-        if failsOnSave { throw FixtureFailure.write }
+        // Fails the write of the Mac being paired and no other, so the restore of an earlier record can
+        // still go through, as it would once the write is retried. A failed write leaves the earlier
+        // record where it was, which is what the Keychain store does now that it updates in place.
+        if failsOnSave, mac.name == LivePairingServiceTests.macName {
+            throw FixtureFailure.write
+        }
         try await inner.save(mac)
     }
 

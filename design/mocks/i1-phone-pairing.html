@@ -731,7 +731,34 @@ out.push(sec('H','Pairing — the ways it fails',
         `<div class="inlineErr"><span class="i">${ic('warn',13)}</span>
            <span>That code couldn't be read. Ask your Mac for a new one and scan it again.</span></div>
          <button class="cta">Scan again</button>`),
-      {fix:true,t:'The third decode outcome: our envelope, our version, a body that did not hold up. Folding it into either neighbour would tell the user to do the wrong thing.'})
+      {fix:true,t:'The third decode outcome: our envelope, our version, a body that did not hold up. Folding it into either neighbour would tell the user to do the wrong thing.'}),
+
+    unit('Identity mismatch','the Mac that answered is not the one the code names',
+      phone({back:'Scan',title:'Pair Mac'},
+        `<div class="pempty" style="padding-top:40px"><div class="g">${ic('warn',34,1.2)}</div>
+           <b>This isn't the Mac that showed the code</b>
+           <p>The Mac that answered doesn't have the identity this code names, so nothing was sent to it.
+              Ask your Mac for a new code and scan that one.</p></div>
+         <button class="cta">Scan a new code</button>`),
+      {t:'The certificate the Mac presented is not the one the QR named, so the handshake ends before anything is written. The copy says nothing was sent, because that is the one thing the phone can state. It does not say which device answered, because the phone cannot tell a stale code from a different device.'}),
+
+    unit('Pairing not saved','the Mac never confirmed it',
+      phone({back:'Enter the code',title:'Pair Mac'},
+        `<div class="pempty" style="padding-top:34px"><div class="g">${ic('warn',34,1.2)}</div>
+           <b>This phone couldn't save the pairing</b>
+           <p>The pairing wasn't kept, so ${MAC} doesn't list this phone as paired. Ask your Mac for a new
+              code and pair again.</p></div>
+         <button class="cta">Pair again</button>`),
+      {t:'Distinct from "Paired, but not saved" above. There the Mac had confirmed the pairing, so the phone must not call it a failure. Here the Mac never received the acknowledgement, so it does not list the phone as paired, and the copy must not say it did.'}),
+
+    unit('Typed entry unavailable','refused until the typed-code exchange lands',
+      phone({back:'Enter the code',title:'Pair Mac'},
+        `<div class="pempty" style="padding-top:40px"><div class="g">${ic('warn',34,1.2)}</div>
+           <b>Typed codes aren't available yet</b>
+           <p>This app can't check a typed code against your Mac yet, so nothing was sent. Scan the code
+              your Mac is showing instead.</p></div>
+         <button class="cta">Scan instead</button>`),
+      {t:'A typed code carries no fingerprint, so the phone cannot confirm which Mac it is talking to before it spends the code. The phone refuses it by name rather than sending it and hoping.'})
   ].join('')));
 
 /* ── I · settings paired ──────────────────────────────────────────────── */

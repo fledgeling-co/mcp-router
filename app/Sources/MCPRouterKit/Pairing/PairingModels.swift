@@ -100,6 +100,16 @@ public enum PairingOutcome: Sendable, Equatable {
     /// Ours, but unreadable.
     case malformedPayload
 
+    /// The Mac that answered does not present the identity the code names. Nothing was sent to it.
+    ///
+    /// No Mac name: the name came from the code, and the code is the thing that did not check out.
+    case identityMismatch
+    /// The Mac accepted the code, but this phone could not keep the pairing. The Mac never confirmed
+    /// it, so it does not list this phone as paired.
+    case notSaved(macName: String?)
+    /// Typed entry is refused until a typed code can be checked against the Mac's identity (plan B8).
+    case typedEntryUnavailable
+
     public var isSuccess: Bool {
         if case .paired = self { return true }
         return false

@@ -43,11 +43,20 @@ public struct LivePairingService: PairingService {
             return .paired(mac)
         case let .refused(refusal):
             return MacPairing.outcome(for: refusal, macName: attempt.macName)
-        // Every failure reaches the surface as `.unreachable` until B5 gives the ones that have no
-        // outcome of their own (identityMismatch, the storage failures, the typed refusal). Each
-        // `LivePairingFailure` names the step that stopped, so that decision is made per case there.
-        case .failed:
-            return .unreachable(macName: attempt.macName)
+        case let .failed(failure):
+            return Self.outcome(for: failure, macName: attempt.macName)
+        }
+    }
+
+    /// The outcome for a failed exchange. Three failures have an outcome of their own. The rest report
+    /// `.unreachable`, which says only that nothing answered, so a protocol violation or an ack that
+    /// did not go out is indistinguishable from a Mac that is asleep. That is a known gap, not a choice.
+    static func outcome(for failure: LivePairingFailure, macName: String?) -> PairingOutcome {
+        switch failure {
+        case .identityMismatch: .identityMismatch
+        case .keyStore, .recordStore: .notSaved(macName: macName)
+        case .untypedAttempt: .typedEntryUnavailable
+        case .transport, .timedOut, .protocolViolation, .ackNotSent: .unreachable(macName: macName)
         }
     }
 
@@ -93,7 +102,13 @@ public struct LivePairingService: PairingService {
 
         let channel: any PairingChannel
         do {
-            channel = try await transport.connect(host: payload.host, port: payload.port)
+            channel = try await transport.connect(
+                host: payload.host,
+                port: payload.port,
+                expecting: payload.fingerprint
+            )
+        } catch PairingTransportError.identityMismatch {
+            return .failed(.identityMismatch)
         } catch {
             return .failed(transportFailure())
         }
@@ -130,6 +145,10 @@ public struct LivePairingService: PairingService {
         let frame: Data
         do {
             frame = try await channel.receive()
+        } catch is PairingFrameError {
+            // The framing gate refused the length prefix, so the Mac sent something the contract does
+            // not allow. That is a protocol violation, not a connection that failed.
+            return .failed(.protocolViolation)
         } catch {
             return .failed(transportFailure())
         }
@@ -172,6 +191,9 @@ public struct LivePairingService: PairingService {
         do {
             try await records.save(mac)
         } catch {
+            // A failed write can take the earlier record with it, so it is put back, as an ack failure
+            // does below.
+            await restore(previous)
             return .failed(.recordStore)
         }
 
@@ -209,7 +231,7 @@ public struct LivePairingService: PairingService {
     private func answers(host: String, port: Int, as fingerprint: String) async -> Bool {
         let channel: any PairingChannel
         do {
-            channel = try await transport.connect(host: host, port: port)
+            channel = try await transport.connect(host: host, port: port, expecting: fingerprint)
         } catch {
             return false
         }
@@ -218,24 +240,43 @@ public struct LivePairingService: PairingService {
         return pinned
     }
 
-    /// Pins each endpoint the browse names, and keeps the first the stored certificate answers from.
+    /// Dials each endpoint the browse names, and keeps the first the stored certificate answers from.
     ///
     /// Endpoints that advertise the stored name are tried first, since that is the likely one. The name only
     /// orders the attempts: a Mac is the endpoint whose certificate matches, whatever it calls itself. At
     /// most
     /// `maxCandidates` are dialled, because anyone on the LAN can advertise a name and each dial costs a
-    /// connection.
+    /// connection. They are dialled together, so an endpoint that accepts and never answers holds up only
+    /// itself, and a Mac further down the list is still tried within the probe's timeout.
     private func rediscover(_ mac: PairedMac) async -> Bool {
         let found = await discovery.browse()
         let likely = found.filter { $0.name == mac.name }
         let others = found.filter { $0.name != mac.name }
-        for candidate in (likely + others).prefix(Self.maxCandidates) {
-            guard await answers(host: candidate.host, port: candidate.port, as: mac.fingerprint)
-            else { continue }
-            await moveRecord(of: mac, to: candidate)
-            return true
+        let candidates = Array((likely + others).prefix(Self.maxCandidates))
+        guard let winner = await firstAnswering(candidates, as: mac.fingerprint) else { return false }
+        await moveRecord(of: mac, to: winner)
+        return true
+    }
+
+    /// The first candidate to present `fingerprint`, in the order they answer. Once one has, the rest are
+    /// cancelled, and any that has not finished reports nothing.
+    private func firstAnswering(
+        _ candidates: [DiscoveredMac],
+        as fingerprint: String
+    ) async -> DiscoveredMac? {
+        await withTaskGroup(of: DiscoveredMac?.self) { group in
+            for candidate in candidates {
+                group.addTask {
+                    let pinned = await answers(host: candidate.host, port: candidate.port, as: fingerprint)
+                    return pinned ? candidate : nil
+                }
+            }
+            for await winner in group where winner != nil {
+                group.cancelAll()
+                return winner
+            }
+            return nil
         }
-        return false
     }
 
     /// How many browse endpoints one probe will dial, the stored address not counted.

@@ -11,10 +11,10 @@ import UIKit
 /// every surface be exercised on a macOS test host, and it is why `MCPRouterUI` carries no `UIKit`
 /// import of its own.
 ///
-/// **`FixturePairingService` is deliberate, not a stub left behind.** M6 owns the Mac's pairing
-/// endpoint; the transport it needs is deferred (D-m6-a), and the seam this implements is
-/// `PairingService`, published in `planning/specs/spec-I1.md`. Shipping an invented network client
-/// now would mean the Mac discovering our wire rather than agreeing one.
+/// **Pairing is the live service in every Release build.** `PhonePairingFactory` composes
+/// `LivePairingService` over `NetworkPairingTransport`, pinned to the QR's fingerprint (plan §2.2).
+/// The fixture is reachable only from a Debug build that names one on purpose, so a shipped phone
+/// cannot report "Paired." for a Mac it never reached.
 ///
 /// **The control client is no longer a fixture by default, and the queue is no longer in memory.**
 /// Until I3 this call site passed neither, so `PhoneShell` took `FixtureControlAPIClient()` and
@@ -32,6 +32,17 @@ struct MCPRouterIOSApp: App {
     private let storage: Result<URL, Error> = Result {
         try FileCapabilityQueueWriter.defaultDirectory()
     }
+
+    /// The pairing record, kept between launches. `KeychainPairingStore` holds no state of its own, so
+    /// the service and the shell each hold one and read and write the same Keychain item.
+    private let records = KeychainPairingStore()
+
+    /// The pairing service this build uses. `PhonePairingFactory` holds the decision: Release is always
+    /// the live service, and the fixture is reachable only from a Debug build.
+    private let pairing: any PairingService = PhonePairingFactory.makeService(
+        deviceName: UIDevice.current.name,
+        records: KeychainPairingStore()
+    )
 
     /// The camera adapter this build uses. `PhoneCameraFactory` holds the decision, and the
     /// measurement that makes it necessary.
@@ -51,8 +62,8 @@ struct MCPRouterIOSApp: App {
             switch storage {
             case let .success(directory):
                 PhoneShell(
-                    pairing: FixturePairingService(),
-                    store: KeychainPairingStore(),
+                    pairing: pairing,
+                    store: records,
                     camera: camera,
                     client: PhoneClientFactory.makeClient(),
                     queue: FileCapabilityQueueWriter(directory: directory),

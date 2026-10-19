@@ -60,7 +60,7 @@ public struct PhoneShell<Preview: View>: View {
     }
 
     public init(
-        pairing: any PairingService = FixturePairingService(),
+        pairing: (any PairingService)? = nil,
         store: any PairingRecordStore = InMemoryPairingStore(),
         camera: any CameraAuthorizing = FixtureCameraAuthorization(),
         client: any ControlAPIClient = FixtureControlAPIClient(),
@@ -72,7 +72,9 @@ public struct PhoneShell<Preview: View>: View {
         openSystemSettings: @escaping () -> Void = {},
         @ViewBuilder cameraPreview: @escaping (@escaping @MainActor (String) -> Void) -> Preview
     ) {
-        self.pairing = pairing
+        // Nil resolves through the factory, so the fixture is composed here only in a Debug build that
+        // names one. The empty device name takes the factory's fallback: a shell has no device to name.
+        self.pairing = pairing ?? PhonePairingFactory.makeService(deviceName: "", records: store)
         self.store = store
         self.camera = camera
         self.client = client
@@ -180,7 +182,7 @@ public extension PhoneShell where Preview == EmptyView {
     /// The shell with no camera preview — what a macOS host test and a SwiftUI preview construct,
     /// since neither has a camera and neither needs one to exercise the surfaces.
     init(
-        pairing: any PairingService = FixturePairingService(),
+        pairing: (any PairingService)? = nil,
         store: any PairingRecordStore = InMemoryPairingStore(),
         camera: any CameraAuthorizing = FixtureCameraAuthorization(),
         client: any ControlAPIClient = FixtureControlAPIClient(),

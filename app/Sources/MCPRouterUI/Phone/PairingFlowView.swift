@@ -213,7 +213,8 @@ struct PairingFlowView<Preview: View>: View {
 
     private func macName(from outcome: PairingOutcome) -> String? {
         switch outcome {
-        case let .versionMismatch(name), let .unreachable(name), let .refused(name): name
+        case let .versionMismatch(name), let .unreachable(name), let .refused(name), let .notSaved(name):
+            name
         default: nil
         }
     }

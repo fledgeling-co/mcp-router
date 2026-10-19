@@ -137,6 +137,9 @@ public enum PairingCopy {
         case outcomeRefused
         case outcomeNotAPairingCode
         case outcomeMalformedPayload
+        case outcomeIdentityMismatch
+        case outcomeNotSaved
+        case outcomeTypedEntryUnavailable
 
         case unpairConfirm
         /// The unpair itself failed. The Mac is still paired, and the surface has to say so —
@@ -172,7 +175,8 @@ public enum PairingCopy {
             case .verifyingScanned, .verifyingTyped: .verifying
             case .pairedSuccess, .pairedNotStored, .outcomeAlreadyUsed, .outcomeVersionMismatch,
                  .outcomeUnreachable, .outcomeRefused, .outcomeNotAPairingCode,
-                 .outcomeMalformedPayload: .outcome
+                 .outcomeMalformedPayload, .outcomeIdentityMismatch, .outcomeNotSaved,
+                 .outcomeTypedEntryUnavailable: .outcome
             case .unpairConfirm, .unpairFailed: .unpair
             case .sendingBlocked: .sending
             case .bannerReachable, .bannerNotReachable, .bannerNeverPaired: .sending
@@ -397,6 +401,39 @@ public enum PairingCopy {
                 body: "That code couldn't be read. Ask your Mac for a new one and scan it again.",
                 actionLabel: "Scan again"
             )
+        case .outcomeIdentityMismatch:
+            // Says what was observed: the Mac that answered is not the one the code names. It does not
+            // say why, because the phone cannot tell a stale code from a different device answering.
+            Entry(
+                headline: "This isn't the Mac that showed the code",
+                body: """
+                The Mac that answered doesn't have the identity this code names, so nothing was sent \
+                to it. Ask your Mac for a new code and scan that one.
+                """,
+                actionLabel: "Scan a new code"
+            )
+        case .outcomeNotSaved:
+            // The Mac never confirmed the pairing, so the copy says so. It does not say "paired", which
+            // is the wording `pairedNotStored` uses for the one case where the Mac did confirm.
+            Entry(
+                headline: "This phone couldn't save the pairing",
+                body: """
+                The pairing wasn't kept, so {mac} doesn't list this phone as paired. Ask your Mac for a \
+                new code and pair again.
+                """,
+                actionLabel: "Pair again"
+            )
+        case .outcomeTypedEntryUnavailable:
+            // Typed codes carry no fingerprint, so nothing can be checked before the code is spent. The
+            // copy names that limit and what to do instead.
+            Entry(
+                headline: "Typed codes aren't available yet",
+                body: """
+                This app can't check a typed code against your Mac yet, so nothing was sent. Scan the \
+                code your Mac is showing instead.
+                """,
+                actionLabel: "Scan instead"
+            )
 
         // MARK: Unpair
         case .unpairConfirm:
@@ -495,6 +532,9 @@ public enum PairingCopy {
         case .refused: .outcomeRefused
         case .notAPairingCode: .outcomeNotAPairingCode
         case .malformedPayload: .outcomeMalformedPayload
+        case .identityMismatch: .outcomeIdentityMismatch
+        case .notSaved: .outcomeNotSaved
+        case .typedEntryUnavailable: .outcomeTypedEntryUnavailable
         }
     }
 }

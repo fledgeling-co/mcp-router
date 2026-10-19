@@ -69,6 +69,18 @@ public extension PairingRecordStore {
     }
 }
 
+/// The Security calls `KeychainPairingStore.save` makes. The default is the Security framework. A test
+/// substitutes a call that refuses, because the real Keychain cannot be made to refuse a write on demand.
+struct PairingKeychain: Sendable {
+    let update: @Sendable (CFDictionary, CFDictionary) -> OSStatus
+    let add: @Sendable (CFDictionary) -> OSStatus
+
+    static let system = PairingKeychain(
+        update: { SecItemUpdate($0, $1) },
+        add: { SecItemAdd($0, nil) }
+    )
+}
+
 /// The real store: a generic password in the Keychain, device-bound.
 ///
 /// `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly` rather than the plain form, and the difference
@@ -80,15 +92,21 @@ public struct KeychainPairingStore: PairingRecordStore {
     public let service: String
     public let account: String
     private let log: ControlLog
+    private let keychain: PairingKeychain
 
     public init(
         service: String = "app.fledgeling.mcprouter.pairing",
         account: String = "paired-mac",
         log: ControlLog = ControlLog()
     ) {
+        self.init(service: service, account: account, log: log, keychain: .system)
+    }
+
+    init(service: String, account: String, log: ControlLog, keychain: PairingKeychain) {
         self.service = service
         self.account = account
         self.log = log
+        self.keychain = keychain
     }
 
     private var baseQuery: [CFString: Any] {
@@ -135,15 +153,18 @@ public struct KeychainPairingStore: PairingRecordStore {
         encoder.dateEncodingStrategy = .iso8601
         let data = try encoder.encode(mac)
 
-        // Delete-then-add rather than update, matching `KeychainTokenStore`: an update on a missing
-        // item fails, and branching on which case applies is one more state to get wrong.
-        SecItemDelete(baseQuery as CFDictionary)
-
-        var query = baseQuery
-        query[kSecValueData] = data
-        query[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-
-        let status = SecItemAdd(query as CFDictionary, nil)
+        // Update in place, and add only when there is no item yet. The earlier code deleted first, so a
+        // refused add left nothing behind, and a failed save could take the Mac paired before it. Now a
+        // refused write leaves the earlier record where it was.
+        let accessibility: CFString = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        let attributes: [CFString: Any] = [kSecValueData: data, kSecAttrAccessible: accessibility]
+        var status = keychain.update(baseQuery as CFDictionary, attributes as CFDictionary)
+        if status == errSecItemNotFound {
+            var query = baseQuery
+            query[kSecValueData] = data
+            query[kSecAttrAccessible] = accessibility
+            status = keychain.add(query as CFDictionary)
+        }
         guard status == errSecSuccess else { throw TokenStoreError.keychain(status: status) }
         log.info("pairing record stored (\(data.count) bytes)")
     }

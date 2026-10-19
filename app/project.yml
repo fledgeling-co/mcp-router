@@ -106,6 +106,15 @@ targets:
         NSCameraUsageDescription:
           MCP Router uses the camera once, to read the pairing code shown on your Mac.
           Nothing is recorded.
+        # The pairing connection runs over the local network, and iOS gates that behind this prompt on
+        # the first local connection. The copy names the one use and what does not happen, as the
+        # camera's does. Proposed copy from plan §5, pending design review (D5).
+        NSLocalNetworkUsageDescription:
+          MCP Router uses your local network to connect to the Mac you pair with. It connects only to
+          that Mac.
+        # Bonjour browsing for the pairing service needs its type declared here, or iOS refuses to browse.
+        NSBonjourServices:
+          - _mcprouter-pair._tcp
     # The companion is sandboxed by definition on iOS and currently needs no capability of its
     # own. The file exists but is empty on purpose: a later item adds to a reviewed baseline
     # rather than introducing the first entitlement alongside a feature.

@@ -58,15 +58,22 @@ struct ShellDestinationTests {
         }
     }
 
-    /// **Contiguous *and* in sidebar order**, which is the half M22 made load-bearing. The View
-    /// menu lists destinations in declaration order and labels each with its digit, so a digit that
-    /// does not follow the list prints `⌘1 ⌘2 ⌘3 ⌘8 ⌘4 …` down one menu. Comparing against a
-    /// literal sequence catches a renumbering; comparing `digits` against `1...count` would not
-    /// catch a *permutation*, which is the mistake actually available here.
-    @Test("exactly nine destinations carry a selection digit, numbered 1 through 9 in sidebar order")
+    /// **Each destination's digit is pinned by name, as `DESIGN.md` §8 orders them.** The digits
+    /// are not the sidebar's order: the sidebar groups Running then Library, and the digits follow
+    /// the design's numbering. Comparing a sequence against `1...count` would catch a gap but not a
+    /// *permutation*, which is the mistake actually available here, so each pair is asserted.
+    /// The View menu sorts by digit, so its order is what this test protects.
+    @Test("exactly nine destinations carry a selection digit, numbered 1 through 9 as §8 orders them")
     func selectionDigitsAreContiguous() {
+        let expected: [Destination: Int] = [
+            .discover: 1, .skills: 2, .servers: 3, .activity: 4, .harnesses: 5,
+            .evals: 6, .cleanup: 7, .inbox: 8, .insights: 9
+        ]
+        for (destination, digit) in expected {
+            #expect(destination.selectionDigit == digit, "\(destination.title) is not ⌘\(digit)")
+        }
         let digits = Destination.ordered.compactMap(\.selectionDigit)
-        #expect(digits == [1, 2, 3, 4, 5, 6, 7, 8, 9])
+        #expect(Set(digits) == Set(1 ... 9))
         // Every destination carries one now, because the one that did not was Settings and Settings
         // is a window. The digit stays optional on the type so the filter that keeps a digit-less
         // destination out of the View menu survives; what is asserted here is that nothing is

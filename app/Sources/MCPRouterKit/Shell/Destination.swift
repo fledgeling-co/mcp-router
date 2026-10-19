@@ -115,12 +115,15 @@ public enum Destination: String, CaseIterable, Sendable, Identifiable {
     /// it, and collapsing it now would delete the filter that keeps a future digit-less destination
     /// out of the menu.
     ///
-    /// **The digits follow the sidebar, so M22's two renumbered four of them.** `Destination`'s
-    /// declaration order is the order the View menu lists in, and leaving Discover at `⌘4` while
-    /// Harnesses sat above it at `⌘8` would print `⌘1 ⌘2 ⌘3 ⌘8 ⌘4 ⌘5 ⌘6 ⌘7 ⌘9` down one menu.
-    /// `planning/specs/spec-M1.md`'s inventory table is the oracle `MenuCommandTests` parses and it
-    /// moved in the same change. M20 owns the accelerator map and any further re-mapping — the
-    /// mock's own numbering disagrees with this one and that disagreement is recorded there.
+    /// **The digits are `DESIGN.md` §8's, and they are not the sidebar's order.** Discover is `⌘1`
+    /// and Activity `⌘4`, though the sidebar lists Activity first. Harnesses is `⌘5` and Insights
+    /// `⌘9`, which §8's prose assigns to those two boards and its table leaves out. The menu bar
+    /// lists the View group by digit (`MenuCommand.allCases`), so the printed order is 1 through 9
+    /// whatever order this enum is declared in.
+    ///
+    /// This was M22's order until DEF-522 (19 Oct 2026): the build renumbered four digits to follow
+    /// the sidebar, and the owner ruled the design of record the one to keep. `planning/specs/spec-M1.md`'s
+    /// inventory table is the oracle `MenuCommandTests` parses, and it moved with this change.
     ///
     /// **Settings is not here and does not get `⌘0`.** `DESIGN.md` §8 binds it to `⌘,`; giving it a
     /// digit too would put two shortcuts on one command, which is how a menu bar starts teaching two
@@ -128,14 +131,14 @@ public enum Destination: String, CaseIterable, Sendable, Identifiable {
     /// chord — `⌃W` — in `DESIGN.md` §8 rather than in a `switch`.
     public var selectionDigit: Int? {
         switch self {
-        case .activity: 1
-        case .servers: 2
-        case .skills: 3
-        case .harnesses: 4
-        case .discover: 5
-        case .inbox: 6
-        case .evals: 7
-        case .cleanup: 8
+        case .discover: 1
+        case .skills: 2
+        case .servers: 3
+        case .activity: 4
+        case .harnesses: 5
+        case .evals: 6
+        case .cleanup: 7
+        case .inbox: 8
         case .insights: 9
         }
     }

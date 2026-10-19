@@ -76,14 +76,14 @@ what exists and what it is bound to, the model for what it can do right now.
 | Edit | Find | ⌘F | surfaceAbsent |
 | Edit | Reset Server | ⌘R | surfaceAbsent |
 | Edit | Remove Server | ⌘⌫ | surfaceAbsent |
-| View | Activity | ⌘1 | enabled |
-| View | Servers | ⌘2 | enabled |
-| View | Skills | ⌘3 | enabled |
-| View | Harnesses | ⌘4 | enabled |
-| View | Discover | ⌘5 | enabled |
-| View | Inbox | ⌘6 | enabled |
-| View | Checks | ⌘7 | enabled |
-| View | Cleanup | ⌘8 | enabled |
+| View | Discover | ⌘1 | enabled |
+| View | Skills | ⌘2 | enabled |
+| View | Servers | ⌘3 | enabled |
+| View | Activity | ⌘4 | enabled |
+| View | Harnesses | ⌘5 | enabled |
+| View | Checks | ⌘6 | enabled |
+| View | Cleanup | ⌘7 | enabled |
+| View | Inbox | ⌘8 | enabled |
 | View | Insights | ⌘9 | enabled |
 | View | Show Sidebar | ⌃⌘S | enabled |
 | Router | Re-index Manifest | — | featureUnbuilt |
@@ -105,14 +105,11 @@ what exists and what it is bound to, the model for what it can do right now.
 | Help | What the Router Actually Does | — | enabled |
 | Help | Report an Issue | — | enabled |
 
-**The View block moved twice, and both times the spec moved with the code in the same change.**
+**The View block moved three times, and each time the spec moved with the code in the same change.**
 M15 removed the ungrouped Settings row when Settings became a window. **M22 added Harnesses and
-Insights and renumbered four digits**, because the View menu lists destinations in declaration
-order and labels each with its own digit — leaving Discover at ⌘4 while Harnesses sat above it at
-⌘8 would print `⌘1 ⌘2 ⌘3 ⌘8 ⌘4 ⌘5 ⌘6 ⌘7 ⌘9` down one menu. A11's group membership moved in the
-same edit. M20 owns the accelerator map and any further re-mapping; the console mock's own
-numbering disagrees with this one and that disagreement is recorded under M20 rather than settled
-here.
+Insights and renumbered four digits** to follow the sidebar. DEF-522 (19 Oct 2026) reversed that:
+the owner ruled the design of record's order correct, so the digits are `DESIGN.md` §8's again, and
+the console mock draws the same order. A11's group membership moved in the same edit.
 
 One row per command, deliberately: a compound row ("Cut / Copy / Paste") cannot be parsed
 unambiguously, and an oracle a test has to guess at is not an oracle. `MenuCommandTests` parses

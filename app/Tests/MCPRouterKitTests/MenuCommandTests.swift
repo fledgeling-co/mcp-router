@@ -172,10 +172,9 @@ struct MenuCommandTests {
     ///
     /// Until then the accelerator a user presses most was the one part of the map that lived only
     /// in a `switch`, so the both-ways check above covered every chord in the app except those.
-    /// `⌘5` and `⌘9` belong to Harnesses and Insights, which M22 ships; a row for either would be
-    /// a binding this document states and the app cannot honour, and this fails if one appears
-    /// before its board does — or if the seven get packed into `⌘1`–`⌘7`, which would move every
-    /// digit a user has learned on the day M22 lands.
+    /// `⌘5` and `⌘9` belong to Harnesses and Insights, which M22 has shipped, and §8's prose still
+    /// assigns them there. The table keeps the two rows out, as it did before the boards existed;
+    /// the digits themselves are pinned per destination in `ShellDestinationTests`.
     @Test("§8 states seven board digits, and neither of M22's two")
     func designSectionEightStatesTheBoardDigits() throws {
         let chords = try Self.documentedChords()

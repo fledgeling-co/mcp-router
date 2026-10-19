@@ -3821,7 +3821,7 @@
   },
   {
     "id": "CASE-0270",
-    "req": "REQ-035",
+    "req": "REQ-096",
     "lane": "router-daemon",
     "oracle": "outcome",
     "plane": "live-external",
@@ -3837,7 +3837,7 @@
   },
   {
     "id": "CASE-0271",
-    "req": "REQ-035",
+    "req": "REQ-096",
     "lane": "router-daemon",
     "oracle": "outcome",
     "plane": "live-external",
@@ -3853,7 +3853,7 @@
   },
   {
     "id": "CASE-0272",
-    "req": "REQ-035",
+    "req": "REQ-096",
     "lane": "router-daemon",
     "oracle": "outcome",
     "plane": "live-external",
@@ -3869,7 +3869,7 @@
   },
   {
     "id": "CASE-0273",
-    "req": "REQ-035",
+    "req": "REQ-096",
     "lane": "router-daemon",
     "oracle": "outcome",
     "plane": "live-external",
@@ -3885,7 +3885,7 @@
   },
   {
     "id": "CASE-0274",
-    "req": "REQ-035",
+    "req": "REQ-096",
     "lane": "router-daemon",
     "oracle": "outcome",
     "plane": "live-external",
@@ -3901,7 +3901,7 @@
   },
   {
     "id": "CASE-0275",
-    "req": "REQ-035",
+    "req": "REQ-096",
     "lane": "router-daemon",
     "oracle": "outcome",
     "plane": "live-external",

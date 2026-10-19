@@ -29,6 +29,29 @@ public extension SkillPresentation {
         return writesNotYetAvailable
     }
 
+    /// Why Promote is dimmed. Promoting needs the held version's files, and the router cannot read them from
+    /// the plugin cache yet, so there is nothing to send. Said plainly rather than as "not yet available".
+    static let promoteUnavailable = """
+    Promoting needs the held version's files, and the router cannot read them from the plugin cache yet.
+    """
+
+    // MARK: - Held-version writes
+
+    /// What a kept version reads as. The router has recorded it, and nothing here claims the badge has
+    /// cleared.
+    static func kept(_ version: String) -> String {
+        "Kept \(version). The router has recorded that you kept it."
+    }
+
+    static func promoted(name: String, version: String) -> String {
+        "Promoted \(name) to \(version). The copy it replaced is kept, and Undo puts it back."
+    }
+
+    static func undone(name: String, version: String?) -> String {
+        guard let version else { return "Put \(name) back. The promoted copy is kept aside." }
+        return "Put \(name) back at \(version). The promoted copy is kept aside."
+    }
+
     /// Inspector item 7 has no marketplace record to read from.
     ///
     /// Said out loud rather than drawn as a switch in the off position. A marketplace list that

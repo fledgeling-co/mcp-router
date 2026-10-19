@@ -56,6 +56,24 @@
         public var search: String = ""
         public var sheet: RouterSheet.Skills?
         public private(set) var focusSearchRequests: Int = 0
+        /// The last held-version write's refusal, in the router's own words. Shown beside the control that
+        /// made it, and cleared when the next write starts.
+        public private(set) var writeFailure: ControlAPIError?
+        /// Whether a held-version write is in flight, so its controls can say so and not start a second one.
+        public private(set) var writing = false
+        /// What the last write did, in a sentence the sheet reads. Nil until a write succeeds.
+        public private(set) var notice: String?
+        /// The promotion the board can take back. A promote sets it and its undo clears it.
+        public private(set) var lastPromotion: PromotedEntry?
+
+        /// A promotion this board made: the store entry it changed, and the reference its undo needs.
+        public struct PromotedEntry: Sendable, Hashable {
+            /// The plugin's own name, as the sentence reads it.
+            public let plugin: String
+            /// The name the router holds the entry under, `<plugin>@<marketplace>`.
+            public let name: String
+            public let restore: String
+        }
 
         public init(client: any ControlAPIClient) {
             self.client = client
@@ -92,6 +110,73 @@
                 marketplaces = []
                 marketplacesError = error
             }
+        }
+
+        /// Keep a held version: the router records that it was declined. Plugin-held versions only, because a
+        /// standalone skill has no version to hold, so there is nothing to keep.
+        public func keepHeldVersion(_ skill: Skill) async {
+            guard let origin = skill.source.pluginOrigin, let held = skill.held, beginWrite() else { return }
+            defer { writing = false }
+            do throws(ControlAPIError) {
+                let ack = try await client.keepHeldVersion(
+                    origin.storeName, kind: .plugins, pluginVersion: held.pluginVersion
+                )
+                notice = SkillPresentation.kept(ack.pluginVersion)
+            } catch {
+                writeFailure = error
+            }
+        }
+
+        /// Promote a held version over the installed one. The router keeps the copy it replaces, so the
+        /// promotion is reversible and needs no confirmation first (`DESIGN.md` §9).
+        public func promoteHeldVersion(_ skill: Skill, files: [ExtensionFileBody]) async {
+            guard let origin = skill.source.pluginOrigin, let held = skill.held, beginWrite() else { return }
+            defer { writing = false }
+            do throws(ControlAPIError) {
+                let ack = try await client.promote(
+                    origin.storeName, kind: .plugins, pluginVersion: held.pluginVersion, files: files
+                )
+                lastPromotion = PromotedEntry(
+                    plugin: origin.plugin,
+                    name: origin.storeName,
+                    restore: ack.restore
+                )
+                notice = SkillPresentation.promoted(name: origin.plugin, version: ack.pluginVersion)
+                await load()
+            } catch {
+                writeFailure = error
+            }
+        }
+
+        /// Put back what the last promotion replaced. A refusal leaves the promotion in place, so the reason
+        /// can be read against it.
+        public func undoLastPromotion() async {
+            guard let promoted = lastPromotion, beginWrite() else { return }
+            defer { writing = false }
+            do throws(ControlAPIError) {
+                let ack = try await client.undoPromotion(
+                    promoted.name,
+                    kind: .plugins,
+                    restore: promoted.restore
+                )
+                lastPromotion = nil
+                notice = SkillPresentation.undone(name: promoted.plugin, version: ack.version)
+                await load()
+            } catch {
+                writeFailure = error
+            }
+        }
+
+        /// Starts one held-version write, and returns false when one is already in flight so a second press
+        /// is
+        /// ignored. The previous refusal and notice are cleared first, so a stale one never sits beside a new
+        /// outcome.
+        private func beginWrite() -> Bool {
+            guard !writing else { return false }
+            writing = true
+            writeFailure = nil
+            notice = nil
+            return true
         }
 
         public var rows: [Skill] {

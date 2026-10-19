@@ -78,18 +78,36 @@
 
                 Divider()
 
-                // Both offers are dimmed with the same reason: M4 reads, it does not write. They
-                // stay visible rather than disappearing, so the user can see what this surface will
-                // eventually let them do and why it cannot yet (§3.4).
+                // Keep is the one write this sheet can make: it records a decision the router holds, and
+                // nothing is installed. Promote stays dimmed in place with its reason, because the router
+                // has no copy of the held version's files to promote (§3.4).
                 VStack(alignment: .leading, spacing: SkillsBoardMetrics.tightGap) {
-                    DisabledAction(
-                        label: "Keep \(skill.source.pluginOrigin?.pluginVersion ?? "the installed version")",
-                        reason: SkillPresentation.writesNotYetAvailable
-                    )
+                    if let failure = board.writeFailure {
+                        // The router's own refusal, beside the control that made it (§6). Never a success.
+                        Banner(icon: .warn, tint: .attention) {
+                            Text("\(failure.headline). \(failure.advice)")
+                        }
+                    }
+                    if let notice = board.notice {
+                        Text(notice)
+                            .typeRole(.caption)
+                            .foregroundStyle(ColorToken.t2.color)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Button("Keep \(skill.source.pluginOrigin?.pluginVersion ?? "the installed version")") {
+                        Task { await board.keepHeldVersion(skill) }
+                    }
+                    .buttonStyle(StandardButtonStyle())
+                    .disabled(board.writing)
                     DisabledAction(
                         label: "Promote to \(skill.held?.pluginVersion ?? "")",
-                        reason: SkillPresentation.writesNotYetAvailable
+                        reason: SkillPresentation.promoteUnavailable
                     )
+                    if board.lastPromotion != nil {
+                        Button("Undo") { Task { await board.undoLastPromotion() } }
+                            .buttonStyle(StandardButtonStyle())
+                            .disabled(board.writing)
+                    }
                 }
 
                 HStack {

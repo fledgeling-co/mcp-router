@@ -140,8 +140,23 @@ final class HTTPStub: @unchecked Sendable {
         lock.lock(); connectionCount += 1; lock.unlock()
 
         connection.start(queue: .global())
+        receiveRequest(on: connection, buffered: Data())
+    }
+
+    /// Reads until the head and its `Content-Length` body have both arrived. URLSession writes the body
+    /// separately from the head, so a single receive would record the headers and miss a write's JSON.
+    private func receiveRequest(on connection: NWConnection, buffered: Data) {
         connection.receive(minimumIncompleteLength: 1, maximumLength: 65536) { [weak self] data, _, _, _ in
-            guard let self, let data, let head = String(data: data, encoding: .utf8) else {
+            guard let self, let data else {
+                connection.cancel()
+                return
+            }
+            let received = buffered + data
+            guard Self.requestIsComplete(received) else {
+                receiveRequest(on: connection, buffered: received)
+                return
+            }
+            guard let head = String(data: received, encoding: .utf8) else {
                 connection.cancel()
                 return
             }
@@ -191,6 +206,20 @@ final class HTTPStub: @unchecked Sendable {
                 + answer.body
             send(connection, head: payload) { connection.cancel() }
         }
+    }
+
+    /// Whether the head is in and the body has its `Content-Length` bytes. A request with no length is a
+    /// bodyless one, so the head alone completes it.
+    private static func requestIsComplete(_ data: Data) -> Bool {
+        guard let end = data.range(of: Data("\r\n\r\n".utf8)) else { return false }
+        // A head that is not UTF-8 is not a request this stub can answer. It counts as complete, so the
+        // handler fails to decode it and cancels the connection, rather than waiting for a body that never
+        // comes.
+        guard let head = String(bytes: data[..<end.lowerBound], encoding: .utf8) else { return true }
+        let length = head.components(separatedBy: "\r\n")
+            .first { $0.lowercased().hasPrefix("content-length:") }
+            .flatMap { Int($0.dropFirst("content-length:".count).trimmingCharacters(in: .whitespaces)) } ?? 0
+        return data.count - end.upperBound >= length
     }
 
     private func send(_ connection: NWConnection, head: String, then done: (@Sendable () -> Void)? = nil) {

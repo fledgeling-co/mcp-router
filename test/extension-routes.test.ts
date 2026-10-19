@@ -1,6 +1,6 @@
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
@@ -236,6 +236,284 @@ test('R9 — a name arrives percent-decoded, and a malformed escape is 400', asy
   const malformed = await answer({ method: 'GET', path: '/extensions/skills/%ZZ' }, deps);
   assert.equal(malformed.status, 400);
   assert.equal(malformed.text, '{"error":"URI malformed"}');
+});
+
+/*
+ * P2, promote-with-undo and keep. Ported from the undo path in ExtensionIngestUndo.swift: a promotion moves
+ * the replaced entry aside rather than deleting it, and an undo refuses rather than overwrite a version that
+ * is no longer the one the promotion installed.
+ *
+ * Each test gets a clock that advances one millisecond per stamp. Under the fixed clock above, a promote and
+ * the undo that follows it would share a restore path, and the collision would be a test artefact.
+ */
+function ticking(): { store: ExtensionStore; root: string } {
+  const parent = mkdtempSync(join(tmpdir(), 'ext-promote-'));
+  made.push(parent);
+  const root = join(parent, 'extensions');
+  let now = 1000;
+  return { store: new ExtensionStore(root, () => now++), root };
+}
+
+/** A skill whose descriptor declares the version it is at, which is what a promotion checks. */
+function skillAt(version: string, name = 'alpha'): Array<{ path: string; text: string }> {
+  return [{ path: 'SKILL.md', text: `---\nname: ${name}\ndescription: a test skill\nversion: ${version}\n---\n` }];
+}
+
+async function installAlpha(deps: Partial<ControlDeps>, version: string): Promise<void> {
+  const added = await answer({ method: 'POST', path: '/extensions/skills', body: { name: 'alpha', files: skillAt(version) } }, deps);
+  assert.equal(added.status, 201);
+}
+
+test('P2 — a promotion replaces the installed version and keeps the one it replaced as a restore copy', async () => {
+  const { store, root } = ticking();
+  const deps = { extensions: store };
+  await installAlpha(deps, '1.0.0');
+
+  const promoted = await answer(
+    { method: 'POST', path: '/extensions/skills/alpha/promote', body: { pluginVersion: '2.0.0', files: skillAt('2.0.0') } },
+    deps
+  );
+  assert.equal(promoted.status, 200);
+  const body = promoted.json as Record<string, unknown>;
+  assert.equal(body.promoted, 'alpha');
+  assert.equal(body.kind, 'skills');
+  assert.equal(body.pluginVersion, '2.0.0');
+  assert.equal(body.replaced, '1.0.0');
+  assert.equal(body.files, 1);
+  assert.equal(body.bytes, Buffer.byteLength(skillAt('2.0.0')[0].text));
+  assert.equal(typeof body.restore, 'string');
+
+  const now = await answer({ method: 'GET', path: '/extensions/skills/alpha' }, deps);
+  assert.equal((now.json as { version: string }).version, '2.0.0');
+
+  const copy = readFileSync(join(root, '.removed', 'skills', 'alpha', body.restore as string, 'SKILL.md'), 'utf8');
+  assert.match(copy, /version: 1\.0\.0/);
+});
+
+test('P2 — an undo puts the replaced version back, and the promoted one is moved aside, not deleted', async () => {
+  const { store, root } = ticking();
+  const deps = { extensions: store };
+  await installAlpha(deps, '1.0.0');
+  const promoted = await answer(
+    { method: 'POST', path: '/extensions/skills/alpha/promote', body: { pluginVersion: '2.0.0', files: skillAt('2.0.0') } },
+    deps
+  );
+  const restore = (promoted.json as { restore: string }).restore;
+
+  const undone = await answer({ method: 'POST', path: '/extensions/skills/alpha/undo-promote', body: { restore } }, deps);
+  assert.equal(undone.status, 200);
+  assert.deepEqual(undone.json, { restored: 'alpha', kind: 'skills', version: '1.0.0', withdrawn: '2.0.0' });
+
+  const now = await answer({ method: 'GET', path: '/extensions/skills/alpha' }, deps);
+  assert.equal((now.json as { version: string }).version, '1.0.0');
+
+  // Two copies sit in the restore area afterwards: the one the undo brought back is gone from it, and the
+  // promoted copy has taken its place beside the entry's history. Nothing was deleted.
+  assert.equal(readdirSync(join(root, '.removed', 'skills', 'alpha')).length, 1);
+  assert.equal(existsSync(join(root, '.removed', 'skills', 'alpha', restore)), false);
+});
+
+test('P2 — an undo is refused when the installed version is no longer the one the promotion installed', async () => {
+  const { store } = ticking();
+  const deps = { extensions: store };
+  await installAlpha(deps, '1.0.0');
+  const first = await answer(
+    { method: 'POST', path: '/extensions/skills/alpha/promote', body: { pluginVersion: '2.0.0', files: skillAt('2.0.0') } },
+    deps
+  );
+  await answer(
+    { method: 'POST', path: '/extensions/skills/alpha/promote', body: { pluginVersion: '3.0.0', files: skillAt('3.0.0') } },
+    deps
+  );
+
+  // Undoing the first promotion now would overwrite 3.0.0 with the 1.0.0 it replaced.
+  const refused = await answer(
+    { method: 'POST', path: '/extensions/skills/alpha/undo-promote', body: { restore: (first.json as { restore: string }).restore } },
+    deps
+  );
+  assert.equal(refused.status, 409);
+  assert.equal((refused.json as { reason: string }).reason, 'installedChanged');
+
+  const now = await answer({ method: 'GET', path: '/extensions/skills/alpha' }, deps);
+  assert.equal((now.json as { version: string }).version, '3.0.0');
+});
+
+test('P2 — a promotion cannot be undone twice', async () => {
+  const { store } = ticking();
+  const deps = { extensions: store };
+  await installAlpha(deps, '1.0.0');
+  const promoted = await answer(
+    { method: 'POST', path: '/extensions/skills/alpha/promote', body: { pluginVersion: '2.0.0', files: skillAt('2.0.0') } },
+    deps
+  );
+  const body = { restore: (promoted.json as { restore: string }).restore };
+  assert.equal((await answer({ method: 'POST', path: '/extensions/skills/alpha/undo-promote', body }, deps)).status, 200);
+
+  const again = await answer({ method: 'POST', path: '/extensions/skills/alpha/undo-promote', body }, deps);
+  assert.equal(again.status, 409);
+  assert.equal((again.json as { reason: string }).reason, 'alreadyUndone');
+});
+
+test('P2 — an undo names no promotion that exists, and a malformed stamp is refused as malformed', async () => {
+  const { store } = ticking();
+  const deps = { extensions: store };
+  await installAlpha(deps, '1.0.0');
+
+  const absent = await answer({ method: 'POST', path: '/extensions/skills/alpha/undo-promote', body: { restore: '999' } }, deps);
+  assert.equal(absent.status, 404);
+  assert.equal((absent.json as { reason: string }).reason, 'unknown');
+
+  const malformed = await answer(
+    { method: 'POST', path: '/extensions/skills/alpha/undo-promote', body: { restore: '../../etc' } },
+    deps
+  );
+  assert.equal(malformed.status, 400);
+  assert.equal((malformed.json as { reason: string }).reason, 'invalidRestore');
+
+  const missing = await answer({ method: 'POST', path: '/extensions/skills/alpha/undo-promote', body: {} }, deps);
+  assert.equal(missing.status, 400);
+});
+
+test('P2 — a promotion of an entry the router does not hold is 404 and writes nothing', async () => {
+  const { store, root } = ticking();
+  const deps = { extensions: store };
+  const promoted = await answer(
+    { method: 'POST', path: '/extensions/skills/ghost/promote', body: { pluginVersion: '2.0.0', files: skillAt('2.0.0', 'ghost') } },
+    deps
+  );
+  assert.equal(promoted.status, 404);
+  assert.equal((promoted.json as { error: string }).error, 'no skill named "ghost"');
+  assert.equal(existsSync(join(root, 'skills', 'ghost')), false);
+  assert.equal(existsSync(join(root, '.promotions')), false);
+});
+
+test('P2 — a promotion whose files name another entry, or another version, is refused before anything is written', async () => {
+  const { store, root } = ticking();
+  const deps = { extensions: store };
+  await installAlpha(deps, '1.0.0');
+
+  const wrongVersion = await answer(
+    { method: 'POST', path: '/extensions/skills/alpha/promote', body: { pluginVersion: '3.0.0', files: skillAt('2.0.0') } },
+    deps
+  );
+  assert.equal(wrongVersion.status, 400);
+  assert.equal((wrongVersion.json as { reason: string }).reason, 'versionMismatch');
+
+  const wrongName = await answer(
+    { method: 'POST', path: '/extensions/skills/alpha/promote', body: { pluginVersion: '2.0.0', files: skillAt('2.0.0', 'beta') } },
+    deps
+  );
+  assert.equal(wrongName.status, 400);
+  assert.equal((wrongName.json as { reason: string }).reason, 'nameMismatch');
+
+  const now = await answer({ method: 'GET', path: '/extensions/skills/alpha' }, deps);
+  assert.equal((now.json as { version: string }).version, '1.0.0');
+  assert.equal(existsSync(join(root, '.removed')), false);
+  assert.equal(existsSync(join(root, '.promotions')), false);
+});
+
+test('P2 — promoting the version already installed is refused as a conflict', async () => {
+  const { store } = ticking();
+  const deps = { extensions: store };
+  await installAlpha(deps, '1.0.0');
+  const same = await answer(
+    { method: 'POST', path: '/extensions/skills/alpha/promote', body: { pluginVersion: '1.0.0', files: skillAt('1.0.0') } },
+    deps
+  );
+  assert.equal(same.status, 409);
+  assert.equal((same.json as { reason: string }).reason, 'sameVersion');
+});
+
+test('P2 — a promotion that cannot move the entry aside answers 500 and leaves the installed version as it was', async () => {
+  const { store, root } = ticking();
+  const deps = { extensions: store };
+  await installAlpha(deps, '1.0.0');
+  // A file where the restore area must be a directory makes the move aside impossible.
+  writeFileSync(join(root, '.removed'), 'not a directory');
+
+  const failed = await answer(
+    { method: 'POST', path: '/extensions/skills/alpha/promote', body: { pluginVersion: '2.0.0', files: skillAt('2.0.0') } },
+    deps
+  );
+  assert.equal(failed.status, 500);
+  assert.equal((failed.json as { reason: string }).reason, 'writeFailed');
+
+  const now = await answer({ method: 'GET', path: '/extensions/skills/alpha' }, deps);
+  assert.equal((now.json as { version: string }).version, '1.0.0');
+  const manifests = existsSync(join(root, '.promotions', 'skills', 'alpha'))
+    ? readdirSync(join(root, '.promotions', 'skills', 'alpha'))
+    : [];
+  assert.deepEqual(manifests, []);
+});
+
+test('P2 — keep records the version held for a plugin, without the router holding the plugin', async () => {
+  const { store, root } = ticking();
+  const deps = { extensions: store };
+
+  const kept = await answer(
+    { method: 'POST', path: '/extensions/plugins/demo@market/keep', body: { pluginVersion: '2.0.0' } },
+    deps
+  );
+  assert.equal(kept.status, 200);
+  assert.deepEqual(kept.json, { kept: 'demo@market', kind: 'plugins', pluginVersion: '2.0.0' });
+
+  const recorded = JSON.parse(readFileSync(join(root, '.kept', 'plugins', 'demo@market.json'), 'utf8')) as {
+    pluginVersion: string;
+  };
+  assert.equal(recorded.pluginVersion, '2.0.0');
+  // Keep is a decision about a held version, not a write to the store: nothing was listed as an entry.
+  assert.equal(existsSync(join(root, 'plugins')), false);
+});
+
+test('P2 — keep is refused without a version, and for a name the store could not hold', async () => {
+  const { store, root } = ticking();
+  const deps = { extensions: store };
+
+  const missing = await answer({ method: 'POST', path: '/extensions/plugins/demo@market/keep', body: {} }, deps);
+  assert.equal(missing.status, 400);
+  assert.equal(missing.text, '{"error":"pluginVersion is required"}');
+
+  const hidden = await answer({ method: 'POST', path: '/extensions/plugins/.hidden/keep', body: { pluginVersion: '2.0.0' } }, deps);
+  assert.equal(hidden.status, 400);
+  assert.equal((hidden.json as { reason: string }).reason, 'invalidName');
+  assert.equal(existsSync(join(root, '.kept')), false);
+});
+
+test('P2 — the promote, keep and undo writes all need the token', async () => {
+  const { store, root } = ticking();
+  const deps = { extensions: store };
+  await installAlpha(deps, '1.0.0');
+
+  const keep = await answer(
+    { method: 'POST', path: '/extensions/plugins/demo@market/keep', body: { pluginVersion: '2.0.0' }, token: false },
+    deps
+  );
+  assert.equal(keep.status, 401);
+  const promote = await answer(
+    { method: 'POST', path: '/extensions/skills/alpha/promote', body: { pluginVersion: '2.0.0', files: skillAt('2.0.0') }, token: false },
+    deps
+  );
+  assert.equal(promote.status, 401);
+  const undo = await answer(
+    { method: 'POST', path: '/extensions/skills/alpha/undo-promote', body: { restore: '1000' }, token: false },
+    deps
+  );
+  assert.equal(undo.status, 401);
+
+  assert.equal(existsSync(join(root, '.kept')), false);
+  const now = await answer({ method: 'GET', path: '/extensions/skills/alpha' }, deps);
+  assert.equal((now.json as { version: string }).version, '1.0.0');
+});
+
+test('P2 — a deeper path, or a method the write does not serve, is 405 and not silently claimed', async () => {
+  const { store } = ticking();
+  const deps = { extensions: store };
+  await installAlpha(deps, '1.0.0');
+
+  const unknownAction = await answer({ method: 'POST', path: '/extensions/skills/alpha/nonsense', body: {} }, deps);
+  assert.equal(unknownAction.status, 405);
+  const getPromote = await answer({ method: 'GET', path: '/extensions/skills/alpha/promote' }, deps);
+  assert.equal(getPromote.status, 405);
 });
 
 // F6: GET /extensions/updates is claimed before the :kind parse, so `updates` is never read as a kind.

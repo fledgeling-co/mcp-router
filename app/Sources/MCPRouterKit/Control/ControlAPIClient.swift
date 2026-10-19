@@ -144,16 +144,30 @@ public protocol ControlAPIClient: Sendable {
 
     /// Every skill the router can see, across every client that has a skills mechanism.
     ///
-    /// Read-only, and deliberately so for now: changing what is installed means writing files that
-    /// the client applications themselves hold open, and that write wants preconditions and an undo
-    /// this surface does not yet have. The board renders its write controls dimmed with that reason
-    /// rather than offering an action it cannot make safe.
-    ///
     /// A router older than this endpoint answers 404. Implementations map that to
     /// `malformedResponse`, not to `server(status:)` — "the router couldn't complete that" is the
     /// wrong sentence for "this router does not have the feature", and the version-skew wording is
     /// the one the board is designed around.
     func skills() async throws(ControlAPIError) -> SkillsResponse
+
+    /// Replace an installed entry with a newer version of it, keeping the copy it replaced.
+    ///
+    /// The router refuses rather than guesses: a file set that does not declare `pluginVersion`, or
+    /// an entry it does not hold, is a refusal in the router's own words, and nothing is written.
+    /// `undoPromotion` takes the reference this returns.
+    func promote(
+        _ name: String, kind: StoredExtensionKind, pluginVersion: String, files: [ExtensionFileBody]
+    ) async throws(ControlAPIError) -> PromotionAck
+
+    /// Put back the copy a promotion replaced, using the reference that promotion returned.
+    func undoPromotion(
+        _ name: String, kind: StoredExtensionKind, restore: String
+    ) async throws(ControlAPIError) -> UndoAck
+
+    /// Record a held version as kept, so the router stops offering it until a newer one arrives.
+    func keepHeldVersion(
+        _ name: String, kind: StoredExtensionKind, pluginVersion: String
+    ) async throws(ControlAPIError) -> KeepAck
 
     /// Every followed marketplace, with what it supplies.
     func marketplaces() async throws(ControlAPIError) -> MarketplacesResponse
@@ -254,6 +268,27 @@ public extension ControlAPIClient {
         primary _: String?, fallback _: String?, cadence _: String?
     ) async throws(ControlAPIError) -> InsightsResponse {
         throw ControlAPIError.malformedResponse(detail: "this router has no session analyst")
+    }
+
+    /// A client with no held-version writes answers as a router that does not have them. A default that
+    /// returned an ack would report a promotion or a keep that nothing made, which is the worst answer a
+    /// write can give.
+    func promote(
+        _: String, kind _: StoredExtensionKind, pluginVersion _: String, files _: [ExtensionFileBody]
+    ) async throws(ControlAPIError) -> PromotionAck {
+        throw ControlAPIError.malformedResponse(detail: "this router has no extension writes")
+    }
+
+    func undoPromotion(
+        _: String, kind _: StoredExtensionKind, restore _: String
+    ) async throws(ControlAPIError) -> UndoAck {
+        throw ControlAPIError.malformedResponse(detail: "this router has no extension writes")
+    }
+
+    func keepHeldVersion(
+        _: String, kind _: StoredExtensionKind, pluginVersion _: String
+    ) async throws(ControlAPIError) -> KeepAck {
+        throw ControlAPIError.malformedResponse(detail: "this router has no extension writes")
     }
 
     /// A client that cannot ask for a document answers the state that says so.

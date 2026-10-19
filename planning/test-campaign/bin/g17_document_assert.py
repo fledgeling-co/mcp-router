@@ -518,13 +518,14 @@ def run(root, report, write_crops=False):
            "" if not problems else " — " + "; ".join(problems)),
     )
 
-    # **Not folded into the check above.** One of these frames cannot say what it is a picture of,
-    # and a lineage pass that reported five-of-five corroborated would be the exact failure the
-    # rule exists to prevent. The panel's too-large refusal names the file and the cap and never the
-    # capability, so its picture is tied to its subject by its manifest row alone. DEF-060.
+    # **Not folded into the check above.** Until 2026-10-19 one frame could not say what it was a
+    # picture of: the too-large refusal named the file and the cap and never the capability, so its
+    # picture was tied to its subject by its manifest row alone (DEF-060). The headline now names the
+    # capability (dd25123b) and the flow passes that frame a witness, so every frame must
+    # corroborate itself. A frame that cannot is named here rather than counted as corroborated.
     report.check(
         "G17-L2",
-        unidentifiable == ["refusal.toolarge"],
+        unidentifiable == [],
         "%d of %d frames cannot corroborate their own manifest row and are named here rather than "
         "counted as corroborated: %s (DEF-060)"
         % (len(unidentifiable), len(manifest), unidentifiable or "none"),

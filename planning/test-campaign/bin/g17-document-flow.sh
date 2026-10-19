@@ -200,13 +200,14 @@ render() {
 
 # The last two arguments are the frame's own witness: a string the PANEL draws, and the role it
 # draws it in. That is what ties a picture to the package it is of independently of its filename.
-# `refusal.toolarge` has none, and the empty pair is the honest record of that — its refusal names
-# the file and the cap and never the capability, so the frame cannot say what it refuses. DEF-060.
+# `refusal.toolarge` had none until 2026-10-19: its refusal named the file and the cap and never the
+# capability, so the frame could not say what it refused (DEF-060). The headline now names the
+# capability (dd25123b), so the frame carries the same witness as its siblings.
 render readme.served        g17-capability readMe       820 SURF-028 FLOW-006.02 g17-capability titlebar
 render changelog.served     g17-capability changelog    820 SURF-028 FLOW-006.03 g17-capability titlebar
 render capabilities.served  g17-capability capabilities 820 SURF-028 FLOW-006.04 g17-capability titlebar
 render refusal.nopackage    g17-no-package readMe       520 SURF-028 FLOW-006.02 g17-no-package state-title
-render refusal.toolarge     g17-oversize   readMe       520 SURF-028 FLOW-006.02
+render refusal.toolarge     g17-oversize   readMe       520 SURF-028 FLOW-006.02 g17-oversize state-title
 
 # The capture manifest, written from the render log rather than from the filenames. Each row carries
 # what the router was asked for, and the assertion pass checks that against what the panel drew.

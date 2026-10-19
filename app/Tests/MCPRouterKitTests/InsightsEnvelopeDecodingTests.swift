@@ -168,7 +168,7 @@ struct InsightsEnvelopeDecodingTests {
         #expect(response.otherCalls == 2, "two calls are not claimed by any harness")
         #expect(response.callsPerHour.count == 24)
         #expect(response.hasHistory)
-        #expect(response.analyst == nil, "the analyst is null until P6 ports it")
+        #expect(response.analyst == nil, "the capture was taken with no analyst wired in")
         #expect(response.resident == nil, "no child process was running when this was captured")
         #expect(response.dutyCycle?.servers.map(\.server) == ["alpha-server", "beta-server"])
         #expect(response.dutyCycle?.servers.first?.aliveSeconds == 0, "never opened: a row at zero")

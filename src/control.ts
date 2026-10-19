@@ -45,6 +45,8 @@ import { LiveReload } from './livereload.js';
 import { askSessionsToReload, listSessions } from './sessions.js';
 import { harnessEnvelope, type HarnessInventory } from './harness.js';
 import { INSIGHTS_WINDOW_HOURS, insightsEnvelope } from './insights.js';
+import { analystEnvelope, ANALYST_UNAVAILABLE, type AnalystPort } from './analyst.js';
+import { AnalystSettingsRefusal } from './analyst-lanes.js';
 import { log } from './log.js';
 import { wireInstant, type IssuedCode, type Pairing } from './pairing.js';
 import { extensionRoute, isExtensionsPath } from './extension-routes.js';
@@ -101,6 +103,9 @@ export interface ControlDeps {
   claudeHome?: string;
   /** Reads each agent client's config for GET /harnesses. Absent means the route answers 503. */
   harnesses?: HarnessInventory;
+  /** The session analyst. Absent answers 503 on POST /insights/analyse and PATCH /insights/analyst, and
+   * `analyst: null` on GET /insights. */
+  analyst?: AnalystPort;
 }
 
 /** The wire shape of an issued code. Shared by the route that mints one and the route that names it. */
@@ -457,6 +462,8 @@ export function isControlPath(pathname: string): boolean {
     pathname.startsWith('/sessions/') ||
     pathname === '/harnesses' ||
     pathname === '/insights' ||
+    pathname === '/insights/analyse' ||
+    pathname === '/insights/analyst' ||
     pathname.startsWith('/registry/') ||
     pathname.startsWith('/pairing/') ||
     pathname === '/skills' ||
@@ -970,8 +977,8 @@ export async function handleControl(
   // ---------------------------------------------------------------- insights
   /*
    * Read-only, and gated, for the reason /harnesses is. The call log names the process behind every call, and the
-   * hourly counts and duty cycle describe what this machine has been doing. Only the GET is claimed here: the
-   * analyst's writes come with P6, and until then `/insights/analyse` and `/insights/analyst` stay unclaimed.
+   * hourly counts and duty cycle describe what this machine has been doing. The analyst member is the session
+   * analyst's own readout, and it is gated for the same reason: it names the session stores the router read.
    */
   if (p === '/insights' && req.method === 'GET') {
     if (!tokenOk(req, token)) {
@@ -989,7 +996,42 @@ export async function handleControl(
       resident: await deps.pool.residentReadings(),
       duty: deps.pool.dutyCycle(now),
       reports: deps.harnesses?.reports([...deps.upstreams.values()], deps.cfg.port),
+      analyst: deps.analyst ? analystEnvelope(deps.analyst.lastRun(), deps.analyst.settings()) : null,
     }));
+    return true;
+  }
+
+  // Both writes are gated by the mutating block above, which checks the token and the JSON content type first.
+  if (p === '/insights/analyse' && req.method === 'POST') {
+    if (!deps.analyst) {
+      json(res, 503, { error: ANALYST_UNAVAILABLE });
+      return true;
+    }
+    const outcome = await deps.analyst.analyse();
+    if (outcome.kind === 'alreadyRunning') {
+      json(res, 409, { error: 'an analysis is already running' });
+    } else if (outcome.kind === 'ladderExhausted') {
+      // 502 rather than 500: every rung is another program, so what failed is the machine's own CLIs, not this router.
+      // The refusals say which model was unreachable rather than reporting "the analyst failed".
+      json(res, 502, { error: `no analyst model answered — ${outcome.refusals.join('; ')}` });
+    } else {
+      json(res, 200, analystEnvelope(outcome.run, deps.analyst.settings()));
+    }
+    return true;
+  }
+
+  if (p === '/insights/analyst' && req.method === 'PATCH') {
+    if (!deps.analyst) {
+      json(res, 503, { error: ANALYST_UNAVAILABLE });
+      return true;
+    }
+    try {
+      const settings = deps.analyst.update(body);
+      json(res, 200, analystEnvelope(deps.analyst.lastRun(), settings));
+    } catch (err) {
+      if (!(err instanceof AnalystSettingsRefusal)) throw err;
+      json(res, 422, { error: err.message, member: err.member });
+    }
     return true;
   }
 

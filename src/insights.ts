@@ -17,6 +17,8 @@ export interface InsightsReadings {
   duty: DutyCycleReading;
   /** One report per detected harness, or undefined when there is no inventory to read. */
   reports: HarnessReport[] | undefined;
+  /** The analyst's envelope, or null when the router has no analyst. Built by the caller from the analyst port. */
+  analyst: Record<string, unknown> | null;
 }
 
 /**
@@ -57,9 +59,9 @@ export function insightsEnvelope(readings: InsightsReadings): Record<string, unk
       })),
     },
     callsPerHour: usage.hours.map((hour) => ({ hourStart: hour.start, calls: hour.calls })),
-    // Null until P6 ports the session analyst. The member is still sent, so a board draws its empty state from a
-    // fact the router stated rather than from a key it failed to find.
-    analyst: null,
+    // Null when the router has no analyst. The member is still sent, so a board draws its empty state from a fact the
+    // router stated rather than from a key it failed to find.
+    analyst: readings.analyst,
   };
 }
 

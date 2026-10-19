@@ -15,6 +15,8 @@ import { splitToolName, unionTools, visibleTo, placardFor, type ManifestStore } 
 import { ClientResolver, UsageStore, projectOf } from './usage.js';
 import { handleControl, controlToken, isControlPath } from './control.js';
 import { diskHarnessInventory } from './harness.js';
+import { AnalystEngine, registryCandidates } from './analyst.js';
+import { cliJudge, processRunner } from './analyst-judge.js';
 import { LiveReload } from './livereload.js';
 import { handleAuthServer, isAuthServerPath, instructionsFor } from './oauth.js';
 import { log } from './log.js';
@@ -395,6 +397,16 @@ export async function startRouter(
     extensions: new ExtensionStore(join(ROUTER_HOME, 'extensions')),
     claudeHome: join(homedir(), '.claude'),
     harnesses: diskHarnessInventory(),
+    analyst: new AnalystEngine({
+      home: homedir(),
+      statePath: join(ROUTER_HOME, 'analyst.json'),
+      judge: cliJudge(processRunner()),
+      // Candidates come from the registry Discover searches. Each run sends the first word of each recurring signal
+      // to the two public registries, as the Swift router does. spec-F7 §3.5 says no route opens a socket; see the
+      // report on P6 for that open question. Passing null here turns the candidate step off.
+      candidates: registryCandidates(),
+      now: () => Date.now(),
+    }),
   };
 
   const http = createServer((req, res) => {

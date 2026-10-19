@@ -1,8 +1,10 @@
-using System;
-using System.Collections.Generic;
-
 namespace MCPRouter.Shell.Model.Harnesses;
 
+/// <summary>
+/// How a harness reaches this router: one of four readings, never a boolean. The router's
+/// <c>state</c> word for each is mapped in <see cref="HarnessPresentation.ReadingOf"/>, and the
+/// mapping is total over the words the wire admits.
+/// </summary>
 public enum HarnessReading
 {
     NotRouted,
@@ -10,31 +12,3 @@ public enum HarnessReading
     RoutedViaShim,
     RoutedWithDirectServers
 }
-
-public enum HarnessTransport
-{
-    None,
-    Http,
-    StdioShim
-}
-
-public sealed record HarnessDuplicate(
-    string HarnessName,
-    string RouterName,
-    string Basis
-);
-
-public sealed record DetectedHarness(
-    string Harness,
-    string DisplayName,
-    string Path,
-    bool Exists,
-    HarnessReading State,
-    HarnessTransport Route,
-    int Entries,
-    int DuplicateCount,
-    IReadOnlyList<HarnessDuplicate> Duplicates,
-    string HttpCapability,
-    string? Unreadable = null,
-    string? Bridge = null
-);

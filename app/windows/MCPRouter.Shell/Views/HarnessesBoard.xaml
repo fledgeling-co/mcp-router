@@ -22,8 +22,11 @@
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                    TextWrapping="Wrap" MaxWidth="720" />
                     </StackPanel>
-                    <Button Grid.Column="1" VerticalAlignment="Top" x:Name="RescanButton" Content="Rescan all" />
+                    <Button Grid.Column="1" VerticalAlignment="Top" x:Name="RescanButton" Content="Rescan all" Click="RescanButton_Click" />
                 </Grid>
+
+                <!-- State notes: empty, stale, unreachable and refused readings say what they are here -->
+                <StackPanel x:Name="NoticeContainer" Spacing="8" MaxWidth="720" HorizontalAlignment="Left" />
 
                 <!-- Cards Container -->
                 <StackPanel x:Name="HarnessContainer" Spacing="12" />

@@ -154,9 +154,11 @@ public sealed record HarnessRow
     public required bool Exists { get; init; }
     public string? Unreadable { get; init; }
     /// <summary><c>not-wired</c>, <c>wired-http</c>, <c>wired-shim</c>,
-    /// <c>wired-with-duplicates</c>.</summary>
+    /// <c>wired-with-duplicates</c>. Closed on the wire, closed here.</summary>
+    [JsonConverter(typeof(HarnessStateWire))]
     public required string State { get; init; }
-    /// <summary><c>none</c>, <c>http</c>, <c>stdio-shim</c>.</summary>
+    /// <summary><c>none</c>, <c>http</c>, <c>stdio-shim</c>. Closed on the wire, closed here.</summary>
+    [JsonConverter(typeof(HarnessRouteWire))]
     public required string Route { get; init; }
     public string? Bridge { get; init; }
     public required int Entries { get; init; }
@@ -271,4 +273,14 @@ public sealed class ServerStateWire : ClosedSetWire
 public sealed class ServerTransportWire : ClosedSetWire
 {
     public ServerTransportWire() : base("stdio", "http", "sse") { }
+}
+
+public sealed class HarnessStateWire : ClosedSetWire
+{
+    public HarnessStateWire() : base("not-wired", "wired-http", "wired-shim", "wired-with-duplicates") { }
+}
+
+public sealed class HarnessRouteWire : ClosedSetWire
+{
+    public HarnessRouteWire() : base("none", "http", "stdio-shim") { }
 }

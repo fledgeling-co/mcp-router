@@ -89,6 +89,33 @@ export type RemoveOutcome =
   | { outcome: 'removed'; restorePath: string }
   | { outcome: 'refused'; refusal: Refusal };
 
+/** `restore` is the stamp an undo is given to find the copy this promotion replaced. */
+export type PromoteOutcome =
+  | { outcome: 'promoted'; record: ExtensionRecord; replaced: string | null; restore: string }
+  | { outcome: 'refused'; refusal: Refusal };
+
+export type UndoOutcome =
+  | { outcome: 'undone'; record: ExtensionRecord; withdrawn: string }
+  | { outcome: 'refused'; refusal: Refusal };
+
+export type KeepOutcome = { outcome: 'kept' } | { outcome: 'refused'; refusal: Refusal };
+
+/**
+ * What a promotion did, written down before anything moves. An undo reads it back and checks the installed
+ * version against `pluginVersion` before it touches a byte, so an undo refuses rather than overwrite a version
+ * that was installed after the promotion.
+ */
+interface Promotion {
+  kind: ExtensionKind;
+  name: string;
+  /** The version the promotion installed. */
+  pluginVersion: string;
+  /** The version it replaced, or null when the replaced entry declared none. */
+  replacedVersion: string | null;
+  /** The stamp of the undo that reversed it, or null while it stands. */
+  undoneAt: string | null;
+}
+
 // MARK: - Naming
 
 /** One path segment: ASCII letters, digits, `.`, `_`, `-` and `@`, never `.` or `..` alone. */
@@ -101,6 +128,11 @@ export function isWellFormedSegment(segment: string): boolean {
 /** An entry's own name: one well-formed segment that does not begin with a dot. */
 export function isWellFormedName(name: string): boolean {
   return name.length > 0 && name.length <= MAX_NAME_LENGTH && !name.startsWith('.') && isWellFormedSegment(name);
+}
+
+/** A restore reference is the millisecond stamp a promotion or removal was given: digits only. */
+export function isWellFormedStamp(stamp: string): boolean {
+  return /^[0-9]+$/.test(stamp);
 }
 
 /** A relative file path inside one entry: at least one segment, every segment well-formed. */
@@ -272,12 +304,7 @@ export class ExtensionStore {
   remove(kind: ExtensionKind, name: string): RemoveOutcome {
     if (!isWellFormedName(name)) return { outcome: 'refused', refusal: invalidName(name) };
     const entry = this.entryPath(kind, name);
-    if (!existsSync(entry)) {
-      return {
-        outcome: 'refused',
-        refusal: { status: 404, reason: 'unknown', message: `no ${SINGULAR[kind]} named "${name}"` },
-      };
-    }
+    if (!existsSync(entry)) return { outcome: 'refused', refusal: unknownEntry(kind, name) };
     const destination = join(this.root, '.removed', kind, name, this.stamp());
     try {
       mkdirSync(dirname(destination), { recursive: true });
@@ -294,6 +321,186 @@ export class ExtensionStore {
       };
     }
     return { outcome: 'removed', restorePath: destination };
+  }
+
+  /**
+   * Replace an installed entry with a newer version of it. The entry it replaces is moved aside, never deleted,
+   * and the promotion is written down before anything moves, so an undo can check what it reverses. Every
+   * refusal happens before a byte moves, and a failure part-way puts the entry back where it was.
+   */
+  promote(kind: ExtensionKind, name: string, pluginVersion: string, files: ExtensionFile[]): PromoteOutcome {
+    const refusal = refuseAdd(kind, name, files) ?? refuseVersion(kind, pluginVersion, files);
+    if (refusal) return { outcome: 'refused', refusal };
+    const current = this.read(kind, name);
+    if (!current) return { outcome: 'refused', refusal: unknownEntry(kind, name) };
+    if (current.version === pluginVersion) {
+      return {
+        outcome: 'refused',
+        refusal: { status: 409, reason: 'sameVersion', message: `${name} is already at version ${pluginVersion}` },
+      };
+    }
+
+    const stamp = this.stamp();
+    const entry = this.entryPath(kind, name);
+    const restoreDir = join(this.root, '.removed', kind, name, stamp);
+    const staging = join(this.root, '.staging', `promote-${kind}-${name}-${stamp}`);
+    const promotionFile = this.promotionPath(kind, name, stamp);
+    const promotion: Promotion = { kind, name, pluginVersion, replacedVersion: current.version, undoneAt: null };
+    let movedAside = false;
+    try {
+      writeJsonAtomic(promotionFile, promotion);
+      writeFiles(files, staging);
+      mkdirSync(dirname(restoreDir), { recursive: true });
+      if (existsSync(restoreDir)) throw new Error(`${restoreDir} already exists`);
+      renameSync(entry, restoreDir);
+      movedAside = true;
+      renameSync(staging, entry);
+    } catch (error) {
+      const rollback = [
+        tryStep(() => rmSync(staging, { recursive: true, force: true })),
+        tryStep(() => rmSync(promotionFile, { force: true })),
+        movedAside ? tryStep(() => renameSync(restoreDir, entry)) : null,
+      ];
+      return { outcome: 'refused', refusal: writeRefusal(`${name} could not be promoted`, error, rollback) };
+    }
+    const record = this.read(kind, name);
+    if (!record) {
+      return {
+        outcome: 'refused',
+        refusal: { status: 500, reason: 'writeFailed', message: `${name} was promoted and could not be read back` },
+      };
+    }
+    return { outcome: 'promoted', record, replaced: current.version, restore: stamp };
+  }
+
+  /**
+   * Put back the entry a promotion replaced. Refuses when the installed version is no longer the one the
+   * promotion installed, or when the replaced copy is gone, and nothing moves in either case. The promoted
+   * copy is moved aside rather than deleted, so the undo is itself reversible.
+   */
+  undoPromotion(kind: ExtensionKind, name: string, restore: string): UndoOutcome {
+    if (!isWellFormedName(name)) return { outcome: 'refused', refusal: invalidName(name) };
+    if (!isWellFormedStamp(restore)) {
+      return {
+        outcome: 'refused',
+        refusal: { status: 400, reason: 'invalidRestore', message: `"${restore}" is not a restore reference` },
+      };
+    }
+    const promotion = this.readPromotion(kind, name, restore);
+    if (!promotion) {
+      return {
+        outcome: 'refused',
+        refusal: {
+          status: 404,
+          reason: 'unknown',
+          message: `no promotion of ${SINGULAR[kind]} "${name}" is recorded at ${restore}`,
+        },
+      };
+    }
+    if (promotion.undoneAt !== null) {
+      return {
+        outcome: 'refused',
+        refusal: { status: 409, reason: 'alreadyUndone', message: `that promotion of ${name} was already undone` },
+      };
+    }
+    const current = this.read(kind, name);
+    if (!current) {
+      return {
+        outcome: 'refused',
+        refusal: {
+          status: 409,
+          reason: 'installedChanged',
+          message: `${name} is no longer installed, so the promotion has no installed version to reverse`,
+        },
+      };
+    }
+    if (current.version !== promotion.pluginVersion) {
+      return {
+        outcome: 'refused',
+        refusal: {
+          status: 409,
+          reason: 'installedChanged',
+          message:
+            `${name} is at version ${current.version ?? 'none'}, not the ${promotion.pluginVersion} this promotion ` +
+            'installed, so undoing it would overwrite that version',
+        },
+      };
+    }
+    const restoreDir = join(this.root, '.removed', kind, name, restore);
+    if (!isDirectory(restoreDir)) {
+      return {
+        outcome: 'refused',
+        refusal: {
+          status: 409,
+          reason: 'restoreMissing',
+          message: `the copy of ${name} this promotion replaced is no longer in the restore area`,
+        },
+      };
+    }
+
+    const stamp = this.stamp();
+    const entry = this.entryPath(kind, name);
+    const aside = join(this.root, '.removed', kind, name, stamp);
+    const promotionFile = this.promotionPath(kind, name, restore);
+    let movedAside = false;
+    try {
+      writeJsonAtomic(promotionFile, { ...promotion, undoneAt: stamp });
+      mkdirSync(dirname(aside), { recursive: true });
+      if (existsSync(aside)) throw new Error(`${aside} already exists`);
+      renameSync(entry, aside);
+      movedAside = true;
+      renameSync(restoreDir, entry);
+    } catch (error) {
+      const rollback = [
+        tryStep(() => writeJsonAtomic(promotionFile, promotion)),
+        movedAside ? tryStep(() => renameSync(aside, entry)) : null,
+      ];
+      return { outcome: 'refused', refusal: writeRefusal(`${name} could not be restored`, error, rollback) };
+    }
+    const record = this.read(kind, name);
+    if (!record) {
+      return {
+        outcome: 'refused',
+        refusal: { status: 500, reason: 'writeFailed', message: `${name} was restored and could not be read back` },
+      };
+    }
+    return { outcome: 'undone', record, withdrawn: promotion.pluginVersion };
+  }
+
+  /**
+   * Record the version of a held update that was kept, so the held badge stops until a newer one arrives. It
+   * needs no entry in this store, because most held plugins are not in it: the decision is about the plugin.
+   */
+  keep(kind: ExtensionKind, name: string, pluginVersion: string): KeepOutcome {
+    if (!isWellFormedName(name)) return { outcome: 'refused', refusal: invalidName(name) };
+    try {
+      writeJsonAtomic(this.keptPath(kind, name), { pluginVersion, keptAt: this.stamp() });
+    } catch (error) {
+      return {
+        outcome: 'refused',
+        refusal: { status: 500, reason: 'writeFailed', message: `${name} could not be recorded: ${errorText(error)}` },
+      };
+    }
+    return { outcome: 'kept' };
+  }
+
+  private promotionPath(kind: ExtensionKind, name: string, stamp: string): string {
+    return join(this.root, '.promotions', kind, name, `${stamp}.json`);
+  }
+
+  private keptPath(kind: ExtensionKind, name: string): string {
+    return join(this.root, '.kept', kind, `${name}.json`);
+  }
+
+  private readPromotion(kind: ExtensionKind, name: string, stamp: string): Promotion | null {
+    const text = readUtf8(this.promotionPath(kind, name, stamp));
+    if (text === null) return null;
+    try {
+      return JSON.parse(text) as Promotion;
+    } catch {
+      // A manifest that does not parse names no promotion this store can undo.
+      return null;
+    }
   }
 
   private entryPath(kind: ExtensionKind, name: string): string {
@@ -382,6 +589,55 @@ function invalidName(name: string): Refusal {
       `"${name}" is not a usable name: letters, digits, dot, underscore and hyphen only, no leading dot, ` +
       `at most ${MAX_NAME_LENGTH} characters`,
   };
+}
+
+function unknownEntry(kind: ExtensionKind, name: string): Refusal {
+  return { status: 404, reason: 'unknown', message: `no ${SINGULAR[kind]} named "${name}"` };
+}
+
+/**
+ * The files must declare the version the promotion names. A promotion that says 2.0.0 and carries 1.0.0 is
+ * refused before anything is written, because the version recorded beside the entry would then be a lie.
+ */
+function refuseVersion(kind: ExtensionKind, pluginVersion: string, files: ExtensionFile[]): Refusal | null {
+  const descriptor = files.find((file) => file.path === DESCRIPTOR_PATH[kind]);
+  const outcome = descriptor ? readDescriptor(kind, descriptor.text) : null;
+  const declared = outcome !== null && outcome.ok ? outcome.reading.version : null;
+  if (declared === pluginVersion) return null;
+  const file = DESCRIPTOR_PATH[kind];
+  return {
+    status: 400,
+    reason: 'versionMismatch',
+    message:
+      declared === null
+        ? `${file} declares no version, so it cannot be promoted as ${pluginVersion}`
+        : `${file} declares ${declared}, not the ${pluginVersion} being promoted`,
+  };
+}
+
+/** A failed write answers 500 and says what was attempted. A rollback that also failed is named beside it. */
+function writeRefusal(sentence: string, error: unknown, rollback: Array<string | null>): Refusal {
+  const failed = rollback.filter((step): step is string => step !== null);
+  const tail = failed.length === 0 ? '' : `; the rollback also failed, so the entry may need putting back by hand: ${failed.join('; ')}`;
+  return { status: 500, reason: 'writeFailed', message: `${sentence}: ${errorText(error)}${tail}` };
+}
+
+/** One step of a rollback. A step that fails is reported beside the failure that started it, never thrown past it. */
+function tryStep(step: () => void): string | null {
+  try {
+    step();
+    return null;
+  } catch (error) {
+    return errorText(error);
+  }
+}
+
+/** A small record in one step: written beside its destination, then renamed into place. */
+function writeJsonAtomic(path: string, value: unknown): void {
+  mkdirSync(dirname(path), { recursive: true });
+  const temporary = `${path}.tmp`;
+  writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
+  renameSync(temporary, path);
 }
 
 function writeFiles(files: ExtensionFile[], staging: string): void {

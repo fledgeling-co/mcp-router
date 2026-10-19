@@ -49,7 +49,8 @@ export function extensionRoute(
   if (!kind) return { status: 404, body: { error: `no extension kind named "${segments[0]}"` } };
   if (segments.length === 1) return collection(kind, store, method, body);
   if (segments.length === 2) return item(kind, segments[1], store, method);
-  // Deeper than an item is a path this family claims and does not route.
+  if (segments.length === 3) return action(kind, segments[1], segments[2], store, method, body);
+  // Deeper than an action is a path this family claims and does not route.
   return null;
 }
 
@@ -59,15 +60,37 @@ function collection(kind: ExtensionKind, store: ExtensionStore, method: string, 
   return null;
 }
 
-function item(kind: ExtensionKind, rawName: string, store: ExtensionStore, method: string): RouteAnswer | null {
-  // Percent-decoded as a server name is, and a malformed escape is 400: the router cannot say whether a name
-  // it could not read exists.
-  let name: string;
+/** The POST writes under one entry: promote, keep and undo-promote. Any other verb or method is not served. */
+function action(
+  kind: ExtensionKind,
+  rawName: string,
+  verb: string,
+  store: ExtensionStore,
+  method: string,
+  body: unknown
+): RouteAnswer | null {
+  if (method !== 'POST') return null;
+  const name = decodeName(rawName);
+  if (name === null) return { status: 400, body: { error: 'URI malformed' } };
+  if (verb === 'promote') return promote(kind, name, store, body);
+  if (verb === 'keep') return keep(kind, name, store, body);
+  if (verb === 'undo-promote') return undoPromote(kind, name, store, body);
+  return null;
+}
+
+/** A name arrives percent-decoded, as a server name does. `null` is a malformed escape, which is refused rather than guessed at. */
+function decodeName(rawName: string): string | null {
   try {
-    name = decodeURIComponent(rawName);
+    return decodeURIComponent(rawName);
   } catch {
-    return { status: 400, body: { error: 'URI malformed' } };
+    return null;
   }
+}
+
+function item(kind: ExtensionKind, rawName: string, store: ExtensionStore, method: string): RouteAnswer | null {
+  // A malformed escape is 400: the router cannot say whether a name it could not read exists.
+  const name = decodeName(rawName);
+  if (name === null) return { status: 400, body: { error: 'URI malformed' } };
   if (method === 'GET') {
     const record = store.read(kind, name);
     if (!record) return { status: 404, body: { error: `no ${SINGULAR[kind]} named "${name}"` } };
@@ -84,11 +107,67 @@ function add(kind: ExtensionKind, store: ExtensionStore, body: unknown): RouteAn
     return { status: 400, body: { error: 'name is required' } };
   }
   const name = request.name;
-  if (!Array.isArray(request.files)) {
-    return { status: 400, body: { error: 'files is required, as an array of {path, text}' } };
+  const parsed = parseFiles(request.files);
+  if ('error' in parsed) return { status: 400, body: { error: parsed.error } };
+  const outcome = store.add(kind, name, parsed.files);
+  if (outcome.outcome === 'refused') return refusalValue(outcome.refusal);
+  return {
+    status: 201,
+    body: { added: name, kind, files: outcome.record.files, bytes: outcome.record.bytes },
+  };
+}
+
+function promote(kind: ExtensionKind, name: string, store: ExtensionStore, body: unknown): RouteAnswer {
+  const request = (body ?? {}) as { pluginVersion?: unknown; files?: unknown };
+  if (typeof request.pluginVersion !== 'string' || request.pluginVersion === '') {
+    return { status: 400, body: { error: 'pluginVersion is required' } };
   }
+  const parsed = parseFiles(request.files);
+  if ('error' in parsed) return { status: 400, body: { error: parsed.error } };
+  const outcome = store.promote(kind, name, request.pluginVersion, parsed.files);
+  if (outcome.outcome === 'refused') return refusalValue(outcome.refusal);
+  return {
+    status: 200,
+    body: {
+      promoted: name,
+      kind,
+      pluginVersion: request.pluginVersion,
+      replaced: outcome.replaced,
+      restore: outcome.restore,
+      files: outcome.record.files,
+      bytes: outcome.record.bytes,
+    },
+  };
+}
+
+function undoPromote(kind: ExtensionKind, name: string, store: ExtensionStore, body: unknown): RouteAnswer {
+  const request = (body ?? {}) as { restore?: unknown };
+  if (typeof request.restore !== 'string' || request.restore === '') {
+    return { status: 400, body: { error: 'restore is required, as the restore reference a promotion returned' } };
+  }
+  const outcome = store.undoPromotion(kind, name, request.restore);
+  if (outcome.outcome === 'refused') return refusalValue(outcome.refusal);
+  return {
+    status: 200,
+    body: { restored: name, kind, version: outcome.record.version, withdrawn: outcome.withdrawn },
+  };
+}
+
+function keep(kind: ExtensionKind, name: string, store: ExtensionStore, body: unknown): RouteAnswer {
+  const request = (body ?? {}) as { pluginVersion?: unknown };
+  if (typeof request.pluginVersion !== 'string' || request.pluginVersion === '') {
+    return { status: 400, body: { error: 'pluginVersion is required' } };
+  }
+  const outcome = store.keep(kind, name, request.pluginVersion);
+  if (outcome.outcome === 'refused') return refusalValue(outcome.refusal);
+  return { status: 200, body: { kept: name, kind, pluginVersion: request.pluginVersion } };
+}
+
+/** The files of a request, each with a path and its text, or the sentence that says what is wrong with them. */
+function parseFiles(value: unknown): { files: ExtensionFile[] } | { error: string } {
+  if (!Array.isArray(value)) return { error: 'files is required, as an array of {path, text}' };
   const files: ExtensionFile[] = [];
-  for (const entry of request.files as unknown[]) {
+  for (const entry of value as unknown[]) {
     const file = entry as { path?: unknown; text?: unknown } | null;
     if (
       typeof file !== 'object' ||
@@ -97,16 +176,11 @@ function add(kind: ExtensionKind, store: ExtensionStore, body: unknown): RouteAn
       file.path === '' ||
       typeof file.text !== 'string'
     ) {
-      return { status: 400, body: { error: 'every file needs a non-empty path and a text string' } };
+      return { error: 'every file needs a non-empty path and a text string' };
     }
     files.push({ path: file.path, text: file.text });
   }
-  const outcome = store.add(kind, name, files);
-  if (outcome.outcome === 'refused') return refusalValue(outcome.refusal);
-  return {
-    status: 201,
-    body: { added: name, kind, files: outcome.record.files, bytes: outcome.record.bytes },
-  };
+  return { files };
 }
 
 function remove(kind: ExtensionKind, name: string, store: ExtensionStore): RouteAnswer {

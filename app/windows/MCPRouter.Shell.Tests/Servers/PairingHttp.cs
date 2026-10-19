@@ -18,6 +18,12 @@ internal static class PairingHttp
     /// <summary>The recorded body the router answered <c>POST /pairing/codes</c> with.</summary>
     public static string Fixture => RepoRoot.Read("app/Sources/MCPRouterKit/Control/Fixtures/pairing-code.json");
 
+    /// <summary>The recorded body the router answered <c>GET /pairing/state</c> with, while its phone listener was bound.</summary>
+    public static string StateFixture => RepoRoot.Read("app/Sources/MCPRouterKit/Control/Fixtures/pairing-state.json");
+
+    /// <summary>The state the router answers while pairing is off: nothing bound, nothing announced, no code.</summary>
+    public const string StateOff = "{\"code\":null,\"awaitingAck\":[],\"listener\":{\"enabled\":false,\"port\":null,\"advertising\":false}}";
+
     public static HttpResponseMessage Json(HttpStatusCode status, string body) => new(status)
     {
         Content = new StringContent(body, Encoding.UTF8, "application/json"),
@@ -36,6 +42,23 @@ internal static class PairingHttp
 
     /// <summary>One request as it left the client.</summary>
     public sealed record Seen(string Method, string Path, string? Authorization, string? ContentType, string Body);
+
+    /// <summary>
+    /// The router the sheet talks to. The state read is answered from <paramref name="listening"/>, and every
+    /// other request goes to <paramref name="respond"/> with a count over those requests only, so a script
+    /// reads the same whether or not the state was read first.
+    /// </summary>
+    public static Scripted Sheet(Func<int, HttpRequestMessage, Task<HttpResponseMessage>> respond, bool listening = true)
+    {
+        var answered = 0;
+        return new Scripted((_, request) =>
+            IsStateRead(request)
+                ? Answer(HttpStatusCode.OK, listening ? StateFixture : StateOff)
+                : respond(answered++, request));
+    }
+
+    private static bool IsStateRead(HttpRequestMessage request) =>
+        request.Method == HttpMethod.Get && request.RequestUri!.AbsolutePath == "/pairing/state";
 
     /// <summary>Answers each request from a script, and records it. The script sees the request and the
     /// zero-based index of the call, so a test can answer the first call late and the second at once.</summary>

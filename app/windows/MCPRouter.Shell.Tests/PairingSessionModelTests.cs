@@ -9,8 +9,8 @@ namespace MCPRouter.Shell.Tests;
 public sealed class PairingSessionModelTests
 {
     /// <summary>The router's clock is the fixture's: a five-minute window starting at issue.</summary>
-    private static readonly DateTimeOffset Issued = DateTimeOffset.Parse("2026-10-19T01:59:18Z");
-    private static readonly DateTimeOffset Expires = DateTimeOffset.Parse("2026-10-19T02:04:18Z");
+    private static readonly DateTimeOffset Issued = DateTimeOffset.Parse("2026-10-19T15:52:11Z");
+    private static readonly DateTimeOffset Expires = DateTimeOffset.Parse("2026-10-19T15:57:11Z");
 
     private sealed class Clock
     {
@@ -25,7 +25,7 @@ public sealed class PairingSessionModelTests
     [Fact]
     public void ANewSessionAsksForNothingAndShowsNoCode()
     {
-        var handler = new PairingHttp.Scripted((_, _) => PairingHttp.Answer(HttpStatusCode.Created, PairingHttp.Fixture));
+        var handler = PairingHttp.Sheet((_, _) => PairingHttp.Answer(HttpStatusCode.Created, PairingHttp.Fixture));
         using var client = PairingHttp.Client(handler);
 
         var model = Model(client, new Clock());
@@ -38,22 +38,22 @@ public sealed class PairingSessionModelTests
     [Fact]
     public async Task OpeningRequestsACodeAndShowsItsCodeWithTheRoutersWindow()
     {
-        var handler = new PairingHttp.Scripted((_, _) => PairingHttp.Answer(HttpStatusCode.Created, PairingHttp.Fixture));
+        var handler = PairingHttp.Sheet((_, _) => PairingHttp.Answer(HttpStatusCode.Created, PairingHttp.Fixture));
         using var client = PairingHttp.Client(handler);
         var model = Model(client, new Clock());
 
         await model.OpenAsync();
 
-        Assert.Single(handler.Requests);
+        Assert.Equal(new[] { "GET", "POST" }, handler.Requests.Select(r => r.Method));
         Assert.Equal(PairingPhase.AwaitingScanOrCode, model.CurrentState.Phase);
-        Assert.Equal("PC2E585N", model.CurrentState.PairingCode);
+        Assert.Equal("4R74JHBM", model.CurrentState.PairingCode);
         Assert.Equal(TimeSpan.FromMinutes(5), model.CurrentState.RemainingTime);
     }
 
     [Fact]
     public async Task TheCountdownIsTakenFromTheRoutersExpiryNotFromAConstant()
     {
-        var handler = new PairingHttp.Scripted((_, _) => PairingHttp.Answer(HttpStatusCode.Created, PairingHttp.Fixture));
+        var handler = PairingHttp.Sheet((_, _) => PairingHttp.Answer(HttpStatusCode.Created, PairingHttp.Fixture));
         using var client = PairingHttp.Client(handler);
         var clock = new Clock();
         var model = Model(client, clock);
@@ -69,7 +69,7 @@ public sealed class PairingSessionModelTests
     [Fact]
     public async Task ACodeThatOutlivesItsWindowMovesToExpiredAndIsNoLongerShown()
     {
-        var handler = new PairingHttp.Scripted((_, _) => PairingHttp.Answer(HttpStatusCode.Created, PairingHttp.Fixture));
+        var handler = PairingHttp.Sheet((_, _) => PairingHttp.Answer(HttpStatusCode.Created, PairingHttp.Fixture));
         using var client = PairingHttp.Client(handler);
         var clock = new Clock();
         var model = Model(client, clock);
@@ -84,13 +84,13 @@ public sealed class PairingSessionModelTests
 
         Assert.Equal(PairingPhase.Expired, model.CurrentState.Phase);
         Assert.Null(model.CurrentState.PairingCode);
-        Assert.Single(handler.Requests);
+        Assert.Single(handler.Requests, r => r.Method == "POST");
     }
 
     [Fact]
     public async Task ReissueAfterExpiryAsksTheRouterForANewCode()
     {
-        var handler = new PairingHttp.Scripted((i, _) =>
+        var handler = PairingHttp.Sheet((i, _) =>
             PairingHttp.Answer(HttpStatusCode.Created, i == 0 ? PairingHttp.Fixture : SecondCode));
         using var client = PairingHttp.Client(handler);
         var clock = new Clock();
@@ -109,7 +109,7 @@ public sealed class PairingSessionModelTests
     [Fact]
     public async Task WhenPairingIsOffNothingIsRequestedAndTheStateSaysSo()
     {
-        var handler = new PairingHttp.Scripted((_, _) => PairingHttp.Answer(HttpStatusCode.Created, PairingHttp.Fixture));
+        var handler = PairingHttp.Sheet((_, _) => PairingHttp.Answer(HttpStatusCode.Created, PairingHttp.Fixture));
         using var client = PairingHttp.Client(handler);
         var model = Model(client, new Clock(), available: false);
 
@@ -125,7 +125,7 @@ public sealed class PairingSessionModelTests
     [Fact]
     public async Task ARouterThatRefusesIsShownAsUnavailableWithItsKind()
     {
-        var handler = new PairingHttp.Scripted((_, _) =>
+        var handler = PairingHttp.Sheet((_, _) =>
             PairingHttp.Answer(HttpStatusCode.Unauthorized, "{\"error\":\"unauthorised\"}"));
         using var client = PairingHttp.Client(handler);
         var model = Model(client, new Clock());
@@ -153,7 +153,7 @@ public sealed class PairingSessionModelTests
     [Fact]
     public async Task ClosingRevokesALiveCodeOnTheRouter()
     {
-        var handler = new PairingHttp.Scripted((_, _) =>
+        var handler = PairingHttp.Sheet((_, _) =>
             PairingHttp.Answer(HttpStatusCode.Created, PairingHttp.Fixture));
         using var client = PairingHttp.Client(handler);
         var model = Model(client, new Clock());
@@ -172,7 +172,7 @@ public sealed class PairingSessionModelTests
     [Fact]
     public async Task ClosingAfterARefusalHasNothingOnTheRouterToRevoke()
     {
-        var handler = new PairingHttp.Scripted((_, _) =>
+        var handler = PairingHttp.Sheet((_, _) =>
             PairingHttp.Answer(HttpStatusCode.Unauthorized, "{\"error\":\"unauthorised\"}"));
         using var client = PairingHttp.Client(handler);
         var model = Model(client, new Clock());
@@ -188,12 +188,18 @@ public sealed class PairingSessionModelTests
     public async Task AReissueOvertakesAnOpenThatIsStillInFlight()
     {
         var late = new TaskCompletionSource<HttpResponseMessage>();
-        var handler = new PairingHttp.Scripted((i, _) =>
-            i == 0 ? late.Task : PairingHttp.Answer(HttpStatusCode.Created, SecondCode));
+        var firstAsked = new TaskCompletionSource();
+        var handler = PairingHttp.Sheet((i, _) =>
+        {
+            if (i > 0) return PairingHttp.Answer(HttpStatusCode.Created, SecondCode);
+            firstAsked.SetResult();
+            return late.Task;
+        });
         using var client = PairingHttp.Client(handler);
         var model = Model(client, new Clock());
 
         var opening = model.OpenAsync();
+        await firstAsked.Task;
         await model.ReissueAsync();
         Assert.Equal("K7X9W4M2", model.CurrentState.PairingCode);
 
@@ -208,12 +214,18 @@ public sealed class PairingSessionModelTests
     public async Task AFailedAnswerOvertakenByAReissueDoesNotReplaceTheCurrentCode()
     {
         var late = new TaskCompletionSource<HttpResponseMessage>();
-        var handler = new PairingHttp.Scripted((i, _) =>
-            i == 0 ? late.Task : PairingHttp.Answer(HttpStatusCode.Created, SecondCode));
+        var firstAsked = new TaskCompletionSource();
+        var handler = PairingHttp.Sheet((i, _) =>
+        {
+            if (i > 0) return PairingHttp.Answer(HttpStatusCode.Created, SecondCode);
+            firstAsked.SetResult();
+            return late.Task;
+        });
         using var client = PairingHttp.Client(handler);
         var model = Model(client, new Clock());
 
         var opening = model.OpenAsync();
+        await firstAsked.Task;
         await model.ReissueAsync();
 
         late.SetResult(PairingHttp.Json(HttpStatusCode.InternalServerError, "{\"error\":\"boom\"}"));
@@ -228,12 +240,21 @@ public sealed class PairingSessionModelTests
     public async Task AnAnswerThatArrivesAfterCloseIsTakenBackOnTheRouter()
     {
         var late = new TaskCompletionSource<HttpResponseMessage>();
-        var handler = new PairingHttp.Scripted((i, _) =>
-            i == 0 ? late.Task : PairingHttp.Answer(HttpStatusCode.OK, "{\"revoked\":false}"));
+        var firstAsked = new TaskCompletionSource();
+        var handler = PairingHttp.Sheet((i, _) =>
+        {
+            if (i == 0)
+            {
+                firstAsked.SetResult();
+                return late.Task;
+            }
+            return PairingHttp.Answer(HttpStatusCode.OK, "{\"revoked\":false}");
+        });
         using var client = PairingHttp.Client(handler);
         var model = Model(client, new Clock());
 
         var opening = model.OpenAsync();
+        await firstAsked.Task;
         await model.CloseAsync();
         late.SetResult(PairingHttp.Json(HttpStatusCode.Created, PairingHttp.Fixture));
         await opening;
@@ -241,6 +262,66 @@ public sealed class PairingSessionModelTests
         Assert.Equal(PairingPhase.Idle, model.CurrentState.Phase);
         Assert.Null(model.CurrentState.PairingCode);
         Assert.Equal(2, handler.Requests.Count(r => r.Method == "DELETE"));
+    }
+
+    /// <summary>
+    /// Pairing is off on the router, so the sheet says so and asks for nothing. The state read is the only
+    /// request, and no code is minted. That is the difference between an off router and a refusing one.
+    /// </summary>
+    [Fact]
+    public async Task WhenTheRouterIsNotListeningNoCodeIsAskedForAndPairingIsShownAsOff()
+    {
+        var handler = PairingHttp.Sheet((_, _) => PairingHttp.Answer(HttpStatusCode.Created, PairingHttp.Fixture), listening: false);
+        using var client = PairingHttp.Client(handler);
+        var model = Model(client, new Clock());
+
+        await model.OpenAsync();
+
+        Assert.Equal(PairingPhase.Unavailable, model.CurrentState.Phase);
+        Assert.Null(model.CurrentState.Failure);
+        Assert.Null(model.CurrentState.PairingCode);
+        Assert.Equal(new[] { "GET" }, handler.Requests.Select(r => r.Method));
+    }
+
+    [Fact]
+    public async Task AStateReadThatFailsIsShownAsAFailureAndMintsNoCode()
+    {
+        var handler = new PairingHttp.Scripted((_, request) =>
+            request.Method == HttpMethod.Get
+                ? PairingHttp.Refused()
+                : PairingHttp.Answer(HttpStatusCode.Created, PairingHttp.Fixture));
+        using var client = PairingHttp.Client(handler);
+        var model = Model(client, new Clock());
+
+        await model.OpenAsync();
+
+        Assert.Equal(PairingPhase.Unavailable, model.CurrentState.Phase);
+        Assert.Equal(ControlApiFailure.RouterNotRunning, model.CurrentState.Failure!.Kind);
+        Assert.DoesNotContain(handler.Requests, r => r.Method == "POST");
+    }
+
+    /// <summary>
+    /// The state answer is held until after the close, so the open's check is still in flight when the sheet
+    /// shuts. The answer then arrives to a sheet that no longer wants a code, and must not mint one.
+    /// </summary>
+    [Fact]
+    public async Task ClosingBeforeTheStateAnswerMintsNoCode()
+    {
+        var stateAnswer = new TaskCompletionSource<HttpResponseMessage>();
+        var handler = new PairingHttp.Scripted((_, request) =>
+            request.Method == HttpMethod.Get
+                ? stateAnswer.Task
+                : PairingHttp.Answer(HttpStatusCode.OK, "{\"revoked\":true}"));
+        using var client = PairingHttp.Client(handler);
+        var model = Model(client, new Clock());
+
+        var opening = model.OpenAsync();
+        await model.CloseAsync();
+        stateAnswer.SetResult(PairingHttp.Json(HttpStatusCode.OK, PairingHttp.StateFixture));
+        await opening;
+
+        Assert.DoesNotContain(handler.Requests, r => r.Method == "POST");
+        Assert.Equal(PairingPhase.Idle, model.CurrentState.Phase);
     }
 
     [Fact]

@@ -24,37 +24,66 @@ public sealed class ControlApiClientPairingTests
         Assert.Equal("/pairing/codes", seen.Path);
         Assert.Equal($"Bearer {PairingHttp.Token}", seen.Authorization);
         Assert.Equal("application/json", seen.ContentType);
-        Assert.Equal("PC2E585N", issued.Code);
-        Assert.Equal(DateTimeOffset.Parse("2026-10-19T01:59:18Z"), issued.IssuedAt);
-        Assert.Equal(DateTimeOffset.Parse("2026-10-19T02:04:18Z"), issued.ExpiresAt);
+        Assert.Equal("4R74JHBM", issued.Code);
+        Assert.Equal(DateTimeOffset.Parse("2026-10-19T15:52:11Z"), issued.IssuedAt);
+        Assert.Equal(DateTimeOffset.Parse("2026-10-19T15:57:11Z"), issued.ExpiresAt);
     }
 
     [Fact]
     public async Task StateReadCarriesTheTokenBecauseTheRouterGatesGetToo()
     {
         var handler = new PairingHttp.Scripted((_, _) =>
-            PairingHttp.Answer(HttpStatusCode.OK, "{\"code\":null,\"awaitingAck\":[]}"));
+            PairingHttp.Answer(HttpStatusCode.OK, "{\"code\":null,\"awaitingAck\":[],\"listener\":{\"enabled\":true,\"port\":8882,\"advertising\":true}}"));
         using var client = PairingHttp.Client(handler);
 
-        var issued = await client.GetPairingStateAsync();
+        var state = await client.GetPairingStateAsync();
 
         var seen = Assert.Single(handler.Requests);
         Assert.Equal("GET", seen.Method);
         Assert.Equal("/pairing/state", seen.Path);
         Assert.Equal($"Bearer {PairingHttp.Token}", seen.Authorization);
-        Assert.Null(issued);
+        Assert.Null(state.Code);
+        Assert.True(state.Listener.Enabled);
     }
 
     [Fact]
     public async Task StateReadNamesTheLiveCodeWhenThereIsOne()
     {
-        var handler = new PairingHttp.Scripted((_, _) =>
-            PairingHttp.Answer(HttpStatusCode.OK, $"{{\"code\":{PairingHttp.Fixture},\"awaitingAck\":[]}}"));
+        var handler = new PairingHttp.Scripted((_, _) => PairingHttp.Answer(HttpStatusCode.OK, PairingHttp.StateFixture));
         using var client = PairingHttp.Client(handler);
 
-        var issued = await client.GetPairingStateAsync();
+        var state = await client.GetPairingStateAsync();
 
-        Assert.Equal("PC2E585N", issued!.Code);
+        Assert.Equal("4R74JHBM", state.Code!.Code);
+        Assert.True(state.Listener.Enabled);
+        Assert.NotNull(state.Listener.Port);
+    }
+
+    [Fact]
+    public async Task StateReadReportsAnUnboundListenerAsOffWithNoPort()
+    {
+        var handler = new PairingHttp.Scripted((_, _) => PairingHttp.Answer(HttpStatusCode.OK, PairingHttp.StateOff));
+        using var client = PairingHttp.Client(handler);
+
+        var state = await client.GetPairingStateAsync();
+
+        Assert.Null(state.Code);
+        Assert.False(state.Listener.Enabled);
+        Assert.Null(state.Listener.Port);
+        Assert.False(state.Listener.Advertising);
+    }
+
+    /// <summary>A state body that does not say whether the listener is bound is not one the sheet can read, so it is refused rather than read as off.</summary>
+    [Fact]
+    public async Task StateReadRefusesABodyThatDoesNotSayWhetherTheListenerIsBound()
+    {
+        var handler = new PairingHttp.Scripted((_, _) =>
+            PairingHttp.Answer(HttpStatusCode.OK, "{\"code\":null,\"awaitingAck\":[]}"));
+        using var client = PairingHttp.Client(handler);
+
+        var malformed = await Assert.ThrowsAsync<ControlApiException>(() => client.GetPairingStateAsync());
+
+        Assert.Equal(ControlApiFailure.MalformedResponse, malformed.Kind);
     }
 
     [Fact]

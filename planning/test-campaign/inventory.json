@@ -1683,7 +1683,8 @@
       "source": "ORCHESTRATOR.md R4-C",
       "evidence": "reported",
       "effect": "none",
-      "providerNote": "deferred; install.sh is not built."
+      "providerNote": "deferred; install.sh is not built.",
+      "note": "Superseded 2026-10-19. The owner retired the Swift router. install.sh defaults to node and src/*.ts stays. See planning/plans/plan-retire-swift-router.md. The class stays deferred: registry-drop-gate.py exempts only that class from its coverage check, and this requirement carries no case, so any other class reads as an uncovered requirement. The text above is the original requirement and is kept as history."
     },
     {
       "id": "REQ-021",

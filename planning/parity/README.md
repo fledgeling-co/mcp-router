@@ -1,5 +1,10 @@
 # planning/parity — the cutover surface
 
+> **Superseded 2026-10-19.** The owner retired the Swift router, and TypeScript is the only router
+> that runs. The cutover this directory measures was cancelled (R4-C2). See
+> `planning/plans/plan-retire-swift-router.md`. The body below is kept as the record of how the
+> cutover was specified; it is not the current gate.
+
 `surface.tsv` is the census this repo reports parity against. It exists because of one sentence in
 R4's brief: *"This item may not be marked done on a partial pass."*
 

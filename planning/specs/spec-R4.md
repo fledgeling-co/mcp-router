@@ -266,8 +266,11 @@ stated in advance and met — never a green streak, which is the `install-launch
    built is not a fallback, and a reference the harness cannot run is not a reference. Both launchd
    `ProgramArguments` point at the built Swift binary by default, `MCPR_ROUTER=node` points them
    back, and the `/health` + `/status` verification is exactly as it was.
+   Superseded 2026-10-19: the default is restored to node in O1.
 2. Delete `src/*.ts`, `tsconfig.json`, `package.json`, `package-lock.json`, `dist/`. **Held —
-   `R4-C2`.**
+   `R4-C2`.** Cancelled 2026-10-19. The Swift router is retired instead, so `src/*.ts`,
+   `package.json`, `package-lock.json`, `tsconfig.json` and `dist/` are not deleted, and the hold
+   condition above (a `DEF-033` reproduction or a stated bound) is moot.
 3. `README.md` and `docs/` install copy. **Shipped with step 1**, including how to go back.
 
 **Preconditions — all four now hold; the first three held before 2026-08-20 and the fourth was met

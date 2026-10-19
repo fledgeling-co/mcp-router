@@ -1,5 +1,9 @@
 # Cutover readiness — what is derivable today, and what is not
 
+> **Superseded 2026-10-19.** The owner retired the Swift router, so the 82-of-83 cutover this file
+> measures was cancelled (R4-C2) and there is no second router to report against. See
+> `planning/plans/plan-retire-swift-router.md`. The body below is kept as history.
+
 `R33` asks for the current parity figure *"reported against the 82-of-83 target, derived rather
 than quoted"*. **It cannot be, and saying so precisely is the answer rather than a failure to
 produce one.** This file says what is derivable, what is not, and why each is which.

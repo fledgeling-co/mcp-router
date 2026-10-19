@@ -284,14 +284,17 @@ SURFACE    ?= servers
 ## runs since. It costs roughly two minutes and adds no new requirement — `test-ios` already needs
 ## a booted simulator — and it is the only stage here that proves the app runs rather than that its
 ## views construct.
-all: tools lint build test test-ios test-ios-glass parity parity-selftest mutation-selftest mock-fidelity-selftest acceptance-lanes-selftest install-default surface-reconcile
+## `parity` and `parity-selftest` left `all` on 2026-10-19. The owner retired the Swift router, and
+## parity stopped gating a release (plan-retire-swift-router.md, G1). Both targets stay runnable by
+## hand until G2 and G3 delete them.
+all: tools lint build test test-ios test-ios-glass mutation-selftest mock-fidelity-selftest acceptance-lanes-selftest install-default surface-reconcile
 
 ## Fail loudly and specifically when a required tool is missing, rather than skipping the gate.
 ## A silently-skipped lint step is worse than no lint step: it reports success.
 ##
 ## The node half is checked here rather than where it is used, and that is the whole point: a
-## fresh `git worktree` has no `node_modules` and no `dist`, `parity-selftest` is the LAST target
-## `all` runs, and its own environment check therefore fires forty minutes in — after lint, both
+## fresh `git worktree` has no `node_modules` and no `dist`, `parity-selftest` was the LAST target
+## `all` ran, and its own environment check therefore fired forty minutes in — after lint, both
 ## builds, 1483 package tests, the iOS lane and the on-glass lane have all passed. That happened
 ## twice on 20 Aug 2026, on two different worktrees, and cost two full gate runs. Checking here
 ## costs a millisecond and fails in the first second.
@@ -1047,6 +1050,12 @@ build-router-release:
 ## a comment each read as reach or containment in this reader's first cut, and a census that
 ## over-claims is the same defect as the paragraph it exists to bound.
 
+## `planning/carrier-parity-gate.py` prints its findings here, but its exit does not set `fail`. The
+## owner made it non-blocking on 2026-10-19 (plan-retire-swift-router.md, decision 5), because a
+## blocking carrier gate would keep `make lint` red for the whole port period (P1 to P6). Its output
+## is the list of Swift-only landings still waiting for a port or a drop. When this changed it
+## reported one undispositioned landing, f53242b5 (the log rotation), and that finding stays open.
+## G4 retires the gate.
 lint: tools
 	@fail=0; \
 	swiftformat --lint . --config .swiftformat || fail=1; \
@@ -1097,7 +1106,7 @@ lint: tools
 	python3 planning/pin-class-gate.py || fail=1; \
 	python3 planning/shipped-brief-gate.py || fail=1; \
 	python3 planning/brief-target-gate.py --quiet || fail=1; \
-	python3 planning/carrier-parity-gate.py || fail=1; \
+	python3 planning/carrier-parity-gate.py || echo "carrier-parity-gate: exit $$? (non-blocking, see the note above lint)"; \
 	zsh app/Scripts/pool-mutation-gate-selftest.sh || fail=1; \
 	exit $$fail
 
@@ -1141,7 +1150,8 @@ role-intersection:
 ## the pressure would then be on the instrument rather than on the runs.
 ##
 ## `planning/parity/green-streak.md` defines a whole-gate pass and the cold port-reuse path.
-## `planning/carrier-parity-gate.py` is the half of R33 that DOES block, and it is in `lint`.
+## `planning/carrier-parity-gate.py` is the half of R33 that used to block; it runs in `lint` and is
+## non-blocking since 2026-10-19.
 green-streak:
 	@bash scripts/acceptance/green-streak.sh; ec=$$?; \
 	echo "green-streak: exit $$ec  (0 measured · 1 the ledger contradicts itself · 2 nothing recorded yet)"; \

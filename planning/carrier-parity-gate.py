@@ -24,8 +24,9 @@ asking it.
 
 It does **not** require parity. One-sidedness is a normal act here: each of those five items was
 built where its subject lives, `R4-C1` pointed the installer at Swift and held the deletion of the
-TypeScript tree, and `REQ-020` reserves that retirement to the owner. Porting four features into a
-reference implementation with a stated expiry date is work nobody has asked for.
+TypeScript tree. The owner retired the Swift router on 2026-10-19, the retirement `REQ-020` reserved
+to them. Porting four features into a reference implementation with a stated expiry date is work
+nobody has asked for.
 
 What it requires is that a one-sided landing be **said out loud**. Every landing at or after the
 pin in `planning/parity/carriers.tsv` that touched one implementation and not the other needs a

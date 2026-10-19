@@ -26,7 +26,7 @@ cannot be finished is parked with a reason rather than left ambiguous.
 | G8 | To Do | only a header comment landed; the executable checks are unstarted |
 | G9 | To Do | the 40-file absolute-path sweep, and the pre-commit `GIT_DIR`/`GIT_WORK_TREE` unset |
 | G10 | To Do | run the shell lane against the app, and re-check every lane enrolled behind it |
-| M30 | To Do, owner authorised | serve real capability documents from both routers, with parity vectors |
+| M30 | To Do, owner authorised | serve real capability documents from both routers, with parity vectors. Re-scoped 2026-10-19 to the TypeScript router only: the Swift router is retired (`planning/plans/plan-retire-swift-router.md`), so there is no second router to serve from or to hold vectors against |
 | M31 | To Do | state the disabled-primary semantics in DESIGN.md; sweep built surfaces reproducing it |
 | M32 | To Do | the class, not the instance: an `extra` needs an oracle rather than only a citation |
 | M33 | To Do | `make test` must say which build description it compiled; sweep branches whose green covered nothing |

@@ -314,6 +314,16 @@ if [ "$SETTINGS_OPENED" = "1" ]; then
   "$AXKIT" dump "$PID" window Settings > "$AX/SURF-011.window.txt"
   if [ "$SETTINGS_SELECTED" = "1" ]; then
     capture SURF-011.build SURF-011 READBACK "" "" Settings
+    # The window is the surface, and its copy spans panes: "Forget the stored token" is drawn by the
+    # Security pane, not the Router pane. The Security pane is read as a second dump of the SAME
+    # surface (glass-assert.py's SURF-011 `panes`); it is not photographed and claims no surface.
+    if "$AXKIT" select "$PID" "Security" Settings; then
+      sleep 0.5
+      "$AXKIT" dump "$PID" window Settings > "$AX/SURF-011.security.window.txt"
+    else
+      echo "  select of the Security pane in Settings did not take — its dump is not written."
+      rm -f "$AX/SURF-011.security.window.txt"
+    fi
   else
     echo "  select of the Router pane in Settings did not take — SURF-011 NOT PHOTOGRAPHED."
     echo "  The Settings window is showing another pane. Filing that picture under SURF-011 is DEF-059."

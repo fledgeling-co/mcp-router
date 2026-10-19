@@ -120,17 +120,17 @@
   "target": "app://mac/servers",
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": "evidence/shots/SURF-002.build.png",
-  "sha256": "75eb3703dfb1fdbb9758ecb93bcdc09e964053b8277e80cc791675cc7f00d5c6",
-  "capturedAt": "2026-10-19T04:11:02Z",
+  "sha256": "80e4762ed36a137f33a84f5afdc503450da8ea3f323923ff18b2b7c5f905bcd7",
+  "capturedAt": "2026-10-19T04:15:08Z",
   "conditions": {
    "windowTitleReadback": "Servers",
    "frame": "180,140,980,620",
-   "cgWindowID": "106867",
+   "cgWindowID": "106918",
    "appearance": "system",
    "frontmostAtShutter": "SecurityAgent",
    "scenario": "populated"
   },
-  "witnessed": "axkit attached pid=9347 owns CGWindowID 106867, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "witnessed": "axkit attached pid=13663 owns CGWindowID 106918, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
   "sharesWith": [
    "SURF-002"
   ],
@@ -143,18 +143,18 @@
   "target": "app://mac/shell",
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS), cropped to the sidebar frame the AX dump reports",
   "derivedFrom": "evidence/shots/SURF-001.build.png",
-  "sha256": "fd8f0356a52fb0d9073eab27ade17dc67fc140d9d242348788f5bef67b287a24",
-  "capturedAt": "2026-10-19T04:11:03Z",
+  "sha256": "a2162d9f12d02f3e31e7d234077d805ee4e9f2ae24202a5c0c95d372721b6006",
+  "capturedAt": "2026-10-19T04:15:08Z",
   "conditions": {
    "windowTitleReadback": "Servers",
    "frame": "180.0,192.0,256.0,427.0",
-   "cgWindowID": "106867",
+   "cgWindowID": "106918",
    "appearance": "system",
    "frontmostAtShutter": "n/a \u2014 derived crop, see SURF-001.build.png",
    "scenario": "populated",
    "crop": "0,0,558,1332 of 2052x1332 at scale 2, shadow margin 46px"
   },
-  "witnessed": "axkit attached pid=9347 owns CGWindowID 106867, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": "axkit attached pid=13663 owns CGWindowID 106918, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
  },
  {
   "path": "evidence/shots/SURF-002.addserver.png",
@@ -181,17 +181,17 @@
   "target": "app://mac/servers",
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": null,
-  "sha256": "75eb3703dfb1fdbb9758ecb93bcdc09e964053b8277e80cc791675cc7f00d5c6",
-  "capturedAt": "2026-10-19T04:11:02Z",
+  "sha256": "80e4762ed36a137f33a84f5afdc503450da8ea3f323923ff18b2b7c5f905bcd7",
+  "capturedAt": "2026-10-19T04:15:08Z",
   "conditions": {
    "windowTitleReadback": "Servers",
    "frame": "180,140,980,620",
-   "cgWindowID": "106867",
+   "cgWindowID": "106918",
    "appearance": "system",
    "frontmostAtShutter": "SecurityAgent",
    "scenario": "populated"
   },
-  "witnessed": "axkit attached pid=9347 owns CGWindowID 106867, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "witnessed": "axkit attached pid=13663 owns CGWindowID 106918, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
   "sharesWith": [
    "SURF-001"
   ],
@@ -204,16 +204,16 @@
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": null,
   "sha256": "34378157c80d5d0b91a94a5bcc16b6f5a95310df68f1640389e11d79f1d5d230",
-  "capturedAt": "2026-10-19T04:11:17Z",
+  "capturedAt": "2026-10-19T04:15:22Z",
   "conditions": {
    "windowTitleReadback": "Servers",
    "frame": "180,140,980,620",
-   "cgWindowID": "106880",
+   "cgWindowID": "106931",
    "appearance": "system",
    "frontmostAtShutter": "SecurityAgent",
    "scenario": "empty"
   },
-  "witnessed": "axkit attached pid=9624 owns CGWindowID 106880, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "witnessed": "axkit attached pid=13934 owns CGWindowID 106931, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
   "unpublishedReason": "a second state of a surface the wall already shows. `inventory.json` renders one `shot` per subject, so the extra scenario states are carried by the cases that cite them (CASE-0041) rather than by the wall."
  },
  {
@@ -223,16 +223,16 @@
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": null,
   "sha256": "64eb07bfcbb96e9ce505b8b8d9c1f5df90e55a0e2d0d6e3111e9718e624dfeec",
-  "capturedAt": "2026-10-19T04:11:19Z",
+  "capturedAt": "2026-10-19T04:15:25Z",
   "conditions": {
    "windowTitleReadback": "Servers",
    "frame": "180,140,980,620",
-   "cgWindowID": "106882",
+   "cgWindowID": "106933",
    "appearance": "system",
    "frontmostAtShutter": "SecurityAgent",
    "scenario": "offline"
   },
-  "witnessed": "axkit attached pid=9704 owns CGWindowID 106882, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "witnessed": "axkit attached pid=14013 owns CGWindowID 106933, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
   "unpublishedReason": "a second state of a surface the wall already shows. `inventory.json` renders one `shot` per subject, so the extra scenario states are carried by the cases that cite them (CASE-0042) rather than by the wall."
  },
  {
@@ -241,17 +241,17 @@
   "target": "app://mac/activity",
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": null,
-  "sha256": "1c62a60a9445c005336bf1f0f8382ec24fb416facfafef55e4eb8a45307e5884",
-  "capturedAt": "2026-10-19T04:11:03Z",
+  "sha256": "2ea3d02dbd2b9aefc83a52a2e9188058be20e4b0b70fc3d7203f32e6502147cb",
+  "capturedAt": "2026-10-19T04:15:09Z",
   "conditions": {
    "windowTitleReadback": "Activity",
    "frame": "180,140,980,620",
-   "cgWindowID": "106867",
+   "cgWindowID": "106918",
    "appearance": "system",
    "frontmostAtShutter": "SecurityAgent",
    "scenario": "populated"
   },
-  "witnessed": "axkit attached pid=9347 owns CGWindowID 106867, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": "axkit attached pid=13663 owns CGWindowID 106918, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
  },
  {
   "path": "evidence/shots/SURF-004.build.png",
@@ -259,17 +259,17 @@
   "target": "app://mac/skills",
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": null,
-  "sha256": "e402c667799c14524cb0cd74e1b7f583bff14eace0a545c3348e1f9fcfe94daf",
-  "capturedAt": "2026-10-19T04:11:04Z",
+  "sha256": "b134fc6ee3458d749b50f16fbb424e9d2f72ddcd69b685073ced3999cd79adcf",
+  "capturedAt": "2026-10-19T04:15:10Z",
   "conditions": {
    "windowTitleReadback": "Skills",
    "frame": "180,140,980,620",
-   "cgWindowID": "106867",
+   "cgWindowID": "106918",
    "appearance": "system",
    "frontmostAtShutter": "SecurityAgent",
    "scenario": "populated"
   },
-  "witnessed": "axkit attached pid=9347 owns CGWindowID 106867, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": "axkit attached pid=13663 owns CGWindowID 106918, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
  },
  {
   "path": "evidence/shots/SURF-005.build.png",
@@ -277,17 +277,17 @@
   "target": "app://mac/discover",
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": null,
-  "sha256": "08a2e2267cd8582c29534b69f3178ad0e373f2088e0fa76f7e983034027c8e7d",
-  "capturedAt": "2026-10-19T04:11:06Z",
+  "sha256": "5dd77fa9793bbd4c8245e048e421a93e3074c19b6696e34dd0165ceb3befd5af",
+  "capturedAt": "2026-10-19T04:15:11Z",
   "conditions": {
    "windowTitleReadback": "Discover",
    "frame": "180,140,980,620",
-   "cgWindowID": "106867",
+   "cgWindowID": "106918",
    "appearance": "system",
    "frontmostAtShutter": "SecurityAgent",
    "scenario": "populated"
   },
-  "witnessed": "axkit attached pid=9347 owns CGWindowID 106867, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": "axkit attached pid=13663 owns CGWindowID 106918, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
  },
  {
   "path": "evidence/shots/SURF-006.build.png",
@@ -295,17 +295,17 @@
   "target": "app://mac/checks",
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": null,
-  "sha256": "5e6d30e2470c98ccde1f15f498f207294d6603528e54946067ca0b6bf2715799",
-  "capturedAt": "2026-10-19T04:11:08Z",
+  "sha256": "c5a036a0eb4819ac914e086f8bcd4a2417c2c59b4ade95b9b1e845d4c0dfced9",
+  "capturedAt": "2026-10-19T04:15:13Z",
   "conditions": {
    "windowTitleReadback": "Checks",
    "frame": "180,140,980,620",
-   "cgWindowID": "106867",
+   "cgWindowID": "106918",
    "appearance": "system",
    "frontmostAtShutter": "SecurityAgent",
    "scenario": "populated"
   },
-  "witnessed": "axkit attached pid=9347 owns CGWindowID 106867, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": "axkit attached pid=13663 owns CGWindowID 106918, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
  },
  {
   "path": "evidence/shots/SURF-007.build.png",
@@ -313,17 +313,17 @@
   "target": "app://mac/cleanup",
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": null,
-  "sha256": "65fecc48dfa03963232d5cf6f248b9dea99f1a4729bc41700373cc77678bf6aa",
-  "capturedAt": "2026-10-19T04:11:09Z",
+  "sha256": "390af67286af45118486690669a503fc8a92f41f00e1bd7b1a78dcbdbe68be49",
+  "capturedAt": "2026-10-19T04:15:14Z",
   "conditions": {
    "windowTitleReadback": "Cleanup",
    "frame": "180,140,980,620",
-   "cgWindowID": "106867",
+   "cgWindowID": "106918",
    "appearance": "system",
    "frontmostAtShutter": "SecurityAgent",
    "scenario": "populated"
   },
-  "witnessed": "axkit attached pid=9347 owns CGWindowID 106867, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": "axkit attached pid=13663 owns CGWindowID 106918, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
  },
  {
   "path": "evidence/shots/SURF-007.cleanup-skills.png",
@@ -331,17 +331,17 @@
   "target": "app://mac/cleanup",
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": null,
-  "sha256": "3491bdd1265531878aef65cf19474f0db0a4d06f983b50eadac4134b15e325f1",
-  "capturedAt": "2026-10-19T04:11:23Z",
+  "sha256": "ffd9b323470b29bda6a8325d91a00e3c49aaf3f9a5379ad27b63f22a4cb70392",
+  "capturedAt": "2026-10-19T04:15:27Z",
   "conditions": {
    "windowTitleReadback": "Cleanup",
    "frame": "180,140,980,620",
-   "cgWindowID": "106888",
+   "cgWindowID": "106939",
    "appearance": "system",
    "frontmostAtShutter": "SecurityAgent",
    "scenario": "cleanupSkills"
   },
-  "witnessed": "axkit attached pid=9768 owns CGWindowID 106888, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "witnessed": "axkit attached pid=14081 owns CGWindowID 106939, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
   "unpublishedReason": "a second state of a surface the wall already shows. `inventory.json` renders one `shot` per subject, so the extra scenario states are carried by the cases that cite them (CASE-0139) rather than by the wall."
  },
  {
@@ -369,17 +369,17 @@
   "target": "app://mac/inbox",
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": null,
-  "sha256": "48d3be028dae271fa99e0b737c2188d2cb18a7bd66cbceac5222924a1c93bfe3",
-  "capturedAt": "2026-10-19T04:11:07Z",
+  "sha256": "7b774f296d83a1af3cd6367ac62b5abb3f8a2e54b73934ca3c164f23169004ad",
+  "capturedAt": "2026-10-19T04:15:12Z",
   "conditions": {
    "windowTitleReadback": "Inbox",
    "frame": "180,140,980,620",
-   "cgWindowID": "106867",
+   "cgWindowID": "106918",
    "appearance": "system",
    "frontmostAtShutter": "SecurityAgent",
    "scenario": "populated"
   },
-  "witnessed": "axkit attached pid=9347 owns CGWindowID 106867, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": "axkit attached pid=13663 owns CGWindowID 106918, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
  },
  {
   "path": "evidence/shots/SURF-010.build.png",
@@ -387,17 +387,17 @@
   "target": "app://mac/pairing",
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": null,
-  "sha256": "5febd73ecb2fd2dd3a9bb71e48c223cc71f778454745a55f503398d4898dd81d",
-  "capturedAt": "2026-10-19T04:11:14Z",
+  "sha256": "159ed588563f17e6f44285d73cc73f0c220d77012171f23a12ed9196cb1d15f9",
+  "capturedAt": "2026-10-19T04:15:19Z",
   "conditions": {
    "windowTitleReadback": "Inbox",
    "frame": "180,140,980,620",
-   "cgWindowID": "106867",
+   "cgWindowID": "106918",
    "appearance": "system",
    "frontmostAtShutter": "SecurityAgent",
    "scenario": "populated"
   },
-  "witnessed": "axkit attached pid=9347 owns CGWindowID 106867, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": "axkit attached pid=13663 owns CGWindowID 106918, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
  },
  {
   "path": "evidence/shots/SURF-011.build.png",
@@ -406,16 +406,16 @@
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": null,
   "sha256": "22b7e763606d5a2c1667e50ca8923b3b19ee814e219fd003c690eddbf91fe4d1",
-  "capturedAt": "2026-10-19T04:11:12Z",
+  "capturedAt": "2026-10-19T04:15:17Z",
   "conditions": {
    "windowTitleReadback": "Settings",
    "frame": "414,313,900,450",
-   "cgWindowID": "106873",
+   "cgWindowID": "106924",
    "appearance": "system",
    "frontmostAtShutter": "SecurityAgent",
    "scenario": "populated"
   },
-  "witnessed": "axkit attached pid=9347 owns CGWindowID 106873, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": "axkit attached pid=13663 owns CGWindowID 106924, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
  },
  {
   "path": "evidence/shots/SURF-025.build.png",
@@ -423,17 +423,17 @@
   "target": "app://mac/harnesses",
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": null,
-  "sha256": "372b90d94572a6a02c063dc7fae5b1465236c56326fad68f254285ef07c1e428",
-  "capturedAt": "2026-10-19T04:11:05Z",
+  "sha256": "e08414668376d6189530c87ec69d08240b4093703f24d3460f13c868ef8f75a8",
+  "capturedAt": "2026-10-19T04:15:11Z",
   "conditions": {
    "windowTitleReadback": "Harnesses",
    "frame": "180,140,980,620",
-   "cgWindowID": "106867",
+   "cgWindowID": "106918",
    "appearance": "system",
    "frontmostAtShutter": "SecurityAgent",
    "scenario": "populated"
   },
-  "witnessed": "axkit attached pid=9347 owns CGWindowID 106867, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": "axkit attached pid=13663 owns CGWindowID 106918, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
  },
  {
   "path": "evidence/shots/SURF-025.empty.png",
@@ -442,16 +442,16 @@
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": null,
   "sha256": "83ceb48701b7eeb5895878eb298d345f872575398ca510e1a988e0dcd06e2315",
-  "capturedAt": "2026-10-19T04:11:25Z",
+  "capturedAt": "2026-10-19T04:15:30Z",
   "conditions": {
    "windowTitleReadback": "Harnesses",
    "frame": "180,140,980,620",
-   "cgWindowID": "106890",
+   "cgWindowID": "106941",
    "appearance": "system",
    "frontmostAtShutter": "SecurityAgent",
    "scenario": "empty"
   },
-  "witnessed": "axkit attached pid=9897 owns CGWindowID 106890, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "witnessed": "axkit attached pid=14154 owns CGWindowID 106941, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
   "unpublishedReason": "a second state of a surface the wall already shows. `inventory.json` renders one `shot` per subject, so the extra scenario states are carried by the cases that cite them (CASE-0163) rather than by the wall."
  },
  {
@@ -461,16 +461,16 @@
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": null,
   "sha256": "1eac1dfd63f957f4895c3c511fb335f12e578d49affff5fe2ac80465d251bc65",
-  "capturedAt": "2026-10-19T04:11:28Z",
+  "capturedAt": "2026-10-19T04:15:32Z",
   "conditions": {
    "windowTitleReadback": "Harnesses",
    "frame": "180,140,980,620",
-   "cgWindowID": "106892",
+   "cgWindowID": "106947",
    "appearance": "system",
    "frontmostAtShutter": "SecurityAgent",
    "scenario": "offline"
   },
-  "witnessed": "axkit attached pid=9965 owns CGWindowID 106892, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "witnessed": "axkit attached pid=14214 owns CGWindowID 106947, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
   "unpublishedReason": "a second state of a surface the wall already shows. `inventory.json` renders one `shot` per subject, so the extra scenario states are carried by the cases that cite them (CASE-0165) rather than by the wall."
  },
  {
@@ -479,17 +479,17 @@
   "target": "app://mac/insights",
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": null,
-  "sha256": "8b55fd1bdc0ffdc21a43a7560f58b1daf5c68a5408e95e7817643f5df56cfba2",
-  "capturedAt": "2026-10-19T04:11:10Z",
+  "sha256": "b7e192876800127736e006c929b40d7d0788c3d57de638f428fbab80a8d02e49",
+  "capturedAt": "2026-10-19T04:15:15Z",
   "conditions": {
    "windowTitleReadback": "Insights",
    "frame": "180,140,980,620",
-   "cgWindowID": "106867",
+   "cgWindowID": "106918",
    "appearance": "system",
    "frontmostAtShutter": "SecurityAgent",
    "scenario": "populated"
   },
-  "witnessed": "axkit attached pid=9347 owns CGWindowID 106867, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": "axkit attached pid=13663 owns CGWindowID 106918, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app"
  },
  {
   "path": "evidence/shots/SURF-026.empty.png",
@@ -498,16 +498,16 @@
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": null,
   "sha256": "e2747e4496985dd33ac64d25b8fd6be8beaba9818c0e1e17c7a7ba3ed6d28430",
-  "capturedAt": "2026-10-19T04:11:31Z",
+  "capturedAt": "2026-10-19T04:15:35Z",
   "conditions": {
    "windowTitleReadback": "Insights",
    "frame": "180,140,980,620",
-   "cgWindowID": "106898",
+   "cgWindowID": "106949",
    "appearance": "system",
    "frontmostAtShutter": "SecurityAgent",
    "scenario": "empty"
   },
-  "witnessed": "axkit attached pid=10034 owns CGWindowID 106898, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "witnessed": "axkit attached pid=14300 owns CGWindowID 106949, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
   "unpublishedReason": "a second state of a surface the wall already shows. `inventory.json` renders one `shot` per subject, so the extra scenario states are carried by the cases that cite them (CASE-0173) rather than by the wall."
  },
  {
@@ -517,16 +517,16 @@
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": null,
   "sha256": "a0cad49bf0189b58ff983a90fa9b8ce43c1552cb0ecfb13a573319e1ddb84bcd",
-  "capturedAt": "2026-10-19T04:11:33Z",
+  "capturedAt": "2026-10-19T04:15:39Z",
   "conditions": {
    "windowTitleReadback": "Insights",
    "frame": "180,140,980,620",
-   "cgWindowID": "106900",
+   "cgWindowID": "106955",
    "appearance": "system",
    "frontmostAtShutter": "SecurityAgent",
    "scenario": "offline"
   },
-  "witnessed": "axkit attached pid=10095 owns CGWindowID 106900, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "witnessed": "axkit attached pid=14377 owns CGWindowID 106955, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
   "unpublishedReason": "a second state of a surface the wall already shows. `inventory.json` renders one `shot` per subject, so the extra scenario states are carried by the cases that cite them (CASE-0175) rather than by the wall."
  },
  {
@@ -1247,12 +1247,12 @@
   "target": "app://mac/servers",
   "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
   "derivedFrom": null,
-  "sha256": "ea5672d27a23550ca7d2a8a97510cd8bff597c36496ab9d4ee432bb4ddfa24b3",
-  "capturedAt": "2026-10-19T04:11:42Z",
+  "sha256": "d44a7b4b62b6de7c611bc3ebfb3f44e165933966aefd6ff04f024ea9d6cad01c",
+  "capturedAt": "2026-10-19T04:15:47Z",
   "conditions": {
    "windowTitleReadback": "Servers",
    "frame": "180,140,980,620",
-   "cgWindowID": "106912",
+   "cgWindowID": "106963",
    "appearance": "system",
    "frontmostAtShutter": "SecurityAgent",
    "scenario": "live",
@@ -1260,7 +1260,7 @@
    "arrangement": "a reference router is up on http://127.0.0.1:8955 under a scratch MCP_ROUTER_HOME, declaring three servers whose names carry this run's nonce",
    "routerReachable": true
   },
-  "witnessed": "axkit attached pid=10308 owns CGWindowID 106912, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "witnessed": "axkit attached pid=14589 owns CGWindowID 106963, bundle /Volumes/LLMs/Dev/mcp-router-wt/settings-pane/app/.derived/Build/Products/Debug/MCPRouter.app",
   "unpublishedReason": "a second state of a surface the wall already shows. `inventory.json` renders one `shot` per subject, so the extra scenario states are carried by the cases that cite them (CASE-0208) rather than by the wall."
  },
  {

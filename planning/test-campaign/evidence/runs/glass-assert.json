@@ -1,9 +1,6 @@
 {
  "checked": 435,
- "failures": [
-  "CASE-0016: window carries: Forget the stored token",
-  "CASE-0111: window carries: Forget the stored token"
- ],
+ "failures": [],
  "cases": {
   "CASE-0001": {
    "checks": [
@@ -277,14 +274,14 @@
     },
     {
      "label": "window carries: Forget the stored token",
-     "pass": false
+     "pass": true
     },
     {
      "label": "dump is an AXWindow tree",
      "pass": true
     }
    ],
-   "pass": false
+   "pass": true
   },
   "CASE-0160": {
    "checks": [
@@ -1022,7 +1019,7 @@
     },
     {
      "label": "window carries: Forget the stored token",
-     "pass": false
+     "pass": true
     },
     {
      "label": "dump is an AXWindow tree",
@@ -1049,7 +1046,7 @@
      "pass": true
     }
    ],
-   "pass": false
+   "pass": true
   },
   "CASE-0161": {
    "checks": [
@@ -1945,64 +1942,64 @@
   "CASE-0101": {
    "path": "SURF-001.shell.png",
    "exists": true,
-   "bytes": 100402,
-   "sha": "fd8f0356a52fb0d9",
+   "bytes": 100177,
+   "sha": "a2162d9f12d02f3e",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0102": {
    "path": "SURF-002.build.png",
    "exists": true,
-   "bytes": 492644,
-   "sha": "75eb3703dfb1fdbb",
+   "bytes": 491995,
+   "sha": "80e4762ed36a137f",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0103": {
    "path": "SURF-003.build.png",
    "exists": true,
-   "bytes": 497640,
-   "sha": "1c62a60a9445c005",
+   "bytes": 486086,
+   "sha": "2ea3d02dbd2b9aef",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0104": {
    "path": "SURF-004.build.png",
    "exists": true,
-   "bytes": 533924,
-   "sha": "e402c667799c1452",
+   "bytes": 533139,
+   "sha": "b134fc6ee3458d74",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0105": {
    "path": "SURF-005.build.png",
    "exists": true,
-   "bytes": 485596,
-   "sha": "08a2e2267cd8582c",
+   "bytes": 484919,
+   "sha": "5dd77fa9793bbd4c",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0106": {
    "path": "SURF-006.build.png",
    "exists": true,
-   "bytes": 567840,
-   "sha": "5e6d30e2470c98cc",
+   "bytes": 562066,
+   "sha": "c5a036a0eb4819ac",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0107": {
    "path": "SURF-007.build.png",
    "exists": true,
-   "bytes": 502798,
-   "sha": "65fecc48dfa03963",
+   "bytes": 501638,
+   "sha": "390af67286af4511",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0108": {
    "path": "SURF-008.build.png",
    "exists": true,
-   "bytes": 401272,
-   "sha": "48d3be028dae271f",
+   "bytes": 404619,
+   "sha": "7b774f296d83a1af",
    "isPNG": true,
    "sharedWith": null
   },
@@ -2017,24 +2014,24 @@
   "CASE-0161": {
    "path": "SURF-025.build.png",
    "exists": true,
-   "bytes": 530559,
-   "sha": "372b90d94572a6a0",
+   "bytes": 529791,
+   "sha": "e08414668376d618",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0171": {
    "path": "SURF-026.build.png",
    "exists": true,
-   "bytes": 486480,
-   "sha": "8b55fd1bdc0ffdc2",
+   "bytes": 485562,
+   "sha": "b7e1928768001277",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0139": {
    "path": "SURF-007.cleanup-skills.png",
    "exists": true,
-   "bytes": 546238,
-   "sha": "3491bdd126553187",
+   "bytes": 546503,
+   "sha": "ffd9b323470b29bd",
    "isPNG": true,
    "sharedWith": null
   },
@@ -2049,8 +2046,8 @@
   "CASE-0143": {
    "path": "SURF-010.build.png",
    "exists": true,
-   "bytes": 418596,
-   "sha": "5febd73ecb2fd2dd",
+   "bytes": 419133,
+   "sha": "159ed588563f17e6",
    "isPNG": true,
    "sharedWith": null
   },
@@ -2239,5 +2236,5 @@
  },
  "decoy": null,
  "relationDecoy": null,
- "pass": false
+ "pass": true
 }

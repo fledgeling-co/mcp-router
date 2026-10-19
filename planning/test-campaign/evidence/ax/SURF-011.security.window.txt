@@ -1,0 +1,61 @@
+0	AXWindow	AXStandardWindow	Settings								com_apple_SwiftUI_Settings_window	414.0	313.0	900.0	450.0	1
+1	AXGroup	AXHostingView										414.0	313.0	900.0	450.0	0
+2	AXSplitGroup										com_apple_SwiftUI_Settings_window, SidebarNavigationSplitView	414.0	313.0	900.0	450.0	0
+3	AXGroup	AXHostingView										414.0	313.0	256.0	450.0	0
+4	AXScrollArea											414.0	401.0	256.0	362.0	0
+5	AXOutline				Sidebar		1				settings-source-list	414.0	401.0	256.0	362.0	0
+6	AXRow	AXOutlineRow						0				414.0	401.0	256.0	32.0	
+7	AXCell						1	0				424.0	401.0	236.0	32.0	1
+8	AXButton				Router		1					430.0	409.0	66.5	16.0	
+6	AXRow	AXOutlineRow						0				414.0	433.0	256.0	32.0	
+7	AXCell						1	0				424.0	433.0	236.0	32.0	1
+8	AXButton				Harnesses		1					431.5	441.0	89.5	16.0	
+6	AXRow	AXOutlineRow						0				414.0	465.0	256.0	32.0	
+7	AXCell						1	0				424.0	465.0	236.0	32.0	1
+8	AXButton				Session analyst		1					433.5	473.0	119.0	16.0	
+6	AXRow	AXOutlineRow						0				414.0	497.0	256.0	32.0	
+7	AXCell						1	0				424.0	497.0	236.0	32.0	1
+8	AXButton				Updates		1					430.5	505.0	77.0	16.0	
+6	AXRow	AXOutlineRow						1				414.0	529.0	256.0	32.0	
+7	AXCell						1	1				424.0	529.0	236.0	32.0	1
+8	AXButton				Security		1	1				432.5	537.0	74.5	16.0	
+6	AXRow	AXOutlineRow						0				414.0	561.0	256.0	32.0	
+7	AXCell						1	0				424.0	561.0	236.0	32.0	1
+8	AXButton				Menu bar		1					431.5	569.0	82.0	16.0	
+6	AXRow	AXOutlineRow						0				414.0	593.0	256.0	32.0	
+7	AXCell						1	0				424.0	593.0	236.0	32.0	1
+8	AXButton				Advanced		1					431.0	601.0	86.0	16.0	
+6	AXColumn							0			ListColumn	424.0	401.0	236.0	362.0	
+3	AXSplitter			256			0	0				670.0	401.0	0.5	362.0	0
+3	AXGroup	AXHostingView										414.0	313.0	900.0	450.0	0
+4	AXScrollArea										settings-detail	670.0	401.0	644.0	362.0	0
+5	AXStaticText			Security			1					686.0	417.0	86.0	26.0	
+5	AXStaticText			The token this app reaches the router with, and the devices allowed to queue work here.			1					686.0	447.0	518.0	15.0	
+5	AXGroup				Control token		1					686.0	482.0	612.0	155.0	
+6	AXStaticText			Control token			1					686.0	482.0	74.5	14.0	
+6	AXStaticText			Token			1					698.0	512.0	38.0	16.0	
+6	AXStaticText			Not stored yet	Not stored yet	Not stored yet	1					1182.0	512.5	104.0	15.0	
+6	AXStaticText			Read from			1					698.0	544.0	65.0	16.0	
+6	AXStaticText			~/.claude/mcp-router/control.token	~/.claude/mcp-router/control.token	~/.claude/mcp-router/control.token	1					1033.5	544.5	252.5	15.0	
+6	AXButton				Forget the stored token	There is no stored token to forget.	0					1133.5	576.0	164.5	24.0	
+6	AXStaticText			The router writes a token to that file the first time it starts. The app reads it from there and keeps it in the keychain.			1					686.0	608.0	555.5	29.0	
+5	AXGroup				Paired devices		1					686.0	657.0	612.0	123.0	
+6	AXStaticText			Paired devices			1					686.0	657.0	80.0	14.0	
+6	AXStaticText			Paired			1					698.0	687.0	40.5	16.0	
+6	AXStaticText			No device paired	No device paired	No device paired	1					1167.0	687.5	119.0	15.0	
+6	AXButton				Manage…		1					1220.0	719.0	78.0	24.0	
+6	AXStaticText			A paired phone can queue a capability for you to review here; it can do nothing else. Pairing and unpairing are Inbox's, which is where the queue and the device both live.			1					686.0	751.0	599.0	29.0	
+5	AXScrollBar			0			1					1296.0	400.0	19.0	356.5	0
+6	AXValueIndicator			0								1305.0	404.0	6.0	324.5	
+6	AXButton	AXIncrementArrow										1297.0	401.0	0.0	0.0	
+6	AXButton	AXDecrementArrow										1297.0	401.0	0.0	0.0	
+6	AXButton	AXIncrementPage										1305.0	729.0	6.0	23.5	
+6	AXButton	AXDecrementPage										1305.0	404.0	6.0	0.0	
+1	AXToolbar											414.0	345.0	900.0	56.0	0
+2	AXButton				Hide Sidebar	Hide Sidebar	1	0				523.5	345.0	38.0	56.0	0
+1	AXButton	AXCloseButton					1					422.0	321.0	16.0	16.0	0
+1	AXButton	AXZoomButton					0					468.0	321.0	16.0	16.0	0
+2	AXGroup											469.0	322.0	14.0	14.0	0
+3	AXGroup											469.0	322.0	14.0	14.0	0
+1	AXButton	AXMinimizeButton					0					445.0	321.0	16.0	16.0	0
+1	AXStaticText			Settings			1					962.0	320.0	59.0	16.0	0

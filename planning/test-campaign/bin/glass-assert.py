@@ -277,6 +277,8 @@ SURFACES = {
         # Its own window, not a board in the main window: PRD.md §9.5 "Settings is a separate
         # window". The shell chrome is therefore not in its dump, and the shell check skips it.
         "dump": "SURF-011.window.txt", "title": "Settings", "window": "Settings",
+        # Its copy is drawn by two panes: the Router pane (photographed) and the Security pane.
+        "panes": ["SURF-011.security.window.txt"],
         "shot": "SURF-011.build.png",
         "copy": [
             "Read from the router, not set here",
@@ -718,6 +720,11 @@ def label_of(phrase) -> str:
 def dump_text(key: str, decoy: str | None) -> str:
     spec = SURFACES[key] if key in SURFACES else STATES[key]
     text = (AX / spec["dump"]).read_text()
+    # A separate window whose copy spans panes is read across every pane dump the lane wrote for it.
+    # A pane dump that is missing is not substituted: its phrases simply are not found.
+    for pane in spec.get("panes", []):
+        if (AX / pane).exists():
+            text += "\n" + (AX / pane).read_text()
     if decoy == key:
         for phrase in spec["copy"]:
             text = (phrase.sub("", text) if isinstance(phrase, re.Pattern)

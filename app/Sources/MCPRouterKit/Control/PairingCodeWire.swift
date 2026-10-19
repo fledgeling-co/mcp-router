@@ -61,6 +61,7 @@ struct PairingCodeWire: Codable {
 
 /// The `listener` member of `GET /pairing/state`, as the router writes it. Every key is required and read
 /// by its own type: a router that does not say whether its listener is bound is not one the sheet can read.
+/// `port` is written even when it is null, because the router writes it that way while the listener is off.
 struct PairingListenerWire: Codable {
     let enabled: Bool
     let port: Int?
@@ -69,16 +70,71 @@ struct PairingListenerWire: Codable {
     var listener: PairingListener {
         PairingListener(enabled: enabled, port: port, advertising: advertising)
     }
+
+    private enum CodingKeys: String, CodingKey {
+        case enabled, port, advertising
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(enabled, forKey: .enabled)
+        try container.encode(port, forKey: .port)
+        try container.encode(advertising, forKey: .advertising)
+    }
 }
 
-/// The body `GET /pairing/state` answers: the live code, or `null` once there is none to pair with, and
-/// whether the router's phone listener is bound.
+/// One phone whose request the router has accepted and is waiting to hear acknowledged, as `awaitingAck`
+/// lists it. The sheet does not show these. They are decoded so every key the router sends has a field, and
+/// the time is read by the same instant rule as the code's expiry.
+struct PairingAwaitingAckWire: Codable {
+    let phoneName: String
+    let requestedAt: Date
+
+    private enum CodingKeys: String, CodingKey {
+        case phoneName, requestedAt
+    }
+
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        phoneName = try container.decode(String.self, forKey: .phoneName)
+        let text = try container.decode(String.self, forKey: .requestedAt)
+        guard let date = ISO8601Instant.parse(text) else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .requestedAt,
+                in: container,
+                debugDescription: "the router sent a value that is not an ISO-8601 instant"
+            )
+        }
+        requestedAt = date
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(phoneName, forKey: .phoneName)
+        try container.encode(ISO8601Instant.string(from: requestedAt), forKey: .requestedAt)
+    }
+}
+
+/// The body `GET /pairing/state` answers: the live code, or `null` once there is none to pair with, the phones
+/// awaiting an ack, and whether the router's phone listener is bound.
 struct PairingStateWire: Codable {
     let code: PairingCodeWire?
+    let awaitingAck: [PairingAwaitingAckWire]
     let listener: PairingListenerWire
 
     var state: PairingState {
         PairingState(code: code?.issued, listener: listener.listener)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case code, awaitingAck, listener
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(code, forKey: .code)
+        try container.encode(awaitingAck, forKey: .awaitingAck)
+        try container.encode(listener, forKey: .listener)
     }
 }
 

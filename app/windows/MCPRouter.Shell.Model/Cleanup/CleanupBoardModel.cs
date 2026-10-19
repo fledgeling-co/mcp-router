@@ -46,6 +46,15 @@ public sealed class CleanupBoardModel
 
     public int SelectedDaysWindow { get; set; } = 30;
 
+    /// <summary>The windows the operator may pick between: the two the design names.</summary>
+    public static IReadOnlyList<int> QuietWindowChoices => throw new NotImplementedException();
+
+    public void SetQuietWindow(int days) => throw new NotImplementedException();
+
+    public static string WindowCaption(int days) => throw new NotImplementedException();
+
+    public static string QuietHeading(int days) => throw new NotImplementedException();
+
     /// <summary>True until the first answer or the first failure. Not a spinner: it is the state
     /// that keeps the board from drawing "nothing to propose" over a router it has not asked.</summary>
     public bool IsLoading { get; private set; } = true;

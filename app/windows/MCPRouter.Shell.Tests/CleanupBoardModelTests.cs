@@ -180,6 +180,65 @@ public sealed class CleanupBoardModelTests
         Assert.Contains("alpha", CleanupPresentation.RemoveDialogBody(new[] { "alpha" }), StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void TheWindowChoicesAreTheTwoTheDesignNames()
+    {
+        // The design captions the selector "Unused for 30 days", and its loading state counts
+        // "90 days of calls". Those are the two windows; a third is a number nobody designed.
+        Assert.Equal(new[] { 30, 90 }, CleanupBoardModel.QuietWindowChoices);
+    }
+
+    [Fact]
+    public void TheCaptionAndTheHeadingMoveWithTheWindow()
+    {
+        Assert.Equal("Unused for 30 days", CleanupBoardModel.WindowCaption(30));
+        Assert.Equal("Quiet for 90 days or more", CleanupBoardModel.QuietHeading(90));
+    }
+
+    [Fact]
+    public void ChangingTheWindowRederivesTheRowsAtOnce()
+    {
+        var model = new CleanupBoardModel();
+        // 45 days quiet: a candidate under the 30-day window, and not under 90.
+        model.Adopt(Envelope(Server("dormant", calls: 4, lastUsed: "2026-07-20T12:00:00Z")), Now);
+        Assert.Equal(new[] { "dormant" }, Names(model.QuietRows));
+
+        model.SetQuietWindow(90);
+
+        Assert.Equal(90, model.SelectedDaysWindow);
+        Assert.Empty(model.QuietRows);
+
+        model.SetQuietWindow(30);
+        Assert.Equal(new[] { "dormant" }, Names(model.QuietRows));
+    }
+
+    [Fact]
+    public void ATickOnARowTheWindowNoLongerProposesIsNotKept()
+    {
+        var model = new CleanupBoardModel();
+        model.Adopt(Envelope(Server("dormant", calls: 4, lastUsed: "2026-07-20T12:00:00Z")), Now);
+        model.SetSelection("dormant", true);
+
+        // The row leaves the board when the window widens. A tick the operator cannot see must not
+        // come back ticked when the window narrows again: that is a removal they did not confirm.
+        model.SetQuietWindow(90);
+        model.SetQuietWindow(30);
+
+        Assert.Equal(0, model.SelectedCount);
+    }
+
+    [Theory]
+    [InlineData(7)]
+    [InlineData(45)]
+    public void AWindowTheDesignDoesNotOfferIsRefused(int days)
+    {
+        // A proposal made on under 30 days of history is the guess the design refuses ("This board
+        // proposes nothing until it has 30 days of history"), so the model refuses to make one.
+        var model = new CleanupBoardModel();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => model.SetQuietWindow(days));
+    }
+
     private static string[] Names(IReadOnlyList<CleanupRow> rows)
     {
         var names = new string[rows.Count];

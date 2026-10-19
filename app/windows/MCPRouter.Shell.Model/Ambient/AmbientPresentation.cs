@@ -1,3 +1,4 @@
+using System;
 using MCPRouter.Shell.Model.Registry;
 
 namespace MCPRouter.Shell.Model.Ambient;
@@ -5,6 +6,11 @@ namespace MCPRouter.Shell.Model.Ambient;
 public static class AmbientPresentation
 {
     public const string FlyoutTitle = "MCP Router";
+
+    /// <summary>The flyout's inbox button, read from the same count the pane readout reads.</summary>
+    public static string InboxButtonText(int waitingCount) => throw new NotImplementedException();
+
+    public static bool InboxButtonEnabled(int waitingCount) => throw new NotImplementedException();
 
     public static string StateTitle(AmbientRouterState state)
     {

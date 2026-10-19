@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from 'n
 import { join, sep } from 'node:path';
 import { isWellFormedName, readDescriptor, type ExtensionStore } from './extensions.js';
 import { compareVersions, readCatalogue, type MarketplaceCatalogue } from './extension-updates.js';
+import { changelogFor, type Changelog } from './plugin-cache.js';
 
 /*
  * GET /skills, the read the Mac and Windows Skills boards draw. A port of the Swift reader of Claude's directories
@@ -14,7 +15,8 @@ import { compareVersions, readCatalogue, type MarketplaceCatalogue } from './ext
  *
  * A held version is plugin-level: a plugin whose marketplace offers a newer version than the one installed. The Swift
  * router never computed these, so `addedCapabilities` names that they were not compared. An empty list would read as
- * an update that asks for nothing, which the board counts as safe to promote.
+ * an update that asks for nothing, which the board counts as safe to promote. The held version carries the changelog
+ * its cached copy ships (plugin-cache.ts), so the board can show what the offer says without a second read.
  *
  * Keep: a held version recorded by POST /extensions/plugins/<plugin>@<marketplace>/keep is not reported as held
  * until a version newer than the kept one is offered. A kept version that cannot be ordered against the offer is not
@@ -87,7 +89,8 @@ export function skillsValue(claudeHome: string, store: ExtensionStore): Record<s
   const held = (owner: PluginRoot): Record<string, unknown> | null => {
     if (!heldFor.has(owner.identity)) {
       const count = siblings.get(owner.identity) ?? 1;
-      heldFor.set(owner.identity, heldVersion(owner, count, store, catalogueOf(claudeHome, owner.marketplace, catalogues)));
+      const catalogue = catalogueOf(claudeHome, owner.marketplace, catalogues);
+      heldFor.set(owner.identity, heldVersion(owner, count, store, catalogue, claudeHome));
     }
     return heldFor.get(owner.identity) ?? null;
   };
@@ -162,7 +165,8 @@ function heldVersion(
   owner: PluginRoot,
   affected: number,
   store: ExtensionStore,
-  catalogue: MarketplaceCatalogue | null
+  catalogue: MarketplaceCatalogue | null,
+  claudeHome: string
 ): Record<string, unknown> | null {
   const offer = catalogue?.offer(owner.plugin);
   if (!offer || offer.version === undefined) return null;
@@ -174,10 +178,12 @@ function heldVersion(
     // Shown only when the offer is newer than the kept version, or when the two cannot be ordered at all.
     if (order !== null && order !== 'ascending') return null;
   }
+  const changelog: Changelog = changelogFor(claudeHome, owner.identity, offer.version);
   return {
     pluginVersion: offer.version,
     addedCapabilities: [CAPABILITIES_NOT_COMPARED],
     affectedSkillCount: affected,
+    changelog,
   };
 }
 

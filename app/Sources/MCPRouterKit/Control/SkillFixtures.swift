@@ -69,7 +69,11 @@ public enum SkillFixtures {
             held: HeldVersion(
                 pluginVersion: "2.3.0",
                 addedCapabilities: ["runs scripts/collect.sh", "network api.fledgeling.app"],
-                affectedSkillCount: 1
+                affectedSkillCount: 1,
+                changelog: ExtensionChangelog(
+                    text: "## 2.3.0\n- Adds a network call to api.fledgeling.app.\n",
+                    note: "CHANGELOG.md from the cached 2.3.0 copy"
+                )
             )
         ),
         // A moved owner. Provenance is the router's own first sighting, never the install date.

@@ -143,7 +143,13 @@
         /// version.
         public func offer(for skill: Skill) -> ExtensionUpdateEntry? {
             guard let origin = skill.source.pluginOrigin else { return nil }
-            return updates.first { $0.kind == .plugins && $0.name == origin.storeName && $0.hasUpdate }
+            return offers.first { $0.kind == .plugins && $0.name == origin.storeName }
+        }
+
+        /// The offers the update section draws, from both reads: the held versions Claude's register carries
+        /// and the store's own offers. See `SkillPresentation.updateOffers`.
+        public var offers: [ExtensionUpdateEntry] {
+            SkillPresentation.updateOffers(skills: state.response?.skills ?? [], stored: updates)
         }
 
         /// Keep a held version: the router records that it was declined. Plugin-held versions only, because a

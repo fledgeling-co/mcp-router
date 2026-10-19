@@ -165,11 +165,20 @@ public struct HeldVersion: Codable, Hashable, Sendable {
     public var addedCapabilities: [String]
     /// How many skills promoting this plugin would move at once.
     public var affectedSkillCount: Int
+    /// The changelog the router read for this version from Claude's plugin cache. `text` is nil wherever the
+    /// router did not send it, and `note` says which case it was. Nil on a router that predates the member.
+    public var changelog: ExtensionChangelog?
 
-    public init(pluginVersion: String, addedCapabilities: [String] = [], affectedSkillCount: Int = 1) {
+    public init(
+        pluginVersion: String,
+        addedCapabilities: [String] = [],
+        affectedSkillCount: Int = 1,
+        changelog: ExtensionChangelog? = nil
+    ) {
         self.pluginVersion = pluginVersion
         self.addedCapabilities = addedCapabilities
         self.affectedSkillCount = affectedSkillCount
+        self.changelog = changelog
     }
 
     /// Whether this version may promote without asking.

@@ -266,4 +266,25 @@ struct SkillsNotFoundMappingTests {
         // No action, because there is nothing the user can do about a version difference from here.
         #expect(error.actionLabel == nil)
     }
+
+    @Test("A held version decodes the changelog the router read, and a router that sends none leaves it nil")
+    func heldVersionChangelog() throws {
+        let decodeHeld = { (json: String) throws -> HeldVersion in
+            try JSONDecoder().decode(HeldVersion.self, from: Data(json.utf8))
+        }
+        let sent = try decodeHeld(
+            """
+            {"pluginVersion":"2.3.0","addedCapabilities":["runs scripts/collect.sh"],"affectedSkillCount":1,
+             "changelog":{"text":"## 2.3.0\\n","note":"CHANGELOG.md from the cached 2.3.0 copy"}}
+            """
+        )
+        #expect(sent.changelog == ExtensionChangelog(
+            text: "## 2.3.0\n", note: "CHANGELOG.md from the cached 2.3.0 copy"
+        ))
+
+        let unsent = try decodeHeld(
+            #"{"pluginVersion":"2.3.0","addedCapabilities":[],"affectedSkillCount":1}"#
+        )
+        #expect(unsent.changelog == nil)
+    }
 }

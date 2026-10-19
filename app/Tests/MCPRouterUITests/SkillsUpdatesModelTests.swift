@@ -34,6 +34,8 @@
             #expect(offer.available == "2.3.0")
             #expect(offer.reason == "2.3.0 is offered and 2.2.0 is installed")
             #expect(offer.changelog?.text == "## 2.3.0\n- Adds a network call to api.fledgeling.app.\n")
+            // The register's row carries the same changelog, which is what the board reads now.
+            #expect(try trawl(board).held?.changelog == offer.changelog)
         }
 
         @Test("an entry the check found current is listed by the router but never offered")

@@ -23,7 +23,7 @@
  *   4. A query parameter with a secret-named key loses its value.
  *   5. Every literal needle is replaced with `<redacted:LABEL>`.
  */
-import { isHttp, isStdio, type UpstreamConfig } from './config.js';
+import { isStdio, type RawServer, type UpstreamConfig } from './config.js';
 
 /** What a structural rule writes in place of a value. */
 export const REDACTED = '<redacted>';
@@ -82,22 +82,54 @@ export function isSecretName(name: string): boolean {
  * floor.
  */
 export function collectNeedles(upstreams: Iterable<UpstreamConfig>, controlToken: string): Needle[] {
-  const needles: Needle[] = [];
-  const consider = (label: string, value: string) => {
-    if (graphemeCount(value) >= MINIMUM_NEEDLE_LENGTH) needles.push({ label, literal: value });
-  };
+  const sources: NeedleSource[] = [];
   for (const u of upstreams) {
-    if (isStdio(u)) {
-      for (const [key, value] of Object.entries(u.env)) consider(`${u.name}.env.${key}`, value);
+    sources.push(isStdio(u) ? { name: u.name, env: u.env } : { name: u.name, headers: u.headers, url: u.url });
+  }
+  return needlesFrom(sources, controlToken);
+}
+
+/**
+ * The same needles as `collectNeedles`, read from raw `servers.json` entries rather than parsed
+ * upstreams. An entry the parser refuses still contributes its literals, because a secret it carries
+ * can be echoed into another server's arguments.
+ */
+export function collectRawNeedles(servers: Record<string, RawServer>, controlToken: string): Needle[] {
+  return needlesFrom(
+    Object.entries(servers).map(([name, s]) => ({ name, env: s.env, headers: s.headers, url: s.url })),
+    controlToken,
+  );
+}
+
+/** The fields of one server that can carry a literal secret. */
+interface NeedleSource {
+  name: string;
+  env?: unknown;
+  headers?: unknown;
+  url?: unknown;
+}
+
+function needlesFrom(sources: NeedleSource[], controlToken: string): Needle[] {
+  const needles: Needle[] = [];
+  const consider = (label: string, value: unknown) => {
+    if (typeof value === 'string' && graphemeCount(value) >= MINIMUM_NEEDLE_LENGTH) {
+      needles.push({ label, literal: value });
     }
-    if (isHttp(u)) {
-      for (const [key, value] of Object.entries(u.headers)) consider(`${u.name}.headers.${key}`, value);
-      const password = urlPassword(u.url);
-      if (password !== undefined) consider(`${u.name}.url.userinfo`, password);
+  };
+  for (const s of sources) {
+    for (const [key, value] of Object.entries(isObject(s.env) ? s.env : {})) consider(`${s.name}.env.${key}`, value);
+    for (const [key, value] of Object.entries(isObject(s.headers) ? s.headers : {})) {
+      consider(`${s.name}.headers.${key}`, value);
     }
+    const password = typeof s.url === 'string' ? urlPassword(s.url) : undefined;
+    if (password !== undefined) consider(`${s.name}.url.userinfo`, password);
   }
   consider('control.token', controlToken);
   return needles;
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 /** The password in `scheme://user:password@host/…`, or undefined. Matches `URLUserinfo.secret`. */

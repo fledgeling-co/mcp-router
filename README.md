@@ -220,6 +220,23 @@ While the router writes `router.log`, it sends only error lines to stderr; info 
 
 ---
 
+### Exporting a server list
+
+`mcpr export` writes the server list with every secret value replaced:
+
+```bash
+mcpr export --out servers-shareable.json   # every server, to a file (created 0600)
+mcpr export --only github,linear           # only the named servers, to stdout
+```
+
+`GET /export` on the control API returns the same document. It needs the control token, as the routes that read or change config do.
+
+Each removed value becomes `<redacted:WHERE>`, where WHERE says what it was: `env.API_KEY` for an environment variable, `headers.Authorization` for a header, `args.N` for the Nth argument, and for a URL `url.userinfo`, `url.path`, `url.query.KEY` or `url.fragment`. Keys, names and structure are kept, so the file has the shape of `servers.json`.
+
+Every environment and header value is replaced, including the ones that are not secret, because the router cannot tell them apart. A URL keeps its scheme and host and loses its path, because a path can be the credential itself, as a webhook address is. So a server's route, such as `/mcp`, comes back as a placeholder to fill in by hand. Each query value is replaced, and a query name is kept only when it is a plain word that matches no known secret. A field the router does not recognise is dropped. A field it recognises but cannot read is replaced. An `envFile` keeps its path, and its contents are never read.
+
+**Fill the placeholders in by hand.** Importing an exported file is not built, so nothing reads the placeholders back. Replace each `<redacted:…>` with its real value before the file is used as a server list. A placeholder left in place is sent to the server as literal text.
+
 ## Reaching sessions that are already running
 
 Two mechanisms, and the difference between them is the whole of what this section is for. One

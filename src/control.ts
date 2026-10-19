@@ -18,6 +18,7 @@ import {
 } from './config.js';
 import { UpstreamPool } from './pool.js';
 import { collectNeedles, redactArgs, type Needle } from './secrets.js';
+import { buildExport, parseOnly, readServers } from './export.js';
 import {
   buildManifest,
   loadManifest,
@@ -438,6 +439,7 @@ export function isControlPath(pathname: string): boolean {
   return (
     pathname === '/servers' ||
     pathname.startsWith('/servers/') ||
+    pathname === '/export' ||
     pathname === '/usage' ||
     pathname.startsWith('/usage/') ||
     pathname === '/sessions' ||
@@ -478,6 +480,25 @@ export async function handleControl(
       json(res, 415, { error: 'expected content-type: application/json' });
       return true;
     }
+  }
+
+  // ---------------------------------------------------------------- export
+  /*
+   * The server list with every secret value replaced. Gated like the mutating routes rather than
+   * like GET /servers: the shape is the same, but a value that escaped redaction here would be
+   * readable by anything with a loopback socket, and the token is what stops that.
+   */
+  if (p === '/export' && req.method === 'GET') {
+    if (!tokenOk(req, token)) {
+      json(res, 401, { error: `unauthorized; the token is in ${TOKEN_PATH}` });
+      return true;
+    }
+    try {
+      json(res, 200, buildExport(readServers(), token, parseOnly(url.searchParams.get('only'))));
+    } catch (err) {
+      json(res, 400, { error: (err as Error).message });
+    }
+    return true;
   }
 
   // ---------------------------------------------------------------- servers

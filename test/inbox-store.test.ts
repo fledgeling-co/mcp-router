@@ -121,6 +121,45 @@ test('a new row keeps every waiting row, and drops the oldest decided row once m
   assert.equal(rows.at(-1)?.id, 'waiting-one');
 });
 
+test('setState moves one row, keeps the file 0600, and reports a row it does not hold as not moved', () => {
+  const store = new InboxStore(scratchPath());
+  store.add(row('alpha'));
+  store.add(row('beta'));
+
+  assert.equal(store.setState('alpha', 'declined'), true);
+  assert.equal(store.setState('gamma', 'declined'), false);
+  assert.deepEqual(
+    store.rows().map((r) => [r.id, r.state]),
+    [
+      ['alpha', 'declined'],
+      ['beta', 'waiting'],
+    ]
+  );
+  assert.equal(store.find('beta')?.state, 'waiting');
+  assert.equal(store.find('gamma'), undefined);
+  assert.equal(statSync(store.path).mode & 0o777, 0o600);
+});
+
+test('a decision keeps the row it just decided, even when that row is the oldest decided one', () => {
+  const path = scratchPath();
+  mkdirSync(join(path, '..'), { recursive: true });
+  const held = (id: string, state: string) => ({ ...row(id), state, reviewDigest: reviewDigestOf(entry(id)) });
+  writeFileSync(
+    path,
+    JSON.stringify({
+      rows: [held('oldest', 'waiting'), ...Array.from({ length: INBOX_RETAIN_DECIDED }, (_, i) => held(`decided-${i}`, 'accepted'))],
+    })
+  );
+
+  const store = new InboxStore(path);
+  assert.equal(store.setState('oldest', 'declined'), true);
+
+  const rows = store.rows();
+  assert.equal(rows.find((r) => r.id === 'oldest')?.state, 'declined');
+  assert.equal(rows.filter((r) => r.state !== 'waiting').length, INBOX_RETAIN_DECIDED);
+  assert.equal(rows.some((r) => r.id === 'decided-0'), false, 'the oldest decided row other than the one just decided is dropped');
+});
+
 test('the view names a row without its phone id or receive time', () => {
   const store = new InboxStore(scratchPath());
   store.add(row('alpha'));

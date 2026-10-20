@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
+import type { RawServer } from './config.js';
 import type { RegistryEntry } from './registry.js';
 
 /*
@@ -85,6 +86,24 @@ export class InboxStore {
     return 'waiting';
   }
 
+  /** The row for one id, or undefined when the inbox holds none. */
+  find(id: string): InboxRow | undefined {
+    return this.rows().find((r) => r.id === id);
+  }
+
+  /**
+   * Move one row to a decided state, or back to waiting. Returns false when no row has the id, and writes
+   * nothing. The row just decided is never the one retention drops, so a decision cannot make its own row vanish.
+   */
+  setState(id: string, state: InboxState): boolean {
+    const rows = this.rows();
+    const row = rows.find((r) => r.id === id);
+    if (!row) return false;
+    row.state = state;
+    this.write(retain(rows, id));
+    return true;
+  }
+
   /** Rewrite the file 0600, through a temporary file, so a failed write leaves the previous file whole. */
   private write(rows: InboxRow[]): void {
     mkdirSync(dirname(this.path), { recursive: true, mode: 0o700 });
@@ -94,14 +113,45 @@ export class InboxStore {
   }
 }
 
-/** D10. Drop the oldest decided rows, which come first in receipt order, until at most the limit remain. */
-function retain(rows: InboxRow[]): InboxRow[] {
+/**
+ * D10. Drop the oldest decided rows, which come first in receipt order, until at most the limit remain. `keep` is the
+ * row a decision just changed, which is never the one dropped.
+ */
+function retain(rows: InboxRow[], keep?: string): InboxRow[] {
   let excess = rows.filter((r) => r.state !== 'waiting').length - INBOX_RETAIN_DECIDED;
   return rows.filter((r) => {
-    if (excess > 0 && r.state !== 'waiting') {
+    if (excess > 0 && r.state !== 'waiting' && r.id !== keep) {
       excess--;
       return false;
     }
     return true;
   });
+}
+
+/** Why an accept cannot declare a row. `reason` is the word the route answers with. */
+export interface DeclarationRefusal {
+  reason: 'needsCredentials' | 'notInstallable';
+  error: string;
+}
+
+/**
+ * The server an accept declares, built from the entry's install block (plan §2.4, D7, D8). The router builds it so
+ * the Mac and Windows boards share one mapping. An entry that names any value the phone must supply is refused,
+ * whether or not the value is secret: a declaration without that value is a server that does not work, and D8 keeps
+ * secrets out of the request body that accepts it.
+ */
+export function declarationFor(entry: RegistryEntry): { name: string; server: RawServer } | DeclarationRefusal {
+  const install = entry.install;
+  if (!install) return { reason: 'notInstallable', error: `${entry.id} says nothing about how to run it` };
+  if (install.requires?.length) {
+    return {
+      reason: 'needsCredentials',
+      error: `${entry.id} needs ${install.requires.length} value(s) that cannot be supplied from the phone in v1`,
+    };
+  }
+  const server: RawServer =
+    install.type === 'stdio'
+      ? { command: install.command, args: install.args }
+      : { type: install.type, url: install.url };
+  return { name: entry.name, server };
 }

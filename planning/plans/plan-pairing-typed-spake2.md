@@ -170,3 +170,9 @@ If E1 or G2 fails on the phone, there are two options. Use CPace over ristretto2
 ## 9. Out of scope
 
 The Windows client (B9), any change to the scan path, and the Swift router (D1) are not part of this plan.
+
+## 10. Decided 2026-10-20
+
+- **D6 — libsodium 1.0.22, pinned, with the §6 review.** Taken by the orchestrator under the owner's acceptance of "new cryptographic code to review": libsodium is the most widely deployed library of its kind, the version is pinned, and §6 names what the review checks. If the review finds a reason, the §8 fallback (keep typed entry refused) costs the scan path nothing.
+- **D7 — accept the burn denial.** Three `pake.start` frames spend a visible code, as three wrong guesses already do on the scan path; the attacker gains a denial, not a pairing.
+- **D8 — fixed M and N (RFC 9382 Table 1)**, unless E1 shows libsodium's `from_hash` matches RFC 9380, in which case §5's variant is taken as the plan says.

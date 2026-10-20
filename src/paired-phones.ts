@@ -23,12 +23,28 @@ export function readPairedPhones(dir: string): PairedPhone[] {
   return (JSON.parse(readFileSync(path, 'utf8')) as { phones: PairedPhone[] }).phones;
 }
 
-/** Append one confirmed phone and rewrite the file 0600, through a temporary file so a crash leaves the old one whole. */
-export function appendPairedPhone(dir: string, phone: PairedPhone): void {
-  mkdirSync(dir, { recursive: true, mode: 0o700 });
+/** Rewrite the file 0600, through a temporary file so a crash leaves the old one whole. */
+function writePairedPhones(dir: string, phones: PairedPhone[]): void {
   const path = join(dir, PAIRED_PHONES_FILE);
-  const phones = [...readPairedPhones(dir), phone];
   const tmp = `${path}.tmp-${process.pid}`;
   writeFileSync(tmp, JSON.stringify({ phones }, null, 2) + '\n', { mode: 0o600 });
   renameSync(tmp, path);
+}
+
+/** Append one confirmed phone and rewrite the file 0600, through a temporary file so a crash leaves the old one whole. */
+export function appendPairedPhone(dir: string, phone: PairedPhone): void {
+  mkdirSync(dir, { recursive: true, mode: 0o700 });
+  writePairedPhones(dir, [...readPairedPhones(dir), phone]);
+}
+
+/**
+ * Remove one confirmed phone, and with it the public key the file holds for it. Returns the removed record, or
+ * undefined when no such phone is confirmed, in which case the file is not written at all.
+ */
+export function removePairedPhone(dir: string, phoneId: string): PairedPhone | undefined {
+  const phones = readPairedPhones(dir);
+  const removed = phones.find((p) => p.phoneId === phoneId);
+  if (!removed) return undefined;
+  writePairedPhones(dir, phones.filter((p) => p !== removed));
+  return removed;
 }

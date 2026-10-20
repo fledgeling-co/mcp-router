@@ -49,6 +49,7 @@ import { analystEnvelope, ANALYST_UNAVAILABLE, type AnalystPort } from './analys
 import { AnalystSettingsRefusal } from './analyst-lanes.js';
 import { log } from './log.js';
 import { wireInstant, type IssuedCode, type Pairing } from './pairing.js';
+import { removePairedPhone } from './paired-phones.js';
 import { extensionRoute, isExtensionsPath } from './extension-routes.js';
 import type { ExtensionStore } from './extensions.js';
 import { skillsValue } from './skills.js';
@@ -97,6 +98,8 @@ export interface ControlDeps {
   liveReload: LiveReload;
   /** The phone-pairing codes this router has issued. One per process, shared by every pairing route. */
   pairing: Pairing;
+  /** The router home. Where `paired-phones.json` lives, which DELETE /pairing/phones/:phoneId edits. */
+  routerHome: string;
   /** R28. Absent answers 503 on every /extensions route, as the Swift router does. */
   extensions?: ExtensionStore;
   /** Claude Code's home, which GET /skills reads and never writes. Absent answers 503 on /skills. */
@@ -1068,6 +1071,17 @@ export async function handleControl(
 
   if (p === '/pairing/codes' && req.method === 'DELETE') {
     json(res, 200, { revoked: deps.pairing.revoke() });
+    return true;
+  }
+
+  // Revokes a confirmed phone by removing its record, which holds the phone's public key, so a later submit from
+  // that phone has no key to verify against. Only a confirmed phone is named: a pending one is not in the file,
+  // and its held request belongs to the listener, so it answers 404 here.
+  const pairedPhone = /^\/pairing\/phones\/([^/]+)$/.exec(p);
+  if (pairedPhone && req.method === 'DELETE') {
+    const removed = removePairedPhone(deps.routerHome, pairedPhone[1]);
+    if (removed) json(res, 200, { revoked: removed.phoneId });
+    else json(res, 404, { error: 'no confirmed phone has that id' });
     return true;
   }
 

@@ -46,6 +46,7 @@ app/Tests/MCPRouterKitTests/InboxBandTests.swift	swift-suite	app/Tests/MCPRouter
 app/Tests/MCPRouterKitTests/InboxEnvelopeTests.swift	swift-suite	app/Tests/MCPRouterKitTests/InboxEnvelopeTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/InsightsAnalystDecodingTests.swift	swift-suite	app/Tests/MCPRouterKitTests/InsightsAnalystDecodingTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/InsightsEnvelopeDecodingTests.swift	swift-suite	app/Tests/MCPRouterKitTests/InsightsEnvelopeDecodingTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterKitTests/InsightsWindowDecodingTests.swift	swift-suite	app/Tests/MCPRouterKitTests/InsightsWindowDecodingTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/JackPresentationTests.swift	swift-suite	app/Tests/MCPRouterKitTests/JackPresentationTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/LightAppearanceTests.swift	swift-suite	app/Tests/MCPRouterKitTests/LightAppearanceTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/LivePairingOutcomeTests.swift	swift-suite	app/Tests/MCPRouterKitTests/LivePairingOutcomeTests.swift	swift	compiled and run by `swift test`	make:test
@@ -129,6 +130,7 @@ app/Tests/MCPRouterUITests/InboxBoundaryTests.swift	swift-suite	app/Tests/MCPRou
 app/Tests/MCPRouterUITests/InboxConformanceTests.swift	swift-suite	app/Tests/MCPRouterUITests/InboxConformanceTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/InboxWithdrawalTests.swift	swift-suite	app/Tests/MCPRouterUITests/InboxWithdrawalTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/InsightsAnalystBoardTests.swift	swift-suite	app/Tests/MCPRouterUITests/InsightsAnalystBoardTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterUITests/InsightsPeriodBoardTests.swift	swift-suite	app/Tests/MCPRouterUITests/InsightsPeriodBoardTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/M22BoardTests.swift	swift-suite	app/Tests/MCPRouterUITests/M22BoardTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/M7BoardHonestyTests.swift	swift-suite	app/Tests/MCPRouterUITests/M7BoardHonestyTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/M7ExercisedRequestTests.swift	swift-suite	app/Tests/MCPRouterUITests/M7ExercisedRequestTests.swift	swift	compiled and run by `swift test`; names command: "node", execution unresolved	make:test

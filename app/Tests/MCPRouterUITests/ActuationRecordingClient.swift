@@ -139,8 +139,8 @@
             try await inner.marketplaces()
         }
 
-        func insights() async throws(ControlAPIError) -> InsightsResponse {
-            try await inner.insights()
+        func insights(period: InsightsPeriod) async throws(ControlAPIError) -> InsightsResponse {
+            try await inner.insights(period: period)
         }
 
         func reindex(_ name: String) async throws(ControlAPIError) -> ReindexResult {

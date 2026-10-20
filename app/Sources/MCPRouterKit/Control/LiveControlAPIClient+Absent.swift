@@ -24,8 +24,14 @@ public extension LiveControlAPIClient {
         try await skillsRead("harnesses", as: HarnessesResponse.self)
     }
 
-    func insights() async throws(ControlAPIError) -> InsightsResponse {
-        try await skillsRead("insights", as: InsightsResponse.self)
+    /// The window travels as a query, which the TypeScript router reads and the Swift router
+    /// ignores: an answer whose `windowHours` is not the one asked for is the board's to say so,
+    /// not this client's to hide.
+    func insights(period: InsightsPeriod) async throws(ControlAPIError) -> InsightsResponse {
+        try await skillsRead(
+            "insights", query: [URLQueryItem(name: "window", value: period.rawValue)],
+            as: InsightsResponse.self
+        )
     }
 
     /// The two writes F7 adds. **Both re-read `GET /insights` rather than decoding the route's own
@@ -33,13 +39,13 @@ public extension LiveControlAPIClient {
     /// is a picture of what the router reports, and a control that painted itself from its own
     /// answer would be a control reporting its own success. The reply is still awaited, so a 503,
     /// a 409 or a 422 surfaces as the error it is.
-    func runAnalyst() async throws(ControlAPIError) -> InsightsResponse {
+    func runAnalyst(period: InsightsPeriod) async throws(ControlAPIError) -> InsightsResponse {
         _ = try await analystWrite(.post, "insights/analyse", body: Data("{}".utf8))
-        return try await insights()
+        return try await insights(period: period)
     }
 
     func setAnalyst(
-        primary: String?, fallback: String?, cadence: String?
+        period: InsightsPeriod, primary: String?, fallback: String?, cadence: String?
     ) async throws(ControlAPIError) -> InsightsResponse {
         var members: [String] = []
         if let primary { members.append("\"primary\":\"\(primary)\"") }
@@ -47,7 +53,7 @@ public extension LiveControlAPIClient {
         if let cadence { members.append("\"cadence\":\"\(cadence)\"") }
         let body = Data("{\(members.joined(separator: ","))}".utf8)
         _ = try await analystWrite(.patch, "insights/analyst", body: body)
-        return try await insights()
+        return try await insights(period: period)
     }
 
     /// A write on the analyst family, with 404 read as version skew for the reason
@@ -81,10 +87,11 @@ public extension LiveControlAPIClient {
     /// around. Without this mapping the board would render a copy that its own spec never allows.
     private func skillsRead<T: Decodable>(
         _ path: String,
+        query: [URLQueryItem] = [],
         as type: T.Type
     ) async throws(ControlAPIError) -> T {
         do {
-            return try await send(.get, path, as: type)
+            return try await send(.get, path, query: query, as: type)
         } catch {
             if case let .server(status, _, _) = error, status == 404 {
                 throw ControlAPIError.malformedResponse(detail: "this router has no /\(path) endpoint")

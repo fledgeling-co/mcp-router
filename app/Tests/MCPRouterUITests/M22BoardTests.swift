@@ -96,15 +96,29 @@
         @Test("the sparkline's spoken summary is composed from the series it draws")
         func sparklineSummaryIsDerived() {
             let quiet = CallsPerHourChart.summary(
-                InsightsFixtures.hours.map { HourlyCalls(hourStart: $0.hourStart, calls: 0) }
+                InsightsFixtures.hours.map { HourlyCalls(hourStart: $0.hourStart, calls: 0) },
+                periodLabel: "last 24 hours"
             )
             #expect(quiet.contains("none"))
 
-            let busy = CallsPerHourChart.summary(InsightsFixtures.hours)
-            let total = InsightsFixtures.hours.reduce(0) { $0 + $1.calls }
-            let peak = InsightsFixtures.hours.map(\.calls).max() ?? 0
+            let busy = CallsPerHourChart.summary(InsightsFixtures.hours, periodLabel: "last 24 hours")
+            let total = InsightsFixtures.hours.reduce(0) { $0 + ($1.calls ?? 0) }
+            let peak = InsightsFixtures.hours.compactMap(\.calls).max() ?? 0
             #expect(busy.contains(String(total)))
             #expect(busy.contains(String(peak)))
+        }
+
+        @Test("an hour the router did not observe is named as not observed, never counted as quiet")
+        func unobservedHoursAreNamed() {
+            let hours = InsightsFixtures.hours.enumerated().map { index, hour in
+                HourlyCalls(hourStart: hour.hourStart, calls: index < 3 ? nil : hour.calls)
+            }
+            let spoken = CallsPerHourChart.summary(hours, periodLabel: "last 24 hours")
+            #expect(spoken.contains("3 hours not observed"))
+            // The unobserved hours plot no point at all, and the observed ones form one run.
+            let points = CallsPerHourChart.points(hours)
+            #expect(points.count == hours.count - 3)
+            #expect(Set(points.map(\.run)).count == 1)
         }
 
         // MARK: - The two destinations

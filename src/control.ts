@@ -44,7 +44,7 @@ import {
 import { LiveReload } from './livereload.js';
 import { askSessionsToReload, listSessions } from './sessions.js';
 import { harnessEnvelope, type HarnessInventory } from './harness.js';
-import { INSIGHTS_WINDOW_HOURS, insightsEnvelope } from './insights.js';
+import { INSIGHTS_WINDOWS, insightsEnvelope, insightsWindowHours } from './insights.js';
 import { analystEnvelope, ANALYST_UNAVAILABLE, type AnalystPort } from './analyst.js';
 import { AnalystSettingsRefusal } from './analyst-lanes.js';
 import { log } from './log.js';
@@ -1018,10 +1018,16 @@ export async function handleControl(
       json(res, 401, { error: `unauthorized; the token is in ${TOKEN_PATH}` });
       return true;
     }
+    const windowHours = insightsWindowHours(url.searchParams.get('window'));
+    if (windowHours === undefined) {
+      json(res, 400, { error: `window must be one of ${Object.keys(INSIGHTS_WINDOWS).join(', ')}` });
+      return true;
+    }
     const now = Date.now();
     json(res, 200, insightsEnvelope({
       now,
-      usage: deps.usage.insights(now, INSIGHTS_WINDOW_HOURS),
+      usage: await deps.usage.insights(now, windowHours),
+      retention: deps.usage.retention(),
       children: {
         alive: deps.pool.status().filter((s) => s.state === 'running').length,
         declared: deps.upstreams.size,

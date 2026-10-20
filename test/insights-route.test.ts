@@ -41,8 +41,11 @@ const ENVELOPE_KEYS = [
   'dutyCycle',
   'generatedAt',
   'logHorizon',
+  'observedSince',
   'otherCalls',
   'resident',
+  'retention',
+  'windowComplete',
   'windowHours',
   'windowStart',
 ].sort();
@@ -67,12 +70,18 @@ function scratch(): string {
   return dir;
 }
 
-/** A usage store over a log that holds `lines`, or over no log at all when `lines` is undefined. */
-function usageFrom(lines: string[] | undefined): ControlDeps['usage'] {
+/**
+ * A usage store over a log that holds `lines`, or over no log at all when `lines` is undefined. The router is taken to
+ * have been counting for 60 days, so every hour these tests read is one it observed; `observedSince` is what makes a
+ * window incomplete, and the tests that need that set it themselves.
+ */
+function usageFrom(lines: string[] | undefined, sinceMs = Date.now() - 60 * 24 * HOUR): ControlDeps['usage'] {
   const dir = scratch();
   const logPath = join(dir, 'usage.jsonl');
+  const statsPath = join(dir, 'usage-stats.json');
   if (lines) writeFileSync(logPath, lines.join('\n') + '\n');
-  return new UsageStore(logPath, join(dir, 'usage-stats.json'));
+  writeFileSync(statsPath, JSON.stringify({ version: 1, since: new Date(sinceMs).toISOString(), servers: {} }));
+  return new UsageStore(logPath, statsPath);
 }
 
 /** One harness, as far as the route reads it: its client name. */
@@ -164,7 +173,7 @@ test('the envelope carries every member the Mac model reads, with the nested sha
 
   assert.equal(body.analyst, null, 'no analyst is wired into these deps, so the member is null');
   assert.equal(typeof body.generatedAt, 'string');
-  assert.equal(body.windowHours, 24, 'the window is fixed at 24 hours, the same as the reference');
+  assert.equal(body.windowHours, 24, 'with no window parameter the answer is the 24-hour window existing clients were built against');
 });
 
 test('every count is taken over the window, and the bars reconcile to the headline total', async () => {
@@ -298,3 +307,65 @@ test('the two analyst paths are claimed, and with no analyst they answer 503 rat
   assert.equal(analyst.handled, true);
   assert.equal(analyst.status, 503);
 });
+
+test('the window defaults to 24 hours, and window=7d answers the whole retained week', async () => {
+  const now = Date.now();
+  const deps = { pool: new UpstreamPool(UPSTREAMS, 0, 1000), usage: usageFrom(seededLog(now)) };
+  const day = await send('GET', '/insights', deps);
+  const week = await send('GET', '/insights?window=7d', deps);
+
+  assert.equal(day.status, 200);
+  assert.equal(day.json.windowHours, 24);
+  assert.equal(day.json.callsPerHour.length, 24);
+  assert.equal(week.status, 200);
+  assert.equal(week.json.windowHours, 168);
+  assert.equal(week.json.callsPerHour.length, 168, 'one bucket per hour across the seven days');
+  // The 30-hour-old record is outside the day and inside the week, so the week counts it and the day does not.
+  assert.equal(day.json.calls.total, 5);
+  assert.equal(week.json.calls.total, 6);
+});
+
+test('a window the router does not know is refused with 400, not answered with a different one', async () => {
+  const deps = { pool: new UpstreamPool(UPSTREAMS, 0, 1000), usage: usageFrom(undefined) };
+  for (const window of ['30d', '1w', '']) {
+    const refused = await send('GET', `/insights?window=${window}`, deps);
+    assert.equal(refused.handled, true);
+    assert.equal(refused.status, 400, `window=${window} is refused`);
+    assert.match(refused.json.error, /24h, 7d/);
+  }
+});
+
+test('a week the router began counting inside says it is incomplete, and leaves the unobserved hours null', async () => {
+  const now = Date.now();
+  const since = now - 2 * 24 * HOUR;
+  const deps = {
+    pool: new UpstreamPool(UPSTREAMS, 0, 1000),
+    usage: usageFrom(seededLog(now), since),
+  };
+  const { json: week } = await send('GET', '/insights?window=7d', deps);
+  const { json: day } = await send('GET', '/insights', deps);
+
+  assert.equal(week.windowComplete, false, 'the window reaches back past the start of observation');
+  assert.equal(week.observedSince, iso(since));
+  const unobserved = week.callsPerHour.filter((hour: any) => hour.calls === null).length;
+  assert.ok(unobserved > 100, `most of the week was not observed, found ${unobserved} unobserved hours`);
+  assert.equal(
+    week.callsPerHour.filter((hour: any) => typeof hour.calls === 'number').length,
+    168 - unobserved,
+    'an observed hour is a count, and an unobserved one is null rather than zero'
+  );
+  assert.equal(day.windowComplete, true, 'the day starts inside observation');
+  assert.ok(day.callsPerHour.every((hour: any) => typeof hour.calls === 'number'));
+});
+
+test('retention is reported beside the figures: the window, the cap, and what was removed', async () => {
+  const deps = { pool: new UpstreamPool(UPSTREAMS, 0, 1000), usage: usageFrom(undefined) };
+  const { json: body } = await send('GET', '/insights?window=7d', deps);
+
+  assert.deepEqual(Object.keys(body.retention).sort(), ['aged', 'capMegabytes', 'capped', 'days'].sort());
+  assert.equal(body.retention.days, 7);
+  assert.equal(body.retention.capMegabytes, 256);
+  assert.deepEqual(body.retention.aged, { generations: 0, records: 0 });
+  assert.deepEqual(body.retention.capped, { generations: 0, records: 0, from: null, to: null });
+});
+

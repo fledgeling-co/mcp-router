@@ -226,8 +226,55 @@ public enum InsightsFixtures {
                 DutyCycleServer(server: "docker-mcp", aliveSeconds: 0)
             ]),
             callsPerHour: hours,
+            observedSince: "2026-08-01T00:00:00.000Z",
+            windowComplete: true,
+            retention: retention,
             analyst: analystRun
         )
+    }
+
+    /// What the router keeps and has removed in the populated frame: three generations past the window, none
+    /// lost to the cap, so the board has nothing to caveat.
+    static let retention = InsightsRetention(
+        days: 7,
+        capMegabytes: 256,
+        aged: RetentionCount(generations: 3, records: 1400),
+        capped: CappedRetention(generations: 0, records: 0)
+    )
+
+    /// The seven-day frame: the same router a week on, observing only from four days in. The window is
+    /// therefore not a whole week, its first ninety-six hours are **nil rather than zero**, and the board
+    /// must say so. Counts repeat the day's shape so the observed part has a sparkline.
+    public static var week: InsightsResponse {
+        let day = Array(hours.map(\.calls))
+        let counts: [Int?] = (0 ..< 168).map { index in
+            index < 96 ? nil : day[index % 24]
+        }
+        return InsightsResponse(
+            generatedAt: generatedAt,
+            windowHours: 168,
+            windowStart: "2026-08-14T13:00:00.000Z",
+            logHorizon: "2026-08-18T13:04:22.118Z",
+            children: ChildProcessCount(alive: 2, declared: 11),
+            calls: CallTotals(total: 4612, failed: 31, unreadableLines: 0),
+            resident: ResidentMemory(megabytes: 214, children: 2),
+            callsByHarness: populated.callsByHarness,
+            otherCalls: 703,
+            dutyCycle: populated.dutyCycle,
+            callsPerHour: counts.enumerated().map { index, calls in
+                HourlyCalls(hourStart: weekHourStart(offset: index), calls: calls)
+            },
+            observedSince: "2026-08-18T13:00:00.000Z",
+            windowComplete: false,
+            retention: retention,
+            analyst: analystRun
+        )
+    }
+
+    /// `2026-08-14T13:00:00.000Z` plus whole hours, across the day boundaries a week needs.
+    static func weekHourStart(offset: Int) -> String {
+        let hour = 13 + offset
+        return String(format: "2026-08-%02dT%02d:00:00.000Z", 14 + hour / 24, hour % 24)
     }
 
     /// A router that has been up for minutes with almost nothing through it.
@@ -248,6 +295,9 @@ public enum InsightsFixtures {
             otherCalls: 0,
             dutyCycle: DutyCycle(uptimeSeconds: 214, servers: []),
             callsPerHour: hours.map { HourlyCalls(hourStart: $0.hourStart, calls: 0) },
+            observedSince: "2026-08-01T00:00:00.000Z",
+            windowComplete: true,
+            retention: retention,
             analyst: analystIdle
         )
     }

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using MCPRouter.Shell.Model.Pairing;
 using MCPRouter.Shell.Model.Servers;
@@ -8,9 +9,10 @@ namespace MCPRouter.Shell.Tests;
 
 public sealed class PairingSessionModelTests
 {
-    /// <summary>The router's clock is the fixture's: a five-minute window starting at issue.</summary>
-    private static readonly DateTimeOffset Issued = DateTimeOffset.Parse("2026-10-19T15:52:11Z");
-    private static readonly DateTimeOffset Expires = DateTimeOffset.Parse("2026-10-19T15:57:11Z");
+    /// <summary>The router's clock is the fixture's: a five-minute window starting at issue, read from the recording.</summary>
+    private static readonly (string Code, DateTimeOffset IssuedAt, DateTimeOffset ExpiresAt) Recorded = PairingHttp.RecordedIssue();
+    private static readonly DateTimeOffset Issued = Recorded.IssuedAt;
+    private static readonly DateTimeOffset Expires = Recorded.ExpiresAt;
 
     private sealed class Clock
     {
@@ -20,7 +22,12 @@ public sealed class PairingSessionModelTests
     private static PairingSessionModel Model(ControlApiClient client, Clock clock, bool available = true) =>
         new(client, available, () => clock.Now);
 
-    private const string SecondCode = "{\"code\":\"K7X9W4M2\",\"issuedAt\":\"2026-10-19T15:57:12Z\",\"expiresAt\":\"2026-10-19T16:02:12Z\"}";
+    /// <summary>A second code, issued the second after the first one expires, so it is the one a re-open is given.</summary>
+    private static readonly string SecondCode =
+        "{\"code\":\"K7X9W4M2\",\"issuedAt\":\"" + Iso(Expires.AddSeconds(1)) + "\",\"expiresAt\":\"" + Iso(Expires.AddMinutes(5).AddSeconds(1)) + "\"}";
+
+    private static string Iso(DateTimeOffset instant) =>
+        instant.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture) + "Z";
 
     [Fact]
     public void ANewSessionAsksForNothingAndShowsNoCode()
@@ -46,7 +53,7 @@ public sealed class PairingSessionModelTests
 
         Assert.Equal(new[] { "GET", "POST" }, handler.Requests.Select(r => r.Method));
         Assert.Equal(PairingPhase.AwaitingScanOrCode, model.CurrentState.Phase);
-        Assert.Equal("4R74JHBM", model.CurrentState.PairingCode);
+        Assert.Equal(Recorded.Code, model.CurrentState.PairingCode);
         Assert.Equal(TimeSpan.FromMinutes(5), model.CurrentState.RemainingTime);
     }
 

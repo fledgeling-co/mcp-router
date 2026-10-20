@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 using MCPRouter.Shell.Model.Servers;
 
 namespace MCPRouter.Shell.Tests.Servers;
@@ -17,6 +18,19 @@ internal static class PairingHttp
 
     /// <summary>The recorded body the router answered <c>POST /pairing/codes</c> with.</summary>
     public static string Fixture => RepoRoot.Read("app/Sources/MCPRouterKit/Control/Fixtures/pairing-code.json");
+
+    /// <summary>
+    /// The code, issue instant and expiry the recorded issue body carries. Read from the recording rather than typed
+    /// in, so a re-record moves the clock and the expected code together.
+    /// </summary>
+    public static (string Code, DateTimeOffset IssuedAt, DateTimeOffset ExpiresAt) RecordedIssue()
+    {
+        var body = JsonDocument.Parse(Fixture).RootElement;
+        return (
+            body.GetProperty("code").GetString()!,
+            DateTimeOffset.Parse(body.GetProperty("issuedAt").GetString()!),
+            DateTimeOffset.Parse(body.GetProperty("expiresAt").GetString()!));
+    }
 
     /// <summary>The recorded body the router answered <c>GET /pairing/state</c> with, while its phone listener was bound.</summary>
     public static string StateFixture => RepoRoot.Read("app/Sources/MCPRouterKit/Control/Fixtures/pairing-state.json");

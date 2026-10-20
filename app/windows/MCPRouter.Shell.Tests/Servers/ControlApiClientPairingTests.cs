@@ -16,6 +16,7 @@ public sealed class ControlApiClientPairingTests
     {
         var handler = new PairingHttp.Scripted((_, _) => PairingHttp.Answer(HttpStatusCode.Created, PairingHttp.Fixture));
         using var client = PairingHttp.Client(handler);
+        var recorded = PairingHttp.RecordedIssue();
 
         var issued = await client.IssuePairingCodeAsync();
 
@@ -24,9 +25,9 @@ public sealed class ControlApiClientPairingTests
         Assert.Equal("/pairing/codes", seen.Path);
         Assert.Equal($"Bearer {PairingHttp.Token}", seen.Authorization);
         Assert.Equal("application/json", seen.ContentType);
-        Assert.Equal("4R74JHBM", issued.Code);
-        Assert.Equal(DateTimeOffset.Parse("2026-10-19T15:52:11Z"), issued.IssuedAt);
-        Assert.Equal(DateTimeOffset.Parse("2026-10-19T15:57:11Z"), issued.ExpiresAt);
+        Assert.Equal(recorded.Code, issued.Code);
+        Assert.Equal(recorded.IssuedAt, issued.IssuedAt);
+        Assert.Equal(recorded.ExpiresAt, issued.ExpiresAt);
     }
 
     [Fact]
@@ -54,7 +55,7 @@ public sealed class ControlApiClientPairingTests
 
         var state = await client.GetPairingStateAsync();
 
-        Assert.Equal("4R74JHBM", state.Code!.Code);
+        Assert.Equal(PairingHttp.RecordedIssue().Code, state.Code!.Code);
         Assert.True(state.Listener.Enabled);
         Assert.NotNull(state.Listener.Port);
     }

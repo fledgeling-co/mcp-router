@@ -51,6 +51,7 @@ import { log } from './log.js';
 import { wireInstant, type IssuedCode, type Pairing } from './pairing.js';
 import { extensionRoute, isExtensionsPath } from './extension-routes.js';
 import type { ExtensionStore } from './extensions.js';
+import type { InboxStore } from './inbox.js';
 import { skillsValue } from './skills.js';
 
 export const TOKEN_PATH = join(ROUTER_HOME, 'control.token');
@@ -99,6 +100,8 @@ export interface ControlDeps {
   pairing: Pairing;
   /** R28. Absent answers 503 on every /extensions route, as the Swift router does. */
   extensions?: ExtensionStore;
+  /** The picks a phone has sent, held for review. Absent answers 503 on every /inbox route. */
+  inbox?: InboxStore;
   /** Claude Code's home, which GET /skills reads and never writes. Absent answers 503 on /skills. */
   claudeHome?: string;
   /** Reads each agent client's config for GET /harnesses. Absent means the route answers 503. */
@@ -466,6 +469,8 @@ export function isControlPath(pathname: string): boolean {
     pathname === '/insights/analyst' ||
     pathname.startsWith('/registry/') ||
     pathname.startsWith('/pairing/') ||
+    pathname === '/inbox' ||
+    pathname.startsWith('/inbox/') ||
     pathname === '/skills' ||
     isExtensionsPath(pathname)
   );
@@ -522,6 +527,31 @@ export async function handleControl(
     const answer = extensionRoute(req.method ?? '', p, body, deps, url.searchParams);
     if (answer) json(res, answer.status, answer.body);
     else json(res, 405, { error: `${req.method} not allowed on ${p}` });
+    return true;
+  }
+
+  // The inbox is gated on every method, GET included: what it names is the list a reviewer decides from, and a
+  // page on this machine must not read it. IB1 serves the read only, so every other method answers 405.
+  if (p === '/inbox' || p.startsWith('/inbox/')) {
+    if (!tokenOk(req, token)) {
+      json(res, 401, { error: `unauthorized; the token is in ${TOKEN_PATH}` });
+      return true;
+    }
+    if (!deps.inbox) {
+      json(res, 503, { error: 'the inbox is unavailable: this router has no inbox store' });
+      return true;
+    }
+    if (p === '/inbox' && req.method === 'GET') {
+      try {
+        json(res, 200, { items: deps.inbox.view() });
+      } catch (err) {
+        // An unreadable store is not an empty inbox: an empty answer would read as "nothing waiting".
+        log.error(`inbox: could not read ${deps.inbox.path}: ${(err as Error).message}`);
+        json(res, 500, { error: 'the inbox could not be read; see the router log' });
+      }
+      return true;
+    }
+    json(res, 405, { error: `${req.method} not allowed on ${p}` });
     return true;
   }
 

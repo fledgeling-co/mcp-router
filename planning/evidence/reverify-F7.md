@@ -51,3 +51,6 @@ Test run with 36 tests in 5 suites passed after 0.148 seconds.   exit=0
 **Not run:** the Windows client; the mock-fidelity gate for `insights` (named by the ledger as owed: `planning/fidelity/insights.*` was derived before the analyst card existed).
 
 **Open for the owner.** F7-9 (wire contract versus test pinned to the deviation), F7-16/F7-17 (banner and Inbox card, spec defers to SURF-005), F7-18 (no scheduler), F7-20 (stale parity rows).
+
+
+**Resolved 2026-10-20 (orchestrator).** The F7-9 finding is settled by amending spec-F7 §4 to the built behaviour: an `analyst` object whenever the router serves it, `null` only when it does not. The original §4 sentence contradicted §3 item 8, since a client reading `null` as "no analyst" could never start the first run. No code change.

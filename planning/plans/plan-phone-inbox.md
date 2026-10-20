@@ -427,3 +427,9 @@ This change is a plan file only. No code, no test and no configuration is change
 `npx tsc`, `swift test` and `make test` were not run for it. The gates that apply to a plan are
 `planning/citation-gate.py` and `planning/instrument-census.py`, and their output is quoted in the
 report that accompanies this commit.
+
+## Decided 2026-10-20
+
+- **D6 — accept declares at once, with undo.** Taken by the orchestrator: the Mac already declares on a reviewer's accept, and the human accept on the Mac is the review the product rule requires; the phone still only queues.
+- **D8 — refuse credential-bearing entries in v1** with `needsCredentials`, so no secret travels in a request body. Reversible later.
+- **D9 — the phone does not learn the decision in v1.** IB10 is not built in this round.

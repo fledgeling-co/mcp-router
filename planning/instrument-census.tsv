@@ -358,6 +358,10 @@ planning/ledger-reconcile.py	gate	planning/ledger-reconcile.py	static	no router 
 planning/m33-branch-sweep.py	gate	planning/m33-branch-sweep.py	static	no router invocation matched	-
 planning/mock-exclusion-gate.py	gate	planning/mock-exclusion-gate.py	static	no router invocation matched	make:lint
 planning/null-run-gate.py	gate	planning/null-run-gate.py	static	no router invocation matched	make:lint
+planning/pairing/spike-e1/Package.swift	gate	planning/pairing/spike-e1/Package.swift	static	no router invocation matched	-
+planning/pairing/spike-e1/Sources/E1NWExporter/main.swift	gate	planning/pairing/spike-e1/Sources/E1NWExporter/main.swift	static	no router invocation matched	-
+planning/pairing/spike-e1/Sources/E1Sodium/main.swift	gate	planning/pairing/spike-e1/Sources/E1Sodium/main.swift	static	no router invocation matched	-
+planning/pairing/spike-e1/run-e1.mjs	gate	planning/pairing/spike-e1/run-e1.mjs	static	no router invocation matched	-
 planning/pin-class-gate.py	gate	planning/pin-class-gate.py	static	no router invocation matched	make:lint
 planning/py39-annotation-gate.py	gate	planning/py39-annotation-gate.py	static	no router invocation matched	make:lint
 planning/reader-accounting.py	gate	planning/reader-accounting.py	static	no router invocation matched	make:lint

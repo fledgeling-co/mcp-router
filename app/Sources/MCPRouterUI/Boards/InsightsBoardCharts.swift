@@ -114,12 +114,15 @@
     /// than as a label, which is what the accent is for.
     struct CallsPerHourChart: View {
         let hours: [HourlyCalls]
+        /// The window as the copy names it, for the accessible summary.
+        let periodLabel: String
 
         var body: some View {
-            Chart(hours) { hour in
+            Chart(Self.points(hours)) { point in
                 LineMark(
-                    x: .value("Hour", hour.hourStart),
-                    y: .value("Calls", hour.calls)
+                    x: .value("Hour", point.hourStart),
+                    y: .value("Calls", point.calls),
+                    series: .value("Observed run", point.run)
                 )
                 .interpolationMethod(.monotone)
                 .foregroundStyle(ColorToken.accentInk.color)
@@ -127,27 +130,115 @@
             }
             .chartXAxis(.hidden)
             .chartYAxis(.hidden)
-            .chartYScale(domain: 0 ... Swift.max(1, hours.map(\.calls).max() ?? 1))
+            .chartYScale(domain: 0 ... Swift.max(1, hours.compactMap(\.calls).max() ?? 1))
             .frame(height: M22BoardMetrics.sparkHeight)
             .measured(
                 "calls-per-hour", role: "sparkline", kind: .leaf,
                 tokens: ["foreground": .accentInk]
             )
             .accessibilityElement()
-            .accessibilityLabel(Self.summary(hours))
+            .accessibilityLabel(Self.summary(hours, periodLabel: periodLabel))
+        }
+
+        /// One plotted point per observed hour. An unobserved hour has no point at all, and each
+        /// run of observed hours is its own series, so the line stops at the edge of the gap
+        /// instead of joining across it.
+        struct Point: Identifiable {
+            let id: String
+            let hourStart: String
+            let calls: Int
+            let run: Int
+        }
+
+        static func points(_ hours: [HourlyCalls]) -> [Point] {
+            var run = 0
+            var inRun = false
+            var points: [Point] = []
+            for hour in hours {
+                guard let calls = hour.calls else {
+                    inRun = false
+                    continue
+                }
+                if !inRun {
+                    run += 1
+                    inRun = true
+                }
+                points.append(Point(id: hour.hourStart, hourStart: hour.hourStart, calls: calls, run: run))
+            }
+            return points
         }
 
         /// What the line says, for a reader who cannot see it.
         ///
-        /// Composed from the series rather than written, so it cannot describe a shape the chart
-        /// does not have.
-        static func summary(_ hours: [HourlyCalls]) -> String {
-            let total = hours.reduce(0) { $0 + $1.calls }
-            guard total > 0, let peak = hours.max(by: { $0.calls < $1.calls }) else {
-                return "Calls per hour over the last 24 hours: none"
+        /// Composed from the series rather than written, so it cannot describe a shape the chart does not
+        /// have. It
+        /// counts the hours it could not observe, so a short line reads as short rather than as quiet.
+        static func summary(_ hours: [HourlyCalls], periodLabel: String) -> String {
+            let observed = hours.compactMap(\.calls)
+            let unobserved = hours.count - observed.count
+            let noun = unobserved == 1 ? "hour" : "hours"
+            let gap = unobserved > 0 ? ", \(unobserved) \(noun) not observed" : ""
+            let total = observed.reduce(0, +)
+            guard total > 0, let peak = observed.max() else {
+                return "Calls per hour over the \(periodLabel): none\(gap)"
             }
-            return "Calls per hour over the last 24 hours: \(total) in total, "
-                + "peaking at \(peak.calls) in one hour"
+            return "Calls per hour over the \(periodLabel): \(total) in total, "
+                + "peaking at \(peak) in one hour\(gap)"
+        }
+    }
+
+    /// What the window is made of, beside its figures: whether it is whole, what the size cap removed from
+    /// it, and whether the router answered the window that was asked for. Drawn only when there is something
+    /// to say, so a whole, uncapped, matching window carries no caveat.
+    struct InsightsCoverageNotes: View {
+        let response: InsightsResponse
+        /// The window the board asked for, which the answer is checked against.
+        let askedHours: Int
+
+        var body: some View {
+            let answeredOther = response.windowHours != askedHours
+            let capped = response.retention.flatMap { $0.capped.records > 0 ? $0 : nil }
+            let incomplete = response.windowComplete == false ? response.observedSince : nil
+            if answeredOther || capped != nil || incomplete != nil {
+                VStack(alignment: .leading, spacing: M22BoardMetrics.tightGap) {
+                    if answeredOther {
+                        note(
+                            InsightsBoardCopy.answeredCaption(
+                                answered: response.windowHours, asked: askedHours
+                            ),
+                            id: "caption-answered"
+                        )
+                    }
+                    if let since = incomplete {
+                        note(
+                            InsightsBoardCopy.incompleteCaption(
+                                observedSince: since, hours: response.windowHours
+                            ),
+                            id: "caption-incomplete"
+                        )
+                    }
+                    if let retention = capped {
+                        note(
+                            InsightsBoardCopy.cappedCaption(
+                                retention.capped, capMegabytes: retention.capMegabytes
+                            ),
+                            id: "caption-capped"
+                        )
+                    }
+                }
+                .measured("coverage-notes", role: "board-section", kind: .vstack)
+            }
+        }
+
+        private func note(_ text: String, id: String) -> some View {
+            Text(text)
+                .typeRole(.caption)
+                .foregroundStyle(ColorToken.t3.color)
+                .fixedSize(horizontal: false, vertical: true)
+                .measured(
+                    id, role: "chart-caption", kind: .text,
+                    tokens: ["foreground": .t3], type: .caption, text: text
+                )
         }
     }
 

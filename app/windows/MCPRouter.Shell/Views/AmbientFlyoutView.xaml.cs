@@ -21,8 +21,9 @@ public sealed partial class AmbientFlyoutView : UserControl
     /// said the router was fine before a line of code had run. Both defaults are gone: the text
     /// comes from the model, and the model starts at <c>Unknown</c>.
     ///
-    /// WHAT IS STILL OPEN, and it is filed rather than folded in: nothing in this build mounts
-    /// this view, so no operator can open it and no arm reads it. DEF-380.
+    /// WHAT IS STILL OPEN, and it is filed rather than folded in: this view is mounted by the pane
+    /// readout now, so an operator can open it, but nothing reads the notification-area tip or
+    /// presses the tray icon from outside the process. DEF-380.
     /// </remarks>
     public AmbientFlyoutView(Action<string>? navigate = null, AmbientSurfaceModel? model = null)
     {
@@ -46,8 +47,8 @@ public sealed partial class AmbientFlyoutView : UserControl
         var info = _model.GetStatusInfo();
         StatusTitleText.Text = info.StatusText;
         StatusDetailText.Text = info.Subtitle;
-        ViewInboxButton.Content = $"Review Inbox ({info.WaitingCount})";
-        ViewInboxButton.IsEnabled = info.WaitingCount > 0;
+        ViewInboxButton.Content = AmbientPresentation.InboxButtonText(info.WaitingCount);
+        ViewInboxButton.IsEnabled = AmbientPresentation.InboxButtonEnabled(info.WaitingCount);
     }
 
     private void OnOpenAppClicked(object sender, RoutedEventArgs e)

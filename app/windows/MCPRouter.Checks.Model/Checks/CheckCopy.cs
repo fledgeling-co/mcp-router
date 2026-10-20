@@ -27,6 +27,11 @@ public static class CheckCopy
         CheckId.SurfaceApproved => "No tool description is waiting for review",
         CheckId.Operative => "It carries no placard",
         CheckId.CallsSucceed => "Its calls come back without error",
+        CheckId.Reachable => "At least one client can load it",
+        CheckId.Versioned => "It carries a version a result can be stamped against",
+        CheckId.OriginUnchanged => "Its marketplace still resolves where the router first saw it",
+        CheckId.UpdateWantsNoMore => "Any newer version held asks for nothing extra",
+        CheckId.Described => "Its SKILL.md declares a description an agent can route on",
         _ => throw new ArgumentOutOfRangeException(nameof(check), check, "no statement for this check"),
     };
 
@@ -71,6 +76,48 @@ public static class CheckCopy
         var noun = errors == 1 ? "call" : "calls";
         return $"{errors} of {calls} recorded {noun} came back with an error.";
     }
+
+    // ------------------------------------------------------------------ skill reasons
+
+    /// <summary>Every skills-capable client was read and none holds the skill.</summary>
+    public static string NotLoadableAnywhere(int clientCount)
+    {
+        var noun = clientCount == 1 ? "client" : "clients";
+        return $"Every one of the {clientCount} skills-capable {noun} was read, and none has it installed.";
+    }
+
+    /// <summary>A capable client could not be read, so whether the skill is there is unobserved.</summary>
+    public static string ReachabilityUnknown(IReadOnlyList<string> clients)
+    {
+        var names = string.Join(", ", clients.Order(StringComparer.Ordinal));
+        var verb = clients.Count == 1 ? "directory could not be read" : "directories could not be read";
+        return $"It is installed in no client the router could read, and {names}'s skills {verb} — "
+            + "so it may be installed exactly where nobody could look.";
+    }
+
+    public static string StandaloneUnversioned =>
+        "It was placed in a client's directory by hand, so it has no version anywhere on disk and "
+        + "no result about it can be stamped against one.";
+
+    /// <summary>A standalone skill has no marketplace, so an unmoved origin is not something that can be true of it.</summary>
+    public static string StandaloneNoOrigin =>
+        "It was placed in a client's directory by hand rather than supplied by a marketplace, so "
+        + "there is no origin for it to have moved from.";
+
+    public static string NoVersionHeld =>
+        "No newer version of its plugin is being held, so there is nothing waiting to ask for more.";
+
+    public static string OriginMoved(string firstSeen, string current, string at) =>
+        $"The router first saw it at {firstSeen} and it now resolves to {current}, first observed {at}.";
+
+    public static string HeldVersionWantsMore(string version, IEnumerable<string> capabilities)
+    {
+        var list = string.Join(", ", capabilities.Order(StringComparer.Ordinal));
+        return $"Version {version} is held and asks for {list}.";
+    }
+
+    public static string NoDescription =>
+        "Its SKILL.md declares no description, so an agent has nothing to route on when choosing it.";
 
     // ------------------------------------------------------------------ the board
 

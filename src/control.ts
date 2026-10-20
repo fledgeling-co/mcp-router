@@ -44,13 +44,15 @@ import {
 import { LiveReload } from './livereload.js';
 import { askSessionsToReload, listSessions } from './sessions.js';
 import { harnessEnvelope, type HarnessInventory } from './harness.js';
-import { INSIGHTS_WINDOW_HOURS, insightsEnvelope } from './insights.js';
+import { INSIGHTS_WINDOWS, insightsEnvelope, insightsWindowHours } from './insights.js';
 import { analystEnvelope, ANALYST_UNAVAILABLE, type AnalystPort } from './analyst.js';
 import { AnalystSettingsRefusal } from './analyst-lanes.js';
 import { log } from './log.js';
 import { wireInstant, type IssuedCode, type Pairing } from './pairing.js';
+import { removePairedPhone } from './paired-phones.js';
 import { extensionRoute, isExtensionsPath } from './extension-routes.js';
 import type { ExtensionStore } from './extensions.js';
+import type { InboxStore } from './inbox.js';
 import { skillsValue } from './skills.js';
 
 export const TOKEN_PATH = join(ROUTER_HOME, 'control.token');
@@ -97,8 +99,12 @@ export interface ControlDeps {
   liveReload: LiveReload;
   /** The phone-pairing codes this router has issued. One per process, shared by every pairing route. */
   pairing: Pairing;
+  /** The router home. Where `paired-phones.json` lives, which DELETE /pairing/phones/:phoneId edits. */
+  routerHome: string;
   /** R28. Absent answers 503 on every /extensions route, as the Swift router does. */
   extensions?: ExtensionStore;
+  /** The picks a phone has sent, held for review. Absent answers 503 on every /inbox route. */
+  inbox?: InboxStore;
   /** Claude Code's home, which GET /skills reads and never writes. Absent answers 503 on /skills. */
   claudeHome?: string;
   /** Reads each agent client's config for GET /harnesses. Absent means the route answers 503. */
@@ -466,6 +472,8 @@ export function isControlPath(pathname: string): boolean {
     pathname === '/insights/analyst' ||
     pathname.startsWith('/registry/') ||
     pathname.startsWith('/pairing/') ||
+    pathname === '/inbox' ||
+    pathname.startsWith('/inbox/') ||
     pathname === '/skills' ||
     isExtensionsPath(pathname)
   );
@@ -522,6 +530,31 @@ export async function handleControl(
     const answer = extensionRoute(req.method ?? '', p, body, deps, url.searchParams);
     if (answer) json(res, answer.status, answer.body);
     else json(res, 405, { error: `${req.method} not allowed on ${p}` });
+    return true;
+  }
+
+  // The inbox is gated on every method, GET included: what it names is the list a reviewer decides from, and a
+  // page on this machine must not read it. IB1 serves the read only, so every other method answers 405.
+  if (p === '/inbox' || p.startsWith('/inbox/')) {
+    if (!tokenOk(req, token)) {
+      json(res, 401, { error: `unauthorized; the token is in ${TOKEN_PATH}` });
+      return true;
+    }
+    if (!deps.inbox) {
+      json(res, 503, { error: 'the inbox is unavailable: this router has no inbox store' });
+      return true;
+    }
+    if (p === '/inbox' && req.method === 'GET') {
+      try {
+        json(res, 200, { items: deps.inbox.view() });
+      } catch (err) {
+        // An unreadable store is not an empty inbox: an empty answer would read as "nothing waiting".
+        log.error(`inbox: could not read ${deps.inbox.path}: ${(err as Error).message}`);
+        json(res, 500, { error: 'the inbox could not be read; see the router log' });
+      }
+      return true;
+    }
+    json(res, 405, { error: `${req.method} not allowed on ${p}` });
     return true;
   }
 
@@ -985,10 +1018,16 @@ export async function handleControl(
       json(res, 401, { error: `unauthorized; the token is in ${TOKEN_PATH}` });
       return true;
     }
+    const windowHours = insightsWindowHours(url.searchParams.get('window'));
+    if (windowHours === undefined) {
+      json(res, 400, { error: `window must be one of ${Object.keys(INSIGHTS_WINDOWS).join(', ')}` });
+      return true;
+    }
     const now = Date.now();
     json(res, 200, insightsEnvelope({
       now,
-      usage: deps.usage.insights(now, INSIGHTS_WINDOW_HOURS),
+      usage: await deps.usage.insights(now, windowHours),
+      retention: deps.usage.retention(),
       children: {
         alive: deps.pool.status().filter((s) => s.state === 'running').length,
         declared: deps.upstreams.size,
@@ -1068,6 +1107,17 @@ export async function handleControl(
 
   if (p === '/pairing/codes' && req.method === 'DELETE') {
     json(res, 200, { revoked: deps.pairing.revoke() });
+    return true;
+  }
+
+  // Revokes a confirmed phone by removing its record, which holds the phone's public key, so a later submit from
+  // that phone has no key to verify against. Only a confirmed phone is named: a pending one is not in the file,
+  // and its held request belongs to the listener, so it answers 404 here.
+  const pairedPhone = /^\/pairing\/phones\/([^/]+)$/.exec(p);
+  if (pairedPhone && req.method === 'DELETE') {
+    const removed = removePairedPhone(deps.routerHome, pairedPhone[1]);
+    if (removed) json(res, 200, { revoked: removed.phoneId });
+    else json(res, 404, { error: 'no confirmed phone has that id' });
     return true;
   }
 

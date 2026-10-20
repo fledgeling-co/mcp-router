@@ -77,20 +77,42 @@ public sealed partial class CleanupBoard : UserControl
         AutomationProperties.SetAutomationId(RemoveOutcomeText, "cleanup.state.removeOutcome");
         AutomationProperties.SetAutomationId(StatusLine, "cleanup.state.status");
 
-        // The window selector is drawn by the design and reaches nothing: this board has one
-        // window, the model's 30-day default, and no code path changes it. Disabled with its
-        // reason on the three channels the Servers board's Reap idle button uses, rather than left
-        // looking live — DEF-401 carries the wiring.
-        WindowSelectorButton.IsEnabled = false;
+        // The window selector is a flyout over the two windows the design names. Choosing one
+        // re-derives the rows at once, and the heading moves with it, so the button and the list
+        // cannot describe different windows.
+        var windowFlyout = new MenuFlyout();
+        foreach (var days in CleanupBoardModel.QuietWindowChoices)
+        {
+            var item = new MenuFlyoutItem { Text = CleanupBoardModel.WindowCaption(days), Tag = days };
+            item.Click += OnQuietWindowChosen;
+            windowFlyout.Items.Add(item);
+        }
+        WindowSelectorButton.Flyout = windowFlyout;
         AutomationProperties.SetAutomationId(WindowSelectorButton, "cleanup.action.window");
-        AutomationProperties.SetHelpText(WindowSelectorButton, WindowSelectorReason);
-        ToolTipService.SetToolTip(WindowSelectorButton, WindowSelectorReason);
+        AutomationProperties.SetHelpText(WindowSelectorButton, WindowSelectorHelp);
+        ToolTipService.SetToolTip(WindowSelectorButton, WindowSelectorHelp);
+        UpdateWindowUI();
 
         RenderRows();
     }
 
-    private const string WindowSelectorReason =
-        "The quiet window is fixed at 30 days on this build; nothing here changes it yet.";
+    private const string WindowSelectorHelp =
+        "Chooses how long a server must be quiet before the board proposes it for removal.";
+
+    private void UpdateWindowUI()
+    {
+        WindowSelectorButton.Content = CleanupBoardModel.WindowCaption(_model.SelectedDaysWindow);
+        QuietSectionHeading.Text = CleanupBoardModel.QuietHeading(_model.SelectedDaysWindow);
+    }
+
+    private void OnQuietWindowChosen(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuFlyoutItem { Tag: int days }) return;
+
+        _model.SetQuietWindow(days);
+        UpdateWindowUI();
+        RenderRows();
+    }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {

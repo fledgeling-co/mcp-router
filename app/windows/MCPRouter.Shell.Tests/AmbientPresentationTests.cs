@@ -36,6 +36,20 @@ public sealed class AmbientPresentationTests
     /// The unreachable sentence names the endpoint this app is polling. It used to name the
     /// literal 127.0.0.1:8879 whatever port the router was on.
     /// </summary>
+    /// <summary>
+    /// DEF-380. The flyout's inbox button used to be written in its code-behind, where nothing
+    /// could test it. Its count is what decides whether the operator can press it at all.
+    /// </summary>
+    [Fact]
+    public void TheInboxButtonCountsWhatIsWaiting()
+    {
+        Assert.Equal("Review Inbox (0)", AmbientPresentation.InboxButtonText(0));
+        Assert.False(AmbientPresentation.InboxButtonEnabled(0));
+
+        Assert.Equal("Review Inbox (3)", AmbientPresentation.InboxButtonText(3));
+        Assert.True(AmbientPresentation.InboxButtonEnabled(3));
+    }
+
     [Fact]
     public void TheUnreachableSentence_NamesTheEndpointThatWasPolled()
     {

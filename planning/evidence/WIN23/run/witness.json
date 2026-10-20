@@ -43,7 +43,7 @@
       "id": "EFFECT.action",
       "what": "the action is the executable and port this run asked for",
       "held": true,
-      "detail": "Execute=C:\\Dev\\mcp-router\\.worktrees\\wc3-witness-blockers\\app\\windows\\MCPRouter.Shell.Live\\win23-witness-daemon.exe Arguments=--port 8890"
+      "detail": "Execute=C:\\Dev\\mcp-router\\app\\windows\\MCPRouter.Shell.Live\\win23-witness-daemon.exe Arguments=--port 8890"
     },
     {
       "id": "REMOVAL",
@@ -66,5 +66,5 @@
   ],
   "notes": [],
   "host": "Z13",
-  "psVersion": "7.6.5"
+  "psVersion": "7.6.7"
 }

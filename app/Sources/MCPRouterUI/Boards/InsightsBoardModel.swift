@@ -35,6 +35,9 @@
 
         @ObservationIgnored public let client: any ControlAPIClient
         public private(set) var state: LoadState = .loading
+        /// The window the board asks the router for. Seven days is the period the design opens on; the router
+        /// answers whichever window it has, and the board labels what came back.
+        public private(set) var period: InsightsPeriod = .last7Days
         /// A run or a settings change is in flight. Held so the control can dim itself rather than
         /// queue a second full corpus read behind the first.
         public internal(set) var analysing = false
@@ -48,7 +51,7 @@
 
         public func load() async {
             do {
-                let response = try await client.insights()
+                let response = try await client.insights(period: period)
                 guard !Task.isCancelled else { return }
                 state = .loaded(response)
             } catch {
@@ -59,6 +62,14 @@
                     state = .failed(error)
                 }
             }
+        }
+
+        /// Change the window and read it again. The previous reading stays on screen until the new
+        /// one lands, so a slow answer does not blank the board.
+        public func choosePeriod(_ next: InsightsPeriod) async {
+            guard next != period else { return }
+            period = next
+            await load()
         }
 
         /// Whether the window holds anything worth plotting. Read from the router's own horizon.
@@ -112,7 +123,7 @@
             analystError = nil
             defer { analysing = false }
             do {
-                state = try await .loaded(client.runAnalyst())
+                state = try await .loaded(client.runAnalyst(period: period))
             } catch {
                 record(error)
             }
@@ -127,7 +138,7 @@
             defer { analysing = false }
             do {
                 state = try await .loaded(client.setAnalyst(
-                    primary: primary, fallback: fallback, cadence: cadence
+                    period: period, primary: primary, fallback: fallback, cadence: cadence
                 ))
             } catch {
                 record(error)

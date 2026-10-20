@@ -1,0 +1,144 @@
+{
+  "generatedAt": "2026-10-20T02:46:25.117Z",
+  "windowHours": 24,
+  "windowStart": "2026-10-19T03:00:00.000Z",
+  "logHorizon": "2026-10-19T22:46:25.116Z",
+  "observedSince": "2026-10-18T02:46:25.116Z",
+  "windowComplete": true,
+  "retention": {
+    "days": 7,
+    "capMegabytes": 256,
+    "aged": {
+      "generations": 0,
+      "records": 0
+    },
+    "capped": {
+      "generations": 0,
+      "records": 0,
+      "from": null,
+      "to": null
+    }
+  },
+  "children": {
+    "alive": 0,
+    "declared": 2
+  },
+  "calls": {
+    "total": 4,
+    "failed": 1,
+    "unreadableLines": 1
+  },
+  "resident": null,
+  "callsByHarness": [
+    {
+      "harness": "claudeCode",
+      "displayName": "Claude Code",
+      "calls": 2,
+      "reason": null
+    }
+  ],
+  "otherCalls": 2,
+  "dutyCycle": {
+    "uptimeSeconds": 0,
+    "servers": []
+  },
+  "callsPerHour": [
+    {
+      "hourStart": "2026-10-19T03:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-19T04:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-19T05:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-19T06:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-19T07:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-19T08:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-19T09:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-19T10:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-19T11:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-19T12:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-19T13:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-19T14:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-19T15:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-19T16:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-19T17:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-19T18:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-19T19:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-19T20:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-19T21:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-19T22:00:00.000Z",
+      "calls": 1
+    },
+    {
+      "hourStart": "2026-10-19T23:00:00.000Z",
+      "calls": 1
+    },
+    {
+      "hourStart": "2026-10-20T00:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-20T01:00:00.000Z",
+      "calls": 0
+    },
+    {
+      "hourStart": "2026-10-20T02:00:00.000Z",
+      "calls": 2
+    }
+  ],
+  "analyst": null
+}

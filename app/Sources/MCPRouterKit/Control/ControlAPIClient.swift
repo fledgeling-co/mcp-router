@@ -197,16 +197,16 @@ public protocol ControlAPIClient: Sendable {
     /// On the protocol beside ``insights()`` rather than beside the writes, because it belongs to
     /// the same family and takes the same default: a conformer with no opinion about it is a router
     /// that does not have it, which is the state the board's dim button is designed around.
-    func runAnalyst() async throws(ControlAPIError) -> InsightsResponse
+    func runAnalyst(period: InsightsPeriod) async throws(ControlAPIError) -> InsightsResponse
 
     /// Change which model judges and how often — F7. Any argument left nil is left alone, which is
     /// what makes this a patch rather than a replacement of the settings the user did not touch.
     func setAnalyst(
-        primary: String?, fallback: String?, cadence: String?
+        period: InsightsPeriod, primary: String?, fallback: String?, cadence: String?
     ) async throws(ControlAPIError) -> InsightsResponse
 
-    /// Everything the Insights board draws, counted from what the router served and opened.
-    func insights() async throws(ControlAPIError) -> InsightsResponse
+    /// Everything the Insights board draws, counted from what the router served and opened, over `period`.
+    func insights(period: InsightsPeriod) async throws(ControlAPIError) -> InsightsResponse
 
     /// One capability's own documents, read by the router out of the package it starts it from.
     ///
@@ -282,16 +282,16 @@ public extension ControlAPIClient {
         throw ControlAPIError.malformedResponse(detail: "this router has no /harnesses endpoint")
     }
 
-    func insights() async throws(ControlAPIError) -> InsightsResponse {
+    func insights(period _: InsightsPeriod) async throws(ControlAPIError) -> InsightsResponse {
         throw ControlAPIError.malformedResponse(detail: "this router has no /insights endpoint")
     }
 
-    func runAnalyst() async throws(ControlAPIError) -> InsightsResponse {
+    func runAnalyst(period _: InsightsPeriod) async throws(ControlAPIError) -> InsightsResponse {
         throw ControlAPIError.malformedResponse(detail: "this router has no session analyst")
     }
 
     func setAnalyst(
-        primary _: String?, fallback _: String?, cadence _: String?
+        period _: InsightsPeriod, primary _: String?, fallback _: String?, cadence _: String?
     ) async throws(ControlAPIError) -> InsightsResponse {
         throw ControlAPIError.malformedResponse(detail: "this router has no session analyst")
     }

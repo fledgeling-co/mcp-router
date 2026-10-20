@@ -33,6 +33,10 @@ public sealed partial class ShellWindow : Window
     /// <summary>The ambient state on the pane, and the state the notification-area tip formats.</summary>
     private readonly AmbientSurfaceModel _ambient;
 
+    /// <summary>The flyout the pane readout opens. Built over the same model, and re-rendered
+    /// whenever the readout is, so the two cannot show different states.</summary>
+    private readonly AmbientFlyoutView _ambientFlyout;
+
     /// <summary>What reads the router. Never the app's own memory of what it last saw.</summary>
     private readonly IAmbientRouterReader _ambientReader;
 
@@ -65,6 +69,11 @@ public sealed partial class ShellWindow : Window
         _ambientReader = ambientReader ?? new RouterStatusReader();
 
         InitializeComponent();
+
+        // DEF-380: the flyout was never mounted, so no operator could open it. The pane readout is
+        // the button that opens it; navigation goes back through this window's own destinations.
+        _ambientFlyout = new AmbientFlyoutView(id => { AmbientStatus.Flyout.Hide(); SelectDestination(id); }, _ambient);
+        AmbientStatus.Flyout = new Flyout { Content = _ambientFlyout };
 
         // §11 rule 3: Mica on the window backdrop, once, and never on a UI element. When the user
         // turns transparency off, or the machine is on battery saver, or the window is inactive,
@@ -383,7 +392,7 @@ public sealed partial class ShellWindow : Window
             {
                 "servers" => new ServersBoard(),
                 "skills" => new SkillsBoard(
-                    _skillsClient ?? new LiveSkillsControlClient(),
+                    _skillsClient ?? new LiveSkillsControlClient(tokenFile: new RouterTokenFile()),
                     SelectDestination),
                 "checks" => new ChecksBoard(),
                 "activity" => new ActivityBoard(destination, this, SelectDestination),
@@ -541,6 +550,7 @@ public sealed partial class ShellWindow : Window
         var info = _ambient.GetStatusInfo();
         AmbientStatusTitle.Text = info.StatusText;
         AmbientStatusDetail.Text = info.Subtitle;
+        _ambientFlyout.Refresh();
     }
 
     private async Task RunSelfTestAsync(string directory)

@@ -10,6 +10,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { ROUTER_HOME, type RouterConfig, type UpstreamConfig } from './config.js';
 import { ExtensionStore } from './extensions.js';
+import { InboxStore, INBOX_FILE } from './inbox.js';
 import { UpstreamPool } from './pool.js';
 import { splitToolName, unionTools, visibleTo, placardFor, type ManifestStore } from './manifest.js';
 import { ClientResolver, UsageStore, projectOf } from './usage.js';
@@ -396,6 +397,7 @@ export async function startRouter(
     pairing,
     routerHome: ROUTER_HOME,
     extensions: new ExtensionStore(join(ROUTER_HOME, 'extensions')),
+    inbox: new InboxStore(join(ROUTER_HOME, INBOX_FILE)),
     claudeHome: join(homedir(), '.claude'),
     harnesses: diskHarnessInventory(),
     analyst: new AnalystEngine({

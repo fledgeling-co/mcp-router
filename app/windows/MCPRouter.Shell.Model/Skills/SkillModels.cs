@@ -11,7 +11,11 @@ namespace MCPRouter.Shell.Model.Skills;
 /// The one modelling decision everything else follows from, carried unchanged: a <b>plugin</b> is
 /// the unit that gets installed and versioned; a <b>skill</b> is one of the things a plugin
 /// contains. So a skill's version is its <b>plugin's</b> version, and every type here says
-/// <c>plugin_version</c> rather than <c>version</c>.
+/// <c>pluginVersion</c> rather than <c>version</c>.
+///
+/// The wire is camelCase, as the router serves it (<c>src/skills.ts</c>, pinned by
+/// <c>Fixtures/skills.json</c>). The marketplace shapes are the exception still to be decided: the
+/// router serves no <c>/marketplaces</c> route, so they have no captured body to match.
 ///
 /// What is absent, by construction: there is no <c>runs</c>, <c>last_run</c> or <c>eval</c>
 /// field anywhere in this file. A skill is markdown the client loads into an agent's context; it
@@ -59,8 +63,8 @@ internal sealed class WireEnumConverter<T> : JsonStringEnumConverter<T>
 /// </summary>
 public sealed record SkillClient(
     [property: JsonPropertyName("id")] string Id,
-    [property: JsonPropertyName("display_name")] string DisplayName,
-    [property: JsonPropertyName("supports_skills")] bool SupportsSkills,
+    [property: JsonPropertyName("displayName")] string DisplayName,
+    [property: JsonPropertyName("supportsSkills")] bool SupportsSkills,
     [property: JsonPropertyName("root")] string? Root,
     [property: JsonPropertyName("status")]
     [property: JsonConverter(typeof(WireEnumConverter<SkillClientStatus>))] SkillClientStatus Status,
@@ -81,13 +85,13 @@ public abstract record SkillSource
         [property: JsonPropertyName("plugin")] string Plugin,
         [property: JsonPropertyName("marketplace")] string Marketplace,
         // The plugin's version, shared by every skill the plugin contains.
-        [property: JsonPropertyName("plugin_version")] string PluginVersion,
-        [property: JsonPropertyName("installed_at")] string? InstalledAt,
-        [property: JsonPropertyName("last_updated")] string? LastUpdated,
+        [property: JsonPropertyName("pluginVersion")] string PluginVersion,
+        [property: JsonPropertyName("installedAt")] string? InstalledAt,
+        [property: JsonPropertyName("lastUpdated")] string? LastUpdated,
         [property: JsonPropertyName("commit")] string? Commit,
         // How many skills this plugin supplies, so a shared version can be explained rather than
         // looking like a coincidence across thirty rows.
-        [property: JsonPropertyName("sibling_skill_count")] int SiblingSkillCount)
+        [property: JsonPropertyName("siblingSkillCount")] int SiblingSkillCount)
         : SkillSource;
 
     public sealed record Standalone(
@@ -149,10 +153,10 @@ public abstract record SkillSource
 /// hold both derivations to it.
 /// </summary>
 public sealed record HeldVersion(
-    [property: JsonPropertyName("plugin_version")] string PluginVersion,
-    [property: JsonPropertyName("added_capabilities")] string[] AddedCapabilities,
+    [property: JsonPropertyName("pluginVersion")] string PluginVersion,
+    [property: JsonPropertyName("addedCapabilities")] string[] AddedCapabilities,
     // How many skills promoting this plugin would move at once.
-    [property: JsonPropertyName("affected_skill_count")] int AffectedSkillCount)
+    [property: JsonPropertyName("affectedSkillCount")] int AffectedSkillCount)
 {
     /// <summary>Whether this version may promote without asking.</summary>
     public bool WantsMore => AddedCapabilities.Length > 0;
@@ -165,9 +169,9 @@ public sealed record HeldVersion(
 /// and the copy that renders it says so.
 /// </summary>
 public sealed record SkillProvenance(
-    [property: JsonPropertyName("first_seen_source")] string FirstSeenSource,
-    [property: JsonPropertyName("current_source")] string CurrentSource,
-    [property: JsonPropertyName("first_seen_at")] string FirstSeenAt);
+    [property: JsonPropertyName("firstSeenSource")] string FirstSeenSource,
+    [property: JsonPropertyName("currentSource")] string CurrentSource,
+    [property: JsonPropertyName("firstSeenAt")] string FirstSeenAt);
 
 /// <summary>
 /// One skill, wherever it is reachable from.

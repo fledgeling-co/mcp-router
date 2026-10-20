@@ -28,18 +28,18 @@ public sealed class SkillModelsTests
                 "kind": "plugin",
                 "plugin": "trawl",
                 "marketplace": "fledgeling-plugins",
-                "plugin_version": "2.2.0",
-                "installed_at": "2026-08-02",
-                "last_updated": "2026-08-17",
+                "pluginVersion": "2.2.0",
+                "installedAt": "2026-08-02",
+                "lastUpdated": "2026-08-17",
                 "commit": "4c1e08a",
-                "sibling_skill_count": 3
+                "siblingSkillCount": 3
               },
               "presence": { "claudeCode": "present", "cursor": "absent", "grok": "unreadable" },
-              "held": { "plugin_version": "2.3.0", "added_capabilities": ["network access"], "affected_skill_count": 3 },
+              "held": { "pluginVersion": "2.3.0", "addedCapabilities": ["network access"], "affectedSkillCount": 3 },
               "provenance": {
-                "first_seen_source": "github:acme-tools/skills",
-                "current_source": "github:unknown-user/skills",
-                "first_seen_at": "2026-08-01"
+                "firstSeenSource": "github:acme-tools/skills",
+                "currentSource": "github:unknown-user/skills",
+                "firstSeenAt": "2026-08-01"
               }
             },
             {
@@ -53,9 +53,9 @@ public sealed class SkillModelsTests
             }
           ],
           "clients": [
-            { "id": "claudeCode", "display_name": "Claude Code", "supports_skills": true, "root": "~/.claude/skills", "status": "read", "reason": null },
-            { "id": "grok", "display_name": "Grok", "supports_skills": true, "root": "~/.grok/installed-plugins", "status": "unreadable", "reason": "permission denied" },
-            { "id": "windsurf", "display_name": "Windsurf", "supports_skills": false, "root": null, "status": "unsupported", "reason": null }
+            { "id": "claudeCode", "displayName": "Claude Code", "supportsSkills": true, "root": "~/.claude/skills", "status": "read", "reason": null },
+            { "id": "grok", "displayName": "Grok", "supportsSkills": true, "root": "~/.grok/installed-plugins", "status": "unreadable", "reason": "permission denied" },
+            { "id": "windsurf", "displayName": "Windsurf", "supportsSkills": false, "root": null, "status": "unsupported", "reason": null }
           ]
         }
         """;

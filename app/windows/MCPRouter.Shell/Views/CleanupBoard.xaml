@@ -63,8 +63,8 @@
                     <StackPanel x:Name="NeverCalledContainer" />
                 </Border>
 
-                <!-- Section: Quiet for 30 days or more -->
-                <TextBlock Text="Quiet for 30 days or more" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" Margin="0,8,0,0" />
+                <!-- Section: Quiet for the window the selector chose -->
+                <TextBlock x:Name="QuietSectionHeading" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" Margin="0,8,0,0" />
                 <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                         BorderThickness="1"

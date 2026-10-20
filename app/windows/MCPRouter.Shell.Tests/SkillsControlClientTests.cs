@@ -1,5 +1,6 @@
 using System.Net;
 using MCPRouter.Shell.Model.Control;
+using MCPRouter.Shell.Model.Skills;
 using Xunit;
 
 namespace MCPRouter.Shell.Tests;
@@ -59,18 +60,73 @@ public sealed class SkillsControlClientTests
         Assert.EndsWith("/skills", handler.LastRequest?.RequestUri?.ToString());
     }
 
+    /// <summary>
+    /// The body <c>GET /skills</c> answered with, captured from the TypeScript router
+    /// (<c>Fixtures/skills.json</c>), read through the live client so the decode is the one the board
+    /// performs. A hand-written body would prove the decoder agrees with its author.
+    /// </summary>
     [Fact]
-    public async Task ReadsCarryNoAuthorizationHeader()
+    public async Task DecodesTheBodyTheRouterActuallyServes()
     {
-        var handler = new StubHandler(_ => Json(200, "{ \"skills\": [], \"clients\": [] }"));
+        var handler = new StubHandler(_ => Json(200, RepoRoot.Read("app/windows/MCPRouter.Shell.Tests/Fixtures/skills.json")));
         var client = new LiveSkillsControlClient(new HttpClient(handler));
+
+        var response = await client.SkillsAsync();
+
+        var trawl = Assert.Single(response.SkillList, s => s.Name == "trawl");
+        var origin = Assert.IsType<SkillSource.PluginOrigin>(trawl.Source);
+        Assert.Equal("2.2.0", origin.PluginVersion);
+        Assert.Equal("fledgeling-plugins", origin.Marketplace);
+        Assert.Equal(1, origin.SiblingSkillCount);
+        Assert.Equal(SkillPresence.Present, trawl.Presence["claudeCode"]);
+        Assert.Equal("2.3.0", trawl.Held?.PluginVersion);
+        Assert.True(trawl.Held?.WantsMore);
+
+        var graphify = Assert.Single(response.SkillList, s => s.Name == "graphify");
+        Assert.True(graphify.Source.IsStandalone);
+        Assert.Null(graphify.Held);
+
+        Assert.Equal(8, response.ClientList.Count);
+        Assert.Equal(6, response.SlotClients.Count);
+        Assert.Equal(2, response.UnsupportedClients.Count);
+        Assert.Equal(SkillClientStatus.Read, response.ClientList.Single(c => c.Id == "claudeCode").Status);
+    }
+
+    /// <summary>
+    /// <c>GET /skills</c> is token-gated on every method (<c>src/control.ts</c>), so the read carries the
+    /// router's own control token, read from its file at call time the way the Servers client sends it.
+    /// </summary>
+    [Fact]
+    public async Task ReadsCarryTheControlTokenAsABearerHeader()
+    {
+        var home = NewHome();
+        File.WriteAllText(System.IO.Path.Combine(home, "control.token"), "test-token-value");
+        var handler = new StubHandler(_ => Json(200, "{ \"skills\": [], \"clients\": [] }"));
+        var client = new LiveSkillsControlClient(new HttpClient(handler), tokenFile: new RouterTokenFile(home));
 
         await client.SkillsAsync();
 
-        // The router requires the token on mutating requests only; a read that shipped one would
-        // be the read path inventing a credential requirement - and a test-time giveaway of the
-        // token's very existence.
+        Assert.Equal("Bearer test-token-value", handler.LastRequest!.Headers.Authorization?.ToString());
+    }
+
+    [Fact]
+    public async Task ReadsSendNoAuthorizationWhenThereIsNoTokenFile()
+    {
+        // No token file means the router has never run here, so there is no credential to send and
+        // no reason for the read to invent one.
+        var handler = new StubHandler(_ => Json(200, "{ \"skills\": [], \"clients\": [] }"));
+        var client = new LiveSkillsControlClient(new HttpClient(handler), tokenFile: new RouterTokenFile(NewHome()));
+
+        await client.SkillsAsync();
+
         Assert.False(handler.LastRequest!.Headers.Contains("Authorization"));
+    }
+
+    private static string NewHome()
+    {
+        var home = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "win-skills-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(home);
+        return home;
     }
 
     [Fact]

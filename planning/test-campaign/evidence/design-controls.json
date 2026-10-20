@@ -1,7 +1,7 @@
 {
   "designOfRecord": "design/mcp-router-console.html",
   "supersededSource": "design/mocks/prototype.html",
-  "supersededSourceReason": "ORCHESTRATOR.md's Contract and campaign.json both name the console as the design of record, settled 2026-08-22. The prototype is superseded and is still read for the eleven surfaces it drew that have not been converted; which of the two each surface's controls came from is recorded per surface in `source`.",
+  "supersededSourceReason": "ORCHESTRATOR.md's Contract and campaign.json both name the console as the design of record, settled 2026-08-22. The prototype is superseded and is still read for the ten surfaces it drew that have not been converted; which of the two each surface's controls came from is recorded per surface in `source`.",
   "surfaces": {
     "SURF-001": {
       "title": "Mac shell \u2014 sidebar, title, menus",
@@ -1505,132 +1505,361 @@
     },
     "SURF-011": {
       "title": "Mac Settings board",
-      "source": "design/mocks/prototype.html",
+      "source": "design/mcp-router-console.html",
       "states": [
-        "board",
-        "sheet:pair-another",
-        "sheet:reset-history"
+        "pane:router",
+        "pane:harnesses",
+        "pane:analyst",
+        "pane:updates",
+        "pane:security",
+        "pane:menubar",
+        "pane:advanced",
+        "state:empty",
+        "state:error"
       ],
       "controls": [
-        "Can't scan? Type a code",
-        "Cancel",
-        "Check for updates automatically",
-        "Done",
-        "Pair another device\u2026",
-        "Promote an update when the capability diff is empty",
-        "Promote any update that passes its evals",
-        "Reset call history\u2026",
-        "Reset history",
-        "Unpair"
+        "Adopt new servers automatically",
+        "Analyse my sessions",
+        "Analyst cadence",
+        "Analyst model",
+        "Approve from the popover",
+        "Call history window",
+        "Check for updates",
+        "Check now",
+        "Choose\u2026",
+        "Copy",
+        "Drift check cadence",
+        "Hold a version that wants more",
+        "Hold schema changes",
+        "Idle window",
+        "Inspect\u2026",
+        "Install updates automatically",
+        "Manage\u2026",
+        "Notify me about findings",
+        "Re-index\u2026",
+        "Reconcile without asking",
+        "Restore\u2026",
+        "Reveal in Finder",
+        "Rotate\u2026",
+        "Second-opinion model",
+        "Show in the menu bar",
+        "Show the Dock icon",
+        "Skill update cadence",
+        "Start at login",
+        "Start the router",
+        "Warn about duplicates"
       ],
       "messageOnly": [
-        "Cancel",
-        "Check for updates automatically",
-        "Done",
-        "Pair another device\u2026",
-        "Promote an update when the capability diff is empty",
-        "Promote any update that passes its evals",
-        "Reset call history\u2026"
+        "Check for updates",
+        "Check now",
+        "Choose\u2026",
+        "Copy",
+        "Inspect\u2026",
+        "Manage\u2026",
+        "Restore\u2026",
+        "Reveal in Finder",
+        "Rotate\u2026"
       ],
       "detail": [
         {
-          "name": "Can't scan? Type a code",
+          "name": "Adopt new servers automatically",
           "action": "",
           "states": [
-            "sheet:pair-another"
+            "pane:harnesses"
           ],
           "rawLabels": [
-            "Can't scan? Type a code"
+            ""
           ]
         },
         {
-          "name": "Cancel",
-          "action": "closesheet",
-          "states": [
-            "sheet:reset-history"
-          ],
-          "rawLabels": [
-            "Cancel"
-          ]
-        },
-        {
-          "name": "Check for updates automatically",
-          "action": "noop",
-          "states": [
-            "board"
-          ],
-          "rawLabels": [
-            "Check for updates automatically Hourly, in the background"
-          ]
-        },
-        {
-          "name": "Done",
-          "action": "closesheet",
-          "states": [
-            "sheet:pair-another"
-          ],
-          "rawLabels": [
-            "Done"
-          ]
-        },
-        {
-          "name": "Pair another device\u2026",
-          "action": "sheet",
-          "states": [
-            "board"
-          ],
-          "rawLabels": [
-            "Pair another device\u2026"
-          ]
-        },
-        {
-          "name": "Promote an update when the capability diff is empty",
-          "action": "noop",
-          "states": [
-            "board"
-          ],
-          "rawLabels": [
-            "Promote an update when the capability diff is empty No new h"
-          ]
-        },
-        {
-          "name": "Promote any update that passes its evals",
-          "action": "noop",
-          "states": [
-            "board"
-          ],
-          "rawLabels": [
-            "Promote any update that passes its evals Off by default. Pas"
-          ]
-        },
-        {
-          "name": "Reset call history\u2026",
-          "action": "sheet",
-          "states": [
-            "board"
-          ],
-          "rawLabels": [
-            "Reset call history\u2026"
-          ]
-        },
-        {
-          "name": "Reset history",
-          "action": "doreset",
-          "states": [
-            "sheet:reset-history"
-          ],
-          "rawLabels": [
-            "Reset history"
-          ]
-        },
-        {
-          "name": "Unpair",
+          "name": "Analyse my sessions",
           "action": "",
           "states": [
-            "board"
+            "pane:analyst"
           ],
           "rawLabels": [
-            "Unpair"
+            ""
+          ]
+        },
+        {
+          "name": "Analyst cadence",
+          "action": "",
+          "states": [
+            "pane:analyst"
+          ],
+          "rawLabels": [
+            "Every 6 hours"
+          ]
+        },
+        {
+          "name": "Analyst model",
+          "action": "",
+          "states": [
+            "pane:analyst"
+          ],
+          "rawLabels": [
+            "Claude CLI \u00b7 haiku"
+          ]
+        },
+        {
+          "name": "Approve from the popover",
+          "action": "",
+          "states": [
+            "pane:menubar"
+          ],
+          "rawLabels": [
+            ""
+          ]
+        },
+        {
+          "name": "Call history window",
+          "action": "",
+          "states": [
+            "pane:security"
+          ],
+          "rawLabels": [
+            "90 days"
+          ]
+        },
+        {
+          "name": "Check for updates",
+          "action": "act:check-updates",
+          "states": [
+            "state:error"
+          ],
+          "rawLabels": [
+            "Check for updates"
+          ]
+        },
+        {
+          "name": "Check now",
+          "action": "act:check-updates",
+          "states": [
+            "pane:updates"
+          ],
+          "rawLabels": [
+            "Check now"
+          ]
+        },
+        {
+          "name": "Choose\u2026",
+          "action": "act:edit-warm",
+          "states": [
+            "pane:router",
+            "pane:analyst"
+          ],
+          "rawLabels": [
+            "Choose\u2026"
+          ]
+        },
+        {
+          "name": "Copy",
+          "action": "act:copy",
+          "states": [
+            "pane:router"
+          ],
+          "rawLabels": [
+            "Copy"
+          ]
+        },
+        {
+          "name": "Drift check cadence",
+          "action": "",
+          "states": [
+            "pane:harnesses"
+          ],
+          "rawLabels": [
+            "Every hour"
+          ]
+        },
+        {
+          "name": "Hold a version that wants more",
+          "action": "",
+          "states": [
+            "pane:updates"
+          ],
+          "rawLabels": [
+            ""
+          ]
+        },
+        {
+          "name": "Hold schema changes",
+          "action": "",
+          "states": [
+            "pane:security"
+          ],
+          "rawLabels": [
+            ""
+          ]
+        },
+        {
+          "name": "Idle window",
+          "action": "",
+          "states": [
+            "pane:router"
+          ],
+          "rawLabels": [
+            "5 minutes"
+          ]
+        },
+        {
+          "name": "Inspect\u2026",
+          "action": "sheet:path",
+          "states": [
+            "pane:router"
+          ],
+          "rawLabels": [
+            "Inspect\u2026"
+          ]
+        },
+        {
+          "name": "Install updates automatically",
+          "action": "",
+          "states": [
+            "pane:updates"
+          ],
+          "rawLabels": [
+            ""
+          ]
+        },
+        {
+          "name": "Manage\u2026",
+          "action": "board:inbox",
+          "states": [
+            "pane:security"
+          ],
+          "rawLabels": [
+            "Manage\u2026"
+          ]
+        },
+        {
+          "name": "Notify me about findings",
+          "action": "",
+          "states": [
+            "pane:analyst"
+          ],
+          "rawLabels": [
+            ""
+          ]
+        },
+        {
+          "name": "Re-index\u2026",
+          "action": "act:reindex",
+          "states": [
+            "pane:advanced"
+          ],
+          "rawLabels": [
+            "Re-index\u2026"
+          ]
+        },
+        {
+          "name": "Reconcile without asking",
+          "action": "",
+          "states": [
+            "pane:harnesses"
+          ],
+          "rawLabels": [
+            ""
+          ]
+        },
+        {
+          "name": "Restore\u2026",
+          "action": "sheet:confirm-remove",
+          "states": [
+            "pane:advanced"
+          ],
+          "rawLabels": [
+            "Restore\u2026"
+          ]
+        },
+        {
+          "name": "Reveal in Finder",
+          "action": "act:copy-log",
+          "states": [
+            "pane:advanced"
+          ],
+          "rawLabels": [
+            "Reveal in Finder"
+          ]
+        },
+        {
+          "name": "Rotate\u2026",
+          "action": "act:rotate",
+          "states": [
+            "pane:security"
+          ],
+          "rawLabels": [
+            "Rotate\u2026"
+          ]
+        },
+        {
+          "name": "Second-opinion model",
+          "action": "",
+          "states": [
+            "pane:analyst"
+          ],
+          "rawLabels": [
+            "Grok CLI \u00b7 grok-4.6 medium"
+          ]
+        },
+        {
+          "name": "Show in the menu bar",
+          "action": "",
+          "states": [
+            "pane:menubar"
+          ],
+          "rawLabels": [
+            ""
+          ]
+        },
+        {
+          "name": "Show the Dock icon",
+          "action": "",
+          "states": [
+            "pane:menubar"
+          ],
+          "rawLabels": [
+            ""
+          ]
+        },
+        {
+          "name": "Skill update cadence",
+          "action": "",
+          "states": [
+            "pane:updates"
+          ],
+          "rawLabels": [
+            "Every 12 hours"
+          ]
+        },
+        {
+          "name": "Start at login",
+          "action": "",
+          "states": [
+            "pane:router"
+          ],
+          "rawLabels": [
+            ""
+          ]
+        },
+        {
+          "name": "Start the router",
+          "action": "act:restart",
+          "states": [
+            "state:empty"
+          ],
+          "rawLabels": [
+            "Start the router"
+          ]
+        },
+        {
+          "name": "Warn about duplicates",
+          "action": "",
+          "states": [
+            "pane:harnesses"
+          ],
+          "rawLabels": [
+            ""
           ]
         }
       ],

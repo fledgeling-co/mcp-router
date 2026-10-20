@@ -18,9 +18,10 @@ Both were found by differential, one board at a time, against a mock that had to
 accessibility dump that had to be on disk. A declared control list answers the same question by
 census, for every board at once, and keeps answering it after the dumps go stale.
 
-So the eleven surfaces below come from `design/mocks/prototype.html` and the three after them from
+So the ten surfaces below come from `design/mocks/prototype.html` and the four after them from
 `design/mcp-router-console.html`, each from the design that actually draws it, recorded per surface
-in `source`.
+in `source`. SURF-011 moved to the console on 2026-10-20: the prototype's Settings board predates the
+console's seven-pane Settings window, and the census was reading a superseded drawing for it.
 
 THE DIRECTION HAS SINCE REVERSED, and this header used to state it the other way round: the design
 half of `vocab-differential.py` was a live render of the prototype, and this file cited that as its
@@ -188,11 +189,6 @@ SURFACES: list[tuple[str, str, list[tuple[str, str, str, str]]]] = [
     ("SURF-010", "Mac Pairing sheet", [
         ("sheet:pair", "sheet=pair", "", ".sh"),
     ]),
-    ("SURF-011", "Mac Settings board", [
-        ("board", "pane=settings", "", ".main"),
-        ("sheet:pair-another", "pane=settings&sheet=pair", "", ".sh"),
-        ("sheet:reset-history", "pane=settings&sheet=reset", "", ".sh"),
-    ]),
 ]
 
 # The mock's own action table, read at `const A={…}`. An entry here is a control whose only
@@ -261,6 +257,12 @@ OVERRIDES: dict[str, str] = {
     "Claude CLI \u00b7 haiku": "Analyst model",
     "Grok CLI \u00b7 grok-4.6 medium": "Second-opinion model",
     "Every 6 hours": "Analyst cadence",
+    # The Settings panes' popups, the same way: each closed label is the value the fixture chose,
+    # and the name is the row the popup belongs to.
+    "5 minutes": "Idle window",
+    "90 days": "Call history window",
+    "Every hour": "Drift check cadence",
+    "Every 12 hours": "Skill update cadence",
 }
 
 # Classes the mock draws a DATA ROW with. A row is one affordance repeated per fixture item, so it
@@ -270,7 +272,7 @@ ROW_CLASSES = {"tr", "brk", "bandr", "card", "trow", "sf-card", "side-row", "her
 
 # ── THE SECOND SOURCE, AND WHY THERE HAS TO BE ONE ──────────────────────────────────────────────
 #
-# The eleven surfaces above come from `design/mocks/prototype.html`, which is where they were
+# The ten surfaces above come from `design/mocks/prototype.html`, which is where they were
 # drawn. Three Mac surfaces are not in it AT ALL, because they were drawn after it:
 # M22 added the Harnesses and Insights boards and M30 added the capability-document panel, and the
 # same three are the ones `surface-reconcile.py` was written for after they shipped with no campaign
@@ -289,7 +291,31 @@ ROW_CLASSES = {"tr", "brk", "bandr", "card", "trow", "sf-card", "side-row", "her
 # record in the repository contradicts. It now names the console, and the prototype is labelled as
 # what it is. No harvested data moves with this — the per-surface `source` fields were already
 # right, and they are what anything downstream reads.
+def _settings(pane: str) -> str:
+    """Open the console's Settings window and select one of its panes.
+
+    The window is `#swin`, hidden until `act:settings` opens it, and each pane is a `#sp-*` section
+    shown only while its `data-pane` tab is selected. Selecting the tab is the design's own route
+    to the pane, so the harvest reads what a reader would see rather than reaching into the page.
+    """
+    return ("document.querySelector(\"[data-act='act:settings']\").click();"
+            f"document.querySelector(\"[data-pane='{pane}']\").click()")
+
+
 CONSOLE_SURFACES: list[tuple[str, str, list[tuple[str, str, str]]]] = [
+    ("SURF-011", "Mac Settings board", [
+        ("pane:router", _settings("router"), "#sp-router"),
+        ("pane:harnesses", _settings("harnesses"), "#sp-harnesses"),
+        ("pane:analyst", _settings("analyst"), "#sp-analyst"),
+        ("pane:updates", _settings("updates"), "#sp-updates"),
+        ("pane:security", _settings("security"), "#sp-security"),
+        ("pane:menubar", _settings("menubar"), "#sp-menubar"),
+        ("pane:advanced", _settings("advanced"), "#sp-advanced"),
+        ("state:empty", _settings("router") + ";document.getElementById('swin').dataset.state='empty'",
+         "#swin .v-empty"),
+        ("state:error", _settings("router") + ";document.getElementById('swin').dataset.state='error'",
+         "#swin .v-error"),
+    ]),
     ("SURF-025", "Mac Harnesses board", [
         ("board:ideal", "BOARDS('ideal')", "#b-harnesses"),
         ("board:empty", "BOARDS('empty')", "#b-harnesses"),
@@ -567,7 +593,7 @@ def main() -> int:
         "supersededSource": str(MOCK.relative_to(ROOT)),
         "supersededSourceReason": "ORCHESTRATOR.md's Contract and campaign.json both name the "
                                   "console as the design of record, settled 2026-08-22. The "
-                                  "prototype is superseded and is still read for the eleven "
+                                  "prototype is superseded and is still read for the ten "
                                   "surfaces it drew that have not been converted; which of the two "
                                   "each surface's controls came from is recorded per surface in "
                                   "`source`.",

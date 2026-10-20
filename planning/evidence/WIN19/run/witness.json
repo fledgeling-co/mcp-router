@@ -1,101 +1,85 @@
 {
-  "lane": "win19-package-witness",
-  "rung": "effect-witness",
-  "subject": "app/windows/packaging (AppxManifest.xml, winget/*.yaml)",
-  "writers": [
-    "MakeAppx.exe pack",
-    "Add-AppxPackage",
-    "Remove-AppxPackage"
-  ],
-  "recorders": [
-    "System.IO.Compression.ZipArchive reading the packed OPC container - not MakeAppx",
-    "winget validate - the winget client, applying a schema this repository does not own",
-    "Get-AppxPackage - the Windows deployment stack reporting its own state"
-  ],
-  "recorderIsNotWriter": true,
-  "arming": false,
-  "verdict": "PASS",
-  "reason": "all 12 arm(s) held: the manifest packs into an MSIX carrying the executable it names under the identity PackagingPresentation states, the winget client accepts the three YAML files, Windows deployed the package and reported it, and removing it left the configuration UninstallGuidance promises to preserve in place.",
-  "arms": [
-    {
-      "id": "BASELINE",
-      "what": "no package on disk before this run",
-      "held": true,
-      "detail": "so what the arms below read is this build"
-    },
-    {
-      "id": "PACK.container",
-      "what": "the artifact is an OPC container holding a manifest",
-      "held": true,
-      "detail": "517 entries"
-    },
-    {
-      "id": "PACK.identity",
-      "what": "the packed identity is the one PackagingPresentation states",
-      "held": true,
-      "detail": "Name=Fledgeling.MCPRouter Publisher=CN=Fledgeling"
-    },
-    {
-      "id": "PACK.capabilities",
-      "what": "exactly one capability is requested, and it is runFullTrust",
-      "held": true,
-      "detail": "1 capability element(s): runFullTrust. More than one is a decision about what the operator is asked to permit at install time, and it should not be made by an editor tidying a manifest."
-    },
-    {
-      "id": "PACK.payload",
-      "what": "the package actually carries the executable it names",
-      "held": true,
-      "detail": "MCPRouter.Shell.exe is inside the container (MakeAppx also refuses to pack without it)"
-    },
-    {
-      "id": "WINGET.validate",
-      "what": "the winget client accepts the manifest",
-      "held": true,
-      "detail": "Manifest validation succeeded."
-    },
-    {
-      "id": "WINGET.placeholder",
-      "what": "the installer URL is still an unmistakable placeholder",
-      "held": true,
-      "detail": "nothing publishes this package, so a plausible-looking URL would be a lie that validates"
-    },
-    {
-      "id": "INSTALL.baseline",
-      "what": "the package is not installed before this run",
-      "held": true,
-      "detail": "so the install arm measures this deployment"
-    },
-    {
-      "id": "INSTALL",
-      "what": "the Windows deployment stack reports the package installed",
-      "held": true,
-      "detail": "PackageFullName=Fledgeling.MCPRouter_0.1.0.0_x64__facmrsw33693e"
-    },
-    {
-      "id": "INSTALL.identity",
-      "what": "the deployed publisher is the one the manifest declared",
-      "held": true,
-      "detail": "Publisher=CN=Fledgeling"
-    },
-    {
-      "id": "UNINSTALL",
-      "what": "the package is gone once removed",
-      "held": true,
-      "detail": "Get-AppxPackage reports nothing, so its earlier yes was a reading"
-    },
-    {
-      "id": "UNINSTALL.preserves",
-      "what": "the configuration UninstallGuidance names survives",
-      "held": true,
-      "detail": "checked C:\\Users\\rhode\\.claude\\mcp-router\\win19-witness-marker.txt"
-    }
-  ],
-  "armsHeld": 12,
-  "armsTotal": 12,
-  "notMeasured": [
-    "that `winget install Fledgeling.MCPRouter` works - nothing publishes the package anywhere, the InstallerUrl is a deliberate placeholder, and this lane asserts it is one (DEF-083)",
-    "that a code-signed release installs without a SmartScreen prompt - this lane self-signs, which is the opposite of the case the disclosure is about"
-  ],
-  "notes": [],
-  "host": "Z13"
+    "lane":  "win19-package-witness",
+    "rung":  "effect-witness",
+    "subject":  "app/windows/packaging (AppxManifest.xml, winget/*.yaml)",
+    "writers":  [
+                    "MakeAppx.exe pack",
+                    "Add-AppxPackage",
+                    "Remove-AppxPackage"
+                ],
+    "recorders":  [
+                      "System.IO.Compression.ZipArchive reading the packed OPC container - not MakeAppx",
+                      "winget validate - the winget client, applying a schema this repository does not own",
+                      "Get-AppxPackage - the Windows deployment stack reporting its own state"
+                  ],
+    "recorderIsNotWriter":  true,
+    "arming":  false,
+    "verdict":  "FAIL",
+    "reason":  "1 of 9 arm(s) broke: INSTALL",
+    "arms":  [
+                 {
+                     "id":  "BASELINE",
+                     "what":  "no package on disk before this run",
+                     "held":  true,
+                     "detail":  "so what the arms below read is this build"
+                 },
+                 {
+                     "id":  "PACK.container",
+                     "what":  "the artifact is an OPC container holding a manifest",
+                     "held":  true,
+                     "detail":  "517 entries"
+                 },
+                 {
+                     "id":  "PACK.identity",
+                     "what":  "the packed identity is the one PackagingPresentation states",
+                     "held":  true,
+                     "detail":  "Name=Fledgeling.MCPRouter Publisher=CN=Fledgeling"
+                 },
+                 {
+                     "id":  "PACK.capabilities",
+                     "what":  "exactly one capability is requested, and it is runFullTrust",
+                     "held":  true,
+                     "detail":  "1 capability element(s): runFullTrust. More than one is a decision about what the operator is asked to permit at install time, and it should not be made by an editor tidying a manifest."
+                 },
+                 {
+                     "id":  "PACK.payload",
+                     "what":  "the package actually carries the executable it names",
+                     "held":  true,
+                     "detail":  "MCPRouter.Shell.exe is inside the container (MakeAppx also refuses to pack without it)"
+                 },
+                 {
+                     "id":  "WINGET.validate",
+                     "what":  "the winget client accepts the manifest",
+                     "held":  true,
+                     "detail":  "Manifest validation succeeded."
+                 },
+                 {
+                     "id":  "WINGET.placeholder",
+                     "what":  "the installer URL is still an unmistakable placeholder",
+                     "held":  true,
+                     "detail":  "nothing publishes this package, so a plausible-looking URL would be a lie that validates"
+                 },
+                 {
+                     "id":  "INSTALL.baseline",
+                     "what":  "the package is not installed before this run",
+                     "held":  true,
+                     "detail":  "so the install arm measures this deployment"
+                 },
+                 {
+                     "id":  "INSTALL",
+                     "what":  "the Windows deployment stack reports the package installed",
+                     "held":  false,
+                     "detail":  "Add-AppxPackage did not deploy it: Deployment failed with HRESULT: 0x80070005, Access is denied.\r\n\r\nDeployment Add operation with target volume C: on Package Fledgeling.MCPRouter_0.1.0.0_x64__facmrsw33693e from:  (MCPRouter.Shell.msix)  failed with error 0x80070005. See http://go.microsoft.com/fwlink/?LinkId=235160 for help diagnosing app deployment issues.\n\nNOTE: For additional information, look for [ActivityId] 46849c8d-5dd6-0004-3505-504dd65ddd01 in the Event Log or use the command line Get-AppPackageLog -ActivityID 46849c8d-5dd6-0004-3505-504dd65ddd01\n"
+                 }
+             ],
+    "armsHeld":  8,
+    "armsTotal":  9,
+    "notMeasured":  [
+                        "that `winget install Fledgeling.MCPRouter` works - nothing publishes the package anywhere, the InstallerUrl is a deliberate placeholder, and this lane asserts it is one (DEF-083)",
+                        "that a code-signed release installs without a SmartScreen prompt - this lane self-signs, which is the opposite of the case the disclosure is about"
+                    ],
+    "notes":  [
+
+              ],
+    "host":  "Z13"
 }

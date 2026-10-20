@@ -1,23 +1,23 @@
 ﻿{
     "schema":  "win20.uia-dump/1",
-    "capturedAtUtc":  "2026-09-03T04:46:54.3261148Z",
+    "capturedAtUtc":  "2026-10-20T02:39:48.5959965Z",
     "host":  {
-                 "osVersion":  "10.0.26220.0",
-                 "psVersion":  "5.1.26100.9223",
+                 "osVersion":  "10.0.26200.0",
+                 "psVersion":  "5.1.26100.9711",
                  "machine":  "Z13"
              },
     "request":  {
-                    "processId":  36364,
+                    "processId":  4268,
                     "titleContains":  "",
                     "view":  "Control"
                 },
     "targets":  [
                     {
-                        "hwnd":  3344534,
+                        "hwnd":  328984,
                         "name":  "Skills",
                         "className":  "WinUIDesktopWin32WindowClass",
                         "frameworkId":  "Win32",
-                        "processId":  36364,
+                        "processId":  4268,
                         "isVisible":  true,
                         "isMinimised":  false
                     }
@@ -25,22 +25,22 @@
     "foregroundSamples":  [
                               {
                                   "when":  "before",
-                                  "hwnd":  3344534,
-                                  "processId":  36364
+                                  "hwnd":  328984,
+                                  "processId":  4268
                               },
                               {
                                   "when":  "midwalk",
-                                  "hwnd":  3344534,
-                                  "processId":  36364
+                                  "hwnd":  328984,
+                                  "processId":  4268
                               },
                               {
                                   "when":  "after",
-                                  "hwnd":  3344534,
-                                  "processId":  36364
+                                  "hwnd":  328984,
+                                  "processId":  4268
                               }
                           ],
     "truncated":  false,
-    "elementCount":  59,
+    "elementCount":  56,
     "elements":  [
                      {
                          "depth":  0,
@@ -61,10 +61,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  266,
+                                                   "y":  152,
                                                    "width":  1920,
-                                                   "height":  1124,
-                                                   "x":  266
+                                                   "height":  1117,
+                                                   "x":  152
                                                },
                          "patterns":  [
                                           "TransformPatternIdentifiers.Pattern",
@@ -93,10 +93,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  421,
+                                                   "y":  307,
                                                    "width":  457,
                                                    "height":  88,
-                                                   "x":  241
+                                                   "x":  127
                                                },
                          "patterns":  [
 
@@ -124,10 +124,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  267,
+                                                   "y":  153,
                                                    "width":  1898,
-                                                   "height":  1112,
-                                                   "x":  277
+                                                   "height":  1105,
+                                                   "x":  163
                                                },
                          "patterns":  [
                                           "TransformPatternIdentifiers.Pattern"
@@ -186,10 +186,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  423,
+                                                   "y":  309,
                                                    "width":  445,
                                                    "height":  73,
-                                                   "x":  247
+                                                   "x":  133
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern"
@@ -217,10 +217,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  434,
+                                                   "y":  320,
                                                    "width":  414,
                                                    "height":  48,
-                                                   "x":  262
+                                                   "x":  148
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -249,10 +249,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  266,
+                                                   "y":  152,
                                                    "width":  1898,
                                                    "height":  60,
-                                                   "x":  277
+                                                   "x":  163
                                                },
                          "patterns":  [
 
@@ -280,10 +280,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  266,
+                                                   "y":  152,
                                                    "width":  207,
                                                    "height":  48,
-                                                   "x":  1968
+                                                   "x":  1854
                                                },
                          "patterns":  [
 
@@ -311,10 +311,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  266,
+                                                   "y":  152,
                                                    "width":  69,
                                                    "height":  48,
-                                                   "x":  1968
+                                                   "x":  1854
                                                },
                          "patterns":  [
                                           "InvokePatternIdentifiers.Pattern"
@@ -342,10 +342,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  266,
+                                                   "y":  152,
                                                    "width":  69,
                                                    "height":  48,
-                                                   "x":  2037
+                                                   "x":  1923
                                                },
                          "patterns":  [
                                           "InvokePatternIdentifiers.Pattern"
@@ -373,10 +373,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  266,
+                                                   "y":  152,
                                                    "width":  69,
                                                    "height":  48,
-                                                   "x":  2106
+                                                   "x":  1992
                                                },
                          "patterns":  [
                                           "InvokePatternIdentifiers.Pattern"
@@ -404,10 +404,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  267,
+                                                   "y":  153,
                                                    "width":  1898,
-                                                   "height":  1112,
-                                                   "x":  277
+                                                   "height":  1105,
+                                                   "x":  163
                                                },
                          "patterns":  [
 
@@ -435,10 +435,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  267,
+                                                   "y":  153,
                                                    "width":  1898,
-                                                   "height":  1112,
-                                                   "x":  277
+                                                   "height":  1105,
+                                                   "x":  163
                                                },
                          "patterns":  [
                                           "TransformPatternIdentifiers.Pattern"
@@ -466,10 +466,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  267,
+                                                   "y":  153,
                                                    "width":  534,
                                                    "height":  60,
-                                                   "x":  337
+                                                   "x":  223
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern"
@@ -497,10 +497,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  273,
+                                                   "y":  159,
                                                    "width":  61,
                                                    "height":  48,
-                                                   "x":  343
+                                                   "x":  229
                                                },
                          "patterns":  [
                                           "ExpandCollapsePatternIdentifiers.Pattern",
@@ -530,10 +530,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  273,
+                                                   "y":  159,
                                                    "width":  66,
                                                    "height":  48,
-                                                   "x":  417
+                                                   "x":  303
                                                },
                          "patterns":  [
                                           "ExpandCollapsePatternIdentifiers.Pattern",
@@ -563,10 +563,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  273,
+                                                   "y":  159,
                                                    "width":  74,
                                                    "height":  48,
-                                                   "x":  495
+                                                   "x":  381
                                                },
                          "patterns":  [
                                           "ExpandCollapsePatternIdentifiers.Pattern",
@@ -596,10 +596,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  273,
+                                                   "y":  159,
                                                    "width":  92,
                                                    "height":  48,
-                                                   "x":  582
+                                                   "x":  468
                                                },
                          "patterns":  [
                                           "ExpandCollapsePatternIdentifiers.Pattern",
@@ -629,10 +629,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  273,
+                                                   "y":  159,
                                                    "width":  93,
                                                    "height":  48,
-                                                   "x":  686
+                                                   "x":  572
                                                },
                          "patterns":  [
                                           "ExpandCollapsePatternIdentifiers.Pattern",
@@ -662,10 +662,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  273,
+                                                   "y":  159,
                                                    "width":  74,
                                                    "height":  48,
-                                                   "x":  791
+                                                   "x":  677
                                                },
                          "patterns":  [
                                           "ExpandCollapsePatternIdentifiers.Pattern",
@@ -695,10 +695,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  283,
+                                                   "y":  169,
                                                    "width":  48,
                                                    "height":  28,
-                                                   "x":  913
+                                                   "x":  799
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -727,10 +727,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  327,
+                                                   "y":  213,
                                                    "width":  1897,
-                                                   "height":  1052,
-                                                   "x":  277
+                                                   "height":  1045,
+                                                   "x":  163
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -762,10 +762,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  336,
+                                                   "y":  222,
                                                    "width":  60,
                                                    "height":  54,
-                                                   "x":  283
+                                                   "x":  169
                                                },
                          "patterns":  [
                                           "InvokePatternIdentifiers.Pattern",
@@ -826,10 +826,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  327,
+                                                   "y":  213,
                                                    "width":  384,
-                                                   "height":  1052,
-                                                   "x":  277
+                                                   "height":  1045,
+                                                   "x":  163
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern"
@@ -857,10 +857,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  394,
+                                                   "y":  280,
                                                    "width":  382,
-                                                   "height":  814,
-                                                   "x":  278
+                                                   "height":  806,
+                                                   "x":  164
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -889,10 +889,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  410,
+                                                   "y":  296,
                                                    "width":  370,
                                                    "height":  760,
-                                                   "x":  284
+                                                   "x":  170
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern"
@@ -920,10 +920,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  410,
+                                                   "y":  296,
                                                    "width":  49,
                                                    "height":  28,
-                                                   "x":  302
+                                                   "x":  188
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -952,10 +952,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  457,
+                                                   "y":  343,
                                                    "width":  370,
                                                    "height":  54,
-                                                   "x":  284
+                                                   "x":  170
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -984,10 +984,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  517,
+                                                   "y":  403,
                                                    "width":  370,
                                                    "height":  54,
-                                                   "x":  284
+                                                   "x":  170
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1016,10 +1016,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  590,
+                                                   "y":  476,
                                                    "width":  76,
                                                    "height":  27,
-                                                   "x":  302
+                                                   "x":  188
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1048,10 +1048,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  637,
+                                                   "y":  523,
                                                    "width":  370,
                                                    "height":  54,
-                                                   "x":  284
+                                                   "x":  170
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1080,10 +1080,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  697,
+                                                   "y":  583,
                                                    "width":  370,
                                                    "height":  54,
-                                                   "x":  284
+                                                   "x":  170
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1112,10 +1112,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  757,
+                                                   "y":  643,
                                                    "width":  370,
                                                    "height":  53,
-                                                   "x":  284
+                                                   "x":  170
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1144,10 +1144,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  830,
+                                                   "y":  716,
                                                    "width":  124,
                                                    "height":  28,
-                                                   "x":  302
+                                                   "x":  188
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1176,10 +1176,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  877,
+                                                   "y":  763,
                                                    "width":  370,
                                                    "height":  54,
-                                                   "x":  284
+                                                   "x":  170
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1208,10 +1208,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  937,
+                                                   "y":  823,
                                                    "width":  370,
                                                    "height":  54,
-                                                   "x":  284
+                                                   "x":  170
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1240,10 +1240,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1010,
+                                                   "y":  896,
                                                    "width":  91,
                                                    "height":  28,
-                                                   "x":  302
+                                                   "x":  188
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1272,10 +1272,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1057,
+                                                   "y":  943,
                                                    "width":  370,
                                                    "height":  53,
-                                                   "x":  284
+                                                   "x":  170
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1304,10 +1304,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1116,
+                                                   "y":  1002,
                                                    "width":  370,
                                                    "height":  54,
-                                                   "x":  284
+                                                   "x":  170
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1322,13 +1322,13 @@
                          "path":  "/3/0/2/1/1",
                          "automationId":  "ambient.status",
                          "name":  "Router status",
-                         "controlType":  "Group",
-                         "localizedControlType":  "group",
-                         "className":  "NamedContainerAutomationPeer",
+                         "controlType":  "Button",
+                         "localizedControlType":  "button",
+                         "className":  "Button",
                          "frameworkId":  "XAML",
                          "isEnabled":  true,
                          "isOffscreen":  false,
-                         "isKeyboardFocusable":  false,
+                         "isKeyboardFocusable":  true,
                          "hasKeyboardFocus":  false,
                          "isContentElement":  true,
                          "isControlElement":  true,
@@ -1336,12 +1336,13 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1214,
+                                                   "y":  1092,
                                                    "width":  334,
                                                    "height":  75,
-                                                   "x":  302
+                                                   "x":  188
                                                },
                          "patterns":  [
+                                          "InvokePatternIdentifiers.Pattern",
                                           "ScrollItemPatternIdentifiers.Pattern"
                                       ],
                          "patternState":  {
@@ -1367,10 +1368,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1214,
+                                                   "y":  1092,
                                                    "width":  334,
                                                    "height":  24,
-                                                   "x":  302
+                                                   "x":  188
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1399,10 +1400,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1241,
+                                                   "y":  1119,
                                                    "width":  334,
                                                    "height":  48,
-                                                   "x":  302
+                                                   "x":  188
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1431,10 +1432,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1313,
+                                                   "y":  1192,
                                                    "width":  382,
                                                    "height":  60,
-                                                   "x":  278
+                                                   "x":  164
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1463,10 +1464,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1316,
+                                                   "y":  1195,
                                                    "width":  370,
                                                    "height":  54,
-                                                   "x":  284
+                                                   "x":  170
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern"
@@ -1494,10 +1495,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  1316,
+                                                   "y":  1195,
                                                    "width":  370,
                                                    "height":  54,
-                                                   "x":  284
+                                                   "x":  170
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1526,10 +1527,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  355,
+                                                   "y":  241,
                                                    "width":  1437,
-                                                   "height":  746,
-                                                   "x":  701
+                                                   "height":  704,
+                                                   "x":  587
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern"
@@ -1557,10 +1558,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  355,
+                                                   "y":  241,
                                                    "width":  903,
                                                    "height":  39,
-                                                   "x":  701
+                                                   "x":  587
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1589,10 +1590,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  401,
+                                                   "y":  287,
                                                    "width":  903,
                                                    "height":  28,
-                                                   "x":  701
+                                                   "x":  587
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1621,10 +1622,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  368,
+                                                   "y":  254,
                                                    "width":  141,
                                                    "height":  48,
-                                                   "x":  1605
+                                                   "x":  1491
                                                },
                          "patterns":  [
                                           "InvokePatternIdentifiers.Pattern",
@@ -1653,10 +1654,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "Marketplaces are the Discover board\u0027s; WIN7 builds the add-marketplace sheet.",
                          "boundingRectangle":  {
-                                                   "y":  368,
+                                                   "y":  254,
                                                    "width":  209,
                                                    "height":  48,
-                                                   "x":  1758
+                                                   "x":  1644
                                                },
                          "patterns":  [
                                           "InvokePatternIdentifiers.Pattern",
@@ -1685,10 +1686,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "Changing what is installed arrives with the item that can do it safely - these files are open in your other apps while this one is running.",
                          "boundingRectangle":  {
-                                                   "y":  368,
+                                                   "y":  254,
                                                    "width":  159,
                                                    "height":  48,
-                                                   "x":  1979
+                                                   "x":  1865
                                                },
                          "patterns":  [
                                           "InvokePatternIdentifiers.Pattern",
@@ -1717,10 +1718,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  447,
+                                                   "y":  333,
                                                    "width":  172,
                                                    "height":  47,
-                                                   "x":  701
+                                                   "x":  587
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1749,10 +1750,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  447,
+                                                   "y":  333,
                                                    "width":  217,
                                                    "height":  47,
-                                                   "x":  879
+                                                   "x":  765
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1781,10 +1782,10 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  447,
+                                                   "y":  333,
                                                    "width":  171,
                                                    "height":  47,
-                                                   "x":  1102
+                                                   "x":  988
                                                },
                          "patterns":  [
                                           "ScrollItemPatternIdentifiers.Pattern",
@@ -1797,8 +1798,8 @@
                      {
                          "depth":  5,
                          "path":  "/3/0/2/2/8",
-                         "automationId":  "skills.error",
-                         "name":  "The router sent a response this version doesn\u0027t understand. The router may be newer or older than this app (this router has no /skills endpoint).",
+                         "automationId":  "skills.loading",
+                         "name":  "Loading skills",
                          "controlType":  "Group",
                          "localizedControlType":  "group",
                          "className":  "NamedContainerAutomationPeer",
@@ -1813,108 +1814,12 @@
                          "acceleratorKey":  "",
                          "helpText":  "",
                          "boundingRectangle":  {
-                                                   "y":  783,
-                                                   "width":  771,
-                                                   "height":  318,
-                                                   "x":  1034
+                                                   "y":  416,
+                                                   "width":  1437,
+                                                   "height":  528,
+                                                   "x":  587
                                                },
                          "patterns":  [
-                                          "ScrollItemPatternIdentifiers.Pattern"
-                                      ],
-                         "patternState":  {
-
-                                          }
-                     },
-                     {
-                         "depth":  6,
-                         "path":  "/3/0/2/2/8/0",
-                         "automationId":  "ErrorHeadline",
-                         "name":  "The router sent a response this version doesn\u0027t understand",
-                         "controlType":  "Text",
-                         "localizedControlType":  "text",
-                         "className":  "TextBlock",
-                         "frameworkId":  "XAML",
-                         "isEnabled":  true,
-                         "isOffscreen":  false,
-                         "isKeyboardFocusable":  false,
-                         "hasKeyboardFocus":  false,
-                         "isContentElement":  true,
-                         "isControlElement":  true,
-                         "accessKey":  "",
-                         "acceleratorKey":  "",
-                         "helpText":  "",
-                         "boundingRectangle":  {
-                                                   "y":  890,
-                                                   "width":  672,
-                                                   "height":  28,
-                                                   "x":  1084
-                                               },
-                         "patterns":  [
-                                          "ScrollItemPatternIdentifiers.Pattern",
-                                          "TextPatternIdentifiers.Pattern"
-                                      ],
-                         "patternState":  {
-
-                                          }
-                     },
-                     {
-                         "depth":  6,
-                         "path":  "/3/0/2/2/8/1",
-                         "automationId":  "ErrorAdvice",
-                         "name":  "The router may be newer or older than this app (this router has no /skills endpoint).",
-                         "controlType":  "Text",
-                         "localizedControlType":  "text",
-                         "className":  "TextBlock",
-                         "frameworkId":  "XAML",
-                         "isEnabled":  true,
-                         "isOffscreen":  false,
-                         "isKeyboardFocusable":  false,
-                         "hasKeyboardFocus":  false,
-                         "isContentElement":  true,
-                         "isControlElement":  true,
-                         "accessKey":  "",
-                         "acceleratorKey":  "",
-                         "helpText":  "",
-                         "boundingRectangle":  {
-                                                   "y":  933,
-                                                   "width":  672,
-                                                   "height":  56,
-                                                   "x":  1084
-                                               },
-                         "patterns":  [
-                                          "ScrollItemPatternIdentifiers.Pattern",
-                                          "TextPatternIdentifiers.Pattern"
-                                      ],
-                         "patternState":  {
-
-                                          }
-                     },
-                     {
-                         "depth":  6,
-                         "path":  "/3/0/2/2/8/2",
-                         "automationId":  "skills.error.retry",
-                         "name":  "Retry",
-                         "controlType":  "Button",
-                         "localizedControlType":  "button",
-                         "className":  "Button",
-                         "frameworkId":  "XAML",
-                         "isEnabled":  true,
-                         "isOffscreen":  false,
-                         "isKeyboardFocusable":  true,
-                         "hasKeyboardFocus":  false,
-                         "isContentElement":  true,
-                         "isControlElement":  true,
-                         "accessKey":  "",
-                         "acceleratorKey":  "",
-                         "helpText":  "",
-                         "boundingRectangle":  {
-                                                   "y":  1004,
-                                                   "width":  85,
-                                                   "height":  48,
-                                                   "x":  1084
-                                               },
-                         "patterns":  [
-                                          "InvokePatternIdentifiers.Pattern",
                                           "ScrollItemPatternIdentifiers.Pattern"
                                       ],
                          "patternState":  {

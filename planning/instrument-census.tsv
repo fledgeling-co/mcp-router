@@ -98,6 +98,7 @@ app/Tests/MCPRouterKitTests/SkillModelsTests.swift	swift-suite	app/Tests/MCPRout
 app/Tests/MCPRouterKitTests/SkillPresentationStateTests.swift	swift-suite	app/Tests/MCPRouterKitTests/SkillPresentationStateTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/SkillPresentationTests.swift	swift-suite	app/Tests/MCPRouterKitTests/SkillPresentationTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/SkillUpdateOffersTests.swift	swift-suite	app/Tests/MCPRouterKitTests/SkillUpdateOffersTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterKitTests/SpakeTranscriptTests.swift	swift-suite	app/Tests/MCPRouterKitTests/SpakeTranscriptTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/TrackerRouterFactsTests.swift	swift-suite	app/Tests/MCPRouterKitTests/TrackerRouterFactsTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/TrackerStateMatrixTests.swift	swift-suite	app/Tests/MCPRouterKitTests/TrackerStateMatrixTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/TriageBucketTests.swift	swift-suite	app/Tests/MCPRouterKitTests/TriageBucketTests.swift	swift	compiled and run by `swift test`	make:test

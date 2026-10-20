@@ -119,11 +119,11 @@ function officialInstall(s: OfficialServer): RegistryEntry['install'] | undefine
   return undefined;
 }
 
-async function searchOfficial(q: string, limit: number): Promise<RegistryEntry[]> {
+async function searchOfficial(q: string, limit: number, timeoutMs?: number): Promise<RegistryEntry[]> {
   const u = new URL('/v0/servers', OFFICIAL);
   if (q) u.searchParams.set('search', q);
   u.searchParams.set('limit', String(limit));
-  const body = (await getJson(u.toString())) as {
+  const body = (await getJson(u.toString(), timeoutMs)) as {
     servers?: Array<{ server?: OfficialServer; _meta?: Record<string, { updatedAt?: string }> }>;
   };
   return (body.servers ?? []).flatMap((row) => {
@@ -150,11 +150,11 @@ async function searchOfficial(q: string, limit: number): Promise<RegistryEntry[]
 
 /* ------------------------------------------------------------------ smithery */
 
-async function searchSmithery(q: string, limit: number): Promise<RegistryEntry[]> {
+async function searchSmithery(q: string, limit: number, timeoutMs?: number): Promise<RegistryEntry[]> {
   const u = new URL('/servers', SMITHERY);
   if (q) u.searchParams.set('q', q);
   u.searchParams.set('pageSize', String(limit));
-  const body = (await getJson(u.toString())) as {
+  const body = (await getJson(u.toString(), timeoutMs)) as {
     servers?: Array<{
       qualifiedName?: string;
       displayName?: string;
@@ -293,6 +293,41 @@ async function enrichWithStars(entries: RegistryEntry[], budget = 10): Promise<s
   }
   writeGhCache(cache);
   return warnings;
+}
+
+/* -------------------------------------------------------------------- lookup */
+
+/**
+ * How long one by-id lookup may take. A phone submit holds its connection while it resolves every
+ * pick, and the listener drops an idle connection after `PAIRING_IDLE_MS`, so this is far shorter
+ * than the 12-second fetch timeout the search uses.
+ */
+const LOOKUP_TIMEOUT_MS = 3_000;
+const LOOKUP_LIMIT = 30;
+const SMITHERY_PREFIX = 'smithery:';
+
+/**
+ * The index entry for one registry id, resolved live (planning/plans/plan-phone-inbox.md §2.2). Nothing
+ * here calls a by-id route on either index, so the lookup searches by the id's name and keeps only an
+ * exact id match: a near-miss row is not the entry the phone named. An official id searches the official
+ * index, a `smithery:` id searches Smithery.
+ *
+ * It never throws. An index that errors, times out or does not hold the id answers null, and a null
+ * is what makes the pick a Partial row the reviewer can see, rather than a pick that vanishes.
+ */
+export async function lookupRegistryEntry(id: string, timeoutMs = LOOKUP_TIMEOUT_MS): Promise<RegistryEntry | null> {
+  const smithery = id.startsWith(SMITHERY_PREFIX);
+  const q = smithery ? id.slice(SMITHERY_PREFIX.length) : id;
+  if (!q) return null;
+  try {
+    const found = smithery
+      ? await searchSmithery(q, LOOKUP_LIMIT, timeoutMs)
+      : await searchOfficial(q, LOOKUP_LIMIT, timeoutMs);
+    return found.find((e) => e.id === id) ?? null;
+  } catch (err) {
+    log.debug(`registry lookup "${id}" failed: ${(err as Error).message}`);
+    return null;
+  }
 }
 
 /* --------------------------------------------------------------------- merge */

@@ -23,6 +23,7 @@ public sealed class InsightsReadTests
     {
         public HttpMethod? Method { get; private set; }
         public string? Path { get; private set; }
+        public string? Query { get; private set; }
         public string? Authorization { get; private set; }
         public string? ContentType { get; private set; }
 
@@ -31,6 +32,7 @@ public sealed class InsightsReadTests
         {
             Method = request.Method;
             Path = request.RequestUri?.AbsolutePath;
+            Query = request.RequestUri?.Query;
             Authorization = request.Headers.Authorization?.ToString();
             ContentType = request.Content?.Headers.ContentType?.MediaType;
             return Task.FromResult(new HttpResponseMessage(status)
@@ -79,6 +81,50 @@ public sealed class InsightsReadTests
         var attributed = envelope.CallsByHarness.Where(h => h.Calls is not null).Sum(h => h.Calls!.Value);
 
         Assert.Equal(envelope.Calls.Total, attributed + envelope.OtherCalls);
+    }
+
+    [Fact]
+    public async Task TheReadAsksTheRouterForTheWindowItIsGiven()
+    {
+        var week = new RecordingHandler(HttpStatusCode.OK, InsightsRouteFixture.PopulatedWeekText());
+
+        var envelope = await Client(week).GetInsightsAsync(InsightsPeriod.Last7Days);
+
+        Assert.Equal("?window=7d", week.Query);
+        Assert.Equal(168, envelope.WindowHours);
+
+        var day = new RecordingHandler(HttpStatusCode.OK, InsightsRouteFixture.PopulatedText());
+
+        await Client(day).GetInsightsAsync();
+
+        Assert.Equal("?window=24h", day.Query);
+    }
+
+    [Fact]
+    public void TheCapturedWeekBodyDecodesItsCoverageAndRetention()
+    {
+        var week = InsightsRouteFixture.PopulatedWeek();
+
+        Assert.False(week.WindowComplete);
+        Assert.NotNull(week.ObservedSince);
+        Assert.Equal(31, week.Calls.Total);
+
+        Assert.NotNull(week.Retention);
+        Assert.Equal(7, week.Retention!.Days);
+        Assert.Equal(256, week.Retention.CapMegabytes);
+        Assert.Equal(0, week.Retention.Capped.Records);
+
+        Assert.Equal(23, Assert.Single(week.CallsByHarness, h => h.Harness == "claudeCode").Calls);
+        Assert.Equal(4, Assert.Single(week.CallsByHarness, h => h.Harness == "geminiCLI").Calls);
+    }
+
+    [Fact]
+    public void TheCapturedDayBodyCountsItsWindowWhole()
+    {
+        var day = InsightsRouteFixture.Populated();
+
+        Assert.True(day.WindowComplete);
+        Assert.NotNull(day.ObservedSince);
     }
 
     [Fact]

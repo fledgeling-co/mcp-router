@@ -1,1 +1,204 @@
-{"generatedAt":"2026-10-19T15:50:59.731Z","windowHours":24,"windowStart":"2026-10-18T16:00:00.000Z","logHorizon":null,"children":{"alive":0,"declared":1},"calls":{"total":0,"failed":0,"unreadableLines":0},"resident":null,"callsByHarness":[{"harness":"claudeCode","displayName":"Claude Code","calls":0,"reason":null},{"harness":"claudeDesktop","displayName":"Claude Desktop","calls":null,"reason":"nothing has established what this harness's calls look like to the router"},{"harness":"codexCLI","displayName":"Codex CLI","calls":null,"reason":"calls arrive as codex — the Codex and ChatGPT entries are the same binary, so a count cannot be split"},{"harness":"cursor","displayName":"Cursor","calls":null,"reason":"calls arrive as node — cursor-agent execs a bundled node, which every node MCP process shares"},{"harness":"geminiCLI","displayName":"Gemini CLI","calls":0,"reason":null},{"harness":"grokCLI","displayName":"grok","calls":0,"reason":null},{"harness":"opencode","displayName":"opencode","calls":null,"reason":"calls arrive as node — opencode is a node script, which every node MCP process shares"}],"otherCalls":0,"dutyCycle":{"uptimeSeconds":0,"servers":[{"server":"alpha","aliveSeconds":0}]},"callsPerHour":[{"hourStart":"2026-10-18T16:00:00.000Z","calls":0},{"hourStart":"2026-10-18T17:00:00.000Z","calls":0},{"hourStart":"2026-10-18T18:00:00.000Z","calls":0},{"hourStart":"2026-10-18T19:00:00.000Z","calls":0},{"hourStart":"2026-10-18T20:00:00.000Z","calls":0},{"hourStart":"2026-10-18T21:00:00.000Z","calls":0},{"hourStart":"2026-10-18T22:00:00.000Z","calls":0},{"hourStart":"2026-10-18T23:00:00.000Z","calls":0},{"hourStart":"2026-10-19T00:00:00.000Z","calls":0},{"hourStart":"2026-10-19T01:00:00.000Z","calls":0},{"hourStart":"2026-10-19T02:00:00.000Z","calls":0},{"hourStart":"2026-10-19T03:00:00.000Z","calls":0},{"hourStart":"2026-10-19T04:00:00.000Z","calls":0},{"hourStart":"2026-10-19T05:00:00.000Z","calls":0},{"hourStart":"2026-10-19T06:00:00.000Z","calls":0},{"hourStart":"2026-10-19T07:00:00.000Z","calls":0},{"hourStart":"2026-10-19T08:00:00.000Z","calls":0},{"hourStart":"2026-10-19T09:00:00.000Z","calls":0},{"hourStart":"2026-10-19T10:00:00.000Z","calls":0},{"hourStart":"2026-10-19T11:00:00.000Z","calls":0},{"hourStart":"2026-10-19T12:00:00.000Z","calls":0},{"hourStart":"2026-10-19T13:00:00.000Z","calls":0},{"hourStart":"2026-10-19T14:00:00.000Z","calls":0},{"hourStart":"2026-10-19T15:00:00.000Z","calls":0}],"analyst":{"primary":{"lane":"claude","model":"claude-haiku-4-5","label":"Claude CLI · haiku"},"fallback":{"lane":"grok","model":"grok-4.6","label":"Grok CLI · grok-4.6 medium"},"cadence":"sixHourly","cadenceLabel":"Every 6 hours","scheduled":false,"nextRunAt":null,"lane":null,"ranAt":null,"stores":[],"recent":[]}}
+{
+  "generatedAt": "2026-10-20T02:57:17.511Z",
+  "windowHours": 24,
+  "windowStart": "2026-10-19T03:00:00.000Z",
+  "logHorizon": null,
+  "observedSince": "2026-10-20T02:57:16.000Z",
+  "windowComplete": false,
+  "retention": {
+    "days": 7,
+    "capMegabytes": 256,
+    "aged": {
+      "generations": 0,
+      "records": 0
+    },
+    "capped": {
+      "generations": 0,
+      "records": 0,
+      "from": null,
+      "to": null
+    }
+  },
+  "children": {
+    "alive": 0,
+    "declared": 1
+  },
+  "calls": {
+    "total": 0,
+    "failed": 0,
+    "unreadableLines": 0
+  },
+  "resident": null,
+  "callsByHarness": [
+    {
+      "harness": "claudeCode",
+      "displayName": "Claude Code",
+      "calls": 0,
+      "reason": null
+    },
+    {
+      "harness": "claudeDesktop",
+      "displayName": "Claude Desktop",
+      "calls": null,
+      "reason": "nothing has established what this harness's calls look like to the router"
+    },
+    {
+      "harness": "codexCLI",
+      "displayName": "Codex CLI",
+      "calls": null,
+      "reason": "calls arrive as codex — the Codex and ChatGPT entries are the same binary, so a count cannot be split"
+    },
+    {
+      "harness": "cursor",
+      "displayName": "Cursor",
+      "calls": null,
+      "reason": "calls arrive as node — cursor-agent execs a bundled node, which every node MCP process shares"
+    },
+    {
+      "harness": "geminiCLI",
+      "displayName": "Gemini CLI",
+      "calls": 0,
+      "reason": null
+    },
+    {
+      "harness": "grokCLI",
+      "displayName": "grok",
+      "calls": 0,
+      "reason": null
+    },
+    {
+      "harness": "opencode",
+      "displayName": "opencode",
+      "calls": null,
+      "reason": "calls arrive as node — opencode is a node script, which every node MCP process shares"
+    }
+  ],
+  "otherCalls": 0,
+  "dutyCycle": {
+    "uptimeSeconds": 1,
+    "servers": [
+      {
+        "server": "search",
+        "aliveSeconds": 0
+      }
+    ]
+  },
+  "callsPerHour": [
+    {
+      "hourStart": "2026-10-19T03:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-19T04:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-19T05:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-19T06:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-19T07:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-19T08:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-19T09:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-19T10:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-19T11:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-19T12:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-19T13:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-19T14:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-19T15:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-19T16:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-19T17:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-19T18:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-19T19:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-19T20:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-19T21:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-19T22:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-19T23:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-20T00:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-20T01:00:00.000Z",
+      "calls": null
+    },
+    {
+      "hourStart": "2026-10-20T02:00:00.000Z",
+      "calls": null
+    }
+  ],
+  "analyst": {
+    "primary": {
+      "lane": "claude",
+      "model": "claude-haiku-4-5",
+      "label": "Claude CLI · haiku"
+    },
+    "fallback": {
+      "lane": "grok",
+      "model": "grok-4.6",
+      "label": "Grok CLI · grok-4.6 medium"
+    },
+    "cadence": "sixHourly",
+    "cadenceLabel": "Every 6 hours",
+    "scheduled": false,
+    "nextRunAt": null,
+    "lane": null,
+    "ranAt": null,
+    "stores": [],
+    "recent": []
+  }
+}

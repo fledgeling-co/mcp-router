@@ -8,11 +8,13 @@ namespace MCPRouter.Shell.Tests;
 /// <summary>
 /// The bodies <c>GET /insights</c> answered with, captured from the TypeScript router.
 ///
-/// <para>Captured on 2026-10-20 by running <c>dist/index.js serve</c> under a fake <c>HOME</c>, once
-/// with a usage log and an analyst state holding one run (<c>insights-populated.json</c>), and once
-/// with neither (<c>insights-idle.json</c>). The populated log holds twelve calls in the window, two
-/// of them failed, one line that does not parse, and one call with no client name; the analyst state
-/// was written in the shape the router reads back, with one run and no judge. Nothing ran a judge.
+/// <para>Captured on 2026-10-20 by running <c>dist/index.js serve</c> under a fake <c>HOME</c> and a fake
+/// <c>MCP_ROUTER_HOME</c>, with <c>?window=24h</c> and <c>?window=7d</c>. The populated home holds a
+/// usage log with twelve calls in the last 24 hours (two failed, one line that does not parse, four with no
+/// client name), two older generations holding nineteen more calls over the last seven days, an analyst
+/// state holding one run and no judge, and the router counting from three days ago. That makes the 24-hour
+/// window whole and the seven-day window incomplete. The idle home has no usage and counts from the moment it
+/// starts, so its 24-hour window is incomplete too. Nothing ran a judge.
 /// Re-capture rather than edit: an edited fixture proves the decoder agrees with the editor.</para>
 ///
 /// <para>The POST answer is not captured, because <c>POST /insights/analyse</c> would spawn a judge CLI.
@@ -22,13 +24,18 @@ namespace MCPRouter.Shell.Tests;
 internal static class InsightsRouteFixture
 {
     private const string PopulatedPath = "app/windows/MCPRouter.Shell.Tests/Fixtures/insights-populated.json";
+    private const string PopulatedWeekPath = "app/windows/MCPRouter.Shell.Tests/Fixtures/insights-populated-7d.json";
     private const string IdlePath = "app/windows/MCPRouter.Shell.Tests/Fixtures/insights-idle.json";
 
     public static string PopulatedText() => RepoRoot.Read(PopulatedPath);
 
+    public static string PopulatedWeekText() => RepoRoot.Read(PopulatedWeekPath);
+
     public static string IdleText() => RepoRoot.Read(IdlePath);
 
     public static InsightsEnvelope Populated() => Decode<InsightsEnvelope>(PopulatedText());
+
+    public static InsightsEnvelope PopulatedWeek() => Decode<InsightsEnvelope>(PopulatedWeekText());
 
     public static InsightsEnvelope Idle() => Decode<InsightsEnvelope>(IdleText());
 

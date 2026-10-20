@@ -341,15 +341,83 @@ public sealed class InsightsBoardModelTests
     }
 
     [Fact]
+    public void AWeekTheHistoryDoesNotFullyCoverSaysSoAndNamesWhereCountingBegan()
+    {
+        var week = InsightsRouteFixture.PopulatedWeek();
+
+        var snapshot = InsightsBoardModel.Snapshot(week, null, null, askedHours: 168);
+
+        Assert.Equal("Last 7 days", snapshot.WindowLabel);
+        var note = Assert.Single(snapshot.Notes, n => n.StartsWith("The router has counted calls only since", StringComparison.Ordinal));
+        Assert.Contains(InsightsPresentation.StampedAt(week.ObservedSince!), note, StringComparison.Ordinal);
+        Assert.EndsWith("so this last 7 days is not a whole one.", note, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AWholeWindowSaysNothingAboutItsCoverage()
+    {
+        var snapshot = InsightsBoardModel.Snapshot(InsightsRouteFixture.Populated(), null, null, askedHours: 24);
+
+        Assert.DoesNotContain(snapshot.Notes, n => n.Contains("counted calls only since", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void AWeekFigureCountsItsOwnWindow()
+    {
+        var snapshot = InsightsBoardModel.Snapshot(InsightsRouteFixture.PopulatedWeek(), null, null, askedHours: 168);
+
+        var calls = Figure(snapshot, "calls");
+        Assert.Equal("31", calls.Value);
+        Assert.Equal("in the last 7 days", calls.Provenance);
+    }
+
+    [Fact]
+    public void AnAnsweredWindowOtherThanTheAskedOneIsNamedAsTheOneItIs()
+    {
+        var snapshot = InsightsBoardModel.Snapshot(InsightsRouteFixture.Populated(), null, null, askedHours: 168);
+
+        Assert.Equal("Last 24 hours", snapshot.WindowLabel);
+        Assert.Contains(
+            "This router answered the last 24 hours, not the last 7 days, so these figures are for the shorter window.",
+            snapshot.Notes);
+    }
+
+    [Fact]
+    public void ACappedHistoryNamesTheSpanItRemoved()
+    {
+        var week = InsightsRouteFixture.PopulatedWeek();
+        var capped = week with
+        {
+            Retention = week.Retention! with
+            {
+                Capped = new InsightsCappedWire
+                {
+                    Generations = 1,
+                    Records = 5,
+                    From = "2026-10-12T00:00:00.000Z",
+                    To = "2026-10-13T00:00:00.000Z",
+                },
+            },
+        };
+
+        var snapshot = InsightsBoardModel.Snapshot(capped, null, null, askedHours: 168);
+
+        var note = Assert.Single(snapshot.Notes, n => n.StartsWith("The 256 MB history cap removed", StringComparison.Ordinal));
+        Assert.Contains("5 records from", note, StringComparison.Ordinal);
+        Assert.EndsWith("so the figures for that span are short.", note, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TheShippingBoardDrawsNoSampleFigures()
     {
-        // The design's numbers and labels are what the board showed before it read the router. None of them may
-        // reach the shipping view or its model.
+        // The design's numbers are what the board showed before it read the router. None of them may reach the
+        // shipping view or its model. The period labels are not figures: they are the registry's control names, and
+        // they come from InsightsPresentation, which is where the board reads them.
         var shipped = RepoRoot.Read("app/windows/MCPRouter.Shell/Views/InsightsBoard.xaml")
             + RepoRoot.Read("app/windows/MCPRouter.Shell/Views/InsightsBoard.xaml.cs")
             + RepoRoot.Read("app/windows/MCPRouter.Shell.Model/Insights/InsightsBoardModel.cs");
 
-        foreach (var sample in new[] { "9,418", "214 MB", "0.13%", "Antigravity", "peak 4", "Last 7 days", "1,482" })
+        foreach (var sample in new[] { "9,418", "214 MB", "0.13%", "Antigravity", "peak 4", "1,482" })
         {
             Assert.DoesNotContain(sample, shipped, StringComparison.Ordinal);
         }

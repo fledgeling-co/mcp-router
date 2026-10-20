@@ -238,6 +238,11 @@ for f in "$OUT"/*.json; do
     || { echo "error: $f is not valid JSON"; exit 1; }
 done
 
+# A scratch OUT (parity-fixture.sh uses one) has no copy of the carried recording, so take it from the
+# committed set. In the committed directory this is a no-op, and the manifest check below still holds
+# the file to the hash the manifest carries.
+[ -f "$OUT/registry-search.json" ] || cp "$REPO_ROOT/app/Sources/MCPRouterKit/Control/Fixtures/registry-search.json" "$OUT/"
+
 # The manifest is the set's receipt: one run id, and one hash per recording this run wrote. The F3
 # gate reads it to tell a re-record from a hand edit. It is written last, so a run that failed part
 # way leaves the previous manifest behind, and its hashes no longer match the files it has changed.

@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using MCPRouter.Shell.Model.Servers;
 
 namespace MCPRouter.Shell.Model.Pairing;
@@ -21,7 +20,7 @@ public sealed record PairingCodeBody
     /// </summary>
     public IssuedPairingCode ToIssued()
     {
-        if (Code is not { Length: CodeLength } || Code.Any(c => !Alphabet.Contains(c)))
+        if (!PairingCodeFormat.IsWellFormed(Code))
         {
             throw new ControlApiException(
                 ControlApiFailure.MalformedResponse,
@@ -29,10 +28,6 @@ public sealed record PairingCodeBody
         }
         return new IssuedPairingCode(Code, IssuedAt, ExpiresAt);
     }
-
-    /// <summary>The alphabet of <c>PairingCode.swift</c>: digits and letters, without I, L, O or U.</summary>
-    private const string Alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-    private const int CodeLength = 8;
 }
 
 /// <summary>The body <c>GET /pairing/state</c> answers. The live code, or null once there is none to pair with.</summary>

@@ -1,0 +1,45 @@
+# reverify-M39 — pairing QR presentation and expiry countdown (DEF-361)
+
+**Verdict: PASS, with two stated limits.** The render half is built and tested: the QR beside the code, a determinate expiry ring from the issued window, the countdown text, the typed-code fallback sentence, and the refresh control. The first brief acceptance line is met only in a Debug build with a fixture; in a Release build pairing has no transport (DEF-001, open). That limit is the spec's own scope (spec-M39.md §2), and it is not a regression.
+
+Checked against main at `63d7e208`, by branch `ai/reverify-2`, 2026-10-20.
+
+**Base and drift.** Line references are at `63d7e208`, the tree this branch was cut from. Main has since advanced 21 commits (to `7432a5e1` at the time of the check). The files this item depends on are unchanged on main except `src/control.ts`, `src/insights.ts` and `src/router.ts` (the usage-window and inbox merges); the analyst routes there moved to lines 1038, 1044 and 1062 with the same logic. The audited Swift files are unchanged.
+
+**Method.** Requirements were derived from `planning/features-to-triage/phone-pairing-qr-render-and-countdown.md` (the brief's four acceptance lines at :16–19) and `planning/specs/spec-M39.md` before code was read. Verdict rule: a brief line the spec scopes to another owner is reported as DEFERRED, not as a failure of this item. Here the transport is DEF-001, and spec-M39.md:35–41 says so.
+
+| # | Requirement | Source | Verdict | Evidence |
+|---|---|---|---|---|
+| M39-1 | Acceptance 1: a high-contrast QR code beside the alphanumeric code | brief:16; spec-M39.md:128 (§4 table, sketch line 1) | MET | `app/Sources/MCPRouterUI/Boards/PairingSheet.swift:205` (`PairingQRView(encoded: encoded, side: InboxBoardMetrics.qrSize)`), inside `live(issued:encoded:)`, beside `Text(issued.code.formatted)` at :211. Rendered only in `Phase.live` (see M39-11). |
+| M39-2 | "High-contrast": QR modules black on white | brief:16 | MET | `app/Sources/MCPRouterUI/Boards/PairingSheet.swift:54` (`.fill(ColorToken.onAccent.color)`) behind black modules from `CIFilter.qrCodeGenerator()`. `ColorToken+Appearance.swift:36` maps `onAccent` to `#FFFFFF`. The ratio was **not** measured numerically; the claim is by construction. |
+| M39-3 | The ring's denominator is the **issued** window, not `MacPairing.lifetime`; a backwards clock clamps to 1; zero or negative window is nil; a dead code is nil | spec-M39.md:134–140 (§4.1) | MET | `app/Sources/MCPRouterKit/Pairing/MacPairing.swift:91-93` (`let window = expiresAt.timeIntervalSince(issuedAt)`, `guard window > 0, let remaining = timeRemaining(at: now) else { return nil }`, `return min(remaining / window, 1)`). Issue path `app/Sources/MCPRouterUI/Boards/PairingSessionModel.swift:145` (`issued = try await client.issuePairingCode()`). `app/Tests/MCPRouterKitTests/MacPairingTests.swift:260` — "theDenominatorIsTheIssuedWindow" (suite "M6 — the Mac half of pairing" passed). |
+| M39-4 | The ring reads the model's own `now`, so ring and text cannot disagree | spec-M39.md:134 (§4.1) | MET | `app/Sources/MCPRouterUI/Boards/PairingSessionModel.swift:254-256` (`public var fractionRemaining: Double? { liveCode?.fractionRemaining(at: now) }`). `app/Tests/MCPRouterUITests/PairingExpiryTests.swift` — "theFractionFalls" (suite "M39 — the expiry ring…" passed). |
+| M39-5 | Determinate arc, not an indeterminate spinner; no repeating animation | spec-M39.md:79 (§3.1) | MET | `app/Sources/MCPRouterUI/Boards/PairingSheet.swift:121` (`.trim(from: 0, to: fraction)`). A grep of `PairingSheet.swift` and the Document and Markdown trees for `repeatForever` returned nothing. `PairingExpiryTests.swift` — "the ring trims to the fraction it is handed and is hidden from VoiceOver". |
+| M39-6 | The ring is hidden from the accessibility tree; the countdown text still speaks | spec-M39.md:161 (§4.1) | MET | `app/Sources/MCPRouterUI/Boards/PairingSheet.swift:134` (`.accessibilityHidden(true)`). Same test as M39-5. |
+| M39-7 | Colour and size from tokens: track `--line-strong`, head `--t2`; size from `MetricToken.controlMini` | spec-M39.md:179 (§4.3) | MET | `PairingSheet.swift:116` (`ColorToken.lineStrong.color`), `:123`/`:133` (`ColorToken.t2.color`), `app/Sources/MCPRouterUI/Boards/InboxBoardMetrics.swift:60` (`static var expiryRing: Double { MetricToken.controlMini.leadingScalar }`). Commit `d04dc74b1` for the head colour. `InboxConformanceTests.swift` — "indicatorColoursAreNotDecoration" (its colour census scans `PairingSheet.swift`). |
+| M39-8 | Countdown text `expires in M:SS`; expired and no-endpoint show neither ring nor text; an unreadable window shows the text without an arc | spec-M39.md:199 (§5) | MET | `app/Sources/MCPRouterKit/Inbox/InboxCopy.swift:258` (`"expires in \(whole / 60):\(String(format: "%02d", whole % 60))"`). Ring gated at `PairingSheet.swift:246-250` (`if let fraction = session.fractionRemaining { PairingExpiryRing(fraction: fraction) }`). `PairingSheetTests.swift:223` — "countdownFormatting" ("the countdown reads as minutes and padded seconds"). Ran in the Swift run below. |
+| M39-9 | Acceptance 4: typed-code fallback as a stated **sentence**, not a control; no fourth control in the action bar | brief:19; spec-M39.md:103 (§3.2), :169 (§4.2) | MET | `app/Sources/MCPRouterKit/Inbox/InboxCopy.swift:250-252` (`public static let typeInsteadDetail`: "Can't scan? Type those eight characters into your phone instead — it is the same pairing."). `app/Sources/MCPRouterUI/Boards/PairingSheet.swift:264-269` (`private var typedFallback: some View`). `PairingExpiryTests.swift:157` — "theTypedFallbackIsStated". |
+| M39-10 | Acceptance 3: an expired code refreshes on request | brief:18; spec-M39.md:130 (§4 table row 2, M6) | MET | `app/Sources/MCPRouterUI/Boards/PairingSheet.swift:297-300` (`if case .expired = session.phase { Button("Show a new code") { session.reissue() } }`). `app/Tests/MCPRouterUITests/PairingRouterCodeTests.swift:113` — "reissuing after expiry asks the router again" (passed in the Swift run below). |
+| M39-11 | **Release reachability**: `Phase.live` is only reachable in Debug with a fixture; a Release build offers no endpoint | brief:16; spec-M39.md:37 (§2); DEF-001 | MET for the render half; **limit stated** | `app/Sources/MCPRouterUI/Shell/ShellPairingFactory.swift:39-44` (`guard isDebugBuild else { ... return .noTransport }`, with a comment that the Release branch ignores the environment). `app/Tests/MCPRouterUITests/PairingSheetTests.swift:38` — "no environment value can make a Release build offer a fixture" (passed). This is the stated boundary of M39 and is not a defect of M39. The shipped pairing transport is DEF-001, which remains open. |
+| M39-12 | Glass evidence of the sheet and ring | spec-M39.md:221 (§6) | NOT RUN | No glass capture in this audit; spec-M39.md §6 states none was taken. |
+| M39-13 | Mutation arms (16) red with the failing assertion named | `planning/evidence/M39/arming.md` | RECORDED, not re-run | The arming record exists on main. Its arms were not re-executed here. |
+
+**Commands run (2026-10-20, on `63d7e208`):**
+
+```
+cd app && governor-run --weight 4 -- swift test --build-system native -j 4 --filter 'MarkdownSecurityTests|CapabilityDocumentFixtureTests|MarkdownParserTests|PairingExpiryTests|MacPairingTests|InboxConformanceTests'
+Test run with 79 tests in 7 suites passed after 0.054 seconds.   exit=0
+```
+
+Suites in that run that concern M39: "M39 — the expiry ring, and a fallback stated rather than offered", "M6 — the Mac half of pairing", "M6 · conformance".
+
+```
+cd app && governor-run --weight 4 -- swift test --build-system native -j 4 --filter 'PairingSheetTests|PairingRouterCodeTests'
+Test run with 20 tests in 2 suites passed after 0.058 seconds.   exit=0
+```
+
+Tests in that run that cover M39 directly: "no environment value can make a Release build offer a fixture", "the countdown reads as minutes and padded seconds", "reissuing after expiry asks the router again".
+
+**Not run:** glass capture (spec §6); the arming harness (M39-13).
+
+**Open for the owner.** DEF-001 (pairing transport) gates the first brief line in a shipped build. Glass evidence is outstanding (CASE-0266, per the ledger row).

@@ -28,7 +28,7 @@
             /// When true, every analyst write refuses — the state a router without one produces.
             var refuses = false
 
-            func insights() async throws(ControlAPIError) -> InsightsResponse {
+            func insights(period: InsightsPeriod) async throws(ControlAPIError) -> InsightsResponse {
                 lock.withLock { insightsReads += 1 }
                 let hasRun = lock.withLock { ran }
                 var response = InsightsFixtures.populated
@@ -36,15 +36,15 @@
                 return response
             }
 
-            func runAnalyst() async throws(ControlAPIError) -> InsightsResponse {
+            func runAnalyst(period: InsightsPeriod) async throws(ControlAPIError) -> InsightsResponse {
                 lock.withLock { analystRuns += 1 }
                 if refuses { throw ControlAPIError.server(status: 502, message: "no model", hint: nil) }
                 lock.withLock { ran = true }
-                return try await insights()
+                return try await insights(period: period)
             }
 
             func setAnalyst(
-                primary: String?, fallback: String?, cadence: String?
+                period: InsightsPeriod, primary: String?, fallback: String?, cadence: String?
             ) async throws(ControlAPIError) -> InsightsResponse {
                 lock.withLock {
                     patches.append(
@@ -52,7 +52,7 @@
                     )
                 }
                 if refuses { throw ControlAPIError.server(status: 422, message: "no", hint: nil) }
-                return try await insights()
+                return try await insights(period: period)
             }
         }
 
@@ -136,7 +136,7 @@
         /// A router that serves `/insights` and has no analyst — which is every router before F7
         /// and the TypeScript reference for ever.
         struct NoAnalystClient: AnalystTestClient {
-            func insights() async throws(ControlAPIError) -> InsightsResponse {
+            func insights(period _: InsightsPeriod) async throws(ControlAPIError) -> InsightsResponse {
                 var response = InsightsFixtures.populated
                 response.analyst = nil
                 return response

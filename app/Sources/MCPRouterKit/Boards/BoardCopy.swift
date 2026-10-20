@@ -119,7 +119,28 @@ public enum InsightsBoardCopy {
 
     public static let childrenLabel = "Child processes running"
     public static let residentLabel = "Resident, all children"
-    public static let callsLabel = "Tool calls, last 24 hours"
+    /// The window a label names, taken from the hours the **router answered** rather than the period the
+    /// board asked for: a router that answers a different window is named for the one it gave.
+    public static func periodLabel(hours: Int) -> String {
+        if hours == 24 { return "last 24 hours" }
+        if hours % 24 == 0 { return "last \(hours / 24) days" }
+        return "last \(hours) hours"
+    }
+
+    /// The picker's own names for the two periods it offers.
+    public static func periodTitle(_ period: InsightsPeriod) -> String {
+        switch period {
+        case .last24Hours: "Last 24 hours"
+        case .last7Days: "Last 7 days"
+        }
+    }
+
+    public static let periodAccessibilityLabel = "Period"
+
+    public static func callsLabel(hours: Int) -> String {
+        "Tool calls, \(periodLabel(hours: hours))"
+    }
+
     public static let failuresLabel = "Failed calls"
 
     /// The provenance line under the memory figure. The brief asks for it by name, and it is the
@@ -144,7 +165,44 @@ public enum InsightsBoardCopy {
     public static let dutyBarFill: ColorToken = .attentionInk
 
     public static let callsByHarness = "Where the calls came from"
-    public static let callsPerHour = "Calls per hour, last 24 hours"
+    public static func callsPerHour(hours: Int) -> String {
+        "Calls per hour, \(periodLabel(hours: hours))"
+    }
+
+    /// The window is not a whole one: observation began inside it, so the hours before that are blank.
+    public static func incompleteCaption(observedSince: String, hours: Int) -> String {
+        "The router has counted calls since \(stamp(observedSince)). "
+            + "The hours before that are left blank rather than shown as quiet, "
+            + "so this \(periodLabel(hours: hours)) is not a whole one."
+    }
+
+    /// The history cap removed records from inside the window. Named with its span, because a short window
+    /// with no reason given reads as a quiet one.
+    public static func cappedCaption(_ capped: CappedRetention, capMegabytes: Int) -> String {
+        let count = "\(capped.records) \(capped.records == 1 ? "record" : "records")"
+        guard let from = capped.from, let to = capped.to else {
+            return "The \(capMegabytes) MB history cap removed \(count), so some of this window is missing."
+        }
+        return "The \(capMegabytes) MB history cap removed \(count) from \(stamp(from)) to \(stamp(to)), "
+            + "so the figures for that span are short."
+    }
+
+    /// The router answered a window other than the one the board asked for. Said, rather than drawn
+    /// under the wrong label.
+    public static func answeredCaption(answered: Int, asked: Int) -> String {
+        "This router answered the \(periodLabel(hours: answered)), not the \(periodLabel(hours: asked)), "
+            + "so these figures are for the shorter window."
+    }
+
+    /// An absolute stamp for a router timestamp, in the reader's locale. The raw string is kept if it will
+    /// not parse, because a stamp shown as the wire form is still a fact, and a guessed one is not.
+    static func stamp(_ iso: String) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        guard let date = formatter.date(from: iso) else { return iso }
+        return date.formatted(date: .abbreviated, time: .shortened)
+    }
+
     public static let dutyCycle = "Duty cycle, per server"
     public static let analyst = "The analyst"
     public static let analyseNow = "Analyse now"

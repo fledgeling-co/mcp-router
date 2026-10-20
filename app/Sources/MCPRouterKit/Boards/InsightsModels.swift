@@ -66,15 +66,81 @@ public struct HarnessCallCount: Codable, Hashable, Sendable, Identifiable {
 }
 
 /// One hour of the sparkline.
+///
+/// **`calls` is optional, and nil means the hour was not observed in full.** It began before the router
+/// started counting, or the size cap removed history from it. Zero is a quiet hour the router saw; nil is
+/// an hour it did not, and drawing one as the other would be a fabricated trough.
 public struct HourlyCalls: Codable, Hashable, Sendable, Identifiable {
     public var hourStart: String
-    public var calls: Int
+    public var calls: Int?
 
     public var id: String { hourStart }
 
-    public init(hourStart: String, calls: Int) {
+    public init(hourStart: String, calls: Int?) {
         self.hourStart = hourStart
         self.calls = calls
+    }
+}
+
+/// The period the Insights board answers over. Its raw value is the `window` query the router reads, so the
+/// wire spelling and the picker's choice cannot drift apart.
+public enum InsightsPeriod: String, CaseIterable, Hashable, Sendable {
+    case last24Hours = "24h"
+    case last7Days = "7d"
+
+    /// The window length the router answers, in hours. Seven days is 168 buckets.
+    public var hours: Int {
+        switch self {
+        case .last24Hours: 24
+        case .last7Days: 168
+        }
+    }
+}
+
+/// Removal counts, for the generations retention took away because they were past the retention window.
+/// That is the policy working, so it is reported as a count and never as a loss.
+public struct RetentionCount: Codable, Hashable, Sendable {
+    public var generations: Int
+    public var records: Int
+
+    public init(generations: Int, records: Int) {
+        self.generations = generations
+        self.records = records
+    }
+}
+
+/// Removal counts for generations the size cap took away, with the span they covered. A loss: it is why a
+/// window can be incomplete, and the board names it rather than letting a short week pass for a whole one.
+public struct CappedRetention: Codable, Hashable, Sendable {
+    public var generations: Int
+    public var records: Int
+    /// The oldest record the cap removed, or nil when it has removed none.
+    public var from: String?
+    /// The newest record the cap removed, or nil when it has removed none.
+    public var to: String?
+
+    public init(generations: Int, records: Int, from: String? = nil, to: String? = nil) {
+        self.generations = generations
+        self.records = records
+        self.from = from
+        self.to = to
+    }
+}
+
+/// What the router keeps and what it has removed, beside every figure it reports.
+public struct InsightsRetention: Codable, Hashable, Sendable {
+    /// How many days of history the router keeps.
+    public var days: Int
+    /// The size the history may reach before the oldest generations go.
+    public var capMegabytes: Int
+    public var aged: RetentionCount
+    public var capped: CappedRetention
+
+    public init(days: Int, capMegabytes: Int, aged: RetentionCount, capped: CappedRetention) {
+        self.days = days
+        self.capMegabytes = capMegabytes
+        self.aged = aged
+        self.capped = capped
     }
 }
 
@@ -275,6 +341,15 @@ public struct InsightsResponse: Codable, Hashable, Sendable {
     public var otherCalls: Int
     public var dutyCycle: DutyCycle?
     public var callsPerHour: [HourlyCalls]
+    /// When the router began counting calls. Nothing before it is observed. Nil from a router that
+    /// does not report coverage, which is the Swift router today: the board then makes no
+    /// completeness claim either way.
+    public var observedSince: String?
+    /// Whether every hour of the window was observed. False means the window is not a whole one and the board
+    /// says so. Nil from a router that does not report coverage.
+    public var windowComplete: Bool?
+    /// What the router keeps and what it has removed. Nil from a router that does not report it.
+    public var retention: InsightsRetention?
     public var analyst: AnalystRun?
 
     public init(
@@ -289,6 +364,9 @@ public struct InsightsResponse: Codable, Hashable, Sendable {
         otherCalls: Int = 0,
         dutyCycle: DutyCycle? = nil,
         callsPerHour: [HourlyCalls] = [],
+        observedSince: String? = nil,
+        windowComplete: Bool? = nil,
+        retention: InsightsRetention? = nil,
         analyst: AnalystRun? = nil
     ) {
         self.generatedAt = generatedAt
@@ -302,6 +380,9 @@ public struct InsightsResponse: Codable, Hashable, Sendable {
         self.otherCalls = otherCalls
         self.dutyCycle = dutyCycle
         self.callsPerHour = callsPerHour
+        self.observedSince = observedSince
+        self.windowComplete = windowComplete
+        self.retention = retention
         self.analyst = analyst
     }
 

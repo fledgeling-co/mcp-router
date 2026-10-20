@@ -22,7 +22,7 @@ public extension FixtureControlAPIClient {
         }
     }
 
-    func insights() async throws(ControlAPIError) -> InsightsResponse {
+    func insights(period: InsightsPeriod) async throws(ControlAPIError) -> InsightsResponse {
         try guardFailure()
         if scenario == .loading { try await Self.forever() }
         // `thin` rather than a zeroed `populated`: the difference is `logHorizon`, and that nil is

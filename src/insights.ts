@@ -1,17 +1,37 @@
 import type { DutyCycleReading } from './pool.js';
 import { clientProcessName, harnessDisplayName, type HarnessReport } from './harness.js';
-import type { UsageWindow } from './usage.js';
+import { RETAIN_DAYS, type UsageRetention, type UsageWindow } from './usage.js';
 
 /**
- * The window `GET /insights` answers over. Fixed rather than a parameter: the usage log keeps one 8 MiB
- * generation, so a window is only as long as what survived, and `logHorizon` reports how far back it reaches.
+ * The windows `GET /insights?window=` answers over, by the name a client sends. The longest is the retention window
+ * itself, so no window can ask for history the router has promised not to keep.
  */
-export const INSIGHTS_WINDOW_HOURS = 24;
+export const INSIGHTS_WINDOWS = {
+  '24h': 24,
+  '7d': RETAIN_DAYS * 24,
+} as const;
+
+/** What a request with no `window` parameter gets. Existing clients were built against 24 hours and keep getting it. */
+export const DEFAULT_INSIGHTS_WINDOW = '24h';
+
+/**
+ * The window hours a `window` parameter names, or undefined when it names none. An absent parameter is the default,
+ * not an error. Only a value the router does not know is refused: a silent fallback would hand a client a shorter
+ * window than it asked for and label it the one it asked for.
+ */
+export function insightsWindowHours(raw: string | null): number | undefined {
+  const name = raw ?? DEFAULT_INSIGHTS_WINDOW;
+  return Object.prototype.hasOwnProperty.call(INSIGHTS_WINDOWS, name)
+    ? INSIGHTS_WINDOWS[name as keyof typeof INSIGHTS_WINDOWS]
+    : undefined;
+}
 
 /** What the route read, gathered by the caller so the envelope itself is a pure function of it. */
 export interface InsightsReadings {
   now: number;
   usage: UsageWindow;
+  /** What retention has removed and what it keeps, so the board can say what the history is made of. */
+  retention: UsageRetention;
   children: { alive: number; declared: number };
   resident: Array<{ server: string; megabytes: number }>;
   duty: DutyCycleReading;
@@ -26,7 +46,8 @@ export interface InsightsReadings {
  *
  * Each member is counted or it is absent, never zero. `resident` is null when no child has a measurement, a
  * harness whose calls cannot be attributed carries `calls: null` with the reason, and there is no saving figure,
- * because the router never ran the world one would be subtracted from.
+ * because the router never ran the world one would be subtracted from. An hour the router did not observe in full
+ * carries `calls: null` too, and `windowComplete` says whether the window as a whole was observed.
  */
 export function insightsEnvelope(readings: InsightsReadings): Record<string, unknown> {
   const { now, usage, children, resident, duty } = readings;
@@ -36,6 +57,10 @@ export function insightsEnvelope(readings: InsightsReadings): Record<string, unk
     windowHours: usage.windowHours,
     windowStart: usage.windowStart,
     logHorizon: usage.horizon,
+    // When the router began counting. A window that starts before this is not whole, and `windowComplete` is false.
+    observedSince: usage.observedSince,
+    windowComplete: usage.complete,
+    retention: readings.retention,
     children: { alive: children.alive, declared: children.declared },
     calls: {
       total: usage.totalCalls,

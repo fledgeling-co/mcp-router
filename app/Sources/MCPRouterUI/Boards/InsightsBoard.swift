@@ -10,10 +10,11 @@
     /// argument is the duty-cycle chart, and it is counted — which is also why its caption states
     /// the mechanism instead of quoting the brief's own "every one of these sat at 100%".
     ///
-    /// **What it does not show, and why.** The mock draws a *Last 7 days* window pop-up and a
-    /// capability-use table keyed on the version live when a call ran. The window is fixed at 24
-    /// hours because the call log rotates and what a router can answer for is whatever survived —
-    /// a control offering seven days on a machine holding two would lie about its own range.
+    /// **The window is the router's to answer.** The period control asks for 24 hours or 7 days, and the
+    /// board labels whatever window came back, so a router that answered another is named for that one.
+    /// A window the history does not fully cover says so beside its figures, and the hours it did not
+    /// observe are blank rather than zero. The capability-use table the mock draws, keyed on the version
+    /// live when a call ran, is not here yet for the reason below.
     ///
     /// **The version table now has data behind it, and this board does not draw it yet.** When this
     /// comment was written it was true that `UsageRecord` carried no version anywhere. F5 built the
@@ -48,24 +49,50 @@
         }
 
         private var header: some View {
-            VStack(alignment: .leading, spacing: M22BoardMetrics.labelGap) {
-                Text(InsightsBoardCopy.title)
-                    .typeRole(.title1)
-                    .foregroundStyle(ColorToken.t1.color)
-                    .measured(
-                        "board-title", role: "board-title", kind: .text,
-                        tokens: ["foreground": .t1], type: .title1, text: InsightsBoardCopy.title
-                    )
-                Text(InsightsBoardCopy.subtitle)
-                    .typeRole(.body)
-                    .foregroundStyle(ColorToken.t2.color)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .measured(
-                        "board-subtitle", role: "board-subtitle", kind: .text,
-                        tokens: ["foreground": .t2], type: .body, text: InsightsBoardCopy.subtitle
-                    )
+            HStack(alignment: .top, spacing: M22BoardMetrics.gap) {
+                VStack(alignment: .leading, spacing: M22BoardMetrics.labelGap) {
+                    Text(InsightsBoardCopy.title)
+                        .typeRole(.title1)
+                        .foregroundStyle(ColorToken.t1.color)
+                        .measured(
+                            "board-title", role: "board-title", kind: .text,
+                            tokens: ["foreground": .t1], type: .title1, text: InsightsBoardCopy.title
+                        )
+                    Text(InsightsBoardCopy.subtitle)
+                        .typeRole(.body)
+                        .foregroundStyle(ColorToken.t2.color)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .measured(
+                            "board-subtitle", role: "board-subtitle", kind: .text,
+                            tokens: ["foreground": .t2], type: .body, text: InsightsBoardCopy.subtitle
+                        )
+                }
+                .measured("board-head", role: "board-head", kind: .vstack)
+                Spacer(minLength: 0)
+                periodPicker
             }
-            .measured("board-head", role: "board-head", kind: .vstack)
+        }
+
+        /// The period the board asks the router for. It is a menu rather than a segmented control because the
+        /// design draws it as a pop-up beside the board's one action.
+        private var periodPicker: some View {
+            Picker(InsightsBoardCopy.periodAccessibilityLabel, selection: periodBinding) {
+                ForEach(InsightsPeriod.allCases, id: \.self) { period in
+                    Text(InsightsBoardCopy.periodTitle(period)).tag(period)
+                }
+            }
+            .pickerStyle(.menu)
+            .labelsHidden()
+            .fixedSize()
+            .accessibilityLabel(InsightsBoardCopy.periodAccessibilityLabel)
+        }
+
+        /// Reads through the model, so a change is a re-read rather than a local label swap.
+        private var periodBinding: Binding<InsightsPeriod> {
+            Binding(
+                get: { board.period },
+                set: { next in Task { await board.choosePeriod(next) } }
+            )
         }
 
         @ViewBuilder
@@ -108,6 +135,7 @@
 
         private func populated(_ response: InsightsResponse) -> some View {
             VStack(alignment: .leading, spacing: M22BoardMetrics.sectionGap) {
+                InsightsCoverageNotes(response: response, askedHours: board.period.hours)
                 headlines(response)
                 callsByHarness(response)
                 perHour(response)
@@ -144,7 +172,7 @@
                         identifier: "resident"
                     )
                     StatCard(
-                        label: InsightsBoardCopy.callsLabel,
+                        label: InsightsBoardCopy.callsLabel(hours: response.windowHours),
                         value: String(response.calls.total),
                         provenance: nil,
                         provenanceTint: .t3,
@@ -195,8 +223,11 @@
         }
 
         private func perHour(_ response: InsightsResponse) -> some View {
-            section(InsightsBoardCopy.callsPerHour, id: "section-per-hour") {
-                CallsPerHourChart(hours: response.callsPerHour)
+            section(InsightsBoardCopy.callsPerHour(hours: response.windowHours), id: "section-per-hour") {
+                CallsPerHourChart(
+                    hours: response.callsPerHour,
+                    periodLabel: InsightsBoardCopy.periodLabel(hours: response.windowHours)
+                )
             }
         }
 

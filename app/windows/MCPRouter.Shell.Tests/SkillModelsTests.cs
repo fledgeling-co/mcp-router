@@ -125,29 +125,32 @@ public sealed class SkillModelsTests
     }
 
     [Fact]
-    public void MarketplacesDecodeTheirOwnKindDiscriminator()
+    public void MarketplacesDecodeTheRoutersOwnBody()
     {
-        const string json = """
-        {
-          "marketplaces": [
-            { "name": "fledgeling-plugins", "source": { "kind": "github", "repo": "fledgeling-co/fledgeling-plugins" },
-              "auto_update": true, "installed_plugin_count": 4, "supplied_skill_count": 24 },
-            { "name": "Local directory", "source": { "kind": "directory", "path": "~/.claude/skills" },
-              "auto_update": false, "installed_plugin_count": 0, "supplied_skill_count": 5 }
-          ]
-        }
-        """;
+        // The body GET /marketplaces answers, captured from the TypeScript router (Fixtures/marketplaces.json).
+        var json = RepoRoot.Read("app/windows/MCPRouter.Shell.Tests/Fixtures/marketplaces.json");
 
         var response = JsonSerializer.Deserialize<MarketplacesResponse>(json)
                        ?? throw new Xunit.Sdk.XunitException("decoded to null");
 
         Assert.Equal(2, response.MarketplaceList.Count);
-        var github = Assert.IsType<MarketplaceSource.GitHub>(response.MarketplaceList[0].Source);
-        Assert.Equal("github: fledgeling-co/fledgeling-plugins", github.Label);
-        Assert.False(github.IsLocalDirectory);
 
-        var directory = Assert.IsType<MarketplaceSource.Directory>(response.MarketplaceList[1].Source);
-        Assert.True(directory.IsLocalDirectory);
-        Assert.Equal("directory: ~/.claude/skills", directory.Label);
+        var github = response.MarketplaceList[0];
+        Assert.Equal("fledgeling-plugins", github.Name);
+        Assert.True(github.AutoUpdate);
+        Assert.Equal(2, github.InstalledPluginCount);
+        Assert.Equal(3, github.SuppliedSkillCount);
+        var repo = Assert.IsType<MarketplaceSource.GitHub>(github.Source);
+        Assert.Equal("github: fledgeling-co/fledgeling-plugins", repo.Label);
+        Assert.False(repo.IsLocalDirectory);
+
+        var directory = response.MarketplaceList[1];
+        Assert.Equal("local-dir", directory.Name);
+        Assert.False(directory.AutoUpdate);
+        Assert.Equal(1, directory.InstalledPluginCount);
+        Assert.Equal(1, directory.SuppliedSkillCount);
+        var local = Assert.IsType<MarketplaceSource.Directory>(directory.Source);
+        Assert.True(local.IsLocalDirectory);
+        Assert.Equal("directory: /Users/example/Dev/local-dir", local.Label);
     }
 }

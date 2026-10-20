@@ -14,7 +14,7 @@
     @MainActor
     struct PairingRouterCodeTests {
         /// The instant the captured fixture was issued at, so the clock and the router agree.
-        static let now = Date(timeIntervalSince1970: 1_792_425_131)
+        static let now = RecordedPairingClock.issuedAt
 
         static func session(
             _ scenario: FixtureInboxService.Scenario,
@@ -68,7 +68,8 @@
             #expect(recorder.calls.pairingRevoke == 0)
         }
 
-        /// The router is the one that says whether a listener is bound. Off, the sheet names that and asks for
+        /// The router is the one that says whether a listener is bound. Off, the sheet names that and asks
+        /// for
         /// no code, because a code minted then would name a port nothing answers on.
         @Test("with the router's listener off the sheet says pairing is off and asks for no code")
         func listenerOffAsksForNothing() async throws {
@@ -88,7 +89,8 @@
         }
 
         /// Closing before the router has answered the state read must not let the answer mint a code the
-        /// sheet no longer owns. The check is the first thing the open does, so this is the window that matters.
+        /// sheet no longer owns. The check is the first thing the open does, so this is the window that
+        /// matters.
         @Test("closing straight after opening mints no code, even though the state was being read")
         func closingDuringTheStateCheckMintsNothing() async throws {
             let recorder = RecordingControlAPIClient(wrapping: FixtureControlAPIClient(.populated))

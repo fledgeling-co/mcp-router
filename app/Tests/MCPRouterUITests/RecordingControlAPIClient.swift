@@ -44,7 +44,8 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
     /// Holds a pairing issue in flight after it is counted, so a test can close the sheet while the
     /// router is still answering.
     private let issueGate: (@Sendable () async -> Void)?
-    /// Replaces the listener the wrapped router reports, so a test can show the sheet a router with pairing off.
+    /// Replaces the listener the wrapped router reports, so a test can show the sheet a router with pairing
+    /// off.
     private let listener: PairingListener?
     /// Makes the state read fail, so a test can show the sheet a router it cannot read.
     private let stateFailure: ControlAPIError?

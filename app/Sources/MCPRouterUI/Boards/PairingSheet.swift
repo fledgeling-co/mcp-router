@@ -166,9 +166,15 @@
         private var content: some View {
             switch session.phase {
             case .noEndpoint:
-                unavailable(title: InboxCopy.Pairing.noEndpointTitle, detail: InboxCopy.Pairing.noEndpointDetail)
+                unavailable(
+                    title: InboxCopy.Pairing.noEndpointTitle,
+                    detail: InboxCopy.Pairing.noEndpointDetail
+                )
             case .listenerOff:
-                unavailable(title: InboxCopy.Pairing.listenerOffTitle, detail: InboxCopy.Pairing.listenerOffDetail)
+                unavailable(
+                    title: InboxCopy.Pairing.listenerOffTitle,
+                    detail: InboxCopy.Pairing.listenerOffDetail
+                )
             case .preparing:
                 Text(InboxCopy.Pairing.preparing)
                     .typeRole(.body)

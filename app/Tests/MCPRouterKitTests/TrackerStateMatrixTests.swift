@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import Testing
 @testable import MCPRouterKit
@@ -299,20 +300,28 @@ struct TrackerStateMatrixTests {
     /// contract does not move, and this is what keeps the promise after the branch merges — a
     /// later edit to a fixture is otherwise caught by nothing.
     ///
-    /// **What this asserted until M29, and why it could not keep asserting it.** The original form
-    /// required the diff against `main` to be *empty*: no branch may modify a recording at all.
-    /// That invariant holds only while the wire shape is frozen, and M29 widens it deliberately —
-    /// `GET /servers` gains a non-optional `disabled`, so every recording that carries a server row
-    /// must gain the key or stop decoding (`spec-M29.md` D1). The premise was falsified by a change
-    /// the product wanted, not by a branch misbehaving, and an assertion that a correct branch
-    /// cannot satisfy stops being a gate.
+    /// **Why the rule is not "the diff against `main` is empty".** That form held only while the
+    /// wire shape was frozen. M29 widened it on purpose (`spec-M29.md` D1), and the listener-state
+    /// item widened it again: a re-record through `scripts/capture-control-fixtures.sh` moves every
+    /// recording that carries a stdio row, because each one gained `envFiles`. An assertion that a
+    /// correct re-record cannot satisfy stops being a gate.
     ///
-    /// **What it asserts instead, and why that is still worth having.** The hazard the empty-diff
-    /// form actually caught is a *hand-patched* fixture: one file edited to make one suite go green
-    /// while the rest of the directory goes stale. That is now stated directly — recordings move as
-    /// a set or not at all. A re-recording through `scripts/capture-control-fixtures.sh` runs the
-    /// reference router over every response and therefore rewrites all of them together; a hand
-    /// edit reaches for the one file whose suite is red.
+    /// **Why a git diff cannot replace it either.** Some recordings come out byte-identical on a
+    /// faithful re-record: `server-http.json` and `server-placarded.json` are not stdio rows, so
+    /// neither gained the key. A rule that every server-bearing file must move would call them
+    /// stale. A rule that only the changed files agree with each other cannot tell a partial
+    /// re-record from a whole one.
+    ///
+    /// **What it asserts instead.** The capture script writes `capture-manifest.json`: one run id,
+    /// a SHA-256 for every recording that run wrote, and the one recording it carries forward
+    /// (registry-search, which live registries answer differently each time). This test holds the
+    /// directory to that manifest:
+    ///   - every recording on disk is listed, and every listed recording is on disk;
+    ///   - every recording's bytes hash to what the manifest says.
+    /// A hand edit to one file fails the second clause. A partial re-record fails the first or the
+    /// second: a file it did not write is on disk and unlisted, or a file it did write no longer
+    /// matches a manifest that was not regenerated. The only pass is a whole run, written by the
+    /// script and recorded in its manifest, which is what "move as a set" means.
     ///
     /// The two halves the empty-diff form also covered are held elsewhere, and are not re-asserted
     /// here: that each recording still decodes, and that its keys and the model's fields correspond
@@ -321,80 +330,50 @@ struct TrackerStateMatrixTests {
     /// two live routers rather than two files.
     @Test("F3's recorded fixtures move as a set or not at all")
     func fixturesMoveAsASet() throws {
-        var dir = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
-        var root: URL?
-        for _ in 0 ..< 8 {
-            if FileManager.default.fileExists(atPath: dir.appendingPathComponent(".git").path) {
-                root = dir
-                break
-            }
-            dir = dir.deletingLastPathComponent()
-        }
-        let repo = try #require(root, "could not locate the repository root from \(#filePath)")
+        let directory = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("Sources/MCPRouterKit/Control/Fixtures")
+        let manifestData = try Data(contentsOf: directory.appendingPathComponent("capture-manifest.json"))
+        let manifest = try JSONDecoder().decode(RecordingManifest.self, from: manifestData)
 
-        let git = Process()
-        git.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        git.arguments = [
-            "git", "-C", repo.path, "diff", "--name-only", "main...HEAD", "--",
-            "app/Sources/MCPRouterKit/Control/Fixtures/"
-        ]
-        let pipe = Pipe()
-        git.standardOutput = pipe
-        git.standardError = Pipe()
-        try git.run()
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let out = String(bytes: data, encoding: .utf8) ?? ""
-        git.waitUntilExit()
+        #expect(!manifest.run.isEmpty, "the manifest names no run, so no recording can be tied to one")
 
-        // A git failure is not a pass. If the command could not run the criterion is unverified,
-        // and reporting that as clean is how a gate starts lying.
-        #expect(git.terminationStatus == 0, "git could not compare the fixtures directory")
-
-        let changed = Set(
-            out.split(separator: "\n")
-                .map { URL(fileURLWithPath: String($0)).deletingPathExtension().lastPathComponent }
+        let onDisk = try Set(
+            FileManager.default.contentsOfDirectory(atPath: directory.path)
+                .filter { $0.hasSuffix(".json") && $0 != "capture-manifest.json" }
         )
-        // No recording moved: the ordinary case, and nothing further to check.
-        guard !changed.isEmpty else { return }
-
-        /// Which recordings carry a server row, read from the files rather than listed here, so a
-        /// recording added later is covered without anyone remembering to add it.
-        ///
-        /// `transport` is the marker rather than the presence of a `servers` key, because
-        /// `usage-summary` also has one and its rows are usage totals per server name — no wire
-        /// field of `MCPServer` on them, so a change to `MCPServer` does not reach that file and
-        /// requiring it to move would fail a branch that behaved correctly.
-        func carriesServerRow(_ object: Any) -> Bool {
-            if let one = object as? [String: Any] {
-                if one["transport"] != nil { return true }
-                if let rows = one["servers"] as? [Any] {
-                    return rows.contains { ($0 as? [String: Any])?["transport"] != nil }
-                }
-            }
-            return false
-        }
-
-        var serverBearing: Set<String> = []
-        for entry in ControlFixtureTests.expected {
-            let fixture = try FixtureControlAPIClient.fixtureData(entry.name)
-            let decoded = try JSONSerialization.jsonObject(with: fixture)
-            if carriesServerRow(decoded) {
-                serverBearing.insert(entry.name)
-            }
-        }
-
-        // The recordings that moved must be exactly the ones the wire change reaches. A branch that
-        // re-records through the capture script rewrites all of them; a branch that hand-patches
-        // one file to quiet one suite moves a strict subset, and that is what fails here.
-        let stale = serverBearing.subtracting(changed)
+        let listed = Set(manifest.files.keys).union(manifest.carried.keys)
         #expect(
-            stale.isEmpty,
+            onDisk.subtracting(listed).isEmpty,
             """
-            this branch moved some recordings and left others stale: changed \
-            \(changed.sorted()), but these carry a server row and did not move: \(stale.sorted()). \
-            Re-record them together with scripts/capture-control-fixtures.sh rather than editing \
-            one file by hand.
+            recordings on disk that run \(manifest.run) did not write: \
+            \(onDisk.subtracting(listed).sorted()). Re-record the whole set with \
+            scripts/capture-control-fixtures.sh rather than adding one file.
             """
         )
+        #expect(
+            listed.subtracting(onDisk).isEmpty,
+            "the manifest lists recordings that are not on disk: \(listed.subtracting(onDisk).sorted())"
+        )
+
+        let expectations = manifest.files.merging(manifest.carried) { first, _ in first }
+        for (name, expected) in expectations where onDisk.contains(name) {
+            let bytes = try Data(contentsOf: directory.appendingPathComponent(name))
+            let actual = SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()
+            #expect(
+                actual == expected,
+                """
+                \(name) changed after run \(manifest.run). Re-record the whole set with \
+                scripts/capture-control-fixtures.sh rather than editing one file by hand.
+                """
+            )
+        }
     }
+}
+
+/// `capture-manifest.json`, as the capture script writes it.
+private struct RecordingManifest: Decodable {
+    let run: String
+    let files: [String: String]
+    let carried: [String: String]
 }

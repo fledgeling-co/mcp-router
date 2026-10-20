@@ -275,7 +275,8 @@ public enum InboxCopy {
         /// The router is running but is not listening for a phone. Named as the router's state, not the
         /// build's, because the build can listen and the router is what is off. Matches the Windows copy.
         public static let listenerOffTitle = "Pairing is turned off on this router"
-        public static let listenerOffDetail = "There is no code to show while it is off. Your servers are unchanged."
+        public static let listenerOffDetail =
+            "There is no code to show while it is off. Your servers are unchanged."
 
         public static let preparing = "Preparing a code…"
 

@@ -115,8 +115,8 @@ struct PairingAwaitingAckWire: Codable {
     }
 }
 
-/// The body `GET /pairing/state` answers: the live code, or `null` once there is none to pair with, the phones
-/// awaiting an ack, and whether the router's phone listener is bound.
+/// The body `GET /pairing/state` answers: the live code, or `null` once there is none to pair with;
+/// the phones awaiting an ack; and whether the router's phone listener is bound.
 struct PairingStateWire: Codable {
     let code: PairingCodeWire?
     let awaitingAck: [PairingAwaitingAckWire]

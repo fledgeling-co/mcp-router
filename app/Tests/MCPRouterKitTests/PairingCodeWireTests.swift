@@ -10,15 +10,22 @@ import Testing
 /// can only agree with it if the two really match.
 @Suite("B3 — the router's pairing bodies decode to what the sheet shows")
 struct PairingCodeWireTests {
-    /// The instant `pairing-code.json` was issued at. Every clock in the pairing tests is pinned here,
-    /// so the code the fixture carries is inside its window when the sheet reads it.
-    static let captured = Date(timeIntervalSince1970: 1_792_425_131)
+    /// The issue body the captured recording carries. Read from the recording rather than typed in:
+    /// the window it names is the one the sheet counts down, so a re-record has to move with it.
+    static func recorded() throws -> PairingCodeWire {
+        try FixtureControlAPIClient.decodeFixture("pairing-code", as: PairingCodeWire.self)
+    }
 
     @Test("the captured issue body decodes, with the window the router chose")
     func issueBodyDecodes() async throws {
+        let recorded = try Self.recorded()
         let issued = try await FixtureControlAPIClient(.populated).issuePairingCode()
-        #expect(issued.issuedAt == Self.captured)
-        #expect(issued.expiresAt == Self.captured.addingTimeInterval(MacPairing.lifetime))
+        #expect(issued.issuedAt == recorded.issuedAt)
+        #expect(issued.expiresAt == recorded.expiresAt)
+        #expect(
+            recorded.expiresAt.timeIntervalSince(recorded.issuedAt) == MacPairing.lifetime,
+            "the window the router chose is the window the sheet counts down"
+        )
         #expect(issued.code.canonical.count == PairingCode.length)
     }
 
@@ -46,7 +53,10 @@ struct PairingCodeWireTests {
 
     @Test("a state body with no live code decodes to nothing rather than to a code, and says pairing is off")
     func emptyStateDecodes() throws {
-        let body = Data(#"{"code":null,"awaitingAck":[],"listener":{"enabled":false,"port":null,"advertising":false}}"#.utf8)
+        let body = Data(
+            #"{"code":null,"awaitingAck":[],"listener":{"enabled":false,"port":null,"advertising":false}}"#
+                .utf8
+        )
         let decoded = try JSONDecoder().decode(PairingStateWire.self, from: body)
         #expect(decoded.code == nil)
         #expect(decoded.listener.enabled == false)
@@ -97,15 +107,12 @@ struct PairingCodeWireTests {
     func liveClientReachesTheRoutes() async throws {
         let stub = try HTTPStub()
         defer { stub.stop() }
-        let issuedAt = "2026-10-19T15:52:11Z"
-        let expiresAt = "2026-10-19T15:57:11Z"
-        let body = #"{"code":"ABCD2345","issuedAt":"\#(issuedAt)","expiresAt":"\#(expiresAt)"}"#
+        let recorded = try Self.recorded()
+        let recording = try FixtureControlAPIClient.fixtureData("pairing-code")
+        let body = try #require(String(bytes: recording, encoding: .utf8))
+        let listener = #""listener":{"enabled":true,"port":8882,"advertising":true}"#
         stub.on("POST", "/pairing/codes", .json(201, body))
-        stub.on(
-            "GET",
-            "/pairing/state",
-            .json(200, #"{"code":\#(body),"awaitingAck":[],"listener":{"enabled":true,"port":8882,"advertising":true}}"#)
-        )
+        stub.on("GET", "/pairing/state", .json(200, #"{"code":\#(body),"awaitingAck":[],\#(listener)}"#))
         stub.on("DELETE", "/pairing/codes", .json(200, #"{"revoked":true}"#))
         let subject = LiveControlAPIClient(
             baseURL: stub.baseURL,
@@ -116,7 +123,7 @@ struct PairingCodeWireTests {
         )
 
         let issued = try await subject.issuePairingCode()
-        #expect(issued.issuedAt == Self.captured)
+        #expect(issued.issuedAt == recorded.issuedAt)
         #expect(try await subject.pairingState().code == issued)
         #expect(try await subject.revokePairingCode())
 

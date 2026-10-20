@@ -394,6 +394,7 @@ export async function startRouter(
     usage,
     liveReload,
     pairing,
+    routerHome: ROUTER_HOME,
     extensions: new ExtensionStore(join(ROUTER_HOME, 'extensions')),
     claudeHome: join(homedir(), '.claude'),
     harnesses: diskHarnessInventory(),

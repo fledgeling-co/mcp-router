@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+
 namespace MCPRouter.Shell.Model.Pairing;
 
 /// <summary>
@@ -7,5 +9,7 @@ namespace MCPRouter.Shell.Model.Pairing;
 /// </summary>
 public static class PairingFingerprint
 {
-    public static string Render(byte[] certificateDer) => throw new NotImplementedException("B9: the fingerprint");
+    public static string Render(byte[] certificateDer) =>
+        Convert.ToHexString(SHA256.HashData(certificateDer)).ToLowerInvariant();
 }
+

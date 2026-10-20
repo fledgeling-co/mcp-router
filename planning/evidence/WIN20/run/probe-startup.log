@@ -1,11 +1,11 @@
-﻿2026-09-02T16:53:58.5864407Z pid=35684 Program.Main entered, args=[]
-2026-09-02T16:53:59.7485487Z pid=35684 ComWrappers initialised
-2026-09-02T16:54:00.5830125Z pid=35684 App ctor: before InitializeComponent
-2026-09-02T16:54:00.6723512Z pid=35684 App ctor: after InitializeComponent
-2026-09-02T16:54:01.0235803Z pid=35684 OnLaunched: constructing MainWindow
-2026-09-02T16:54:01.2440215Z pid=35684 MainWindow: before InitializeComponent
-2026-09-02T16:54:01.4126667Z pid=35684 MainWindow: after InitializeComponent
-2026-09-02T16:54:01.4164391Z pid=35684 MainWindow: resized and moved
-2026-09-02T16:54:01.4299401Z pid=35684 MainWindow: Servers selected
-2026-09-02T16:54:01.4304759Z pid=35684 OnLaunched: MainWindow constructed
-2026-09-02T16:54:01.4380150Z pid=35684 OnLaunched: shown without activation, hwnd=2621610
+﻿2026-10-20T02:39:25.7755126Z pid=16836 Program.Main entered, args=[]
+2026-10-20T02:39:25.7850308Z pid=16836 ComWrappers initialised
+2026-10-20T02:39:26.4570433Z pid=16836 App ctor: before InitializeComponent
+2026-10-20T02:39:26.5171069Z pid=16836 App ctor: after InitializeComponent
+2026-10-20T02:39:26.6653370Z pid=16836 OnLaunched: constructing MainWindow
+2026-10-20T02:39:26.8621329Z pid=16836 MainWindow: before InitializeComponent
+2026-10-20T02:39:26.9796323Z pid=16836 MainWindow: after InitializeComponent
+2026-10-20T02:39:26.9834638Z pid=16836 MainWindow: resized and moved
+2026-10-20T02:39:27.0035840Z pid=16836 MainWindow: Servers selected
+2026-10-20T02:39:27.0038737Z pid=16836 OnLaunched: MainWindow constructed
+2026-10-20T02:39:27.0092043Z pid=16836 OnLaunched: shown without activation, hwnd=197506

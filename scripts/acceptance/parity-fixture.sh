@@ -292,6 +292,9 @@ for recorded in "$RECORDED"/*.json; do
   live="$WORK/recaptured/$name.json"
   status="$(cat "$WORK/status/$name.status" 2>/dev/null || echo '---')"
 
+  # The capture manifest is the set's receipt, not a recording, and has no body to replay.
+  [ "$name" = "capture-manifest" ] && continue
+
   if [ "$name" = "registry-search" ]; then
     printf '  %-28s %-7s %s\n' "$name" "$status" "not compared — live registry, no stable oracle"
     continue

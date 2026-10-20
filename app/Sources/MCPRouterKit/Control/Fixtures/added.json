@@ -1,1 +1,1 @@
-{"added":"fixture-added","tools":0,"error":"MCP error -32000: Connection closed","needsAuth":false}
+{"added":"fixture-added","tools":0,"error":"upstream \"fixture-added\" exited with status 0 before initializing","needsAuth":false}

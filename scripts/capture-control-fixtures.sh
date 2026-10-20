@@ -37,6 +37,11 @@ command -v node >/dev/null 2>&1 || { echo "error: node is not installed — cann
 
 mkdir -p "$OUT"
 
+# One id per run. The manifest written at the end names it, so every recording in the set can be
+# tied to the run that wrote it and to nothing else.
+RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)-$$"
+CAPTURED=()
+
 TOOLSET_FILE="$HOME_DIR/toolset"
 echo a > "$TOOLSET_FILE"
 
@@ -105,6 +110,7 @@ grab() {
 save() {
   local f="$1"; shift
   "$@" > "$OUT/$f"
+  CAPTURED+=("$f")
   if [ -n "${STATUS_DIR:-}" ] && [ -f "$HOME_DIR/.last-status" ]; then
     cp "$HOME_DIR/.last-status" "$STATUS_DIR/${f%.json}.status"
   fi
@@ -122,7 +128,12 @@ save servers.json                grab "http://127.0.0.1:$PORT/servers"
 save server-stdio.json           grab "http://127.0.0.1:$PORT/servers/fixture-stdio"
 save server-http.json            grab "http://127.0.0.1:$PORT/servers/fixture-http"
 save changes-none.json           grab "http://127.0.0.1:$PORT/servers/fixture-stdio/changes"
-save registry-search.json        grab "http://127.0.0.1:$PORT/registry/search?q=github&limit=3"
+# registry-search is answered by live registries (Smithery, GitHub), so its bytes differ between runs
+# and it cannot be re-recorded. The route is still called to show it answers, and the output goes to
+# scratch. The manifest carries the committed recording forward instead, and refuses to if the file
+# on disk no longer matches what was carried.
+grab "http://127.0.0.1:$PORT/registry/search?q=github&limit=3" > "$HOME_DIR/registry-search.json"
+echo "  checked registry-search (carried forward, not re-recorded)"
 save unauthorized.json           grab -X POST -H 'content-type: application/json' "http://127.0.0.1:$PORT/usage/reset"
 
 # --- a real call, so the call log has something in it -------------------------------------------
@@ -227,4 +238,38 @@ for f in "$OUT"/*.json; do
     || { echo "error: $f is not valid JSON"; exit 1; }
 done
 
-echo "captured $(ls -1 "$OUT"/*.json | wc -l | tr -d ' ') fixtures into $OUT"
+# The manifest is the set's receipt: one run id, and one hash per recording this run wrote. The F3
+# gate reads it to tell a re-record from a hand edit. It is written last, so a run that failed part
+# way leaves the previous manifest behind, and its hashes no longer match the files it has changed.
+RUN_ID="$RUN_ID" OUT="$OUT" python3 -c "
+import hashlib, json, os, sys
+out = os.environ['OUT']
+manifest = os.path.join(out, 'capture-manifest.json')
+carried_names = ['registry-search.json']
+
+def sha(name):
+    with open(os.path.join(out, name), 'rb') as fh:
+        return hashlib.sha256(fh.read()).hexdigest()
+
+try:
+    previous = json.load(open(manifest)).get('carried', {})
+except (OSError, ValueError):
+    previous = {}
+carried = {}
+for name in carried_names:
+    carried[name] = previous.get(name, sha(name))
+    if sha(name) != carried[name]:
+        sys.exit('error: ' + name + ' no longer matches the manifest that carries it; restore it from git')
+
+files = {name: sha(name) for name in sys.argv[1:]}
+with open(manifest, 'w') as fh:
+    json.dump({
+        'run': os.environ['RUN_ID'],
+        'files': files,
+        'carried': carried,
+        'carriedNote': 'registry-search is answered by live registries, so it is carried forward from the run that recorded it and never re-recorded.',
+    }, fh, indent=2, sort_keys=True)
+    fh.write('\n')
+" "${CAPTURED[@]}"
+
+echo "captured ${#CAPTURED[@]} fixtures into $OUT (run $RUN_ID)"

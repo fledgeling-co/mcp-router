@@ -67,6 +67,12 @@ public sealed record SkillsBoardSnapshot
 
     public int MarketplacesCount => Marketplaces?.Count ?? 0;
 
+    /// <summary>Why the update check is not in hand, when it is not. Its own read, so its failure never blanks the board.</summary>
+    public SkillsControlError? UpdatesError { get; init; }
+
+    /// <summary>Every offer the Updates section draws: the register's held versions, then the store's own offers.</summary>
+    public IReadOnlyList<ExtensionUpdateEntry> Offers => throw new NotImplementedException();
+
     /// <summary>Every skill with a newer version fetched at all - what the Updates tab lists.</summary>
     public IReadOnlyList<Skill> Updated => Skills is null
         ? Array.Empty<Skill>()
@@ -89,7 +95,9 @@ public sealed record SkillsBoardSnapshot
         SkillsResponse? skills,
         SkillsControlError? skillsError,
         MarketplacesResponse? marketplaces,
-        SkillsControlError? marketplacesError)
+        SkillsControlError? marketplacesError,
+        ExtensionUpdatesResponse? updates = null,
+        SkillsControlError? updatesError = null)
     {
         if (skillsError is not null)
         {

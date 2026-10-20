@@ -61,6 +61,25 @@ public static class SkillPresentation
         + "author declared. No skill format carries a capability manifest, so this is a reading "
         + "and can be incomplete.";
 
+    // ------------------------------------------------------------------ held-version writes (stub)
+
+    public const string PromoteUnavailable = "";
+    public const string UpdatesHeading = "";
+    public const string UpdatesNone = "";
+
+    public static string Kept(string version) => throw new NotImplementedException();
+
+    public static string Promoted(string name, string version) => throw new NotImplementedException();
+
+    public static string Undone(string name, string? version) => throw new NotImplementedException();
+
+    public static string PromotionCanBeUndone(string plugin) => throw new NotImplementedException();
+
+    public static string Offered(string available, string installed) => throw new NotImplementedException();
+
+    public static IReadOnlyList<ExtensionUpdateEntry> UpdateOffers(
+        IReadOnlyList<Skill> skills, IReadOnlyList<ExtensionUpdateEntry> stored) => throw new NotImplementedException();
+
     // ------------------------------------------------------------------ the header
 
     /// <summary>

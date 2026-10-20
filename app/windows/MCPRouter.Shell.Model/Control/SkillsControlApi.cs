@@ -67,13 +67,21 @@ public abstract record SkillsControlError
 }
 
 /// <summary>
-/// What the Windows client may ask the router for on the Skills board: two reads, no writes. The
-/// narrowness is the point - the board is read-only (spec-WIN6 §2.2), so the boundary that would
-/// carry a write does not exist yet to be called by mistake.
+/// What the Windows client may ask the router for on the Skills board: the reads, and the held-version writes
+/// (keep, promote from Claude's cache, undo a promotion). Every write names the plugin by its store name,
+/// <c>plugin@marketplace</c>, and sends nothing but the version or the restore reference the router handed out.
 /// </summary>
 public interface ISkillsControlClient
 {
     Task<SkillsResponse> SkillsAsync(CancellationToken cancellationToken = default);
 
     Task<MarketplacesResponse> MarketplacesAsync(CancellationToken cancellationToken = default);
+
+    Task<ExtensionUpdatesResponse> ExtensionUpdatesAsync(CancellationToken cancellationToken = default);
+
+    Task<KeepAck> KeepHeldVersionAsync(string name, string pluginVersion, CancellationToken cancellationToken = default);
+
+    Task<PromotionAck> PromoteFromCacheAsync(string name, string pluginVersion, CancellationToken cancellationToken = default);
+
+    Task<UndoAck> UndoPromotionAsync(string name, string restore, CancellationToken cancellationToken = default);
 }

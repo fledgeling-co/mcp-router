@@ -92,7 +92,11 @@ public abstract record SkillSource
         // How many skills this plugin supplies, so a shared version can be explained rather than
         // looking like a coincidence across thirty rows.
         [property: JsonPropertyName("siblingSkillCount")] int SiblingSkillCount)
-        : SkillSource;
+        : SkillSource
+    {
+        /// <summary>The name the router holds this plugin under, <c>plugin@marketplace</c>. A bare plugin name is ambiguous.</summary>
+        public string StoreName => $"{Plugin}@{Marketplace}";
+    }
 
     public sealed record Standalone(
         [property: JsonPropertyName("path")] string Path)
@@ -156,11 +160,18 @@ public sealed record HeldVersion(
     [property: JsonPropertyName("pluginVersion")] string PluginVersion,
     [property: JsonPropertyName("addedCapabilities")] string[] AddedCapabilities,
     // How many skills promoting this plugin would move at once.
-    [property: JsonPropertyName("affectedSkillCount")] int AffectedSkillCount)
+    [property: JsonPropertyName("affectedSkillCount")] int AffectedSkillCount,
+    SkillChangelog? Changelog = null)
 {
     /// <summary>Whether this version may promote without asking.</summary>
     public bool WantsMore => AddedCapabilities.Length > 0;
 }
+
+/// <summary>
+/// The changelog of a held version, as the router read it from Claude's plugin cache. <c>Text</c> is null wherever
+/// the router did not send it, and <c>Note</c> says which case it was.
+/// </summary>
+public sealed record SkillChangelog(string? Text, string Note);
 
 /// <summary>
 /// A marketplace that now resolves somewhere other than where the router first saw it.
@@ -242,10 +253,14 @@ internal sealed class PresenceMapConverter : JsonConverter<IReadOnlyDictionary<s
 
 public sealed record SkillsResponse(
     [property: JsonPropertyName("skills")] Skill[]? Skills,
-    [property: JsonPropertyName("clients")] SkillClient[]? Clients)
+    [property: JsonPropertyName("clients")] SkillClient[]? Clients,
+    bool? PromoteFromCache = null)
 {
     public IReadOnlyList<Skill> SkillList => Skills ?? Array.Empty<Skill>();
     public IReadOnlyList<SkillClient> ClientList => Clients ?? Array.Empty<SkillClient>();
+
+    /// <summary>Whether the router serves Promote from Claude's plugin cache. An older router omits the member.</summary>
+    public bool PromotesFromCache => PromoteFromCache == true;
 
     /// <summary>The clients that have a skills mechanism, in the router's order - which is the slot order.</summary>
     public IReadOnlyList<SkillClient> SlotClients =>

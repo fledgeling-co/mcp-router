@@ -73,7 +73,7 @@ routes, and the Insights analyst card.
 
 ## 4 · The wire
 
-`GET /insights` — `analyst` becomes an object once a run exists, and stays `null` before the first.
+`GET /insights` — `analyst` is an object whenever the router serves the analyst, before the first run as well as after; before the first run its readings are absent and its settings (lane, cadence) are present. `null` means the router does not serve the analyst at all. *(Amended 2026-10-20: the original sentence said `null` before the first run, which contradicted §3 item 8 — `Analyse now` is enabled exactly when the router serves the route — because a client could then never start the first run. The Mac board and the TypeScript router already implement this reading; see `planning/evidence/reverify-F7.md`.)*
 
 ```
 analyst: {

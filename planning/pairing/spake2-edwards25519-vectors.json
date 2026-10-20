@@ -1,0 +1,49 @@
+{
+  "source": "Generated for planning/plans/plan-pairing-typed-spake2.md §3 by a scratch script that computes with @noble/curves 2.4.0 primitives directly; the module under test is not imported.",
+  "suite": "SPAKE2 over edwards25519, SHA-256, HKDF-SHA256, HMAC-SHA256; M and N are the RFC 9382 Table 1 points (plan §2.1)",
+  "note": "Hex is lowercase, no 0x. x, y and w are fixed scalars in [1, L), supplied directly (the code-to-w step is not part of this vector set). aad is \"pair.typed.v1\" || exporter || phoneName, so both vectors exercise the §2.1 AAD path. K is also checked as 8xyP.",
+  "vectors": [
+    {
+      "name": "typed AAD, phone \"Luke iPhone\"",
+      "identityA": "phone-key-fixture-1",
+      "identityB": "mcp-router",
+      "phoneName": "Luke iPhone",
+      "x": "004c4f2f98d6acfa358704c1f22f62addd444f6fcc974273995c99b4f671fefd",
+      "y": "0196548d6e68f2402bc4b90f496d28048f9a0058c7ad22f50f5202068084133a",
+      "w": "0b7ce35de59d937c71e19ab872d90c4727fec0c8c0f4496fef94ceaaa3c3eff2",
+      "exporter": "a83ee9101104edaaa0fc943223db867c79c5ddfaf0f491f95b60969c9ce38038",
+      "aad": "706169722e74797065642e7631a83ee9101104edaaa0fc943223db867c79c5ddfaf0f491f95b60969c9ce380384c756b65206950686f6e65",
+      "pA": "7626c20fece15c9508ae6f63f904d5bef1ccc5444c2efbe7b4690d1e25753ab1",
+      "pB": "a5fa41503fe7d550d3fb9b96794cef4e8219c5afe5a26c1a58f67e7c3dbd5c31",
+      "K": "eeed83004acdab888c33380572f4ba3ffab8b7d163a75c28397560a744f91fd6",
+      "TT": "130000000000000070686f6e652d6b65792d666978747572652d310a000000000000006d63702d726f7574657220000000000000007626c20fece15c9508ae6f63f904d5bef1ccc5444c2efbe7b4690d1e25753ab12000000000000000a5fa41503fe7d550d3fb9b96794cef4e8219c5afe5a26c1a58f67e7c3dbd5c312000000000000000eeed83004acdab888c33380572f4ba3ffab8b7d163a75c28397560a744f91fd620000000000000000b7ce35de59d937c71e19ab872d90c4727fec0c8c0f4496fef94ceaaa3c3eff2",
+      "Ke": "ce6005b490547c1fcf390bb250da8f4e",
+      "Ka": "5de5f96e41b32b3c12d595390792bbf5",
+      "KcA": "ba96548b1c921e9a71896999a624aa17",
+      "KcB": "21a799c649ddfb88daad87798e68739e",
+      "confA": "99e1d3c060f46c0f26468b0bc4c1a7d2c33b04c4f57dfea00bfc6b0e2a9b06c4",
+      "confB": "b2cbf783ba8b3c8394434c4fd4fe8f2b6a8d12a80387dace24421fa485877f62"
+    },
+    {
+      "name": "typed AAD, phone \"Second phone\"",
+      "identityA": "phone-key-fixture-2",
+      "identityB": "mcp-router",
+      "phoneName": "Second phone",
+      "x": "065849675a6d59715b9c9326f4a97579afe86d7db7624864eb78cf5d58e80808",
+      "y": "0d55ca18da5fd4c4ce06dfed1528a3cd8038db83ea199e7f607e62b65061f08f",
+      "w": "0659b7785722ba34bfbeba33e5e2b0fb2eccb4104eecc8cb93bdee3748b8a406",
+      "exporter": "134ebe8ccd3b7f4ea9e60c624bb6b17b4ca8591e4ab004ce4376fbe6c90116c8",
+      "aad": "706169722e74797065642e7631134ebe8ccd3b7f4ea9e60c624bb6b17b4ca8591e4ab004ce4376fbe6c90116c85365636f6e642070686f6e65",
+      "pA": "d4f03f436600d9731d6eff341c05c2a718b81a4bfe31bf1ee17e9cd908fdf891",
+      "pB": "bb586d5245c76baa35318aabb9f1510d64e74d1e31d4d0a26860d97d64ab5a6e",
+      "K": "1deaddc7de5fa66d97aca5cf034298cd6151cc05902e5fa2e9f114192be87701",
+      "TT": "130000000000000070686f6e652d6b65792d666978747572652d320a000000000000006d63702d726f757465722000000000000000d4f03f436600d9731d6eff341c05c2a718b81a4bfe31bf1ee17e9cd908fdf8912000000000000000bb586d5245c76baa35318aabb9f1510d64e74d1e31d4d0a26860d97d64ab5a6e20000000000000001deaddc7de5fa66d97aca5cf034298cd6151cc05902e5fa2e9f114192be8770120000000000000000659b7785722ba34bfbeba33e5e2b0fb2eccb4104eecc8cb93bdee3748b8a406",
+      "Ke": "947f29a8a4efdedb6ee9b166098f5e12",
+      "Ka": "a79c9c81c15952569b8c467d1f6a3c1f",
+      "KcA": "0aae850ce31dca8e3f14a1c65c4d384e",
+      "KcB": "6fd200c230402fa78ffb2801c7c3c080",
+      "confA": "1c82eddd0929de6982bce624464f6857cde8febbc5e75cfb52fbfe801ab84701",
+      "confB": "fdd15a8e91c2c2bc30410429e452b45cd870a1dc21bf09745d4ec11991424dd0"
+    }
+  ]
+}

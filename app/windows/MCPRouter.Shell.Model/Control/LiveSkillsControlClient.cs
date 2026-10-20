@@ -59,7 +59,7 @@ public sealed class RouterTokenFile
 /// The status mapping is the Mac's <c>LiveControlAPIClient+Absent.swift</c> rule, carried across
 /// rather than reinvented: <b>404 is version skew, not failure</b>. Every other read treats a
 /// non-2xx as "the router couldn't complete that"; for <c>/skills</c> and
-/// <c>/marketplaces</c> a 404 is the expected answer from the router a user runs today, and the
+/// <c>/marketplaces</c> a 404 is the answer from a router built before the route, and the
 /// honest reading of it is "the router may be newer or older than this app".
 ///
 /// <c>GET /skills</c> is token-gated on every method (<c>src/control.ts</c>), so each read sends the

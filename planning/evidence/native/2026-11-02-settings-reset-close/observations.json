@@ -1,0 +1,476 @@
+{
+  "scope": "Bounded background native changed-flow evidence. Not installed acceptance or a whole-current glass campaign.",
+  "source": {
+    "resetCloseRevision": "fdf14d15",
+    "resetCloseChange": "17f64770e3f8ade521d5506b40b512db9f5f667a",
+    "layoutAndBusyRevision": "ef6a3b3656c79a02227b9d89fa6271cd1efcdc5f",
+    "appInputSha256": "088dede5c64dc4f2b7d82c18d73ad239a1b76e021c12d5a8108505bb472bc151",
+    "oldSourceInputSha256": "dab125d0afe072bd0e490b199b26116594242ddd35e00b98dffe8786acba1705",
+    "oldIdentityNote": "Reconstructed from recorded source revision; no old full-bundle hash claimed.",
+    "build": "Actual Xcode Debug MCPRouter scheme, macOS destination, one job, signing disabled; genuine build freshness source/bundle stamp validated after capture."
+  },
+  "isolation": "Explicit temporary router HOME, Debug in-memory token store and temporary observations directory. One authored usage record; one declared HTTP target at loopback port1, never invoked. No provider, owner history, owner Keychain or live listener.",
+  "ordinaryCancel": {
+    "resetPOSTs": 0,
+    "usageFileHashesUnchanged": true,
+    "witnessPOSTsThroughCancelReceipt": 0
+  },
+  "acknowledgedWriteThenReadbackFailure": {
+    "POSTstatus": 200,
+    "nextSummaryGETstatus": 503,
+    "readbackFailure": "One-shot controlled proxy refusal; write passed through to the actual router.",
+    "close": {
+      "resetPOSTsBefore": 1,
+      "resetPOSTsAfter": 1,
+      "additionalResetPOSTs": 0,
+      "requiredRefreshGETsObserved": [
+        "/usage?limit=500",
+        "/servers",
+        "/skills",
+        "/usage/summary"
+      ],
+      "closeDeltaRequests": [
+        {
+          "method": "GET",
+          "path": "/usage?limit=500"
+        },
+        {
+          "method": "GET",
+          "path": "/servers"
+        },
+        {
+          "method": "GET",
+          "path": "/servers"
+        },
+        {
+          "method": "GET",
+          "path": "/skills"
+        },
+        {
+          "method": "GET",
+          "path": "/usage/summary"
+        },
+        {
+          "method": "GET",
+          "path": "/servers"
+        },
+        {
+          "method": "GET",
+          "path": "/inbox"
+        },
+        {
+          "method": "GET",
+          "path": "/pairing/state"
+        },
+        {
+          "method": "GET",
+          "path": "/servers"
+        },
+        {
+          "method": "GET",
+          "path": "/inbox"
+        },
+        {
+          "method": "GET",
+          "path": "/pairing/state"
+        }
+      ]
+    },
+    "notice": "The router accepted the history reset. Updated history could not be verified.",
+    "Activity": "One recorded call became zero after close refresh.",
+    "Cleanup": "One-day history/no proposal became a fresh seconds-old window with one never-used candidate.",
+    "disk": "Actual active log removed and aggregate reset to an empty server map."
+  },
+  "actualPartialWriteFailure": {
+    "POSTstatus": 500,
+    "response": {
+      "error": "Usage history reset failed during commit (EISDIR). Some history files were removed; the reset did not complete. Reload usage before trying again.",
+      "reason": "usageResetFailed",
+      "phase": "commit",
+      "partialReset": true,
+      "removedFiles": 1
+    },
+    "arrangement": "Only the private stats commit target was temporarily changed to a directory. Actual reset removed one JSONL then refused rename with EISDIR; fixture restored after probe.",
+    "close": {
+      "resetPOSTsBefore": 1,
+      "resetPOSTsAfter": 1,
+      "additionalResetPOSTs": 0,
+      "requiredRefreshGETsObserved": [
+        "/usage?limit=500",
+        "/servers",
+        "/skills",
+        "/usage/summary"
+      ],
+      "closeDeltaRequests": [
+        {
+          "method": "GET",
+          "path": "/servers"
+        },
+        {
+          "method": "GET",
+          "path": "/inbox"
+        },
+        {
+          "method": "GET",
+          "path": "/pairing/state"
+        },
+        {
+          "method": "GET",
+          "path": "/servers"
+        },
+        {
+          "method": "GET",
+          "path": "/inbox"
+        },
+        {
+          "method": "GET",
+          "path": "/pairing/state"
+        },
+        {
+          "method": "GET",
+          "path": "/servers"
+        },
+        {
+          "method": "GET",
+          "path": "/inbox"
+        },
+        {
+          "method": "GET",
+          "path": "/pairing/state"
+        },
+        {
+          "method": "GET",
+          "path": "/servers"
+        },
+        {
+          "method": "GET",
+          "path": "/inbox"
+        },
+        {
+          "method": "GET",
+          "path": "/pairing/state"
+        },
+        {
+          "method": "GET",
+          "path": "/servers"
+        },
+        {
+          "method": "GET",
+          "path": "/inbox"
+        },
+        {
+          "method": "GET",
+          "path": "/pairing/state"
+        },
+        {
+          "method": "GET",
+          "path": "/servers"
+        },
+        {
+          "method": "GET",
+          "path": "/inbox"
+        },
+        {
+          "method": "GET",
+          "path": "/pairing/state"
+        },
+        {
+          "method": "GET",
+          "path": "/servers"
+        },
+        {
+          "method": "GET",
+          "path": "/inbox"
+        },
+        {
+          "method": "GET",
+          "path": "/pairing/state"
+        },
+        {
+          "method": "GET",
+          "path": "/servers"
+        },
+        {
+          "method": "GET",
+          "path": "/inbox"
+        },
+        {
+          "method": "GET",
+          "path": "/pairing/state"
+        },
+        {
+          "method": "GET",
+          "path": "/usage?limit=500"
+        },
+        {
+          "method": "GET",
+          "path": "/servers"
+        },
+        {
+          "method": "GET",
+          "path": "/skills"
+        },
+        {
+          "method": "GET",
+          "path": "/usage/summary"
+        },
+        {
+          "method": "GET",
+          "path": "/servers"
+        },
+        {
+          "method": "GET",
+          "path": "/servers"
+        },
+        {
+          "method": "GET",
+          "path": "/inbox"
+        },
+        {
+          "method": "GET",
+          "path": "/pairing/state"
+        }
+      ]
+    },
+    "notice": "The history reset could not be verified. Current readings may be incomplete.",
+    "Activity": "Freshly read active history became zero records.",
+    "Cleanup": "Fresh GET retained the previous one-call aggregate and one-day window, matching the router; no invented completed reset."
+  },
+  "layoutRegression": {
+    "negative": {
+      "window": {
+        "h": 728,
+        "w": 1100,
+        "x": 100,
+        "y": 100
+      },
+      "split": {
+        "h": 2086,
+        "w": 1100,
+        "x": 100,
+        "y": -553
+      },
+      "subtitle": {
+        "h": 14,
+        "w": 258.5,
+        "x": 372,
+        "y": -464
+      },
+      "splitContained": false,
+      "subtitleContained": false
+    },
+    "positive": {
+      "fixPopulatedWide": {
+        "window": {
+          "h": 728,
+          "w": 1100,
+          "x": 100,
+          "y": 100
+        },
+        "split": {
+          "h": 728,
+          "w": 1100,
+          "x": 100,
+          "y": 100
+        },
+        "subtitle": {
+          "h": 14,
+          "w": 251.5,
+          "x": 372,
+          "y": 189
+        },
+        "splitContained": true,
+        "subtitleContained": true
+      },
+      "fixPopulatedCompact": {
+        "window": {
+          "h": 450,
+          "w": 900,
+          "x": 100,
+          "y": 100
+        },
+        "split": {
+          "h": 450,
+          "w": 900,
+          "x": 100,
+          "y": 100
+        },
+        "subtitle": {
+          "h": 14,
+          "w": 251.5,
+          "x": 372,
+          "y": 189
+        },
+        "splitContained": true,
+        "subtitleContained": true
+      },
+      "fixEmptyCompact": {
+        "window": {
+          "h": 450,
+          "w": 900,
+          "x": 100,
+          "y": 100
+        },
+        "split": {
+          "h": 450,
+          "w": 900,
+          "x": 100,
+          "y": 100
+        },
+        "subtitle": {
+          "h": 14,
+          "w": 258.5,
+          "x": 372,
+          "y": 189
+        },
+        "splitContained": true,
+        "subtitleContained": true
+      },
+      "fixEmptyWide": {
+        "window": {
+          "h": 728,
+          "w": 1100,
+          "x": 100,
+          "y": 100
+        },
+        "split": {
+          "h": 728,
+          "w": 1100,
+          "x": 100,
+          "y": 100
+        },
+        "subtitle": {
+          "h": 14,
+          "w": 258.5,
+          "x": 372,
+          "y": 189
+        },
+        "splitContained": true,
+        "subtitleContained": true
+      }
+    },
+    "oldRasterChannels": [
+      "ScreenCaptureKit background window capture",
+      "screencapture -x -l<actual owned CGWindowID>"
+    ],
+    "result": "Old split and subtitle escaped the window. After the intrinsic sizing fix both fit in populated and empty states at900x450 and1100x728; native screenshots inspected. No clipping or fixed content-height workaround.",
+    "discardedProbe": "A detached NSHostingView fittingSize assertion passed old source and was discarded. It is not a regression guard."
+  },
+  "busyControl": {
+    "controlledGETDelayMs": 4500,
+    "label": "Updating history\u2026",
+    "enabled": false,
+    "resetPOSTsIncludingCloseRefresh": 1,
+    "additionalResetPOSTs": 0
+  },
+  "nativeLifecycle": {
+    "attachedSheetWindowCloseButtonEnabled": false,
+    "FileCloseCmdWEnabled": false,
+    "AXPressCloseRemovedSettingsWindow": false,
+    "FileCloseAllEnabled": true,
+    "AXPressCloseAll": "Closed the ordinary main window; Settings and its pending acknowledged-reset sheet remained.",
+    "result": "No reachable pending-sheet Settings destruction established. No speculative onDisappear workaround added.",
+    "foregroundKeysUsed": false
+  },
+  "nativeEvidence": {
+    "actor": "Proctor AXPress/menu/value writes with foreground:false; measured synthetic events0.",
+    "settingsEntry": "PID-directed CGEvent.postToPid cmd-comma; sampled foreground PID unchanged. No global key or click.",
+    "settle": "AX quiet only on live windows; compositor regionQuiet timed out because trace updates. No frame-quiescence claim.",
+    "sourcePopulation": "Actual normal app, not a hosted fixture renderer.",
+    "capturedWindowSizes": [
+      [
+        900,
+        450
+      ],
+      [
+        1100,
+        728
+      ]
+    ]
+  },
+  "validation": {
+    "focusedSwiftTests": 154,
+    "uiTests": 112,
+    "kitTests": 42,
+    "strictSwiftLintFiles": 3,
+    "strictSwiftLintIssues": 0,
+    "command": "swift test --package-path app --scratch-path <isolated existing scratch> --jobs 1 --filter Activity|Settings|SheetShortcutGuard"
+  },
+  "artifacts": [
+    {
+      "path": "acknowledged-close-notice.png",
+      "sha256": "3f4cc8ef1499e0cbfc3d404d53f2c5346b5668db201ed38e20c342539109d12d",
+      "source": "Actual background native window pixels; synthetic local history only.",
+      "inspected": true,
+      "sourceRevision": "fdf14d15",
+      "appInputSha256": "dab125d0afe072bd0e490b199b26116594242ddd35e00b98dffe8786acba1705",
+      "captureChannel": "ScreenCaptureKit scoped to owned app window",
+      "derivation": "Native element crop; unchanged bytes from Proctor zoom, full frame retained privately."
+    },
+    {
+      "path": "partial-close-notice.png",
+      "sha256": "429e8d6f15157fcb7296ac99b9bb8d80b0fed9dbb73ab48cea5c57d30069fb8d",
+      "source": "Actual background native window pixels; synthetic local history only.",
+      "inspected": true,
+      "sourceRevision": "fdf14d15",
+      "appInputSha256": "dab125d0afe072bd0e490b199b26116594242ddd35e00b98dffe8786acba1705",
+      "captureChannel": "ScreenCaptureKit scoped to owned app window",
+      "derivation": "Native element crop; unchanged bytes from Proctor zoom, full frame retained privately."
+    },
+    {
+      "path": "activity-empty-before.png",
+      "sha256": "1137bb4032226023d335480a0a61bea84c4d5a3c12095b0afeb2a6617e11268e",
+      "source": "Actual background native window pixels; synthetic local history only.",
+      "inspected": true,
+      "sourceRevision": "fdf14d15",
+      "appInputSha256": "dab125d0afe072bd0e490b199b26116594242ddd35e00b98dffe8786acba1705",
+      "captureChannel": "WindowServer screencapture scoped to owned CGWindowID"
+    },
+    {
+      "path": "activity-empty-900-after.png",
+      "sha256": "8fbcae2911021793b644ee970a99b068e48fb5eabbfbec18cf0bb5e4e89f96ea",
+      "source": "Actual background native window pixels; synthetic local history only.",
+      "inspected": true,
+      "sourceRevision": "ef6a3b3656c79a02227b9d89fa6271cd1efcdc5f",
+      "appInputSha256": "088dede5c64dc4f2b7d82c18d73ad239a1b76e021c12d5a8108505bb472bc151",
+      "captureChannel": "ScreenCaptureKit scoped to owned app window"
+    },
+    {
+      "path": "activity-empty-1100-after.png",
+      "sha256": "602b7dadbf7c9289bc84db82de0a1e08f5de6e9445cf9f2611424c04620be7e0",
+      "source": "Actual background native window pixels; synthetic local history only.",
+      "inspected": true,
+      "sourceRevision": "ef6a3b3656c79a02227b9d89fa6271cd1efcdc5f",
+      "appInputSha256": "088dede5c64dc4f2b7d82c18d73ad239a1b76e021c12d5a8108505bb472bc151",
+      "captureChannel": "ScreenCaptureKit scoped to owned app window"
+    },
+    {
+      "path": "activity-populated-900.png",
+      "sha256": "20067f4d3e23d0843c3b55d400b0de3f3eee5155f6cab7c8c0563202d6d0cb3c",
+      "source": "Actual background native window pixels; synthetic local history only.",
+      "inspected": true,
+      "sourceRevision": "ef6a3b3656c79a02227b9d89fa6271cd1efcdc5f",
+      "appInputSha256": "088dede5c64dc4f2b7d82c18d73ad239a1b76e021c12d5a8108505bb472bc151",
+      "captureChannel": "ScreenCaptureKit scoped to owned app window"
+    },
+    {
+      "path": "activity-populated-1100.png",
+      "sha256": "204aa803cb9e71c4eb44e90ff1d33e49b79715348142b59d86895ea815feee37",
+      "source": "Actual background native window pixels; synthetic local history only.",
+      "inspected": true,
+      "sourceRevision": "ef6a3b3656c79a02227b9d89fa6271cd1efcdc5f",
+      "appInputSha256": "088dede5c64dc4f2b7d82c18d73ad239a1b76e021c12d5a8108505bb472bc151",
+      "captureChannel": "ScreenCaptureKit scoped to owned app window"
+    },
+    {
+      "path": "history-refresh-busy.png",
+      "sha256": "cbcba0be632d3d5d8f5447dcce7e13b9911c0ea8510b66af53ff6f9ec12ad22c",
+      "source": "Actual background native window pixels; synthetic local history only.",
+      "inspected": true,
+      "sourceRevision": "ef6a3b3656c79a02227b9d89fa6271cd1efcdc5f",
+      "appInputSha256": "088dede5c64dc4f2b7d82c18d73ad239a1b76e021c12d5a8108505bb472bc151",
+      "captureChannel": "ScreenCaptureKit scoped to owned app window"
+    }
+  ],
+  "remaining": "Existing final9058 captures retain their prior source attribution. Menu glass, background digit-shortcut execution, physical phone delivery and broader accessibility/state coverage are not established by this supplement."
+}

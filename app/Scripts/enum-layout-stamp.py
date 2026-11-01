@@ -17,7 +17,7 @@ and stays put when ordinary code changes. `switch` cases do not count: a case is
 collected at the brace depth directly inside its own `enum` body, and a switch is always
 deeper than that.
 
-Exit 0 always. It prints what it did; the caller decides nothing.
+A failed cleanup stops the caller before it can reuse stale objects.
 """
 import hashlib
 import json
@@ -42,6 +42,8 @@ def case_lists(path: pathlib.Path) -> dict[str, list[str]]:
     depth = 0
     stack: list[tuple[str, int]] = []   # (enum name, body depth)
     in_block_comment = False
+    occurrences: dict[str, int] = {}
+    pending: dict[str, str] = {}
 
     for raw in path.read_text(errors='replace').splitlines():
         line = raw
@@ -62,17 +64,29 @@ def case_lists(path: pathlib.Path) -> dict[str, list[str]]:
         # Walk the line brace by brace so a declaration and its cases can share one line.
         for fragment, brace in _fragments(line):
             if stack and depth == stack[-1][1]:
-                for case in _cases_in(fragment):
-                    found.setdefault(stack[-1][0], []).append(case)
+                name = stack[-1][0]
+                text = pending.pop(name, '')
+                text = (text + ' ' + fragment).strip() if text else fragment
+                for case in _cases_in(text):
+                    if case.count('(') > case.count(')') or case.endswith(','):
+                        pending[name] = 'case ' + case
+                    else:
+                        found[name].append(case)
             if brace == '{':
                 m = ENUM.search(fragment)
                 depth += 1
                 if m:
-                    stack.append((m.group(1), depth))
+                    name = m.group(1)
+                    occurrences[name] = occurrences.get(name, 0) + 1
+                    key = f'{name}#{occurrences[name]}'
+                    found[key] = []
+                    stack.append((key, depth))
             elif brace == '}':
                 depth -= 1
                 while stack and depth < stack[-1][1]:
                     stack.pop()
+    if pending:
+        raise ValueError(f'unfinished enum declaration in {path}')
     return found
 
 
@@ -117,12 +131,14 @@ def main() -> int:
         print(f'enum layout unchanged across {count} enums — incremental build is safe')
         return 0
 
-    if previous is not None:
+    has_unstamped_build = previous is None and record.parent.is_dir() and any(record.parent.iterdir())
+    if previous is not None or has_unstamped_build:
         build = app / '.build'
-        print(f'enum layout CHANGED across {count} enums ({previous[:12]} -> {current[:12]})')
+        old = previous[:12] if previous else 'unrecorded'
+        print(f'enum layout CHANGED across {count} enums ({old} -> {current[:12]})')
         print('removing app/.build: a stale object file compiled against the old case list can')
         print('report a failure that is impossible given the source, or a pass that is not real')
-        shutil.rmtree(build, ignore_errors=True)
+        shutil.rmtree(build)
     else:
         print(f'no previous enum stamp — recording {current[:12]} across {count} enums')
 

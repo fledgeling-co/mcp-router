@@ -14,10 +14,13 @@
             Padding="24">
         <StackPanel Spacing="16" HorizontalAlignment="Center">
             <TextBlock Text="Pair iPhone" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="SemiBold" HorizontalAlignment="Center" />
-            <TextBlock Text="On your phone: Conduit → Settings → Pair PC, then scan this."
+            <TextBlock Text="On your iPhone, open MCP Router and scan this QR. Both devices must reach this computer."
                        Style="{ThemeResource BodyTextBlockStyle}"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                        TextAlignment="Center" TextWrapping="Wrap" />
+
+            <Image x:Name="QrImage" Width="240" Height="240" Visibility="Collapsed" AutomationProperties.Name="Pairing QR code" />
+            <TextBlock x:Name="EndpointText" Text="" TextWrapping="Wrap" TextAlignment="Center" />
 
             <!-- Code Display. The router mints the code on open; nothing here is a placeholder. -->
             <Border x:Name="CodeCard"
@@ -47,7 +50,7 @@
             </StackPanel>
 
             <TextBlock x:Name="WarningText"
-                       Text="Treat this code like a password. Anyone who scans it can put items in your inbox until it expires."
+                       Text="Treat this code like a password. Anyone who scans it can pair a phone while it is live. A confirmed phone can queue inbox items until you revoke it."
                        Style="{ThemeResource CaptionTextBlockStyle}"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                        TextAlignment="Center" TextWrapping="Wrap" />
@@ -55,7 +58,7 @@
             <Button x:Name="ReissueButton" Content="New code" HorizontalAlignment="Center" MinWidth="120"
                     Visibility="Collapsed" />
 
-            <Button Content="Done" HorizontalAlignment="Center" Width="120" />
+
         </StackPanel>
     </Border>
 </UserControl>

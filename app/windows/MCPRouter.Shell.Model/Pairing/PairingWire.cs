@@ -36,7 +36,17 @@ public sealed record PairingStateBody
     public PairingCodeBody? Code { get; init; }
     public required PairingListenerBody Listener { get; init; }
 
-    public PairingState ToState() => new(Code?.ToIssued(), Listener.ToState());
+    public ConfirmedPairingPhone[]? ConfirmedPhones { get; init; }
+
+    public PendingPairingPhone[]? AwaitingAck { get; init; }
+
+    public PairingState ToState()
+    {
+        if (ConfirmedPhones?.Any(phone => string.IsNullOrWhiteSpace(phone.PhoneId) || string.IsNullOrWhiteSpace(phone.PhoneName)
+            || phone.PairedAt == default) == true)
+            throw new ControlApiException(ControlApiFailure.MalformedResponse, "the router returned an incomplete confirmed phone");
+        return new(Code?.ToIssued(), Listener.ToState(), ConfirmedPhones, AwaitingAck);
+    }
 }
 
 /// <summary>
@@ -49,7 +59,10 @@ public sealed record PairingListenerBody
     public required int? Port { get; init; }
     public required bool Advertising { get; init; }
 
-    public PairingListenerState ToState() => new(Enabled, Port, Advertising);
+    public string? Host { get; init; }
+    public string? Fingerprint { get; init; }
+
+    public PairingListenerState ToState() => new(Enabled, Port, Advertising, Host, Fingerprint);
 }
 
 /// <summary>The body <c>DELETE /pairing/codes</c> answers: whether a live code was there to revoke.</summary>

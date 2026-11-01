@@ -22,7 +22,7 @@
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                    TextWrapping="Wrap" MaxWidth="720" />
                     </StackPanel>
-                    <Button Grid.Column="1" VerticalAlignment="Top" x:Name="PairButton" Content="Pair iPhone…" />
+                    <Button Grid.Column="1" VerticalAlignment="Top" x:Name="PairButton" Content="Pair iPhone…" Click="OnPairClicked" />
                 </Grid>
 
                 <!-- Filter Tabs -->

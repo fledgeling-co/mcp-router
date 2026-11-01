@@ -33,10 +33,14 @@ public sealed record IssuedPairingCode(string Code, DateTimeOffset IssuedAt, Dat
 /// is bound, not what its config asked for, so a listener that failed to bind reads as off. <see cref="Port"/>
 /// is null exactly when <see cref="Enabled"/> is false.
 /// </summary>
-public sealed record PairingListenerState(bool Enabled, int? Port, bool Advertising);
+public sealed record PairingListenerState(bool Enabled, int? Port, bool Advertising, string? Host = null, string? Fingerprint = null);
+
+public sealed record PendingPairingPhone(string PhoneName, DateTimeOffset RequestedAt);
+
+public sealed record ConfirmedPairingPhone(string PhoneId, string PhoneName, DateTimeOffset PairedAt);
 
 /// <summary>What <c>GET /pairing/state</c> says: the code a phone could still pair with, if any, and the listener.</summary>
-public sealed record PairingState(IssuedPairingCode? Code, PairingListenerState Listener);
+public sealed record PairingState(IssuedPairingCode? Code, PairingListenerState Listener, ConfirmedPairingPhone[]? ConfirmedPhones = null, PendingPairingPhone[]? AwaitingAck = null);
 
 /// <summary>What the sheet shows. <see cref="Failure"/> is set only when the router refused or could
 /// not be reached; a pairing that is off on this machine has no failure, only <see cref="PairingPhase.Unavailable"/>.</summary>
@@ -46,5 +50,6 @@ public sealed record PairingSessionState(
     TimeSpan RemainingTime,
     string? PairedDeviceName = null,
     PairingRefusalReason? Refusal = null,
-    ControlApiException? Failure = null
+    ControlApiException? Failure = null,
+    string? QrPayload = null
 );

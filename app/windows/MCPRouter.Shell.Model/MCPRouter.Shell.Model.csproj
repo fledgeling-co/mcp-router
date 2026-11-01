@@ -13,6 +13,7 @@
     <RootNamespace>MCPRouter.Shell.Model</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="QRCoder" Version="1.8.1" />
     <!-- The skill checks return the same CheckResult the server checks do, so the vocabulary is shared. -->
     <ProjectReference Include="..\MCPRouter.Checks.Model\MCPRouter.Checks.Model.csproj" />
   </ItemGroup>

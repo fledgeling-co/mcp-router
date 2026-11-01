@@ -194,7 +194,7 @@ async function call(
     res,
     new URL(`http://127.0.0.1${path}`),
     {},
-    { pairing, pairingListener: () => opts.listener ?? LISTENING } as unknown as ControlDeps,
+    { pairing, routerHome: home, pairingListener: () => opts.listener ?? LISTENING } as unknown as ControlDeps,
     TOKEN
   );
   assert.equal(handled, true, `${method} ${path} should be claimed by the control API`);
@@ -244,13 +244,13 @@ describe('pairing routes', () => {
   test('GET names the live code, and names nothing once it has expired', async () => {
     let now = NOW;
     const p = new Pairing(() => now);
-    assert.deepEqual((await call(p, 'GET', '/pairing/state', { token: TOKEN })).body, { code: null, awaitingAck: [], listener: LISTENING });
+    assert.deepEqual((await call(p, 'GET', '/pairing/state', { token: TOKEN })).body, { code: null, confirmedPhones: [], awaitingAck: [], listener: LISTENING });
     const { code } = p.issue();
     const live = await call(p, 'GET', '/pairing/state', { token: TOKEN });
     assert.equal(live.status, 200);
     assert.equal((live.body.code as { code: string }).code, code);
     now = new Date(NOW.getTime() + PAIRING_LIFETIME_MS);
-    assert.deepEqual((await call(p, 'GET', '/pairing/state', { token: TOKEN })).body, { code: null, awaitingAck: [], listener: LISTENING });
+    assert.deepEqual((await call(p, 'GET', '/pairing/state', { token: TOKEN })).body, { code: null, confirmedPhones: [], awaitingAck: [], listener: LISTENING });
   });
 
   test('GET names a phone whose request is awaiting its ack, by name and time, until it is released', async () => {
@@ -258,11 +258,12 @@ describe('pairing routes', () => {
     p.hold('11111111-1111-1111-1111-111111111111', "Luke's iPhone");
     assert.deepEqual((await call(p, 'GET', '/pairing/state', { token: TOKEN })).body, {
       code: null,
+      confirmedPhones: [],
       awaitingAck: [{ phoneName: "Luke's iPhone", requestedAt: '2026-10-19T10:00:00Z' }],
       listener: LISTENING,
     });
     p.release('11111111-1111-1111-1111-111111111111');
-    assert.deepEqual((await call(p, 'GET', '/pairing/state', { token: TOKEN })).body, { code: null, awaitingAck: [], listener: LISTENING });
+    assert.deepEqual((await call(p, 'GET', '/pairing/state', { token: TOKEN })).body, { code: null, confirmedPhones: [], awaitingAck: [], listener: LISTENING });
   });
 
   test('DELETE revokes once and reports nothing to revoke the second time', async () => {
@@ -278,7 +279,7 @@ describe('pairing routes', () => {
     assert.deepEqual((await call(p, 'GET', '/pairing/state', { token: TOKEN })).body.listener, LISTENING);
     const off = await call(p, 'GET', '/pairing/state', { token: TOKEN, listener: OFF });
     assert.equal(off.status, 200);
-    assert.deepEqual(off.body, { code: null, awaitingAck: [], listener: OFF });
+    assert.deepEqual(off.body, { code: null, confirmedPhones: [], awaitingAck: [], listener: OFF });
   });
 
   test('POST refuses with a named 503 and mints nothing while the listener is not bound', async () => {

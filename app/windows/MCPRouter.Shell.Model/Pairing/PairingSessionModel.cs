@@ -28,6 +28,9 @@ public sealed class PairingSessionModel
 
     /// <summary>The code the router minted and that is still inside its window. Null when none is on screen.</summary>
     private IssuedPairingCode? _live;
+    private PairingListenerState? _endpoint;
+    private HashSet<string> _knownPhones = [];
+    private bool _polling;
 
     public PairingSessionState CurrentState { get; private set; } = Closed();
 
@@ -72,6 +75,7 @@ public sealed class PairingSessionModel
         _generation++;
         var holdsCode = CurrentState.Phase is PairingPhase.Preparing or PairingPhase.AwaitingScanOrCode;
         _live = null;
+        _endpoint = null;
         SetState(Closed());
         if (holdsCode) await RevokeQuietlyAsync(cancellation);
     }
@@ -128,6 +132,14 @@ public sealed class PairingSessionModel
             return;
         }
 
+        if (!PairingQr.HasEndpoint(state.Listener))
+        {
+            SetState(Unavailable(new ControlApiException(ControlApiFailure.MalformedResponse, "the router did not report a host, port and certificate fingerprint for its listener")));
+            return;
+        }
+        _endpoint = state.Listener;
+        _knownPhones = state.ConfirmedPhones?.Select(phone => phone.PhoneId).ToHashSet(StringComparer.Ordinal) ?? [];
+
         IssuedPairingCode issued;
         try
         {
@@ -157,6 +169,42 @@ public sealed class PairingSessionModel
         SetState(Awaiting(issued, issued.ExpiresAt - now));
     }
 
+    public async Task RefreshAsync(CancellationToken cancellation = default)
+    {
+        if (!IsOpen || _polling || _live is null || CurrentState.Phase != PairingPhase.AwaitingScanOrCode) return;
+        var generation = _generation;
+        var issued = _live;
+        _polling = true;
+        try
+        {
+            var state = await _client.GetPairingStateAsync(cancellation);
+            if (generation != _generation || !IsOpen) return;
+            var confirmed = state.ConfirmedPhones?.FirstOrDefault(phone => !_knownPhones.Contains(phone.PhoneId)
+                && phone.PairedAt >= issued.IssuedAt);
+            if (confirmed is not null)
+            {
+                _live = null;
+                SetState(new(PairingPhase.Paired, null, TimeSpan.Zero, PairedDeviceName: confirmed.PhoneName));
+                return;
+            }
+            if (!state.Listener.Enabled)
+            {
+                _live = null;
+                SetState(Unavailable(null));
+            }
+            else if (state.Code?.Code != issued.Code && !(state.AwaitingAck?.Any(phone => phone.RequestedAt >= issued.IssuedAt) ?? false))
+            {
+                _live = null;
+                SetState(new(PairingPhase.Expired, null, TimeSpan.Zero));
+            }
+        }
+        catch (ControlApiException failure)
+        {
+            if (generation == _generation && IsOpen) { _live = null; SetState(Unavailable(failure)); }
+        }
+        finally { _polling = false; }
+    }
+
     private async Task RevokeQuietlyAsync(CancellationToken cancellation)
     {
         try
@@ -179,8 +227,8 @@ public sealed class PairingSessionModel
     private static PairingSessionState Unavailable(ControlApiException? failure) =>
         new(PairingPhase.Unavailable, null, TimeSpan.Zero, Failure: failure);
 
-    private static PairingSessionState Awaiting(IssuedPairingCode issued, TimeSpan remaining) =>
-        new(PairingPhase.AwaitingScanOrCode, issued.Code, remaining);
+    private PairingSessionState Awaiting(IssuedPairingCode issued, TimeSpan remaining) =>
+        new(PairingPhase.AwaitingScanOrCode, issued.Code, remaining, QrPayload: _endpoint is null ? null : PairingQr.Encode(issued, _endpoint, Environment.MachineName));
 
     private void SetState(PairingSessionState state)
     {
@@ -192,23 +240,23 @@ public sealed class PairingSessionModel
 
     public void CompletePairing(string deviceName)
     {
-        CurrentState = new PairingSessionState(
+        SetState(new PairingSessionState(
             PairingPhase.Paired,
             CurrentState.PairingCode,
             CurrentState.RemainingTime,
             deviceName,
             null
-        );
+        ));
     }
 
     public void FailPairing(PairingRefusalReason reason)
     {
-        CurrentState = new PairingSessionState(
+        SetState(new PairingSessionState(
             PairingPhase.Failed,
             CurrentState.PairingCode,
             CurrentState.RemainingTime,
             null,
             reason
-        );
+        ));
     }
 }

@@ -30,6 +30,83 @@ public sealed class PairingSessionModelTests
         instant.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture) + "Z";
 
     [Fact]
+    public async Task MissingObservedEndpointMintsNothingAndShowsNoQr()
+    {
+        var oldState = RepoRoot.Read("app/Sources/MCPRouterKit/Control/Fixtures/pairing-state.json");
+        var handler = new PairingHttp.Scripted((_, _) => PairingHttp.Answer(HttpStatusCode.OK, oldState));
+        using var client = PairingHttp.Client(handler);
+        var model = Model(client, new Clock());
+        await model.OpenAsync();
+        Assert.Equal(PairingPhase.Unavailable, model.CurrentState.Phase);
+        Assert.Null(model.CurrentState.QrPayload);
+        Assert.Single(handler.Requests);
+        Assert.Equal("GET", handler.Requests[0].Method);
+    }
+
+    [Fact]
+    public async Task QrUsesObservedEndpointAndTheActualIssuedExpiry()
+    {
+        var handler = PairingHttp.Sheet((_, _) => PairingHttp.Answer(HttpStatusCode.Created, PairingHttp.Fixture));
+        using var client = PairingHttp.Client(handler);
+        var model = Model(client, new Clock());
+        await model.OpenAsync();
+        using var payload = System.Text.Json.JsonDocument.Parse(model.CurrentState.QrPayload!);
+        var value = payload.RootElement;
+        Assert.Equal("mcp-router-pair", value.GetProperty("t").GetString());
+        Assert.Equal(1, value.GetProperty("v").GetInt32());
+        Assert.Equal("router-test.local", value.GetProperty("host").GetString());
+        Assert.Equal(new string('a', 64), value.GetProperty("fp").GetString());
+        Assert.Equal(Recorded.Code, value.GetProperty("code").GetString());
+        Assert.Equal(Expires, value.GetProperty("exp").GetDateTimeOffset());
+        Assert.NotEmpty(value.GetProperty("mac").GetString()!);
+        var png = PairingQr.RenderPng(model.CurrentState.QrPayload!);
+        Assert.Equal(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 }, png[..8]);
+    }
+
+    [Fact]
+    public async Task PendingAckIsNotSuccessAndOnlyANewConfirmedIdCompletesTheSheet()
+    {
+        var state = System.Text.Json.Nodes.JsonNode.Parse(PairingHttp.StateFixture)!;
+        var old = new System.Text.Json.Nodes.JsonObject { ["phoneId"] = "old", ["phoneName"] = "Same name", ["pairedAt"] = Iso(Issued.AddDays(-1)) };
+        state["confirmedPhones"]!.AsArray().Add(old);
+        var handler = new PairingHttp.Scripted((_, request) => request.Method == HttpMethod.Get
+            ? PairingHttp.Answer(HttpStatusCode.OK, state.ToJsonString())
+            : PairingHttp.Answer(HttpStatusCode.Created, PairingHttp.Fixture));
+        using var client = PairingHttp.Client(handler);
+        var model = Model(client, new Clock());
+        await model.OpenAsync();
+        await model.RefreshAsync();
+        Assert.Equal(PairingPhase.AwaitingScanOrCode, model.CurrentState.Phase);
+        state["code"] = null;
+        state["awaitingAck"] = new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject { ["phoneName"] = "Same name", ["requestedAt"] = Iso(Issued) });
+        await model.RefreshAsync();
+        Assert.Equal(PairingPhase.AwaitingScanOrCode, model.CurrentState.Phase);
+        Assert.Null(model.CurrentState.PairedDeviceName);
+        state["awaitingAck"] = new System.Text.Json.Nodes.JsonArray();
+        state["confirmedPhones"]!.AsArray().Add(new System.Text.Json.Nodes.JsonObject { ["phoneId"] = "new", ["phoneName"] = "Same name", ["pairedAt"] = Iso(Issued.AddSeconds(1)) });
+        await model.RefreshAsync();
+        Assert.Equal(PairingPhase.Paired, model.CurrentState.Phase);
+        Assert.Equal("Same name", model.CurrentState.PairedDeviceName);
+        Assert.Null(model.CurrentState.QrPayload);
+    }
+
+    [Fact]
+    public async Task AConsumedCodeWithoutConfirmedPhoneNeverMeansPaired()
+    {
+        var state = System.Text.Json.Nodes.JsonNode.Parse(PairingHttp.StateFixture)!;
+        var handler = new PairingHttp.Scripted((_, request) => request.Method == HttpMethod.Get
+            ? PairingHttp.Answer(HttpStatusCode.OK, state.ToJsonString())
+            : PairingHttp.Answer(HttpStatusCode.Created, PairingHttp.Fixture));
+        using var client = PairingHttp.Client(handler);
+        var model = Model(client, new Clock());
+        await model.OpenAsync();
+        state["code"] = null;
+        await model.RefreshAsync();
+        Assert.Equal(PairingPhase.Expired, model.CurrentState.Phase);
+        Assert.Null(model.CurrentState.PairedDeviceName);
+    }
+
+    [Fact]
     public void ANewSessionAsksForNothingAndShowsNoCode()
     {
         var handler = PairingHttp.Sheet((_, _) => PairingHttp.Answer(HttpStatusCode.Created, PairingHttp.Fixture));

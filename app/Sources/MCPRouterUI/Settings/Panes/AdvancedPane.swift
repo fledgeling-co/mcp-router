@@ -21,6 +21,8 @@
         /// Opens the child-PATH sheet on the Settings window. A closure rather than a model, so
         /// this pane still renders without one.
         var onShowChildPath: () -> Void = {}
+        var onResetHistory: () -> Void = {}
+        var resetNotice: String?
 
         private var files: SettingsPresentation.RouterFiles {
             .init(home: routerHome)
@@ -29,7 +31,19 @@
         var body: some View {
             VStack(alignment: .leading, spacing: SettingsMetrics.groupGap) {
                 filesGroup
+                historyGroup
                 identityFooter
+            }
+        }
+
+        private var historyGroup: some View {
+            SettingsGroup("Call history") {
+                Button(CleanupPresentation.resetLabel, action: onResetHistory)
+                    .buttonStyle(StandardButtonStyle())
+                    .accessibilityIdentifier("settings-reset-history")
+                if let resetNotice {
+                    SettingsHelp(resetNotice, id: "history-reset-result")
+                }
             }
         }
 

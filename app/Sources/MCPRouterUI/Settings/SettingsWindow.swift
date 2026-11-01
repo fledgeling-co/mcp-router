@@ -43,7 +43,12 @@
             self.store = restoration
             _model = State(wrappedValue: SettingsWindowModel(
                 store: store ?? KeychainTokenStore(),
-                client: shell.client
+                client: shell.client,
+                refreshHistory: {
+                    await shell.activity.load()
+                    await shell.cleanupBoard.load()
+                    await shell.refresh(at: Date())
+                }
             ))
             _pane = State(wrappedValue: restoration.restoredSettingsPane())
         }
@@ -79,6 +84,8 @@
                 switch sheet {
                 case .childPath:
                     ChildPathSheet(dismiss: { model.sheet = nil })
+                case .resetHistory:
+                    SettingsResetHistorySheet(model: model)
                 }
             }
             // **Escape, and it ships because the platform does not provide it.** Measured on the
@@ -199,7 +206,9 @@
                     shell: shell,
                     routerHome: model.routerHome,
                     buildIdentity: buildIdentity,
-                    onShowChildPath: { model.sheet = .childPath }
+                    onShowChildPath: { model.sheet = .childPath },
+                    onResetHistory: model.requestHistoryReset,
+                    resetNotice: model.resetNotice
                 )
             }
         }

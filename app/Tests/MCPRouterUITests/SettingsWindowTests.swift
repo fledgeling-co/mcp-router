@@ -250,7 +250,7 @@
                 "app/Sources/MCPRouterUI/Settings/Panes/SecurityPane.swift":
                     ["tokenGroup", "pairedGroup"],
                 "app/Sources/MCPRouterUI/Settings/Panes/AdvancedPane.swift":
-                    ["filesGroup", "identityFooter"]
+                    ["filesGroup", "historyGroup", "identityFooter"]
             ]
             for (path, groups) in expected {
                 let lines = try Self.groupStackBody(in: ShellTestSupport.repoFile(path))

@@ -68,6 +68,8 @@
         public private(set) var state: LoadState = .loading
         public var ordering: RegistryPresentation.Ordering = .bestMatch
         public var search: String = ""
+        public var window: RecencyWindow = .anyTime
+        @ObservationIgnored private let now: @Sendable () -> Date
         /// The entry the sheet is open for, held **by id**.
         ///
         /// Never a captured `RegistryEntry`. A copy taken when the sheet opened keeps
@@ -125,8 +127,9 @@
         /// immediate. Named rather than inlined so the test can reason about it.
         static let debounceNanoseconds: UInt64 = 400_000_000
 
-        public init(client: any ControlAPIClient) {
+        public init(client: any ControlAPIClient, now: @escaping @Sendable () -> Date = { Date() }) {
             self.client = client
+            self.now = now
         }
 
         // MARK: - Reading
@@ -205,7 +208,15 @@
 
         public var rows: [RegistryEntry] {
             guard let response = state.response else { return [] }
-            return RegistryPresentation.rows(response, ordering: ordering)
+            return RegistryPresentation.rows(response, ordering: ordering, window: window, now: now())
+        }
+
+        public var recencySummary: String? {
+            guard ordering == .recentlyAdded, let response = state.response else { return nil }
+            let period = window.days.map { "within the past \($0) days" } ?? "at any time"
+            return "\(rows.count) of \(response.results.count) returned results updated or added \(period). "
+                + "Official dates mean updated; Smithery dates mean added. "
+                + "This filters the returned results, not the whole catalogue."
         }
 
         /// The entry the sheet is showing, looked up fresh so it reflects a completed install.
@@ -215,8 +226,8 @@
         }
 
         public func selectedEntry() -> RegistryEntry? {
-            guard let selection, let response = state.response else { return nil }
-            return response.results.first { $0.id == selection }
+            guard let selection else { return nil }
+            return rows.first { $0.id == selection }
         }
 
         // MARK: - Writing

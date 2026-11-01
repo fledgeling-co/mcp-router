@@ -45,6 +45,13 @@ struct RouterSheetTests {
 
     // MARK: - The inventory against the mock
 
+    @Test("Settings history reset keeps its consequence kind and window-specific identity")
+    func settingsResetInventory() {
+        #expect(RouterSheet.settings(.resetHistory).kind == .resetHistory)
+        #expect(RouterSheet.settings(.resetHistory).id != RouterSheet.cleanup(.resetHistory).id)
+        #expect(RouterSheet.settings(.childPath).kind == .path)
+    }
+
     @Test("the mock draws thirteen sheets, and the inventory names the same thirteen")
     func inventoryMatchesTheMock() throws {
         let drawn = try Self.sheetIDsInMock()

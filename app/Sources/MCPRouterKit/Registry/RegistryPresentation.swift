@@ -89,14 +89,14 @@ public enum RegistryPresentation {
         /// Rows that actually carry a usage figure. Defined by the figure's presence rather than by
         /// a source label, so it is exactly the set the ordering can speak about.
         case carriesUsage
-        /// Rows whose `updatedAt` is genuinely a first-published date — Smithery-based rows.
-        case datePublished
+        /// Rows carrying a parseable official update date or Smithery added date.
+        case carriesDate
 
         func contains(_ entry: RegistryEntry) -> Bool {
             switch self {
             case .all: true
             case .carriesUsage: entry.useCount != nil
-            case .datePublished: dateMeaning(for: entry) == .firstPublished
+            case .carriesDate: DiscoverPresentation.date(from: entry.updatedAt) != nil
             }
         }
     }
@@ -127,7 +127,7 @@ public enum RegistryPresentation {
             switch self {
             case .bestMatch: "Best match"
             case .mostUsed: "Most used on Smithery"
-            case .recentlyAdded: "Recently added to Smithery"
+            case .recentlyAdded: "Recently updated or added"
             }
         }
 
@@ -135,7 +135,7 @@ public enum RegistryPresentation {
             switch self {
             case .bestMatch: .all
             case .mostUsed: .carriesUsage
-            case .recentlyAdded: .datePublished
+            case .recentlyAdded: .carriesDate
             }
         }
     }
@@ -146,7 +146,12 @@ public enum RegistryPresentation {
     /// stabilised, not reversed. It is the router's ranking, and the moment this applies its own
     /// comparator the board is presenting an ordering the app invented while labelling it the
     /// router's.
-    public static func rows(_ response: RegistrySearchResponse, ordering: Ordering) -> [RegistryEntry] {
+    public static func rows(
+        _ response: RegistrySearchResponse,
+        ordering: Ordering,
+        window: RecencyWindow = .anyTime,
+        now: Date = Date()
+    ) -> [RegistryEntry] {
         let universe = ordering.universe
         let scoped = response.results.filter { universe.contains($0) }
         switch ordering {
@@ -155,20 +160,7 @@ public enum RegistryPresentation {
         case .mostUsed:
             return stableSorted(scoped) { ($0.useCount ?? 0) > ($1.useCount ?? 0) }
         case .recentlyAdded:
-            // Parsed once per row rather than inside the comparator. A comparator that parses does
-            // it O(n log n) times, and each parse builds two `ISO8601DateFormatter`s — so a 200-row
-            // response would build a few thousand formatters to sort itself. Decorating first makes
-            // it exactly one parse per row.
-            let dated = scoped.map { (entry: $0, date: timestamp($0.updatedAt)) }
-            return stableSorted(dated) { lhs, rhs in
-                // A row with no parseable date sorts last rather than to the top, which is where
-                // `nil` read as the distant past or the distant future would put it.
-                switch (lhs.date, rhs.date) {
-                case let (left?, right?): left > right
-                case (.some, .none): true
-                case (.none, .some), (.none, .none): false
-                }
-            }.map(\.entry)
+            return RegistryRecency.rows(in: scoped, window: window, now: now)
         }
     }
 
@@ -222,9 +214,7 @@ public enum RegistryPresentation {
             """
         case .recentlyAdded:
             return """
-            \(excluded) \(noun) not shown here: the official registry records when an entry was \
-            last updated rather than when it was added, and ordering the two together would sort \
-            two different clocks against each other.
+            \(excluded) \(noun) not shown here because they carry no readable update or added date.
             """
         }
     }
@@ -250,7 +240,7 @@ public enum RegistryPresentation {
             """
         case .recentlyAdded:
             return """
-            Nothing in this search came from Smithery, so there is no add date to order by.
+            Nothing in this search carries a readable update or added date, so there is nothing to order by.
             """
         }
     }

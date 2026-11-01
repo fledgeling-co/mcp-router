@@ -39,6 +39,8 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
         public var undos: [String] = []
         public var pairingPhoneRevokes: [String] = []
         public var pairingStateReads = 0
+        public var usageResets = 0
+        public var usageSummaryReads = 0
 
         public init() {}
     }
@@ -58,6 +60,8 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
     private let stateFailure: ControlAPIError?
     private let pairingStateOverride: (@Sendable () async throws(ControlAPIError) -> PairingState)?
     private let phoneRevokeOverride: (@Sendable (String) async throws(ControlAPIError) -> String)?
+    private let resetOverride: (@Sendable () async throws(ControlAPIError) -> UsageReset)?
+    private let summaryOverride: (@Sendable () async throws(ControlAPIError) -> UsageSummary)?
     private let lock = NSLock()
     private var _calls = Calls()
 
@@ -75,7 +79,9 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
         listener: PairingListener? = nil,
         stateFailure: ControlAPIError? = nil,
         pairingStateOverride: (@Sendable () async throws(ControlAPIError) -> PairingState)? = nil,
-        phoneRevokeOverride: (@Sendable (String) async throws(ControlAPIError) -> String)? = nil
+        phoneRevokeOverride: (@Sendable (String) async throws(ControlAPIError) -> String)? = nil,
+        resetOverride: (@Sendable () async throws(ControlAPIError) -> UsageReset)? = nil,
+        summaryOverride: (@Sendable () async throws(ControlAPIError) -> UsageSummary)? = nil
     ) {
         self.wrapped = wrapped
         self.issueGate = issueGate
@@ -87,6 +93,8 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
         self.stateFailure = stateFailure
         self.pairingStateOverride = pairingStateOverride
         self.phoneRevokeOverride = phoneRevokeOverride
+        self.resetOverride = resetOverride
+        self.summaryOverride = summaryOverride
     }
 
     private func record(_ mutate: (inout Calls) -> Void) {
@@ -202,7 +210,9 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
     }
 
     public func usageSummary() async throws(ControlAPIError) -> UsageSummary {
-        try await wrapped.usageSummary()
+        record { $0.usageSummaryReads += 1 }
+        if let summaryOverride { return try await summaryOverride() }
+        return try await wrapped.usageSummary()
     }
 
     public func heldChanges(for name: String) async throws(ControlAPIError) -> HeldChanges {
@@ -244,6 +254,8 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
     }
 
     public func resetUsage() async throws(ControlAPIError) -> UsageReset {
-        try await wrapped.resetUsage()
+        record { $0.usageResets += 1 }
+        if let resetOverride { return try await resetOverride() }
+        return try await wrapped.resetUsage()
     }
 }

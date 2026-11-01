@@ -146,11 +146,11 @@ public extension RegistryPresentation {
             return EmptyMessage(
                 title: ordering == .mostUsed
                     ? "Nothing here carries a usage figure"
-                    : "Nothing here came from Smithery",
+                    : "No readable dates in these results",
                 detail: """
-                \(ordering == .mostUsed ? "Usage figures" : "Add dates") come from Smithery, and \
-                none of these rows carries one. The other \(others) \(others == 1 ? "is" : "are") \
-                still here under best match.
+                None of these rows carries \(ordering == .mostUsed ? "a usage figure" :
+                    "a readable update or added date"). \
+                The other \(others) \(others == 1 ? "is" : "are") still here under best match.
                 """,
                 action: "Show best match",
                 clearsSearch: false,

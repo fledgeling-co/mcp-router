@@ -135,8 +135,14 @@ public enum RouterSheet: Equatable, Sendable {
     /// put the sheet on the console window.
     public enum Settings: Equatable, Sendable, Identifiable {
         case childPath
+        case resetHistory
 
-        public var id: String { "path" }
+        public var id: String {
+            switch self {
+            case .childPath: "path"
+            case .resetHistory: "reset-history"
+            }
+        }
     }
 }
 
@@ -232,7 +238,11 @@ public extension RouterSheet {
             case .officialMark: .official
             }
         case .activity: .resetHistory
-        case .settings: .path
+        case let .settings(sheet):
+            switch sheet {
+            case .childPath: .path
+            case .resetHistory: .resetHistory
+            }
         }
     }
 
@@ -273,7 +283,8 @@ public extension RouterSheet {
             .discover(.registryEntry(id: "e")),
             .discover(.officialMark),
             .activity(.resetHistory),
-            .settings(.childPath)
+            .settings(.childPath),
+            .settings(.resetHistory)
         ]
     }
 }

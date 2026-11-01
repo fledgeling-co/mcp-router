@@ -6,6 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 import shutil
+import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,6 +32,42 @@ def check(root: Path, pin: dict) -> list[str]:
         if path.exists() and json.loads(path.read_text(encoding='utf-8')).get('version') != pin['version']:
             findings.append(f'manifest version disagrees: {name}')
     return findings
+
+
+def index_population(root: Path, pin: dict) -> list[str]:
+    result = subprocess.run(
+        ['git', '-C', str(root), 'ls-files', '--cached', '-z', '--', '.'],
+        capture_output=True, check=False,
+    )
+    if result.returncode:
+        return ['cannot verify pinned archive population in the Git index']
+    tracked = set(result.stdout.decode('utf-8').split('\0'))
+    return [f'pinned archive file is not in the Git index: {name}'
+            for name in sorted(pin['files'].keys() - tracked)]
+
+
+def index_selftest(root: Path, pin: dict) -> None:
+    with tempfile.TemporaryDirectory(prefix='campaign-pin-index-control-') as directory:
+        repository = Path(directory)
+        copy = repository / 'plugin'
+        shutil.copytree(root, copy, ignore=shutil.ignore_patterns('__pycache__'))
+        (repository / '.gitignore').write_text('*.log\n', encoding='utf-8')
+        subprocess.run(['git', '-C', str(repository), 'init', '-q'], check=True)
+        subprocess.run(['git', '-C', str(repository), 'add', '-f', '--', 'plugin'], check=True)
+        assert not check(copy, pin) and not index_population(copy, pin), 'indexed archive must pass'
+        name = next(name for name in pin['files'] if name.endswith('.log'))
+        subprocess.run(['git', '-C', str(repository), 'rm', '-q', '--cached', '-f', '--', 'plugin/' + name], check=True)
+        assert (copy / name).is_file() and not check(copy, pin), 'the filesystem archive remains complete'
+        ignored = subprocess.run(
+            ['git', '-C', str(repository), 'check-ignore', '-q', '--', 'plugin/' + name], check=False)
+        assert ignored.returncode == 0, 'the removed indexed file is actually ignored'
+        assert index_population(copy, pin) == [f'pinned archive file is not in the Git index: {name}'], \
+            'an untracked ignored pinned file must refuse certification'
+        subprocess.run(['git', '-C', str(repository), 'add', '-f', '--', 'plugin/' + name], check=True)
+        assert not index_population(copy, pin), 'restored index must pass'
+        (copy / name).unlink()
+        assert check(copy, pin), 'a tracked file missing from disk must fail the filesystem check'
+    print('index selftest: complete but untracked ignored archive refused; indexed restoration passed')
 
 
 def selftest(root: Path, pin: dict) -> None:
@@ -63,7 +100,8 @@ def main() -> int:
     pin = json.loads((ROOT / 'vendor/test-campaign.pin.json').read_text(encoding='utf-8'))
     if args.selftest:
         selftest(root, pin)
-    findings = check(root, pin)
+        index_selftest(root, pin)
+    findings = check(root, pin) + index_population(root, pin)
     for finding in findings:
         print('FAIL ' + finding)
     if not findings:

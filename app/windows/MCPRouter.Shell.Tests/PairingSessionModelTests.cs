@@ -62,7 +62,10 @@ public sealed class PairingSessionModelTests
     [Fact]
     public async Task MissingObservedEndpointMintsNothingAndShowsNoQr()
     {
-        var oldState = RepoRoot.Read("app/Sources/MCPRouterKit/Control/Fixtures/pairing-state.json");
+        var withoutEndpoint = System.Text.Json.Nodes.JsonNode.Parse(RepoRoot.Read("app/Sources/MCPRouterKit/Control/Fixtures/pairing-state.json"))!;
+        withoutEndpoint["listener"]!.AsObject().Remove("host");
+        withoutEndpoint["listener"]!.AsObject().Remove("fingerprint");
+        var oldState = withoutEndpoint.ToJsonString();
         var handler = new PairingHttp.Scripted((_, _) => PairingHttp.Answer(HttpStatusCode.OK, oldState));
         using var client = PairingHttp.Client(handler);
         var model = Model(client, new Clock());

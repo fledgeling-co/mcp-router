@@ -210,6 +210,13 @@ public sealed record HeldChanges
     [JsonPropertyName("seenAt")]
     public string? SeenAt { get; init; }
     public required IReadOnlyList<ToolChange> Changes { get; init; }
+    public string? PendingDigest { get; init; }
+}
+
+public sealed record ApprovedToolChange
+{
+    public required string Server { get; init; }
+    public required int Approved { get; init; }
 }
 
 /// <summary>What changed in one tool between the approved surface and the pending one.</summary>

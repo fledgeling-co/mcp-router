@@ -107,40 +107,29 @@ public struct PhoneShell<Preview: View>: View {
     public var body: some View {
         TabView(selection: $selection) {
             ForEach(Tab.allCases, id: \.self) { tab in
-                content(for: tab)
-                    .tabItem {
-                        Label {
-                            Text(tab.title)
-                        } icon: {
-                            IconView(tab.icon)
-                        }
-                        // The tab's name, stated, because without it the icon's name is what
-                        // ships. `IconView` labels itself with `Icon`'s raw value so an icon
-                        // standing alone as a control still announces something — and inside a
-                        // `Label` that label **wins**, dropping the title. Measured on glass
-                        // (iOS 26.5, iPhone 16 Pro), the five tab buttons read back as
-                        // ["discover", "inbox", "tray", "book", "settings"], so VoiceOver called
-                        // Triage "inbox", Queue "tray" and Library "book" — three of five
-                        // announcing a word that appears nowhere in the interface.
-                        //
-                        // `.accessibilityHidden(true)` on the icon was tried first and measured
-                        // **inert**: the labels came back byte-identical. Stating the label is
-                        // what moved them to ["Discover", "Triage", "Queue", "Library",
-                        // "Settings"]. The in-process suite could not see any of this, because it
-                        // never selects a tab; `MCPRouterIOSUITests` does.
-                        .accessibilityLabel(tab.title)
-                        //
-                        // **An identifier cannot be added here.** `.accessibilityIdentifier` was
-                        // measured on glass in both available places — inside this closure and on
-                        // the view carrying `.tabItem` — and both **clear** the tab button's
-                        // identifier rather than set it: the five buttons came back
-                        // `["", "", "", "", ""]` against a design of `tab-discover` … , where
-                        // without the modifier they report the SF Symbol's name. So the identifier
-                        // that ships is the glyph's, the label is the destination's, and DEF-008
-                        // stays open as a characterised limitation rather than closing on a change
-                        // nothing could prove. Query this tab bar by label.
+                SwiftUI.Tab(value: tab) {
+                    #if os(iOS)
+                        content(for: tab)
+                            .background {
+                                PhoneTabIdentityBridge(
+                                    titles: Tab.allCases.map { tab in tab.title },
+                                    identifiers: Tab.allCases.map { tab in "tab-\(tab.rawValue)" }
+                                )
+                                .frame(width: 0, height: 0)
+                            }
+                    #else
+                        content(for: tab)
+                    #endif
+                } label: {
+                    Label {
+                        Text(tab.title)
+                    } icon: {
+                        IconView(tab.icon)
                     }
-                    .tag(tab)
+                    .accessibilityLabel(tab.title)
+                }
+                // Attach to TabContent; the legacy Label/View placements do not identify the native tab.
+                .accessibilityIdentifier("tab-\(tab.rawValue)")
             }
         }
         .tint(ColorToken.accent.color)

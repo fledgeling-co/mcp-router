@@ -162,3 +162,7 @@ planning/evidence/WIN-SHELL/run/router-home/
 # Private local reviews and reconciliation artifacts. docs/ is the public site.
 /planning/reviews/
 /planning/reckoning/
+
+# Owner-specific generated credential migration choices
+/scripts/warden/migration-plan.json
+/scripts/warden/servers.migrated.json

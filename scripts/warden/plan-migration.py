@@ -76,6 +76,20 @@ def plan(doc):
     return rows
 
 
+def project_scopes(doc, rows):
+    """Scope is an explicit owner choice; keep it in the plan so the preimage stays valid."""
+    scopes = {}
+    for row in rows:
+        if not row['is_secret']:
+            continue
+        name = row['upstream']
+        cfg = doc['mcpServers'][name]
+        is_stdio = cfg.get('type', 'http' if cfg.get('url') else 'stdio') == 'stdio'
+        project = cfg.get('credentialProject') or (cfg.get('cwd') if is_stdio else None)
+        scopes[name] = project if isinstance(project, str) and os.path.isabs(project) and os.path.isdir(project) else '<CHOOSE>'
+    return scopes
+
+
 def main() -> int:
     if not os.path.exists(CONFIG):
         print(f'environment: no config at {CONFIG}')
@@ -84,6 +98,7 @@ def main() -> int:
         source_bytes = source.read()
     doc = json.loads(source_bytes)
     rows = plan(doc)
+    projects = project_scopes(doc, rows)
     secrets = [r for r in rows if r['is_secret']]
     config_rows = [r for r in rows if not r['is_secret']]
 
@@ -101,11 +116,13 @@ def main() -> int:
 
     out = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'migration-plan.json')
     with open(out, 'w', encoding='utf-8') as fh:
-        json.dump({'config': CONFIG, 'configSha256': hashlib.sha256(source_bytes).hexdigest(), 'rows': rows}, fh, indent=1)
+        json.dump({'config': CONFIG, 'configSha256': hashlib.sha256(source_bytes).hexdigest(), 'projects': projects, 'rows': rows}, fh, indent=1)
         fh.write('\n')
     os.chmod(out, 0o600)
     print(f'\nwrote {out}')
-    print('Fill each <CHOOSE> with the vault URI for that credential, then apply with')
+    print('Fill projects with absolute existing owner-approved directories, then fill each credential URI.')
+    print('Keep those choices in this plan; editing the live config requires a fresh plan.')
+    print('Apply the completed plan with')
     print('  python3 scripts/warden/apply-migration.py --backup')
     print('which rewrites a COPY and refuses while any placeholder survives.')
     return 0

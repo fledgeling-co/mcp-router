@@ -21,7 +21,7 @@ test('running-daemon receipt is token-gated, binds the config, and detects disk 
   const probe=createServer();await new Promise<void>(resolve=>probe.listen(0,'127.0.0.1',resolve));
   const port=(probe.address() as {port:number}).port;
   await new Promise<void>(resolve=>probe.close(()=>resolve()));
-  const config=join(home,'servers.json');writeFileSync(config,JSON.stringify({port,mcpServers:{}}));
+  const config=join(home,'servers.json');writeFileSync(config,JSON.stringify({port,mcpServers:{scratch:{command:process.execPath,args:['--version']}}}));
   const child=spawn(process.execPath,[join(root,'dist/index.js'),'serve'],{
     env:{...process.env,HOME:home,MCP_ROUTER_HOME:home},stdio:['ignore','ignore','ignore'],
   });
@@ -36,10 +36,18 @@ test('running-daemon receipt is token-gated, binds the config, and detects disk 
     const url=`http://127.0.0.1:${port}/runtime/credentials`;
     assert.equal((await fetch(url)).status,401);
     const headers={'x-mcpr-token':readFileSync(join(home,'control.token'),'utf8').trim()};
-    const receipt=await (await fetch(url,{headers})).json();
+    let receipt=await (await fetch(url,{headers})).json();
     assert.equal(runtimeReceiptMatches(receipt,root,config),true);
     assert.equal((receipt as {pid:number}).pid,child.pid);
     assert.equal(runtimeReceiptMatches(receipt,root,join(root,'other-config')),false);
+    const initialReceipt=receipt;
+    const disabled=await fetch(`http://127.0.0.1:${port}/servers/scratch`,{
+      method:'PATCH',headers:{...headers,'content-type':'application/json'},body:JSON.stringify({disabled:true})});
+    assert.equal(disabled.status,200);
+    receipt=await (await fetch(url,{headers})).json();
+    assert.equal(runtimeReceiptMatches(initialReceipt,root,config),false,'pre-reload receipt must no longer certify the loaded config');
+    assert.equal(runtimeReceiptMatches(receipt,root,config),true,'control reload must refresh the loaded configuration receipt without a restart');
+
     const originalConfig=readFileSync(config);
     writeFileSync(config,Buffer.concat([originalConfig,Buffer.from('\n')]));
     assert.equal(runtimeReceiptMatches(receipt,root,config),false,'receipt must match the configuration actually loaded');

@@ -85,10 +85,11 @@ def main(args=None, *, plan_path=PLAN, runtime_check=runtime_preflight) -> int:
         for row in credentials:
             server = doc['mcpServers'][row['upstream']]
             is_stdio = server.get('type', 'http' if server.get('url') else 'stdio') == 'stdio'
-            project = server.get('credentialProject') or (server.get('cwd') if is_stdio else None)
+            project = (plan.get('projects') or {}).get(row['upstream']) or server.get('credentialProject') or (server.get('cwd') if is_stdio else None)
             if not isinstance(project, str) or not os.path.isabs(project) or not os.path.isdir(project):
                 print('REFUSING: credential-bearing upstream needs an explicit absolute credentialProject or stdio cwd.')
                 return 1
+            server['credentialProject'] = project
             block = server[row['block']]
             if row['key'] not in block:
                 print('REFUSING: migration plan no longer matches the configured key names.')

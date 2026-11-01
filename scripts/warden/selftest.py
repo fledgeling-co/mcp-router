@@ -78,4 +78,23 @@ with tempfile.TemporaryDirectory(prefix='mcpr-migration-') as root:
     assert run('warden://key', directory / 'unscoped.json') == 1
     assert not (directory / 'unscoped.json').exists()
     print('ok missing credential project refuses without output')
-print('warden-migration selftest: 12 groups passed; live configuration was not opened')
+
+    scope_spec = importlib.util.spec_from_file_location('planner', Path(__file__).with_name('plan-migration.py'))
+    planner = importlib.util.module_from_spec(scope_spec)
+    scope_spec.loader.exec_module(planner)
+    http_config = {'mcpServers': {'scratch': {'url':'https://fixture.invalid/mcp','headers':{'Authorization':literal}}}}
+    config.write_text(json.dumps(http_config))
+    planned_rows = planner.plan(http_config)
+    projects = planner.project_scopes(http_config, planned_rows)
+    assert projects == {'scratch':'<CHOOSE>'}
+    planned_rows[0]['uri']='Bearer warden://scratch-key'
+    projects['scratch']=root
+    plan.write_text(json.dumps({'config':str(config),'configSha256':hashlib.sha256(config.read_bytes()).hexdigest(), 'projects':projects,'rows':planned_rows}))
+    chosen_out = directory/'chosen-scope.json'
+    with contextlib.redirect_stdout(io.StringIO()):
+        assert migration.main(['--out',str(chosen_out)], plan_path=str(plan), runtime_check=lambda *_: True) == 0
+    chosen=json.loads(chosen_out.read_text())['mcpServers']['scratch']
+    assert chosen['credentialProject']==root and chosen['headers']['Authorization']=='Bearer warden://scratch-key'
+    assert json.loads(config.read_text())==http_config
+    print('ok explicit project selection applies from the plan without editing or invalidating source')
+print('warden-migration selftest: 13 groups passed; live configuration was not opened')

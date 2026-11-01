@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync } from 'node:fs';
-import { randomBytes, timingSafeEqual } from 'node:crypto';
+import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { join } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import type { IncomingMessage, ServerResponse } from 'node:http';
@@ -158,7 +158,8 @@ function editConfigFile(fn: (servers: Record<string, RawServer>) => void): void 
 
 /** Re-read servers.json into the live maps, in place, so the pool sees the change. */
 function reload(deps: ControlDeps): void {
-  const raw = JSON.parse(readFileSync(DEFAULT_CONFIG_PATH, 'utf8')) as {
+  const configBytes = readFileSync(DEFAULT_CONFIG_PATH);
+  const raw = JSON.parse(configBytes.toString('utf8')) as {
     mcpServers?: Record<string, RawServer>;
   };
   const next = new Map<string, UpstreamConfig>();
@@ -170,6 +171,7 @@ function reload(deps: ControlDeps): void {
   for (const [k, v] of next) deps.upstreams.set(k, v);
   deps.cfg.upstreams.length = 0;
   deps.cfg.upstreams.push(...next.values());
+  deps.cfg.configSha256 = createHash('sha256').update(configBytes).digest('hex');
   log.info(`config reloaded: ${next.size} upstreams`);
 }
 

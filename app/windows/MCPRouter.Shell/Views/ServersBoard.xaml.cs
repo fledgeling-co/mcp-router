@@ -971,67 +971,57 @@ public sealed partial class ServersBoard : UserControl
         if (_lastAnswered is null) return;
         var held = ServersBoardModel.HeldRows(_lastAnswered);
         if (held.Count == 0) return;
-
-        var server = held[0];
-        var panel = new StackPanel { Spacing = 8, MinWidth = 360 };
-        try
+        var server = held.FirstOrDefault(row => row.Name == _selectedServer) ?? held[0];
+        var review = new HeldChangeReview(_client, server.Name);
+        var panel = new StackPanel { Spacing = 12, MinWidth = 360, MaxWidth = 640 };
+        var dialog = new ContentDialog { XamlRoot = XamlRoot, Title = $"Held changes on {server.Name}",
+            Content = new ScrollViewer { Content = panel, MaxHeight = 480 }, PrimaryButtonText = "Approve reviewed changes",
+            IsPrimaryButtonEnabled = false, CloseButtonText = "Cancel", DefaultButton = ContentDialogButton.Close };
+        void Field(string heading, string value)
         {
-            var changes = await _client.GetChangesAsync(server.Name);
-            foreach (var change in changes.Changes)
+            panel.Children.Add(new TextBlock { Text = heading, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
+            panel.Children.Add(new TextBlock { Text = value, FontFamily = new FontFamily("Consolas"), TextWrapping = TextWrapping.Wrap,
+                IsTextSelectionEnabled = true });
+        }
+        void RenderReview()
+        {
+            panel.Children.Clear();
+            if (review.Busy && review.Snapshot is null) panel.Children.Add(new TextBlock { Text = "Reading held changes…" });
+            if (review.Failure is { } failure) Field("Nothing was approved", failure.UserFacingDescription);
+            if (review.Notice is { } notice) panel.Children.Add(new TextBlock { Text = notice, TextWrapping = TextWrapping.Wrap });
+            if (review.Snapshot is { } snapshot)
             {
-                panel.Children.Add(new TextBlock
+                foreach (var change in snapshot.Changes)
                 {
-                    Text = change.Kind switch
-                    {
-                        "added" => $"Added {change.Name}",
-                        "removed" => $"Removed {change.Name}",
-                        _ => $"Changed {change.Name}",
-                    },
-                    FontSize = 14,
-                    Foreground = ThemeBrush("TextFillColorPrimaryBrush"),
-                    TextWrapping = TextWrapping.Wrap,
-                });
-                if (change.After?.Description is { Length: > 0 } description)
-                {
-                    panel.Children.Add(new TextBlock
-                    {
-                        Text = description,
-                        FontSize = 12,
-                        FontFamily = new FontFamily("Consolas"),
-                        Foreground = ThemeBrush("TextFillColorSecondaryBrush"),
-                        TextWrapping = TextWrapping.Wrap,
-                    });
-                }
-                if (change.Invisible is { Count: > 0 })
-                {
-                    panel.Children.Add(new TextBlock
-                    {
-                        Text = $"Invisible codepoints the router named: {string.Join(", ", change.Invisible)}",
-                        FontSize = 12,
-                        FontFamily = new FontFamily("Consolas"),
-                        Foreground = ThemeBrush("SystemFillColorCautionBrush"),
-                        TextWrapping = TextWrapping.Wrap,
-                    });
+                    Field($"{change.Kind}: {change.Name}", "");
+                    if (change.Before is { } before) Field("Approved description", before.Description ?? "No description supplied.");
+                    if (change.After is { } after) Field("Pending description", after.Description ?? "No description supplied.");
+                    foreach (var line in HeldChangePresentation.MetadataChanges(change.Before?.Schema, change.After?.Schema))
+                        panel.Children.Add(new TextBlock { Text = line, TextWrapping = TextWrapping.Wrap });
+                    if (change.Before?.Schema is { } beforeSchema) Field("Approved tool metadata", HeldChangePresentation.PrettyMetadata(beforeSchema));
+                    if (change.After?.Schema is { } afterSchema) Field("Pending tool metadata", HeldChangePresentation.PrettyMetadata(afterSchema));
+                    if (change.Invisible is { Count: > 0 }) Field("Invisible codepoints the router named", string.Join(", ", change.Invisible));
                 }
             }
+            var reload = new Button { Content = "Reload review", IsEnabled = !review.Busy };
+            reload.Click += async (_, _) => { var loading = review.LoadAsync(); RenderReview(); await loading; RenderReview(); };
+            panel.Children.Add(reload);
+            dialog.IsPrimaryButtonEnabled = review.CanApprove;
         }
-        catch (ControlApiException ex)
+        await review.LoadAsync();
+        RenderReview();
+        dialog.PrimaryButtonClick += async (_, args) =>
         {
-            panel.Children.Add(new TextBlock
+            args.Cancel = true;
+            var deferral = args.GetDeferral();
+            try
             {
-                Text = ex.UserFacingDescription,
-                FontSize = 12,
-                Foreground = ThemeBrush("TextFillColorSecondaryBrush"),
-                TextWrapping = TextWrapping.Wrap,
-            });
-        }
-
-        var dialog = new ContentDialog
-        {
-            XamlRoot = XamlRoot,
-            Title = $"Held changes on {server.Name}",
-            Content = panel,
-            CloseButtonText = "Close",
+                var approval = review.ApproveAsync();
+                RenderReview();
+                if (await approval) { args.Cancel = false; await PollAsync(); }
+                else RenderReview();
+            }
+            finally { deferral.Complete(); }
         };
         await dialog.ShowAsync();
     }

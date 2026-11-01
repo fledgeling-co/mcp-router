@@ -226,6 +226,18 @@ public sealed class ControlApiClient : IDisposable
         return await DecodeAsync<HeldChanges>(response, cancellation);
     }
 
+    public async Task<ApprovedToolChange> ApprovePendingChangeAsync(string serverName, HeldChanges reviewed, CancellationToken cancellation = default)
+    {
+        if (reviewed.Server != serverName || !reviewed.Pending || !HeldChangeReview.ValidDigest(reviewed.PendingDigest))
+            throw new ControlApiException(ControlApiFailure.Server, "Reload the held changes for this server before approving.", 428);
+        using var response = await SendAsync(HttpMethod.Post, $"servers/{Uri.EscapeDataString(serverName)}/approve",
+            write: true, cancellation, content: JsonContent.Create(new { expectedDigest = reviewed.PendingDigest }), requireToken: true);
+        var approved = await DecodeAsync<ApprovedToolChange>(response, cancellation);
+        if (approved.Server != serverName || approved.Approved < 0)
+            throw new ControlApiException(ControlApiFailure.MalformedResponse, "the approval acknowledgement did not match the reviewed server");
+        return approved;
+    }
+
     public async Task<MCPRouter.Shell.Model.Inbox.RouterInboxResponse> GetInboxAsync(CancellationToken cancellation = default)
     {
         using var response = await SendAsync(HttpMethod.Get, "inbox", write: false, cancellation, gated: true);
@@ -315,7 +327,7 @@ public sealed class ControlApiClient : IDisposable
 
     private async Task<HttpResponseMessage> SendAsync(
         HttpMethod method, string path, bool write, CancellationToken cancellation,
-        HttpContent? content = null, bool gated = false, TimeSpan? limit = null)
+        HttpContent? content = null, bool gated = false, TimeSpan? limit = null, bool requireToken = false)
     {
         using var request = new HttpRequestMessage(method, path);
         if (content is not null) request.Content = content;
@@ -325,6 +337,8 @@ public sealed class ControlApiClient : IDisposable
             // Read at call time, not at construction: a router that rotates its token between
             // this app starting and the user acting is answered with the token it minted last.
             var token = _readToken();
+            if (requireToken && string.IsNullOrWhiteSpace(token))
+                throw new ControlApiException(ControlApiFailure.Unauthorized, "a control token is required before approving a reviewed change");
             if (token.Length > 0) request.Headers.Add("Authorization", $"Bearer {token}");
         }
 

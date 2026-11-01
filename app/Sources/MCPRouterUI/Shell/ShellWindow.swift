@@ -98,8 +98,20 @@
     /// destination added to `Destination` fails to compile here until someone draws it, which is a
     /// stronger control than a placeholder was — the placeholder let an unhandled destination ship
     /// looking deliberate.
+    private struct DetailViewportWidth: EnvironmentKey {
+        static let defaultValue: Double = 0
+    }
+
+    extension EnvironmentValues {
+        var detailViewportWidth: Double {
+            get { self[DetailViewportWidth.self] }
+            set { self[DetailViewportWidth.self] = newValue }
+        }
+    }
+
     struct ContentZone: View {
         @Bindable var model: ShellModel
+        @State private var viewportWidth: Double = 0
 
         var body: some View {
             Group {
@@ -115,6 +127,10 @@
                     outerScroll { board }
                 }
             }
+            .environment(\.detailViewportWidth, viewportWidth)
+            .onGeometryChange(for: Double.self) { geometry in
+                Double(geometry.size.width)
+            } action: { viewportWidth = $0 }
             .overlay(alignment: .top) {
                 ScrollEdgeSeparator(isVisible: model.scrollEdge.isSeparatorVisible)
             }

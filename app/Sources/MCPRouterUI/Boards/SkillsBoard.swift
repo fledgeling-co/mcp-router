@@ -196,7 +196,7 @@
         }
 
         private func controls(_ response: SkillsResponse) -> some View {
-            HStack(spacing: SkillsBoardMetrics.gap) {
+            VStack(alignment: .leading, spacing: SkillsBoardMetrics.gap) {
                 // A segmented control switches the view in place and is never primary navigation
                 // (§3.6).
                 Picker("", selection: $board.filter) {
@@ -206,7 +206,6 @@
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .fixedSize()
 
                 SearchField(text: $board.search, placeholder: "Filter skills")
                     // Ideal, not fixed: the picker beside it is `.fixedSize()` and
@@ -215,11 +214,9 @@
                     .frame(
                         minWidth: SkillsBoardMetrics.searchMinWidth,
                         idealWidth: SkillsBoardMetrics.searchWidth,
-                        maxWidth: SkillsBoardMetrics.searchWidth
+                        maxWidth: .infinity
                     )
                     .focused($isSearchFocused)
-
-                Spacer(minLength: 0)
             }
             .padding(.bottom, SkillsBoardMetrics.gap)
         }
@@ -240,13 +237,19 @@
         private func columnHeaders(_ response: SkillsResponse) -> some View {
             HStack(spacing: SkillsBoardMetrics.rowPadding) {
                 Color.clear.frame(width: SkillsBoardMetrics.tile, height: 1)
-                Text("skill").frame(width: SkillsBoardMetrics.nameColumn, alignment: .leading)
+                Text("skill").frame(
+                    minWidth: SkillsBoardMetrics.nameColumn / 2,
+                    idealWidth: SkillsBoardMetrics.nameColumn,
+                    maxWidth: SkillsBoardMetrics.nameColumn,
+                    alignment: .leading
+                )
                 Text("installed into").frame(width: SkillsBoardMetrics.slotsColumn, alignment: .leading)
                 // Named "plugin version" rather than "version", because it is the version of the
                 // PLUGIN that supplies the skill and a plugin can supply thirty of them. A column
                 // called "version" on a skills table claims each row is versioned independently.
                 Text("plugin version").frame(width: SkillsBoardMetrics.versionColumn, alignment: .leading)
                 Spacer(minLength: 0)
+                Color.clear.frame(width: SkillsBoardMetrics.actionColumn, height: SkillsBoardMetrics.hairline)
             }
             // Sentence case, secondary colour, no tracked uppercase (§3.2).
             .typeRole(.caption)

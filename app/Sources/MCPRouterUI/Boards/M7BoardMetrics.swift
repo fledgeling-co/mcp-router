@@ -48,6 +48,12 @@
         static var rowHeight: Double { unit * 2 }
 
         static var inspectorWidth: Double { MetricToken.sidebar.leadingScalar + unit * 2 }
+        /// Minimum readable row columns, their five gaps and two insets, plus the inspector.
+        static var inlineInspectorMinimumWidth: Double {
+            tile + nameColumn / 2 + kindColumn + reasonColumn / 3 + actionColumn
+                + rowPadding * 7 + panePadding * 2 + inspectorWidth
+        }
+
         static var sheetWidth: Double { MetricToken.sidebar.leadingScalar * 2 }
 
         /// How strongly a flagged Cleanup row is tinted.

@@ -110,7 +110,12 @@
                         .lineLimit(1)
                         .truncationMode(.tail)
                 }
-                .frame(width: M7BoardMetrics.nameColumn, alignment: .leading)
+                .frame(
+                    minWidth: M7BoardMetrics.nameColumn / 2,
+                    idealWidth: M7BoardMetrics.nameColumn,
+                    maxWidth: M7BoardMetrics.nameColumn,
+                    alignment: .leading
+                )
 
                 Text(candidate.kind.label)
                     .typeRole(.caption)
@@ -179,7 +184,12 @@
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
-            .frame(width: M7BoardMetrics.reasonColumn, alignment: .leading)
+            .frame(
+                minWidth: M7BoardMetrics.reasonColumn / 3,
+                idealWidth: M7BoardMetrics.reasonColumn,
+                maxWidth: M7BoardMetrics.reasonColumn,
+                alignment: .leading
+            )
         }
 
         /// The row's own actions, which the design draws on every row and the build drew on none.

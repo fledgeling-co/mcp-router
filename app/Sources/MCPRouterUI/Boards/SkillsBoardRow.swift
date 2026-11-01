@@ -28,7 +28,12 @@
                         .truncationMode(.tail)
                     sourceLine
                 }
-                .frame(width: SkillsBoardMetrics.nameColumn, alignment: .leading)
+                .frame(
+                    minWidth: SkillsBoardMetrics.nameColumn / 2,
+                    idealWidth: SkillsBoardMetrics.nameColumn,
+                    maxWidth: SkillsBoardMetrics.nameColumn,
+                    alignment: .leading
+                )
 
                 SlotRow(skill: skill, clients: response.slotClients)
                     .frame(width: SkillsBoardMetrics.slotsColumn, alignment: .leading)
@@ -48,10 +53,13 @@
 
                 Spacer(minLength: 0)
 
-                if skill.held?.wantsMore ?? false, let held = skill.held {
-                    Button("Review \(held.pluginVersion)…") { onReview() }
-                        .buttonStyle(StandardButtonStyle())
+                Group {
+                    if skill.held?.wantsMore ?? false, let held = skill.held {
+                        Button("Review \(held.pluginVersion)…") { onReview() }
+                            .buttonStyle(StandardButtonStyle())
+                    }
                 }
+                .frame(width: SkillsBoardMetrics.actionColumn, alignment: .trailing)
             }
             .padding(.horizontal, SkillsBoardMetrics.rowPadding)
             // A fixed height in every state, so the skeleton and the populated row are the same
@@ -198,7 +206,12 @@
                             bar(width: SkillsBoardMetrics.nameColumn * 0.7, height: TypeToken.body.size)
                             bar(width: SkillsBoardMetrics.nameColumn * 0.45, height: TypeToken.caption.size)
                         }
-                        .frame(width: SkillsBoardMetrics.nameColumn, alignment: .leading)
+                        .frame(
+                            minWidth: SkillsBoardMetrics.nameColumn / 2,
+                            idealWidth: SkillsBoardMetrics.nameColumn,
+                            maxWidth: SkillsBoardMetrics.nameColumn,
+                            alignment: .leading
+                        )
                         bar(width: SkillsBoardMetrics.slotsColumn * 0.86, height: TypeToken.body.size)
                             .frame(width: SkillsBoardMetrics.slotsColumn, alignment: .leading)
                         bar(width: SkillsBoardMetrics.versionColumn * 0.6, height: TypeToken.body.size)

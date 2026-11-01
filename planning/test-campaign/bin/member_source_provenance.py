@@ -225,7 +225,7 @@ def validate_binding(root: Path, member_key: str, binding: dict) -> None:
                 if re.search(r'\b(?:struct|class|enum|func|typealias|let|var)\s+' + control + r'\b', code):
                     raise ValueError('Swift UI type is shadowed in this source: ' + control)
             hits = sum(literals[int(match.group(2))] == member for match in re.finditer(
-                r'(?<![A-Za-z0-9_])(' + '|'.join(sorted(UI_TYPES)) + r')\s*\(\s*__LITERAL_(\d+)__\s*[,)]', body))
+                r'(?<![A-Za-z0-9_.])(?:SwiftUI\.)?(' + '|'.join(sorted(UI_TYPES)) + r')\s*\(\s*__LITERAL_(\d+)__\s*[,)]', body))
         elif adapter == 'csharp-method':
             symbol = binding.get('symbol', '')
             if kind != 'operation' or relative.suffix != '.cs' or member != owner + '.' + symbol:
@@ -267,7 +267,7 @@ def audit(root: Path, inventory: dict, bindings: dict, legacy: set[str]) -> dict
                         'legacy_unverified': len(mine & set(unverified))}
     return {'declared': len(declared), 'source_bound': len(valid), 'legacy_unverified': len(unverified), 'counts': counts,
             'valid': valid, 'unverified': unverified, 'findings': findings,
-            'limits': 'Source declarations only. Build membership, reachability and actuation are separate.'}
+            'limits': 'Bounded declaration syntax only. Compiler symbol resolution, build membership, reachability and actuation are separate.'}
 
 
 def audit_files(root: Path, campaign: Path) -> dict:
@@ -311,6 +311,7 @@ def selftest() -> None:
             ('other nested declaration', 'struct Demo: View { struct Other { var body: some View { Button("Foo.Bar") {} } } }'),
             ('unknown conditional', '#if canImport(Unknown)\nstruct Demo: View { var body: some View { Button("Foo.Bar") {} } }\n#endif'),
             ('shadowed UI type', 'func Button(_ name: String) {}\nstruct Demo: View { var body: some View { Button("Foo.Bar") {} } }'),
+            ('unrelated qualified constructor', 'struct Demo: View { var body: some View { Other.Button("Foo.Bar") {} } }'),
         ]:
             swift.write_text('import SwiftUI\n' + body)
             expect(bool(findings()), name + ' cannot establish a control')

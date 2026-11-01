@@ -98,6 +98,7 @@ def main():
         assert args.read_text().splitlines() == [
             isolated["MCP_ROUTER_GLASS_APP"], isolated["MCP_ROUTER_GLASS_AXKIT"],
             "MCPROUTER_SCENARIO=populated",
+            "MCPROUTER_SCRATCH_TOKENS=1",
             "MCP_ROUTER_HOME=" + launch_env["MCP_ROUTER_HOME"],
             "MCP_ROUTER_URL=" + launch_env["MCP_ROUTER_URL"],
         ]

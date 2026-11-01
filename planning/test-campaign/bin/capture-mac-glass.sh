@@ -30,6 +30,7 @@ if [ "${1:-}" = "--print-config" ]; then
   exit 0
 fi
 APP_ENV=()
+APP_ENV+=("MCPROUTER_SCRATCH_TOKENS=1")
 for key in MCP_ROUTER_HOME MCP_ROUTER_URL; do
   if [ -n "${!key:-}" ]; then APP_ENV+=("$key=${!key}"); fi
 done

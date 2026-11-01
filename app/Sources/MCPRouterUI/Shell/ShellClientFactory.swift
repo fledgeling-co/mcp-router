@@ -72,6 +72,26 @@
         /// that starts a throwaway router sets one name for every tool that has to reach it.
         public static let endpointVariable = "MCP_ROUTER_URL"
 
+        /// Explicit Debug verification keeps Settings away from the user's shared Keychain.
+        public static let scratchSettingsTokenVariable = "MCPROUTER_SCRATCH_TOKENS"
+
+        public static func settingsTokenStore(
+            isDebugBuild: Bool, environment: [String: String]
+        ) -> (any ControlTokenStore)? {
+            guard isDebugBuild, environment[scratchSettingsTokenVariable] == "1" else { return nil }
+            return InMemoryTokenStore(nil)
+        }
+
+        public static func makeSettingsTokenStore(
+            environment: [String: String] = ProcessInfo.processInfo.environment
+        ) -> (any ControlTokenStore)? {
+            #if DEBUG
+                settingsTokenStore(isDebugBuild: true, environment: environment)
+            #else
+                settingsTokenStore(isDebugBuild: false, environment: environment)
+            #endif
+        }
+
         /// The router a shipped build talks to, and the fallback for a Debug build that named one
         /// this factory will not honour.
         public static let shippingEndpoint = URL(string: "http://127.0.0.1:8879")!

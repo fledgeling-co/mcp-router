@@ -57,8 +57,12 @@ const INBOX_NONCE_MS = 60_000;
 
 const PHONE_NAME_MAX = 64;
 
+class RevokedInboxPhone extends Error {}
+
 export interface RunningPairingListener {
   port: number;
+  host: string;
+  fingerprint: string;
   /**
    * Whether an announcement is live. False when no advertiser was given, or when announcing failed. The
    * listener is bound either way, because the QR carries the endpoint and discovery is only a convenience.
@@ -74,6 +78,8 @@ export interface RunningPairingListener {
  * router whose listener did not start reports `enabled: false`, so the sheets never offer a code nothing answers.
  */
 export interface PairingListenerStatus {
+  host?: string | null;
+  fingerprint?: string | null;
   enabled: boolean;
   port: number | null;
   advertising: boolean;
@@ -164,7 +170,9 @@ export async function startPairing(
     });
   });
 
-  const { port } = server.address() as AddressInfo;
+  const { port, address } = server.address() as AddressInfo;
+  // A wildcard binds all interfaces; the OS host name is the endpoint the QR can name.
+  const host = address === '0.0.0.0' || address === '::' ? hostname() : address;
   log.info(`pairing listening on ${cfg.host}:${port} (TLS 1.3, certificate ${identity.fingerprint})`);
 
   // Announced only once the port is bound, so the advertisement names the port a phone can actually reach.
@@ -172,6 +180,8 @@ export async function startPairing(
 
   return {
     port,
+    host,
+    fingerprint: identity.fingerprint,
     advertising: advertisement !== undefined,
     openConnections: () => sockets.size,
     close: async () => {
@@ -401,12 +411,15 @@ function serve(socket: TLSSocket, deps: ServeDeps): void {
 
     // The batch is the phone's, verified. Its bytes are not read again while the picks resolve and are held.
     finished = true;
-    holdPicks(inbox, phone, decoded.items, deps.lookup, deps.clock)
+    holdPicks(inbox, phone, decoded.items, deps.lookup, deps.clock, () =>
+      readPairedPhones(deps.dir).some((confirmed) => confirmed.phoneId === phone.phoneId && confirmed.phoneKey === phone.phoneKey)
+    )
       .then((received) => {
         // Sent only once every row is on disk. A connection that dropped meanwhile has nobody to tell, and the rows stand.
         if (!socket.destroyed) close(encodeFrame({ type: 'inbox.receipt', v: PAIRING_WIRE_VERSION, received }));
       })
       .catch((err: unknown) => {
+        if (err instanceof RevokedInboxPhone) return refuse('unknownPhone');
         // A store that cannot be written sends no receipt, so the phone sends the same picks again.
         log.warn(`inbox: a submit was not held: ${(err as Error).message}`);
         socket.destroy();
@@ -424,12 +437,15 @@ async function holdPicks(
   phone: PairedPhone,
   items: InboxItem[],
   lookup: (id: string) => Promise<RegistryEntry | null>,
-  clock: () => number
+  clock: () => number,
+  stillConfirmed: () => boolean
 ): Promise<Array<{ id: string; state: 'waiting' | 'duplicate' }>> {
   const held = new Set(inbox.rows().map((row) => row.id));
   const fresh = [...new Set(items.map((item) => item.id))].filter((id) => !held.has(id));
   const found = await Promise.all(fresh.map(async (id) => [id, await lookup(id)] as const));
   const resolved = new Map<string, RegistryEntry | null>(found);
+  // Resolution awaited external I/O. A revoke must win before any of these picks reaches disk.
+  if (!stillConfirmed()) throw new RevokedInboxPhone();
   const receivedAt = wireInstant(new Date(clock()));
   return items.map((item) => ({
     id: item.id,

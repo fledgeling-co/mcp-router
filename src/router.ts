@@ -401,6 +401,8 @@ export async function startRouter(
     pairingListener: () => ({
       enabled: pairingListener !== undefined,
       port: pairingListener?.port ?? null,
+      host: pairingListener?.host ?? null,
+      fingerprint: pairingListener?.fingerprint ?? null,
       advertising: pairingListener?.advertising ?? false,
     }),
     extensions: new ExtensionStore(join(ROUTER_HOME, 'extensions')),

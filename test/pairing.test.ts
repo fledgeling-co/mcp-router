@@ -166,9 +166,9 @@ interface Reply {
 }
 
 /** The listener as a router with `pairing.enabled` set and bound reports it. */
-const LISTENING: PairingListenerStatus = { enabled: true, port: 8882, advertising: true };
+const LISTENING: PairingListenerStatus = { enabled: true, port: 8882, advertising: true, host: 'test-mac.local', fingerprint: 'a'.repeat(64) };
 /** The listener as a router with pairing off reports it: nothing bound, nothing announced. */
-const OFF: PairingListenerStatus = { enabled: false, port: null, advertising: false };
+const OFF: PairingListenerStatus = { enabled: false, port: null, advertising: false, host: null, fingerprint: null };
 
 async function call(
   pairing: Pairing,

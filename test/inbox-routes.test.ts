@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { ControlDeps } from '../src/control.js';
 import type { RouterConfig, UpstreamConfig } from '../src/config.js';
+import { appendPairedPhone, removePairedPhone } from '../src/paired-phones.js';
 import type { RegistryEntry } from '../src/registry.js';
 import { InboxStore, reviewDigestOf } from '../src/inbox.js';
 
@@ -53,7 +54,7 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
   process.stdout.write(JSON.stringify({ jsonrpc: '2.0', id: m.id, result }) + '\\n');
 });
 `;
-const FIXTURE_ARGS = ['-e', FIXTURE_SCRIPT];
+const FIXTURE_ARGS = ['-e', FIXTURE_SCRIPT.replace(/\n/g, ' ')];
 
 const UPSTREAMS = new Map<string, UpstreamConfig>();
 
@@ -180,7 +181,7 @@ test('GET /inbox answers an empty list when nothing has been held', async () => 
   const parent = mkdtempSync(join(tmpdir(), 'inbox-routes-empty-'));
   made.push(parent);
   const listed = await answer({ method: 'GET', path: '/inbox' }, { inbox: new InboxStore(join(parent, 'inbox.json')) });
-  assert.deepEqual(listed.json, { items: [] });
+  assert.deepEqual(listed.json, { items: [], pairedDeviceNames: [] });
 });
 
 test('GET /inbox answers 500 when inbox.json is unreadable, and never an empty list', async () => {
@@ -333,8 +334,8 @@ test('accept refuses a name already declared with another command line, and leav
   assert.equal(inbox.rows()[0].state, 'waiting');
 });
 
-test('accept reconciles a row whose exact declaration is already in place, and does not index it again', async () => {
-  // The command does not exist, so an index would fail. A 200 here therefore shows nothing ran.
+test('accept refuses a pre-existing identical declaration without this row approval provenance', async () => {
+  // The command does not exist, so a409 proves refusal happens before a fresh index.
   const install = { type: 'stdio' as const, command: '/nonexistent/bin/none', args: ['x'] };
   resetServers({ alpha: { command: '/nonexistent/bin/none', args: ['x'] } });
   const before = readFileSync(SERVERS, 'utf8');
@@ -347,9 +348,9 @@ test('accept reconciles a row whose exact declaration is already in place, and d
     { method: 'POST', path: rowPath('accept'), body: acceptBody(inbox) },
     routeDeps(inbox, held)
   );
-  assert.equal(reconciled.status, 200, reconciled.text);
-  assert.equal((reconciled.json as { reconciled: boolean }).reconciled, true);
-  assert.equal(inbox.rows()[0].state, 'accepted');
+  assert.equal(reconciled.status, 409, reconciled.text);
+  assert.equal((reconciled.json as { reason: string }).reason, 'alreadyDeclared');
+  assert.equal(inbox.rows()[0].state, 'waiting');
   assert.equal(readFileSync(SERVERS, 'utf8'), before);
 });
 
@@ -455,4 +456,37 @@ test('POST /servers that does not start answers 422 with the force hint, and dec
   assert.equal(refused.status, 422);
   assert.match((refused.json as { hint: string }).hint, /force=1/);
   assert.equal(declaredServers().broken, undefined);
+});
+
+
+test('an empty inbox names confirmed devices and removes a revoked device', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'inbox-paired-names-'));
+  made.push(dir);
+  const inbox = new InboxStore(join(dir, 'inbox.json'));
+  appendPairedPhone(dir, { phoneId: 'phone', phoneName: 'Test iPhone', phoneKey: 'public-key', pairedAt: '2026-11-01T00:00:00Z' });
+  const listed = await answer({ method: 'GET', path: '/inbox' }, { inbox, routerHome: dir });
+  assert.deepEqual(listed.json, { items: [], pairedDeviceNames: ['Test iPhone'] });
+  removePairedPhone(dir, 'phone');
+  const revoked = await answer({ method: 'GET', path: '/inbox' }, { inbox, routerHome: dir });
+  assert.deepEqual(revoked.json, { items: [], pairedDeviceNames: [] });
+});
+
+
+test('accept refuses environment, cwd, headers and disabled collisions even with approval provenance', async () => {
+  const cases: Array<{ install: RegistryEntry['install']; server: Record<string, unknown> }> = [
+    { install: { type: 'stdio', command: '/nonexistent/bin/none', args: [] }, server: { command: '/nonexistent/bin/none', args: [], env: { MODE: 'different' } } },
+    { install: { type: 'stdio', command: '/nonexistent/bin/none', args: [] }, server: { command: '/nonexistent/bin/none', args: [], cwd: '/tmp' } },
+    { install: { type: 'stdio', command: '/nonexistent/bin/none', args: [] }, server: { command: '/nonexistent/bin/none', args: [], disabled: true } },
+    { install: { type: 'http', url: 'https://example.test/mcp' }, server: { type: 'http', url: 'https://example.test/mcp', headers: { 'X-Mode': 'different' } } },
+  ];
+  for (const { install, server } of cases) {
+    const inbox = storeWith(alpha(install));
+    resetServers({ alpha: { ...server, inboxApproval: { id: inbox.rows()[0].id, reviewDigest: inbox.rows()[0].reviewDigest } } });
+    const before = readFileSync(SERVERS, 'utf8');
+    const refused = await answer({ method: 'POST', path: rowPath('accept'), body: acceptBody(inbox) }, routeDeps(inbox));
+    assert.equal(refused.status, 409, refused.text);
+    assert.equal((refused.json as { reason: string }).reason, 'alreadyDeclared');
+    assert.equal(inbox.rows()[0].state, 'waiting');
+    assert.equal(readFileSync(SERVERS, 'utf8'), before);
+  }
 });

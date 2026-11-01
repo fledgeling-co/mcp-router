@@ -1171,6 +1171,8 @@ describe('the listener reports whether it is advertising', () => {
       },
     }));
     assert.equal(running.advertising, true);
+    assert.equal(running.host, '127.0.0.1');
+    assert.match(running.fingerprint, /^[0-9a-f]{64}$/);
     await running.close();
     assert.equal(stopped, true);
   });
@@ -1188,5 +1190,30 @@ describe('the listener reports whether it is advertising', () => {
     const running = await started();
     assert.equal(running.advertising, false);
     await running.close();
+  });
+});
+
+
+describe('inbox submit, revocation during registry resolution', () => {
+  test('a phone revoked while the registry lookup waits receives no receipt and stores nothing', async () => {
+    let resolveLookup!: (value: RegistryEntry | null) => void;
+    let lookupStarted = false;
+    const h = await harness(new Pairing(), { idleMs: 5_000, lookup: async () => {
+      lookupStarted = true;
+      return await new Promise<RegistryEntry | null>((resolve) => { resolveLookup = resolve; });
+    } });
+    try {
+      const phone = await pairedPhone(h);
+      const { link, reply } = await openHello(h, phone.phoneId);
+      link.write(frame(submitFor(phone, String(reply?.nonce), itemsOf('io.example/alpha'))));
+      const answer = nextFrame(link);
+      await until(() => lookupStarted);
+      removePairedPhone(h.dir, phone.phoneId);
+      resolveLookup(entry('io.example/alpha'));
+      assert.deepEqual(await answer, { type: 'inbox.refused', v: 1, reason: 'unknownPhone' });
+      assert.equal(existsSync(join(h.dir, INBOX_FILE)), false, 'revocation prevents a pending lookup from committing picks');
+    } finally {
+      await h.close();
+    }
   });
 });

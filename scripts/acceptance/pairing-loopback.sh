@@ -16,8 +16,8 @@
 #
 # ## What it does not prove
 #
-# The phone is a stand-in written from the wire contract, not LivePairingService. The production TLS
-# transport is B5 and is not merged, so the Swift service has no socket to reach. Every check on the router
+# The phone is a Node stand-in written from the wire contract, not LivePairingService. The production
+# Swift transport exists; this lane does not execute it. Every check on the router
 # is a check on the real router over real TLS. Every check on the phone side is a check on the stand-in.
 # The LAN, Bonjour, the iOS binary and the firewall prompt are outside this lane (§7, §8).
 #
@@ -26,6 +26,8 @@
 # PAIRING_LOOPBACK_MUTANT=skip-ack makes the happy-path phone drop instead of acking. The lane must go red:
 # the Mac holds no record, and the checks that need one fail. That is the proof the lane can fail on the
 # missing ack, and it is run by hand rather than in the enrolled set.
+# skip-sig sends the submit with a different signing key; declare-on-submit sends no review accept.
+# Both must fail the corresponding receipt/declaration check.
 #
 # ## Exit codes, as the acceptance runner reads them
 #
@@ -69,6 +71,7 @@ free_port() {
     python3 -I -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1]); s.close()'
 }
 CONTROL_PORT="$(free_port)"
+REGISTRY_PORT="$(free_port)"
 PAIRING_PORT="$(free_port)"
 [ -n "$CONTROL_PORT" ] && [ -n "$PAIRING_PORT" ] || blocked "could not ask the kernel for two free ports"
 
@@ -80,7 +83,34 @@ cat > "$ROUTER_HOME/servers.json" <<JSON
 }
 JSON
 
-MCP_ROUTER_HOME="$ROUTER_HOME" node "$ROOT/dist/index.js" serve --port "$CONTROL_PORT" \
+# Mutations affect only a scratch compiled copy, never the checkout or an installed daemon.
+RUN_DIST="$ROOT/dist"
+case "${PAIRING_LOOPBACK_MUTANT:-}" in
+    skip-sig|declare-on-submit)
+        RUN_DIST="$WORK/dist"
+        cp -R "$ROOT/dist" "$RUN_DIST"
+        ln -s "$ROOT/node_modules" "$WORK/node_modules"
+        printf '{"type":"module"}\n' > "$WORK/package.json"
+        python3 - "$RUN_DIST/pairing-listener.js" "${PAIRING_LOOPBACK_MUTANT}" "$ROUTER_HOME/servers.json" <<'PYMUT'
+from pathlib import Path
+import json,sys
+p=Path(sys.argv[1]);s=p.read_text()
+if sys.argv[2]=='skip-sig':
+    old='if (!verifyInboxSignature('
+    assert old in s, 'signature mutation anchor absent'
+    s=s.replace(old, 'if (false && !verifyInboxSignature(',1)
+else:
+    old='async function holdPicks('
+    assert old in s, 'submit mutation anchor absent'
+    start=s.index('{',s.index(old))+1
+    path=json.dumps(sys.argv[3])
+    s="import { writeFileSync as mutationWrite } from 'node:fs';\n"+s[:start]+f'\n mutationWrite({path}, JSON.stringify({{mcpServers:{{mutant:{{command:"false"}}}}}}));\n'+s[start:]
+p.write_text(s)
+PYMUT
+        ;;
+esac
+
+MCP_ROUTER_REGISTRY="http://127.0.0.1:$REGISTRY_PORT" MCP_ROUTER_HOME="$ROUTER_HOME" node "$RUN_DIST/index.js" serve --port "$CONTROL_PORT" \
     > "$WORK/router.log" 2>&1 &
 ROUTER_PID=$!
 
@@ -106,6 +136,7 @@ done
 perl -e 'alarm shift @ARGV; exec @ARGV' 240 node "$DRIVER" \
     --router-home "$ROUTER_HOME" \
     --control-port "$CONTROL_PORT" \
+    --registry-port "$REGISTRY_PORT" \
     --pairing-port "$PAIRING_PORT" \
     --phone-home "$PHONE_HOME" \
     --mutant "${PAIRING_LOOPBACK_MUTANT:-}"

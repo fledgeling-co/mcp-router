@@ -1,12 +1,12 @@
 import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync } from 'node:fs';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { join } from 'node:path';
+import { isDeepStrictEqual } from 'node:util';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import {
-  isHttp,
   isStdio,
   parseServer,
   upstreamHash,
@@ -141,14 +141,16 @@ function json(res: ServerResponse, status: number, body: unknown): void {
 
 /** Read servers.json, apply a change, write it back atomically. */
 function editConfigFile(fn: (servers: Record<string, RawServer>) => void): void {
-  const raw = existsSync(DEFAULT_CONFIG_PATH)
-    ? (JSON.parse(readFileSync(DEFAULT_CONFIG_PATH, 'utf8')) as { mcpServers?: Record<string, RawServer> })
-    : {};
-  raw.mcpServers ??= {};
-  fn(raw.mcpServers);
-  const tmp = `${DEFAULT_CONFIG_PATH}.tmp-${process.pid}`;
-  writeFileSync(tmp, JSON.stringify(raw, null, 2), { mode: 0o600 });
-  renameSync(tmp, DEFAULT_CONFIG_PATH);
+  withExclusiveLock(DEFAULT_CONFIG_PATH, lockTimeoutMs(DAEMON_TIMEOUT_MS), () => {
+    const raw = existsSync(DEFAULT_CONFIG_PATH)
+      ? (JSON.parse(readFileSync(DEFAULT_CONFIG_PATH, 'utf8')) as { mcpServers?: Record<string, RawServer> })
+      : {};
+    raw.mcpServers ??= {};
+    fn(raw.mcpServers);
+    const tmp = `${DEFAULT_CONFIG_PATH}.tmp-${process.pid}`;
+    writeFileSync(tmp, JSON.stringify(raw, null, 2), { mode: 0o600 });
+    renameSync(tmp, DEFAULT_CONFIG_PATH);
+  });
 }
 
 /** Re-read servers.json into the live maps, in place, so the pool sees the change. */
@@ -401,6 +403,13 @@ interface Refusal {
   error: string;
 }
 
+/** Durable evidence that this review row, rather than a pre-existing server, made the declaration. */
+interface InboxApproval { id: string; reviewDigest: string }
+type ApprovedServer = RawServer & { inboxApproval?: InboxApproval };
+class DeclarationRefused extends Error {
+  constructor(readonly refusal: Refusal) { super(refusal.error); }
+}
+
 /** A declaration that landed: the tools it indexed, and whether its server still needs the authorize button. */
 interface Declared {
   tools: number;
@@ -420,7 +429,7 @@ async function declareServer(
   deps: ControlDeps,
   name: string,
   raw: RawServer,
-  opts: { force: boolean; beforeWrite?: () => Refusal | undefined }
+  opts: { force: boolean; beforeWrite?: () => Refusal | undefined; inboxApproval?: InboxApproval }
 ): Promise<Declared | Refusal> {
   const taken = { status: 409, reason: 'alreadyDeclared', error: `a server named "${name}" already exists` };
   if (deps.upstreams.has(name)) return taken;
@@ -439,11 +448,22 @@ async function declareServer(
   const refused = opts.beforeWrite?.();
   if (refused) return refused;
 
-  const entry: RawServer = { ...raw };
+  const entry: ApprovedServer = { ...raw };
   delete (entry as { name?: string }).name;
-  editConfigFile((servers) => {
-    servers[name] = entry;
-  });
+  // Only this accept path writes provenance. A raw POST cannot claim another row's acceptance.
+  delete entry.inboxApproval;
+  if (opts.inboxApproval) entry.inboxApproval = opts.inboxApproval;
+  try {
+    editConfigFile((servers) => {
+      if (servers[name] !== undefined) throw new DeclarationRefused(taken);
+      const refused = opts.beforeWrite?.();
+      if (refused) throw new DeclarationRefused(refused);
+      servers[name] = entry;
+    });
+  } catch (err) {
+    if (err instanceof DeclarationRefused) return err.refusal;
+    throw err;
+  }
   reload(deps);
   announceTools(deps, `added the server "${name}"`);
   log.info(`added upstream "${name}" (${tools} tools${error ? `, ${error}` : ''})`);
@@ -503,21 +523,30 @@ async function acceptRow(deps: ControlDeps, inbox: InboxStore, row: InboxRow, bo
   const wanted = parseServer(built.name, built.server);
   if (!('upstream' in wanted)) return reply(422, 'notInstallable', wanted.reason);
 
-  /*
-   * A write that failed after the declaration leaves the server declared and the row waiting. The next accept finds
-   * that same declaration and reconciles the row without declaring again. A different declaration under the name is
-   * not this row's, and falls through to declareServer, which refuses it.
-   */
-  const held = deps.upstreams.get(built.name);
-  if (held && declares(held, wanted.upstream)) return markAccepted(inbox, row.id, built.name, { reconciled: true });
+  // A retry can reconcile only a declaration this row itself wrote. The provenance and the whole
+  // normalized configuration are checked under the same cross-process lock used by declarations.
+  const reconciled = withExclusiveLock(DEFAULT_CONFIG_PATH, lockTimeoutMs(DAEMON_TIMEOUT_MS), () => {
+    const held = existsSync(DEFAULT_CONFIG_PATH) ? readServers()[built.name] as ApprovedServer | undefined : undefined;
+    if (!held) return undefined;
+    const normalized = parseServer(built.name, held);
+    if (held.inboxApproval?.id === row.id && held.inboxApproval.reviewDigest === row.reviewDigest &&
+        'upstream' in normalized && isDeepStrictEqual(normalized.upstream, wanted.upstream)) {
+      return markAccepted(inbox, row.id, built.name, { reconciled: true });
+    }
+    return reply(409, 'alreadyDeclared', `a server named "${built.name}" already exists; this row did not declare its current configuration`);
+  });
+  if (reconciled) return reconciled;
 
   const declared = await declareServer(deps, built.name, built.server, {
     force: false,
+    inboxApproval: { id: row.id, reviewDigest: row.reviewDigest },
     // A decline can land while the server indexes. The row must still be waiting when the server is written.
     beforeWrite: () =>
-      inbox.find(row.id)?.state === 'waiting'
-        ? undefined
-        : { status: 409, reason: 'notWaiting', error: `${row.id} is no longer waiting` },
+      inbox.find(row.id)?.state !== 'waiting'
+        ? { status: 409, reason: 'notWaiting', error: `${row.id} is no longer waiting` }
+        : inbox.find(row.id)?.reviewDigest !== row.reviewDigest
+          ? { status: 409, reason: 'reviewChanged', error: `${row.id} changed while the server was indexing` }
+          : undefined,
   });
   if ('reason' in declared) return reply(declared.status, declared.reason, declared.error);
   return markAccepted(inbox, row.id, built.name, {
@@ -525,15 +554,6 @@ async function acceptRow(deps: ControlDeps, inbox: InboxStore, row: InboxRow, bo
     tools: declared.tools,
     needsAuth: declared.needsAuth,
   });
-}
-
-/** Whether a live upstream is the server a declaration would make: the same command line, or the same URL. */
-function declares(held: UpstreamConfig, wanted: UpstreamConfig): boolean {
-  if (isStdio(held) && isStdio(wanted)) {
-    return held.command === wanted.command && JSON.stringify(held.args) === JSON.stringify(wanted.args);
-  }
-  if (isHttp(held) && isHttp(wanted)) return held.transport === wanted.transport && held.url === wanted.url;
-  return false;
 }
 
 /** Mark a row accepted once its server is declared. A failed write here is reported, since the declaration stands. */
@@ -709,7 +729,10 @@ export async function handleControl(
     }
     if (p === '/inbox' && req.method === 'GET') {
       try {
-        json(res, 200, { items: deps.inbox.view() });
+        json(res, 200, {
+          items: deps.inbox.view(),
+          pairedDeviceNames: deps.routerHome ? readPairedPhones(deps.routerHome).map((phone) => phone.phoneName) : [],
+        });
       } catch (err) {
         // An unreadable store is not an empty inbox: an empty answer would read as "nothing waiting".
         log.error(`inbox: could not read ${deps.inbox.path}: ${(err as Error).message}`);
@@ -1299,7 +1322,7 @@ export async function handleControl(
   // names the phone and the time, never a key or an id, and it empties the moment the phone acks or drops.
   //
   // `listener` says whether the phone listener is bound, so a sheet can say pairing is off instead of
-  // offering a code. It names the port and whether it is announced, and nothing about the certificate.
+  // offering a code. The endpoint and certificate fingerprint let the Mac build the QR from observed identity.
   if (p === '/pairing/state' && req.method === 'GET') {
     const live = deps.pairing.current();
     const listener = deps.pairingListener();
@@ -1309,7 +1332,11 @@ export async function handleControl(
         phoneName: a.phoneName,
         requestedAt: wireInstant(a.requestedAt),
       })),
-      listener: { enabled: listener.enabled, port: listener.port, advertising: listener.advertising },
+      listener: {
+        enabled: listener.enabled, port: listener.port, advertising: listener.advertising,
+        host: listener.enabled ? listener.host ?? null : null,
+        fingerprint: listener.enabled ? listener.fingerprint ?? null : null,
+      },
     });
     return true;
   }

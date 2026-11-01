@@ -5,7 +5,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync }
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { RegistryEntry } from '../src/registry.js';
-import { INBOX_RETAIN_DECIDED, InboxStore, reviewDigestOf, type NewInboxRow } from '../src/inbox.js';
+import { INBOX_RETAIN_DECIDED, InboxStore, reviewDigestOf, declarationFor, type NewInboxRow } from '../src/inbox.js';
 
 /*
  * The router's inbox store (planning/plans/plan-phone-inbox.md §2.1, §5, D10, D11). The store is a
@@ -175,4 +175,19 @@ test('a store with no file yet reads as empty, and reading creates nothing', () 
   const store = new InboxStore(path);
   assert.deepEqual(store.view(), []);
   assert.throws(() => statSync(path), /ENOENT/);
+});
+
+
+test('namespaced registry entries produce deterministic valid local tool namespaces', () => {
+  const built = declarationFor({ ...entry('echo'), name: 'io.fixture/inbox__echo', install: { type: 'http', url: 'https://example.test/mcp' } });
+  assert.deepEqual(built, { name: 'io-fixture-inbox_echo', server: { type: 'http', url: 'https://example.test/mcp' } });
+});
+
+
+test('an install with invisible controls is refused rather than running bytes absent from review', () => {
+  for (const hidden of ['\n', '\u2028', '\u200b', '\u202e']) {
+    const built = declarationFor({ ...entry('echo'), install: { type: 'stdio', command: 'node', args: [`--allow${hidden}-write`] } });
+    assert.ok('reason' in built);
+    assert.equal(built.reason, 'notInstallable');
+  }
 });

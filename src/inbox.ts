@@ -149,9 +149,18 @@ export function declarationFor(entry: RegistryEntry): { name: string; server: Ra
       error: `${entry.id} needs ${install.requires.length} value(s) that cannot be supplied from the phone in v1`,
     };
   }
+  // The review surfaces remove these invisible controls. Refuse a command the reviewer cannot see verbatim.
+  const hidden = /[\u0000-\u001f\u007f-\u009f\u061c\u200b-\u200f\u2028-\u202e\u2066-\u206f]/;
+  const operands = install.type === 'stdio' ? [install.command ?? '', ...(install.args ?? [])] : [install.url ?? ''];
+  if (operands.some((value) => hidden.test(value))) {
+    return { reason: 'notInstallable', error: `${entry.id} contains invisible controls in its install details` };
+  }
   const server: RawServer =
     install.type === 'stdio'
       ? { command: install.command, args: install.args }
       : { type: install.type, url: install.url };
-  return { name: entry.name, server };
+  // Registry ids are commonly namespaced with slashes and dots; local tool namespaces are not.
+  const name = entry.name.replace(/[^A-Za-z0-9_-]/g, '-').replace(/_{2,}/g, '_');
+  if (!name) return { reason: 'notInstallable', error: `${entry.id} has no valid local server name` };
+  return { name, server };
 }

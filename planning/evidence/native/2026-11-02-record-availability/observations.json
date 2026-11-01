@@ -1,0 +1,251 @@
+{
+  "scope": "Record-availability copy after an actual isolated partial reset; bounded source/native evidence, not whole-current glass acceptance.",
+  "sourceRevision": "896295b7107dae60b1bd57c6e5251342867f6c6f",
+  "appInputSha256": "d7ae02da59faf321e4d96180f33004ee2599454c8d6ba40ccf9231b56e0f17f3",
+  "build": "Actual Xcode Debug Mac build; genuine freshness source/bundle stamp passed after capture.",
+  "wire": {
+    "resetPOSTs": 1,
+    "resetStatus": 500,
+    "resetResponse": {
+      "error": "Usage history reset failed during commit (EISDIR). Some history files were removed; the reset did not complete. Reload usage before trying again.",
+      "reason": "usageResetFailed",
+      "phase": "commit",
+      "partialReset": true,
+      "removedFiles": 1
+    },
+    "recentRecords": 0,
+    "aggregateCalls": 1,
+    "since": "2026-10-31T18:01:36.469Z",
+    "sinceUnchanged": true,
+    "backendSourceModified": false,
+    "arrangement": "Private stats commit target temporarily a directory. Actual JSONL removal succeeds and stats commit refuses with EISDIR; in-memory aggregate is retained.",
+    "additionalResetPOSTsOnCancel": 0
+  },
+  "copyControl": {
+    "predicate": "Actual native title/detail/filter equals the record-scoped expected copy.",
+    "expected": {
+      "title": "No calls to show",
+      "detail": "No call records are available here. New tool calls will appear as they arrive.",
+      "filter": "Filters need call records. No records are available to filter."
+    },
+    "oldNativeNegative": {
+      "source": "fdf14d15",
+      "copy": {
+        "title": "No calls yet",
+        "detail": "Nothing has called a tool since 4:15\u202fam. Servers stay asleep until an agent asks for one \u2014 this list fills itself the moment that happens.",
+        "filter": "Filters need calls to filter. No calls have been recorded yet."
+      },
+      "accepted": false,
+      "artifact": "../2026-11-02-settings-reset-close/activity-empty-before.png",
+      "context": "Same real partial-reset counterexample: zero recent records, one aggregate call and retained old counting window. Prior artifact/source scope is preserved."
+    },
+    "newNativePositive": {
+      "copy": {
+        "compact": {
+          "title": "No calls to show",
+          "detail": "No call records are available here. New tool calls will appear as they arrive.",
+          "filter": "Filters need call records. No records are available to filter."
+        },
+        "wide": {
+          "title": "No calls to show",
+          "detail": "No call records are available here. New tool calls will appear as they arrive.",
+          "filter": "Filters need call records. No records are available to filter."
+        }
+      },
+      "accepted": true,
+      "viewports": [
+        [
+          900,
+          450
+        ],
+        [
+          1100,
+          728
+        ]
+      ],
+      "splitMatchesWindow": true
+    },
+    "historicalTimestamp": "The original counting-window time remains in the separate Showing header, never in the record-absence detail."
+  },
+  "crossSurface": {
+    "MacActivity": "Native900/1100 inspected, including disabled-filter reason.",
+    "MacMenuBar": "Same title/detail. Purposeful existing PopoverContent test supplies running1 with records[]; it now requires literal record-scoped copy and rejects Nothing-is-running. Menu glass remains unmeasured.",
+    "Windows": "Separate worker handles C# equivalent; this commit makes no Windows claim.",
+    "phone": "No Activity client equivalent found.",
+    "web": "n/a: no router web client.",
+    "ReactNative": "n/a: no router React Native client."
+  },
+  "validation": {
+    "focusedSwiftTests": 51,
+    "uiTests": 24,
+    "kitTests": 27,
+    "strictSwiftLintFiles": 5,
+    "issues": 0,
+    "command": "swift test --package-path app --scratch-path <isolated scratch> --jobs 1 --filter ActivityCopyTests|PopoverContentTests|MenuBarPresentationTests|ActivityBoard"
+  },
+  "foreground": {
+    "ProctorMeasuredSyntheticEvents": 0,
+    "SettingsEntry": "PID-directed cmd-comma; foreground PID62472 unchanged. No global keys/clicks or activation."
+  },
+  "artifacts": [
+    {
+      "path": "activity-empty-900.png",
+      "sha256": "6caa20c12a304a26b8af0aaabf3ece071343c37ab3846d92ab80901bb0184937",
+      "inspected": true,
+      "channel": "Background ScreenCaptureKit, owned normal-app window, actual synthetic partial-reset wire state.",
+      "capture": {
+        "capturedAt": 1793556181.6835542,
+        "status": "complete",
+        "trustworthy": true,
+        "width": 1800,
+        "height": 900,
+        "scale": 2
+      }
+    },
+    {
+      "path": "activity-empty-1100.png",
+      "sha256": "096f17e8c5f31a3182972a5ee3d402e78c2d3a57a1efaeeb27579b92bd4dc997",
+      "inspected": true,
+      "channel": "Background ScreenCaptureKit, owned normal-app window, actual synthetic partial-reset wire state.",
+      "capture": {
+        "capturedAt": 1793556179.197469,
+        "status": "complete",
+        "trustworthy": true,
+        "width": 2200,
+        "height": 1456,
+        "scale": 2
+      }
+    }
+  ],
+  "nativeExtracts": {
+    "compact": {
+      "stateHash": "24b6aad61a07d6df870d8d19d00865fab2ee24171dc2997401ea5dc4b5401373",
+      "window": "win:154:0",
+      "nodes": [
+        {
+          "role": "AXWindow",
+          "frame": {
+            "h": 450,
+            "w": 900,
+            "x": 100,
+            "y": 100
+          }
+        },
+        {
+          "role": "AXSplitGroup",
+          "frame": {
+            "h": 450,
+            "w": 900,
+            "x": 100,
+            "y": 100
+          }
+        },
+        {
+          "role": "AXStaticText",
+          "value": "Showing 0 calls \u00b7 since 5:01\u202fam \u00b7 live",
+          "frame": {
+            "h": 14,
+            "w": 258.5,
+            "x": 372,
+            "y": 189
+          }
+        },
+        {
+          "role": "AXStaticText",
+          "value": "Filters need call records. No records are available to filter.",
+          "frame": {
+            "h": 15,
+            "w": 340,
+            "x": 372,
+            "y": 231
+          }
+        },
+        {
+          "role": "AXStaticText",
+          "value": "No calls to show",
+          "frame": {
+            "h": 19,
+            "w": 116.5,
+            "x": 619.75,
+            "y": 396.5
+          }
+        },
+        {
+          "role": "AXStaticText",
+          "value": "No call records are available here. New tool calls will appear as they arrive.",
+          "frame": {
+            "h": 32.5,
+            "w": 275.5,
+            "x": 540.25,
+            "y": 419.5
+          }
+        }
+      ]
+    },
+    "wide": {
+      "stateHash": "23e325cca9e6658400a12166fe4b222ab268b97867126d8c38bc414765a3a16f",
+      "window": "win:154:0",
+      "nodes": [
+        {
+          "role": "AXWindow",
+          "frame": {
+            "h": 728,
+            "w": 1100,
+            "x": 100,
+            "y": 100
+          }
+        },
+        {
+          "role": "AXSplitGroup",
+          "frame": {
+            "h": 728,
+            "w": 1100,
+            "x": 100,
+            "y": 100
+          }
+        },
+        {
+          "role": "AXStaticText",
+          "value": "Showing 0 calls \u00b7 since 5:01\u202fam \u00b7 live",
+          "frame": {
+            "h": 14,
+            "w": 258.5,
+            "x": 372,
+            "y": 189
+          }
+        },
+        {
+          "role": "AXStaticText",
+          "value": "Filters need call records. No records are available to filter.",
+          "frame": {
+            "h": 15,
+            "w": 340,
+            "x": 372,
+            "y": 231
+          }
+        },
+        {
+          "role": "AXStaticText",
+          "value": "No calls to show",
+          "frame": {
+            "h": 19,
+            "w": 116.5,
+            "x": 719.75,
+            "y": 535.5
+          }
+        },
+        {
+          "role": "AXStaticText",
+          "value": "No call records are available here. New tool calls will appear as they arrive.",
+          "frame": {
+            "h": 32.5,
+            "w": 275.5,
+            "x": 640.25,
+            "y": 558.5
+          }
+        }
+      ]
+    }
+  },
+  "isolation": "Unique verification bundle; Debug scratch token/observation injection; temporary HOME and loopback router/proxy; no owner history, owner Keychain, provider calls, LAN listener or deployment."
+}

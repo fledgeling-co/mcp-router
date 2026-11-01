@@ -11,7 +11,11 @@ import Security
 /// certificate that answers no ends the handshake, and nothing is written to the connection (plan
 /// §2.2).
 public struct NetworkPairingTransport: PairingTransport {
-    public init() {}
+    private let maxBodyLength: Int
+
+    public init(maxBodyLength: Int = PairingFrame.maxBodyLength) {
+        self.maxBodyLength = maxBodyLength
+    }
 
     public func connect(
         host: String,
@@ -61,7 +65,11 @@ public struct NetworkPairingTransport: PairingTransport {
             connection.cancel()
             throw PairingTransportError.connectFailed
         }
-        return NetworkPairingChannel(connection: connection, peerFingerprint: peer)
+        return NetworkPairingChannel(
+            connection: connection,
+            peerFingerprint: peer,
+            maxBodyLength: maxBodyLength
+        )
     }
 
     /// TLS 1.3 only, with a verify block in place of trust evaluation. The block records the
@@ -113,10 +121,12 @@ private func isMismatch(_ presented: PresentedCertificate, expecting fingerprint
 actor NetworkPairingChannel: PairingChannel {
     nonisolated let peerFingerprint: String
     private let connection: NWConnection
+    private let maxBodyLength: Int
 
-    init(connection: NWConnection, peerFingerprint: String) {
+    init(connection: NWConnection, peerFingerprint: String, maxBodyLength: Int = PairingFrame.maxBodyLength) {
         self.connection = connection
         self.peerFingerprint = peerFingerprint
+        self.maxBodyLength = maxBodyLength
     }
 
     func send(_ frame: Data) async throws {
@@ -134,7 +144,7 @@ actor NetworkPairingChannel: PairingChannel {
     /// One frame, through the shared gate in `PairingFrame.readFrame`, so an oversized length prefix
     /// is refused before any body is requested.
     func receive() async throws -> Data {
-        try await PairingFrame.readFrame { count in
+        try await PairingFrame.readFrame(maxBodyLength: maxBodyLength) { count in
             try await self.receiveExactly(count)
         }
     }

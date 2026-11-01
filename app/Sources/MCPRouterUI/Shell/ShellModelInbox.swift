@@ -30,7 +30,7 @@
         ) -> InboxBoardModel {
             InboxBoardModel(
                 client: client,
-                service: service ?? ShellPairingFactory.makeService(),
+                service: service ?? ShellPairingFactory.makeService(client: client),
                 notifier: notifier
             )
         }

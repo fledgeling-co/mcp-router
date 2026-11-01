@@ -51,20 +51,21 @@ public enum PairingFrame {
     /// buffering and never a request for its body. Every transport reads frames through here, so the
     /// limit is one line rather than one per transport.
     public nonisolated(nonsending) static func readFrame(
+        maxBodyLength: Int = PairingFrame.maxBodyLength,
         readingExactly readExactly: (Int) async throws -> Data
     ) async throws -> Data {
         let prefix = try await readExactly(4)
-        let length = try bodyLength(prefix: prefix)
+        let length = try bodyLength(prefix: prefix, maximum: maxBodyLength)
         let body = try await readExactly(length)
         return prefix + body
     }
 
     /// The body length a four-byte prefix announces, or the reason it cannot be read.
-    static func bodyLength(prefix: Data) throws(PairingFrameError) -> Int {
+    static func bodyLength(prefix: Data, maximum: Int = maxBodyLength) throws(PairingFrameError) -> Int {
         guard prefix.count >= 4 else { throw .truncated }
         let length = prefix.prefix(4).reduce(0) { ($0 << 8) | Int($1) }
         // Refused on the prefix alone, so an oversized frame is never buffered or parsed.
-        guard length <= maxBodyLength else { throw .oversized(length: length) }
+        guard length <= maximum else { throw .oversized(length: length) }
         return length
     }
 

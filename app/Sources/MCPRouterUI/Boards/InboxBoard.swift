@@ -174,6 +174,11 @@
                 }
             }
 
+            if case let .failed(error) = board.acceptState {
+                Banner(icon: .warn, tint: .attention) {
+                    Text(error.userFacingDescription)
+                }
+            }
             undoLine
         }
 

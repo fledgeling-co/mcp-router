@@ -28,5 +28,7 @@ public sealed record InboxItem(
     IReadOnlyList<InboxCapabilityLine> CapabilityLines,
     DecisionState State = DecisionState.Undecided,
     int? ToolCount = null,
-    string? HistoryContext = null
+    string? HistoryContext = null,
+    string? ReviewDigest = null,
+    bool CanApprove = true
 );

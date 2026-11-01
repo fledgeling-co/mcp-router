@@ -266,6 +266,9 @@ public protocol ControlAPIClient: Sendable {
     /// Take the live code back. Returns whether there was one to take back. A code already paired
     /// stays paired: revoking forgets nothing.
     func revokePairingCode() async throws(ControlAPIError) -> Bool
+
+    /// Remove one confirmed phone's verification key. The reply must name that phone.
+    func revokePairedPhone(id: String) async throws(ControlAPIError) -> String
 }
 
 public extension ControlAPIClient {
@@ -351,6 +354,10 @@ public extension ControlAPIClient {
 
     func revokePairingCode() async throws(ControlAPIError) -> Bool {
         throw ControlAPIError.malformedResponse(detail: "this router has no /pairing/codes endpoint")
+    }
+
+    func revokePairedPhone(id: String) async throws(ControlAPIError) -> String {
+        throw ControlAPIError.malformedResponse(detail: "this client cannot revoke confirmed phones")
     }
 
     /// Defaults so a caller that wants the ordinary behaviour does not have to name the flag.

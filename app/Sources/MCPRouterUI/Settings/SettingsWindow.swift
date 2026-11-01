@@ -41,7 +41,10 @@
             self.shell = shell
             self.buildIdentity = buildIdentity
             self.store = restoration
-            _model = State(wrappedValue: SettingsWindowModel(store: store ?? KeychainTokenStore()))
+            _model = State(wrappedValue: SettingsWindowModel(
+                store: store ?? KeychainTokenStore(),
+                client: shell.client
+            ))
             _pane = State(wrappedValue: restoration.restoredSettingsPane())
         }
 

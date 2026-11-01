@@ -49,19 +49,32 @@ function writeRecord(server: string, rec: AuthRecord): void {
   writeFileSync(recordPath(server), JSON.stringify(rec, null, 2), { mode: 0o600 });
 }
 
+/** Credentials written before SDK 1.31 carry no trusted authorization-server binding. Preserve them on disk,
+ * but require an explicit sign-in instead of letting discovery assign them to an arbitrary issuer. */
+function issuerBound(value: { issuer?: string } | undefined): boolean {
+  if (!value || typeof value.issuer !== 'string') return false;
+  try { const issuer = new URL(value.issuer); return ['https:', 'http:'].includes(issuer.protocol) && !issuer.username && !issuer.password; }
+  catch { return false; }
+}
+function needsReauthorization(rec: AuthRecord): boolean {
+  return !!((rec.tokens && !issuerBound(rec.tokens)) || (rec.clientInformation && !issuerBound(rec.clientInformation)));
+}
+
 export function hasTokens(server: string): boolean {
-  return !!readRecord(server).tokens?.access_token;
+  const rec = readRecord(server);
+  return !needsReauthorization(rec) && !!rec.tokens?.access_token;
 }
 
 export function authorizedAt(server: string): string | undefined {
-  return readRecord(server).authorizedAt;
+  const rec = readRecord(server);
+  return needsReauthorization(rec) ? undefined : rec.authorizedAt;
 }
 
 /**
  * What the credential store actually holds for one server.
  *
- * Three states rather than the boolean `hasTokens` gives, because they want three different
- * sentences. `none` is a server nobody has ever authorized. `started` is a record carrying a
+ * Four states rather than the boolean `hasTokens` gives, because they need different recovery
+ * instructions. Issuerless credentials remain on disk and require explicit reauthorization. `none` is a server nobody has ever authorized. `started` is a record carrying a
  * client registration and a PKCE verifier and no tokens — an authorization whose browser leg
  * never came back, which re-running does fix. `authorized` holds tokens, and re-running it is
  * the one remedy that is guaranteed not to help.
@@ -70,11 +83,12 @@ export function authorizedAt(server: string): string | undefined {
  * no longer an upstream at all. That is why this reports on a name the caller supplies from the
  * upstream list rather than on whatever files happen to be in the directory.
  */
-export type AuthRecordState = 'none' | 'started' | 'authorized';
+export type AuthRecordState = 'none' | 'started' | 'authorized' | 'reauthorization-required';
 
 export function recordState(server: string): AuthRecordState {
   if (!existsSync(recordPath(server))) return 'none';
-  return readRecord(server).tokens?.access_token ? 'authorized' : 'started';
+  const rec = readRecord(server);
+  return needsReauthorization(rec) ? 'reauthorization-required' : rec.tokens?.access_token ? 'authorized' : 'started';
 }
 
 /**
@@ -86,7 +100,8 @@ export function recordState(server: string): AuthRecordState {
  * token was refused with no refresh token behind it genuinely does need authorizing again.
  */
 export function hasRefreshToken(server: string): boolean {
-  return !!readRecord(server).tokens?.refresh_token;
+  const rec = readRecord(server);
+  return !needsReauthorization(rec) && !!rec.tokens?.refresh_token;
 }
 
 /**
@@ -99,6 +114,7 @@ export function hasRefreshToken(server: string): boolean {
  */
 export function tokenExpiry(server: string): string | undefined {
   const rec = readRecord(server);
+  if (needsReauthorization(rec)) return undefined;
   const seconds = rec.tokens?.expires_in;
   if (typeof seconds !== 'number' || !rec.authorizedAt) return undefined;
   const from = Date.parse(rec.authorizedAt);
@@ -156,7 +172,8 @@ export class FileOAuthProvider implements OAuthClientProvider {
   constructor(
     private readonly server: string,
     /** Called with the authorization URL. The CLI opens a browser; `serve` records it. */
-    private readonly onRedirect: (url: URL) => void | Promise<void>
+    private readonly onRedirect: (url: URL) => void | Promise<void>,
+    private readonly explicitReauthorization = false
   ) {}
 
   get redirectUrl(): string {
@@ -177,7 +194,13 @@ export class FileOAuthProvider implements OAuthClientProvider {
   }
 
   clientInformation(): OAuthClientInformationMixed | undefined {
-    return readRecord(this.server).clientInformation;
+    return this.boundCredential(readRecord(this.server).clientInformation);
+  }
+
+  private boundCredential<T extends { issuer?: string }>(value: T | undefined): T | undefined {
+    if (!value || issuerBound(value)) return value;
+    if (this.explicitReauthorization) return undefined;
+    throw new Error(`Authentication required: OAuth credentials for "${this.server}" have no trusted issuer binding. Run mcp-router auth ${this.server} to reauthorize. The saved record has not been deleted.`);
   }
 
   saveClientInformation(info: OAuthClientInformationMixed): void {
@@ -185,7 +208,7 @@ export class FileOAuthProvider implements OAuthClientProvider {
   }
 
   tokens(): OAuthTokens | undefined {
-    return readRecord(this.server).tokens;
+    return this.boundCredential(readRecord(this.server).tokens);
   }
 
   saveTokens(tokens: OAuthTokens): void {
@@ -273,7 +296,7 @@ export async function beginAuth(
     onUrl = resolve;
   });
 
-  const provider = new FileOAuthProvider(serverName, (u) => onUrl(u));
+  const provider = new FileOAuthProvider(serverName, (u) => onUrl(u), true);
   const transport = makeTransport(provider);
 
   let settle!: (err?: Error) => void;

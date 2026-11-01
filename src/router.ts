@@ -25,6 +25,8 @@ import { Pairing } from './pairing.js';
 import { startPairing, type RunningPairingListener } from './pairing-listener.js';
 import { createBonjourAdvertiser } from './pairing-advertise.js';
 
+import { MCP_REQUEST_BYTES, McpInputLimit, checkMcpArgumentLimits } from './mcp-input-limits.js';
+
 const MCP_PATH = '/mcp';
 
 /**
@@ -51,20 +53,24 @@ export async function withCallerProject(
  */
 const SHUTDOWN_GRACE_MS = 5_000;
 
-function readBody(req: IncomingMessage): Promise<unknown> {
+function readBody(req: IncomingMessage, limit = 32 * 1024 * 1024): Promise<unknown> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
     let size = 0;
+    let rejected = false;
     req.on('data', (c: Buffer) => {
+      if (rejected) return;
       size += c.length;
-      if (size > 32 * 1024 * 1024) {
-        reject(new Error('request body too large'));
-        req.destroy();
+      if (size > limit) {
+        rejected = true;
+        chunks.length = 0;
+        reject(new McpInputLimit(`Request body exceeds the limit of ${limit} bytes.`, 413, -32000));
         return;
       }
       chunks.push(c);
     });
     req.on('end', () => {
+      if (rejected) return;
       const raw = Buffer.concat(chunks).toString('utf8');
       if (!raw) return resolve(undefined);
       try {
@@ -477,10 +483,13 @@ export async function startRouter(
       // draining it here for a /mcp POST leaves the MCP transport waiting forever
       // on an "end" event that has already fired.
       if (isControlPath(url.pathname)) {
-        const controlBody =
-          req.method === 'POST' || req.method === 'PATCH'
-            ? await readBody(req).catch(() => undefined)
-            : undefined;
+        let controlBody: unknown;
+        try {
+          controlBody = req.method === 'POST' || req.method === 'PATCH' ? await readBody(req) : undefined;
+        } catch (err) {
+          // A size refusal must not become an empty control write when the connection stays open.
+          if (err instanceof McpInputLimit) return json(res, err.status, { error: err.message });
+        }
         if (await handleControl(req, res, url, controlBody, deps, token)) return;
       }
 
@@ -494,6 +503,7 @@ export async function startRouter(
         sessionIdGenerator: undefined,
         enableDnsRebindingProtection: true,
         allowedHosts,
+        maxRequestBodySize: MCP_REQUEST_BYTES,
       });
       const server = buildMcpServer(cfg, manifest, pool, usage, () => identity);
 
@@ -528,14 +538,15 @@ export async function startRouter(
 
       try {
         await server.connect(transport);
-        const body = req.method === 'POST' ? await readBody(req) : undefined;
+        const body = req.method === 'POST' ? await readBody(req, MCP_REQUEST_BYTES) : undefined;
+        checkMcpArgumentLimits(body);
         await transport.handleRequest(req, res, body);
       } catch (err) {
         log.error(`request handling failed: ${(err as Error).message}`);
         if (!res.headersSent) {
-          json(res, 500, {
+          json(res, err instanceof McpInputLimit ? err.status : 500, {
             jsonrpc: '2.0',
-            error: { code: -32603, message: (err as Error).message },
+            error: { code: err instanceof McpInputLimit ? err.code : -32603, message: (err as Error).message },
             id: null,
           });
         }

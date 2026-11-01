@@ -87,7 +87,7 @@
             #expect(board.recencySummary?.contains("3 of 7 returned results") == true)
             #expect(board.recencySummary?.contains("updated or added within the past 7 days") == true)
             #expect(RegistryPresentation.footerNotes(for: Self.response(), ordering: board.ordering)
-                .contains { $0.contains("7 of 50 that matched") })
+                .contains { $0.contains("Returned 7 of 50 that matched") })
             #expect(client.searchQueries.count == 1, "changing a local window must not query either registry")
         }
     }

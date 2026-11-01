@@ -1,0 +1,35 @@
+{
+  "at": "2026-11-01T16:14:17.076Z",
+  "phase": "cancel",
+  "source": "591d0e02f78268ede74586d4bdf13b98baf60184",
+  "apiStatus": 200,
+  "api": {
+    "since": "2026-10-31T16:07:47.939Z",
+    "servers": []
+  },
+  "files": {
+    "usage.jsonl": {
+      "size": 116,
+      "sha256": "38dc560f4021245d4e22f13db62a017342ffb4720c8b30979218eb053770699e"
+    },
+    "usage-stats.json": {
+      "size": 261,
+      "sha256": "8004671beb04661b0b73865b594778b3a7b124d1c30acf7a7b628dd88701ca28",
+      "value": {
+        "version": 1,
+        "since": "2026-10-31T16:07:47.939Z",
+        "servers": {
+          "synthetic_history": {
+            "calls": 1,
+            "errors": 0,
+            "projects": {},
+            "firstSeen": "2026-11-01T16:07:47.940Z",
+            "lastUsed": "2026-11-01T16:07:47.940Z"
+          }
+        }
+      }
+    }
+  },
+  "resetRequests": [],
+  "resetResponses": []
+}

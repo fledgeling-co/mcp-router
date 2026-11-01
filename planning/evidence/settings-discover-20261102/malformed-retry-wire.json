@@ -1,0 +1,56 @@
+[
+  {
+    "at": "2026-11-01T16:14:54.951Z",
+    "id": 145,
+    "phase": "request",
+    "method": "POST",
+    "path": "/usage/reset",
+    "status": null,
+    "mode": "malformed"
+  },
+  {
+    "at": "2026-11-01T16:14:54.952Z",
+    "id": 145,
+    "phase": "response",
+    "method": "POST",
+    "path": "/usage/reset",
+    "status": 200,
+    "mode": "malformed"
+  },
+  {
+    "at": "2026-11-01T16:14:54.954Z",
+    "id": 146,
+    "phase": "request",
+    "method": "GET",
+    "path": "/usage/summary",
+    "status": null,
+    "mode": "malformed"
+  },
+  {
+    "at": "2026-11-01T16:14:54.955Z",
+    "id": 146,
+    "phase": "response",
+    "method": "GET",
+    "path": "/usage/summary",
+    "status": 200,
+    "mode": "malformed"
+  },
+  {
+    "at": "2026-11-01T16:15:05.868Z",
+    "id": 162,
+    "phase": "request",
+    "method": "GET",
+    "path": "/usage/summary",
+    "status": null,
+    "mode": "malformed"
+  },
+  {
+    "at": "2026-11-01T16:15:05.868Z",
+    "id": 162,
+    "phase": "response",
+    "method": "GET",
+    "path": "/usage/summary",
+    "status": 200,
+    "mode": "malformed"
+  }
+]

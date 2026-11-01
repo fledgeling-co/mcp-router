@@ -1,0 +1,245 @@
+{
+  "schema": "mcp-router.settings-discover-native.v1",
+  "sourceCommits": [
+    "70a51033",
+    "1bac0044",
+    "2e5962c3",
+    "744d22e6",
+    "90587d05"
+  ],
+  "captureActor": "client_gaps owned background verification app; source author inspected every curated frame",
+  "independentCampaignJudgment": false,
+  "historicalRegistryChanged": false,
+  "images": [
+    {
+      "file": "reset-confirmation.png",
+      "original": "/tmp/mcp-router-client-verification-20261101/mac-glass-final-20261102/settings-final9058-confirmation.png",
+      "sha256": "7f1b479939ae1e694905e26e423679ad23510081510797eee3d8a7d29f19020b",
+      "sourceRevision": "788d5a25a8608b7ced18090d5ec4390ed53ef31d",
+      "scope": "Behavior witness at its actual revision; final wording shown in reset-confirmation.png and discover-returned-scope.png."
+    },
+    {
+      "file": "reset-refusal.png",
+      "original": "/tmp/mcp-router-client-verification-20261101/mac-glass-final-20261102/settings-591-reset-refusal.png",
+      "sha256": "013a2c6f5daba96560c4fc0e558cce233737c82bbb9c5e57cd90d8914ca3325b",
+      "sourceRevision": "591d0e02f78268ede74586d4bdf13b98baf60184",
+      "scope": "Behavior witness at its actual revision; final wording shown in reset-confirmation.png and discover-returned-scope.png."
+    },
+    {
+      "file": "reset-success.png",
+      "original": "/tmp/mcp-router-client-verification-20261101/mac-glass-final-20261102/settings-591-reset-success.png",
+      "sha256": "edaebeb07ca5adee7c1d3a4059cbca1bb0271f839fdb8e912b364ad5482352b1",
+      "sourceRevision": "591d0e02f78268ede74586d4bdf13b98baf60184",
+      "scope": "Behavior witness at its actual revision; final wording shown in reset-confirmation.png and discover-returned-scope.png."
+    },
+    {
+      "file": "reset-malformed-response.png",
+      "original": "/tmp/mcp-router-client-verification-20261101/mac-glass-final-20261102/settings-591-reset-malformed.png",
+      "sha256": "7008c85bf7e7bb6b9db49304d439b503a359de86170b319f8cf5fc6a70868c3d",
+      "sourceRevision": "591d0e02f78268ede74586d4bdf13b98baf60184",
+      "scope": "Behavior witness at its actual revision; final wording shown in reset-confirmation.png and discover-returned-scope.png."
+    },
+    {
+      "file": "settings-analyst.png",
+      "original": "/tmp/mcp-router-client-verification-20261101/mac-glass-final-20261102/settings-591-session-analyst-clean.png",
+      "sha256": "997dafb8a7370337ccdcada4105db326e1d975c9603fa4ff01011068eb2652ae",
+      "sourceRevision": "591d0e02f78268ede74586d4bdf13b98baf60184",
+      "scope": "Behavior witness at its actual revision; final wording shown in reset-confirmation.png and discover-returned-scope.png."
+    },
+    {
+      "file": "settings-updates.png",
+      "original": "/tmp/mcp-router-client-verification-20261101/mac-glass-final-20261102/settings-591-updates-clean.png",
+      "sha256": "eef790f10edb4100d5a58478698ae7823f16f19815ef92e85beca6fc730c8862",
+      "sourceRevision": "591d0e02f78268ede74586d4bdf13b98baf60184",
+      "scope": "Behavior witness at its actual revision; final wording shown in reset-confirmation.png and discover-returned-scope.png."
+    },
+    {
+      "file": "discover-any-time.png",
+      "original": "/tmp/mcp-router-client-verification-20261101/mac-glass-final-20261102/discover-591-recency-any.png",
+      "sha256": "ef9a1b137a52d9d6cec2b1eb1836beee97a3bb6536ba5bc4fa3a4391c0cdcd4a",
+      "sourceRevision": "591d0e02f78268ede74586d4bdf13b98baf60184",
+      "scope": "Behavior witness at its actual revision; final wording shown in reset-confirmation.png and discover-returned-scope.png."
+    },
+    {
+      "file": "discover-seven-days.png",
+      "original": "/tmp/mcp-router-client-verification-20261101/mac-glass-final-20261102/discover-591-recency-seven-actual.png",
+      "sha256": "579f7a24eb376860d7fbc381eb3c1def3d2254109330b152d0f725ce3a5536ee",
+      "sourceRevision": "591d0e02f78268ede74586d4bdf13b98baf60184",
+      "scope": "Behavior witness at its actual revision; final wording shown in reset-confirmation.png and discover-returned-scope.png."
+    },
+    {
+      "file": "discover-popularity.png",
+      "original": "/tmp/mcp-router-client-verification-20261101/mac-glass-final-20261102/discover-591-popularity-after-seven.png",
+      "sha256": "de66d7d438811627770ad38491561fb2f1da0f591e8ac06d65109a420e0ba55a",
+      "sourceRevision": "591d0e02f78268ede74586d4bdf13b98baf60184",
+      "scope": "Behavior witness at its actual revision; final wording shown in reset-confirmation.png and discover-returned-scope.png."
+    },
+    {
+      "file": "discover-returned-scope.png",
+      "original": "/tmp/mcp-router-client-verification-20261101/mac-glass-final-20261102/discover-final9058-filtered-footer.png",
+      "sha256": "128f1f82efe4fc1b2968b51100a78322ab7bff5f9ec259cdd6b8f2d99c2b8f63",
+      "sourceRevision": "788d5a25a8608b7ced18090d5ec4390ed53ef31d",
+      "scope": "Behavior witness at its actual revision; final wording shown in reset-confirmation.png and discover-returned-scope.png."
+    }
+  ],
+  "reset": {
+    "sourceRevision": "591d0e02f78268ede74586d4bdf13b98baf60184",
+    "checks": {
+      "cancelZeroWritesAndUnchangedDisk": true,
+      "escapeZeroWritesAndUnchangedDisk": true,
+      "actualPrepareEACCES500LeavesSheetAndDiskUnchanged": true,
+      "confirmedRequestExactlyOneAdditionalPOST": true,
+      "displayedSinceMatchesAPIDiskAndFreshRestart": true,
+      "jsonlAbsentAndAggregatesEmptyAfterRestart": true,
+      "malformedTimestampRetryReadOnly": true
+    },
+    "faultInjection": "Only the malformed state rewrites the successful HTTP reset response since field to not-an-instant; underlying reset and disk write are real scratch-router operations. No owner history touched.",
+    "receiptFiles": [
+      "reset-before.json",
+      "reset-cancel.json",
+      "reset-escape.json",
+      "reset-refusal.json",
+      "reset-success.json",
+      "reset-restart.json",
+      "reset-malformed-before-retry.json",
+      "reset-malformed-after-retry.json"
+    ],
+    "malformedWireFile": "malformed-retry-wire.json",
+    "foreground": {
+      "proctorSyntheticEvents": 0,
+      "pidEscape": {
+        "actor": "axkit key 74278 53",
+        "frontBefore": 62472,
+        "frontAfter": 62472
+      },
+      "scope": "Only isolated verification app and scratch loopback router."
+    }
+  },
+  "discover": {
+    "sourceRevision": "591d0e02f78268ede74586d4bdf13b98baf60184",
+    "states": {
+      "recentAny": {
+        "picker": {
+          "role": "AXPopUpButton",
+          "identifier": "discover-date-window",
+          "enabled": true,
+          "value": "Any time"
+        },
+        "relevantText": [
+          "3 of 3 returned results updated or added at any time. Official dates mean updated; Smithery dates mean added. This filters the returned results, not the whole catalogue.",
+          "GitHub, On Smithery, 2,984 sessions, added 19 Nov 2025",
+          "DeepWiki, On Smithery, verified by Smithery, 2,332 sessions, added 9 Oct 2025"
+        ]
+      },
+      "recent7": {
+        "picker": {
+          "role": "AXPopUpButton",
+          "identifier": "discover-date-window",
+          "enabled": true,
+          "value": "7 days"
+        },
+        "relevantText": [
+          "0 of 3 returned results updated or added within the past 7 days. Official dates mean updated; Smithery dates mean added. This filters the returned results, not the whole catalogue.",
+          "No dates in this window",
+          "None of the returned results has a readable date in this window."
+        ]
+      },
+      "popularAfter7": {
+        "picker": {
+          "role": "AXPopUpButton",
+          "identifier": "discover-date-window",
+          "enabled": false,
+          "value": "7 days"
+        },
+        "relevantText": [
+          "1 row is not shown here: they carry no usage figure, because only Smithery publishes one and it publishes it only for its own entries.",
+          "GitHub, On Smithery, 2,984 sessions, added 19 Nov 2025",
+          "DeepWiki, On Smithery, verified by Smithery, 2,332 sessions, added 9 Oct 2025"
+        ]
+      }
+    },
+    "dateScope": "Official updated dates and Smithery added dates among returned results only. Cumulative usage unchanged.",
+    "finalCopySourceRevision": "788d5a25a8608b7ced18090d5ec4390ed53ef31d",
+    "finalCopyAppInputHash": "92a11732f431b347fb294c5a53c77c475bc7fa1c6b833077771ad7a9dab585a0",
+    "finalCopyMutation": "No confirm reset pressed; canceled only."
+  },
+  "scopeLimits": [
+    "Native recency fixtures contain old dates: Any time3/3 versus7days0/3 is measured. Positive in-window mixed-provenance and cutoff boundaries are covered by model tests, not claimed as a native positive-date run.",
+    "Malformed response and filesystem refusal are deliberate fixture states, not live production findings.",
+    "No physical-device, distribution, VoiceOver speech, whole-product acceptance or independent campaign judge is claimed.",
+    "Earlier tab runtime proof and historical campaign statuses/hashes remain untouched.",
+    "The old popularity behavior frame retains its actual pre-90587d05 footer wording; discover-returned-scope.png proves the corrected final wording."
+  ],
+  "rawPacket": "/tmp/mcp-router-client-verification-20261101/mac-glass-final-20261102",
+  "sourceTestReceipt": "source-model-receipt.json",
+  "iOSCompileReceipt": "ios-compile-receipt.json",
+  "curatedLogs": {
+    "notice-tests.log": "runs/notice-tests.txt.gz",
+    "consequence-tests.log": "runs/consequence-tests.txt.gz",
+    "returned-lint.log": "runs/returned-lint.txt.gz",
+    "notice-lint.log": "runs/notice-lint.txt.gz",
+    "ack-lint.log": "runs/ack-lint.txt.gz",
+    "consequence-lint.log": "runs/consequence-lint.txt.gz",
+    "lint-final.log": "runs/lint-final.txt.gz",
+    "tests-final.log": "runs/tests-final.txt.gz",
+    "returned-tests.log": "runs/returned-tests.txt.gz",
+    "ack-final.log": "runs/ack-final.txt.gz"
+  },
+  "transcriptArchives": {
+    "runs/lint-final.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "d40458ff57877bc6462a58c4a8d425f7dca4a3156e37f06b1d91a90128d51a1a",
+      "uncompressedBytes": 2196
+    },
+    "runs/tests-final.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "9968a12405d969b9809941ca50cd2c04cfe116deeb611c504f97d73b1c44c1ef",
+      "uncompressedBytes": 25987
+    },
+    "runs/returned-tests.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "c55a42990fd121c4d1b2fe846e3e5f03e61bb8276e3868d0e0b825658fabaab4",
+      "uncompressedBytes": 4139
+    },
+    "runs/ack-final.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "4c37b15f7d90d122bf7203ce7b06c49b6a312fa8185baa122f5b9f74fd10a6ba",
+      "uncompressedBytes": 1926
+    },
+    "runs/notice-tests.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "4e0f40a7650a2beac8f23099d5197a34bae97c9d20dd64116d66fbdb4519f280",
+      "uncompressedBytes": 2027
+    },
+    "runs/consequence-tests.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "704a115a2859c030f679d61caf2307a7c39c50acacfe61481a585bf9140e8fbe",
+      "uncompressedBytes": 7142
+    },
+    "runs/returned-lint.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "8066cea7b5cbc56e720a3e59d7849fc83d654b3546b4bd034636ffc505958b5c",
+      "uncompressedBytes": 392
+    },
+    "runs/notice-lint.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "8aead907f9319170e092c65ceae11ab845aaf433a57c0e984a1bfe42280a74eb",
+      "uncompressedBytes": 294
+    },
+    "runs/ack-lint.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "16954f1204693c530cf09fadc0628016f9258adda24f7e699fc1500949fa7739",
+      "uncompressedBytes": 408
+    },
+    "runs/consequence-lint.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "19a3bd222f7b963d89b0ba57cdc00ecead745add09a83890bb1db9760295f0ad",
+      "uncompressedBytes": 293
+    },
+    "runs/ios-final-build.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "e6a40802bf00c07a851613b57bd25c710e4366919b558fb7ec9b117be0520cb4",
+      "uncompressedBytes": 547261
+    }
+  }
+}

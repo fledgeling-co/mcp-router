@@ -1,0 +1,77 @@
+{
+  "schema": "mcp-router.settings-discover-focused-proof.v1",
+  "sourceRevision": "70a51033b6955ce60467abfef7989be53f8cecef",
+  "generatedAt": "2026-11-01T15:57:14.672633+00:00",
+  "scope": [
+    "Settings Advanced hosted reset decision",
+    "Discover returned-result recency",
+    "Settings analyst/updates directions and Insights unsupported/data-flow copy"
+  ],
+  "checks": [
+    {
+      "command": "swift test --package-path app --jobs 2 --filter 'SettingsHistoryResetTests|DiscoverRecencyTests|RegistryPresentationTests|SettingsPaneCopyTests|SettingsWindowTests|RouterSheet|DiscoverBand|DiscoverSurfaceTests|DiscoverBoardTests|SettingsAndMenuBarTests|InsightsAnalystBoardTests'",
+      "exit": 0,
+      "tests": 103,
+      "suites": 12,
+      "log": "/tmp/mcpr-settings-discover-20261102/tests-final.log"
+    },
+    {
+      "command": "swiftlint lint --strict --config .swiftlint.yml <21 changed Swift files>",
+      "exit": 0,
+      "violations": 0,
+      "files": 21,
+      "log": "/tmp/mcpr-settings-discover-20261102/lint-final.log"
+    },
+    {
+      "command": "python3 app/Scripts/enum-layout-stamp.py",
+      "exit": 0,
+      "enumCount": 359,
+      "log": "/tmp/mcpr-settings-discover-20261102/enum-final.log"
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0
+    }
+  ],
+  "meaningfulFixtures": [
+    "No reset on cancellation or invocation after sheet close",
+    "One in-flight write despite repeated confirm; cannot cancel while writing",
+    "Write refusal stays on sheet with error",
+    "Acknowledged reset plus refused readback retries read only",
+    "Authoritative window must be readable and at least reset acknowledgement; actual new calls retained",
+    "False reset acknowledgement refuses without readback",
+    "Mixed provenance recency cutoff equality, outside cutoff, missing/malformed dates and all windows",
+    "Best match and cumulative Most used unchanged across all windows; no extra registry request",
+    "Filtered hidden selection cannot open detail",
+    "Returned/matched/truncation scope copy tested"
+  ],
+  "limits": [
+    "Native focused proof pending owned background app lane",
+    "No owner history reset, live model invocation, physical phone or live secret read",
+    "No historical registry/case/floor rewrite or tab-proof hash replacement"
+  ],
+  "nativeEvidence": null,
+  "sourceFiles": {
+    "app/Sources/MCPRouterKit/Boards/BoardCopy.swift": "afa9c0e0a9a2bf4847eaab4e9cbbc3f919ab9b4e1e739cd792dacea1d455eadc",
+    "app/Sources/MCPRouterKit/Discover/DiscoverBands.swift": "13ac5352681e8d3357dc50a3d8d9b6ad09c1087ed53ffd4a856652574bb42877",
+    "app/Sources/MCPRouterKit/Discover/RegistryRecency.swift": "9f1490df0f026b361cab1a71e8a4c5b3421e860d9231b5fa74aa1ae4b20e6be4",
+    "app/Sources/MCPRouterKit/Registry/RegistryPresentation+Notes.swift": "55d5626635ac44cebc0beb048e3d6e8c114736f735e7f05ea5b0d4831ecb59ca",
+    "app/Sources/MCPRouterKit/Registry/RegistryPresentation.swift": "e08a5a76b3701606e56c397a968c5b3fa6eb5930e07fd46d139d12333bcbb41f",
+    "app/Sources/MCPRouterKit/Shell/RouterSheet.swift": "9ded79b0e6f2cf5690e319f12b4b8697fc3000068671e0da2f8c3dc4ae7ba470",
+    "app/Sources/MCPRouterKit/Shell/SettingsPaneCopy.swift": "da1de0fe0290528916ebdcb2caadbbe68459c51ea541b549a9151eb1cd26f3f1",
+    "app/Sources/MCPRouterUI/Boards/DiscoverBoard.swift": "58c90f2559e225524c8bc435aa0b06191433f95e3854b1faee336e4327877437",
+    "app/Sources/MCPRouterUI/Boards/DiscoverBoardModel.swift": "90dd54633d1bc159fa268a7fabf05683b264643f26f4464af724e1eed6b53f10",
+    "app/Sources/MCPRouterUI/Settings/Panes/AdvancedPane.swift": "db7ad8fdb28dcac88f267c358098f2217d2a8fae0a7c1cf1a354c32c97e6da87",
+    "app/Sources/MCPRouterUI/Settings/Panes/GovernedElsewherePane.swift": "e928294e16330d610c4a275e2918196216e77e1e5384f37b091694cd5b60e3a6",
+    "app/Sources/MCPRouterUI/Settings/SettingsResetHistorySheet.swift": "7fb9911eb4be6564938c09941f18e5bf598d1aa477059c536dc528780098f21d",
+    "app/Sources/MCPRouterUI/Settings/SettingsWindow.swift": "fe3b8d130f1e20ea9f41a828a5edf75ae205336daed2f5b41bb9b6813df42307",
+    "app/Sources/MCPRouterUI/Settings/SettingsWindowModel.swift": "812b144303b2d0b5ecd9f910bbf5ec7cba44452217bea558b2585def1035a982",
+    "app/Tests/MCPRouterKitTests/RegistryPresentationTests.swift": "a54f168162f94a264a9a4493e7ef6a75aebcaabf1f6ac33736c204cf7b2a4304",
+    "app/Tests/MCPRouterKitTests/RouterSheetTests.swift": "4b9bc4943c720b95b6218e7f336ae9c44bfae2d356ec952445636ad74d0f92ab",
+    "app/Tests/MCPRouterKitTests/SettingsPaneCopyTests.swift": "0d76135cd860cf506ad6af8e9116a2d02576028657a8ec6ab5ea0d647e785aaf",
+    "app/Tests/MCPRouterUITests/DiscoverRecencyTests.swift": "563df2a15c7f92c65879540e2e66a9f9658a8dd2e3ed963eea7321849c403c33",
+    "app/Tests/MCPRouterUITests/RecordingControlAPIClient.swift": "94723bf210a5e7d730f31da950192b88b9df6dd0b41c6cf23ee8c8e1e1c86d40",
+    "app/Tests/MCPRouterUITests/SettingsHistoryResetTests.swift": "ab08296085e5ac634f5f5e46a9cd4d000d200943203c7b0b99e401a3f32444f3",
+    "app/Tests/MCPRouterUITests/SettingsWindowTests.swift": "4e7f6cbcec0c1e946ef663529662c47dc5c8ed584562342f15901adc4abc9f86"
+  }
+}

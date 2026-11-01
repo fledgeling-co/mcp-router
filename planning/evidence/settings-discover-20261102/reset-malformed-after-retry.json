@@ -1,0 +1,79 @@
+{
+  "at": "2026-11-01T16:15:07.508Z",
+  "phase": "malformed-after-retry",
+  "source": "591d0e02f78268ede74586d4bdf13b98baf60184",
+  "apiStatus": 200,
+  "api": {
+    "since": "2026-11-01T16:14:54.952Z",
+    "servers": []
+  },
+  "files": {
+    "usage.jsonl": {
+      "absent": true
+    },
+    "usage-stats.json": {
+      "size": 74,
+      "sha256": "1042076aa2fa12423fe233f77d9f59ecb49ed9cdb444421d34eb9f8499245db4",
+      "value": {
+        "version": 1,
+        "since": "2026-11-01T16:14:54.952Z",
+        "servers": {}
+      }
+    }
+  },
+  "resetRequests": [
+    {
+      "at": "2026-11-01T16:14:32.218Z",
+      "id": 104,
+      "phase": "request",
+      "method": "POST",
+      "path": "/usage/reset",
+      "mode": "normal"
+    },
+    {
+      "at": "2026-11-01T16:14:41.966Z",
+      "id": 120,
+      "phase": "request",
+      "method": "POST",
+      "path": "/usage/reset",
+      "mode": "normal"
+    },
+    {
+      "at": "2026-11-01T16:14:54.951Z",
+      "id": 145,
+      "phase": "request",
+      "method": "POST",
+      "path": "/usage/reset",
+      "mode": "malformed"
+    }
+  ],
+  "resetResponses": [
+    {
+      "at": "2026-11-01T16:14:32.220Z",
+      "id": 104,
+      "phase": "response",
+      "method": "POST",
+      "path": "/usage/reset",
+      "status": 500,
+      "mode": "normal"
+    },
+    {
+      "at": "2026-11-01T16:14:41.971Z",
+      "id": 120,
+      "phase": "response",
+      "method": "POST",
+      "path": "/usage/reset",
+      "status": 200,
+      "mode": "normal"
+    },
+    {
+      "at": "2026-11-01T16:14:54.952Z",
+      "id": 145,
+      "phase": "response",
+      "method": "POST",
+      "path": "/usage/reset",
+      "status": 200,
+      "mode": "malformed"
+    }
+  ]
+}

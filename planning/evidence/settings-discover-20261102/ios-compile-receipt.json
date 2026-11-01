@@ -1,0 +1,31 @@
+{
+  "schema": "mcp-router.ios-generic-compile.v1",
+  "sourceRevisionAtStart": "124a9034147e78bbc5d53c330370fa55acbd9ed1",
+  "sourceRevisionAtFinish": "f930e1853097cad868c4334efe698757d0a90a09",
+  "requestedRevision": "f192a3b23f04cb8e5e1b7262b82f443a186a32e2",
+  "trackedAppSourceEquivalentToRequestedRevision": true,
+  "trackedAppFileCount": 851,
+  "changedTrackedAppFilesDuringBuild": [],
+  "projectGenerationCommand": "xcodegen generate --spec app/project.yml --project app",
+  "command": "xcodebuild -project app/MCPRouter.xcodeproj -scheme MCPRouterIOS -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/mcpr-settings-discover-20261102/ios-final-derived -jobs 2 CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build",
+  "workingDirectory": "/Volumes/LLMs/Dev/mcp-router-wt/remaining-core",
+  "exit": 0,
+  "result": "BUILD SUCCEEDED",
+  "architectures": [
+    "x86_64",
+    "arm64"
+  ],
+  "sdk": "iphonesimulator27.1",
+  "binaryPath": "/tmp/mcpr-settings-discover-20261102/ios-final-derived/Build/Products/Debug-iphonesimulator/MCPRouterIOS.app/MCPRouterIOS",
+  "binarySHA256": "27cc7b1148181bbdc56bb1bd1f6b54e303ee7f1fd440f10f8891fdc3258a3ff9",
+  "logPath": "/tmp/mcpr-settings-discover-20261102/ios-final-build.log",
+  "logSHA256": "e6a40802bf00c07a851613b57bd25c710e4366919b558fb7ec9b117be0520cb4",
+  "sourceManifestPath": "/tmp/mcpr-settings-discover-20261102/ios-source-before.json",
+  "sourceManifestSHA256": "77c8e297c5722a1e814aa778dc396726ecde57ce3970a88dac3f758195dfc507",
+  "scope": "Compile/link only. Generic destination, code signing disabled; no simulator boot, app installation, activation or runtime test was performed. Original bb98 tab runtime proof remains pinned to its actual older revision.",
+  "sdkPathsObserved": [
+    "iPhoneSimulator27.1.sdk"
+  ],
+  "curatedSourceManifest": "ios-source-manifest.json",
+  "curatedLog": "runs/ios-final-build.txt.gz"
+}

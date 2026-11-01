@@ -229,3 +229,21 @@ pipeline is Claude auditing Claude.
 The trap that makes the downgrade necessary rather than optional: `codex exec` **exits 0** on a
 usage limit, so a gate keyed on `$?` records a pass for a review that never ran. The honest tells
 are the `ERROR` line in the log and a missing or empty `-o` file.
+
+
+## 2026-11-02 — returned-result date recency
+
+The [bounded receipt](settings-discover-20261102/observations.json) records the native AX path
+Discover → Recently updated or added → Date window → 7 days at
+`591d0e02f78268ede74586d4bdf13b98baf60184`: Any time showed three of three returned rows;
+7 days showed zero of three, and switching to Most used retained both cumulative session
+figures with the date control disabled. The fixed-clock model tests separately cover positive
+in-window dates, both provenance meanings and cutoff boundaries; the native fixture contains
+old dates and is not presented as a positive-date run.
+
+The final footer frame distinguishes zero visible rows, three returned rows and five matches.
+It retains capture revision `788d5a25a8608b7ced18090d5ec4390ed53ef31d`. The generic iOS Simulator
+[compile receipt](settings-discover-20261102/ios-compile-receipt.json) records a successful
+unsigned arm64/x86_64 build of app source identical to `f192a3b23f04cb8e5e1b7262b82f443a186a32e2`, with all 851 tracked app files
+unchanged during compilation. It is compile proof only: no simulator boot, installation or
+runtime test was performed, and the earlier native-tab runtime source hashes were preserved.

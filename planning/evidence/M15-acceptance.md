@@ -95,3 +95,21 @@ machine — **8 of 8** and **4 of 4** green. The test count did not move across 
 The `CallbackLifecycleTests` one is the same flake M15's own progress file recorded on two of eight
 arm runs. This is reported as a flake under load, not as a pass: a suite that needed three attempts
 is worth a reader knowing about.
+
+
+## 2026-11-02 — Settings history reset and capability directions
+
+The [bounded receipt](settings-discover-20261102/observations.json) records the owned background
+app and scratch-router run at `591d0e02f78268ede74586d4bdf13b98baf60184`. The AX path was
+Settings → Advanced → Reset history…: Cancel and process-directed Escape sent zero reset
+requests and preserved the disk hashes; an EACCES refusal kept the sheet open; confirmation
+changed the authoritative counting window, which survived a fresh router restart. A proxy that
+changed only the successful reply's timestamp demonstrated that Read updated history performs
+a read without repeating the destructive request. The Session analyst and Updates panes now
+direct the reader to Insights and Skills; their clean frames are in the same receipt.
+
+The final confirmation wording explicitly names Cleanup. Its separate frame retains the actual
+capture revision `788d5a25a8608b7ced18090d5ec4390ed53ef31d`; the source author inspected every
+curated frame. This is fixture evidence, with no owner history reset or independent campaign
+verdict. The [source checks](settings-discover-20261102/source-model-receipt.json) retain the
+exact commands and bounded regression results. Historical campaign rows remain unchanged.

@@ -488,7 +488,11 @@ export async function startRouter(
           controlBody = req.method === 'POST' || req.method === 'PATCH' ? await readBody(req) : undefined;
         } catch (err) {
           // A size refusal must not become an empty control write when the connection stays open.
-          if (err instanceof McpInputLimit) return json(res, err.status, { error: err.message });
+          if (err instanceof McpInputLimit) {
+            res.shouldKeepAlive = false;
+            res.setHeader('connection', 'close');
+            return json(res, err.status, { error: err.message });
+          }
         }
         if (await handleControl(req, res, url, controlBody, deps, token)) return;
       }
@@ -544,6 +548,12 @@ export async function startRouter(
       } catch (err) {
         log.error(`request handling failed: ${(err as Error).message}`);
         if (!res.headersSent) {
+          if (err instanceof McpInputLimit && err.status === 413) {
+            // Let Node flush the observable refusal, then end this connection even when the peer
+            // keeps its chunked request open. Destroying the request here would lose the 413.
+            res.shouldKeepAlive = false;
+            res.setHeader('connection', 'close');
+          }
           json(res, err instanceof McpInputLimit ? err.status : 500, {
             jsonrpc: '2.0',
             error: { code: err instanceof McpInputLimit ? err.code : -32603, message: (err as Error).message },

@@ -194,13 +194,17 @@ export class FileOAuthProvider implements OAuthClientProvider {
   }
 
   clientInformation(): OAuthClientInformationMixed | undefined {
-    return this.boundCredential(readRecord(this.server).clientInformation);
+    const record = readRecord(this.server);
+    return this.boundCredential(record.clientInformation, record);
   }
 
-  private boundCredential<T extends { issuer?: string }>(value: T | undefined): T | undefined {
-    if (!value || issuerBound(value)) return value;
-    if (this.explicitReauthorization) return undefined;
-    throw new Error(`Authentication required: OAuth credentials for "${this.server}" have no trusted issuer binding. Run mcp-router auth ${this.server} to reauthorize. The saved record has not been deleted.`);
+  private boundCredential<T extends { issuer?: string }>(value: T | undefined, record: AuthRecord): T | undefined {
+    // A mixed record is not authorized either: transports ask for tokens before OAuth discovery can
+    // inspect client information, so returning the bound field would disagree with hasTokens().
+    if (!this.explicitReauthorization && needsReauthorization(record)) {
+      throw new Error(`Authentication required: OAuth credentials for "${this.server}" have no trusted issuer binding. Run mcp-router auth ${this.server} to reauthorize. The saved record has not been deleted.`);
+    }
+    return !value || issuerBound(value) ? value : undefined;
   }
 
   saveClientInformation(info: OAuthClientInformationMixed): void {
@@ -208,7 +212,8 @@ export class FileOAuthProvider implements OAuthClientProvider {
   }
 
   tokens(): OAuthTokens | undefined {
-    return this.boundCredential(readRecord(this.server).tokens);
+    const record = readRecord(this.server);
+    return this.boundCredential(record.tokens, record);
   }
 
   saveTokens(tokens: OAuthTokens): void {

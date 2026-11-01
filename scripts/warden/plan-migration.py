@@ -1,8 +1,8 @@
 """Plan the move of mcp-router's at-rest credentials behind Warden — W2.
 
 WHAT THIS DOES AND DOES NOT DO. It reads `~/.claude/mcp-router/servers.json`, decides which
-entries are credentials and which are ordinary configuration, and writes a REWRITTEN COPY in which
-every credential is replaced by a `warden://` or `op://` URI. It never writes the live file, never
+entries are credentials and which are ordinary configuration, and writes a plan containing key
+names and unfilled exact-name `warden://` references. It never writes the live file, never
 prints a secret value, and never contacts Warden or 1Password. Running it changes nothing an
 upstream reads.
 
@@ -10,12 +10,11 @@ WHY A COPY AND A PLAN RATHER THAN A MIGRATION. W1's own frontmatter records the 
 and any config change are the owner's, not this fleet's*. So the deliverable is the mechanism,
 tested, plus the one command that applies it — not the application.
 
-WHY THE ROUTER HALF IS ALREADY DONE, which is the thing that makes this a config rewrite rather
-than a feature. `app/Sources/RouterCore/Auth/SecretResolver.swift` resolves `warden://` and `op://`
-at upstream connection time, handles a `Bearer `-prefixed value, and is invoked by
-`StdioUpstreamTransport` per env pair at line 192 with `WardenSecretResolver()` as the default.
-Six tests cover it and pass. That was checked rather than assumed, because this repository spent
-tonight finding a merged, green, seventeen-arm gate that nothing invoked.
+RUNTIME SUPPORT IS A PREFLIGHT, NOT A SWIFT CLAIM. The retained TypeScript router must
+resolve exact-name warden:// references at connection time, and the installed Warden must
+pass Gatekeeper and its pinned Developer ID identity. apply-migration.py checks both before
+writing a copy or changing the live config. op:// references are not supported because a
+vault/item/field path must not silently fall back to an item title.
 
 WHY NAME-BASED CLASSIFICATION, AND WHY IT FAILS TOWARDS ASKING. An entry is treated as a credential
 unless it is on the NOT_A_SECRET list below. That direction is deliberate: mistaking a credential
@@ -89,9 +88,9 @@ def main() -> int:
     print(f'examined {len(rows)} entr(ies) across '
           f'{len({r["upstream"] for r in rows})} upstream(s) that hold one')
     print(f'  {len(secrets)} classified as credentials, {len(config_rows)} as configuration')
-    print('  no value was read, and none is printed below\n')
+    print('  values were read only inside this process; none is printed below\n')
 
-    print('CREDENTIALS — each needs a vault item chosen before this can be applied:')
+    print('CREDENTIALS — each needs a exact Warden key name chosen before this can be applied:')
     for r in secrets:
         print(f'  {r["upstream"]:<16} {r["block"]:<8} {r["key"]:<24} -> {r["uri"]}')
     print('\nCONFIGURATION — left exactly as it is:')

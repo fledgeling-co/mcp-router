@@ -430,6 +430,7 @@ for board in Inbox Settings; do
 done
 if [ "$PAIR_OPENED" = "1" ]; then
   sleep 0.6
+  "$AXKIT" title "$PID" > "$AX/SURF-010.title.txt"
   "$AXKIT" dump "$PID" window > "$AX/SURF-010.window.txt"
   capture SURF-010.build SURF-010 "pairing"
   "$AXKIT" key "$PID" 53 || true

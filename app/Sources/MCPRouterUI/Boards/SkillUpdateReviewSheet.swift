@@ -14,18 +14,22 @@
                     .foregroundStyle(ColorToken.t1.color)
                 Text(
                     """
-                    A plugin may contain several skills. Select each plugin you want to update \
-                    after reviewing its changes. Nothing is downloaded by this action.
+                    Review each plugin's changes. Copying from cache changes only the router's own \
+                    copy; it does not update Claude Code. Nothing is downloaded by this action.
                     """
                 )
                 .typeRole(.body)
                 .foregroundStyle(ColorToken.t2.color)
                 .fixedSize(horizontal: false, vertical: true)
+                Text(board.installedPluginUpdateReason)
+                    .typeRole(.caption)
+                    .foregroundStyle(ColorToken.t2.color)
+                    .fixedSize(horizontal: false, vertical: true)
                 ScrollView {
                     VStack(alignment: .leading, spacing: SkillsBoardMetrics.gap) {
                         ForEach(board.offers) { offer in
                             VStack(alignment: .leading, spacing: SkillsBoardMetrics.tightGap) {
-                                if offer.kind == .plugins {
+                                if offer.kind == .plugins, board.canCopyToRouter(named: offer.name) {
                                     Toggle(isOn: Binding(
                                         get: { selected.contains(offer.name) },
                                         set: { value in
@@ -42,7 +46,7 @@
                                 } else {
                                     Text(offer.name).typeRole(.body)
                                     Text(
-                                        "This entry has no cached plugin promotion. Update it at its source."
+                                        board.routerCopyUnavailableReason
                                     )
                                     .typeRole(.caption)
                                     .foregroundStyle(ColorToken.t2.color)
@@ -91,7 +95,7 @@
                 .frame(maxHeight: DocumentMetrics.bodyMaxHeight)
                 HStack {
                     if !board.batchPromotions.isEmpty {
-                        Button("Undo updates") { Task { await board.undoBatchPromotions() } }
+                        Button("Undo router copies") { Task { await board.undoBatchPromotions() } }
                             .buttonStyle(StandardButtonStyle())
                             .disabled(board.writing)
                     }
@@ -99,7 +103,7 @@
                     Button("Close") { board.sheet = nil }
                         .buttonStyle(StandardButtonStyle())
                         .keyboardShortcut(.cancelAction)
-                    Button(board.writing ? "Updating…" : "Update selected plugins") {
+                    Button(board.writing ? "Copying…" : "Copy selected to router") {
                         let approved = selected
                         selected = []
                         Task { await board.promoteSelectedOffers(approved) }

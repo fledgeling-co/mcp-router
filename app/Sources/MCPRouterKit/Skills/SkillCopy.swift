@@ -35,12 +35,19 @@ public extension SkillPresentation {
     /// claiming a
     /// fault.
     static let promoteUnavailable = """
-    Promoting reads the held version from Claude's plugin cache, and this router does not serve that yet.
+    This router cannot copy a cached plugin into its own store.
     """
+
+    static let installedPluginUpdateUnavailable = "Claude Code cannot bind an update to the reviewed version "
+        + "and capabilities. Update it in Claude Code; this router does not change that installation."
+
+    static let noRouterCopy = "This plugin has no router-owned copy. No installation was changed."
+    static let routerCopyNotRead = "The router's copy has not been read. Nothing was changed."
+    static let routerCopyUnreadable = "The router's copy could not be read. Nothing was changed."
 
     /// The board's offer to take a promotion back, read beside the promotion it reverses.
     static func promotionCanBeUndone(plugin: String) -> String {
-        "\(plugin) was promoted. Undo puts back the version it replaced."
+        "\(plugin) was copied into the router. Undo restores only the router's previous copy."
     }
 
     /// The heading over the update check's offers.
@@ -66,12 +73,12 @@ public extension SkillPresentation {
     }
 
     static func promoted(name: String, version: String) -> String {
-        "Promoted \(name) to \(version). The copy it replaced is kept, and Undo puts it back."
+        "Copied \(name) \(version) into the router. Claude Code's installation did not change."
     }
 
     static func undone(name: String, version: String?) -> String {
-        guard let version else { return "Put \(name) back. The promoted copy is kept aside." }
-        return "Put \(name) back at \(version). The promoted copy is kept aside."
+        guard let version else { return "Restored the router's copy of \(name)." }
+        return "Restored the router's copy of \(name) at \(version)."
     }
 
     /// Inspector item 7 has no marketplace record to read from.

@@ -164,12 +164,12 @@
 
         private var batchUndoBar: some View {
             HStack {
-                Text("\(board.batchPromotions.count) plugin updates can be undone")
+                Text("\(board.batchPromotions.count) router copies can be undone")
                     .typeRole(.callout)
                 Spacer()
                 Button("Review results…") { board.sheet = .updates }
                     .buttonStyle(StandardButtonStyle())
-                Button("Undo updates") { Task { await board.undoBatchPromotions() } }
+                Button("Undo router copies") { Task { await board.undoBatchPromotions() } }
                     .buttonStyle(StandardButtonStyle())
                     .disabled(board.writing)
             }

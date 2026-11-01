@@ -251,11 +251,19 @@ public struct SkillsResponse: Codable, Hashable, Sendable {
     /// route,
     /// where Promote has nothing to call and stays dimmed with its reason.
     public var promoteFromCache: Bool?
+    /// A router cache copy is distinct from changing an installation held by Claude Code.
+    public var installedPluginUpdates: InstalledPluginUpdateAvailability?
 
-    public init(skills: [Skill] = [], clients: [SkillClient] = [], promoteFromCache: Bool? = nil) {
+    public init(
+        skills: [Skill] = [],
+        clients: [SkillClient] = [],
+        promoteFromCache: Bool? = nil,
+        installedPluginUpdates: InstalledPluginUpdateAvailability? = nil
+    ) {
         self.skills = skills
         self.clients = clients
         self.promoteFromCache = promoteFromCache
+        self.installedPluginUpdates = installedPluginUpdates
     }
 
     /// The clients that have a skills mechanism, in the router's order — which is the slot order.
@@ -263,6 +271,16 @@ public struct SkillsResponse: Codable, Hashable, Sendable {
 
     /// The clients the router reports as having no skills mechanism at all.
     public var unsupportedClients: [SkillClient] { clients.filter { !$0.supportsSkills } }
+}
+
+public struct InstalledPluginUpdateAvailability: Codable, Hashable, Sendable {
+    public var available: Bool
+    public var reason: String
+
+    public init(available: Bool, reason: String) {
+        self.available = available
+        self.reason = reason
+    }
 }
 
 public enum MarketplaceSource: Hashable, Sendable {

@@ -30,7 +30,7 @@ struct MenuCommandRuleTests {
             // a promise of a view that does not exist and assigns the call to M1; the mock now
             // draws it with the ellipsis too, so M20 records the agreement rather than settling
             // somebody else's question in passing.
-            "Review Held Changes…", "Update All Skills…"
+            "Review Held Changes…", "Review Skill Updates…"
         ]
         for command in MenuCommand.allCases {
             #expect(

@@ -97,13 +97,16 @@
             #expect(board.notice == SkillPresentation.undone(name: "trawl", version: "2.2.0"))
         }
 
-        @Test("a refused promotion leaves nothing to undo and reports no success")
+        @Test("an unreadable store cannot authorize a router copy or report success")
         func promoteRefusalIsShown() async {
             let board = SkillsBoardModel(client: FixtureControlAPIClient(.error))
 
             await board.promoteHeldVersion(heldSkill())
 
-            #expect(board.writeFailure == refusal)
+            #expect(board.writeFailure == .server(
+                status: 409, message: SkillPresentation.routerCopyNotRead,
+                hint: SkillPresentation.installedPluginUpdateUnavailable
+            ))
             #expect(board.lastPromotion == nil)
             #expect(board.notice == nil)
         }

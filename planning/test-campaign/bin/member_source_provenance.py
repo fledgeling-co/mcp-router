@@ -310,6 +310,7 @@ def selftest() -> None:
             ('wrong platform', '#if os(iOS)\nstruct Demo: View { var body: some View { Button("Foo.Bar") {} } }\n#endif'),
             ('other nested declaration', 'struct Demo: View { struct Other { var body: some View { Button("Foo.Bar") {} } } }'),
             ('unknown conditional', '#if canImport(Unknown)\nstruct Demo: View { var body: some View { Button("Foo.Bar") {} } }\n#endif'),
+            ('shadowed UI type', 'func Button(_ name: String) {}\nstruct Demo: View { var body: some View { Button("Foo.Bar") {} } }'),
         ]:
             swift.write_text('import SwiftUI\n' + body)
             expect(bool(findings()), name + ' cannot establish a control')
@@ -323,6 +324,13 @@ def selftest() -> None:
         expect(bool(findings()), 'method cannot be laundered into controls')
         bindings[ck] = dict(saved, path='design/mocks/prototype.html')
         expect(bool(findings()), 'design mock is not production source')
+        hidden = root / 'private/Hidden.swift'
+        hidden.parent.mkdir()
+        hidden.write_text(original)
+        alias = root / 'app/Sources/alias'
+        alias.symlink_to(hidden.parent, target_is_directory=True)
+        bindings[ck] = dict(saved, path='app/Sources/alias/Hidden.swift')
+        expect(bool(findings()), 'directory symlink cannot redirect a source read into private files')
         bindings[ck] = saved
         for body in ['public class Worker { public class Other { public void Run() {} } }',
                      'public class Worker { /* public void Run() {} */ }',
@@ -334,6 +342,8 @@ def selftest() -> None:
         xaml.write_text('<Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Demo"><Button Content="Foo.Bar"/><!-- Button Content="Foo.Bar" --></Page>')
         bindings[ck] = {'adapter': 'xaml-control-label', 'path': 'app/Windows/Demo.xaml', 'declaration': 'Demo'}
         expect(not findings(), 'XAML typed label accepts punctuation and excludes comments')
+        xaml.write_text('<Page xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:other="urn:unrelated" x:Class="Demo"><other:Button Content="Foo.Bar"/></Page>')
+        expect(bool(findings()), 'unrelated XML namespace is not a platform control')
         xaml.write_text('<Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Demo"><TextBlock Content="Foo.Bar"/></Page>')
         expect(bool(findings()), 'unrelated XAML text is not a control')
         bindings[ck] = saved

@@ -6,7 +6,7 @@ found-by: P9's gap-fix, 2026-08-27; reproduced by the orchestrator the same day
 
 # A row count pinned by hand went stale when M30 added rows, and `make parity-selftest` has been red since
 
-`planning/parity/surface.tsv` carries `# rows: 95` on line 3. The file no longer holds 95 rows.
+`planning/parity/surface.tsv` at `d13af2062ee208be77ede66868405d47e05c01e8` (historical source) carries `# rows: 95` on line 3. The file no longer holds 95 rows.
 It was last changed by `b1160ef`, M30's document work, which merged during this session — so
 `make parity-selftest` has exited **2** on clean `main` from that merge onward, and the orchestrator
 that performed the merge did not notice because `parity-selftest` is not in the gate set it ran.

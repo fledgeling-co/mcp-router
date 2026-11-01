@@ -265,7 +265,7 @@ explicitly not fixed (spec §3.2). No requirement of the brief is left uncarried
 ## 8 · Gates
 
 `make lint`, `make test`, `make build-mac`, `npm run build`, `make parity`,
-`scripts/acceptance/parity-control.sh`, `make mock-fidelity SURFACE=servers`,
+`scripts/acceptance/parity-control.sh` at `9c48d2d94056ad397113bd85188249948197e8e2` (historical source), `make mock-fidelity SURFACE=servers`,
 `scripts/red-green.py` for the six arms. Each reported with its exit code, and a gate that could
 not run is reported as that rather than as a pass.
 

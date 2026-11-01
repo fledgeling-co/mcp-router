@@ -54,7 +54,7 @@ implementations:
 - `src/watch.ts`, in `cmdWatch`'s `for (const f of failed)` loop — `delete next.servers[name]`,
   under the comment "Drop the error record rather than caching it: retry policy lives in this
   watcher's own backoff, not in a manifest entry that would look indexed."
-- `app/Sources/RouterCore/Watch/WatchIndexing.swift`, in `WatchIndexer` — `if !step.failed.isEmpty
+- `app/Sources/RouterCore/Watch/WatchIndexing.swift` at `1004d10333f26006dd52a9d56303db48831fefb3` (historical source), in `WatchIndexer` — `if !step.failed.isEmpty
   { Self.removeEntry(named: upstream.name, from: &manifest) }`, immediately before
   `ManifestIO.save`, citing `watch.ts:244` at `1004d10` as its reason.
 

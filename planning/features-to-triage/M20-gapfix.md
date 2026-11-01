@@ -5,7 +5,7 @@ target-note: REQ-028 (`a command the shell cannot run right now dims in place an
 # M20 gap-fix 1 — it does not compile, and three of four slices are only in the plan
 
 Verified **Needs More Work** at `984f00a` in `.worktrees/M20V`. Read
-`planning/verification/M20-verdict.md` there first — it carries five findings with anchor, tree and
+`planning/verification/M20-verdict.md` at `984f00ab90542dd18079a6208346ad0803d7e53d` (historical source) there first — it carries five findings with anchor, tree and
 line, and the replacement arithmetic.
 
 ## Blocker 1 — the tree does not compile, and nothing has ever run against it

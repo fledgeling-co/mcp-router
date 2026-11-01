@@ -19,7 +19,7 @@ The brief reads *"R2-R shipped the Swift CLI and proved 8 of 10 verbs. `import` 
 
 **Half of that premise is wrong, and the wrong half changes the work.** Measured on `317d957`:
 
-- `import` **is** implemented (`app/Sources/MCPRouterCLI/ImportVerb.swift`, 154 lines) and its
+- `import` **is** implemented (`app/Sources/MCPRouterCLI/ImportVerb.swift` at `7babd977e2227a692b2017ce2a2786e90c2e6a07` (historical source), 154 lines) and its
   parity row `cli-import` reads **`proven`** (`mcp — the endpoint the brief's tool-list and call-result corpora travel over.`, `planning/parity/surface.tsv:97` at `7babd97`). Not a missing verb.
 - The reference's `import` (`src/index.ts:80` `cmdImport`) **does not touch `~/.claude.json`**. It
   reads it and writes only `servers.json`. The rewrite is a **separate installer step** —

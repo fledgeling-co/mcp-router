@@ -2996,7 +2996,7 @@ is that skill's "died before committing — clean re-run".
 
   The one that should worry a future reader most is **`D-n`**: a row missing from `surface.tsv`
   shrinks the denominator, so **deleting a row raises the coverage figure**. That hole is *partly*
-  guarded already and the ledger should not overstate it — `scripts/acceptance/parity-manifest-check.sh`
+  guarded already and the ledger should not overstate it — `scripts/acceptance/parity-manifest-check.sh` at `3da1e233cc084c170c5fe1bb07af44870fae6af5` (historical source)
   runs at `bash "$REPO_ROOT/scripts/acceptance/parity-manifest-check.sh"`, `parity-gate.sh:49` at `3da1e23` and derives the **control** and **fixture** rows from source, so a
   deletion there fails the gate. The **43 rows in `cli`, `mcp`, `install`, `divergence`, `pool`,
   `state` and `log` have no such derivation**, and `D-n` covers the two most mechanical of those

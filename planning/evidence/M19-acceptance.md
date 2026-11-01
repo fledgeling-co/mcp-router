@@ -5,7 +5,7 @@ three times during the gap-fix as it moved under the run — `9d4da76`, `fd4438e
 figure below was re-measured after a merge rather than carried across one.
 
 **This file covers two runs.** The first was verified **Needs More Work** at `54bb0aa` — the verdict
-is `planning/verification/M19-verdict.md` in `.worktrees/M19V`. Nothing it measured about the
+is `planning/verification/M19-verdict.md` at `54bb0aaceef42dd1451902b6e67ccdd142142d14` (historical source) in `.worktrees/M19V`. Nothing it measured about the
 product moved: the renderer, the parser, the shield handling and the untrusted-input boundary were
 all measured separately and hold. What it found was in the evidence.
 

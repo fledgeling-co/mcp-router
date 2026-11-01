@@ -11,6 +11,13 @@ public protocol PhoneKeyStore: Sendable {
     /// Created once rather than per pairing. A second pairing that minted a new key would leave the
     /// first Mac's record holding a public key whose private half no longer exists.
     func loadOrCreate() async throws -> P256.Signing.PrivateKey
+    func loadExisting() async throws -> P256.Signing.PrivateKey
+}
+
+public extension PhoneKeyStore {
+    func loadExisting() async throws -> P256.Signing.PrivateKey {
+        throw PhoneKeyError.unreadable
+    }
 }
 
 public enum PhoneKeyError: Error, Equatable, Sendable {
@@ -38,6 +45,11 @@ public struct KeychainPhoneKeyStore: PhoneKeyStore {
         if let existing = try read() { return existing }
         let key = P256.Signing.PrivateKey()
         try write(key)
+        return key
+    }
+
+    public func loadExisting() async throws -> P256.Signing.PrivateKey {
+        guard let key = try read() else { throw PhoneKeyError.unreadable }
         return key
     }
 
@@ -86,6 +98,11 @@ public actor InMemoryPhoneKeyStore: PhoneKeyStore {
     private var key: P256.Signing.PrivateKey?
 
     public init() {}
+
+    public func loadExisting() async throws -> P256.Signing.PrivateKey {
+        guard let key else { throw PhoneKeyError.unreadable }
+        return key
+    }
 
     public func loadOrCreate() async throws -> P256.Signing.PrivateKey {
         if let key { return key }

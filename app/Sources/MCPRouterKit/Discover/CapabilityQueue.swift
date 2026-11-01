@@ -19,19 +19,22 @@ public struct QueuedCapability: Codable, Sendable, Equatable, Identifiable {
     public let source: RegistryEntry.Source
     public let install: RegistryInstall?
     public let queuedAt: Date
+    public var receiptAt: Date?
 
     public init(
         id: String,
         displayName: String,
         source: RegistryEntry.Source,
         install: RegistryInstall?,
-        queuedAt: Date
+        queuedAt: Date,
+        receiptAt: Date? = nil
     ) {
         self.id = id
         self.displayName = displayName
         self.source = source
         self.install = install
         self.queuedAt = queuedAt
+        self.receiptAt = receiptAt
     }
 
     public init(entry: RegistryEntry, queuedAt: Date = Date()) {
@@ -94,7 +97,11 @@ public protocol CapabilityQueueReader: Sendable {
 /// An `actor` because the queue is genuinely mutable shared state reached from a `@MainActor`
 /// surface — the case `SWIFT_PRACTICES.md` §1 says to reach for an actor for, rather than as a way
 /// to silence a diagnostic.
-public actor FileCapabilityQueueWriter: CapabilityQueueWriter, CapabilityQueueReader {
+public protocol CapabilityReceiptStore: CapabilityQueueReader {
+    func recordReceipts(_ ids: Set<String>, at: Date) async throws
+}
+
+public actor FileCapabilityQueueWriter: CapabilityQueueWriter, CapabilityQueueReader, CapabilityReceiptStore {
     private let url: URL
     private let fileManager: FileManager
 
@@ -146,6 +153,14 @@ public actor FileCapabilityQueueWriter: CapabilityQueueWriter, CapabilityQueueRe
         // failing would surface a fault the user can do nothing about.
         guard remaining.count != items.count else { return }
         try write(remaining)
+    }
+
+    public func recordReceipts(_ ids: Set<String>, at date: Date) async throws {
+        var items = try read()
+        for i in items.indices where ids.contains(items[i].id) && items[i].receiptAt == nil {
+            items[i].receiptAt = date
+        }
+        try write(items)
     }
 
     // MARK: - Storage

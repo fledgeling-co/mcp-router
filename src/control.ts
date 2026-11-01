@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync } from 'node:fs';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { join } from 'node:path';
+import { isDeepStrictEqual } from 'node:util';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
@@ -51,10 +52,11 @@ import { analystEnvelope, ANALYST_UNAVAILABLE, type AnalystPort } from './analys
 import { AnalystSettingsRefusal } from './analyst-lanes.js';
 import { log } from './log.js';
 import { wireInstant, type IssuedCode, type Pairing } from './pairing.js';
-import { removePairedPhone } from './paired-phones.js';
+import { removePairedPhone, readPairedPhones } from './paired-phones.js';
+import type { PairingListenerStatus } from './pairing-listener.js';
 import { extensionRoute, isExtensionsPath } from './extension-routes.js';
 import type { ExtensionStore } from './extensions.js';
-import type { InboxStore } from './inbox.js';
+import { declarationFor, type InboxRow, type InboxStore } from './inbox.js';
 import { skillsValue } from './skills.js';
 
 export const TOKEN_PATH = join(ROUTER_HOME, 'control.token');
@@ -103,6 +105,8 @@ export interface ControlDeps {
   pairing: Pairing;
   /** The router home. Where `paired-phones.json` lives, which DELETE /pairing/phones/:phoneId edits. */
   routerHome: string;
+  /** What the phone listener has actually bound. Read per request, so a listener that comes or goes is reported as it is. */
+  pairingListener: () => PairingListenerStatus;
   /** R28. Absent answers 503 on every /extensions route, as the Swift router does. */
   extensions?: ExtensionStore;
   /** The picks a phone has sent, held for review. Absent answers 503 on every /inbox route. */
@@ -139,14 +143,16 @@ function json(res: ServerResponse, status: number, body: unknown): void {
 
 /** Read servers.json, apply a change, write it back atomically. */
 function editConfigFile(fn: (servers: Record<string, RawServer>) => void): void {
-  const raw = existsSync(DEFAULT_CONFIG_PATH)
-    ? (JSON.parse(readFileSync(DEFAULT_CONFIG_PATH, 'utf8')) as { mcpServers?: Record<string, RawServer> })
-    : {};
-  raw.mcpServers ??= {};
-  fn(raw.mcpServers);
-  const tmp = `${DEFAULT_CONFIG_PATH}.tmp-${process.pid}`;
-  writeFileSync(tmp, JSON.stringify(raw, null, 2), { mode: 0o600 });
-  renameSync(tmp, DEFAULT_CONFIG_PATH);
+  withExclusiveLock(DEFAULT_CONFIG_PATH, lockTimeoutMs(DAEMON_TIMEOUT_MS), () => {
+    const raw = existsSync(DEFAULT_CONFIG_PATH)
+      ? (JSON.parse(readFileSync(DEFAULT_CONFIG_PATH, 'utf8')) as { mcpServers?: Record<string, RawServer> })
+      : {};
+    raw.mcpServers ??= {};
+    fn(raw.mcpServers);
+    const tmp = `${DEFAULT_CONFIG_PATH}.tmp-${process.pid}`;
+    writeFileSync(tmp, JSON.stringify(raw, null, 2), { mode: 0o600 });
+    renameSync(tmp, DEFAULT_CONFIG_PATH);
+  });
 }
 
 /** Re-read servers.json into the live maps, in place, so the pool sees the change. */
@@ -393,6 +399,182 @@ async function indexOne(
   }
 }
 
+/** A declaration that did not land. Nothing was written when one is returned. */
+interface Refusal {
+  status: number;
+  reason: string;
+  error: string;
+}
+
+/** Durable evidence that this review row, rather than a pre-existing server, made the declaration. */
+interface InboxApproval { id: string; reviewDigest: string }
+type ApprovedServer = RawServer & { inboxApproval?: InboxApproval };
+class DeclarationRefused extends Error {
+  constructor(readonly refusal: Refusal) { super(refusal.error); }
+}
+
+/** A declaration that landed: the tools it indexed, and whether its server still needs the authorize button. */
+interface Declared {
+  tools: number;
+  error?: string;
+  needsAuth: boolean;
+}
+
+/*
+ * Declare one server: index it, then write it to servers.json and reload. POST /servers and an inbox accept both come
+ * through here (plan §2.4), so the declaration a reviewer accepts is the one a typed POST would make.
+ *
+ * Index before adopting, so a server that cannot start never lands in the config. The exception is an authorization
+ * failure: an OAuth server is *expected* to refuse a first connection, and rejecting it here would make it impossible
+ * to add one at all. That case is adopted with its error recorded, and the app's next move is the authorize button.
+ */
+async function declareServer(
+  deps: ControlDeps,
+  name: string,
+  raw: RawServer,
+  opts: { force: boolean; beforeWrite?: () => Refusal | undefined; inboxApproval?: InboxApproval }
+): Promise<Declared | Refusal> {
+  const taken = { status: 409, reason: 'alreadyDeclared', error: `a server named "${name}" already exists` };
+  if (deps.upstreams.has(name)) return taken;
+  const parsed = parseServer(name, raw);
+  if ('reason' in parsed) return { status: 400, reason: 'badRequest', error: parsed.reason };
+
+  const { tools, error } = await indexOne(parsed.upstream, deps.cfg, deps.pool);
+  const authPending = !!error && /not authorized|unauthorized|401/i.test(error);
+  if (error && !authPending && !opts.force) return { status: 422, reason: 'indexFailed', error };
+
+  /*
+   * The index awaited, so the name may have been declared meanwhile, and the caller's own condition may have changed.
+   * Both are checked here, with nothing awaited between the check and the write.
+   */
+  if (deps.upstreams.has(name)) return taken;
+  const refused = opts.beforeWrite?.();
+  if (refused) return refused;
+
+  const entry: ApprovedServer = { ...raw };
+  delete (entry as { name?: string }).name;
+  // Only this accept path writes provenance. A raw POST cannot claim another row's acceptance.
+  delete entry.inboxApproval;
+  if (opts.inboxApproval) entry.inboxApproval = opts.inboxApproval;
+  try {
+    editConfigFile((servers) => {
+      if (servers[name] !== undefined) throw new DeclarationRefused(taken);
+      const refused = opts.beforeWrite?.();
+      if (refused) throw new DeclarationRefused(refused);
+      servers[name] = entry;
+    });
+  } catch (err) {
+    if (err instanceof DeclarationRefused) return err.refusal;
+    throw err;
+  }
+  reload(deps);
+  announceTools(deps, `added the server "${name}"`);
+  log.info(`added upstream "${name}" (${tools} tools${error ? `, ${error}` : ''})`);
+  return { tools, error, needsAuth: authPending };
+}
+
+type InboxVerb = 'accept' | 'decline' | 'restore';
+
+/** What an inbox route answers: the status and the body it writes. */
+interface Answered {
+  status: number;
+  body: unknown;
+}
+
+const reply = (status: number, reason: string, error: string): Answered => ({ status, body: { error, reason } });
+
+/*
+ * The three decisions on a held row (plan §2.3, §2.4). Only accept declares anything, and it declares through
+ * declareServer. Every refusal is answered before anything is written, so neither inbox.json nor servers.json changes.
+ */
+async function inboxAction(
+  deps: ControlDeps,
+  inbox: InboxStore,
+  id: string,
+  verb: InboxVerb,
+  body: unknown
+): Promise<Answered> {
+  const row = inbox.find(id);
+  if (!row) return reply(404, 'notFound', `no inbox row "${id}"`);
+
+  if (verb === 'decline') {
+    if (row.state !== 'waiting') return reply(409, 'notWaiting', `the row is ${row.state}, not waiting`);
+    inbox.setState(id, 'declined');
+    return { status: 200, body: { id, state: 'declined' } };
+  }
+  if (verb === 'restore') {
+    if (row.state !== 'declined') {
+      return reply(409, 'notDeclined', `the row is ${row.state}; only a declined row can be restored`);
+    }
+    inbox.setState(id, 'waiting');
+    return { status: 200, body: { id, state: 'waiting' } };
+  }
+  return acceptRow(deps, inbox, row, body);
+}
+
+async function acceptRow(deps: ControlDeps, inbox: InboxStore, row: InboxRow, body: unknown): Promise<Answered> {
+  if (row.state !== 'waiting') return reply(409, 'notWaiting', `the row is ${row.state}, not waiting`);
+  if (row.resolved === null) {
+    return reply(422, 'unresolved', `${row.id} did not resolve in the registry, so there is nothing to declare`);
+  }
+  // The reviewer accepts what they were shown. A row replaced between view and accept has another digest (D11).
+  if ((body as { reviewDigest?: unknown } | undefined)?.reviewDigest !== row.reviewDigest) {
+    return reply(409, 'reviewChanged', `${row.id} changed after it was shown; review it again`);
+  }
+  const built = declarationFor(row.resolved);
+  if ('reason' in built) return reply(422, built.reason, built.error);
+  const wanted = parseServer(built.name, built.server);
+  if (!('upstream' in wanted)) return reply(422, 'notInstallable', wanted.reason);
+
+  // A retry can reconcile only a declaration this row itself wrote. The provenance and the whole
+  // normalized configuration are checked under the same cross-process lock used by declarations.
+  const reconciled = withExclusiveLock(DEFAULT_CONFIG_PATH, lockTimeoutMs(DAEMON_TIMEOUT_MS), () => {
+    const held = existsSync(DEFAULT_CONFIG_PATH) ? readServers()[built.name] as ApprovedServer | undefined : undefined;
+    if (!held) return undefined;
+    const normalized = parseServer(built.name, held);
+    if (held.inboxApproval?.id === row.id && held.inboxApproval.reviewDigest === row.reviewDigest &&
+        'upstream' in normalized && isDeepStrictEqual(normalized.upstream, wanted.upstream)) {
+      return markAccepted(inbox, row.id, built.name, { reconciled: true });
+    }
+    return reply(409, 'alreadyDeclared', `a server named "${built.name}" already exists; this row did not declare its current configuration`);
+  });
+  if (reconciled) return reconciled;
+
+  const declared = await declareServer(deps, built.name, built.server, {
+    force: false,
+    inboxApproval: { id: row.id, reviewDigest: row.reviewDigest },
+    // A decline can land while the server indexes. The row must still be waiting when the server is written.
+    beforeWrite: () =>
+      inbox.find(row.id)?.state !== 'waiting'
+        ? { status: 409, reason: 'notWaiting', error: `${row.id} is no longer waiting` }
+        : inbox.find(row.id)?.reviewDigest !== row.reviewDigest
+          ? { status: 409, reason: 'reviewChanged', error: `${row.id} changed while the server was indexing` }
+          : undefined,
+  });
+  if ('reason' in declared) return reply(declared.status, declared.reason, declared.error);
+  return markAccepted(inbox, row.id, built.name, {
+    reconciled: false,
+    tools: declared.tools,
+    needsAuth: declared.needsAuth,
+  });
+}
+
+/** Mark a row accepted once its server is declared. A failed write here is reported, since the declaration stands. */
+function markAccepted(inbox: InboxStore, id: string, server: string, extra: Record<string, unknown>): Answered {
+  try {
+    inbox.setState(id, 'accepted');
+  } catch (err) {
+    log.error(`inbox: "${server}" is declared, but ${id} could not be marked accepted: ${(err as Error).message}`);
+    return reply(
+      500,
+      'rowNotMarked',
+      `"${server}" is declared, but the row could not be marked accepted. ` +
+        'It still reads waiting, and the next accept reconciles it'
+    );
+  }
+  return { status: 200, body: { id, state: 'accepted', server, ...extra } };
+}
+
 const REGISTRY_BASE = process.env.MCP_ROUTER_REGISTRY ?? 'https://registry.modelcontextprotocol.io';
 
 /**
@@ -537,7 +719,8 @@ export async function handleControl(
   }
 
   // The inbox is gated on every method, GET included: what it names is the list a reviewer decides from, and a
-  // page on this machine must not read it. IB1 serves the read only, so every other method answers 405.
+  // page on this machine must not read it. The writes are JSON, as the other mutating routes are, so a cross-origin
+  // page cannot send one without a preflight. Only the three decisions are served here; a phone's submit is IB4.
   if (p === '/inbox' || p.startsWith('/inbox/')) {
     if (!tokenOk(req, token)) {
       json(res, 401, { error: `unauthorized; the token is in ${TOKEN_PATH}` });
@@ -549,11 +732,37 @@ export async function handleControl(
     }
     if (p === '/inbox' && req.method === 'GET') {
       try {
-        json(res, 200, { items: deps.inbox.view() });
+        json(res, 200, {
+          items: deps.inbox.view(),
+          pairedDeviceNames: deps.routerHome ? readPairedPhones(deps.routerHome).map((phone) => phone.phoneName) : [],
+        });
       } catch (err) {
         // An unreadable store is not an empty inbox: an empty answer would read as "nothing waiting".
         log.error(`inbox: could not read ${deps.inbox.path}: ${(err as Error).message}`);
         json(res, 500, { error: 'the inbox could not be read; see the router log' });
+      }
+      return true;
+    }
+    const action = /^\/inbox\/([^/]+)\/(accept|decline|restore)$/.exec(p);
+    if (action && req.method === 'POST') {
+      const ct = String(req.headers['content-type'] ?? '');
+      if (!ct.startsWith('application/json')) {
+        json(res, 415, { error: 'expected content-type: application/json' });
+        return true;
+      }
+      let id: string;
+      try {
+        id = decodeURIComponent(action[1]);
+      } catch {
+        json(res, 400, { error: 'the row id is not valid percent-encoding', reason: 'badRequest' });
+        return true;
+      }
+      try {
+        const answered = await inboxAction(deps, deps.inbox, id, action[2] as InboxVerb, body);
+        json(res, answered.status, answered.body);
+      } catch (err) {
+        log.error(`inbox: ${action[2]} of "${id}" failed: ${(err as Error).message}`);
+        json(res, 500, { error: 'the inbox could not be read or written; see the router log', reason: 'storeIo' });
       }
       return true;
     }
@@ -616,38 +825,14 @@ export async function handleControl(
       json(res, 400, { error: 'name is required' });
       return true;
     }
-    if (deps.upstreams.has(b.name)) {
-      json(res, 409, { error: `a server named "${b.name}" already exists` });
+    const declared = await declareServer(deps, b.name, b, { force: url.searchParams.get('force') === '1' });
+    if ('reason' in declared) {
+      // The retry hint is for this route only: an inbox accept has no force to offer.
+      const hint = declared.reason === 'indexFailed' ? { hint: 'retry with ?force=1 to add it anyway' } : {};
+      json(res, declared.status, { error: declared.error, ...hint });
       return true;
     }
-    const parsed = parseServer(b.name, b);
-    if ('reason' in parsed) {
-      json(res, 400, { error: parsed.reason });
-      return true;
-    }
-
-    /*
-     * Index before adopting, so a server that cannot start never lands in the
-     * config. The exception is an authorization failure: an OAuth server is
-     * *expected* to refuse a first connection, and rejecting it here would make it
-     * impossible to add one at all. That case is adopted with its error recorded,
-     * and the app's next move is the authorize button.
-     */
-    const { tools, error } = await indexOne(parsed.upstream, deps.cfg, deps.pool);
-    const authPending = !!error && /not authorized|unauthorized|401/i.test(error);
-    if (error && !authPending && url.searchParams.get('force') !== '1') {
-      json(res, 422, { error, hint: 'retry with ?force=1 to add it anyway' });
-      return true;
-    }
-
-    editConfigFile((servers) => {
-      servers[b.name!] = { ...b, name: undefined } as RawServer;
-      delete (servers[b.name!] as Record<string, unknown>).name;
-    });
-    reload(deps);
-    announceTools(deps, `added the server "${b.name}"`);
-    log.info(`added upstream "${b.name}" (${tools} tools${error ? `, ${error}` : ''})`);
-    json(res, 201, { added: b.name, tools, error, needsAuth: authPending });
+    json(res, 201, { added: b.name, tools: declared.tools, error: declared.error, needsAuth: declared.needsAuth });
     return true;
   }
 
@@ -1112,7 +1297,16 @@ export async function handleControl(
    * a code is spent when the listener decides a phone's request (`pairing.submit`), which the
    * listener owns. Revoking never forgets a code that was already paired.
    */
+  // Refused while no listener is bound. A code minted then would name a port nothing answers on, and a
+  // phone handed it would fail with no clue why. The refusal mints nothing, so nothing is left to revoke.
   if (p === '/pairing/codes' && req.method === 'POST') {
+    if (!deps.pairingListener().enabled) {
+      json(res, 503, {
+        error: 'pairing is turned off on this router: set pairing.enabled in the server list and restart the router',
+        reason: 'pairingDisabled',
+      });
+      return true;
+    }
     json(res, 201, codeBody(deps.pairing.issue()));
     return true;
   }
@@ -1138,14 +1332,23 @@ export async function handleControl(
   //
   // `awaitingAck` lists the phones whose request was accepted and whose `pair.ack` has not come yet. It
   // names the phone and the time, never a key or an id, and it empties the moment the phone acks or drops.
+  //
+  // `listener` says whether the phone listener is bound, so a sheet can say pairing is off instead of
+  // offering a code. The endpoint and certificate fingerprint let the Mac build the QR from observed identity.
   if (p === '/pairing/state' && req.method === 'GET') {
     const live = deps.pairing.current();
+    const listener = deps.pairingListener();
     json(res, 200, {
       code: live ? codeBody(live) : null,
       awaitingAck: deps.pairing.awaitingAck().map((a) => ({
         phoneName: a.phoneName,
         requestedAt: wireInstant(a.requestedAt),
       })),
+      listener: {
+        enabled: listener.enabled, port: listener.port, advertising: listener.advertising,
+        host: listener.enabled ? listener.host ?? null : null,
+        fingerprint: listener.enabled ? listener.fingerprint ?? null : null,
+      },
     });
     return true;
   }

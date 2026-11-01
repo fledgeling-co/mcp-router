@@ -30,7 +30,7 @@ public sealed class ServersWireDecodeTests
 
         Assert.Equal(8971, envelope.Port);
         Assert.Equal(300000, envelope.IdleMs);
-        Assert.Equal("2026-08-25T11:45:27.733Z", envelope.Since);
+        Assert.Equal(JsonDocument.Parse(Fixture("servers.json")).RootElement.GetProperty("since").GetString(), envelope.Since);
         Assert.Null(envelope.PendingAuth);
         Assert.Equal(4, envelope.Servers.Count);
         Assert.Equal("stdio", envelope.Servers[0].Transport);
@@ -73,7 +73,9 @@ public sealed class ServersWireDecodeTests
         Assert.Equal("running", row.State);
         Assert.NotNull(row.PendingChange);
         Assert.Equal(3, row.PendingChange!.Count);
-        Assert.Equal("2026-08-25T11:45:33.372Z", row.PendingChange.SeenAt);
+        var seenAt = JsonDocument.Parse(Fixture("server-pending-change.json")).RootElement
+            .GetProperty("pendingChange").GetProperty("seenAt").GetString();
+        Assert.Equal(seenAt, row.PendingChange.SeenAt);
     }
 
     [Fact]

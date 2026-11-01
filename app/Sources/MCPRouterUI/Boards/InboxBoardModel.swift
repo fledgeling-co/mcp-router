@@ -210,16 +210,20 @@
             return rows.first { $0.id == selection }
         }
 
-        // MARK: - Acting
-
-        /// Accept an item: declare it as a server.
-        ///
-        /// Takes an `AcceptableInboxItem`, so there is no call site at which an unresolved item can
-        /// be installed — the Partial state is enforced by the type rather than by a check the view
-        /// has to remember. `force` is never passed and takes its `false` default, for M5's reason:
-        /// `force: true` adopts an existing declaration, which would let something that arrived from
-        /// a phone replace the command line of a server the user already trusts.
+        /// Accept the resolved review through the router; authored fixtures retain their local seam.
         public func accept(_ acceptable: AcceptableInboxItem) async {
+            if let remote = service as? any InboxDeciding {
+                guard acceptState != .accepting else { return }
+                acceptState = .accepting
+                do {
+                    try await remote.accept(acceptable.item)
+                    acceptState = .idle
+                    record(.accepted(acceptable.item))
+                    sheetItemID = nil
+                    await load()
+                } catch { acceptState = .failed(error) }
+                return
+            }
             guard let declaration = RegistryCapability.declaration(
                 for: acceptable.entry,
                 values: requirementValues
@@ -241,9 +245,22 @@
             }
         }
 
-        /// Decline an item. Nothing is called on the router: declining is a local decision about
-        /// something that never ran.
+        /// A live decline is recorded only after its router write succeeds.
         public func decline(_ item: InboxItem) {
+            if let remote = service as? any InboxDeciding {
+                guard acceptState != .accepting else { return }
+                acceptState = .accepting
+                Task {
+                    do throws(ControlAPIError) {
+                        try await remote.decline(item)
+                        acceptState = .idle
+                        record(.declined(item))
+                        if sheetItemID == item.id { sheetItemID = nil }
+                        await load()
+                    } catch { acceptState = .failed(error) }
+                }
+                return
+            }
             record(.declined(item))
             if sheetItemID == item.id { sheetItemID = nil }
         }
@@ -258,21 +275,23 @@
             withdrawBanner(for: disposition.item.id)
         }
 
-        /// Put the last **decline** back.
-        ///
-        /// **Declining is reversible; accepting is not, and the affordance now says so.** The Phase
-        /// D critic found the earlier version restoring an accepted item to the queue while the
-        /// server it declared stayed installed — a control labelled "Undo" that undid neither half
-        /// of what happened, and left the row acceptable a second time. Removing a server is
-        /// `DESIGN.md` §8's own undoable operation on the Servers board, with its own confirmation
-        /// and its own consequences for stored secrets, so performing it from here would be a
-        /// second implementation of a destructive action.
-        ///
-        /// So an accept is recorded and reported (`InboxCopy.accepted` names where to remove it)
-        /// and `isUndoable` is false for it, which is what removes the button rather than leaving
-        /// one that silently does the wrong thing.
+        /// Restore the last decline on the router before returning its row to waiting.
         public func undoLastDisposition() {
             guard let last = lastDisposition, case let .declined(item) = last else { return }
+            if let remote = service as? any InboxDeciding {
+                guard acceptState != .accepting else { return }
+                acceptState = .accepting
+                Task {
+                    do throws(ControlAPIError) {
+                        try await remote.restore(item)
+                        acceptState = .idle
+                        dispositioned[item.id] = nil
+                        lastDisposition = nil
+                        await load()
+                    } catch { acceptState = .failed(error) }
+                }
+                return
+            }
             dispositioned[item.id] = nil
             lastDisposition = nil
         }
@@ -337,8 +356,6 @@
         public func clearRouteReport() {
             routeReport = nil
         }
-
-        // MARK: - Keyboard
 
         /// `Return` commits the view's one default action: opening the **review sheet**.
         ///

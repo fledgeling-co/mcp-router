@@ -221,7 +221,7 @@ public enum MenuCommand: Hashable, Sendable {
         case .reviewHeldChanges: "Review Held Changes…"
         case .revealRouterLog: "Reveal Router Log in Finder"
         case .stopRouter: "Stop Router"
-        case .updateAllSkills: "Update All Skills"
+        case .updateAllSkills: "Update All Skills…"
         case .runDoctor: "Run Doctor"
         case .runAllChecks: "Run All Checks"
         case .minimise: "Minimize"

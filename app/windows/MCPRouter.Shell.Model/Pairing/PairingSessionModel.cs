@@ -108,6 +108,26 @@ public sealed class PairingSessionModel
         var generation = ++_generation;
         SetState(new PairingSessionState(PairingPhase.Preparing, null, TimeSpan.Zero));
 
+        // The router says whether its phone listener is bound before anything is minted. A code minted while
+        // none is names a port nothing answers on, so the sheet asks first and shows pairing as off when it is.
+        PairingState state;
+        try
+        {
+            state = await _client.GetPairingStateAsync(cancellation);
+        }
+        catch (ControlApiException failure)
+        {
+            if (generation == _generation) SetState(Unavailable(failure));
+            return;
+        }
+
+        if (generation != _generation) return;
+        if (!state.Listener.Enabled)
+        {
+            SetState(Unavailable(failure: null));
+            return;
+        }
+
         IssuedPairingCode issued;
         try
         {

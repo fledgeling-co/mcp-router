@@ -21,7 +21,7 @@
     @Suite("M39 — the expiry ring, and a fallback stated rather than offered")
     @MainActor
     struct PairingExpiryTests {
-        static let now = Date(timeIntervalSince1970: 1_792_375_158)
+        static let now = RecordedPairingClock.issuedAt
 
         static func session(
             _ scenario: FixtureInboxService.Scenario,

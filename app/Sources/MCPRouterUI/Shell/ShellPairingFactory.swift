@@ -2,25 +2,8 @@
     import Foundation
     import MCPRouterKit
 
-    /// Which inbox the shell talks to, and the one rule that must never bend.
-    ///
-    /// This is `ShellClientFactory`'s rule applied to the second seam that can fabricate: **a Release
-    /// build may never render a fixture.** There it was invented server counts; here it is worse.
-    /// `PairingPayload` carries a host, a port and a certificate fingerprint, and no listener is
-    /// bound anywhere in either app target — so a Release build that could be talked into the
-    /// "paired" scenario would draw a **QR code encoding an endpoint that does not exist**. A phone
-    /// scans it, stores it, and reports "Paired." for a Mac it can never reach. That is not merely an
-    /// unobserved number (`DESIGN.md` §6); it is an unobserved number made actionable and handed to
-    /// another device.
-    ///
-    /// So the Release branch takes no input — the environment cannot talk a shipped build into a
-    /// fixture — and it does not name the fixture type at all: it returns `NoTransportInboxService`,
-    /// which is the *truthful* implementation for a build in which nothing can arrive, rather than a
-    /// fixture happening to be configured empty.
-    ///
-    /// **The Debug branch takes a scenario from the environment**, which is what makes every cell of
-    /// `spec-M6.md`'s state matrix reachable in the running app. Without it, eleven of eighteen cells
-    /// would have no lane, and the acceptance gate could not have proven them however long it ran.
+    /// Ordinary builds read the token-gated router inbox and observed pairing endpoint.
+    /// Explicit Debug scenarios retain the authored fixtures used by the surface state matrix.
     public enum ShellPairingFactory {
         /// The variable the acceptance gate sets to choose a state. Debug builds only.
         public static let scenarioVariable = "MCPROUTER_PAIRING"
@@ -64,14 +47,18 @@
         }
 
         public static func makeService(
-            environment: [String: String] = ProcessInfo.processInfo.environment
+            environment: [String: String] = ProcessInfo.processInfo.environment,
+            client: any ControlAPIClient = LiveControlAPIClient()
         ) -> any InboxService {
-            service(for: currentChoice(environment: environment))
+            #if DEBUG
+                if environment[scenarioVariable] != nil {
+                    return service(for: currentChoice(environment: environment))
+                }
+            #endif
+            return RouterInboxService(client: client)
         }
 
-        /// Whether the sheet can offer a code in the build and environment given. A Release build
-        /// reports `.noEndpoint` whatever the environment names, so the sheet issues nothing and
-        /// revokes nothing: pairing is disabled until a listener ships.
+        /// The fixture matrix's availability. The live service instead reads the router listener.
         ///
         /// Takes the build configuration as a parameter for the same reason `choice` does, so a Debug
         /// test run can assert the Release answer.

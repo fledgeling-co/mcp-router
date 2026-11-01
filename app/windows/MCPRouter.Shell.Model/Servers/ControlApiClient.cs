@@ -190,6 +190,26 @@ public sealed class ControlApiClient : IDisposable
         return await DecodeAsync<HeldChanges>(response, cancellation);
     }
 
+    public async Task<MCPRouter.Shell.Model.Inbox.RouterInboxResponse> GetInboxAsync(CancellationToken cancellation = default)
+    {
+        using var response = await SendAsync(HttpMethod.Get, "inbox", write: false, cancellation, gated: true);
+        var inbox = await DecodeAsync<MCPRouter.Shell.Model.Inbox.RouterInboxResponse>(response, cancellation);
+        if (inbox.Items is null) throw new ControlApiException(ControlApiFailure.MalformedResponse, "inbox items are missing");
+        return inbox;
+    }
+
+    public async Task DecideInboxAsync(string id, string action, string? reviewDigest, CancellationToken cancellation = default)
+    {
+        if (action is not ("accept" or "decline" or "restore")) throw new ArgumentException("unknown inbox decision", nameof(action));
+        using var response = await SendAsync(HttpMethod.Post, $"inbox/{Uri.EscapeDataString(id)}/{action}",
+            write: true, cancellation, content: JsonContent.Create(reviewDigest is null
+                ? new Dictionary<string, string>() : new Dictionary<string, string> { ["reviewDigest"] = reviewDigest }));
+        var result = await DecodeAsync<MCPRouter.Shell.Model.Inbox.InboxDecisionResponse>(response, cancellation);
+        var expected = action == "accept" ? "accepted" : action == "decline" ? "declined" : "waiting";
+        if (result.Id != id || result.State != expected)
+            throw new ControlApiException(ControlApiFailure.MalformedResponse, "the inbox decision acknowledgement did not match the request");
+    }
+
     // ------------------------------------------------------------------ writes
 
     public async Task<AddedServer> AddServerAsync(NewServerBody body, bool force = false, CancellationToken cancellation = default)
@@ -241,11 +261,11 @@ public sealed class ControlApiClient : IDisposable
         return (await DecodeAsync<PairingCodeBody>(response, cancellation)).ToIssued();
     }
 
-    /// <summary>The code a phone could still pair with, or null once there is none.</summary>
-    public async Task<IssuedPairingCode?> GetPairingStateAsync(CancellationToken cancellation = default)
+    /// <summary>The code a phone could still pair with, or null once there is none, and whether the router's phone listener is bound.</summary>
+    public async Task<PairingState> GetPairingStateAsync(CancellationToken cancellation = default)
     {
         using var response = await SendAsync(HttpMethod.Get, "pairing/state", write: true, cancellation);
-        return (await DecodeAsync<PairingStateBody>(response, cancellation)).Code?.ToIssued();
+        return (await DecodeAsync<PairingStateBody>(response, cancellation)).ToState();
     }
 
     /// <summary>Takes the live code back. True when there was one to take. A revoke never forgets a code already paired.</summary>

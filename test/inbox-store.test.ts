@@ -5,7 +5,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync }
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { RegistryEntry } from '../src/registry.js';
-import { INBOX_RETAIN_DECIDED, InboxStore, reviewDigestOf, type NewInboxRow } from '../src/inbox.js';
+import { INBOX_RETAIN_DECIDED, InboxStore, reviewDigestOf, declarationFor, type NewInboxRow } from '../src/inbox.js';
 
 /*
  * The router's inbox store (planning/plans/plan-phone-inbox.md §2.1, §5, D10, D11). The store is a
@@ -121,6 +121,45 @@ test('a new row keeps every waiting row, and drops the oldest decided row once m
   assert.equal(rows.at(-1)?.id, 'waiting-one');
 });
 
+test('setState moves one row, keeps the file 0600, and reports a row it does not hold as not moved', () => {
+  const store = new InboxStore(scratchPath());
+  store.add(row('alpha'));
+  store.add(row('beta'));
+
+  assert.equal(store.setState('alpha', 'declined'), true);
+  assert.equal(store.setState('gamma', 'declined'), false);
+  assert.deepEqual(
+    store.rows().map((r) => [r.id, r.state]),
+    [
+      ['alpha', 'declined'],
+      ['beta', 'waiting'],
+    ]
+  );
+  assert.equal(store.find('beta')?.state, 'waiting');
+  assert.equal(store.find('gamma'), undefined);
+  assert.equal(statSync(store.path).mode & 0o777, 0o600);
+});
+
+test('a decision keeps the row it just decided, even when that row is the oldest decided one', () => {
+  const path = scratchPath();
+  mkdirSync(join(path, '..'), { recursive: true });
+  const held = (id: string, state: string) => ({ ...row(id), state, reviewDigest: reviewDigestOf(entry(id)) });
+  writeFileSync(
+    path,
+    JSON.stringify({
+      rows: [held('oldest', 'waiting'), ...Array.from({ length: INBOX_RETAIN_DECIDED }, (_, i) => held(`decided-${i}`, 'accepted'))],
+    })
+  );
+
+  const store = new InboxStore(path);
+  assert.equal(store.setState('oldest', 'declined'), true);
+
+  const rows = store.rows();
+  assert.equal(rows.find((r) => r.id === 'oldest')?.state, 'declined');
+  assert.equal(rows.filter((r) => r.state !== 'waiting').length, INBOX_RETAIN_DECIDED);
+  assert.equal(rows.some((r) => r.id === 'decided-0'), false, 'the oldest decided row other than the one just decided is dropped');
+});
+
 test('the view names a row without its phone id or receive time', () => {
   const store = new InboxStore(scratchPath());
   store.add(row('alpha'));
@@ -136,4 +175,19 @@ test('a store with no file yet reads as empty, and reading creates nothing', () 
   const store = new InboxStore(path);
   assert.deepEqual(store.view(), []);
   assert.throws(() => statSync(path), /ENOENT/);
+});
+
+
+test('namespaced registry entries produce deterministic valid local tool namespaces', () => {
+  const built = declarationFor({ ...entry('echo'), name: 'io.fixture/inbox__echo', install: { type: 'http', url: 'https://example.test/mcp' } });
+  assert.deepEqual(built, { name: 'io-fixture-inbox_echo', server: { type: 'http', url: 'https://example.test/mcp' } });
+});
+
+
+test('an install with invisible controls is refused rather than running bytes absent from review', () => {
+  for (const hidden of ['\n', '\u2028', '\u200b', '\u202e']) {
+    const built = declarationFor({ ...entry('echo'), install: { type: 'stdio', command: 'node', args: [`--allow${hidden}-write`] } });
+    assert.ok('reason' in built);
+    assert.equal(built.reason, 'notInstallable');
+  }
 });

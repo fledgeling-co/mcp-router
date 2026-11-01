@@ -44,6 +44,36 @@ public enum PairingAvailability: Sendable, Equatable {
     }
 }
 
+/// Whether the router's phone listener is bound, as `GET /pairing/state` reports it.
+///
+/// `enabled` is the router's answer about what is bound, not what its config asked for: a listener that
+/// failed to bind reports false, so a sheet that reads it never offers a code nothing answers on. `port`
+/// is nil whenever `enabled` is false. `advertising` says whether the listener is announced on the local
+/// network; it does not gate pairing, because the QR carries the endpoint.
+public struct PairingListener: Sendable, Equatable {
+    public let enabled: Bool
+    public let port: Int?
+    public let advertising: Bool
+
+    public init(enabled: Bool, port: Int?, advertising: Bool) {
+        self.enabled = enabled
+        self.port = port
+        self.advertising = advertising
+    }
+}
+
+/// What `GET /pairing/state` answers: the code a phone could still pair with, if there is one, and whether
+/// the router is listening for a phone at all.
+public struct PairingState: Sendable, Equatable {
+    public let code: IssuedPairingCode?
+    public let listener: PairingListener
+
+    public init(code: IssuedPairingCode?, listener: PairingListener) {
+        self.code = code
+        self.listener = listener
+    }
+}
+
 /// A code this Mac has issued, with the window it is alive for.
 ///
 /// The expiry is **observed** — this Mac chose it — which is what makes a countdown on the Mac

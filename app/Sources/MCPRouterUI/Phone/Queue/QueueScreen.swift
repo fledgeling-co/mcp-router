@@ -93,12 +93,15 @@ public final class QueueModel {
 /// removed rather than reworded.
 public struct QueueScreen: View {
     @State private var model: QueueModel
+    private let delivery: InboxDeliveryModel?
 
     public init(
         queue: any CapabilityQueueWriter & CapabilityQueueReader,
         connection: ConnectionState = .reachable,
-        macName: String? = nil
+        macName: String? = nil,
+        delivery: InboxDeliveryModel? = nil
     ) {
+        self.delivery = delivery
         _model = State(wrappedValue: QueueModel(
             queue: queue,
             connection: connection,
@@ -112,7 +115,12 @@ public struct QueueScreen: View {
                 .navigationTitle(PhoneShell<EmptyView>.Tab.queue.title)
                 .background(ColorToken.ground.color)
         }
-        .task { await model.load() }
+        .task {
+            repeat {
+                await model.load()
+                do { try await Task.sleep(for: .seconds(2)) } catch { return }
+            } while !Task.isCancelled
+        }
     }
 
     @ViewBuilder
@@ -139,6 +147,12 @@ public struct QueueScreen: View {
 
     private func list(_ items: [QueuedCapability], banner: QueueCopy.Key? = nil) -> some View {
         List {
+            if let error = delivery?.error {
+                Text(error)
+                    .typeRole(.callout)
+                    .foregroundStyle(ColorToken.fail.color)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             if !model.connection.canQueue {
                 pairingBanner
             } else {
@@ -267,6 +281,9 @@ struct QueueRow: View {
                     .truncationMode(.tail)
 
                 CapabilityLine(summary: summary)
+                Text(item.receiptAt == nil ? "Queued" : "Sent, waiting on your Mac")
+                    .typeRole(.caption)
+                    .foregroundStyle(ColorToken.t2.color)
 
                 Text(
                     QueueCopy.entry(.chrome(.stamp))

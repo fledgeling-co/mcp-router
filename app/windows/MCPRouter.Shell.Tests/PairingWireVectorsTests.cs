@@ -25,7 +25,7 @@ public sealed class PairingWireVectorsTests
     public static TheoryData<string> PhoneEncodeVectors() => Cases(PhoneEncodeNames());
 
     [Fact]
-    public void TheVectorFileHasEveryFrameAndTheSideEachNames()
+    public void TheVectorFileHasEveryPairingFrameAndTheSideEachNames()
     {
         var frames = Frames().ToList();
         Assert.Equal(27, frames.Count);
@@ -84,7 +84,9 @@ public sealed class PairingWireVectorsTests
     // ------------------------------------------------------------------ the vector file
 
     private static IEnumerable<JsonObject> Frames() =>
-        Root["frames"]!.AsArray().Select(node => node!.AsObject());
+        Root["frames"]!.AsArray().Select(node => node!.AsObject())
+            // Inbox frames use their own codec on the phone and router. Windows reads the loopback inbox routes.
+            .Where(frame => frame["channel"]?.GetValue<string>() != "inbox");
 
     private static IEnumerable<string> PhoneDecodeNames() =>
         Frames().Where(vector => Expect(vector, "phone") is { } phone && (phone.ContainsKey("error") || phone.ContainsKey("decodes")))

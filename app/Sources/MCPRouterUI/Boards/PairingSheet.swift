@@ -166,7 +166,15 @@
         private var content: some View {
             switch session.phase {
             case .noEndpoint:
-                unavailable
+                unavailable(
+                    title: InboxCopy.Pairing.noEndpointTitle,
+                    detail: InboxCopy.Pairing.noEndpointDetail
+                )
+            case .listenerOff:
+                unavailable(
+                    title: InboxCopy.Pairing.listenerOffTitle,
+                    detail: InboxCopy.Pairing.listenerOffDetail
+                )
             case .preparing:
                 Text(InboxCopy.Pairing.preparing)
                     .typeRole(.body)
@@ -183,12 +191,12 @@
         /// Names what is missing and what would provide it. No action control: the thing that would
         /// fix this is another item shipping, which is not something a button can do — the same
         /// judgement the retired scaffold copy made.
-        private var unavailable: some View {
+        private func unavailable(title: String, detail: String) -> some View {
             VStack(alignment: .leading, spacing: InboxBoardMetrics.tightGap) {
-                Text(InboxCopy.Pairing.noEndpointTitle)
+                Text(title)
                     .typeRole(.title3)
                     .foregroundStyle(ColorToken.t1.color)
-                Text(InboxCopy.Pairing.noEndpointDetail)
+                Text(detail)
                     .typeRole(.body)
                     .foregroundStyle(ColorToken.t2.color)
                     .fixedSize(horizontal: false, vertical: true)

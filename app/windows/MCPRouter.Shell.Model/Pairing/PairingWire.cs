@@ -30,10 +30,26 @@ public sealed record PairingCodeBody
     }
 }
 
-/// <summary>The body <c>GET /pairing/state</c> answers. The live code, or null once there is none to pair with.</summary>
+/// <summary>The body <c>GET /pairing/state</c> answers. The live code, or null once there is none to pair with, and the listener.</summary>
 public sealed record PairingStateBody
 {
     public PairingCodeBody? Code { get; init; }
+    public required PairingListenerBody Listener { get; init; }
+
+    public PairingState ToState() => new(Code?.ToIssued(), Listener.ToState());
+}
+
+/// <summary>
+/// The <c>listener</c> member of <c>GET /pairing/state</c>: whether the router's phone listener is bound, on
+/// which port, and whether it is announced. Every key is required, so a router that does not say is refused.
+/// </summary>
+public sealed record PairingListenerBody
+{
+    public required bool Enabled { get; init; }
+    public required int? Port { get; init; }
+    public required bool Advertising { get; init; }
+
+    public PairingListenerState ToState() => new(Enabled, Port, Advertising);
 }
 
 /// <summary>The body <c>DELETE /pairing/codes</c> answers: whether a live code was there to revoke.</summary>

@@ -258,9 +258,10 @@ public protocol ControlAPIClient: Sendable {
     /// how the sheet reissues.
     func issuePairingCode() async throws(ControlAPIError) -> IssuedPairingCode
 
-    /// The code a phone could still pair with, or `nil` once there is none. Expired codes are not
-    /// named, matching the router.
-    func pairingState() async throws(ControlAPIError) -> IssuedPairingCode?
+    /// The code a phone could still pair with, or `nil` once there is none, and whether the router's
+    /// phone listener is bound. Expired codes are not named, matching the router. The sheet reads the
+    /// listener before it asks for a code, so a router with pairing off is never sent a `POST`.
+    func pairingState() async throws(ControlAPIError) -> PairingState
 
     /// Take the live code back. Returns whether there was one to take back. A code already paired
     /// stays paired: revoking forgets nothing.
@@ -344,7 +345,7 @@ public extension ControlAPIClient {
         throw ControlAPIError.malformedResponse(detail: "this router has no /pairing/codes endpoint")
     }
 
-    func pairingState() async throws(ControlAPIError) -> IssuedPairingCode? {
+    func pairingState() async throws(ControlAPIError) -> PairingState {
         throw ControlAPIError.malformedResponse(detail: "this router has no /pairing/state endpoint")
     }
 

@@ -14,6 +14,7 @@ id	kind	path	reaches	evidence	contained_by
 app/Scripts/enum-layout-stamp.py	gate	app/Scripts/enum-layout-stamp.py	static	no router invocation matched	-
 app/Scripts/pool-mutation-gate-selftest.sh	gate	app/Scripts/pool-mutation-gate-selftest.sh	static	no router invocation matched	-
 app/Scripts/pool-mutation-gate.sh	gate	app/Scripts/pool-mutation-gate.sh	swift	swift test	-
+app/Scripts/test-enum-layout-stamp.py	gate	app/Scripts/test-enum-layout-stamp.py	static	no router invocation matched	-
 app/Tests/MCPRouterKitTests/ActivityRecordsTests.swift	swift-suite	app/Tests/MCPRouterKitTests/ActivityRecordsTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/CapabilityDocumentFixtureTests.swift	swift-suite	app/Tests/MCPRouterKitTests/CapabilityDocumentFixtureTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/CapabilityPlateTests.swift	swift-suite	app/Tests/MCPRouterKitTests/CapabilityPlateTests.swift	swift	compiled and run by `swift test`	make:test
@@ -327,7 +328,8 @@ scripts/acceptance/acceptance-lock.sh	lane	scripts/acceptance/acceptance-lock.sh
 scripts/acceptance/auth-rejection-visible.sh	lane	scripts/acceptance/auth-rejection-visible.sh	node	node <path>	-
 scripts/acceptance/axkit.swift	lane	scripts/acceptance/axkit.swift	static	no router invocation matched	-
 scripts/acceptance/board-registry.sh	lane	scripts/acceptance/board-registry.sh	static	no router invocation matched	-
-scripts/acceptance/build-freshness.sh	lane	scripts/acceptance/build-freshness.sh	static	no router invocation matched	make:build-ios,make:build-mac,make:build-mac-release,scripts/acceptance/i5-pairing-transport.sh,scripts/acceptance/m2-activity.sh,scripts/acceptance/m22-boards.sh,scripts/acceptance/m5-discover.sh,scripts/acceptance/m6-inbox-pairing.sh,scripts/acceptance/m7-evals-cleanup.sh,scripts/acceptance/m8-settings-menubar.sh,scripts/acceptance/mac-shell.sh,scripts/acceptance/shells.sh
+scripts/acceptance/build-freshness-selftest.sh	lane	scripts/acceptance/build-freshness-selftest.sh	static	no router invocation matched	-
+scripts/acceptance/build-freshness.sh	lane	scripts/acceptance/build-freshness.sh	static	no router invocation matched	make:build-ios,make:build-mac,make:build-mac-release,scripts/acceptance/build-freshness-selftest.sh,scripts/acceptance/i5-pairing-transport.sh,scripts/acceptance/m2-activity.sh,scripts/acceptance/m22-boards.sh,scripts/acceptance/m5-discover.sh,scripts/acceptance/m6-inbox-pairing.sh,scripts/acceptance/m7-evals-cleanup.sh,scripts/acceptance/m8-settings-menubar.sh,scripts/acceptance/mac-shell.sh,scripts/acceptance/shells.sh
 scripts/acceptance/control-client.sh	lane	scripts/acceptance/control-client.sh	both	node <path> + swift build	-
 scripts/acceptance/destination-oracle.swift	lane	scripts/acceptance/destination-oracle.swift	static	no router invocation matched	-
 scripts/acceptance/f6-updates.sh	lane	scripts/acceptance/f6-updates.sh	node	node <path>	-

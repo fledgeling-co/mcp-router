@@ -166,3 +166,6 @@ planning/evidence/WIN-SHELL/run/router-home/
 # Owner-specific generated credential migration choices
 /scripts/warden/migration-plan.json
 /scripts/warden/servers.migrated.json
+
+# Immutable upstream campaign evidence belongs to the pinned release
+!vendor/test-campaign/docs/evidence/**/*.log

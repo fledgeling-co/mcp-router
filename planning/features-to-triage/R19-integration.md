@@ -58,7 +58,7 @@ in three specific claims:
   five writers collapse to three.
 
 **Delete the declaration and say what replaced it**: the property is now held by
-`scripts/acceptance/parity-overlap.sh`, R19's new lane, which this note said no scenario in the
+`scripts/acceptance/parity-overlap.sh` (not retained in the citing Git tree `6051f4bf07b5f13d946965891b8a13d9ab2b821a`), R19's new lane, which this note said no scenario in the
 harness could reach. That is the sentence worth writing — a declared-unreachable property became a
 lane.
 

@@ -12,11 +12,11 @@ Spec: `planning/specs/spec-F5.md`. Branch `ai/n1`, worktree `.worktrees/N1`, bas
 | 4 | The reader, incremental, counting every drop | `TranscriptScan.swift`, `TranscriptWatermarks.swift` | A1–A4, A9, A10 |
 | 5 | The fold and the two encoders | `InvocationInsights.swift`, `InvocationExport.swift` | A12, A13 |
 | 6 | The route | `Control/ControlInvocations.swift`, `surface.tsv` rows | A11 |
-| 7 | The gate that keeps §6 true | `scripts/lint/no-telemetry-egress.sh` + selftest, `Makefile` | A14 |
+| 7 | The gate that keeps §6 true | `scripts/lint/no-telemetry-egress.sh` (planned deliverable: Create) + selftest, `Makefile` | A14 |
 
 ## Test strategy
 
-`app/Tests/RouterCoreTests/InvocationScanTests.swift` and `InvocationVersionTests.swift`, driven
+`app/Tests/RouterCoreTests/InvocationScanTests.swift` (planned deliverable: Create) and `InvocationVersionTests.swift`, driven
 through `MemoryFileSystem` — its `seed(_:atPath:modified:size:)` sets a stamp explicitly, which is
 what makes the watermark cases (A9, A10) assertable rather than timing-dependent.
 

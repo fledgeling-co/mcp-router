@@ -45,7 +45,7 @@ Build the thing that runs.
 
 ## Acceptance
 
-**R4's `scripts/acceptance/parity-gate.sh` is the acceptance test.** It is already built, already
+**R4's `scripts/acceptance/parity-gate.sh` at `1a74d0615f5d1c3f3274359042a2db645f306ebb` (historical source) is the acceptance test.** It is already built, already
 merged, and already adversarially reviewed three times. You are done when it moves materially off
 50 of 81 — and the honest target is that the five structurally-blocked lanes (`mcp`, `cli`,
 `install`, `state`, `log`) become measurable rather than blocked.

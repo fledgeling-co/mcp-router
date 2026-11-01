@@ -15,7 +15,7 @@ Spec: `planning/specs/spec-F7.md`. Base: `08a24ed`. Branch `ai/n3`, worktree `.w
 | `AnalystJudge.swift` | `AnalystJudging` port, the prompt, the strict reply parser, `CLIAnalystJudge` over an `AnalystCommandRunning` port |
 | `AnalystEngine.swift` | corpus → patterns → candidates → judge (primary, then fallback) → reject off-list ids → dedupe → run record; `AnalystStore` persistence |
 
-**B · `app/Sources/RouterCore/Control/ControlAnalyst.swift` — the three routes.** `analyst` on
+**B · `app/Sources/RouterCore/Control/ControlAnalyst.swift` at `404d78322f3d434dd6e9be7e3a383d8298c539e2` (historical source) — the three routes.** `analyst` on
 `GET /insights` built from `AnalystPort`; `POST /insights/analyse`; `PATCH /insights/analyst`.
 `ControlDeps.analyst` optional, absent → 503 naming the missing capability, matching `extensions`,
 `caches` and `health`.

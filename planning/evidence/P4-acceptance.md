@@ -6,7 +6,7 @@ Branch `ai/p4`, worktree `.worktrees/P4`. Spec `planning/specs/spec-P4.md`, plan
 
 There is **no UI in this item**, so no screen was driven and no app was launched. The acceptance
 surface is the parity harness itself, and the whole of it is re-runnable:
-`scripts/acceptance/parity-manifest-selftest.sh`.
+`scripts/acceptance/parity-manifest-selftest.sh` at `6c4829ea5f5614e04c4de408b6cc05a378806a0b` (historical source).
 
 The diff is **four shell files and nothing else** — verified, not asserted:
 `git diff --name-only main..HEAD` returns only `scripts/acceptance/parity-{fixture,gate,manifest-check,manifest-selftest}.sh`.

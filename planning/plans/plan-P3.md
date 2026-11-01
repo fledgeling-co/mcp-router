@@ -2,7 +2,7 @@
 
 Branch `ai/p3`, worktree `.worktrees/P3`. Docs live in the **main tree** and are not committed on
 the branch. Rows owned: `control-usage-stream`, `control-registry-search`,
-`fixture-registry-search`, and nothing else in `planning/parity/surface.tsv`.
+`fixture-registry-search`, and nothing else in `planning/parity/surface.tsv` at `42ea4d316037c9ed0cd2e2f083012c2c5ae157b1` (historical source).
 
 **The row count does not move.** 83 before, 83 after. No row is added, deleted or renamed, so the
 pinned census comment at `surface.tsv:3` is not touched. TWO `verdict` fields and three `note`
@@ -119,7 +119,7 @@ The existing reader-disconnect check (both routers still serve `/health`) stays 
 
 ## Step 3 — `RouterCore`: a production HTTP GET, and the deps the daemon never built
 
-### 3a. `app/Sources/RouterCore/HTTP/RegistryHTTPClient.swift` — new, ~35 lines
+### 3a. `app/Sources/RouterCore/HTTP/RegistryHTTPClient.swift` at `42ea4d316037c9ed0cd2e2f083012c2c5ae157b1` (historical source) — new, ~35 lines
 
 The only conformance to `HTTPFetching` outside the test targets. One `URLSession` GET, the
 headers it is given, the timeout it is given, status and body back. It maps a non-HTTP response to
@@ -192,7 +192,7 @@ refused-connection path is byte-comparable too** and is a scenario rather than a
 The residue (URLSession's idle-timeout semantics versus a total deadline, and the differing request
 headers) is `D-p3-e`.
 
-## Step 5 — `scripts/acceptance/parity-registry.sh` — new lane
+## Step 5 — `scripts/acceptance/parity-registry.sh` at `42ea4d316037c9ed0cd2e2f083012c2c5ae157b1` (historical source) — new lane
 
 Owns `control-registry-search` and nothing else; the same `OWNED` guard the stream lane uses, so a
 mis-addressed `record` is a lane bug rather than a quiet write into another row.
@@ -254,7 +254,7 @@ information, while destroying the only production-shaped registry sample the dec
 So:
 
 - `app/Sources/MCPRouterKit/Control/Fixtures/registry-search.json` — **unchanged**.
-- `scripts/acceptance/parity-fixture.sh` — **unchanged**, skip and normaliser both.
+- `scripts/acceptance/parity-fixture.sh` at `42ea4d316037c9ed0cd2e2f083012c2c5ae157b1` (historical source) — **unchanged**, skip and normaliser both.
 - `scripts/capture-control-fixtures.sh` — **unchanged**.
 - The manifest row stays `blocked`, owner `accepted-uncomparable`, with the whole decision in its
   note so a reader cannot mistake it for work someone will get to.

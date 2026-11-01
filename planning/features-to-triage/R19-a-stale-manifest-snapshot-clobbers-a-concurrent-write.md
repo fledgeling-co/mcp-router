@@ -126,7 +126,7 @@ the fallback, which inverts what this brief assumed.
 
 ### The component is already built
 
-`ConfigMutationLock` (`app/Sources/RouterCore/Config/ConfigMutationLock.swift`) is generic over the
+`ConfigMutationLock` (`app/Sources/RouterCore/Config/ConfigMutationLock.swift` at `4de20801dc0c6235456eb236a8d89f6280d104e0` (historical source)) is generic over the
 path, not specific to `servers.json`. It already solves the sidecar-versus-inode problem, the
 `O_CLOEXEC` inheritance problem, thread-local reentrancy, path standardisation, and the
 `ENOTSUP` filesystem that has no advisory locking. Its two timeout constants and the reasoning

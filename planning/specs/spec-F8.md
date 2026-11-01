@@ -100,7 +100,7 @@ what that harness would have to hold — as steps that are read, not applied.
   `POST || DELETE || PATCH`, ported from `src/control.ts`, and **PUT is not in it**. No route
   served PUT before this family, so nothing was ever exposed; this would have been the first, and
   an untokened `PUT /profiles/x` measured **200** while the rest of the suite was green. Widening
-  `isMutating` would have changed a ported gate `scripts/acceptance/parity-manifest-check.sh`
+  `isMutating` would have changed a ported gate `scripts/acceptance/parity-manifest-check.sh` at `735a5de5fdad909aaa351ec9948f1522fcf93c0b` (historical source)
   derives from the reference in both directions, to buy a verb. `A8` holds the invariant instead.
 
 **Nothing applies a projection.** There is no writer for a harness skill root anywhere in
@@ -148,7 +148,7 @@ open the door.
 | A3 | A harness skill root is classified entry by entry, and a dangling link is reported as dangling rather than as absent | `SkillRootInventoryTests` over fixture roots this item creates |
 | A4 | A harness with no skill root reads `absent`, which is not the same as a root with no entries | `SkillRootInventoryTests`; both states in the same test |
 | A5 | Every projected step carries its reach, and a step that would write a harness MCP config is `refused` with R7's reason | `ProfileProjectionTests` |
-| A6 | Nothing in `app/Sources` writes a harness skill root | `scripts/lint/no-harness-skill-writes.sh`, with its own selftest of planted appliers |
+| A6 | Nothing in `app/Sources` writes a harness skill root | `scripts/lint/no-harness-skill-writes.sh` at `735a5de5fdad909aaa351ec9948f1522fcf93c0b` (historical source), with its own selftest of planted appliers |
 | A7 | The daemon — not just the handler — answers the `/profiles` family | `scripts/acceptance/f8-profiles.sh`, enrolled in `acceptance-lanes.sh` |
 | A8 | No method outside the token gate's set is served by this family | `ControlProfileRoutesTests` C6, parameterised over PUT, HEAD, OPTIONS and TRACE, with a tokened-POST control; and the lane's 405 on the wire |
 

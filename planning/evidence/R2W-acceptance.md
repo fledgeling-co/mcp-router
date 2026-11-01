@@ -31,7 +31,7 @@ D-j, D-k, D-l, D-m and R4-C, none of them this item's.
 
 The three rows are `cli/cli-watch`, `divergence/div-r2-d7` and `install/install-launchd-watch`, and
 each moved because a lane compared two binaries and reported it — not because a verdict was edited.
-`planning/parity/surface.tsv` now contains no row owned by `R2-W`.
+`planning/parity/surface.tsv` at `2775a99c9296dc2f96f10797327c0a87d0197e71` (historical source) now contains no row owned by `R2-W`.
 
 Both measurements were taken **from `.worktrees/R2W`**. Defect D-o applies: `parity-fixture.sh:121`
 normalises `"project":"[A-Za-z0-9]+"`, a class omitting `-` and `_`, so the number depends on the

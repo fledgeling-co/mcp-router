@@ -394,7 +394,7 @@ the 29 counted before it. That is the order dependency worth remembering: format
 | format + lint | `make lint` | **exit 0** — `Found 0 violations, 0 serious in 243 files`; `no-raw-design-values: clean`; `no-wire-codable: clean` |
 | tests | `make test` | **exit 0** — `750 tests in 106 suites passed`, `executed 750 tests` (count guard) |
 | vectors | `make parity` | **exit 0** — `358 vector cases compared (floor 358)` |
-| parity gate | `scripts/acceptance/parity-gate.sh` | **69 of 82 proven, 13 blocked, 0 DIVERGED** (exit 1 by design; the cutover needs 82/82 and is R4-C's) |
+| parity gate | `scripts/acceptance/parity-gate.sh` at `4a05ce54562065ed676e45566c7373fc1d3303c9` (historical source) | **69 of 82 proven, 13 blocked, 0 DIVERGED** (exit 1 by design; the cutover needs 82/82 and is R4-C's) |
 
 The gate ran against a tree whose source hash was **identical before and after** the run
 (`c522810737f8795abe12f49fc6fa656587a9e897` over `app/Sources` + `app/Tests`), so the number describes

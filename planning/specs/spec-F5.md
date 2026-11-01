@@ -283,7 +283,7 @@ directory over: a count of what parsed is not a count of what was there.
 
 ## 6 · The egress gate
 
-`scripts/lint/no-telemetry-egress.sh` refuses any outbound-network symbol under
+`scripts/lint/no-telemetry-egress.sh` (planned deliverable: Create) refuses any outbound-network symbol under
 `app/Sources/RouterCore/Invocations` — `URLSession`, `URLRequest`, `NWConnection`, `Network`,
 `Socket`, `dataTask`, `http://`, `https://`. It is in `make lint`.
 

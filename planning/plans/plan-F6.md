@@ -28,7 +28,7 @@ argument orders.
 ## D2 · The catalogue
 
 `MarketplaceCatalogue.read(text:)` — parse a marketplace descriptor into `[CatalogueOffer]` through
-`JSONParser`, never `JSONSerialization` (`scripts/lint/no-wire-codable.sh` covers this directory).
+`JSONParser`, never `JSONSerialization` (`scripts/lint/no-wire-codable.sh` at `182e40f7b87c15dcfc554bad155923b1c77f8b4e` (historical source) covers this directory).
 It records `declaredNoVersion` as a count, so a catalogue that names 291 plugins and versions 14 of
 them says so rather than looking like a catalogue of 14.
 
@@ -89,7 +89,7 @@ reddens the suite instead of silently landing in neither.
 `404 no extension kind named "updates"`. That ordering is asserted, because it is the whole
 difference between the route existing and not.
 
-`ControlUpdatesJSON.swift` for the body. `planning/parity/surface.tsv` gains `div-f6-updates`.
+`ControlUpdatesJSON.swift` for the body. `planning/parity/surface.tsv` at `182e40f7b87c15dcfc554bad155923b1c77f8b4e` (historical source) gains `div-f6-updates`.
 
 ## D7 · The lane
 

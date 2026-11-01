@@ -5,7 +5,7 @@
 | Item | **P3** — `D-l` + `D-m` |
 | Branch | `ai/p3` · worktree `.worktrees/P3` |
 | Rows owned | `control-usage-stream`, `control-registry-search`, `fixture-registry-search` |
-| Rows NOT owned | everything else in `planning/parity/surface.tsv`. `install-launchd-watch` is the other runner's |
+| Rows NOT owned | everything else in `planning/parity/surface.tsv` at `42ea4d316037c9ed0cd2e2f083012c2c5ae157b1` (historical source). `install-launchd-watch` is the other runner's |
 | Status | Ready for work |
 | Review lane | grok-4.6 (out of family). Codex account-blocked until 2026-08-20 |
 

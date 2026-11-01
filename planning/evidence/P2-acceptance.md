@@ -208,16 +208,16 @@ Three registered rather than fixed, each with a mechanism — see §7.
 
 **Source**
 
-- `app/Sources/RouterCore/Config/ImportPaths.swift` — new. One resolved `$HOME` feeding both
+- `app/Sources/RouterCore/Config/ImportPaths.swift` at `b4277d4774bce40f41b293f920b871967b25b55d` (historical source) — new. One resolved `$HOME` feeding both
   `~/.claude.json` and `RouterHome`. **`D-w2` closed.**
-- `app/Sources/RouterCore/Config/ImportConfigWriter.swift` — new. The import verb's `servers.json`
+- `app/Sources/RouterCore/Config/ImportConfigWriter.swift` at `b4277d4774bce40f41b293f920b871967b25b55d` (historical source) — new. The import verb's `servers.json`
   writer: atomic, preserving unknown top-level keys, holding the config mutation lock across the
   **read**-modify-write, and creating at `0600`. **R1's D3, on the writer D3 was written about.**
-- `app/Sources/RouterCore/Watch/ClaudeStagingEntry.swift` — new. `docs/install.sh:162-188` in Swift.
-- `app/Sources/RouterCore/Config/UpstreamConfig.swift` — `RouterHome.resolvedHomeDirectory`.
-- `app/Sources/RouterCore/Watch/WatchPaths.swift` — calls it, so there is one rule and not two.
-- `app/Sources/MCPRouterCLI/InstallEntryVerb.swift` — new, thin.
-- `app/Sources/MCPRouterCLI/ImportVerb.swift`, `MCPRouterCLI.swift` — rewiring and dispatch.
+- `app/Sources/RouterCore/Watch/ClaudeStagingEntry.swift` at `b4277d4774bce40f41b293f920b871967b25b55d` (historical source) — new. `docs/install.sh:162-188` in Swift.
+- `app/Sources/RouterCore/Config/UpstreamConfig.swift` at `b4277d4774bce40f41b293f920b871967b25b55d` (historical source) — `RouterHome.resolvedHomeDirectory`.
+- `app/Sources/RouterCore/Watch/WatchPaths.swift` at `b4277d4774bce40f41b293f920b871967b25b55d` (historical source) — calls it, so there is one rule and not two.
+- `app/Sources/MCPRouterCLI/InstallEntryVerb.swift` at `b4277d4774bce40f41b293f920b871967b25b55d` (historical source) — new, thin.
+- `app/Sources/MCPRouterCLI/ImportVerb.swift` at `b4277d4774bce40f41b293f920b871967b25b55d` (historical source), `MCPRouterCLI.swift` — rewiring and dispatch.
 
 **Tests** — `ImportPathsTests`, `ImportConfigWriterTests`, `ImportConfigWriterLockTests`,
 `ClaudeStagingEntryTests`, `ImportWriterProbeFileSystem` (35 tests).
@@ -225,7 +225,7 @@ Three registered rather than fixed, each with a mechanism — see §7.
 **Lanes** — `parity-install.sh` (two new rows, ownership guard, header caveat, `normalise`),
 `parity-divergence.sh` (`div-r1-d3`).
 
-**Manifest** — `planning/parity/surface.tsv`, three rows `blocked → proven`, each note rewritten to
+**Manifest** — `planning/parity/surface.tsv` at `b4277d4774bce40f41b293f920b871967b25b55d` (historical source), three rows `blocked → proven`, each note rewritten to
 state what the lane drives **and what it does not**.
 
 **`parity-gate.sh` and `parity-fixture.sh` were not opened.** P4 owns both this wave.

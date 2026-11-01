@@ -120,7 +120,7 @@ and tests `!u.disabled`, so `"yes"` is **not served** there.
 
 So on the Swift router a config carrying a non-boolean truthy `disabled` draws *disabled by you*
 on the board over a server whose tools are still in every session's list. It is reachable: the
-control API's PATCH writes the supplied value through, and `scripts/acceptance/control-differential.sh`
+control API's PATCH writes the supplied value through, and `scripts/acceptance/control-differential.sh` at `bc51e996386494ed9fdc0175eb5d7f259a1daa40` (historical source)
 already drives exactly `{"disabled":"yes"}` — but that lane diffs the status, the response body and
 `servers.json`, none of which disagree, which is K5's point about an equivalence lane restated by a
 second example.

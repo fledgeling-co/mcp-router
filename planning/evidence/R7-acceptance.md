@@ -125,7 +125,7 @@ rather than a paragraph:
 
 ## A1, A2, A5, A6 — unit
 
-`app/Tests/RouterCoreTests/HarnessReconciliationTests.swift`, 22 cases, all green:
+`app/Tests/RouterCoreTests/HarnessReconciliationTests.swift` at `0836ef56ab49594b8ef8c8ee126eea973cac06de` (historical source), 22 cases, all green:
 
 ```
 Test run with 22 tests in 1 suite passed after 0.004 seconds.

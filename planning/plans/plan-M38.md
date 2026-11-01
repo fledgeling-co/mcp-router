@@ -14,7 +14,7 @@ of line 5.
 |---|---|---|---|
 | 1 | `/approve`'s 200 announces the tool-list change | `src/control.ts` | 1, 2, 3 |
 | 2 | the lane that can tell which mechanism announced | `scripts/e2e-live-reload.mjs` | 1–4 |
-| 3 | the promotion read back at the serving predicate | `app/Tests/RouterCoreTests/ControlApproveCatalogTests.swift`, `app/Sources/RouterCore/Service/MCPEndpoint.swift` | 5–9 |
+| 3 | the promotion read back at the serving predicate | `app/Tests/RouterCoreTests/ControlApproveCatalogTests.swift` at `0cd5e792e6bb2095ef7923217adf3f5418f076d6` (historical source), `app/Sources/RouterCore/Service/MCPEndpoint.swift` at `0cd5e792e6bb2095ef7923217adf3f5418f076d6` (historical source) | 5–9 |
 | 4 | the arms that prove slice 3 can fail | `scripts/red-green.py` (`APP-1`…`APP-5`) | — |
 | 5 | line 5 deferred with its reason | `planning/features-to-triage/M38-phone-cannot-approve-a-tool-surface.md` | — |
 
@@ -30,9 +30,9 @@ own doc comment refuses.
 `scripts/acceptance/control-differential.sh:511` at `08a24ed` drives `/approve` only at the 409 and
 the 404,
 and says so in its own comment (*"neither request issued here writes anything"*). The 200 is never
-reached, so the differential cannot see this. `scripts/acceptance/parity-log.sh` drives *start,
+reached, so the differential cannot see this. `scripts/acceptance/parity-log.sh` at `0cd5e792e6bb2095ef7923217adf3f5418f076d6` (historical source) drives *start,
 index, call, call again, SIGTERM* and never calls the control API, so no `live-reload:` line enters
-the sequence it diffs. Nothing in `planning/parity/surface.tsv` enumerates the notification stream.
+the sequence it diffs. Nothing in `planning/parity/surface.tsv` at `0cd5e792e6bb2095ef7923217adf3f5418f076d6` (historical source) enumerates the notification stream.
 
 ### Slice 2 — the lane, and why its notification count is not its oracle
 

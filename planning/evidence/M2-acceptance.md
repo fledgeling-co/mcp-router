@@ -81,7 +81,7 @@ independent expression all fail. The same mutation is red now.
    spent feed, gone for anyone not using a mouse. The acceptance run failed looking for the button;
    a sighted pass would have seen it drawn and moved on.
 2. **An authored fixture in the recordings directory would have broken R4.**
-   `scripts/acceptance/parity-fixture.sh` replays every `*.json` in `Control/Fixtures` against the
+   `scripts/acceptance/parity-fixture.sh` at `e67d0ded93479e97ee0cecb61fd020259351b43a` (historical source) replays every `*.json` in `Control/Fixtures` against the
    live TypeScript reference, and `parity-manifest-check.sh` demands a manifest row per file. F4's
    immutability guard caught it here; the failure would otherwise have landed on R4.
 3. **B5's gate did not exist**, above.
@@ -178,7 +178,7 @@ decoration.
 ## Suite
 
 `swift test` — **730 tests in 102 suites passed**. `scripts/lint/no-raw-design-values.sh` clean over
-42 files, 21 under the geometry and boundary rules; `scripts/lint/no-wire-codable.sh` clean.
+42 files, 21 under the geometry and boundary rules; `scripts/lint/no-wire-codable.sh` at `9d59b11d0608809a0aa2552074f97b3b76d4dacc` (historical source) clean.
 
 ---
 
@@ -293,7 +293,7 @@ of a bounded-wait helper that is not actually bounded is indistinguishable from 
 - `make test` — **797 tests in 108 suites passed**, exit 0.
 - `scripts/lint/no-raw-design-values.sh` — clean over **52 files**, **31** under the geometry and
   boundary rules (`Activity/` joined `Shell/` and `Boards/`).
-- `scripts/lint/no-wire-codable.sh` — clean, 1 recorded exemption.
+- `scripts/lint/no-wire-codable.sh` at `dc24093abfa8aebc3b7e4b21d889c3f5af97c069` (historical source) — clean, 1 recorded exemption.
 - `make build-mac` and `make build-mac-release` — both `** BUILD SUCCEEDED **`.
 
 ## One gate of this item's own that M3's merge had silently disarmed

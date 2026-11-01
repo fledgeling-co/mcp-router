@@ -344,7 +344,7 @@ DELETE /profiles/<name>              # moved to <root>/.removed/<name>/<millis>.
 ### The projection reads and never writes
 
 Nothing applies it. The body carries `"applies": false` as a member rather than as a footnote, and
-`scripts/lint/no-harness-skill-writes.sh` fails the build if an applier appears anywhere under
+`scripts/lint/no-harness-skill-writes.sh` at `735a5de5fdad909aaa351ec9948f1522fcf93c0b` (historical source) fails the build if an applier appears anywhere under
 `app/Sources` — the same refusal `no-harness-config-writes.sh` holds for a harness's MCP
 configuration, extended to the second kind of tree this router now reads.
 

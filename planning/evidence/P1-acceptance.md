@@ -59,10 +59,10 @@ failed.
 | `swift build --package-path app` | **0** | no Swift-6 concurrency warnings |
 | `make lint` | **0** | **0 violations / 438 files.** `swiftformat --lint` runs first and short-circuits, so the exit code is the only honest read |
 | `make test` | **0** | **1379 tests / 169 suites** (main after V1: 1362; this item adds 17) |
-| `scripts/acceptance/control-differential.sh` | **0** | **53 of 53 rows ok**, against the *running* TypeScript reference. Was 49 ok + 2 known-defect failures |
-| `scripts/acceptance/parity-manifest-check.sh` | **0** | 83 rows, consistent with `control.ts` and the fixture directory |
+| `scripts/acceptance/control-differential.sh` at `30b3ec0ec8f56ff5dd8e3bcf02558212be58db00` (historical source) | **0** | **53 of 53 rows ok**, against the *running* TypeScript reference. Was 49 ok + 2 known-defect failures |
+| `scripts/acceptance/parity-manifest-check.sh` at `30b3ec0ec8f56ff5dd8e3bcf02558212be58db00` (historical source) | **0** | 83 rows, consistent with `control.ts` and the fixture directory |
 | `scripts/acceptance/p1-auth-routes.sh` | **0** | **13 assertions** over the real daemon's socket |
-| `scripts/acceptance/parity-gate.sh` | **1** | by design — it exits 0 only at 100%, which the cutover needs and this item does not deliver |
+| `scripts/acceptance/parity-gate.sh` at `30b3ec0ec8f56ff5dd8e3bcf02558212be58db00` (historical source) | **1** | by design — it exits 0 only at 100%, which the cutover needs and this item does not deliver |
 
 **Not run, deliberately:** `make build-mac`, `make test-ios`, and every Mac and phone acceptance
 script. This item's diff touches `RouterCore/Control`, `RouterCore/Service`, `MCPRouterCLI` doc

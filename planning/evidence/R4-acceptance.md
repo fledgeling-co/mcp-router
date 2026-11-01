@@ -16,7 +16,7 @@ behind it **is** the evidence — read it before re-running anything.
 ## The headline
 
 **Parity did NOT pass, and it did not pass by a wide margin: 50 of 81 enumerated rows.**
-`scripts/acceptance/parity-gate.sh` exits **1**. The cutover was **not performed** — no change to
+`scripts/acceptance/parity-gate.sh` at `6472aacdb01fa214ea7a3b35b867c31c09627d6e` (historical source) exits **1**. The cutover was **not performed** — no change to
 `docs/install.sh`, no deletion of `src/*.ts`. That refusal is this item's primary deliverable and
 the gate's own exit code is its evidence.
 
@@ -32,7 +32,7 @@ the gate's own exit code is its evidence.
 | A3 | Every row carries exactly one verdict, and every blocked row names a reason and an owner | red-green | blocked row with owner `-` | **exit 1**, `blocked with no owning item — a gap with no owner is a gap nobody has` |
 | A3b | A verdict outside the closed set fails | red-green | a row with verdict `maybe` | **exit 1** |
 | A3c | Two rows sharing an id fail | red-green | duplicated `pool-p1` | **exit 1**, `duplicate row id "pool-p1"` — one lane's result would otherwise overwrite the other's |
-| A4 | The gate exits non-zero while any row is blocked, and says so in words | exercised | `scripts/acceptance/parity-gate.sh` | **exit 1**, `parity: 50 of 81 rows proven (4 of them by suite only, not by wire comparison), 31 blocked. This is NOT a pass.` |
+| A4 | The gate exits non-zero while any row is blocked, and says so in words | exercised | `scripts/acceptance/parity-gate.sh` at `6472aacdb01fa214ea7a3b35b867c31c09627d6e` (historical source) | **exit 1**, `parity: 50 of 81 rows proven (4 of them by suite only, not by wire comparison), 31 blocked. This is NOT a pass.` |
 | A5 | Coverage prints as a fraction, never a bare pass count | exercised | same run | `50 of 81` overall, the suite-only share named in the same sentence, plus a per-group breakdown across nine groups |
 | A6 | The gate exits **2** when the environment cannot run a lane | exercised | `mv dist dist.hidden; PARITY_LANES=divergence parity-gate.sh` | **exit 2**, `no built reference at dist/index.js. Run npm run build.` `dist` restored and verified |
 | A6b | A lane whose script is missing is an environment failure, not a silent skip | exercised | `PARITY_LANES=ghost parity-gate.sh` | **exit 2**, `ghost — no lane script at scripts/acceptance/parity-ghost.sh` |
@@ -60,7 +60,7 @@ the gate's own exit code is its evidence.
 | Lint | `make lint` | **exit 0**. SwiftLint `0 violations, 0 serious in 151 files`; swiftformat `0/152 files require formatting` |
 | Lint examined a non-zero file count | `swiftformat --lint . --config .swiftformat` | **152 files**, 60 skipped. `.swiftformat` excludes `.worktrees`, but the pattern does not match when `.` *is* the worktree root, so the gate really looked. Verified rather than assumed |
 | Shell | `shellcheck -S warning` on all 8 harness scripts | **clean** |
-| The gate itself | `scripts/acceptance/parity-gate.sh` | **exit 1**, 50 of 74 — the expected result |
+| The gate itself | `scripts/acceptance/parity-gate.sh` at `6472aacdb01fa214ea7a3b35b867c31c09627d6e` (historical source) | **exit 1**, 50 of 74 — the expected result |
 
 ### Affected-test sweep
 
@@ -75,7 +75,7 @@ Two existing scripts were edited, both additively:
   one port and the upstream listened on another. It agreed by coincidence at the default and
   broke at any other port, failing with `no in-flight authorization was captured` rather than
   naming the cause.
-- `scripts/acceptance/control-differential.sh` — `diverges()` now records the divergence row it
+- `scripts/acceptance/control-differential.sh` at `6472aacdb01fa214ea7a3b35b867c31c09627d6e` (historical source) — `diverges()` now records the divergence row it
   asserts, not only the control route. Before this, R3's D1–D5 were asserted in that file and
   read as `no lane reported` in the census.
 

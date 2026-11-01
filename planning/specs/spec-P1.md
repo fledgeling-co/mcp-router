@@ -41,7 +41,7 @@
 
 ## 3. Three parity rows key on D-j, and the surface enumerates the route as one row when it is two
 
-`planning/parity/surface.tsv`:
+`planning/parity/surface.tsv` at `30b3ec0ec8f56ff5dd8e3bcf02558212be58db00` (historical source):
 
 | Row | Blocker column | What its note says |
 |---|---|---|

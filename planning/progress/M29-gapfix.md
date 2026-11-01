@@ -127,11 +127,11 @@ Two findings taken:
 | `make test` | **0** | 1977 tests in 251 suites (from 1960/248 at the verdict) |
 | `make lint` | **0** | 0 violations, 648 files |
 | `make parity` | **0** | 367 vector cases, floor 367 |
-| `scripts/acceptance/parity-control.sh` | **0** | 56 rows, 56 ok |
+| `scripts/acceptance/parity-control.sh` at `5d7cf8f95d2e700a105ff52e51660649b528c1da` (historical source) | **0** | 56 rows, 56 ok |
 | `npm run build` | **0** | `tsc -p tsconfig.json` |
 | `scripts/red-green.py` DIS-1…16 | **0** | **16/16 KILLED**, each arm run against only the test it names |
 | `make mock-fidelity SURFACE=servers` | **3** | **inherited**, byte-identical to `main` |
-| `scripts/acceptance/parity-manifest-check.sh` | **1** | **inherited**, census pin 94 vs 96 |
+| `scripts/acceptance/parity-manifest-check.sh` at `5d7cf8f95d2e700a105ff52e51660649b528c1da` (historical source) | **1** | **inherited**, census pin 94 vs 96 |
 
 Nine mutations were applied to the worktree during the proving passes and every one was reverted
 and hash-verified; one arm was cut short by a caller-side timeout and left `ServersBoardWrites.swift`

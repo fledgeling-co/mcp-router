@@ -93,8 +93,8 @@ failure it exists to prevent, and the subset here is far smaller than it appeare
 
 | # | Deliverable |
 |---|---|
-| 1 | `planning/parity/surface.tsv` — the enumerated cutover surface, one row per capability, machine-readable |
-| 2 | `scripts/acceptance/parity-gate.sh` — the single entry point; runs every lane, reconciles against the manifest, refuses green on any unproven row |
+| 1 | `planning/parity/surface.tsv` (planned deliverable: Create) — the enumerated cutover surface, one row per capability, machine-readable |
+| 2 | `scripts/acceptance/parity-gate.sh` (planned deliverable: Create) — the single entry point; runs every lane, reconciles against the manifest, refuses green on any unproven row |
 | 3 | Extended control differential — **every** control route, up from R3's 32 rows |
 | 4 | Fixture status + body differential over all 24 recorded fixtures (deferred child **D-a**) |
 | 5 | Divergence assertions for **D1 / D3 / D4** so their absence is not read as agreement (deferred child **D-g**) |
@@ -158,7 +158,7 @@ Reported as deferred child **D-j**. Not fixed here.
 
 ## The parity surface — what the cutover actually requires
 
-The manifest ships as `planning/parity/surface.tsv`. This is its census, as **measured** by the
+The manifest ships as `planning/parity/surface.tsv` at `6472aacdb01fa214ea7a3b35b867c31c09627d6e` (historical source). This is its census, as **measured** by the
 gate rather than as estimated while specifying, and the number that matters is the last row.
 
 | Group | Rows | Proven | Blocked |

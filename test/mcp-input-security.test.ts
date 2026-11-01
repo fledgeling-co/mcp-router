@@ -6,6 +6,8 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
+import { createConnection } from 'node:net';
+import { once } from 'node:events';
 import { MCP_REQUEST_BYTES, MCP_ARGUMENT_ELEMENTS, checkMcpArgumentLimits } from '../src/mcp-input-limits.js';
 
 const call = (args: unknown) => ({ jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'fixture__ping', arguments: args } });
@@ -57,6 +59,32 @@ await server.connect(new StdioServerTransport(process.stdin,process.stdout,{maxB
     }
     const oversized = await post(initialize + ' '.repeat(MCP_REQUEST_BYTES + 1 - Buffer.byteLength(initialize)));
     assert.equal(oversized.status, 413); assert.match(await oversized.text(), /33554432/);
+    const socket = createConnection({ host: '127.0.0.1', port, allowHalfOpen: true });
+    try {
+      await once(socket, 'connect');
+      let wire = '';
+      socket.on('data', chunk => wire += chunk.toString('utf8'));
+      const finished = once(socket, 'end', { signal: AbortSignal.timeout(5000) });
+      socket.write('POST /mcp HTTP/1.1\r\nHost: 127.0.0.1:' + port + '\r\nContent-Type: application/json\r\nAccept: application/json, text/event-stream\r\nTransfer-Encoding: chunked\r\n\r\n');
+      const payload = Buffer.alloc(64 * 1024, ' ');
+      const chunk = Buffer.concat([Buffer.from(payload.length.toString(16) + '\r\n'), payload, Buffer.from('\r\n')]);
+      for (let i = 0; i <= MCP_REQUEST_BYTES / payload.length; i++) {
+        if (!socket.write(chunk)) await once(socket, 'drain');
+      }
+      // Deliberately send no terminating chunk and never end our writable half. The server must
+      // flush its response and terminate the connection without waiting for this sender to finish.
+      await finished;
+      assert.match(wire, /^HTTP\/1\.1 413 /);
+      assert.match(wire, /connection: close/i);
+      const split = wire.indexOf('\r\n\r\n');
+      const length = /content-length: (\d+)/i.exec(wire.slice(0, split));
+      assert.ok(length, 'the refusal must declare its response length');
+      const responseBody = wire.slice(split + 4);
+      assert.equal(Buffer.byteLength(responseBody), Number(length[1]), 'the whole413 body must arrive before EOF');
+      assert.equal(JSON.parse(responseBody).error.code, -32000);
+      assert.match(wire, /"message":"Request body exceeds the limit of 33554432 bytes\."/);
+    } finally { socket.destroy(); }
+
     for (const count of [99, 100, 101]) {
       const response = await post(JSON.stringify(Array.from({ length: count }, () => ({ jsonrpc: '2.0', method: 'notifications/initialized' }))));
       assert.equal(response.status, count > 100 ? 400 : 202, `batch boundary ${count}`); await response.text();

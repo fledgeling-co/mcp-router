@@ -83,6 +83,9 @@ public struct MCPServer: Codable, Hashable, Sendable, Identifiable {
     public var cwd: String?
     public var url: String?
     public var envKeys: [String]?
+    /// The env files the router read at spawn, resolved to paths. Stdio rows only, and present even
+    /// when empty. Modelled so the wire key is kept, not so any surface reads it.
+    public var envFiles: [String]?
     public var headerKeys: [String]?
     public var hash: String?
     public var tools: Int

@@ -80,7 +80,10 @@ struct ControlFixtureTests {
             Bundle.module.urls(forResourcesWithExtension: "json", subdirectory: "Fixtures")
                 ?? Bundle.module.urls(forResourcesWithExtension: "json", subdirectory: nil)
         )
+        // The capture manifest sits beside the recordings and is not one of them. It is held to the
+        // recordings by the F3 gate in TrackerStateMatrixTests, not by this table.
         let onDisk = Set(directory.map { $0.deletingPathExtension().lastPathComponent })
+            .subtracting(["capture-manifest"])
         let claimed = Set(Self.expected.map(\.name))
         #expect(
             onDisk == claimed,

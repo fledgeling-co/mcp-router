@@ -124,6 +124,10 @@ SUBS = [
     # It is [^"/]+ and not [^"]+ because a greedy match to the closing quote swallows the rest of
     # the path: `.worktrees/P4/app/Sources` would collapse to one marker and take real structure
     # with it.
+    # The sibling layout, `<parent>/mcp-router-wt/<name>`, which the worktrees now use. It was not
+    # covered, so a capture run from one of them left its absolute path in the body and every
+    # argv-bearing fixture read DRIFTED for a reason that was about where the checkout sits.
+    (r'/[^"]*?/mcp-router-wt/[^"/]+',       '<repo>'),
     (r'/Users/[^"]*?/mcp-router/\.worktrees/[^"/]+', '<repo>'),
     (r'/Users/[^"]*?/mcp-router',           '<repo>'),
     # The scratch home each run mints.
@@ -287,6 +291,9 @@ for recorded in "$RECORDED"/*.json; do
   id="fixture-$name"
   live="$WORK/recaptured/$name.json"
   status="$(cat "$WORK/status/$name.status" 2>/dev/null || echo '---')"
+
+  # The capture manifest is the set's receipt, not a recording, and has no body to replay.
+  [ "$name" = "capture-manifest" ] && continue
 
   if [ "$name" = "registry-search" ]; then
     printf '  %-28s %-7s %s\n' "$name" "$status" "not compared — live registry, no stable oracle"

@@ -50,7 +50,8 @@ import { analystEnvelope, ANALYST_UNAVAILABLE, type AnalystPort } from './analys
 import { AnalystSettingsRefusal } from './analyst-lanes.js';
 import { log } from './log.js';
 import { wireInstant, type IssuedCode, type Pairing } from './pairing.js';
-import { removePairedPhone } from './paired-phones.js';
+import { removePairedPhone, readPairedPhones } from './paired-phones.js';
+import type { PairingListenerStatus } from './pairing-listener.js';
 import { extensionRoute, isExtensionsPath } from './extension-routes.js';
 import type { ExtensionStore } from './extensions.js';
 import { declarationFor, type InboxRow, type InboxStore } from './inbox.js';
@@ -102,6 +103,8 @@ export interface ControlDeps {
   pairing: Pairing;
   /** The router home. Where `paired-phones.json` lives, which DELETE /pairing/phones/:phoneId edits. */
   routerHome: string;
+  /** What the phone listener has actually bound. Read per request, so a listener that comes or goes is reported as it is. */
+  pairingListener: () => PairingListenerStatus;
   /** R28. Absent answers 503 on every /extensions route, as the Swift router does. */
   extensions?: ExtensionStore;
   /** The picks a phone has sent, held for review. Absent answers 503 on every /inbox route. */
@@ -1259,7 +1262,16 @@ export async function handleControl(
    * a code is spent when the listener decides a phone's request (`pairing.submit`), which the
    * listener owns. Revoking never forgets a code that was already paired.
    */
+  // Refused while no listener is bound. A code minted then would name a port nothing answers on, and a
+  // phone handed it would fail with no clue why. The refusal mints nothing, so nothing is left to revoke.
   if (p === '/pairing/codes' && req.method === 'POST') {
+    if (!deps.pairingListener().enabled) {
+      json(res, 503, {
+        error: 'pairing is turned off on this router: set pairing.enabled in the server list and restart the router',
+        reason: 'pairingDisabled',
+      });
+      return true;
+    }
     json(res, 201, codeBody(deps.pairing.issue()));
     return true;
   }
@@ -1285,14 +1297,19 @@ export async function handleControl(
   //
   // `awaitingAck` lists the phones whose request was accepted and whose `pair.ack` has not come yet. It
   // names the phone and the time, never a key or an id, and it empties the moment the phone acks or drops.
+  //
+  // `listener` says whether the phone listener is bound, so a sheet can say pairing is off instead of
+  // offering a code. It names the port and whether it is announced, and nothing about the certificate.
   if (p === '/pairing/state' && req.method === 'GET') {
     const live = deps.pairing.current();
+    const listener = deps.pairingListener();
     json(res, 200, {
       code: live ? codeBody(live) : null,
       awaitingAck: deps.pairing.awaitingAck().map((a) => ({
         phoneName: a.phoneName,
         requestedAt: wireInstant(a.requestedAt),
       })),
+      listener: { enabled: listener.enabled, port: listener.port, advertising: listener.advertising },
     });
     return true;
   }

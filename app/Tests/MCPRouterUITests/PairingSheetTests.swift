@@ -9,7 +9,7 @@
     struct PairingSheetTests {
         /// The instant the captured router fixture was issued at. The codes come from the router now,
         /// so the clock the sheet reads has to be the one the router's expiry is measured against.
-        static let now = Date(timeIntervalSince1970: 1_792_375_158)
+        static let now = RecordedPairingClock.issuedAt
 
         static func session(
             _ scenario: FixtureInboxService.Scenario,

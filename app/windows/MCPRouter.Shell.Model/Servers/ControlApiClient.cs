@@ -241,11 +241,11 @@ public sealed class ControlApiClient : IDisposable
         return (await DecodeAsync<PairingCodeBody>(response, cancellation)).ToIssued();
     }
 
-    /// <summary>The code a phone could still pair with, or null once there is none.</summary>
-    public async Task<IssuedPairingCode?> GetPairingStateAsync(CancellationToken cancellation = default)
+    /// <summary>The code a phone could still pair with, or null once there is none, and whether the router's phone listener is bound.</summary>
+    public async Task<PairingState> GetPairingStateAsync(CancellationToken cancellation = default)
     {
         using var response = await SendAsync(HttpMethod.Get, "pairing/state", write: true, cancellation);
-        return (await DecodeAsync<PairingStateBody>(response, cancellation)).Code?.ToIssued();
+        return (await DecodeAsync<PairingStateBody>(response, cancellation)).ToState();
     }
 
     /// <summary>Takes the live code back. True when there was one to take. A revoke never forgets a code already paired.</summary>

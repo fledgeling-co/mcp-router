@@ -20,6 +20,9 @@
         public enum Phase: Sendable, Equatable {
             /// No transport. **The only phase a Release build reaches.**
             case noEndpoint
+            /// The build can pair, but the router's phone listener is not bound. Nothing is minted, so the
+            /// sheet has no code and no endpoint to show, and it says the router is the thing that is off.
+            case listenerOff
             /// An endpoint exists and the router is being asked for a code.
             case preparing
             /// A code is on screen, with the text the QR encodes.
@@ -110,7 +113,7 @@
             switch phase {
             case .preparing, .live:
                 Task { await revokeOnRouter() }
-            case .noEndpoint, .expired, .failed:
+            case .noEndpoint, .listenerOff, .expired, .failed:
                 break
             }
         }
@@ -133,13 +136,30 @@
             Task { await issue(from: endpoint, generation: generation) }
         }
 
-        /// Show the code the router answered with, unless the answer has been overtaken.
+        /// Ask whether the router is listening, then mint a code only if it is, and show the code the router
+        /// answered with unless the answer has been overtaken.
         ///
-        /// The router keeps one live code, so an answer from a request that a newer open or a close has
-        /// overtaken names a code the router has already replaced or is about to lose. It is not shown.
-        /// If the sheet has closed since the request, the code it minted is taken back here: the close
-        /// revoked before the router had minted anything, and nothing else would.
+        /// The state read comes first so a router with pairing off is never sent a `POST`: a code minted
+        /// then would name a port nothing answers on. The router keeps one live code, so an answer from a
+        /// request that a newer open or a close has overtaken names a code the router has already replaced
+        /// or is about to lose. It is not shown. If the sheet has closed since the request, the code it
+        /// minted is taken back here: the close revoked before the router had minted anything, and nothing
+        /// else would.
         private func issue(from endpoint: PairingEndpoint, generation: Int) async {
+            let state: PairingState
+            do {
+                state = try await client.pairingState()
+            } catch {
+                guard generation == issueGeneration else { return }
+                phase = .failed("The code could not be prepared.")
+                return
+            }
+            guard generation == issueGeneration else { return }
+            guard state.listener.enabled else {
+                phase = .listenerOff
+                return
+            }
+
             let issued: IssuedPairingCode
             do {
                 issued = try await client.issuePairingCode()

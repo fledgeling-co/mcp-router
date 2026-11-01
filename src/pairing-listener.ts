@@ -59,9 +59,24 @@ const PHONE_NAME_MAX = 64;
 
 export interface RunningPairingListener {
   port: number;
+  /**
+   * Whether an announcement is live. False when no advertiser was given, or when announcing failed. The
+   * listener is bound either way, because the QR carries the endpoint and discovery is only a convenience.
+   */
+  advertising: boolean;
   /** Connections the listener holds open right now. A refused connection is not counted once it has closed. */
   openConnections(): number;
   close(): Promise<void>;
+}
+
+/**
+ * What the control API reports about the phone listener: what is bound, not what the config asked for. A
+ * router whose listener did not start reports `enabled: false`, so the sheets never offer a code nothing answers.
+ */
+export interface PairingListenerStatus {
+  enabled: boolean;
+  port: number | null;
+  advertising: boolean;
 }
 
 /** What the listener asks an advertiser to announce: the bound port, and the name a phone shows. */
@@ -157,6 +172,7 @@ export async function startPairing(
 
   return {
     port,
+    advertising: advertisement !== undefined,
     openConnections: () => sockets.size,
     close: async () => {
       // Withdrawn first, so a phone stops seeing a listener that is about to refuse it.

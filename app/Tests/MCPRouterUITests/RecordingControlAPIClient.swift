@@ -35,6 +35,7 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
         public var searchRegistry = 0
         public var pairingIssue = 0
         public var pairingRevoke = 0
+        public var pairingStateReads = 0
 
         public init() {}
     }
@@ -43,6 +44,11 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
     /// Holds a pairing issue in flight after it is counted, so a test can close the sheet while the
     /// router is still answering.
     private let issueGate: (@Sendable () async -> Void)?
+    /// Replaces the listener the wrapped router reports, so a test can show the sheet a router with pairing
+    /// off.
+    private let listener: PairingListener?
+    /// Makes the state read fail, so a test can show the sheet a router it cannot read.
+    private let stateFailure: ControlAPIError?
     private let lock = NSLock()
     private var _calls = Calls()
 
@@ -52,10 +58,14 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
 
     public init(
         wrapping wrapped: any ControlAPIClient,
-        issueGate: (@Sendable () async -> Void)? = nil
+        issueGate: (@Sendable () async -> Void)? = nil,
+        listener: PairingListener? = nil,
+        stateFailure: ControlAPIError? = nil
     ) {
         self.wrapped = wrapped
         self.issueGate = issueGate
+        self.listener = listener
+        self.stateFailure = stateFailure
     }
 
     private func record(_ mutate: (inout Calls) -> Void) {
@@ -96,8 +106,11 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
         return try await wrapped.issuePairingCode()
     }
 
-    public func pairingState() async throws(ControlAPIError) -> IssuedPairingCode? {
-        try await wrapped.pairingState()
+    public func pairingState() async throws(ControlAPIError) -> PairingState {
+        record { $0.pairingStateReads += 1 }
+        if let stateFailure { throw stateFailure }
+        let state = try await wrapped.pairingState()
+        return PairingState(code: state.code, listener: listener ?? state.listener)
     }
 
     public func revokePairingCode() async throws(ControlAPIError) -> Bool {

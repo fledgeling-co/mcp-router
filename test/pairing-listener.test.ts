@@ -8,7 +8,7 @@ import { connect, type TLSSocket } from 'node:tls';
 import { fileURLToPath } from 'node:url';
 import { Pairing, PAIRING_LIFETIME_MS } from '../src/pairing.js';
 import { certificateFingerprint, loadOrCreatePairingIdentity } from '../src/pairing-identity.js';
-import { startPairing, PAIRING_FRAME_MAX, INBOX_FRAME_MAX, PAIRING_CONNECTIONS_MAX } from '../src/pairing-listener.js';
+import { startPairing, PAIRING_FRAME_MAX, INBOX_FRAME_MAX, PAIRING_CONNECTIONS_MAX, type PairingAdvertiser } from '../src/pairing-listener.js';
 import { readPairedPhones, removePairedPhone } from '../src/paired-phones.js';
 import { INBOX_FILE, InboxStore, reviewDigestOf } from '../src/inbox.js';
 import { inboxSignedString } from '../src/inbox-submit.js';
@@ -1150,4 +1150,43 @@ describe('inbox wire vectors, as the router receives them', () => {
       }
     });
   }
+});
+
+describe('the listener reports whether it is advertising', () => {
+  async function started(advertise?: PairingAdvertiser) {
+    const dir = mkdtempSync(join(home, 'adv-'));
+    const running = await startPairing(
+      { enabled: true, host: '127.0.0.1', port: 0 },
+      { dir, pairing: new Pairing(), macName: MAC_NAME, idleMs: IDLE_MS, advertise }
+    );
+    if (!running) throw new Error('an enabled listener did not start');
+    return running;
+  }
+
+  test('advertising is true while an announcement is live, and false once it is withdrawn', async () => {
+    let stopped = false;
+    const running = await started(() => ({
+      stop: async () => {
+        stopped = true;
+      },
+    }));
+    assert.equal(running.advertising, true);
+    await running.close();
+    assert.equal(stopped, true);
+  });
+
+  test('a failed announcement leaves the listener bound and reports it not advertising', async () => {
+    const running = await started(() => {
+      throw new Error('no multicast on this network');
+    });
+    assert.equal(running.advertising, false);
+    assert.ok(running.port > 0, 'the listener is still bound');
+    await running.close();
+  });
+
+  test('with no advertiser passed, nothing is announced and the listener says so', async () => {
+    const running = await started();
+    assert.equal(running.advertising, false);
+    await running.close();
+  });
 });

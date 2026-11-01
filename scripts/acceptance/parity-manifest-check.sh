@@ -439,7 +439,9 @@ while IFS= read -r route; do
 done <<< "$authserver_rows"
 
 # ------------------------------------------------------------------ fixtures
-fixtures_on_disk="$(find "$FIXTURE_DIR" -name '*.json' -exec basename {} .json \; | sort)"
+# capture-manifest.json is the capture script's receipt for the set, not a recording, so it has no
+# row. The F3 gate in TrackerStateMatrixTests holds the set to it.
+fixtures_on_disk="$(find "$FIXTURE_DIR" -name '*.json' ! -name capture-manifest.json -exec basename {} .json \; | sort)"
 fixtures_in_manifest="$(awk -F'\t' '$1 == "fixture" { print $3 }' "$MANIFEST" | sort)"
 
 while IFS= read -r fixture; do

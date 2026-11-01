@@ -1,0 +1,307 @@
+{
+  "version": 1,
+  "projectionVersion": 1,
+  "note": "Initial migration of the existing 30 NO_TARGET declarations. Every entry is unreviewed with no scope, fingerprint or review evidence. None is current verified absence. Checking never updates these records.",
+  "entries": {
+    "planning/features-to-triage/G3-gapfix-2.md#0ca4be0bd172cf4c04db0350446168f165acb398e918324ea8d978149a547680": {
+      "brief": "planning/features-to-triage/G3-gapfix-2.md",
+      "assertionDigest": "0ca4be0bd172cf4c04db0350446168f165acb398e918324ea8d978149a547680",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/G3-gapfix-3.md#f66825af06256060660bb1d574d3b4d07b2d12535ad83c2a1081241dca932294": {
+      "brief": "planning/features-to-triage/G3-gapfix-3.md",
+      "assertionDigest": "f66825af06256060660bb1d574d3b4d07b2d12535ad83c2a1081241dca932294",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/G3-gapfix.md#c7154ee896b3ed983ab5dfbb8390b62389260b85697916bd13ef660a28ad1116": {
+      "brief": "planning/features-to-triage/G3-gapfix.md",
+      "assertionDigest": "c7154ee896b3ed983ab5dfbb8390b62389260b85697916bd13ef660a28ad1116",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/G4-gapfix-2.md#9620a70c3d713bacf68db4d90b67751b42f39b60a6626cb97b768313ddf47b50": {
+      "brief": "planning/features-to-triage/G4-gapfix-2.md",
+      "assertionDigest": "9620a70c3d713bacf68db4d90b67751b42f39b60a6626cb97b768313ddf47b50",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/G4-gapfix.md#6aa8459f3737c43c1f834d37b589aa4d7a99a2bb1298b3a3ca0f019963575277": {
+      "brief": "planning/features-to-triage/G4-gapfix.md",
+      "assertionDigest": "6aa8459f3737c43c1f834d37b589aa4d7a99a2bb1298b3a3ca0f019963575277",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/G5-gapfix-2.md#a6e8a8fb571d3c66af8c7d47f32bc6a7bd2747213d7cd2ae6c2482ff5f44d3a7": {
+      "brief": "planning/features-to-triage/G5-gapfix-2.md",
+      "assertionDigest": "a6e8a8fb571d3c66af8c7d47f32bc6a7bd2747213d7cd2ae6c2482ff5f44d3a7",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/M15-gapfix.md#20f2a191bd22e1b6dcfbe65d7ca8c5ea273d00caeb8362d58419b146ecb04c58": {
+      "brief": "planning/features-to-triage/M15-gapfix.md",
+      "assertionDigest": "20f2a191bd22e1b6dcfbe65d7ca8c5ea273d00caeb8362d58419b146ecb04c58",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/M23-gapfix-2.md#fee6cd6d01b98b46da70795a715c855ea9785b20aec071e53c30262d615a3337": {
+      "brief": "planning/features-to-triage/M23-gapfix-2.md",
+      "assertionDigest": "fee6cd6d01b98b46da70795a715c855ea9785b20aec071e53c30262d615a3337",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/M23-gapfix-3.md#96523d62de8f08de1b0681cfbe3e00982c1adda76dca614fe5ceb0c840a2a378": {
+      "brief": "planning/features-to-triage/M23-gapfix-3.md",
+      "assertionDigest": "96523d62de8f08de1b0681cfbe3e00982c1adda76dca614fe5ceb0c840a2a378",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/M23-gapfix-4.md#1067901775b462c0c1ec03e052cc59041f6770a6c6584ef2932b1be451d5a883": {
+      "brief": "planning/features-to-triage/M23-gapfix-4.md",
+      "assertionDigest": "1067901775b462c0c1ec03e052cc59041f6770a6c6584ef2932b1be451d5a883",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/M23-gapfix-5.md#dfa391440716458f8218608155dc50571fa675fe1e7f870d902e8f0c79660ef6": {
+      "brief": "planning/features-to-triage/M23-gapfix-5.md",
+      "assertionDigest": "dfa391440716458f8218608155dc50571fa675fe1e7f870d902e8f0c79660ef6",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/M23-gapfix-6.md#ba8f17805f3d396f1eac57808859ccae27f897199b407ebfa4bd7b658ba26ccd": {
+      "brief": "planning/features-to-triage/M23-gapfix-6.md",
+      "assertionDigest": "ba8f17805f3d396f1eac57808859ccae27f897199b407ebfa4bd7b658ba26ccd",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/M23-gapfix-7.md#4e3a9175f1ab4091d89c4f3ee841110eede56a125e59c2c595ac635b6729c7ee": {
+      "brief": "planning/features-to-triage/M23-gapfix-7.md",
+      "assertionDigest": "4e3a9175f1ab4091d89c4f3ee841110eede56a125e59c2c595ac635b6729c7ee",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/M23-gapfix-8.md#c75e53b4c587d877d242a6a941cd97cb967488eabd88f6d6203e8f98eaee4192": {
+      "brief": "planning/features-to-triage/M23-gapfix-8.md",
+      "assertionDigest": "c75e53b4c587d877d242a6a941cd97cb967488eabd88f6d6203e8f98eaee4192",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/M23-gapfix.md#34fba491f7ccd33f7e4bab45230f9eaae5a436ae50ed4bbdc2523076cf24ffbc": {
+      "brief": "planning/features-to-triage/M23-gapfix.md",
+      "assertionDigest": "34fba491f7ccd33f7e4bab45230f9eaae5a436ae50ed4bbdc2523076cf24ffbc",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/R17-gapfix-2.md#7afa4825486e310cdae27cf8ec0fee8e80d301497d48c9c90793d79841ec8dfd": {
+      "brief": "planning/features-to-triage/R17-gapfix-2.md",
+      "assertionDigest": "7afa4825486e310cdae27cf8ec0fee8e80d301497d48c9c90793d79841ec8dfd",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/R17-gapfix-3.md#a02638e27160f6d826f4c2b2608fa836ed766b6c89e4ca71472d39262aa6a734": {
+      "brief": "planning/features-to-triage/R17-gapfix-3.md",
+      "assertionDigest": "a02638e27160f6d826f4c2b2608fa836ed766b6c89e4ca71472d39262aa6a734",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/R17-gapfix-4.md#62b634d58622e4e29258e2150a72386d03bd9fc5b9e27649ea39d59df9e119d1": {
+      "brief": "planning/features-to-triage/R17-gapfix-4.md",
+      "assertionDigest": "62b634d58622e4e29258e2150a72386d03bd9fc5b9e27649ea39d59df9e119d1",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/R17-gapfix.md#e1adf6126d4d9508da945fbe0da6ee05b9a512c7a48ad944a3361214910d4802": {
+      "brief": "planning/features-to-triage/R17-gapfix.md",
+      "assertionDigest": "e1adf6126d4d9508da945fbe0da6ee05b9a512c7a48ad944a3361214910d4802",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/R7-gapfix-2.md#6acfe9a55d014e91bfa88ec94d758705a34570ddb23d91482d7d076c8329e6cd": {
+      "brief": "planning/features-to-triage/R7-gapfix-2.md",
+      "assertionDigest": "6acfe9a55d014e91bfa88ec94d758705a34570ddb23d91482d7d076c8329e6cd",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/R7-gapfix.md#6345c4358f9d94e9df180362991b8f07d288b00d2b35e6c9b0d2139ba7162740": {
+      "brief": "planning/features-to-triage/R7-gapfix.md",
+      "assertionDigest": "6345c4358f9d94e9df180362991b8f07d288b00d2b35e6c9b0d2139ba7162740",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/a-control-that-plants-a-defect-leaves-it-there-if-it-is-killed.md#23b4772862ff9d0a55a2cea3e045604169ab5c7d9cff41282db4469858a1b221": {
+      "brief": "planning/features-to-triage/a-control-that-plants-a-defect-leaves-it-there-if-it-is-killed.md",
+      "assertionDigest": "23b4772862ff9d0a55a2cea3e045604169ab5c7d9cff41282db4469858a1b221",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/a-killed-gate-strands-its-mutation-in-the-tree.md#29e565782fbe42ea3b52901c5e6fc0b26750102d68106302af1aceab9519207c": {
+      "brief": "planning/features-to-triage/a-killed-gate-strands-its-mutation-in-the-tree.md",
+      "assertionDigest": "29e565782fbe42ea3b52901c5e6fc0b26750102d68106302af1aceab9519207c",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/a-killed-mutation-run-leaves-a-mutation-git-status-cannot-show.md#2ddf4d143b55346ca27abb32b285b77c3f0310fcd71f2d649ca528fb48486e3e": {
+      "brief": "planning/features-to-triage/a-killed-mutation-run-leaves-a-mutation-git-status-cannot-show.md",
+      "assertionDigest": "2ddf4d143b55346ca27abb32b285b77c3f0310fcd71f2d649ca528fb48486e3e",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/a-second-inertness-clause-is-unfailable-for-the-same-reason.md#216a0188be9ce10bd7cc60f05e113d51d5e2cfda326136d337aee38c5f4ddca2": {
+      "brief": "planning/features-to-triage/a-second-inertness-clause-is-unfailable-for-the-same-reason.md",
+      "assertionDigest": "216a0188be9ce10bd7cc60f05e113d51d5e2cfda326136d337aee38c5f4ddca2",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/a-verification-lane-ran-in-the-writers-own-family.md#595176358bc82c794b788c89cd5e0829bad55436fedfe95a5afa158241dde16a": {
+      "brief": "planning/features-to-triage/a-verification-lane-ran-in-the-writers-own-family.md",
+      "assertionDigest": "595176358bc82c794b788c89cd5e0829bad55436fedfe95a5afa158241dde16a",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/build-description-report-on-swiftbuild.md#3d385ae5a973e574f873e4ffa20da669f99ec561aa8973951907fefc0b0e788c": {
+      "brief": "planning/features-to-triage/build-description-report-on-swiftbuild.md",
+      "assertionDigest": "3d385ae5a973e574f873e4ffa20da669f99ec561aa8973951907fefc0b0e788c",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/gates-ran-with-their-verdict-discarded.md#4002e76349cc08499a641b2b50b986384895fea96a65b44fe5edb58aed4c84ca": {
+      "brief": "planning/features-to-triage/gates-ran-with-their-verdict-discarded.md",
+      "assertionDigest": "4002e76349cc08499a641b2b50b986384895fea96a65b44fe5edb58aed4c84ca",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/the-carrier-gate-pins-a-landing-to-a-sha-that-keeps-moving.md#5c8c6e4a167415792bd45698faf4813e9af52ac1315bba10665e6d7229f20ea2": {
+      "brief": "planning/features-to-triage/the-carrier-gate-pins-a-landing-to-a-sha-that-keeps-moving.md",
+      "assertionDigest": "5c8c6e4a167415792bd45698faf4813e9af52ac1315bba10665e6d7229f20ea2",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    },
+    "planning/features-to-triage/the-ledger-gate-nothing-runs-and-nothing-checks-against-git.md#8d3eca91b4b7a280a362dc02d5dd799bbbbf9888c56e645f386686b89a319364": {
+      "brief": "planning/features-to-triage/the-ledger-gate-nothing-runs-and-nothing-checks-against-git.md",
+      "assertionDigest": "8d3eca91b4b7a280a362dc02d5dd799bbbbf9888c56e645f386686b89a319364",
+      "state": "unreviewed",
+      "scope": null,
+      "projectionVersion": 1,
+      "projectionDigest": null,
+      "review": null,
+      "projection": null
+    }
+  }
+}

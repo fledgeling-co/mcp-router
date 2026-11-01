@@ -56,6 +56,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -64,8 +65,8 @@ for _stream in (sys.stdout, sys.stderr):
     if hasattr(_stream, "reconfigure"):
         _stream.reconfigure(encoding="utf-8")
 
-CAMPAIGN = Path(__file__).resolve().parent.parent
-ROOT = CAMPAIGN.parent.parent
+ROOT = Path(os.environ.get("MCP_ROUTER_GLASS_REPO_ROOT", Path(__file__).resolve().parents[3])).resolve()
+CAMPAIGN = Path(os.environ.get("MCP_ROUTER_GLASS_CAMPAIGN", ROOT / "planning/test-campaign")).resolve()
 RECORD = CAMPAIGN / "evidence/ax/glass-build.json"
 CASES = CAMPAIGN / "cases.json"
 MANIFEST = CAMPAIGN / "evidence/shots/captures.json"

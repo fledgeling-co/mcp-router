@@ -15,14 +15,23 @@
 # invisible because the filename was the only thing binding a picture to a
 # surface. `capture-lineage.py --gate` reads the manifest this writes.
 set -euo pipefail
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-CAMPAIGN="$ROOT/planning/test-campaign"
-AXKIT="$CAMPAIGN/bin/axkit"
-MAC_APP="$ROOT/app/.derived/Build/Products/Debug/MCPRouter.app"
+ROOT="${MCP_ROUTER_GLASS_REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)}"
+CAMPAIGN="${MCP_ROUTER_GLASS_CAMPAIGN:-$ROOT/planning/test-campaign}"
+AXKIT="${MCP_ROUTER_GLASS_AXKIT:-$CAMPAIGN/bin/axkit}"
+MAC_APP="${MCP_ROUTER_GLASS_APP:-$ROOT/app/.derived/Build/Products/Debug/MCPRouter.app}"
+export MCP_ROUTER_GLASS_REPO_ROOT="$ROOT" MCP_ROUTER_GLASS_CAMPAIGN="$CAMPAIGN"
 SHOTS="$CAMPAIGN/evidence/shots"
 AX="$CAMPAIGN/evidence/ax"
 MANIFEST="$SHOTS/captures.json"
 LOG="$CAMPAIGN/evidence/runs/mac-glass-capture.log"
+if [ "${1:-}" = "--print-config" ]; then
+  printf 'ROOT=%s\nCAMPAIGN=%s\nAXKIT=%s\nMAC_APP=%s\n' "$ROOT" "$CAMPAIGN" "$AXKIT" "$MAC_APP"
+  exit 0
+fi
+APP_ENV=()
+for key in MCP_ROUTER_HOME MCP_ROUTER_URL; do
+  if [ -n "${!key:-}" ]; then APP_ENV+=("$key=${!key}"); fi
+done
 # shellcheck source=scripts/acceptance/mac-app.sh
 source "$ROOT/scripts/acceptance/mac-app.sh"
 
@@ -37,7 +46,7 @@ exec > >(tee "$LOG") 2>&1
 FRONT_BEFORE="$("$AXKIT" front)"
 echo "frontmost before: $FRONT_BEFORE"
 
-mac_app_launch "$MAC_APP" "$AXKIT" "MCPROUTER_SCENARIO=populated"
+mac_app_launch "$MAC_APP" "$AXKIT" "MCPROUTER_SCENARIO=populated" ${APP_ENV[@]+"${APP_ENV[@]}"}
 echo "attached pid=$PID"
 WINID="$("$AXKIT" winid "$PID")"
 echo "winid=$WINID"
@@ -65,7 +74,7 @@ capture() {
   local front_at_shutter
   front_at_shutter="$("$AXKIT" front)"
   FRONT_SHUTTER="$front_at_shutter"
-  if [ "$front_at_shutter" = "MCPRouter" ]; then
+  if [ "$front_at_shutter" = "MCPRouter" ] || [ "$front_at_shutter" = "MCP Router" ]; then
     echo "FAIL $name: MCPRouter was frontmost at the shutter — this campaign never activates it"
     exit 1
   fi
@@ -409,7 +418,7 @@ relaunch_and_capture() {
   local scenario="$1" name="$2" subject="$3" destination="${4:-Servers}"
   "$AXKIT" terminate "$PID" || true
   mac_app_wait_gone "$MAC_APP"
-  mac_app_launch "$MAC_APP" "$AXKIT" "MCPROUTER_SCENARIO=$scenario"
+  mac_app_launch "$MAC_APP" "$AXKIT" "MCPROUTER_SCENARIO=$scenario" ${APP_ENV[@]+"${APP_ENV[@]}"}
   WINID="$("$AXKIT" winid "$PID")"
   "$AXKIT" select "$PID" "$destination" || true
   sleep 0.5
@@ -423,6 +432,25 @@ relaunch_and_capture offline SURF-002.offline SURF-002
 # no skills at all: the `Read first…` substitution and the disabled skill-kind `Remove…` had no
 # rendered path in any build, only in tests that construct a reading directly.
 relaunch_and_capture cleanupSkills SURF-007.cleanup-skills SURF-007 Cleanup
+
+# The sheet that `Read first…` opens, from the row that draws it.
+#
+# Reachable only from the state above — the button exists on a flagged skill row and no scenario
+# but `cleanupSkills` puts one on the board. Pressed rather than assumed: `axkit press` is
+# background-safe on a SwiftUI Button because AXPress runs the action on the element and needs no
+# focused scene, and a press that does not take exits non-zero, so the sheet is either photographed
+# or reported uncaptured. Its own Leave it button closes it without a keyboard event.
+echo "try provenance sheet"
+if "$AXKIT" press "$PID" "Read first" >/dev/null 2>&1; then
+  sleep 0.6
+  "$AXKIT" dump "$PID" window > "$AX/SURF-007.provenance-sheet.window.txt"
+  SCENARIO=cleanupSkills capture SURF-007.provenance-sheet SURF-007 READBACK
+  "$AXKIT" press "$PID" "Leave it"
+  sleep 0.3
+else
+  echo "  Read first… was not pressable in the background — provenance sheet uncaptured,"
+  echo "  and no picture is filed under it."
+fi
 
 # The Harnesses board's other two states.
 #
@@ -444,25 +472,6 @@ relaunch_and_capture offline SURF-025.failure SURF-025 Harnesses
 # instead of drawing a flat chart that implies a quiet day. `offline` is the read failing.
 relaunch_and_capture empty   SURF-026.empty   SURF-026 Insights
 relaunch_and_capture offline SURF-026.failure SURF-026 Insights
-
-# The sheet that `Read first…` opens, from the row that draws it.
-#
-# Reachable only from the state above — the button exists on a flagged skill row and no scenario
-# but `cleanupSkills` puts one on the board. Pressed rather than assumed: `axkit press` is
-# background-safe on a SwiftUI Button because AXPress runs the action on the element and needs no
-# focused scene, and a press that does not take exits non-zero, so the sheet is either photographed
-# or reported uncaptured. Escape closes it again so the app is left where the board was.
-echo "try provenance sheet"
-if "$AXKIT" press "$PID" "Read first" >/dev/null 2>&1; then
-  sleep 0.6
-  "$AXKIT" dump "$PID" window > "$AX/SURF-007.provenance-sheet.window.txt"
-  SCENARIO=cleanupSkills capture SURF-007.provenance-sheet SURF-007 READBACK
-  "$AXKIT" key "$PID" 53 || true
-  sleep 0.3
-else
-  echo "  Read first… was not pressable in the background — provenance sheet uncaptured,"
-  echo "  and no picture is filed under it."
-fi
 
 "$AXKIT" terminate "$PID" || true
 mac_app_wait_gone "$MAC_APP"

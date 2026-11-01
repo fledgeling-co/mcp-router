@@ -1707,7 +1707,7 @@
       "source": "planning/features-to-triage/R14-client-auth-succeeds-and-reports-upstreams.md",
       "evidence": "observed",
       "effect": "none",
-      "provider": "src/oauth.ts; app/Sources/RouterCore/AuthServer/AuthServerPage.swift"
+      "provider": "src/oauth.ts"
     },
     {
       "id": "REQ-023",
@@ -1716,7 +1716,7 @@
       "source": "planning/features-to-triage/R14-client-auth-succeeds-and-reports-upstreams.md",
       "evidence": "observed",
       "effect": "none",
-      "provider": "app/Sources/RouterCore/AuthServer/UpstreamStateReport.swift; src/oauth.ts"
+      "provider": "src/oauth.ts"
     },
     {
       "id": "REQ-024",

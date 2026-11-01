@@ -327,9 +327,10 @@ async signature: `PhoneShell` (A30), `PhoneMetric` (A29), `InMemoryCapabilityQue
 ### The Library
 
 **A20 — the Library lists servers, and states the skills absence as a fact.**
-There is no skills index and no `/skills` route. The absence is one quiet block stating that the
-router publishes no skills endpoint and that the Mac's Skills board is where they appear. It is not
-an empty list, not a disabled filter, and not a "coming soon".
+The phone Library reads declared servers only. Its quiet skills block states this consumer's
+scope and directs skills review to the Mac's Skills board. The router does serve `/skills`;
+the phone does not read that index here. This is not an empty list, a disabled filter or a
+"coming soon" promise.
 
 **A21 — every fact on a Library row is a named `MCPServer` field, and the never-started case is not
 rendered as a freshness.**
@@ -533,7 +534,7 @@ A single-section list needs no header.
 | `subtitle` | {count} servers · read-only from here |
 | `filterPlaceholder` | Filter |
 | `skillsAbsentHeadline` | Skills are not listed here. |
-| `skillsAbsentBody` | The router publishes no skills endpoint, so this phone has nothing to read. Your Mac's Skills board is the only place they appear. |
+| `skillsAbsentBody` | This phone's Library lists servers only. Use the Skills board on your Mac to review installed skills. |
 | `footer` | Adding, changing and removing all happen at your Mac. This is the same list, so you know what you are carrying. |
 
 ## State matrix — Triage (A24)

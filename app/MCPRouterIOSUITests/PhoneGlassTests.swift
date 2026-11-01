@@ -371,6 +371,23 @@ final class PhoneGlassTests: XCTestCase {
         )
     }
 
+    func testLibrarySkillsCopyDescribesThePhoneScope() {
+        let app = launch(scenario: "populated")
+        defer { app.terminate() }
+        _ = selectTab("Library", in: app)
+        let reason = "This phone's Library lists servers only. "
+            + "Use the Skills board on your Mac to review installed skills."
+        XCTAssertTrue(app.staticTexts[reason].waitForExistence(timeout: 10))
+        let falseClaim = app.staticTexts.matching(
+            NSPredicate(format: "label CONTAINS[c] %@", "publishes no skills endpoint")
+        )
+        XCTAssertEqual(falseClaim.count, 0)
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "LIBRARY-SKILLS-SCOPE"
+        shot.lifetime = .keepAlways
+        add(shot)
+    }
+
     // MARK: - SURF-014 · pairing
 
     /// REQ-015, SURF-014. The pairing surface, reached the way a person reaches it, and its two

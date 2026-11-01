@@ -274,3 +274,21 @@ One thing worth stating plainly for whoever merges: `git diff main --name-only` 
 `ORCHESTRATOR.md`, and that is **main's** change, not this branch's. The files this item's own commits
 touch contain neither `ORCHESTRATOR.md` nor `scripts/acceptance/parity-gate.sh`, verified against the
 merge base rather than against a moving tip.
+
+
+## 2026-11-02: Library skills capability wording
+
+The authenticated TypeScript `GET /skills` route and `LiveControlAPIClient.skills()` exist.
+Phone Library still calls only `servers()`. A20's old endpoint-absence premise therefore no
+longer describes the producer. The copy and current spec now state the phone consumer's scope
+and direct installed-skills review to the Mac, without promising a future phone feature.
+
+| Screen | Verification | Source | Result |
+|---|---|---|---|
+| Phone Library skills note | `PhoneGlassTests/testLibrarySkillsCopyDescribesThePhoneScope`, owned iPhone 17 Pro Simulator/iOS 27.0 | Source hashes and attribution in [the observation record](phone-library-skills-copy/observations.json) | One XCUITest passed; corrected text present and old endpoint claim absent |
+| Copy manifest | `swift test --package-path app --jobs 2 --filter TriageCopyManifestTests` | Same LibraryCopy source | Fourteen tests passed |
+
+The [fresh Library capture](phone-library-skills-copy/library.png) was visually inspected.
+The raw native bundle is `/tmp/mcpr-tab-identifiers-20261102/library-skills-copy.xcresult`.
+Other screens and physical devices were not re-tested. Fixture data is not live-service acceptance.
+Historical campaign case statuses are unchanged.

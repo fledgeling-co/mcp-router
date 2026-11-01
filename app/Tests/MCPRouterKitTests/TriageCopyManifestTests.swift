@@ -246,14 +246,14 @@ struct TriageCopyManifestTests {
 
     // MARK: - A20: the skills absence is stated as a fact
 
-    /// Not an empty list, not a disabled filter, and not a "coming soon" — there is no skills index
-    /// and no `/skills` route, and the copy says so.
-    @Test("the skills absence names the router and points at the Mac, and promises nothing")
+    /// State this consumer’s scope without denying the router’s existing skills endpoint.
+    @Test("the skills absence names the phone’s scope, points at the Mac and promises nothing")
     func skillsAbsenceIsAFact() {
         let entry = LibraryCopy.entry(.state(.skillsAbsent))
         let text = ((entry.headline ?? "") + " " + entry.body).lowercased()
 
-        #expect(text.contains("skills"))
+        #expect(text.contains("skills") && text.contains("this phone") && text.contains("mac"))
+        #expect(!text.contains("no skills endpoint"))
         for phrase in ["coming soon", "not yet", "in a future", "will be added", "support for"] {
             #expect(!text.contains(phrase), "the skills absence promises a future: \(phrase)")
         }

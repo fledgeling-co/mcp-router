@@ -74,6 +74,25 @@ class AbsenceReviewControls(unittest.TestCase):
         self.assertEqual(result["class"], "STALE_ABSENCE")
         self.assertEqual(result["advisory"], [], "registry links do not manufacture brief back-references")
 
+    def test_actual_cmp_component_dependency_and_comp_compatibility(self):
+        # inventory.component uses CMP-001..CMP-008; keep the older COMP spelling usable too.
+        for prefix in ("CMP", "COMP"):
+            with self.subTest(prefix=prefix):
+                config = copy.deepcopy(self.config)
+                config["scopes"]["windows-client"]["anyText"].append("await scanner")
+                component = {"where": "inventory.component", "kind": "component", "row": {
+                    "id": prefix + "-999", "name": "Await scanner"}}
+                rows = self.rows + [component]
+                record = copy.deepcopy(self.reviews["entries"][self.key])
+                pinned = A.projection(config, rows, self.brief, "windows-client")
+                record["projectionDigest"], record["projection"] = pinned["digest"], pinned["value"]
+                rows.append({"where": "cases.json", "kind": "case", "row": {
+                    "id": "CASE-9999", "component": prefix + "-999", "oracle": "A generic check."}})
+                result = self.assess(config=config, rows=rows, reviews={"entries": {self.key: record}})
+                self.assertEqual(result["class"], "STALE_ABSENCE")
+                self.assertEqual(result["delta"]["added"], [["cases.json", "case", "CASE-9999"]])
+                self.assertEqual(result["advisory"], [])
+
     def test_generic_case_linked_to_unrelated_surface_is_silent(self):
         self.rows.append({"where": "cases.json", "kind": "case", "row": {
             "id": "CASE-003", "surface": "SURF-002", "oracle": "The requested navigation appears."}})

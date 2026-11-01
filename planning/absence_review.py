@@ -24,7 +24,7 @@ SUBJECT_FIELDS = ("title", "text", "name", "description", "slug", "oracle", "cel
 REFERENCE_FIELDS = ("note", "title", "evidence", "source", "detail")
 RELATION_FIELDS = ("req", "surface", "flow", "component", "surfaces", "requirements", "components", "flows")
 FIELDS = tuple(sorted(set(SUBJECT_FIELDS + REFERENCE_FIELDS + RELATION_FIELDS)))
-REGISTRY_ID = re.compile(r"\b(?:REQ|CASE|DEF|SURF|FLOW|COMP)-\d+\b")
+REGISTRY_ID = re.compile(r"\b(?:REQ|CASE|DEF|SURF|FLOW|CMP|COMP)-\d+\b")
 REGISTRIES = (("cases.json", "case"), ("cases.in.json", "case"),
               ("requirements.in.json", "requirement"), ("surfaces.in.json", "surface"),
               ("defects.in.json", "defect"), ("flows.in.json", "flow"),

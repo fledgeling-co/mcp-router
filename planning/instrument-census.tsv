@@ -66,6 +66,7 @@ app/Tests/MCPRouterKitTests/MenuReasonBadgePairingTests.swift	swift-suite	app/Te
 app/Tests/MCPRouterKitTests/MockTokenLiteralTests.swift	swift-suite	app/Tests/MCPRouterKitTests/MockTokenLiteralTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/MockTokenMetricMapTests.swift	swift-suite	app/Tests/MCPRouterKitTests/MockTokenMetricMapTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/MockTokenParityTests.swift	swift-suite	app/Tests/MCPRouterKitTests/MockTokenParityTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterKitTests/NetworkPairingSocketTests.swift	swift-suite	app/Tests/MCPRouterKitTests/NetworkPairingSocketTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/NetworkPairingTransportTests.swift	swift-suite	app/Tests/MCPRouterKitTests/NetworkPairingTransportTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingBehaviourTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingBehaviourTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingCodeTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingCodeTests.swift	swift	compiled and run by `swift test`	make:test
@@ -392,6 +393,7 @@ scripts/e2e-shutdown.mjs	gate	scripts/e2e-shutdown.mjs	node	argv ["node", …]	-
 scripts/e2e.mjs	gate	scripts/e2e.mjs	static	no router invocation matched	-
 scripts/fixtures/call-through-router.mjs	gate	scripts/fixtures/call-through-router.mjs	static	no router invocation matched	scripts/capture-control-fixtures.sh
 scripts/fixtures/mcp-fixture-server.mjs	gate	scripts/fixtures/mcp-fixture-server.mjs	static	no router invocation matched	scripts/capture-control-fixtures.sh
+scripts/fixtures/pairing-socket-peer.py	gate	scripts/fixtures/pairing-socket-peer.py	static	no router invocation matched	-
 scripts/fixtures/registry-fixture-server.mjs	gate	scripts/fixtures/registry-fixture-server.mjs	static	no router invocation matched	-
 scripts/fixtures/slow-failing-server.mjs	gate	scripts/fixtures/slow-failing-server.mjs	static	no router invocation matched	-
 scripts/fixtures/slow-mcp-server.mjs	gate	scripts/fixtures/slow-mcp-server.mjs	static	no router invocation matched	-

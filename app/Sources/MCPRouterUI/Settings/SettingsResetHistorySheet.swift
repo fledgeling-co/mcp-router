@@ -44,7 +44,7 @@
                 HStack {
                     Spacer(minLength: 0)
                     Button(model.resetAcknowledgement == nil ? "Cancel" : "Close") {
-                        model.cancelHistoryReset()
+                        Task { await model.cancelHistoryReset() }
                     }
                     .buttonStyle(StandardButtonStyle())
                     .keyboardShortcut(.cancelAction)

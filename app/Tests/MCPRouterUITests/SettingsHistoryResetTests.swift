@@ -26,7 +26,7 @@
             let model = SettingsWindowModel(store: InMemoryTokenStore(), client: client)
             model.requestHistoryReset()
             #expect(model.sheet == .resetHistory)
-            model.cancelHistoryReset()
+            await model.cancelHistoryReset()
             await model.resetHistory()
             #expect(client.calls.usageResets == 0 && client.calls.usageSummaryReads == 0)
         }
@@ -47,7 +47,7 @@
             try await ShellTestSupport.waitUntil { client.calls.usageResets == 1 }
             #expect(model.isResetting && model.sheet == .resetHistory && model.resetNotice == nil)
             await model.resetHistory()
-            model.cancelHistoryReset()
+            await model.cancelHistoryReset()
             #expect(model.sheet == .resetHistory && client.calls.usageResets == 1)
             await script.releaseReset()
             await first.value
@@ -61,7 +61,7 @@
             #expect(model.resetNotice?.contains(Self.since) == true)
             model.requestHistoryReset()
             #expect(model.resetNotice == nil && model.resetSummary == nil)
-            model.cancelHistoryReset()
+            await model.cancelHistoryReset()
             #expect(client.calls.usageResets == 1)
         }
 
@@ -103,6 +103,50 @@
             #expect(client.calls.usageResets == 1 && client.calls.usageSummaryReads == 2)
             #expect(model.sheet == .resetHistory && model.resetError != nil)
             #expect(model.resetAcknowledgement?.since == "unreadable-time")
+        }
+
+        @Test(
+            "closing after acknowledged reset and failed readback refreshes views without another write"
+        )
+        func closeAfterAcknowledgementRefreshes() async {
+            let script = ResetScript()
+            await script.allowResetAndRefuseRead()
+            let client = Self.client(script)
+            var refreshes = 0
+            let model = SettingsWindowModel(
+                store: InMemoryTokenStore(), client: client,
+                refreshHistory: { refreshes += 1 }
+            )
+            model.requestHistoryReset()
+            await model.resetHistory()
+            #expect(model.resetAcknowledgement != nil && model.resetError != nil)
+            #expect(refreshes == 0 && model.resetNotice == nil)
+            await model.cancelHistoryReset()
+            #expect(refreshes == 1 && model.sheet == nil)
+            #expect(model.resetSummary == nil)
+            #expect(model.resetNotice?.contains("accepted") == true)
+            #expect(model.resetNotice?.contains("Counting since") == false)
+            await model.cancelHistoryReset()
+            #expect(refreshes == 1 && client.calls.usageResets == 1)
+        }
+
+        @Test("closing a refused or uncertain write refreshes views but never claims a completed reset")
+        func closeAfterWriteFailureRefreshes() async {
+            let script = ResetScript()
+            await script.refuseReset()
+            let client = Self.client(script)
+            var refreshes = 0
+            let model = SettingsWindowModel(
+                store: InMemoryTokenStore(), client: client,
+                refreshHistory: { refreshes += 1 }
+            )
+            model.requestHistoryReset()
+            await model.resetHistory()
+            await model.cancelHistoryReset()
+            #expect(refreshes == 1 && client.calls.usageResets == 1)
+            #expect(model.resetAcknowledgement == nil && model.resetSummary == nil)
+            #expect(model.resetNotice?.contains("could not be verified") == true)
+            #expect(model.resetNotice?.contains("History was reset") == false)
         }
 
         @Test("older readback and a false acknowledgement cannot certify a reset")

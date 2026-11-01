@@ -28,10 +28,17 @@
         private(set) var resetError: ControlAPIError?
         private(set) var resetSummary: UsageSummary?
         private(set) var resetAcknowledgement: UsageReset?
+        private var resetAttempted = false
 
         var resetNotice: String? {
-            guard let resetSummary else { return nil }
-            return "History was reset. Counting since \(resetSummary.since)."
+            if let resetSummary {
+                return "History was reset. Counting since \(resetSummary.since)."
+            }
+            guard sheet != .resetHistory, resetAttempted else { return nil }
+            if resetAcknowledgement != nil {
+                return "The router accepted the history reset. Updated history could not be verified."
+            }
+            return "The history reset could not be verified. Current readings may be incomplete."
         }
 
         func requestHistoryReset() {
@@ -39,12 +46,19 @@
             resetError = nil
             resetSummary = nil
             resetAcknowledgement = nil
+            resetAttempted = false
             sheet = .resetHistory
         }
 
-        func cancelHistoryReset() {
-            guard !isResetting else { return }
+        func cancelHistoryReset() async {
+            guard sheet == .resetHistory, !isResetting else { return }
             sheet = nil
+            guard resetAttempted else { return }
+            // Even a refused/uncertain write may have erased part of the history. Reload other
+            // views rather than leaving their pre-reset rows looking like current observations.
+            isResetting = true
+            defer { isResetting = false }
+            await refreshHistory()
         }
 
         func resetHistory() async {
@@ -58,6 +72,7 @@
             defer { isResetting = false }
             do throws(ControlAPIError) {
                 if resetAcknowledgement == nil {
+                    resetAttempted = true
                     let result = try await client.resetUsage()
                     guard result.ok else {
                         throw ControlAPIError

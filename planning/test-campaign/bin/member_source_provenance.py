@@ -12,6 +12,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import sys
 import tempfile
 import xml.etree.ElementTree as ET
 
@@ -374,6 +375,11 @@ def selftest() -> None:
 
 
 def main() -> int:
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding='utf-8', errors='replace')
+        except (AttributeError, ValueError):
+            pass
     parser = argparse.ArgumentParser()
     parser.add_argument('--selftest', action='store_true')
     parser.add_argument('--json', action='store_true')

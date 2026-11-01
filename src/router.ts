@@ -387,6 +387,7 @@ export async function startRouter(
   const token = controlToken();
   const liveReload = new LiveReload();
   const pairing = new Pairing();
+  const inbox = new InboxStore(join(ROUTER_HOME, INBOX_FILE));
   const deps = {
     cfg,
     upstreams,
@@ -397,7 +398,7 @@ export async function startRouter(
     pairing,
     routerHome: ROUTER_HOME,
     extensions: new ExtensionStore(join(ROUTER_HOME, 'extensions')),
-    inbox: new InboxStore(join(ROUTER_HOME, INBOX_FILE)),
+    inbox,
     claudeHome: join(homedir(), '.claude'),
     harnesses: diskHarnessInventory(),
     analyst: new AnalystEngine({
@@ -552,7 +553,7 @@ export async function startRouter(
    */
   let pairingListener: RunningPairingListener | undefined;
   try {
-    pairingListener = await startPairing(cfg.pairing, { dir: ROUTER_HOME, pairing, advertise: createBonjourAdvertiser() });
+    pairingListener = await startPairing(cfg.pairing, { dir: ROUTER_HOME, pairing, inbox, advertise: createBonjourAdvertiser() });
   } catch (err) {
     http.close();
     throw err;

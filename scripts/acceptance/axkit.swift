@@ -205,6 +205,9 @@ case "front":
     // The guard the whole gate rests on: if this ever answers "MCP Router", the run took the screen.
     print(NSWorkspace.shared.frontmostApplication?.localizedName ?? "?")
 
+case "front-pid":
+    print(NSWorkspace.shared.frontmostApplication?.processIdentifier ?? -1)
+
 case "windows":
     // Every window this app has, by title — the reading a second window makes necessary. Printed
     // rather than asserted: which windows are open is the fact a caller is trying to establish.

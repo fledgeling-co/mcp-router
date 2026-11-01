@@ -71,11 +71,16 @@ capture() {
   # never activated, and that is a fact about MCPRouter rather than about whichever app the
   # window server promoted while a launch and a terminate went past. Sampled here so every
   # capture carries its own answer instead of the run carrying one for all of them.
-  local front_at_shutter
+  local front_at_shutter front_pid
   front_at_shutter="$("$AXKIT" front)"
+  front_pid="$("$AXKIT" front-pid)"
+  case "$front_pid" in
+    ''|*[!0-9]*) echo "FAIL $name: frontmost process identity is unavailable"; exit 1 ;;
+  esac
   FRONT_SHUTTER="$front_at_shutter"
-  if [ "$front_at_shutter" = "MCPRouter" ] || [ "$front_at_shutter" = "MCP Router" ]; then
-    echo "FAIL $name: MCPRouter was frontmost at the shutter — this campaign never activates it"
+  FRONT_SHUTTER_PID="$front_pid"
+  if [ "$front_pid" = "$PID" ]; then
+    echo "FAIL $name: target pid=$PID ($front_at_shutter) was frontmost at the shutter — this campaign never activates it"
     exit 1
   fi
   screencapture -x -l"$winid" "$dest"
@@ -87,7 +92,7 @@ capture() {
   fi
   SUBJECT="$subject" NAME="$name" DEST="$dest" TITLE="$title" FRAME="$frame" \
   WANT="$want" WINID="$winid" PID="$PID" APP="$MAC_APP" SHARES="$shares" \
-  FRONT="$front_at_shutter" \
+  FRONT="$front_at_shutter" FRONT_PID="$front_pid" \
   REASON="$reason" MANIFEST_NDJSON="$SHOTS/.captures.ndjson" python3 - <<'PY'
 import hashlib, json, os, datetime, pathlib
 dest = pathlib.Path(os.environ["DEST"])
@@ -111,6 +116,7 @@ entry = {
     "conditions": {"windowTitleReadback": title, "frame": os.environ["FRAME"],
                    "cgWindowID": os.environ["WINID"], "appearance": "system",
                    "frontmostAtShutter": os.environ.get("FRONT", ""),
+                   "frontmostPIDAtShutter": int(os.environ["FRONT_PID"]),
                    "scenario": os.environ.get("SCENARIO", "populated")},
     "witnessed": (f"axkit attached pid={os.environ['PID']} owns CGWindowID "
                   f"{os.environ['WINID']}, bundle {os.environ['APP']}"),
@@ -193,7 +199,7 @@ do
   if [ "$sid" = "SURF-002" ]; then
     # The shell is the same window and the same pixels. Declared, not hidden.
     cp "$SHOTS/SURF-002.build.png" "$SHOTS/SURF-001.build.png"
-    SUBJECT=SURF-001 NAME=SURF-001.build DEST="$SHOTS/SURF-001.build.png" FRONT="$FRONT_SHUTTER" \
+    SUBJECT=SURF-001 NAME=SURF-001.build DEST="$SHOTS/SURF-001.build.png" FRONT="$FRONT_SHUTTER" FRONT_PID="$FRONT_SHUTTER_PID" \
     TITLE="$("$AXKIT" title "$PID")" FRAME="$("$AXKIT" frame "$PID")" \
     WANT=READBACK WINID="$WINID" PID="$PID" APP="$MAC_APP" \
     SHARES="SURF-002" \
@@ -213,6 +219,7 @@ entry = {"path": f"evidence/shots/{dest.name}", "subject": os.environ["SUBJECT"]
                         "cgWindowID": os.environ["WINID"], "appearance": "system",
                         # The same shutter as SURF-002's, because these are the same pixels.
                         "frontmostAtShutter": os.environ.get("FRONT", ""),
+                        "frontmostPIDAtShutter": int(os.environ["FRONT_PID"]),
                         "scenario": "populated"},
          "witnessed": f"axkit attached pid={os.environ['PID']} owns CGWindowID {os.environ['WINID']}, bundle {os.environ['APP']}",
          "sharesWith": ["SURF-002"], "shareReason": os.environ["REASON"]}

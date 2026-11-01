@@ -4,6 +4,7 @@
 import os
 from pathlib import Path
 import runpy
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -95,7 +96,41 @@ def main():
             "MCP_ROUTER_HOME=" + launch_env["MCP_ROUTER_HOME"],
             "MCP_ROUTER_URL=" + launch_env["MCP_ROUTER_URL"],
         ]
-    print("mac glass capture: ordering green/red, relocated defaults, isolated paths and launch arguments passed")
+
+        # The app's display name is deliberately different: only its PID can guard the shutter.
+        toolkit.write_text('''#!/bin/bash
+case "$1" in
+  front) printf 'Renamed capture subject\\n' ;;
+  front-pid) printf '%s\\n' "$PROBE_FRONT_PID" ;;
+  title) printf 'Checks\\n' ;;
+  frame) printf '10,20,900,450\\n' ;;
+esac
+''')
+        bin_dir = Path(tmp) / "mock capture commands"
+        bin_dir.mkdir()
+        shutter = bin_dir / "screencapture"
+        shutter.write_text('#!/bin/bash\nprintf "\\211PNG\\r\\n\\032\\nfixture" > "${@: -1}"\n')
+        shutter.chmod(0o700)
+        shots = Path(tmp) / "shutter controls"
+        shots.mkdir()
+        function = source[source.index("capture() {"):source.index("\nSHELL_SHARE_REASON=")]
+        capture_probe = Path(tmp) / "capture guard.sh"
+        variables = {"AXKIT": toolkit, "MAC_APP": isolated["MCP_ROUTER_GLASS_APP"],
+                     "SHOTS": shots, "WINID": "42", "PID": "123"}
+        capture_probe.write_text("#!/bin/bash\nset -euo pipefail\n" +
+                                 "".join(f"{key}={shlex.quote(str(value))}\n"
+                                         for key, value in variables.items()) +
+                                 function + "\ncapture probe SURF-CONTROL READBACK\n")
+        for front, expected_status in [("123", 1), ("999", 0), ("unknown", 1)]:
+            image = shots / "probe.png"
+            image.unlink(missing_ok=True)
+            probe = subprocess.run(["/bin/bash", str(capture_probe)],
+                                   env={**env, "PATH": str(bin_dir) + ":" + env["PATH"],
+                                        "PROBE_FRONT_PID": front},
+                                   capture_output=True, text=True)
+            assert probe.returncode == expected_status, probe.stdout + probe.stderr
+            assert image.exists() == (expected_status == 0)
+    print("mac glass capture: ordering green/red, portable paths, isolated launch and renamed target PID shutter controls passed")
 
 
 if __name__ == "__main__":

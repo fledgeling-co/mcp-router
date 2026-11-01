@@ -34,7 +34,7 @@ import {
 import { withExclusiveLock, lockTimeoutMs, DAEMON_TIMEOUT_MS } from './lock.js';
 import { searchRegistries } from './registry.js';
 import { isRefusal, readPackageDocuments } from './document.js';
-import { UsageStore, projectOf } from './usage.js';
+import { UsageStore, UsageResetError, projectOf } from './usage.js';
 import {
   beginAuth,
   clearAuth,
@@ -1148,7 +1148,19 @@ export async function handleControl(
   }
 
   if (p === '/usage/reset' && req.method === 'POST') {
-    deps.usage.reset();
+    try {
+      deps.usage.reset();
+    } catch (err) {
+      if (!(err instanceof UsageResetError)) throw err;
+      json(res, 500, {
+        error: err.message,
+        reason: 'usageResetFailed',
+        phase: err.phase,
+        partialReset: err.partialReset,
+        removedFiles: err.removedFiles,
+      });
+      return true;
+    }
     json(res, 200, { ok: true, since: deps.usage.summary().since });
     return true;
   }

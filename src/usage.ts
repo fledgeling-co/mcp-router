@@ -74,6 +74,28 @@ const IDENT = Symbol('mcp-router.client');
 const MAX_LOG_BYTES = 8 * 1024 * 1024;
 const RING_SIZE = 500;
 
+/** A reset can erase some files before another filesystem operation refuses it. */
+export class UsageResetError extends Error {
+  readonly partialReset: boolean;
+
+  constructor(
+    readonly phase: 'prepare' | 'delete' | 'commit',
+    readonly removedFiles: number,
+    cause: unknown
+  ) {
+    const code = (cause as NodeJS.ErrnoException)?.code ?? 'filesystem error';
+    super(
+      `Usage history reset failed during ${phase} (${code}). ` +
+      (removedFiles > 0
+        ? 'Some history files were removed; the reset did not complete. Reload usage before trying again.'
+        : 'Usage history was not reset.'),
+      { cause }
+    );
+    this.name = 'UsageResetError';
+    this.partialReset = removedFiles > 0;
+  }
+}
+
 /** How long call history is kept. Seven days, so a 7-day window is a measurement of the router's history rather than of whatever survived. */
 export const RETAIN_DAYS = 7;
 const HOUR_MS = 3_600_000;
@@ -267,13 +289,14 @@ export class UsageStore {
    * Numbered rather than dated so the reader can walk them without parsing names, and the same shape the router's own
    * `router.log` rotation uses. A file from before retention, the old single `.1`, is one of these and reads as one.
    */
-  private generations(): Array<{ n: number; path: string }> {
+  private generations(strict = false): Array<{ n: number; path: string }> {
     const dir = dirname(this.logPath);
     const prefix = `${basename(this.logPath)}.`;
     let names: string[];
     try {
       names = readdirSync(dir);
-    } catch {
+    } catch (err) {
+      if (strict) throw err;
       return [];
     }
     return names
@@ -474,17 +497,38 @@ export class UsageStore {
    * window rather than an unqualified "never".
    */
   reset(): void {
-    this.ring = [];
-    this.stats = { version: 1, since: new Date().toISOString(), servers: {} };
-    this.dirty = true;
-    this.flush();
-    for (const p of [this.logPath, ...this.generations().map((g) => g.path)]) {
-      try {
-        if (existsSync(p)) rmSync(p);
-      } catch (err) {
-        log.warn(`could not remove ${p}: ${(err as Error).message}`);
+    const next: StatsFile = { version: 1, since: new Date().toISOString(), servers: {} };
+    const tmp = `${this.statsPath}.tmp-${process.pid}`;
+    let phase: UsageResetError['phase'] = 'prepare';
+    let removedFiles = 0;
+    try {
+      // Listing and staging must succeed before erasing anything. A swallowed directory-read
+      // error could otherwise leave generations behind a successful reset response.
+      const paths = [...this.generations(true).map(g => g.path), this.logPath];
+      writeFileSync(tmp, JSON.stringify(next, null, 2));
+      phase = 'delete';
+      for (const path of paths) {
+        try {
+          rmSync(path);
+          removedFiles += 1;
+        } catch (err) {
+          if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
+        }
       }
+      phase = 'commit';
+      renameSync(tmp, this.statsPath);
+    } catch (err) {
+      try { rmSync(tmp, { force: true }); } catch { /* retain the original refusal */ }
+      // Deletion is not a transaction: keep the old aggregate/window until its replacement
+      // commits, but stop displaying erased records in the recent active-log view.
+      if (removedFiles > 0) this.ring = this.readTail();
+      throw new UsageResetError(phase, removedFiles, err);
     }
+    this.stats = next;
+    this.ring = [];
+    this.dirty = false;
+    if (this.flushTimer) clearTimeout(this.flushTimer);
+    this.flushTimer = undefined;
     log.info('usage history reset');
   }
 

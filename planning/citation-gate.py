@@ -265,7 +265,11 @@ GENERATED = (
 # exclusion is not a convenience: a rescue copy is evidence *because* it is identical to what
 # it rescued, so framing a citation inside one would destroy the only property it has. There
 # is no edit to this file that both satisfies the ratchet and leaves it a rescue.
+# The vendored upstream historical reports are an immutable release archive.
+# check-test-campaign-pin.py verifies every imported byte; these are not this project's
+# current evidence claims. Authored project evidence remains in the scanned population.
 FROZEN = (
+    "vendor/test-campaign/docs/**",
     "planning/rescue/*/*.json",
 )
 

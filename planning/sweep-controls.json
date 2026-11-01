@@ -754,17 +754,6 @@
       "since": "2026-08-26"
     },
     {
-      "path": "scripts/acceptance/control-differential.sh",
-      "disposition": "grandfathered",
-      "markers": [
-        "V1",
-        "V2",
-        "V3"
-      ],
-      "reason": "predates this gate; carries no control this gate can run",
-      "since": "2026-08-26"
-    },
-    {
       "path": "scripts/acceptance/f8-profiles.sh",
       "disposition": "not-a-sweep",
       "markers": [

@@ -329,7 +329,6 @@ scripts/acceptance/axkit.swift	lane	scripts/acceptance/axkit.swift	static	no rou
 scripts/acceptance/board-registry.sh	lane	scripts/acceptance/board-registry.sh	static	no router invocation matched	-
 scripts/acceptance/build-freshness.sh	lane	scripts/acceptance/build-freshness.sh	static	no router invocation matched	make:build-ios,make:build-mac,make:build-mac-release,scripts/acceptance/i5-pairing-transport.sh,scripts/acceptance/m2-activity.sh,scripts/acceptance/m22-boards.sh,scripts/acceptance/m5-discover.sh,scripts/acceptance/m6-inbox-pairing.sh,scripts/acceptance/m7-evals-cleanup.sh,scripts/acceptance/m8-settings-menubar.sh,scripts/acceptance/mac-shell.sh,scripts/acceptance/shells.sh
 scripts/acceptance/control-client.sh	lane	scripts/acceptance/control-client.sh	both	node <path> + swift build	-
-scripts/acceptance/control-differential.sh	lane	scripts/acceptance/control-differential.sh	both	node <path> + swift router binary	-
 scripts/acceptance/destination-oracle.swift	lane	scripts/acceptance/destination-oracle.swift	static	no router invocation matched	-
 scripts/acceptance/f6-updates.sh	lane	scripts/acceptance/f6-updates.sh	node	node <path>	-
 scripts/acceptance/f8-profiles.sh	lane	scripts/acceptance/f8-profiles.sh	swift	swift router binary	-
@@ -382,6 +381,7 @@ scripts/acceptance/window-plane.swift	lane	scripts/acceptance/window-plane.swift
 scripts/acceptance/xcode-outcome.sh	lane	scripts/acceptance/xcode-outcome.sh	static	no router invocation matched	scripts/acceptance/i2-phone-discover.sh,scripts/acceptance/i3-phone-triage.sh
 scripts/build-description-report.py	gate	scripts/build-description-report.py	swift	argv ["swift", …]	make:test
 scripts/capture-control-fixtures.sh	gate	scripts/capture-control-fixtures.sh	node	node <path>	-
+scripts/check-test-campaign-pin.py	gate	scripts/check-test-campaign-pin.py	static	no router invocation matched	make:lint
 scripts/e2e-idle.mjs	gate	scripts/e2e-idle.mjs	node	argv ["node", …]	-
 scripts/e2e-live-reload.mjs	gate	scripts/e2e-live-reload.mjs	node	argv ["node", …]	make:node-e2e
 scripts/e2e-platform.mjs	gate	scripts/e2e-platform.mjs	node	node <path>	-

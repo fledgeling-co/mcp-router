@@ -30,6 +30,36 @@ public sealed class PairingSessionModelTests
         instant.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture) + "Z";
 
     [Fact]
+    public async Task AFailedOutcomePollStillRevokesTheIssuedCodeOnClose()
+    {
+        var reads = 0;
+        var handler = new PairingHttp.Scripted((_, request) => request.Method == HttpMethod.Get
+            ? ++reads == 1 ? PairingHttp.Answer(HttpStatusCode.OK, PairingHttp.StateFixture) : PairingHttp.Refused()
+            : request.Method == HttpMethod.Delete ? PairingHttp.Answer(HttpStatusCode.OK, "{\"revoked\":true}")
+            : PairingHttp.Answer(HttpStatusCode.Created, PairingHttp.Fixture));
+        using var client = PairingHttp.Client(handler);
+        var model = Model(client, new Clock());
+        await model.OpenAsync();
+        await model.RefreshAsync();
+        Assert.Equal(PairingPhase.Unavailable, model.CurrentState.Phase);
+        await model.CloseAsync();
+        Assert.Single(handler.Requests, request => request.Method == "DELETE");
+        Assert.Equal(PairingPhase.Idle, model.CurrentState.Phase);
+    }
+
+    [Theory]
+    [InlineData("", 8882, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
+    [InlineData("router.local", 0, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
+    [InlineData("router.local", 8882, "invented")]
+    [InlineData("router.local", 8882, "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz")]
+    public void QrNeverSubstitutesForMissingOrInvalidListenerIdentity(string host, int port, string fingerprint)
+    {
+        var endpoint = new PairingListenerState(true, port, false, host, fingerprint);
+        Assert.False(PairingQr.HasEndpoint(endpoint));
+        Assert.Throws<ArgumentException>(() => PairingQr.Encode(new IssuedPairingCode(Recorded.Code, Issued, Expires), endpoint, "PC"));
+    }
+
+    [Fact]
     public async Task MissingObservedEndpointMintsNothingAndShowsNoQr()
     {
         var oldState = RepoRoot.Read("app/Sources/MCPRouterKit/Control/Fixtures/pairing-state.json");

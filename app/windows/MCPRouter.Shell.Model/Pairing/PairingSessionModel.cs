@@ -31,6 +31,7 @@ public sealed class PairingSessionModel
     private PairingListenerState? _endpoint;
     private HashSet<string> _knownPhones = [];
     private bool _polling;
+    private bool _ownsCode;
 
     public PairingSessionState CurrentState { get; private set; } = Closed();
 
@@ -73,7 +74,8 @@ public sealed class PairingSessionModel
     {
         IsOpen = false;
         _generation++;
-        var holdsCode = CurrentState.Phase is PairingPhase.Preparing or PairingPhase.AwaitingScanOrCode;
+        var holdsCode = _ownsCode || CurrentState.Phase == PairingPhase.Preparing;
+        _ownsCode = false;
         _live = null;
         _endpoint = null;
         SetState(Closed());
@@ -91,6 +93,7 @@ public sealed class PairingSessionModel
         var now = _clock();
         if (now >= _live.ExpiresAt)
         {
+            _ownsCode = false;
             _live = null;
             SetState(new PairingSessionState(PairingPhase.Expired, null, TimeSpan.Zero));
             return;
@@ -165,6 +168,7 @@ public sealed class PairingSessionModel
             SetState(new PairingSessionState(PairingPhase.Expired, null, TimeSpan.Zero));
             return;
         }
+        _ownsCode = true;
         _live = issued;
         SetState(Awaiting(issued, issued.ExpiresAt - now));
     }
@@ -183,6 +187,7 @@ public sealed class PairingSessionModel
                 && phone.PairedAt >= issued.IssuedAt);
             if (confirmed is not null)
             {
+                _ownsCode = false;
                 _live = null;
                 SetState(new(PairingPhase.Paired, null, TimeSpan.Zero, PairedDeviceName: confirmed.PhoneName));
                 return;
@@ -194,6 +199,7 @@ public sealed class PairingSessionModel
             }
             else if (state.Code?.Code != issued.Code && !(state.AwaitingAck?.Any(phone => phone.RequestedAt >= issued.IssuedAt) ?? false))
             {
+                _ownsCode = false;
                 _live = null;
                 SetState(new(PairingPhase.Expired, null, TimeSpan.Zero));
             }

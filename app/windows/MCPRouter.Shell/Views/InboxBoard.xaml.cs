@@ -38,6 +38,7 @@ public sealed partial class InboxBoard : UserControl
         var pairing = new PairingDialog();
         var dialog = new ContentDialog { XamlRoot = XamlRoot, Title = "Pair iPhone", Content = pairing,
             CloseButtonText = "Done", DefaultButton = ContentDialogButton.Close };
+        dialog.Opened += async (_, _) => await pairing.OpenAsync();
         try { await dialog.ShowAsync(); }
         finally { await pairing.CloseAsync(); PairButton.IsEnabled = true; await ReloadAsync(); }
     }

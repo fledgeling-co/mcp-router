@@ -23,22 +23,12 @@ public sealed partial class PairingDialog : UserControl
         _model.StateChanged += (_, _) => UpdateUI();
         _clock.Tick += async (_, _) => { _model.Tick(); await _model.RefreshAsync(); };
 
-        // The code is asked for when the sheet is shown and taken back when it goes away, so the router
-        // never holds a live code nobody is looking at.
-        Loaded += async (_, _) =>
-        {
-            _clock.Start();
-            await _model.OpenAsync();
-        };
-        Unloaded += async (_, _) =>
-        {
-            _clock.Stop();
-            await _model.CloseAsync();
-        };
         ReissueButton.Click += async (_, _) => await _model.ReissueAsync();
 
         UpdateUI();
     }
+
+    public Task OpenAsync() { _clock.Start(); return _model.IsOpen ? Task.CompletedTask : _model.OpenAsync(); }
 
     public Task CloseAsync() { _clock.Stop(); return _model.CloseAsync(); }
 

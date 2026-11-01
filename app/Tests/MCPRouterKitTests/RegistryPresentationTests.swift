@@ -183,10 +183,9 @@ struct RegistryPresentationTests {
             == [smithery("with-uses")])
         #expect(RegistryPresentation.excludedCount(payload, ordering: .mostUsed) == 2)
 
-        // `datePublished` is the Smithery-based rows — including the one with no usage figure, which
-        // is why the two universes are not the same set.
+        // Recency includes official update dates and Smithery added dates; unreadable dates are absent.
         #expect(Set(RegistryPresentation.rows(payload, ordering: .recentlyAdded).map(\.id))
-            == [smithery("with-uses"), smithery("no-uses")])
+            == ["official-only", smithery("no-uses")])
         #expect(RegistryPresentation.excludedCount(payload, ordering: .recentlyAdded) == 1)
 
         #expect(RegistryPresentation.excludedCount(payload, ordering: .bestMatch) == 0)
@@ -232,7 +231,7 @@ struct RegistryPresentationTests {
         #expect(first == second)
     }
 
-    @Test("a row with no parseable date sorts last rather than to the top")
+    @Test("a row with no parseable date is absent from date recency")
     func undatedRowsSortLast() {
         let rows = [
             entry(id: smithery("undated")),
@@ -240,6 +239,6 @@ struct RegistryPresentationTests {
             entry(id: smithery("newer"), updatedAt: "2026-01-01T00:00:00Z")
         ]
         #expect(RegistryPresentation.rows(response(rows), ordering: .recentlyAdded).map(\.id)
-            == [smithery("newer"), smithery("older"), smithery("undated")])
+            == [smithery("newer"), smithery("older")])
     }
 }

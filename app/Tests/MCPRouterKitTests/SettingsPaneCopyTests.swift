@@ -68,8 +68,14 @@ struct SettingsPaneCopyTests {
     func governanceSaysWhereOrSaysNot() {
         #expect(SettingsPaneCopy.harnessesGovernance.contains("mcp-router harnesses"))
         #expect(SettingsPaneCopy.harnessesGovernance.contains("mcp-router watch"))
-        #expect(SettingsPaneCopy.analystGovernance.contains("This build has no session analyst"))
-        #expect(SettingsPaneCopy.updatesGovernance.contains("This build checks for nothing"))
+        #expect(SettingsPaneCopy.analystGovernance.contains("Insights board"))
+        #expect(SettingsPaneCopy.updatesGovernance.contains("Skills board"))
+        #expect(!SettingsPaneCopy.analystGovernance.contains("no session analyst"))
+        #expect(!SettingsPaneCopy.updatesGovernance.contains("checks for nothing"))
+        #expect(!InsightsBoardCopy.analyseUnavailable.contains("Swift router"))
+        #expect(InsightsBoardCopy.analystCallout.contains("may process that input remotely"))
+        #expect(InsightsBoardCopy.analystCallout.contains("account or plan"))
+        #expect(!InsightsBoardCopy.analystCallout.contains("nothing leaves this Mac"))
     }
 
     // MARK: - The honesty rule

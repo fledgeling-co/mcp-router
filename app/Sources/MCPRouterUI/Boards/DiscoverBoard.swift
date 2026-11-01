@@ -129,6 +129,15 @@
                     if !empty.clearsSearch, !empty.resetsOrdering { board.submitSearch() }
                 }
                 .frame(maxWidth: .infinity)
+            } else if rows.isEmpty, board.ordering == .recentlyAdded {
+                MessageState(
+                    StateMessage(
+                        title: "No dates in this window",
+                        detail: "None of the returned results has a readable date in this window.",
+                        actionLabel: "Show any time"
+                    ),
+                    icon: .search
+                ) { board.window = .anyTime }
             } else {
                 LazyVStack(spacing: DiscoverBoardMetrics.hairline) {
                     ForEach(rows) { entry in
@@ -169,7 +178,10 @@
                 //
                 // There is deliberately no prominent action here. Discover's one primary action
                 // lives in the detail sheet, which is the whole of detail-then-install.
-                Text(response.map(RegistryPresentation.subtitle) ?? "")
+                Text(board.recencySummary.map { _ in
+                    "Official registry · Smithery · \(board.rows.count) shown"
+                }
+                    ?? response.map(RegistryPresentation.subtitle) ?? "")
                     .typeRole(.subheadline)
                     .foregroundStyle(ColorToken.t2.color)
             }
@@ -188,6 +200,15 @@
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
+
+                Picker("Date window", selection: $board.window) {
+                    ForEach(RecencyWindow.allCases) { window in
+                        Text(window.label).tag(window)
+                    }
+                }
+                .disabled(board.ordering != .recentlyAdded)
+                .help("Applies to Recently updated or added among the results returned by this search.")
+                .accessibilityIdentifier("discover-date-window")
 
                 // Deliberately "Search the registries", not "Filter" — this is a query to two
                 // third-party indexes, and the copy says so because the behaviour differs.
@@ -226,6 +247,13 @@
         /// unexplained empty board — which is what the rule is protecting.
         @ViewBuilder
         private func orderingNote(_ response: RegistrySearchResponse) -> some View {
+            if let summary = board.recencySummary {
+                Text(summary)
+                    .typeRole(.caption)
+                    .foregroundStyle(ColorToken.t3.color)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.bottom, DiscoverBoardMetrics.tightGap)
+            }
             let note = RegistryPresentation.disabledReason(response, ordering: board.ordering)
                 ?? RegistryPresentation.exclusionNote(response, ordering: board.ordering)
             if let note {

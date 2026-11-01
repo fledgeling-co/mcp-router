@@ -22,6 +22,66 @@
         @ObservationIgnored private let store: any ControlTokenStore
         @ObservationIgnored private let file: RouterTokenFile
         let devices: PairedDevicesModel
+        @ObservationIgnored private let client: (any ControlAPIClient)?
+        @ObservationIgnored private let refreshHistory: @MainActor () async -> Void
+        private(set) var isResetting = false
+        private(set) var resetError: ControlAPIError?
+        private(set) var resetSummary: UsageSummary?
+        private(set) var resetAcknowledgement: UsageReset?
+
+        var resetNotice: String? {
+            guard let resetSummary else { return nil }
+            return "History was reset. Counting since \(resetSummary.since)."
+        }
+
+        func requestHistoryReset() {
+            guard !isResetting else { return }
+            resetError = nil
+            resetAcknowledgement = nil
+            sheet = .resetHistory
+        }
+
+        func cancelHistoryReset() {
+            guard !isResetting else { return }
+            sheet = nil
+        }
+
+        func resetHistory() async {
+            guard sheet == .resetHistory, !isResetting else { return }
+            guard let client else {
+                resetError = .malformedResponse(detail: "No router client is available to reset history.")
+                return
+            }
+            isResetting = true
+            resetError = nil
+            defer { isResetting = false }
+            do throws(ControlAPIError) {
+                if resetAcknowledgement == nil {
+                    let result = try await client.resetUsage()
+                    guard result.ok, result.since.asControlAPIDate != nil else {
+                        throw ControlAPIError
+                            .malformedResponse(detail: "The router did not confirm the reset window.")
+                    }
+                    resetAcknowledgement = result
+                }
+                let summary = try await client.usageSummary()
+                guard let since = summary.since.asControlAPIDate,
+                      let acknowledged = resetAcknowledgement,
+                      let resetSince = acknowledged.since.asControlAPIDate,
+                      since >= resetSince
+                else {
+                    throw ControlAPIError
+                        .malformedResponse(
+                            detail: "The router returned an older or unreadable history window."
+                        )
+                }
+                resetSummary = summary
+                await refreshHistory()
+                sheet = nil
+            } catch {
+                resetError = error
+            }
+        }
 
         private(set) var status: SettingsPresentation.TokenStatus = .absent
 
@@ -36,10 +96,13 @@
         init(
             store: any ControlTokenStore,
             file: RouterTokenFile = RouterTokenFile(),
-            client: (any ControlAPIClient)? = nil
+            client: (any ControlAPIClient)? = nil,
+            refreshHistory: @escaping @MainActor () async -> Void = {}
         ) {
             self.store = store
             self.file = file
+            self.client = client
+            self.refreshHistory = refreshHistory
             devices = PairedDevicesModel(client: client)
         }
 

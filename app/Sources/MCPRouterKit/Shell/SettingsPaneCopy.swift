@@ -4,8 +4,8 @@ import Foundation
 ///
 /// Held apart from `SettingsPresentation` because the two have different subjects:
 /// `SettingsPresentation` computes *values* from what the router serves, and this is the pane
-/// copy — labels, card headers, helper sentences and, for the three panes the product has nothing
-/// to put in, the one sentence saying what governs the thing and where it is set today. Both stay
+/// copy — labels, card headers, helper sentences and, for the three panes governed elsewhere,
+/// the sentence saying where each is set today. Both stay
 /// in `MCPRouterKit` so `SettingsPaneCopyTests` and `SettingsHonestyTests` can reach them without a
 /// UI stack.
 ///
@@ -53,23 +53,19 @@ public enum SettingsPaneCopy {
 
     // MARK: - Session analyst
 
-    /// The pane exists because the window has seven, and it says plainly that the thing it is named
-    /// for is not in this build. Stating the absence is `DESIGN.md` §6 applied to a whole pane:
-    /// drawing the mock's six controls would promise a model, a schedule and a notification that
-    /// nothing in either target can produce.
+    /// Analyst controls live on Insights; this Settings pane directs the reader there.
     public static let analystGovernance = """
-    This build has no session analyst. Nothing reads your agent logs, no model is called on your \
-    behalf, and no finding is ever generated — so there is no model to pick, no schedule to set \
-    and nothing to be notified about yet. The pane is here because the window's areas are fixed; \
-    what would go in it is not built.
+    Use the Insights board to choose analyst models and cadence, run an analysis, and review \
+    findings. That board shows what the connected router supports after it answers. Analyst \
+    settings are managed there, rather than in this window.
     """
 
     // MARK: - Updates
 
     public static let updatesGovernance = """
-    This build checks for nothing. It does not look for new versions of itself, and a capability \
-    you have installed stays the version you installed until you install another. There is no \
-    interval, no channel and no unattended-install rule, because there is no check to configure.
+    Use the Skills board to check the updates reported by the router, review a version, and \
+    install an update where offered. This window has no app-update channel or background \
+    installation schedule to configure.
     """
 
     // MARK: - Security

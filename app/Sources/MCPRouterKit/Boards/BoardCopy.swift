@@ -207,16 +207,10 @@ public enum InsightsBoardCopy {
     public static let analyst = "The analyst"
     public static let analyseNow = "Analyse now"
 
-    /// Why the analyst's one action is dim — and after F7 it is dim for a **different reason**.
-    ///
-    /// Until F7 nothing under `app/Sources` implemented `PRD.md` §6, so the button was
-    /// `featureUnbuilt`: no router anywhere could run one. It now says the router on the other end
-    /// has none, which is version skew rather than an unbuilt feature — the reference
-    /// implementation answers this whole family 404 and always will, and it is the installed
-    /// default. Saying which of the two is the difference `CommandAvailability` exists to keep.
+    /// Shown only after the connected router returns no analyst capability.
     public static let analyseUnavailable = """
-    This router has no session analyst. The one that ships with the Swift router reads your \
-    own agent logs on this Mac; the reference router does not have it.
+    The connected router did not provide a session analyst. Reconnect to refresh its \
+    capabilities, or check how the router was configured.
     """
 
     public static let analystPrimary = "Primary"
@@ -229,9 +223,9 @@ public enum InsightsBoardCopy {
     /// The design's own caption, kept because it is the whole privacy argument in one sentence and
     /// because it states the fallback rule the `judgedBy` line on every finding depends on.
     public static let analystCallout = """
-    Excerpts are read locally and passed to a CLI you are already signed into, so there is no \
-    API bill and nothing leaves this Mac. If the primary hits a usage limit the fallback runs \
-    and the finding says which model judged it.
+    Recurring session signals and their examples are passed to the selected CLI. Its provider \
+    may process that input remotely and charge against your account or plan. If the primary \
+    cannot answer, the configured fallback is tried; each finding names the model that judged it.
     """
 
     /// What the cadence readout is **not**. `spec-F7.md` §2 records the deferral; this is the

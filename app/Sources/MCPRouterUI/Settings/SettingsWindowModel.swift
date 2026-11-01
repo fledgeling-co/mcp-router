@@ -37,6 +37,7 @@
         func requestHistoryReset() {
             guard !isResetting else { return }
             resetError = nil
+            resetSummary = nil
             resetAcknowledgement = nil
             sheet = .resetHistory
         }

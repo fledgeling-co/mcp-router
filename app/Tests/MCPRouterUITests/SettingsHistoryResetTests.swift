@@ -59,6 +59,10 @@
                 "calls recorded after reset must survive the readback"
             )
             #expect(model.resetNotice?.contains(Self.since) == true)
+            model.requestHistoryReset()
+            #expect(model.resetNotice == nil && model.resetSummary == nil)
+            model.cancelHistoryReset()
+            #expect(client.calls.usageResets == 1)
         }
 
         @Test("write refusal remains visible; a readback retry does not repeat a successful reset")

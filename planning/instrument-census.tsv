@@ -124,8 +124,10 @@ app/Tests/MCPRouterUITests/CapabilityDocumentSheetTests.swift	swift-suite	app/Te
 app/Tests/MCPRouterUITests/CheckHistoryStoreTests.swift	swift-suite	app/Tests/MCPRouterUITests/CheckHistoryStoreTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/CleanupProvenanceModelTests.swift	swift-suite	app/Tests/MCPRouterUITests/CleanupProvenanceModelTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/CleanupRowActionsTests.swift	swift-suite	app/Tests/MCPRouterUITests/CleanupRowActionsTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterUITests/CleanupRowWrappingTests.swift	swift-suite	app/Tests/MCPRouterUITests/CleanupRowWrappingTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/DesignSystemTests.swift	swift-suite	app/Tests/MCPRouterUITests/DesignSystemTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/DiscoverBoardTests.swift	swift-suite	app/Tests/MCPRouterUITests/DiscoverBoardTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterUITests/DiscoverRecencyTests.swift	swift-suite	app/Tests/MCPRouterUITests/DiscoverRecencyTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/DiscoverSurfaceTests.swift	swift-suite	app/Tests/MCPRouterUITests/DiscoverSurfaceTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/FortyStateMatrixTests.swift	swift-suite	app/Tests/MCPRouterUITests/FortyStateMatrixTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/IconInventoryTests.swift	swift-suite	app/Tests/MCPRouterUITests/IconInventoryTests.swift	swift	compiled and run by `swift test`	make:test
@@ -165,6 +167,7 @@ app/Tests/MCPRouterUITests/ServersBoardWriteTests.swift	swift-suite	app/Tests/MC
 app/Tests/MCPRouterUITests/ServersDisabledCopyTests.swift	swift-suite	app/Tests/MCPRouterUITests/ServersDisabledCopyTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/ServersPauseAffordanceTests.swift	swift-suite	app/Tests/MCPRouterUITests/ServersPauseAffordanceTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/SettingsAndMenuBarTests.swift	swift-suite	app/Tests/MCPRouterUITests/SettingsAndMenuBarTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterUITests/SettingsHistoryResetTests.swift	swift-suite	app/Tests/MCPRouterUITests/SettingsHistoryResetTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/SettingsWindowTests.swift	swift-suite	app/Tests/MCPRouterUITests/SettingsWindowTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/SheetGateRoutingTests.swift	swift-suite	app/Tests/MCPRouterUITests/SheetGateRoutingTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/SheetShortcutGuardTests.swift	swift-suite	app/Tests/MCPRouterUITests/SheetShortcutGuardTests.swift	swift	compiled and run by `swift test`	make:test
@@ -205,6 +208,8 @@ make:surface-reconcile-arm	make-target	Makefile	static	no router invocation matc
 make:test	make-target	Makefile	swift	swift test	-
 make:tools	make-target	Makefile	static	no router invocation matched	-
 planning/G5-citation-frames.py	gate	planning/G5-citation-frames.py	static	no router invocation matched	-
+planning/absence_review.py	gate	planning/absence_review.py	static	no router invocation matched	-
+planning/absence_review_tests.py	gate	planning/absence_review_tests.py	static	no router invocation matched	-
 planning/brief-target-gate.py	gate	planning/brief-target-gate.py	static	no router invocation matched	make:lint
 planning/citation-gate.py	gate	planning/citation-gate.py	static	no router invocation matched	make:lint,planning/goals/citations-blocking-check.sh
 planning/claim-sweep.py	gate	planning/claim-sweep.py	static	no router invocation matched	-
@@ -297,6 +302,7 @@ planning/test-campaign/bin/glass-assert.py	gate	planning/test-campaign/bin/glass
 planning/test-campaign/bin/glass-build-gate.py	gate	planning/test-campaign/bin/glass-build-gate.py	static	no router invocation matched	make:glass-build,make:lint
 planning/test-campaign/bin/harnesses-live-probe.py	gate	planning/test-campaign/bin/harnesses-live-probe.py	static	no router invocation matched	-
 planning/test-campaign/bin/insights-live-probe.py	gate	planning/test-campaign/bin/insights-live-probe.py	static	no router invocation matched	-
+planning/test-campaign/bin/member_source_provenance.py	gate	planning/test-campaign/bin/member_source_provenance.py	static	no router invocation matched	make:lint
 planning/test-campaign/bin/paint-check.py	gate	planning/test-campaign/bin/paint-check.py	static	no router invocation matched	-
 planning/test-campaign/bin/r14-authserver-probe.sh	gate	planning/test-campaign/bin/r14-authserver-probe.sh	static	no router invocation matched	-
 planning/test-campaign/bin/raster-claim-gate.py	gate	planning/test-campaign/bin/raster-claim-gate.py	static	no router invocation matched	make:lint

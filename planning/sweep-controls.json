@@ -1195,6 +1195,16 @@
         "planning/test-campaign/bin/arm-surface-plane.py"
       ],
       "proves": "RUNNING THIS ARM IS ITS OWN TWO-WAY CONTROL, which is why the command is the file itself rather than a --control flag. It plants eight states against a SCRATCH copy of the registry and runs BOTH the census DEF-131 installed and the one it replaced, so every reading is a difference rather than a verdict: six plants must redden the new census (a glass surface declaring an operation, a headless surface declaring a control, DEF-131's own exhibit of SURF-047's four operations moved back under `controls`, an `undetermined` plane carrying members, no plane at all, and `mixed` with no planeNote), and TWO MUST BE SILENT ON BOTH - a mixed surface declaring a control, which is the declared limit of the field, and a PascalCase API-call name under `controls` on a glass surface, which is coverage DEF-420 records as deliberately given up. An arm with only red directions cannot tell a working rule from one that fires on everything, and the two silences are what make the six reds mean something. Each plant is reverted and re-run clean, and the writer's two readings are taken as well: a glass surface's harvested controls are written with plane `glass`, and a headless surface's are REFUSED with the row byte-identical afterwards.\n\nWHAT IT DOES NOT PROVE, and the reason is DEF-443. The comparison rests on a pinned SHA - 42aef112, the last commit holding `_OPERATION_SHAPE` - because it read `HEAD:` until Wave C integration and that is the previous census only while the new one is UNCOMMITTED. Merged, it compared the file with itself and every difference vanished while the arm still ran. So this control is sound exactly as long as that pin names a tree where the old rule lived; moving the pin is a decision about what \"before\" means and changes what the two silences assert."
+    },
+    {
+      "path": "scripts/acceptance/pairing-loopback.sh",
+      "disposition": "not-a-sweep",
+      "markers": [
+        "V1",
+        "V3"
+      ],
+      "since": "2026-11-02",
+      "reason": "This wrapper starts a private router and registry, waits for affirmative listener readiness, then launches the pairing-loopback.mjs protocol assertions. V1 is the positive grep-q readiness wait over its own scratch logs; V3 is the word absent in assertions that a scratch compiled mutation anchor exists before it is changed. Neither enumerates this repository or claims a corpus-wide absence. Protocol and mutation behavior are tested by the driver; this row does not certify physical-phone or production pairing acceptance."
     }
   ]
 }

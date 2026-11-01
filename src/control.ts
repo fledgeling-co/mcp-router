@@ -1375,6 +1375,7 @@ export async function handleControl(
     const listener = deps.pairingListener();
     json(res, 200, {
       code: live ? codeBody(live) : null,
+      confirmedPhones: readPairedPhones(deps.routerHome).map(({ phoneId, phoneName, pairedAt }) => ({ phoneId, phoneName, pairedAt })),
       awaitingAck: deps.pairing.awaitingAck().map((a) => ({
         phoneName: a.phoneName,
         requestedAt: wireInstant(a.requestedAt),

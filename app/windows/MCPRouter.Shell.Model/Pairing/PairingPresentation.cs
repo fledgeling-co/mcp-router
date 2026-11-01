@@ -5,9 +5,9 @@ namespace MCPRouter.Shell.Model.Pairing;
 public static class PairingPresentation
 {
     public const string Title = "Pair iPhone";
-    public const string Lede = "On your phone: Conduit → Settings → Pair PC, then scan this.";
-    public const string Warning = "Treat this code like a password. Anyone who scans it can put items in your inbox until it expires.";
-    public const string TypeInsteadDetail = "Can't scan? Type those eight characters into your phone instead — it is the same pairing.";
+    public const string Lede = "On your iPhone, open MCP Router and scan this QR. Both devices must reach this computer.";
+    public const string Warning = "Treat this code like a password. Anyone who scans it can pair a phone while it is live. A confirmed phone can queue inbox items until you revoke it.";
+    public const string TypeInsteadDetail = "Manual code entry is unavailable in this build. Scan the QR to pair.";
     public const string DoneAction = "Done";
 
     public const string ExpiredHeadline = "This code has expired.";

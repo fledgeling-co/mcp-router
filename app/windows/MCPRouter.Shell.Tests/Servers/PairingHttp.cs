@@ -33,7 +33,17 @@ internal static class PairingHttp
     }
 
     /// <summary>The recorded body the router answered <c>GET /pairing/state</c> with, while its phone listener was bound.</summary>
-    public static string StateFixture => RepoRoot.Read("app/Sources/MCPRouterKit/Control/Fixtures/pairing-state.json");
+    public static string StateFixture
+    {
+        get
+        {
+            var state = System.Text.Json.Nodes.JsonNode.Parse(RepoRoot.Read("app/Sources/MCPRouterKit/Control/Fixtures/pairing-state.json"))!;
+            state["listener"]!["host"] = "router-test.local";
+            state["listener"]!["fingerprint"] = new string('a', 64);
+            state["confirmedPhones"] = new System.Text.Json.Nodes.JsonArray();
+            return state.ToJsonString();
+        }
+    }
 
     /// <summary>The state the router answers while pairing is off: nothing bound, nothing announced, no code.</summary>
     public const string StateOff = "{\"code\":null,\"awaitingAck\":[],\"listener\":{\"enabled\":false,\"port\":null,\"advertising\":false}}";

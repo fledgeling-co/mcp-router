@@ -32,6 +32,17 @@ public sealed partial class InboxBoard : UserControl
         RenderCards();
     }
 
+    private async void OnPairClicked(object sender, RoutedEventArgs e)
+    {
+        PairButton.IsEnabled = false;
+        var pairing = new PairingDialog();
+        var dialog = new ContentDialog { XamlRoot = XamlRoot, Title = "Pair iPhone", Content = pairing,
+            CloseButtonText = "Done", DefaultButton = ContentDialogButton.Close };
+        dialog.Opened += async (_, _) => await pairing.OpenAsync();
+        try { await dialog.ShowAsync(); }
+        finally { await pairing.CloseAsync(); PairButton.IsEnabled = true; await ReloadAsync(); }
+    }
+
     private async Task ReloadAsync()
     {
         if (!_fixture) await _model.LoadAsync();

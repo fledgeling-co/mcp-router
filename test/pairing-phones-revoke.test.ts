@@ -63,7 +63,7 @@ async function call(
     },
   } as unknown as ServerResponse;
   const req = { method, headers } as unknown as IncomingMessage;
-  const deps = { pairing: opts.pairing ?? new Pairing(), routerHome: dir } as unknown as ControlDeps;
+  const deps = { pairing: opts.pairing ?? new Pairing(), routerHome: dir, pairingListener: () => ({ enabled: false, port: null, advertising: false }) } as unknown as ControlDeps;
   const handled = await handleControl(req, res, new URL(`http://127.0.0.1${path}`), undefined, deps, TOKEN);
   assert.equal(handled, true, `${method} ${path} should be claimed by the control API`);
   return captured;
@@ -131,4 +131,19 @@ describe('DELETE /pairing/phones/:phoneId', () => {
     assert.equal(r.status, 405);
     assert.deepEqual(readPairedPhones(dir), [REVOKED]);
   });
+});
+
+
+test('pairing state exposes confirmed public metadata only and removes revoked peers', async () => {
+  const dir = seeded([REVOKED, KEPT]);
+  const pairing = new Pairing();
+  pairing.hold('pending-not-confirmed', 'Waiting phone');
+  assert.equal((await call(dir, 'GET', '/pairing/state')).status, 401);
+  const first = await call(dir, 'GET', '/pairing/state', { token: TOKEN, pairing });
+  assert.equal(first.status, 200);
+  assert.deepEqual(first.body.confirmedPhones, [REVOKED, KEPT].map(({ phoneId, phoneName, pairedAt }) => ({ phoneId, phoneName, pairedAt })));
+  assert.equal(JSON.stringify(first.body).includes('phoneKey'), false);
+  await call(dir, 'DELETE', `/pairing/phones/${REVOKED.phoneId}`, { token: TOKEN });
+  const after = await call(dir, 'GET', '/pairing/state', { token: TOKEN, pairing });
+  assert.deepEqual(after.body.confirmedPhones, [{ phoneId: KEPT.phoneId, phoneName: KEPT.phoneName, pairedAt: KEPT.pairedAt }]);
 });

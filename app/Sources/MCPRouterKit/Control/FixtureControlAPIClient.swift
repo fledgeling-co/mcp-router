@@ -58,6 +58,7 @@ public struct FixtureControlAPIClient: ControlAPIClient {
         /// `populated` rather than added to it because the Skills board publishes a count of
         /// what `populated` holds, and two surfaces should not have to move together.
         case cleanupSkills
+        case cleanupLongReasons // Long failure and moved-marketplace sentences.
     }
 
     public let scenario: Scenario
@@ -148,6 +149,7 @@ public struct FixtureControlAPIClient: ControlAPIClient {
                 skills: SkillFixtures.populated + SkillFixtures.uninstalled,
                 clients: SkillFixtures.clients
             )
+        case .cleanupLongReasons: return CleanupRowFixtures.skillsResponse
         default:
             return SkillsResponse(
                 skills: SkillFixtures.populated, clients: SkillFixtures.clients, promoteFromCache: true
@@ -196,6 +198,7 @@ public struct FixtureControlAPIClient: ControlAPIClient {
             // router actually served rather than one this double made up.
             let placarded = try decode("server-placarded", as: MCPServer.self)
             response.servers = response.servers.map { $0.name == placarded.name ? placarded : $0 }
+        case .cleanupLongReasons: response = CleanupRowFixtures.serversResponse(response)
         default:
             break
         }
@@ -248,7 +251,8 @@ public struct FixtureControlAPIClient: ControlAPIClient {
     /// otherwise be driven into.
     static func usageFixtureName(for scenario: Scenario) -> String {
         switch scenario {
-        case .populated, .cleanupSkills, .overflow, .streamLive, .streamReconnecting, .streamDisconnected:
+        case .populated, .cleanupSkills, .cleanupLongReasons, .overflow, .streamLive, .streamReconnecting,
+             .streamDisconnected:
             "usage-call-log"
         case .empty, .loading, .partial, .error, .success, .offline, .unauthorized, .disabled:
             "usage"
@@ -366,7 +370,8 @@ public struct FixtureControlAPIClient: ControlAPIClient {
             // which is a fabricated status in the one path a Release build can never take but every
             // acceptance run does.
             return [.phase(.disconnected)]
-        case .populated, .cleanupSkills, .empty, .loading, .partial, .success, .overflow, .disabled:
+        case .populated, .cleanupSkills, .cleanupLongReasons, .empty, .loading, .partial, .success, .overflow,
+             .disabled:
             return [.phase(.live)]
         }
     }

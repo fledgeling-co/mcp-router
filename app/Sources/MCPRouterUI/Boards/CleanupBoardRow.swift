@@ -82,7 +82,7 @@
         var readFirst: (() -> Void)?
 
         var body: some View {
-            HStack(spacing: M7BoardMetrics.rowPadding) {
+            HStack(alignment: .top, spacing: M7BoardMetrics.rowPadding) {
                 RoundedRectangle(cornerRadius: M7BoardMetrics.tileRadius, style: .continuous)
                     .fill(ColorToken.f2.color)
                     .frame(width: M7BoardMetrics.tile, height: M7BoardMetrics.tile)
@@ -129,7 +129,8 @@
                 actions
             }
             .padding(.horizontal, M7BoardMetrics.rowPadding)
-            .frame(height: M7BoardMetrics.rowHeight)
+            .padding(.vertical, M7BoardMetrics.rowPadding)
+            .frame(minHeight: M7BoardMetrics.rowHeight)
             .selectionFill(isSelected)
             // **Behind the selection fill, not in front of it.** The mock sets the tint as an
             // inline style, which in CSS beats the selected class — so a selected flagged row there
@@ -152,8 +153,8 @@
             // people who could reach the control were mouse users.
             .accessibilityElement(children: .contain)
             // Both sentences, and the candidacy reason first. The tinted row shows the provenance
-            // note in place of the reason because the column has room for one line; a label read
-            // aloud has room for both, and dropping "installed nowhere" would leave a listener
+            // note in place of the reason. The label keeps both, since dropping "installed nowhere" leaves a
+            // listener
             // unable to say why the row is on a list of never-used things at all.
             .accessibilityLabel(accessibilityLabel)
         }
@@ -166,12 +167,11 @@
 
         /// Why the row is here — or, on a flagged row, the thing that matters more.
         ///
-        /// `prototype.html:958` substitutes rather than appends: the column fits one line, and a
-        /// marketplace that moved outranks "installed 4mo ago, never invoked" for the one decision
-        /// this row exists to inform. The candidacy reason is not lost — it leads the accessibility
-        /// label, and the inspector prints it under "Why it is here".
+        /// The moved marketplace still substitutes for the candidacy reason, but both kinds of
+        /// sentence wrap in full. The row grows with that sentence; its actions remain beside it.
+        /// The candidacy reason also leads the accessibility label and remains in the inspector.
         private var reason: some View {
-            HStack(spacing: M7BoardMetrics.labelGap) {
+            HStack(alignment: .top, spacing: M7BoardMetrics.labelGap) {
                 if candidate.provenance != nil {
                     IconView(.warn, size: TypeToken.caption.size)
                         .foregroundStyle(ColorToken.fail.color)
@@ -181,8 +181,8 @@
                     .foregroundStyle(
                         candidate.provenance == nil ? ColorToken.t2.color : ColorToken.fail.color
                     )
-                    .lineLimit(1)
-                    .truncationMode(.tail)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .frame(
                 minWidth: M7BoardMetrics.reasonColumn / 3,

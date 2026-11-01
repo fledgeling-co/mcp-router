@@ -151,11 +151,11 @@ struct RegistryCopyTests {
         let notes = RegistryPresentation.footerNotes(for: complete, ordering: .bestMatch)
         #expect(notes.contains(RegistryPresentation.trendingNote), "sentence four is always stated")
         #expect(notes.contains(RegistryPresentation.rankingNote))
-        #expect(!notes.contains { $0.contains("Showing") }, "nothing was sliced, so nothing is said")
+        #expect(!notes.contains { $0.contains("Returned") }, "nothing was sliced, so nothing is said")
 
         let sliced = response([entry()], merged: 47)
         let slicedNotes = RegistryPresentation.footerNotes(for: sliced, ordering: .bestMatch)
-        #expect(slicedNotes.contains { $0.contains("Showing 1 of 47") })
+        #expect(slicedNotes.contains { $0.contains("Returned 1 of 47") })
 
         // The ranking note is about `Best match`'s own bias, so it is not claimed under an ordering
         // it does not describe.

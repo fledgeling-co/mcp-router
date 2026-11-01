@@ -54,7 +54,7 @@ public extension RegistryPresentation {
         let shown = response.results.count
         if response.sources.merged > shown {
             notes.append("""
-            Showing \(shown) of \(response.sources.merged) that matched. The rest are not ranked \
+            Returned \(shown) of \(response.sources.merged) that matched. The rest are not ranked \
             lower — they are past the limit this search asked for.
             """)
         }

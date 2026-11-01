@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MCPRouter.Shell.Model.Servers;
 
 namespace MCPRouter.Shell.Model.Inbox;
 
@@ -9,7 +10,53 @@ public sealed class InboxBoardModel
     private readonly List<InboxItem> _items = new();
 
     public DecisionState SelectedFilter { get; set; } = DecisionState.Undecided;
-    public string? PairedDeviceName { get; set; } = "Luke's iPhone";
+    public string? PairedDeviceName { get; set; }
+    public string? Error { get; private set; }
+    public bool Loading { get; private set; }
+    public bool Writing { get; private set; }
+    public bool HasLoaded { get; private set; }
+    private readonly IRouterInboxService? _service;
+
+    public InboxBoardModel(IRouterInboxService? service = null) { _service = service; }
+
+    public async Task LoadAsync(CancellationToken cancellation = default)
+    {
+        if (_service is null || Loading) return;
+        Loading = true;
+        try
+        {
+            var snapshot = await _service.ReadAsync(cancellation);
+            var rows = snapshot.Items.Select(RouterInboxService.Present).ToList();
+            _items.Clear();
+            _items.AddRange(rows);
+            PairedDeviceName = snapshot.PairedDeviceNames?.FirstOrDefault();
+            HasLoaded = true;
+            Error = null;
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { }
+        catch (ControlApiException ex) { Error = ex.UserFacingDescription; }
+        catch (Exception) { Error = "The inbox could not be read. Your last reading is kept; try again."; }
+        finally { Loading = false; }
+    }
+
+    public async Task DecideAsync(string id, string action, CancellationToken cancellation = default)
+    {
+        if (_service is null || Writing) return;
+        var item = _items.FirstOrDefault(i => i.Id == id);
+        if (item is null || action == "accept" && (!item.CanApprove || item.ReviewDigest is null)) return;
+        Writing = true;
+        try
+        {
+            await _service.DecideAsync(id, action, action == "accept" ? item.ReviewDigest : null, cancellation);
+            Error = null;
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { }
+        catch (ControlApiException ex) { Error = ex.UserFacingDescription; return; }
+        catch (Exception) { Error = "The decision could not be saved. This item has not been marked as handled."; return; }
+        finally { Writing = false; }
+        await LoadAsync(cancellation);
+    }
+
 
     public IReadOnlyList<InboxItem> AllItems => _items;
 

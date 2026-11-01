@@ -221,6 +221,8 @@ public partial class App : Application
         // and a lingering icon is a false yes for anything reading the area afterwards.
         _window.Closed += (_, _) => NotificationIcon?.Dispose();
 
+        _window.Closed += (_, _) => _inboxLifetime.Cancel();
+        _ = PollInboxNotificationsAsync();
         _window.Activate();
 
         if (HasFlag(argv, ToastProbeFlag))
@@ -233,6 +235,46 @@ public partial class App : Application
         if (FaultKind is not null)
         {
             InjectFault(FaultKind);
+        }
+    }
+
+    private readonly System.Threading.CancellationTokenSource _inboxLifetime = new();
+
+    /// One toast per newly observed batch, independent of which board is open.
+    private async System.Threading.Tasks.Task PollInboxNotificationsAsync()
+    {
+        using var client = new MCPRouter.Shell.Model.Servers.ControlApiClient();
+        var announced = new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+        string? previousFailure = null;
+        while (!_inboxLifetime.IsCancellationRequested)
+        {
+            try
+            {
+                var snapshot = await client.GetInboxAsync(_inboxLifetime.Token);
+                previousFailure = null;
+                var waiting = snapshot.Items.Where(row => row.State == "waiting").ToList();
+                var arrivals = waiting.Where(row => !announced.Contains(row.Id)).ToList();
+                if (arrivals.Count > 0)
+                {
+                    var first = MCPRouter.Shell.Model.Inbox.RouterInboxService.Present(arrivals[0]);
+                    var title = arrivals.Count == 1 ? $"{first.Name} is waiting for review" : $"{arrivals.Count} picks are waiting for review";
+                    var payload = new MCPRouter.Shell.Model.Notifications.ToastNotificationPayload(title,
+                        "Queued from your phone. Open Inbox to review; nothing has been installed.",
+                        arrivals[0].DeviceName, first.Id);
+                    _window?.DispatcherQueue.TryEnqueueGuarded("Inbox.Arrivals", () => _toasts?.Show(payload));
+                    foreach (var row in arrivals) announced.Add(row.Id);
+                }
+                announced.IntersectWith(waiting.Select(row => row.Id));
+            }
+            catch (OperationCanceledException) when (_inboxLifetime.IsCancellationRequested) { return; }
+            catch (Exception error)
+            {
+                var failure = error.GetType().Name;
+                if (failure != previousFailure) StartupLog.Write($"inbox notification read failed: {failure}");
+                previousFailure = failure;
+            }
+            try { await System.Threading.Tasks.Task.Delay(TimeSpan.FromSeconds(3), _inboxLifetime.Token); }
+            catch (OperationCanceledException) { return; }
         }
     }
 

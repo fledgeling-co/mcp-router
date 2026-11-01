@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
+using MCPRouter.Shell.Model.Servers;
 using MCPRouter.Shell.Model.Inbox;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -10,12 +12,40 @@ namespace MCPRouter.Shell.Views;
 
 public sealed partial class InboxBoard : UserControl
 {
-    private readonly InboxBoardModel _model = new();
+    private readonly ControlApiClient _client = new();
+    private readonly InboxBoardModel _model;
+    private readonly DispatcherTimer _poll = new() { Interval = TimeSpan.FromSeconds(3) };
+    private bool _fixture;
+
 
     public InboxBoard()
     {
         InitializeComponent();
-        _model.PopulateSampleData();
+        _model = new InboxBoardModel(new RouterInboxService(_client));
+#if DEBUG
+        _fixture = Environment.GetCommandLineArgs().Contains("--fixture-inbox");
+        if (_fixture) _model.PopulateSampleData();
+#endif
+        _poll.Tick += async (_, _) => await ReloadAsync();
+        Loaded += async (_, _) => { await ReloadAsync(); _poll.Start(); };
+        Unloaded += (_, _) => _poll.Stop();
+        RenderCards();
+    }
+
+    private async Task ReloadAsync()
+    {
+        if (!_fixture) await _model.LoadAsync();
+        RenderCards();
+    }
+
+    private async Task DecideAsync(InboxItem item, string action)
+    {
+        if (_fixture)
+        {
+            if (action == "accept") _model.Approve(item.Id);
+            else _model.Decline(item.Id);
+        }
+        else await _model.DecideAsync(item.Id, action);
         RenderCards();
     }
 
@@ -23,6 +53,13 @@ public sealed partial class InboxBoard : UserControl
     {
         CardsContainer.Children.Clear();
         UpdateTabs();
+        if (_model.Error is {} error)
+            CardsContainer.Children.Add(new TextBlock { Text = error, TextWrapping = TextWrapping.Wrap });
+        if (!_fixture && !_model.HasLoaded)
+        {
+            if (_model.Error is null) CardsContainer.Children.Add(new TextBlock { Text = "Reading your inbox…" });
+            return;
+        }
 
         var items = _model.FilteredItems;
         if (items.Count == 0)
@@ -151,11 +188,8 @@ public sealed partial class InboxBoard : UserControl
                 Background = (Brush)Application.Current.Resources["AccentFillColorDefaultBrush"],
                 Foreground = (Brush)Application.Current.Resources["TextOnAccentFillColorPrimaryBrush"]
             };
-            approveBtn.Click += (_, _) =>
-            {
-                _model.Approve(item.Id);
-                RenderCards();
-            };
+            approveBtn.IsEnabled = item.CanApprove && !_model.Writing;
+            approveBtn.Click += async (_, _) => await DecideAsync(item, "accept");
             btnRow.Children.Add(approveBtn);
 
             var declineBtn = new Button
@@ -163,16 +197,19 @@ public sealed partial class InboxBoard : UserControl
                 Content = InboxPresentation.NotForMe,
                 Style = (Style)Application.Current.Resources["SubtleButtonStyle"]
             };
-            declineBtn.Click += (_, _) =>
-            {
-                _model.Decline(item.Id);
-                RenderCards();
-            };
+            declineBtn.IsEnabled = !_model.Writing;
+            declineBtn.Click += async (_, _) => await DecideAsync(item, "decline");
             btnRow.Children.Add(declineBtn);
 
             stack.Children.Add(btnRow);
         }
 
+        if (!_fixture && item.State == DecisionState.NotForMe)
+        {
+            var restore = new Button { Content = "Restore to waiting", IsEnabled = !_model.Writing };
+            restore.Click += async (_, _) => await DecideAsync(item, "restore");
+            stack.Children.Add(restore);
+        }
         border.Child = stack;
         return border;
     }

@@ -14,6 +14,8 @@ import SwiftUI
 /// Mac placeholder retiring at M6.
 public struct PhoneShell<Preview: View>: View {
     @State private var selection: Tab
+    @State private var delivery: InboxDeliveryModel?
+    @Environment(\.scenePhase) private var scenePhase
 
     private let pairing: any PairingService
     private let store: any PairingRecordStore
@@ -79,6 +81,14 @@ public struct PhoneShell<Preview: View>: View {
         self.camera = camera
         self.client = client
         self.queue = queue
+        if let receipts = queue as? any CapabilityReceiptStore {
+            _delivery = State(initialValue: InboxDeliveryModel(
+                queue: queue,
+                submitter: InboxSubmitter(queue: receipts, records: store)
+            ))
+        } else {
+            _delivery = State(initialValue: nil)
+        }
         self.dismissals = dismissals
         self.connection = connection
         self.macName = macName
@@ -134,6 +144,9 @@ public struct PhoneShell<Preview: View>: View {
             }
         }
         .tint(ColorToken.accent.color)
+        .task(id: scenePhase) {
+            if scenePhase == .active { await delivery?.run() }
+        }
     }
 
     /// **An exhaustive `switch`, one case per surface**, and the exhaustiveness is the guard.
@@ -163,7 +176,7 @@ public struct PhoneShell<Preview: View>: View {
                 macName: macName
             )
         case .queue:
-            QueueScreen(queue: queue, connection: connection, macName: macName)
+            QueueScreen(queue: queue, connection: connection, macName: macName, delivery: delivery)
         case .library:
             LibraryScreen(client: client, macName: macName)
         case .settings:

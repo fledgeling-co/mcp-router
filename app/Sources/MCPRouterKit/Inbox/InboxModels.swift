@@ -148,10 +148,12 @@ public struct InboxItem: Sendable, Equatable, Identifiable {
 
     public let envelope: InboxEnvelope
     public let resolved: RegistryEntry?
+    public let reviewDigest: String?
 
-    public init(envelope: InboxEnvelope, resolved: RegistryEntry?) {
+    public init(envelope: InboxEnvelope, resolved: RegistryEntry?, reviewDigest: String? = nil) {
         self.envelope = envelope
         self.resolved = resolved
+        self.reviewDigest = reviewDigest
     }
 
     /// The name to render: what the Mac read where it could, and what the phone said where it could

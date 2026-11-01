@@ -20,6 +20,7 @@ public struct PairedMac: Sendable, Equatable, Codable, Identifiable {
     public let host: String
     public let port: Int
     public let fingerprint: String
+    public let phoneID: String?
 
     public init(
         name: String,
@@ -27,7 +28,8 @@ public struct PairedMac: Sendable, Equatable, Codable, Identifiable {
         lastSeen: Date?,
         host: String,
         port: Int,
-        fingerprint: String
+        fingerprint: String,
+        phoneID: String? = nil
     ) {
         self.name = name
         self.pairedAt = pairedAt
@@ -35,6 +37,7 @@ public struct PairedMac: Sendable, Equatable, Codable, Identifiable {
         self.host = host
         self.port = port
         self.fingerprint = fingerprint
+        self.phoneID = phoneID
     }
 }
 

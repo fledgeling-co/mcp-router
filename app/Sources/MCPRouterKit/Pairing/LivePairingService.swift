@@ -186,7 +186,8 @@ public struct LivePairingService: PairingService {
             lastSeen: Date(),
             host: payload.host,
             port: payload.port,
-            fingerprint: payload.fingerprint
+            fingerprint: payload.fingerprint,
+            phoneID: phoneId
         )
         do {
             try await records.save(mac)
@@ -293,7 +294,8 @@ public struct LivePairingService: PairingService {
             lastSeen: current.lastSeen,
             host: candidate.host,
             port: candidate.port,
-            fingerprint: current.fingerprint
+            fingerprint: current.fingerprint,
+            phoneID: current.phoneID
         )
         do {
             try await records.save(moved)

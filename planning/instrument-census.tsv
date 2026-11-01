@@ -252,6 +252,7 @@ planning/hooks/prove-pre-commit.sh	gate	planning/hooks/prove-pre-commit.sh	stati
 planning/input_accounting.py	gate	planning/input_accounting.py	static	no router invocation matched	-
 planning/installed-claim-sweep.py	gate	planning/installed-claim-sweep.py	static	no router invocation matched	-
 planning/instrument-census.py	gate	planning/instrument-census.py	node	argv ["node", …]	make:lint
+planning/json_citation_mirrors.py	gate	planning/json_citation_mirrors.py	static	no router invocation matched	-
 planning/ledger-reconcile.py	gate	planning/ledger-reconcile.py	static	no router invocation matched	make:lint
 planning/m33-branch-sweep.py	gate	planning/m33-branch-sweep.py	static	no router invocation matched	-
 planning/mock-exclusion-gate.py	gate	planning/mock-exclusion-gate.py	static	no router invocation matched	make:lint

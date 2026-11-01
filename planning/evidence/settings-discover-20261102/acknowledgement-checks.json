@@ -1,0 +1,30 @@
+{
+  "sourceRevision": "1bac0044847bdb78da37f6ede9e0ddbf26b8ce31",
+  "scope": "Retain ok:true destructive reset acknowledgement even if since is unreadable; retry is read-only.",
+  "checks": [
+    {
+      "command": "swift test --package-path app --jobs 2 --filter SettingsHistoryResetTests",
+      "exit": 0,
+      "tests": 5,
+      "suites": 1,
+      "log": "/tmp/mcpr-settings-discover-20261102/ack-final.log"
+    },
+    {
+      "command": "swiftlint lint --strict --config .swiftlint.yml <3 changed Swift files>",
+      "exit": 0,
+      "violations": 0,
+      "log": "/tmp/mcpr-settings-discover-20261102/ack-lint.log"
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0
+    }
+  ],
+  "regression": "An ok:true/unreadable-time acknowledgement followed by two confirms produces one reset write and two summary reads; acknowledgement remains, sheet/error remain, no confirmed history window or success notice.",
+  "nativeScope": "Only malformed-ack note wording changed. Earlier captured normal states must retain their actual source revision. Current actual-app capture owned by client_gaps.",
+  "files": {
+    "app/Sources/MCPRouterUI/Settings/SettingsResetHistorySheet.swift": "c4928d28407f31529e79ca1ed980e725de4a2fc4497b9ea94e50b3c7774d0467",
+    "app/Sources/MCPRouterUI/Settings/SettingsWindowModel.swift": "3017696156683bf409a4b5817bbc8273dc10851244e52335acd8ebacc8ca88b9",
+    "app/Tests/MCPRouterUITests/SettingsHistoryResetTests.swift": "78ddd1cec6cc078685b5e86a912705c2a19d7c406434f9a5f3296cd6b5bd8956"
+  }
+}

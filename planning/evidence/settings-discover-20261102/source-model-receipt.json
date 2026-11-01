@@ -1,0 +1,111 @@
+{
+  "finalSourceRevision": "90587d05fdf047cd175bd489916f96a4de58d6c2",
+  "sourceCommits": [
+    "70a51033b6955ce60467abfef7989be53f8cecef",
+    "1bac0044847bdb78da37f6ede9e0ddbf26b8ce31",
+    "2e5962c356d1873586cdf1b4bb8b529faa2a833a",
+    "744d22e6b6e885d5746608a274b31238d2f1f4c1",
+    "90587d05fdf047cd175bd489916f96a4de58d6c2"
+  ],
+  "baseEvidence": "/tmp/mcpr-settings-discover-20261102/observations.json",
+  "acknowledgementEvidence": "/tmp/mcpr-settings-discover-20261102/acknowledgement-followup.json",
+  "latestResetCommand": "swift test --package-path app --jobs 2 --filter SettingsHistoryResetTests",
+  "latestResetExit": 0,
+  "latestResetTests": 5,
+  "latestResetLog": "/tmp/mcpr-settings-discover-20261102/notice-tests.log",
+  "latestLintExit": 0,
+  "latestLintLog": "/tmp/mcpr-settings-discover-20261102/notice-lint.log",
+  "nativeEvidence": "observations.json",
+  "privacy": "No live owner history, credentials or model invocation. Existing curated tab hashes untouched.",
+  "finalResetSourceHashes": {
+    "app/Sources/MCPRouterUI/Settings/SettingsWindowModel.swift": "d2cb43bb6e3c3bf80079f8d0f92b427b8acd9d54dae171594a58f5f60f371210",
+    "app/Sources/MCPRouterUI/Settings/SettingsResetHistorySheet.swift": "c4928d28407f31529e79ca1ed980e725de4a2fc4497b9ea94e50b3c7774d0467",
+    "app/Tests/MCPRouterUITests/SettingsHistoryResetTests.swift": "467c07a624a9a0ead8f8025cec371b6000d551abbae6c7ac6164aff7c926525d"
+  },
+  "copyFollowups": [
+    {
+      "commit": "744d22e6",
+      "tests": 28,
+      "suites": 3,
+      "exit": 0,
+      "curatedLog": "runs/consequence-tests.txt.gz"
+    },
+    {
+      "commit": "90587d05",
+      "tests": 13,
+      "suites": 2,
+      "exit": 0,
+      "curatedLog": "runs/returned-tests.txt.gz"
+    }
+  ],
+  "curatedLogs": {
+    "notice-tests.log": "runs/notice-tests.txt.gz",
+    "consequence-tests.log": "runs/consequence-tests.txt.gz",
+    "returned-lint.log": "runs/returned-lint.txt.gz",
+    "notice-lint.log": "runs/notice-lint.txt.gz",
+    "ack-lint.log": "runs/ack-lint.txt.gz",
+    "consequence-lint.log": "runs/consequence-lint.txt.gz",
+    "lint-final.log": "runs/lint-final.txt.gz",
+    "tests-final.log": "runs/tests-final.txt.gz",
+    "returned-tests.log": "runs/returned-tests.txt.gz",
+    "ack-final.log": "runs/ack-final.txt.gz"
+  },
+  "iosCompile": "ios-compile-receipt.json",
+  "transcriptArchives": {
+    "runs/lint-final.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "d40458ff57877bc6462a58c4a8d425f7dca4a3156e37f06b1d91a90128d51a1a",
+      "uncompressedBytes": 2196
+    },
+    "runs/tests-final.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "9968a12405d969b9809941ca50cd2c04cfe116deeb611c504f97d73b1c44c1ef",
+      "uncompressedBytes": 25987
+    },
+    "runs/returned-tests.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "c55a42990fd121c4d1b2fe846e3e5f03e61bb8276e3868d0e0b825658fabaab4",
+      "uncompressedBytes": 4139
+    },
+    "runs/ack-final.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "4c37b15f7d90d122bf7203ce7b06c49b6a312fa8185baa122f5b9f74fd10a6ba",
+      "uncompressedBytes": 1926
+    },
+    "runs/notice-tests.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "4e0f40a7650a2beac8f23099d5197a34bae97c9d20dd64116d66fbdb4519f280",
+      "uncompressedBytes": 2027
+    },
+    "runs/consequence-tests.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "704a115a2859c030f679d61caf2307a7c39c50acacfe61481a585bf9140e8fbe",
+      "uncompressedBytes": 7142
+    },
+    "runs/returned-lint.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "8066cea7b5cbc56e720a3e59d7849fc83d654b3546b4bd034636ffc505958b5c",
+      "uncompressedBytes": 392
+    },
+    "runs/notice-lint.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "8aead907f9319170e092c65ceae11ab845aaf433a57c0e984a1bfe42280a74eb",
+      "uncompressedBytes": 294
+    },
+    "runs/ack-lint.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "16954f1204693c530cf09fadc0628016f9258adda24f7e699fc1500949fa7739",
+      "uncompressedBytes": 408
+    },
+    "runs/consequence-lint.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "19a3bd222f7b963d89b0ba57cdc00ecead745add09a83890bb1db9760295f0ad",
+      "uncompressedBytes": 293
+    },
+    "runs/ios-final-build.txt.gz": {
+      "compression": "gzip",
+      "uncompressedSHA256": "e6a40802bf00c07a851613b57bd25c710e4366919b558fb7ec9b117be0520cb4",
+      "uncompressedBytes": 547261
+    }
+  }
+}

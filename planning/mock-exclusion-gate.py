@@ -93,11 +93,11 @@ VENDOR = ROOT / "vendor/test-campaign/skills/test-campaign/scripts"
 # changes the rule stops this gate rather than letting it keep asserting yesterday's rule.
 PINNED = {
     "attach-shots.py": (
-        "de136942ad6c72d3d3caefef409d8a74837f8c76f8d15e8318972ef421c33bfb",
+        "c6fc7f6504a24433e4f944de2af70e01d7132c1514c9b7bf9056bd23373e956f",
         '"mock" not in {part.lower() for part in p.relative_to(shots_dir).parts[:-1]}',
     ),
     "capture-lineage.py": (
-        "bf914c88ac7e1a0f9d33641b37b4e2f1e15e8bb25aa6ac0345cfc349b6f0a45d",
+        "3121b4d173c193fd9bb3bf50c69eab56d86a280bfefddcc2100d5975bf4be37f",
         '"mock" not in {q.lower() for q in p.relative_to(shots_dir).parts[:-1]}',
     ),
 }

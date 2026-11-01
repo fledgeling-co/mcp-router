@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/banner.png" alt="test-campaign: a porcelain icon of a three-by-three grid of captured frames, one filled vermilion and the ninth cell an empty socket pressed into the tile, beside the wordmark and the line: a test campaign, and a page that shows what it actually proved" width="100%" />
+  <img src="assets/banner.png" alt="test-campaign: a porcelain icon of a three-by-three grid of captured frames, one filled vermilion and the ninth cell an empty socket pressed into the tile, beside the wordmark and the line: a test campaign, and a page that shows what it actually proved" width="100%">
 </p>
 
 <h1 align="center"><img src="assets/icon.svg" alt="" width="34" valign="middle" /> test-campaign</h1>
@@ -8,7 +8,7 @@
 A SWE skill for Claude Code that reads what your project claims to do, tests it across the states and viewports and roles nobody gets to, and leaves one browsable page where the gaps are as visible as the passes.</p>
 
 <p align="center">
-  <img alt="Version 0.9.0" src="https://img.shields.io/badge/version-0.9.0-D33C21">
+  <img alt="Version 0.19.1" src="https://img.shields.io/badge/version-0.19.1-D33C21">
   <img alt="SWE skill: testing" src="https://img.shields.io/badge/SWE_skill-testing-434A55">
   <img alt="Lanes: web, RN, iOS, macOS, Windows, Linux" src="https://img.shields.io/badge/lanes-web_·_RN_·_iOS_·_macOS_·_Windows_·_Linux-756E60">
   <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-A9A399">
@@ -69,7 +69,7 @@ Two more gates in the same spirit. **A pass has to name an evidence artifact on 
 
 A lane you name with a `-glass` suffix is claiming the application was running and drawn by a display server, and the gate won't clear until it carries three things: the built artifact as a path that exists, the command that produced it, and what witnessed a process from it reaching a display server. The first of those is the cheapest check in the skill and it's the one that catches a platform whose source was written and never compiled.
 
-When the artifact is not on disk, the next step is the project's documented build, then launch, then `--attached`. `--cannot-attach` is for a structural block that survives that build — `"no Windows host with an interactive desktop is reachable"` is one; `"no signed app is on disk"` is not, and `campaign.py lane` refuses it. A lane silently assumed to have run is the failure; a missing binary recorded as unreachable is the same failure wearing a reason string.
+When the artifact is not on disk, the next step is the project's documented build, then launch, then `--attached`. `--cannot-attach` is for a structural block that survives that build. `"no Windows host with an interactive desktop is reachable"` is one; `"no signed app is on disk"` is not, and `campaign.py lane` refuses it. A lane silently assumed to have run is the failure; a missing binary recorded as unreachable is the same failure wearing a reason string.
 
 The same discipline runs down to the artifacts. A screenshot that's actually a zero-byte file, an HTML error page saved to a `.png` path, a 1×1 placeholder, or **one screenshot attached to twelve different cases**. All four have shipped, all four are exact to detect from the bytes, and all four now fail the gate. What the skill deliberately doesn't do is score the picture: no density or entropy floor can separate a failed capture from a legitimately sparse screen, because an empty state is mostly background by design. So provenance gates and density only ever annotates.
 
@@ -77,17 +77,17 @@ And there's a fourth thing a case can now say. `inconclusive` means the check wa
 
 ## And it makes you prove the picture is of the right thing
 
-A screenshot on an evidence page makes two claims. The first — that pixels came off a display server — is the one above. The second is that they're of the surface named underneath them, and until 0.8.0 nothing checked it at all.
+A screenshot on an evidence page makes two claims. The first, that pixels came off a display server, is the one above. The second is that they're of the surface named underneath them, and until 0.8.0 nothing checked it at all.
 
-A campaign published 20 surface captures and cleared every gate this skill had: every case accounted for, 46 of 49 checked under the strict rule, every glass lane proved and witnessed. The captures were of three unrelated documents — a project status report, the mock browser's own index page, a design accessibility doc. Twenty files held six distinct images. A flow step captioned "Open pairing QR code sheet" showed a questionnaire about Apple developer credentials.
+A campaign published 20 surface captures and cleared every gate this skill had: every case accounted for, 46 of 49 checked under the strict rule, every glass lane proved and witnessed. The captures were of three unrelated documents: a project status report, the mock browser's own index page, a design accessibility doc. Twenty files held six distinct images. A flow step captioned "Open pairing QR code sheet" showed a questionnaire about Apple developer credentials.
 
 Nothing was broken. Captures were bound to surfaces on a slug of the **filename**, the page rendered each one with alt text taken from the label, and the artifact checks ran over case evidence rather than over the pictures the page actually shows. The gated part of the campaign was sound; the ungated part was the part people look at.
 
-The fix is borrowed wholesale from `warrant`'s oracle plane, which had already solved it one domain over for numbers: a figure without a source reference is the defect that plane exists to find. Substitute *picture* for *figure* and it transfers intact. The capture step now records what each shot depicts and — the load-bearing part — **where the channel was actually pointed**, at capture time, because a manifest written afterwards records what somebody believed. Four passes then run, all exact, none needing a model: a capture with no recorded target, a target that doesn't resolve to its subject's route, two subjects sharing one image, and a capture published without a `be-my-witness` verdict.
+The fix is borrowed wholesale from `warrant:warrant`'s oracle plane, which had already solved it one domain over for numbers: a figure without a source reference is the defect that plane exists to find. Substitute *picture* for *figure* and it transfers intact. The capture step now records what each shot depicts and (the load-bearing part) **where the channel was actually pointed**, at capture time, because a manifest written afterwards records what somebody believed. Four passes then run, all exact, none needing a model: a capture with no recorded target, a target that doesn't resolve to its subject's route, two subjects sharing one image, and a capture published without a `be-my-witness:be-my-witness` verdict.
 
 That last one ratchets rather than blocks. The other three fail the gate, and the whole ladder is itself watched to fail: `--seed-swap` swaps two subjects and asserts the gate goes red, because a tie check that can't be seen failing is indistinguishable from one that reads nothing.
 
-Worth saying why none of the four asks a model. Run `be-my-witness`'s prescan against the worst capture in that campaign and it returns *is evidence: true, settled: true*, exit 0 — a real, contentful, settled image of entirely the wrong document. Image statistics can't answer the subject question and frontier vision tops out near 40% recall on fine-grained UI diffs. Provenance answers it. Nothing else does.
+Worth saying why none of the four asks a model. Run `be-my-witness:be-my-witness`'s prescan against the worst capture in that campaign and it returns *is evidence: true, settled: true*, exit 0, a real, contentful, settled image of entirely the wrong document. Image statistics can't answer the subject question and frontier vision tops out near 40% recall on fine-grained UI diffs. Provenance answers it. Nothing else does.
 
 ## And it asks whether the product does the thing at all
 
@@ -97,11 +97,11 @@ A campaign closed 230 cases over a CI runner built around zero-trust network iso
 
 Arming is what should have caught it and structurally cannot. Arming reverts the behaviour an assertion guards and watches the case go red, which mutates the **system** and finds what the suite doesn't cover. Ball & Kupferman named it as one of a pair in 2008: mutating the system finds coverage gaps, and mutating the **specification** finds guarantees that were never exercised at all. This skill had shipped one half of a known pair 220 times and the other half never. The published base rate for vacuity in formal verification is around 20% of formulas, and "trivial validity always points to a real problem".
 
-The rest of the toolkit is blind to it for the same reason. `cargo mutants` mutates code that exists, so a boundary nothing reaches has no mutants to catch. Coverage counts lines the suite executed, and a rule generator's lines all execute. And the whole isolation stack — `pytest --disable-socket`, `WebMock.disable_net_connect!`, `nock.disableNetConnect()` — asserts the *absence* of I/O, which means a suite built on it cannot tell "correctly outbound-only" from "never communicates".
+The rest of the toolkit is blind to it for the same reason. `cargo mutants` mutates code that exists, so a boundary nothing reaches has no mutants to catch. Coverage counts lines the suite executed, and a rule generator's lines all execute. And the whole isolation stack (`pytest --disable-socket`, `WebMock.disable_net_connect!`, `nock.disableNetConnect()`) asserts the *absence* of I/O, which means a suite built on it cannot tell "correctly outbound-only" from "never communicates".
 
-So requirements now carry an **effect class** naming what they make the product do outside its own memory, and a **provider**: the thing in production source that could actually perform it. A requirement claiming an effect with no provider is vacuous before a test runs. A requirement claiming one and recorded `observed` owes a case at `effect-witness` — a recorder the product doesn't control, plus the count it saw. And `vacuous` joins observed / reported / contradicted as a fifth evidence class, because a guarantee over a capability nobody built is a real finding and needs somewhere honest to sit. It clears the gate; the configuration that blocks is `observed` with nothing witnessed.
+So requirements now carry an **effect class** naming what they make the product do outside its own memory, and a **provider**: the thing in production source that could actually perform it. A requirement claiming an effect with no provider is vacuous before a test runs. A requirement claiming one and recorded `observed` owes a case at `effect-witness`: a recorder the product doesn't control, plus the count it saw. And `vacuous` joins observed / reported / contradicted as a fifth evidence class, because a guarantee over a capability nobody built is a real finding and needs somewhere honest to sit. It clears the gate; the configuration that blocks is `observed` with nothing witnessed.
 
-Two of the six checks cost nothing. One greps for providers. The other scans the test tree for a call that changes state with no read after it, which is the shape that lets a verb report success while doing nothing. On the campaign above it read 164 test functions and found 26 of 32 mutating tests blind — five of them in a file named for the effect it wasn't measuring. That pass immediately surfaced a live defect the 230 cases had passed: `stop_runner` returns `true` twice for the same runner and never removes it, and `restart_runtime` reports success having restarted nothing. The case covering it stood at `outcome`, and the outcome it asserted was the arrival of a sentence.
+Two of the six checks cost nothing. One greps for providers. The other scans the test tree for a call that changes state with no read after it, which is the shape that lets a verb report success while doing nothing. On the campaign above it read 164 test functions and found 26 of 32 mutating tests blind, five of them in a file named for the effect it wasn't measuring. That pass immediately surfaced a live defect the 230 cases had passed: `stop_runner` returns `true` twice for the same runner and never removes it, and `restart_runtime` reports success having restarted nothing. The case covering it stood at `outcome`, and the outcome it asserted was the arrival of a sentence.
 
 ## The defect class it's named after finding
 
@@ -142,6 +142,21 @@ The desktop rows exist because the alternative is inventing them. A few of the f
 
 Where a lane's tooling is genuinely absent, that's a blocker to report rather than a licence to eyeball. Windows is thinner than it looks: WinAppDriver has had no stable release since 2020 and can't be forked, White is archived, and Playwright's desktop support is Electron-only.
 
+## Swift blind-pass measurement
+
+The blind pass uses balanced Swift function bodies, so private helpers and nested
+declarations cannot donate calls to another test. It masks comments and literal
+text while keeping executable string interpolation. Its printed denominator is
+candidate bodies: explicit `@Test`/`test*` entries are retained, called helpers are
+excluded heuristically, and uncalled helpers can remain candidates.
+
+Unsupported or malformed Swift files are **NOT MEASURED**, with a file/reason and
+separate counts; even a mixed clean/unsupported scan fails `--gate`. The bounded
+lexer supports ordinary arithmetic division, but does not certify Swift grammar
+or measure regex/ambiguous operators. It does not prove reader independence,
+control flow or transitive helper effects. See the
+[effect-boundary contract](skills/test-campaign/references/effect-boundary.md#swift-body-boundaries-and-measurement-limits-0161).
+
 ## What it won't do
 
 Worth saying plainly, since the gaps are the point of the whole thing.
@@ -169,4 +184,12 @@ The desktop lanes came out of a fourth research pass in August 2026. Half of it 
 /plugin install test-campaign@fledgeling-plugins
 ```
 
-Then `/test-campaign`, or just ask Claude to test something properly.
+Then `/test-campaign:test-campaign`, or just ask Claude to test something properly.
+
+
+## Focused regression
+
+`/test-campaign:ui-regression <named journey>` repeats a bounded navigation case
+with keyboard and requested theme/width variants. It reports blocked cells and
+current target evidence, and reuses the project's existing test harness. It does
+not start recurring QA or approve a release.

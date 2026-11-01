@@ -946,6 +946,7 @@ lint: tools
 	python3 planning/test-campaign/bin/capture-manifest.py || fail=1; \
 	python3 planning/test-campaign/bin/glass-build-gate.py --selftest || fail=1; \
 	python3 planning/test-campaign/bin/raster-claim-gate.py || fail=1; \
+	python3 scripts/check-test-campaign-pin.py --selftest || fail=1; \
 	python3 planning/mock-exclusion-gate.py || fail=1; \
 	python3 planning/mock-exclusion-gate.py --selftest || fail=1; \
 	python3 planning/effect-class-vocabulary-gate.py || fail=1; \

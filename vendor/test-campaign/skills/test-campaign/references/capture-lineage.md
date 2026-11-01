@@ -40,15 +40,37 @@ to do:
 **The gated part of the campaign was sound and the ungated part was the part
 people look at.** That asymmetry is the failure this file removes.
 
-Run `prescan.py` from `be-my-witness` against the worst of those captures and it
+Run `prescan.py` from `be-my-witness:be-my-witness` against the worst of those captures and it
 returns `isEvidence: true, settled: true`, exit 0 — a real, contentful, settled
 image of the wrong document. Deterministic image statistics cannot answer the
 subject question. Only provenance can, and provenance has to be recorded at
 capture time because it cannot be recovered afterwards.
 
+## The second measurement — a state the capture script wrote
+
+A year of provenance on *what the channel was pointed at* left one claim
+unchecked: *what put that state on the screen*. On 2026-09-06 an audit of one
+project's capture scripts found seven cards moved to Verified on captures whose
+state the script had authored. Three inserted the expected HTML with
+`page.evaluate` before the shutter — a chat turn with its "Used 2 sources"
+footer, an export tray "docked" beside a drawer, a pair of run controls on a
+workflow card — into the build and into the mock alike, so the pair agreed with
+itself. Four painted a black box onto a real page whose text began *"Verified:
+…"*, and the vision judge read the box as a finding about the product. Every
+entry in `captures.json` was correct: right subject, right target, right
+channel, right sha256. Nothing recorded how the state was reached, so nothing
+could refuse it, and the owner's own words on the same day were *"Screenshots
+aren't simply artifacts."*
+
+The remedy is the same shape as the first: record it at capture time, in the
+manifest, and gate on it. The capture helper counts every script call made to
+the page between the last navigation and the shutter and names the steps that
+reached the state through the product; the gate refuses any published capture
+whose count is above zero.
+
 ## The borrowed shape
 
-`warrant`'s `oracle` plane solved the identical problem one domain over. Its
+`warrant:warrant`'s `oracle` plane solved the identical problem one domain over. Its
 premise: the worst thing a data-dense product can do is render a figure no source
 supports, and a vision judge structurally cannot catch it because nothing on the
 screen looks wrong (`I7` in that plugin's claim set). Its remedy is not a better
@@ -86,9 +108,21 @@ entry per image. Not inferred later, and never derived from the filename.
   "sha256": "67a259…",
   "capturedAt": "2026-08-20T07:58:03Z",
   "conditions": { "viewport": [1440, 900], "dpr": 2, "theme": "dark", "settleMs": 1200 },
-  "witnessed": "node server.js pid 69919 listening on 127.0.0.1:3130 (lsof TCP LISTEN)"
+  "witnessed": "node server.js pid 69919 listening on 127.0.0.1:3130 (lsof TCP LISTEN)",
+  "provenance": {
+    "reached": ["goto /devices", "click 'Pair device'", "fill 'Name' with 'Studio A'"],
+    "scriptCalls": 0,
+    "scriptCallNotes": []
+  }
 }
 ```
+
+`provenance` is the fifth attribute, added in 0.19.0. `reached` is the list of
+steps the harness drove through the product to put this state on screen;
+`scriptCalls` is the number of `page.evaluate`, `addScriptTag`, `addStyleTag`,
+`setContent` or init-script calls made to the page between the last navigation
+and the shutter. The helper writes both; a hand-written zero is the reconstructed
+manifest again.
 
 `subject` is a claim. `target` and `channel` are what make it checkable. A
 capture with a `subject` and no `target` is exactly the unsourced figure
@@ -96,7 +130,7 @@ capture with a `subject` and no `target` is exactly the unsourced figure
 
 ## The gate ladder
 
-`capture-lineage.py` runs four passes, each of which can end the run. They are
+`capture-lineage.py` runs six passes, each of which can end the run. They are
 ordered cheapest-first and every one is exact — no pass on this ladder needs a
 model, and that is deliberate: a judgement inserted here would be the thing the
 ladder exists to make unnecessary.
@@ -127,15 +161,51 @@ image is not a near-miss; it is a capture step that ran once and was filed four
 times.
 
 A legitimate share exists — one window genuinely serving two surfaces — and it is
-declared in the entry as `"sharesWith": ["SURF-004"]` with a reason. Undeclared
-sharing fails; declared sharing passes and prints, so the reader sees that the
-wall has fewer distinct pictures than it has cells.
+declared in the entry as `"sharesWith": ["SURF-004"]` with a `sharesReason`.
+Undeclared sharing fails; declared sharing passes and prints, so the reader sees
+that the wall has fewer distinct pictures than it has cells.
 
-**4 · Unjudged.** A capture rendered on the evidence page with no `be-my-witness`
+The declaration is written into the registry this pass reads, so on its own it
+lets a capture authorise its own duplicate. Three things are therefore required
+and the third comes from outside the declaration: every member names every other
+member, every member records a non-empty `sharesReason`, and the target the
+channel recorded at capture time is the same address for all of them (falling
+back to the subjects' declared routes where no target was recorded). Two
+shutters pointed at two addresses that happen to produce identical bytes is the
+case this catches, and it is the case a declaration alone cannot distinguish
+itself from.
+
+**4 · Unaccounted.** An image under the shots directory that no subject
+publishes. Every other pass on this ladder is derived from *published* captures,
+so until 0.9.5 a file nobody published contributed to no finding: one campaign
+read `published captures: 0 · files in shots dir: 11`, exited 0, and printed
+"Every published capture names a target that ties to its subject" — true, and
+covering nothing. Publish it, delete it, or record `unpublishedReason` on its
+`captures.json` entry, so the escape is in the file rather than in somebody's
+memory.
+
+**5 · Unjudged.** A capture rendered on the evidence page with no `be-my-witness:be-my-witness`
 verdict against its reference. This one does not block on first run — it
 ratchets, for the reason `strict-check.py` ratchets: a gate that opens 97% red is
 switched off within a week. It prints the judged fraction with its denominator
 and fails when that fraction **falls**.
+
+A ratchet of **0** is refused, the way `strict-check.py` refuses an empty
+campaign: a floor nothing has ever passed under cannot fall, so pinning it
+records an armed gate where there is none. Judge one capture first, then pin
+what it earned.
+
+**6 · Fabricated.** A published capture whose `provenance.scriptCalls` is above
+zero. Exit 2 naming each, with the first three call notes, because the picture
+shows what the script authored rather than what the product rendered. The
+remedy is never in the manifest: reach the state through the product — seed it
+through the API before the run, or drive the product's own controls inside the
+helper's `reach` and let the steps be recorded — and put a finding in the case
+record rather than on the picture. A published capture with no `provenance` at
+all is counted as unprovenanced and printed with its denominator; that count
+ratchets beside the judged count, so a helper that stops recording how a state
+was reached fails the gate rather than quietly returning the manifest to the
+shape it had before this pass existed.
 
 ## Why the witness step must actually run
 
@@ -164,9 +234,9 @@ reason, and nothing here changes that.
 
 **It does not ask a model whether the picture looks right.** Frontier multimodal
 models reach roughly 40% recall on fine-grained UI diffs and under 23% on hard
-cases (`mockup-fidelity`'s measurement-enforcement reference), so a vision pass
+cases (`mockup-fidelity:mockup-fidelity`'s measurement-enforcement reference), so a vision pass
 is an explanation layer and never the gate. The gate is provenance; the looking
-says what changed and where. That is `be-my-witness`'s own governing sentence and
+says what changed and where. That is `be-my-witness:be-my-witness`'s own governing sentence and
 it is adopted here unchanged.
 
 **It does not trust a manifest written after the fact.** An entry whose
@@ -177,7 +247,7 @@ somebody wrote down what they believed.
 
 ## The seeded check
 
-Borrowed from `mockup-fidelity`'s seeded-defect eval, and it is what stops this
+Borrowed from `mockup-fidelity:mockup-fidelity`'s seeded-defect eval, and it is what stops this
 file becoming ceremony. The gate must be watched to fail, using the campaign's
 own rule that an assertion nobody has seen go red is indistinguishable from one
 that cannot go red.
@@ -191,7 +261,7 @@ asserts it exits 2. A run where the swap passes means the tie pass is not readin
 what it claims to read — and that is the exact state the campaign was in before
 this file existed, so it is the one result that is never a curiosity.
 
-The answer key is three-valued, as in `mockup-fidelity`: **caught**, **declared
+The answer key is three-valued, as in `mockup-fidelity:mockup-fidelity`: **caught**, **declared
 inconclusive with its reason**, or **false pass**. Only the third fails. A lane
 whose channel cannot record a target — a hand-delivered screenshot, a photograph
 of a device — is inconclusive by capability rather than caught, and it says so in

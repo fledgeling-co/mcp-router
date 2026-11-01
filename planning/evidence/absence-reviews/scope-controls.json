@@ -1,0 +1,207 @@
+{
+  "version": 1,
+  "kind": "counterfactual freshness controls, not absence truth or product acceptance",
+  "sourceRevision": "fbcc80b1cbf456289114b608959b68fcae09c6ce",
+  "scopes": [
+    {
+      "scope": "await-bound-scanner",
+      "meaningfulSubjectWithoutBackReference": "The bounded-await scanner misreads a labelled Swift statement as a wrapper closure",
+      "allKindsReopen": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "genericCaseViaCMPIncluded": true,
+      "linkedOracleChangeReopens": true,
+      "registryOrderIgnored": true,
+      "unrelatedSubjectIgnored": true
+    },
+    {
+      "scope": "reader-census-records",
+      "meaningfulSubjectWithoutBackReference": "A reader census includes its own instrument in a claimed historical base denominator",
+      "allKindsReopen": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "genericCaseViaCMPIncluded": true,
+      "linkedOracleChangeReopens": true,
+      "registryOrderIgnored": true,
+      "unrelatedSubjectIgnored": true
+    },
+    {
+      "scope": "vendor-progress-records",
+      "meaningfulSubjectWithoutBackReference": "A moved-aside vendor progress record is missing after the verification technique completes",
+      "allKindsReopen": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "genericCaseViaCMPIncluded": true,
+      "linkedOracleChangeReopens": true,
+      "registryOrderIgnored": true,
+      "unrelatedSubjectIgnored": true
+    },
+    {
+      "scope": "mock-conversion-guard",
+      "meaningfulSubjectWithoutBackReference": "A conversion fidelity gate accepts empty labels as a measured match and hides surplus affordances",
+      "allKindsReopen": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "genericCaseViaCMPIncluded": true,
+      "linkedOracleChangeReopens": true,
+      "registryOrderIgnored": true,
+      "unrelatedSubjectIgnored": true
+    },
+    {
+      "scope": "mock-conversion-marker",
+      "meaningfulSubjectWithoutBackReference": "A conversion report marker is emitted before a ledger write or lost after a console failure",
+      "allKindsReopen": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "genericCaseViaCMPIncluded": true,
+      "linkedOracleChangeReopens": true,
+      "registryOrderIgnored": true,
+      "unrelatedSubjectIgnored": true
+    },
+    {
+      "scope": "watch-parity-claims",
+      "meaningfulSubjectWithoutBackReference": "A watcher manifest inventory retains a withdrawn claim across a hard wrap and misstates its reproduction rate",
+      "allKindsReopen": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "genericCaseViaCMPIncluded": true,
+      "linkedOracleChangeReopens": true,
+      "registryOrderIgnored": true,
+      "unrelatedSubjectIgnored": true
+    },
+    {
+      "scope": "harness-endpoint-dialects",
+      "meaningfulSubjectWithoutBackReference": "Gemini config precedence chooses the wrong serverUrl endpoint file when two files disagree",
+      "allKindsReopen": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "genericCaseViaCMPIncluded": true,
+      "linkedOracleChangeReopens": true,
+      "registryOrderIgnored": true,
+      "unrelatedSubjectIgnored": true
+    },
+    {
+      "scope": "mutation-restore-safety",
+      "meaningfulSubjectWithoutBackReference": "An interrupted mutation harness leaves a poisoned source file and accepts it as the next clean baseline",
+      "allKindsReopen": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "genericCaseViaCMPIncluded": true,
+      "linkedOracleChangeReopens": true,
+      "registryOrderIgnored": true,
+      "unrelatedSubjectIgnored": true
+    },
+    {
+      "scope": "inline-image-guard",
+      "meaningfulSubjectWithoutBackReference": "An inline imageURL stripping assertion stays green when the allowlist starts carrying the attribute",
+      "allKindsReopen": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "genericCaseViaCMPIncluded": true,
+      "linkedOracleChangeReopens": true,
+      "registryOrderIgnored": true,
+      "unrelatedSubjectIgnored": true
+    },
+    {
+      "scope": "verification-family-identity",
+      "meaningfulSubjectWithoutBackReference": "A verification verdict silently calls a same-family review independent of its author",
+      "allKindsReopen": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "genericCaseViaCMPIncluded": true,
+      "linkedOracleChangeReopens": true,
+      "registryOrderIgnored": true,
+      "unrelatedSubjectIgnored": true
+    },
+    {
+      "scope": "swiftpm-build-description",
+      "meaningfulSubjectWithoutBackReference": "The SwiftPM build description cannot attribute sources to swiftbuild output objects",
+      "allKindsReopen": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "genericCaseViaCMPIncluded": true,
+      "linkedOracleChangeReopens": true,
+      "registryOrderIgnored": true,
+      "unrelatedSubjectIgnored": true
+    },
+    {
+      "scope": "carrier-landing-identity",
+      "meaningfulSubjectWithoutBackReference": "A carrier landing disposition changes identity when the same work crosses integration merges",
+      "allKindsReopen": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "genericCaseViaCMPIncluded": true,
+      "linkedOracleChangeReopens": true,
+      "registryOrderIgnored": true,
+      "unrelatedSubjectIgnored": true
+    }
+  ],
+  "directRelevantAdditionsTested": 72,
+  "linkedCMPControlsTested": 12,
+  "proposal": {
+    "command": "python3 planning/brief-target-gate.py --absence-proposal planning/features-to-triage/G3-gapfix-2.md --scope await-bound-scanner",
+    "inputsByteIdentical": 245,
+    "outputUnreviewed": true
+  },
+  "manualReviewCount": 23
+}

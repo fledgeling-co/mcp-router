@@ -1,0 +1,168 @@
+{
+  "version": 1,
+  "brief": "planning/features-to-triage/G3-gapfix.md",
+  "briefSha256": "7f8e8997cb86beca7019aa180a361adef115c0edefe4fb26818b8267faa6fdc2",
+  "assertionDigest": "c7154ee896b3ed983ab5dfbb8390b62389260b85697916bd13ef660a28ad1116",
+  "reviewer": "Codex agent /root/mac_updates (manual source review; independent assessment pending)",
+  "reviewedAt": "2026-11-01T17:07:02.687721+00:00",
+  "sourceRevision": "fbcc80b1cbf456289114b608959b68fcae09c6ce",
+  "subjectRead": "A bounded, cancellation-aware test wait must report the reap condition before the CI timeout; the pool timing mutation must not hang for ten minutes.",
+  "decision": "unknown; no absence certification",
+  "closestCandidates": [
+    {
+      "id": "REQ-011",
+      "assessment": "Production single-flight/idle reaping is not a bound on the test-only awaitReap waiter.",
+      "publicRegistryVariants": [
+        {
+          "registry": "requirements.in.json",
+          "kind": "requirement",
+          "canonicalRowSha256": "a20b604929cd45434f5567336b48b24c5f2024ae6c6a30cbb3d0fade54341f7b",
+          "subject": {
+            "text": "RouterCore manages live stdio children and HTTP upstreams with single-flight spawn and idle reaping."
+          }
+        },
+        {
+          "registry": "inventory.requirement",
+          "kind": "requirement",
+          "canonicalRowSha256": "fab9d74e10e77a145ed85513b28051223b23c404d9afd8a37bc022969ceb6b2a",
+          "subject": {
+            "text": "RouterCore manages live stdio children and HTTP upstreams with single-flight spawn and idle reaping."
+          }
+        }
+      ]
+    },
+    {
+      "id": "CASE-0032",
+      "assessment": "The warm-upstream reap mutation measures warm residency, not a named deadline on the test waiter.",
+      "publicRegistryVariants": [
+        {
+          "registry": "cases.json",
+          "kind": "case",
+          "canonicalRowSha256": "02de00d4ef4e2cba52ca7f11286f40511dad5229b112abd476f6643fb703ed57",
+          "subject": {
+            "oracle": "outcome",
+            "cell": {
+              "surface": "SURF-015",
+              "state": "populated",
+              "viewport": "n/a",
+              "theme": "n/a",
+              "role": "daemon",
+              "dataShape": "typical",
+              "executionPlane": "headless"
+            }
+          }
+        },
+        {
+          "registry": "cases.in.json",
+          "kind": "case",
+          "canonicalRowSha256": "fc092e7d26b125cfb7546d61a391c57ca1f72599a587611acbe1324baa8881a3",
+          "subject": {
+            "oracle": "outcome",
+            "cell": {
+              "surface": "SURF-015",
+              "state": "populated",
+              "viewport": "n/a",
+              "theme": "n/a",
+              "role": "daemon",
+              "dataShape": "typical",
+              "executionPlane": "headless"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-030",
+      "assessment": "Four UI test deadlines under load do not model the pool waiter or its requested/default window split.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "59b1311272644fffa34c916e030a5c19ac676684795344bdcb777fa4e2c1606e",
+          "subject": {
+            "title": "four async package tests asserted on a deadline the machine could miss",
+            "text": "Measured 20 Aug 2026. `make test` failed with 4 issues at a one-minute load average of ~700 and passed all 1473 tests in 179 suites at load 46, on the same source, minutes apart. The four were `ActivityReconnectTests` (`a reconnect over a feed that stays live releases its guard`), `DiscoverBoardTests` (`client.searchQueries.count` reading 1 where the baseline said 2), and `SettingsAndMenuBarTests` twice (`model.trackerState` still nil). An earlier run at the same load failed only the first, so the set was not stable either — which is what separated this from a product defect. A suite that reports a defect the product does not have is the failure this campaign has already paid for once, in DEF-029, where a dead instrument read as a dead product for ten consecutive runs.\n\nCLOSED by making each wait a condition rather than a deadline, at three sites:\n\n1. `ShellTestSupport.waitUntil` — ceiling 5s → 30s. It returns the moment the condition holds, so a passing test pays nothing for the larger bound; the bound exists only so a condition that never arrives fails instead of hanging. Five seconds was inside the scheduling noise of a contended host, which is the whole finding.\n2. `ActivityReconnectTests.completes` — 2s → 30s, same argument. The defect it bounds is a call that *never* returns, so it exhausts any budget and a generous one costs only the time a genuine hang takes to report.\n3. `DiscoverBoardTests.searchIsDebounced` — a fixed sleep replaced by two waits, because the claim has two halves and one sleep proved neither on a slow host. First a bounded wait for the debounce to fire at all; then a full debounce window of quiet with the count still at one, which is what rules out one request per keystroke. The second is a real quiet period rather than a deadline, so load cannot shorten it into a false pass — the wait on its own is satisfied by the *first* request and would pass against exactly the defect this test exists to catch.\n\nArmed 20 Aug 2026, all three, each watched to fail with its own message: `waitUntil` at `.seconds(0)` reads `no poll ran at all`, `the poll died with the scene that started it` and `five keystrokes issued 0 requests`; `completes` at `.milliseconds(1)` reads `reconnect did not return while the feed stayed live`; and a `queryChanged()` inserted inside the quiet period reads `a later request arrived: five keystrokes issued 2 requests in total`.\n\nThe original trigger is not reproducible on demand from here — the load came from another project's Rust test binary, two node processes and `lsdiagnose` — so the fix is proven by the arms rather than by reproducing the contention."
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-033",
+      "assessment": "OAuth parity intermittency is a different route and observable.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "897abd4dcd249643174f714ffec699d8b2df242061ecec7fc7ae08947c1a3604",
+          "subject": {
+            "title": "the OAuth parity lane failed once inside a full gate and has not reproduced",
+            "text": "Observed once, in one of two whole-gate runs, and not reproduced by: a standalone run of `parity-oauth.sh`, a second standalone run of it immediately afterwards (which exercised the same port-reuse wait, 9s and 12s), a standalone run of `parity-suite.sh`, or a second whole `parity-gate.sh` on the same tree. The second gate reported 82 of 83, 0 DIVERGED, and its suite lane reported the citation clean.\n\n**What it is not.** The lane distinguishes an environment failure from a finding on purpose, and this was the finding branch: `record control-auth-post-http fail` at `parity-oauth.sh:329`, reached only when the reference side completed an authorization and the Swift side did not. An unbindable port exits 2 through `wait_for_ports_bindable` and records `blocked`, not `fail`, so the port-reuse race is ruled out by the code path that fired.\n\n**Why it went undiagnosed, and what changed.** `parity-suite.sh`'s `run_script` sent both streams to `/dev/null` and printed `the gate reported findings` — a verdict with no evidence under it. The bytes naming which guard failed had already been thrown away by the time anyone read the gate's summary. `run_script` now keeps the log, prints its last 20 lines inline and names the file it kept, armed 20 Aug 2026 against a deliberately failing citation. A recurrence will say which of the 21 checks went red.\n\n**Why the duplicate run stays.** `control-auth-post-http` is proven on the wire by its own lane and also cites the script, so the gate runs it twice. That is now documented in `parity-suite.sh` rather than deduplicated, because the duplicate is what caught this: a single run would have reported a clean 82 of 83 and nobody would have known. Both record under the same row id and a `fail` wins.\n\n**Burn-in, 20 Aug 2026: 8 standalone runs of the lane, all green, 21 checks each.** Three immediately after the failure and five consecutively afterwards, plus one clean whole gate. One failure in roughly ten whole-lane executions, cause unrecoverable because that invocation's stdout was discarded. A green burn-in does not close this: the original failure is uninspectable, so the runs measure only that the lane is not reliably broken. What would close it is a captured reproduction, or a stated gate met — several consecutive whole gates including the cold port-reuse path — decided as its own question rather than inferred from a streak, which is the `install-launchd-watch` mistake this repository already paid for once (G1: name a fix per term and fix a bound IN ADVANCE, never a green streak). Not a UI defect and not a blocker on the cutover count — CASE-0036's measurement is the second run — but it is an unexplained non-determinism in the router or the lane, and it is recorded rather than absorbed."
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-035",
+      "assessment": "An enum-layout stale build is not scheduler-independent bounded waiting.",
+      "publicRegistryVariants": [
+        {
+          "registry": "defects.in.json",
+          "kind": "defect",
+          "canonicalRowSha256": "ccfe0976f42c8bfb073fb46f53c9e81ce46c6945fd098c905d8d4b973e706fa3",
+          "subject": {
+            "title": "an incremental Swift build after adding an enum case reports impossible test failures",
+            "text": "Adding a 14th case to `Scenario` made `make test` fail with 31 issues, two of which cannot be true of the source: `Expectation failed: (… → .live) == (.live → .fixture(…cleanupSkills))` in ShellClientFactoryTests and TriageSourceGuardTests, both asserting a Release-posture guard that returns .live unconditionally. `git stash` of the two changed source files → 19 tests pass; unstash → the same failures return, which reads as a real regression. It is not. `Choice.live` is encoded in the spare inhabitants of `Scenario`'s tag, so a new Scenario case shifts that encoding, and stale MCPRouterUI object files compiled against the old layout compare a value that no longer means what they think. `rm -rf app/.build` then rebuild: 5/5 pass, then 1512/1512. The hazard for this campaign is the mirror case — a stale build can as easily produce a green — so any test evidence taken across an enum change is taken from a clean build. MITIGATED 2026-08-20: `app/Scripts/enum-layout-stamp.py` hashes the ordered case list of every enum in the package (212 of them) and removes `app/.build` when that hash moves; `make test` now depends on it. The stamp is the case lists rather than the source, so it holds still for an ordinary edit and for a `switch` over the enum — the false positive a naive grep for `^\\s*case` would hit — and moves for an added or renamed case. Armed on all four: comment SAME, switch statement SAME, added Scenario case MOVED, renamed Scenario case MOVED, restore back to baseline. The SwiftPM behaviour itself is unchanged and still upstream; what is fixed is this repo's exposure to it."
+          }
+        },
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "ada60883e66d8b78d6111eeb071f85c002814899edca9776852eb2164fedb926",
+          "subject": {
+            "title": "an incremental Swift build after adding an enum case reports impossible test failures",
+            "text": "Adding a 14th case to `Scenario` made `make test` fail with 31 issues, two of which cannot be true of the source: `Expectation failed: (… → .live) == (.live → .fixture(…cleanupSkills))` in ShellClientFactoryTests and TriageSourceGuardTests, both asserting a Release-posture guard that returns .live unconditionally. `git stash` of the two changed source files → 19 tests pass; unstash → the same failures return, which reads as a real regression. It is not. `Choice.live` is encoded in the spare inhabitants of `Scenario`'s tag, so a new Scenario case shifts that encoding, and stale MCPRouterUI object files compiled against the old layout compare a value that no longer means what they think. `rm -rf app/.build` then rebuild: 5/5 pass, then 1512/1512. The hazard for this campaign is the mirror case — a stale build can as easily produce a green — so any test evidence taken across an enum change is taken from a clean build. MITIGATED 2026-08-20: `app/Scripts/enum-layout-stamp.py` hashes the ordered case list of every enum in the package (212 of them) and removes `app/.build` when that hash moves; `make test` now depends on it. The stamp is the case lists rather than the source, so it holds still for an ordinary edit and for a `switch` over the enum — the false positive a naive grep for `^\\s*case` would hit — and moves for an added or renamed case. Armed on all four: comment SAME, switch statement SAME, added Scenario case MOVED, renamed Scenario case MOVED, restore back to baseline. The SwiftPM behaviour itself is unchanged and still upstream; what is fixed is this repo's exposure to it."
+          }
+        }
+      ]
+    },
+    {
+      "id": "CASE-0132",
+      "assessment": "A registered metamorphic make-test flakiness case directly contradicts the reason's claim that the registry has no build-gate flakiness entity, even though its UI waiter arms do not settle the pool-specific ten-minute hang.",
+      "publicRegistryVariants": [
+        {
+          "registry": "cases.json",
+          "kind": "case",
+          "canonicalRowSha256": "9f2d79d759d663bdcef56bc8ed76573a3096b203691ee0942b15a201c045a9ba",
+          "subject": {
+            "oracle": "metamorphic",
+            "cell": {
+              "surface": "SURF-001",
+              "state": "instrument",
+              "viewport": "1280x800",
+              "theme": "light",
+              "role": "operator",
+              "dataShape": "typical",
+              "executionPlane": "in-process"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "registryFilesAtReview": {
+    "planning/test-campaign/flows.in.json": "b99054f398af0ac1599f956f8847925c31d3b0a7e194f22f84eee38e24f3044c",
+    "planning/test-campaign/requirements.in.json": "d78258ddc9504ff3393c837942f70ce5df381bf70fcaf3ffff3d26699821941d",
+    "planning/test-campaign/surfaces.in.json": "b79873888cb1ea7042033e26d0feff6a16a391a592bc469c32f46f33acdd2b0e",
+    "planning/test-campaign/cases.json": "31973ea78557b57b56dc9a0599dbecd3ab7e0b1157ff9509d6501b666405ceea",
+    "planning/test-campaign/components.in.json": "535556b2c2b31b50d4f0333ca3b8fba685f1859b8b3d2840584331bd0351ba4b",
+    "planning/test-campaign/inventory.json": "41556c54cba3c596bb6995c2bfafd859a840297d074dc0e4c1835b1c0a2ce0ac",
+    "planning/test-campaign/cases.in.json": "f94ccf575abc5035c0d2a39808ac4321e91e294f90249f1a7a9c5caef5d6bc6a",
+    "planning/test-campaign/defects.in.json": "6d6975f1288ddd4613db993080aa91fabe62e277a7dadf265988744fdea5a135"
+  },
+  "limits": [
+    "This review concerns registry entity identity, not implementation, retirement, campaign acceptance or a newly created join.",
+    "Literal subject scopes are explicit freshness boundaries, not a semantic search guarantee. A changed relevant projection reopens a reviewed record.",
+    "Candidate comparison is an agent source review; independent assessment has not yet been performed."
+  ],
+  "whyUnknown": "The exact pool wait remains a narrower different observable, but the signed assertion also says the registry holds no entity for build-gate flakiness. DEF030 and CASE0132 refute that blanket premise. Do not narrow the preserved assertion silently or guess that these cases cover all pool clauses."
+}

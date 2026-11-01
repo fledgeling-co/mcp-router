@@ -1,0 +1,142 @@
+{
+  "version": 1,
+  "brief": "planning/features-to-triage/G5-gapfix-2.md",
+  "briefSha256": "254f6b8dcfecc182e1b0e1da0fed56bc2defd2172b4a3f51a24637851e76a8b1",
+  "assertionDigest": "a6e8a8fb571d3c66af8c7d47f32bc6a7bd2747213d7cd2ae6c2482ff5f44d3a7",
+  "reviewer": "Codex agent /root/mac_updates (manual source review; independent assessment pending)",
+  "reviewedAt": "2026-11-01T17:07:02.687721+00:00",
+  "sourceRevision": "fbcc80b1cbf456289114b608959b68fcae09c6ce",
+  "subjectRead": "Restore the moved-aside G5 progress file and correct the base count/cache tense without changing the vendor pin or campaign data.",
+  "decision": "scoped absence supported",
+  "closestCandidates": [
+    {
+      "id": "DEF-057",
+      "assessment": "The executable submodule/cache version divergence is the parent vendor issue, not a missing local progress file.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "7a2c5620c0cadb0f6c46c679dc814bf5b780a3d6891a911e1c561fbced27c99c",
+          "subject": {
+            "title": "the vendored fledgeling-plugins submodule is test-campaign 0.5.0 while every gate in this campaign ran from the machine's 0.9.2 cache"
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-500",
+      "assessment": "Two old version manifests disagree; this does not cover recovering the moved-aside record.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "bcdbaa3536056dc0b7631c91f51b09872a77b230477e7d37dce89fd471f52f97",
+          "subject": {
+            "title": "the vendored submodule's test-campaign carries two version files that disagree, so a version readback names 0.5.0 or 0.6.0 depending which one is read"
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-501",
+      "assessment": "UTF-8 registry I/O has no progress-file restoration or tense assertion.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "a05afc451c6b31dd09503531253f428b5d2fe6de0af3a702fb2ff7a8ace3ceeb",
+          "subject": {
+            "title": "campaign.py reads the registry with no encoding, so on a Windows console it dies on the first non-ASCII byte and checks nothing"
+          }
+        }
+      ]
+    }
+  ],
+  "registryFilesAtReview": {
+    "planning/test-campaign/flows.in.json": "b99054f398af0ac1599f956f8847925c31d3b0a7e194f22f84eee38e24f3044c",
+    "planning/test-campaign/requirements.in.json": "d78258ddc9504ff3393c837942f70ce5df381bf70fcaf3ffff3d26699821941d",
+    "planning/test-campaign/surfaces.in.json": "b79873888cb1ea7042033e26d0feff6a16a391a592bc469c32f46f33acdd2b0e",
+    "planning/test-campaign/cases.json": "31973ea78557b57b56dc9a0599dbecd3ab7e0b1157ff9509d6501b666405ceea",
+    "planning/test-campaign/components.in.json": "535556b2c2b31b50d4f0333ca3b8fba685f1859b8b3d2840584331bd0351ba4b",
+    "planning/test-campaign/inventory.json": "41556c54cba3c596bb6995c2bfafd859a840297d074dc0e4c1835b1c0a2ce0ac",
+    "planning/test-campaign/cases.in.json": "f94ccf575abc5035c0d2a39808ac4321e91e294f90249f1a7a9c5caef5d6bc6a",
+    "planning/test-campaign/defects.in.json": "6d6975f1288ddd4613db993080aa91fabe62e277a7dadf265988744fdea5a135"
+  },
+  "limits": [
+    "This review concerns registry entity identity, not implementation, retirement, campaign acceptance or a newly created join.",
+    "Literal subject scopes are explicit freshness boundaries, not a semantic search guarantee. A changed relevant projection reopens a reviewed record.",
+    "Candidate comparison is an agent source review; independent assessment has not yet been performed."
+  ],
+  "scope": "vendor-progress-records",
+  "selectedRegistryIDs": [
+    "CASE-0001",
+    "CASE-0005",
+    "CASE-0007",
+    "CASE-0008",
+    "CASE-0009",
+    "CASE-0016",
+    "CASE-0017",
+    "CASE-0018",
+    "CASE-0023",
+    "CASE-0030",
+    "CASE-0031",
+    "CASE-0032",
+    "CASE-0033",
+    "CASE-0034",
+    "CASE-0035",
+    "CASE-0037",
+    "CASE-0101",
+    "CASE-0111",
+    "CASE-0133",
+    "CASE-0137",
+    "CASE-0141",
+    "CASE-0145",
+    "CASE-0147",
+    "CASE-0149",
+    "CASE-0150",
+    "CASE-0185",
+    "CASE-0186",
+    "CASE-0187",
+    "CASE-0188",
+    "CASE-0189",
+    "CASE-0190",
+    "CASE-0194",
+    "CASE-0198",
+    "CASE-0200",
+    "CASE-0222",
+    "CASE-0262",
+    "CASE-0276",
+    "CASE-0278",
+    "CASE-0281",
+    "CASE-0284",
+    "CASE-0291",
+    "CASE-0292",
+    "CASE-0356",
+    "CASE-0531",
+    "DEF-005",
+    "DEF-010",
+    "DEF-013",
+    "DEF-015",
+    "DEF-035",
+    "DEF-039",
+    "DEF-046",
+    "DEF-051",
+    "DEF-053",
+    "DEF-055",
+    "DEF-056",
+    "DEF-057",
+    "DEF-058",
+    "DEF-059",
+    "DEF-060",
+    "DEF-061",
+    "DEF-062",
+    "DEF-380",
+    "DEF-500",
+    "DEF-501",
+    "FLOW-005",
+    "REQ-001",
+    "REQ-002",
+    "REQ-027"
+  ],
+  "rationale": "Restore the moved-aside G5 progress file and correct the base count/cache tense without changing the vendor pin or campaign data. The nearest candidates differ as recorded individually; none supplies an entity for this specific mechanism and observable."
+}

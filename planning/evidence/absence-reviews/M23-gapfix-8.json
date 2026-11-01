@@ -1,0 +1,223 @@
+{
+  "version": 1,
+  "brief": "planning/features-to-triage/M23-gapfix-8.md",
+  "briefSha256": "b3455856e91bfcead5d1413a848aadbe3e51ca68cb03b1b1d6e8370bed1b18ee",
+  "assertionDigest": "c75e53b4c587d877d242a6a941cd97cb967488eabd88f6d6203e8f98eaee4192",
+  "reviewer": "Codex agent /root/mac_updates (manual source review; independent assessment pending)",
+  "reviewedAt": "2026-11-01T17:07:02.687721+00:00",
+  "sourceRevision": "fbcc80b1cbf456289114b608959b68fcae09c6ce",
+  "subjectRead": "Correct all three incompatible145-engine-run claims, the process identity explanation and the engine main statement count in the conversion selftest records.",
+  "decision": "scoped absence supported",
+  "closestCandidates": [
+    {
+      "id": "DEF-056",
+      "assessment": "Case publishing completeness does not measure Python process/engine-run attribution.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "ac0a35a1380e2e717af1750cbad89afeb26047195cf742246f1f3b0211855b41",
+          "subject": {
+            "title": "campaign.py's ledger writer prints only cases filed under a surface, silently dropping 8 of 80 — including all four effect-witness cases"
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-443",
+      "assessment": "HEAD-based differential arming is a separate identity error, not the145-versus52 trace.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "2a872629d82ea58598422dbded487411f8e5dcfa92f343a58686b3645f590f94",
+          "subject": {
+            "title": "arm-surface-plane compared the new census against HEAD, so it stopped being a differential the moment the census it tested was committed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CASE-0185",
+      "assessment": "Its M23 mention does not assert a selftest process count.",
+      "publicRegistryVariants": [
+        {
+          "registry": "cases.json",
+          "kind": "case",
+          "canonicalRowSha256": "ac0a500976726646875be0a65ea6f1b9f6ee1bdddc8af7e54b7dd89a4b710b74",
+          "subject": {
+            "oracle": "structural-visual",
+            "cell": {
+              "surface": "SURF-028",
+              "state": "populated",
+              "viewport": "900x820",
+              "theme": "dark",
+              "role": "operator",
+              "dataShape": "served-package",
+              "executionPlane": "headless"
+            }
+          }
+        },
+        {
+          "registry": "cases.in.json",
+          "kind": "case",
+          "canonicalRowSha256": "3d28ac538d5fa04e0ded0c723b992d6ec6b7ed779a96827491c0cb447454803e",
+          "subject": {
+            "oracle": "raster-visual",
+            "cell": {
+              "surface": "SURF-028",
+              "state": "populated",
+              "viewport": "900x820",
+              "theme": "dark",
+              "role": "operator",
+              "dataShape": "served-package",
+              "executionPlane": "headless"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "registryFilesAtReview": {
+    "planning/test-campaign/flows.in.json": "b99054f398af0ac1599f956f8847925c31d3b0a7e194f22f84eee38e24f3044c",
+    "planning/test-campaign/requirements.in.json": "d78258ddc9504ff3393c837942f70ce5df381bf70fcaf3ffff3d26699821941d",
+    "planning/test-campaign/surfaces.in.json": "b79873888cb1ea7042033e26d0feff6a16a391a592bc469c32f46f33acdd2b0e",
+    "planning/test-campaign/cases.json": "31973ea78557b57b56dc9a0599dbecd3ab7e0b1157ff9509d6501b666405ceea",
+    "planning/test-campaign/components.in.json": "535556b2c2b31b50d4f0333ca3b8fba685f1859b8b3d2840584331bd0351ba4b",
+    "planning/test-campaign/inventory.json": "41556c54cba3c596bb6995c2bfafd859a840297d074dc0e4c1835b1c0a2ce0ac",
+    "planning/test-campaign/cases.in.json": "f94ccf575abc5035c0d2a39808ac4321e91e294f90249f1a7a9c5caef5d6bc6a",
+    "planning/test-campaign/defects.in.json": "6d6975f1288ddd4613db993080aa91fabe62e277a7dadf265988744fdea5a135"
+  },
+  "limits": [
+    "This review concerns registry entity identity, not implementation, retirement, campaign acceptance or a newly created join.",
+    "Literal subject scopes are explicit freshness boundaries, not a semantic search guarantee. A changed relevant projection reopens a reviewed record.",
+    "Candidate comparison is an agent source review; independent assessment has not yet been performed."
+  ],
+  "scope": "mock-conversion-marker",
+  "selectedRegistryIDs": [
+    "CASE-0036",
+    "CASE-0040",
+    "CASE-0120",
+    "CASE-0126",
+    "CASE-0145",
+    "CASE-0157",
+    "CASE-0185",
+    "CASE-0187",
+    "CASE-0195",
+    "CASE-0198",
+    "CASE-0205",
+    "CASE-0213",
+    "CASE-0217",
+    "CASE-0220",
+    "CASE-0222",
+    "CASE-0226",
+    "CASE-0270",
+    "CASE-0271",
+    "CASE-0272",
+    "CASE-0273",
+    "CASE-0274",
+    "CASE-0275",
+    "CASE-0291",
+    "CASE-0292",
+    "CASE-0308",
+    "CASE-0318",
+    "CASE-0319",
+    "CASE-0320",
+    "CASE-0324",
+    "CASE-0325",
+    "CASE-0326",
+    "CASE-0327",
+    "CASE-0328",
+    "CASE-0329",
+    "CASE-0330",
+    "CASE-0331",
+    "CASE-0332",
+    "CASE-0333",
+    "CASE-0334",
+    "CASE-0339",
+    "CASE-0340",
+    "CASE-0341",
+    "CASE-0343",
+    "CASE-0344",
+    "CASE-0345",
+    "CASE-0346",
+    "CASE-0347",
+    "CASE-0350",
+    "CASE-0352",
+    "CASE-0353",
+    "CASE-0354",
+    "CASE-0355",
+    "CASE-0356",
+    "CASE-0366",
+    "CASE-0367",
+    "CASE-0368",
+    "CASE-0369",
+    "CASE-0370",
+    "CASE-0371",
+    "CASE-0376",
+    "CASE-0377",
+    "CASE-0404",
+    "CASE-0405",
+    "CASE-0420",
+    "CASE-0421",
+    "CASE-0422",
+    "CASE-0423",
+    "CASE-0424",
+    "CASE-0425",
+    "CASE-0426",
+    "CASE-0440",
+    "CASE-0441",
+    "CASE-0460",
+    "CASE-0470",
+    "CASE-0471",
+    "CASE-0472",
+    "CASE-0473",
+    "CASE-0474",
+    "CASE-0475",
+    "CASE-0476",
+    "CASE-0477",
+    "CASE-0490",
+    "CASE-0491",
+    "CASE-0492",
+    "CASE-0493",
+    "CASE-0531",
+    "CASE-0532",
+    "DEF-001",
+    "DEF-014",
+    "DEF-015",
+    "DEF-016",
+    "DEF-029",
+    "DEF-030",
+    "DEF-032",
+    "DEF-038",
+    "DEF-047",
+    "DEF-051",
+    "DEF-052",
+    "DEF-054",
+    "DEF-056",
+    "DEF-057",
+    "DEF-058",
+    "DEF-070",
+    "DEF-071",
+    "DEF-074",
+    "DEF-076",
+    "DEF-084",
+    "DEF-091",
+    "DEF-360",
+    "DEF-361",
+    "DEF-362",
+    "DEF-440",
+    "DEF-442",
+    "DEF-501",
+    "DEF-502",
+    "DEF-521",
+    "DEF-522",
+    "REQ-016",
+    "REQ-023",
+    "REQ-035",
+    "REQ-036",
+    "REQ-037",
+    "SURF-022"
+  ],
+  "rationale": "Correct all three incompatible145-engine-run claims, the process identity explanation and the engine main statement count in the conversion selftest records. The nearest candidates differ as recorded individually; none supplies an entity for this specific mechanism and observable."
+}

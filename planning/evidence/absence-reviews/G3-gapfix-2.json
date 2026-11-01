@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "brief": "planning/features-to-triage/G3-gapfix-2.md",
+  "briefSha256": "04bc246f4515a7a4f26e4d8600a9d1ae67776ab4cf8e5f3008a7944b8af8ffea",
+  "assertionDigest": "0ca4be0bd172cf4c04db0350446168f165acb398e918324ea8d978149a547680",
+  "reviewer": "Codex agent /root/mac_updates (manual source review; independent assessment pending)",
+  "reviewedAt": "2026-11-01T17:07:02.687721+00:00",
+  "sourceRevision": "fbcc80b1cbf456289114b608959b68fcae09c6ce",
+  "subjectRead": "The PoolAwaitBound scanner must distinguish real bounded calls from comments, URLs, conditional compilation and indentation, with honest scanner population claims.",
+  "decision": "scoped absence supported",
+  "closestCandidates": [
+    {
+      "id": "DEF-055",
+      "assessment": "Swift blind-mutation detector false positives concern a different script, observable and grammar.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "2b24c1a93dbcc7ac603b9e5658556b00c52881d5d2e595f582a12908c17be53e",
+          "subject": {
+            "title": "vacuity-check's blind-mutation pass examines non-tests and mis-reads Swift idiom; 7 of 7 sampled findings are false positives"
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-030",
+      "assessment": "Deadline-sensitive async UI tests do not register this lexical bound scanner.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "59b1311272644fffa34c916e030a5c19ac676684795344bdcb777fa4e2c1606e",
+          "subject": {
+            "title": "four async package tests asserted on a deadline the machine could miss",
+            "text": "Measured 20 Aug 2026. `make test` failed with 4 issues at a one-minute load average of ~700 and passed all 1473 tests in 179 suites at load 46, on the same source, minutes apart. The four were `ActivityReconnectTests` (`a reconnect over a feed that stays live releases its guard`), `DiscoverBoardTests` (`client.searchQueries.count` reading 1 where the baseline said 2), and `SettingsAndMenuBarTests` twice (`model.trackerState` still nil). An earlier run at the same load failed only the first, so the set was not stable either — which is what separated this from a product defect. A suite that reports a defect the product does not have is the failure this campaign has already paid for once, in DEF-029, where a dead instrument read as a dead product for ten consecutive runs.\n\nCLOSED by making each wait a condition rather than a deadline, at three sites:\n\n1. `ShellTestSupport.waitUntil` — ceiling 5s → 30s. It returns the moment the condition holds, so a passing test pays nothing for the larger bound; the bound exists only so a condition that never arrives fails instead of hanging. Five seconds was inside the scheduling noise of a contended host, which is the whole finding.\n2. `ActivityReconnectTests.completes` — 2s → 30s, same argument. The defect it bounds is a call that *never* returns, so it exhausts any budget and a generous one costs only the time a genuine hang takes to report.\n3. `DiscoverBoardTests.searchIsDebounced` — a fixed sleep replaced by two waits, because the claim has two halves and one sleep proved neither on a slow host. First a bounded wait for the debounce to fire at all; then a full debounce window of quiet with the count still at one, which is what rules out one request per keystroke. The second is a real quiet period rather than a deadline, so load cannot shorten it into a false pass — the wait on its own is satisfied by the *first* request and would pass against exactly the defect this test exists to catch.\n\nArmed 20 Aug 2026, all three, each watched to fail with its own message: `waitUntil` at `.seconds(0)` reads `no poll ran at all`, `the poll died with the scene that started it` and `five keystrokes issued 0 requests`; `completes` at `.milliseconds(1)` reads `reconnect did not return while the feed stayed live`; and a `queryChanged()` inserted inside the quiet period reads `a later request arrived: five keystrokes issued 2 requests in total`.\n\nThe original trigger is not reproducible on demand from here — the load came from another project's Rust test binary, two node processes and `lsdiagnose` — so the fix is proven by the arms rather than by reproducing the contention."
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-035",
+      "assessment": "The enum layout guard does not inspect await wrappers.",
+      "publicRegistryVariants": [
+        {
+          "registry": "defects.in.json",
+          "kind": "defect",
+          "canonicalRowSha256": "ccfe0976f42c8bfb073fb46f53c9e81ce46c6945fd098c905d8d4b973e706fa3",
+          "subject": {
+            "title": "an incremental Swift build after adding an enum case reports impossible test failures",
+            "text": "Adding a 14th case to `Scenario` made `make test` fail with 31 issues, two of which cannot be true of the source: `Expectation failed: (… → .live) == (.live → .fixture(…cleanupSkills))` in ShellClientFactoryTests and TriageSourceGuardTests, both asserting a Release-posture guard that returns .live unconditionally. `git stash` of the two changed source files → 19 tests pass; unstash → the same failures return, which reads as a real regression. It is not. `Choice.live` is encoded in the spare inhabitants of `Scenario`'s tag, so a new Scenario case shifts that encoding, and stale MCPRouterUI object files compiled against the old layout compare a value that no longer means what they think. `rm -rf app/.build` then rebuild: 5/5 pass, then 1512/1512. The hazard for this campaign is the mirror case — a stale build can as easily produce a green — so any test evidence taken across an enum change is taken from a clean build. MITIGATED 2026-08-20: `app/Scripts/enum-layout-stamp.py` hashes the ordered case list of every enum in the package (212 of them) and removes `app/.build` when that hash moves; `make test` now depends on it. The stamp is the case lists rather than the source, so it holds still for an ordinary edit and for a `switch` over the enum — the false positive a naive grep for `^\\s*case` would hit — and moves for an added or renamed case. Armed on all four: comment SAME, switch statement SAME, added Scenario case MOVED, renamed Scenario case MOVED, restore back to baseline. The SwiftPM behaviour itself is unchanged and still upstream; what is fixed is this repo's exposure to it."
+          }
+        },
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "ada60883e66d8b78d6111eeb071f85c002814899edca9776852eb2164fedb926",
+          "subject": {
+            "title": "an incremental Swift build after adding an enum case reports impossible test failures",
+            "text": "Adding a 14th case to `Scenario` made `make test` fail with 31 issues, two of which cannot be true of the source: `Expectation failed: (… → .live) == (.live → .fixture(…cleanupSkills))` in ShellClientFactoryTests and TriageSourceGuardTests, both asserting a Release-posture guard that returns .live unconditionally. `git stash` of the two changed source files → 19 tests pass; unstash → the same failures return, which reads as a real regression. It is not. `Choice.live` is encoded in the spare inhabitants of `Scenario`'s tag, so a new Scenario case shifts that encoding, and stale MCPRouterUI object files compiled against the old layout compare a value that no longer means what they think. `rm -rf app/.build` then rebuild: 5/5 pass, then 1512/1512. The hazard for this campaign is the mirror case — a stale build can as easily produce a green — so any test evidence taken across an enum change is taken from a clean build. MITIGATED 2026-08-20: `app/Scripts/enum-layout-stamp.py` hashes the ordered case list of every enum in the package (212 of them) and removes `app/.build` when that hash moves; `make test` now depends on it. The stamp is the case lists rather than the source, so it holds still for an ordinary edit and for a `switch` over the enum — the false positive a naive grep for `^\\s*case` would hit — and moves for an added or renamed case. Armed on all four: comment SAME, switch statement SAME, added Scenario case MOVED, renamed Scenario case MOVED, restore back to baseline. The SwiftPM behaviour itself is unchanged and still upstream; what is fixed is this repo's exposure to it."
+          }
+        }
+      ]
+    }
+  ],
+  "registryFilesAtReview": {
+    "planning/test-campaign/flows.in.json": "b99054f398af0ac1599f956f8847925c31d3b0a7e194f22f84eee38e24f3044c",
+    "planning/test-campaign/requirements.in.json": "d78258ddc9504ff3393c837942f70ce5df381bf70fcaf3ffff3d26699821941d",
+    "planning/test-campaign/surfaces.in.json": "b79873888cb1ea7042033e26d0feff6a16a391a592bc469c32f46f33acdd2b0e",
+    "planning/test-campaign/cases.json": "31973ea78557b57b56dc9a0599dbecd3ab7e0b1157ff9509d6501b666405ceea",
+    "planning/test-campaign/components.in.json": "535556b2c2b31b50d4f0333ca3b8fba685f1859b8b3d2840584331bd0351ba4b",
+    "planning/test-campaign/inventory.json": "41556c54cba3c596bb6995c2bfafd859a840297d074dc0e4c1835b1c0a2ce0ac",
+    "planning/test-campaign/cases.in.json": "f94ccf575abc5035c0d2a39808ac4321e91e294f90249f1a7a9c5caef5d6bc6a",
+    "planning/test-campaign/defects.in.json": "6d6975f1288ddd4613db993080aa91fabe62e277a7dadf265988744fdea5a135"
+  },
+  "limits": [
+    "This review concerns registry entity identity, not implementation, retirement, campaign acceptance or a newly created join.",
+    "Literal subject scopes are explicit freshness boundaries, not a semantic search guarantee. A changed relevant projection reopens a reviewed record.",
+    "Candidate comparison is an agent source review; independent assessment has not yet been performed."
+  ],
+  "scope": "await-bound-scanner",
+  "selectedRegistryIDs": [
+    "CASE-0010",
+    "CASE-0022",
+    "CASE-0040",
+    "CASE-0122",
+    "CASE-0127",
+    "CMP-007",
+    "DEF-001",
+    "DEF-016",
+    "DEF-019",
+    "DEF-038",
+    "DEF-049",
+    "DEF-055",
+    "FLOW-002",
+    "SURF-014"
+  ],
+  "rationale": "The PoolAwaitBound scanner must distinguish real bounded calls from comments, URLs, conditional compilation and indentation, with honest scanner population claims. The nearest candidates differ as recorded individually; none supplies an entity for this specific mechanism and observable."
+}

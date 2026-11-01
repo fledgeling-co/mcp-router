@@ -1,0 +1,258 @@
+{
+  "version": 1,
+  "reviewKind": "manual agent registry-identity assessment; independent review pending",
+  "sourceRevision": "fbcc80b1cbf456289114b608959b68fcae09c6ce",
+  "baselineCompared": "00b28154f846e0b8aba02c7dffdd1962efd00b93",
+  "dependencyChanges": [
+    "83efe2ba50c68c96c2125cfc7de147c9aea7cd08 fixes CMP inbound dependency tracking.",
+    "edf79ac29ce7bd6da8215c60f45d5e789cdfd642 adds historical source coordinates; only the carrier brief in this cohort changes. Its two-coordinate diff was read before creating the new assertion review."
+  ],
+  "currentCounts": {
+    "briefs": 220,
+    "NO_TARGET": 30,
+    "joined": 63,
+    "REVIEWED_ABSENCE": 23,
+    "carriedUNKNOWN": 7,
+    "blockingReopened": 0,
+    "originalFloor": 29
+  },
+  "reviewed": [
+    {
+      "brief": "planning/features-to-triage/G3-gapfix-2.md",
+      "scope": "await-bound-scanner",
+      "evidence": "planning/evidence/absence-reviews/G3-gapfix-2.json"
+    },
+    {
+      "brief": "planning/features-to-triage/G3-gapfix-3.md",
+      "scope": "await-bound-scanner",
+      "evidence": "planning/evidence/absence-reviews/G3-gapfix-3.json"
+    },
+    {
+      "brief": "planning/features-to-triage/G4-gapfix.md",
+      "scope": "reader-census-records",
+      "evidence": "planning/evidence/absence-reviews/G4-gapfix.json"
+    },
+    {
+      "brief": "planning/features-to-triage/G4-gapfix-2.md",
+      "scope": "reader-census-records",
+      "evidence": "planning/evidence/absence-reviews/G4-gapfix-2.json"
+    },
+    {
+      "brief": "planning/features-to-triage/G5-gapfix-2.md",
+      "scope": "vendor-progress-records",
+      "evidence": "planning/evidence/absence-reviews/G5-gapfix-2.json"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix.md",
+      "scope": "mock-conversion-guard",
+      "evidence": "planning/evidence/absence-reviews/M23-gapfix.json"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-2.md",
+      "scope": "mock-conversion-guard",
+      "evidence": "planning/evidence/absence-reviews/M23-gapfix-2.json"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-3.md",
+      "scope": "mock-conversion-guard",
+      "evidence": "planning/evidence/absence-reviews/M23-gapfix-3.json"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-4.md",
+      "scope": "mock-conversion-marker",
+      "evidence": "planning/evidence/absence-reviews/M23-gapfix-4.json"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-5.md",
+      "scope": "mock-conversion-marker",
+      "evidence": "planning/evidence/absence-reviews/M23-gapfix-5.json"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-6.md",
+      "scope": "mock-conversion-marker",
+      "evidence": "planning/evidence/absence-reviews/M23-gapfix-6.json"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-7.md",
+      "scope": "mock-conversion-marker",
+      "evidence": "planning/evidence/absence-reviews/M23-gapfix-7.json"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-8.md",
+      "scope": "mock-conversion-marker",
+      "evidence": "planning/evidence/absence-reviews/M23-gapfix-8.json"
+    },
+    {
+      "brief": "planning/features-to-triage/R17-gapfix-2.md",
+      "scope": "watch-parity-claims",
+      "evidence": "planning/evidence/absence-reviews/R17-gapfix-2.json"
+    },
+    {
+      "brief": "planning/features-to-triage/R17-gapfix-3.md",
+      "scope": "watch-parity-claims",
+      "evidence": "planning/evidence/absence-reviews/R17-gapfix-3.json"
+    },
+    {
+      "brief": "planning/features-to-triage/R17-gapfix-4.md",
+      "scope": "watch-parity-claims",
+      "evidence": "planning/evidence/absence-reviews/R17-gapfix-4.json"
+    },
+    {
+      "brief": "planning/features-to-triage/R7-gapfix-2.md",
+      "scope": "harness-endpoint-dialects",
+      "evidence": "planning/evidence/absence-reviews/R7-gapfix-2.json"
+    },
+    {
+      "brief": "planning/features-to-triage/a-killed-gate-strands-its-mutation-in-the-tree.md",
+      "scope": "mutation-restore-safety",
+      "evidence": "planning/evidence/absence-reviews/a-killed-gate-strands-its-mutation-in-the-tree.json"
+    },
+    {
+      "brief": "planning/features-to-triage/a-killed-mutation-run-leaves-a-mutation-git-status-cannot-show.md",
+      "scope": "mutation-restore-safety",
+      "evidence": "planning/evidence/absence-reviews/a-killed-mutation-run-leaves-a-mutation-git-status-cannot-show.json"
+    },
+    {
+      "brief": "planning/features-to-triage/a-second-inertness-clause-is-unfailable-for-the-same-reason.md",
+      "scope": "inline-image-guard",
+      "evidence": "planning/evidence/absence-reviews/a-second-inertness-clause-is-unfailable-for-the-same-reason.json"
+    },
+    {
+      "brief": "planning/features-to-triage/a-verification-lane-ran-in-the-writers-own-family.md",
+      "scope": "verification-family-identity",
+      "evidence": "planning/evidence/absence-reviews/a-verification-lane-ran-in-the-writers-own-family.json"
+    },
+    {
+      "brief": "planning/features-to-triage/build-description-report-on-swiftbuild.md",
+      "scope": "swiftpm-build-description",
+      "evidence": "planning/evidence/absence-reviews/build-description-report-on-swiftbuild.json"
+    },
+    {
+      "brief": "planning/features-to-triage/the-carrier-gate-pins-a-landing-to-a-sha-that-keeps-moving.md",
+      "scope": "carrier-landing-identity",
+      "evidence": "planning/evidence/absence-reviews/the-carrier-gate-pins-a-landing-to-a-sha-that-keeps-moving.json"
+    }
+  ],
+  "unreviewed": [
+    {
+      "brief": "planning/features-to-triage/G3-gapfix.md",
+      "whyUnknown": "The exact pool wait remains a narrower different observable, but the signed assertion also says the registry holds no entity for build-gate flakiness. DEF030 and CASE0132 refute that blanket premise. Do not narrow the preserved assertion silently or guess that these cases cover all pool clauses.",
+      "candidateIDs": [
+        "REQ-011",
+        "CASE-0032",
+        "DEF-030",
+        "DEF-033",
+        "DEF-035",
+        "CASE-0132"
+      ],
+      "evidence": "planning/evidence/absence-reviews/G3-gapfix.json"
+    },
+    {
+      "brief": "planning/features-to-triage/M15-gapfix.md",
+      "whyUnknown": "The declaration describes only allowance machinery while the full work order also demands a product menu uniqueness guard. I cannot certify one sufficient absence scope for the whole composite assertion or choose a real join from those partial overlaps.",
+      "candidateIDs": [
+        "CASE-0001",
+        "REQ-003",
+        "DEF-058",
+        "DEF-059"
+      ],
+      "evidence": "planning/evidence/absence-reviews/M15-gapfix.json"
+    },
+    {
+      "brief": "planning/features-to-triage/R17-gapfix.md",
+      "whyUnknown": "The old assertion calls the entire work order a record-only pass, but its body includes multiple production mechanisms and a new parity scenario. Exact target/absence adequacy for that composite needs further adjudication; no current review is certified.",
+      "candidateIDs": [
+        "DEF-049",
+        "REQ-013",
+        "DEF-033"
+      ],
+      "evidence": "planning/evidence/absence-reviews/R17-gapfix.json"
+    },
+    {
+      "brief": "planning/features-to-triage/R7-gapfix.md",
+      "whyUnknown": "The declaration's blanket claim that there is no harness-reconciliation entity is too broad to certify while the current registry includes harness/profile and write-refusal contracts. The available partial candidates do not yet establish a traceable complete join.",
+      "candidateIDs": [
+        "SURF-025",
+        "REQ-030",
+        "REQ-019"
+      ],
+      "evidence": "planning/evidence/absence-reviews/R7-gapfix.json"
+    },
+    {
+      "brief": "planning/features-to-triage/a-control-that-plants-a-defect-leaves-it-there-if-it-is-killed.md",
+      "whyUnknown": "The body's interruption/poison scenario is not covered by a normal finally path, but the no-target reason claims no case observes tree cleanliness after a gate. CASE0292 records identical before/after file hashes, and CASE0352 requires restoration plus a final green reader. A current review cannot certify that broad preserved claim without adjudicating the scope conflict.",
+      "candidateIDs": [
+        "CASE-0352",
+        "DEF-443",
+        "DEF-444",
+        "CASE-0292"
+      ],
+      "evidence": "planning/evidence/absence-reviews/a-control-that-plants-a-defect-leaves-it-there-if-it-is-killed.json"
+    },
+    {
+      "brief": "planning/features-to-triage/gates-ran-with-their-verdict-discarded.md",
+      "whyUnknown": "The declaration rejects DEF361 but does not address DEF033's directly documented discarded-gate diagnostics. It is not safe to certify broad absence, or to insert a join that would pretend the OAuth instance covers all listed gate invocations.",
+      "candidateIDs": [
+        "DEF-033",
+        "DEF-361"
+      ],
+      "evidence": "planning/evidence/absence-reviews/gates-ran-with-their-verdict-discarded.json"
+    },
+    {
+      "brief": "planning/features-to-triage/the-ledger-gate-nothing-runs-and-nothing-checks-against-git.md",
+      "whyUnknown": "The literal no-case/requirement/defect-covers-status-versus-Git claim is not safely supported by the current DEF442/360 records. Suggest these as traceable candidate relations for independent review; do not invent an authoritative join or certify the absence.",
+      "candidateIDs": [
+        "DEF-442",
+        "DEF-360",
+        "DEF-361"
+      ],
+      "evidence": "planning/evidence/absence-reviews/the-ledger-gate-nothing-runs-and-nothing-checks-against-git.json"
+    }
+  ],
+  "preservedBytes": {
+    "planning/absence-review-unreviewed-baseline.json": "c92d88fd8ea8e5254a9d227728c458bc3a520d4fcd0d8516401f7b176485c701",
+    "planning/brief-target-ratchet.json": "843279f74045f809198c950400eb0712755b31580f34cb2a7fdee80a44d90b96",
+    "planning/test-campaign/cases.json": "31973ea78557b57b56dc9a0599dbecd3ab7e0b1157ff9509d6501b666405ceea",
+    "planning/test-campaign/cases.in.json": "f94ccf575abc5035c0d2a39808ac4321e91e294f90249f1a7a9c5caef5d6bc6a",
+    "planning/test-campaign/requirements.in.json": "d78258ddc9504ff3393c837942f70ce5df381bf70fcaf3ffff3d26699821941d",
+    "planning/test-campaign/surfaces.in.json": "b79873888cb1ea7042033e26d0feff6a16a391a592bc469c32f46f33acdd2b0e",
+    "planning/test-campaign/defects.in.json": "6d6975f1288ddd4613db993080aa91fabe62e277a7dadf265988744fdea5a135",
+    "planning/test-campaign/flows.in.json": "b99054f398af0ac1599f956f8847925c31d3b0a7e194f22f84eee38e24f3044c",
+    "planning/test-campaign/components.in.json": "535556b2c2b31b50d4f0333ca3b8fba685f1859b8b3d2840584331bd0351ba4b",
+    "planning/test-campaign/inventory.json": "41556c54cba3c596bb6995c2bfafd859a840297d074dc0e4c1835b1c0a2ce0ac"
+  },
+  "preservedClassifierASTs": {
+    "parse_brief": "e261bc6090c58fa46c021b689a42ce6ea16cab753c8f39fbfec4fbbbfde9ccc5",
+    "classify": "99bfbcfe2d05704db071fffc6356ada3820583964565ec612ef709b8eafc0c49",
+    "sweep": "b6f1464b0032c5d61324c0bcacd7c3c5dc12bec09519d84debe844d366078d02"
+  },
+  "checks": [
+    {
+      "command": "python3 planning/absence_review_tests.py",
+      "result": "28 tests pass"
+    },
+    {
+      "command": "python3 planning/brief-target-gate.py --control",
+      "result": "original presence controls and 28 absence controls pass"
+    },
+    {
+      "command": "python3 planning/brief-target-gate.py --quiet",
+      "result": "exit 0; partition unchanged; 23 current reviews, 7 carried unknowns, 0 reopened blockers"
+    },
+    {
+      "command": "python3 planning/reader-accounting.py",
+      "result": "exit 0"
+    },
+    {
+      "command": "git diff --check",
+      "result": "exit 0"
+    }
+  ],
+  "scopeControls": "planning/evidence/absence-reviews/scope-controls.json",
+  "limits": [
+    "Reviewed absence grants no join, retirement or campaign acceptance.",
+    "Seven original assertions remain unknown; their exact unreviewed proposals and original carry baseline are unchanged.",
+    "Literal scope sufficiency and candidate judgments still need the independent review commissioned by the parent.",
+    "No App source, physical device, owner configuration, credentials or live model calls were changed or used."
+  ]
+}

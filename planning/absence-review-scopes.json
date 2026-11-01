@@ -6,5 +6,353 @@
     "selector": "Each scope declares description, nonempty kinds and literal anyText terms. Relevant rows match subject terms or explicitly back-reference the brief. Existing inbound req/surface/flow/component relations include linked cases and dependent rows; they never create a brief join.",
     "reviewCreation": "Declare a stable scope key before requesting a per-brief proposal. No scope is inferred or automatically certified."
   },
-  "scopes": {}
+  "scopes": {
+    "await-bound-scanner": {
+      "description": "Lexical and structural classification of bounded Swift await calls, statement and closure grammar, and scanner population claims",
+      "kinds": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "anyText": [
+        "await",
+        "AwaitBoundScan",
+        "PoolAwaitBoundTests",
+        "awaitEvent",
+        "awaitReap",
+        "delexer",
+        "scanner",
+        "grammar",
+        "lexical",
+        "statement label",
+        "method reference"
+      ]
+    },
+    "reader-census-records": {
+      "description": "Reader-accounting and null-run census denominator provenance, self-inclusion, unwritten gate evidence and their progress records",
+      "kinds": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "anyText": [
+        "reader-accounting",
+        "reader",
+        "readers",
+        "census",
+        "denominator",
+        "null-run",
+        "silent drop",
+        "drop sites",
+        "unaccounted",
+        "GATES_PLACEHOLDER",
+        "unwritten",
+        "placeholder",
+        "gate evidence",
+        "progress note",
+        "progress record",
+        "gate results",
+        "gate output",
+        "gate transcript",
+        "verdict",
+        "verdicts"
+      ]
+    },
+    "vendor-progress-records": {
+      "description": "Vendoring progress records, moved-aside evidence restoration, cache version attribution and claim-sweep completeness",
+      "kinds": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "anyText": [
+        "progress note",
+        "progress file",
+        "move-aside",
+        "moved aside",
+        "restore",
+        "restoration",
+        "vendor",
+        "vendoring",
+        "cache version",
+        "claim-sweep",
+        "strict-ratchet",
+        "restored",
+        "progress record",
+        "temporary evidence",
+        "vendored",
+        "progress",
+        "version",
+        "versions",
+        "cache"
+      ]
+    },
+    "mock-conversion-guard": {
+      "description": "Mock-to-build conversion fidelity classification, real comparison populations, affordance pairing, surplus nodes and failure boundaries",
+      "kinds": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "anyText": [
+        "fidelity",
+        "conversion",
+        "breadth",
+        "affordance",
+        "affordances",
+        "unclassified",
+        "mock_text",
+        "inside_a_pair",
+        "covered-by-pair",
+        "claimant",
+        "tokens layer",
+        "zero files",
+        "Default_Ignorable",
+        "layer_copy",
+        "layer_breadth",
+        "comparison",
+        "comparisons",
+        "matched label",
+        "unmeasured match",
+        "extra node",
+        "surplus node"
+      ]
+    },
+    "mock-conversion-marker": {
+      "description": "Conversion-engine report marker ordering, delivery, failure-route coverage, ledger writes and selftest trace attribution",
+      "kinds": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "anyText": [
+        "fidelity",
+        "conversion",
+        "report marker",
+        "REPORT_MARKER",
+        "write_unmeasured_report",
+        "report_written",
+        "report_path",
+        "BrokenPipeError",
+        "engine runs",
+        "engine processes",
+        "marker trace",
+        "selftest",
+        "report",
+        "marker",
+        "ledger",
+        "console",
+        "engine"
+      ]
+    },
+    "watch-parity-claims": {
+      "description": "Watcher/manifest parity mechanism attribution, writer-site inventories, withdrawn-claim sweeps and load-dependent reproduction records",
+      "kinds": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "anyText": [
+        "watch",
+        "watcher",
+        "manifest",
+        "uncovered",
+        "withdrawn",
+        "read-then-save",
+        "claim-sweep",
+        "wrap-tolerant",
+        "load-dependent",
+        "concurrency",
+        "concurrent",
+        "reproduction rate",
+        "parity",
+        "wrap",
+        "wrapped",
+        "wrapping",
+        "corpus",
+        "claim"
+      ]
+    },
+    "harness-endpoint-dialects": {
+      "description": "Harness routing and endpoint dialect identity, Gemini configuration path precedence, unreadable configs and reconciliation output",
+      "kinds": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "anyText": [
+        "harness",
+        "harnesses",
+        "gemini",
+        "httpUrl",
+        "serverUrl",
+        "mcp_config",
+        "reconciliation",
+        "reconcile",
+        "config path",
+        "settings.json",
+        "wired-http",
+        "stdio-shim"
+      ]
+    },
+    "mutation-restore-safety": {
+      "description": "Mutation harness crash/interruption restoration, dirty-baseline poison detection, residue adoption and concurrent-run isolation",
+      "kinds": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "anyText": [
+        "mutation",
+        "restore",
+        "restoration",
+        "SIGKILL",
+        "interrupted",
+        "interruption",
+        "kill",
+        "crash safety",
+        "stranded",
+        "plant",
+        "poison",
+        "finally",
+        "timeout",
+        "m19-red-green"
+      ]
+    },
+    "inline-image-guard": {
+      "description": "Failability of inline image-attribute stripping guards and the separate Markdown image/HTML allowlist boundaries",
+      "kinds": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "anyText": [
+        "imageAttributeStripped",
+        "imageURL",
+        "inline image",
+        "MarkdownSecurityTests",
+        "allowlist",
+        "inline HTML",
+        "sanitized",
+        "image attribute",
+        "image attributes",
+        "image",
+        "images",
+        "attribute",
+        "attributes",
+        "markdown",
+        "stripping",
+        "inert"
+      ]
+    },
+    "verification-family-identity": {
+      "description": "Recorded model-family identity and independence of a verification verdict relative to the author, including explicit same-family downgrade",
+      "kinds": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "anyText": [
+        "model family",
+        "model families",
+        "same-family",
+        "out-of-family",
+        "family",
+        "verification lane",
+        "judge identity",
+        "reviewer identity",
+        "independent",
+        "independence",
+        "verifier",
+        "reviewer",
+        "grader",
+        "judge",
+        "model",
+        "models",
+        "verdict",
+        "verdicts",
+        "verification",
+        "review",
+        "reviewed",
+        "author"
+      ]
+    },
+    "swiftpm-build-description": {
+      "description": "SwiftPM/llbuild/swiftbuild build-plan and object-layout source attribution and build-description poison controls",
+      "kinds": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "anyText": [
+        "swiftbuild",
+        "SwiftPM",
+        "build-description",
+        "build description",
+        "debug.yaml",
+        "build plan",
+        ".build/out",
+        "llbuild",
+        "native build system",
+        "object attribution"
+      ]
+    },
+    "carrier-landing-identity": {
+      "description": "One-sided router landing disposition identity and parity evidence across integration merges and carried commit coordinates",
+      "kinds": [
+        "case",
+        "requirement",
+        "surface",
+        "defect",
+        "flow",
+        "component"
+      ],
+      "anyText": [
+        "carrier",
+        "landing",
+        "one-sided",
+        "patch identity",
+        "commit identity",
+        "merge",
+        "merges",
+        "parity",
+        "cherry-pick",
+        "carried",
+        "sha"
+      ]
+    }
+  }
 }

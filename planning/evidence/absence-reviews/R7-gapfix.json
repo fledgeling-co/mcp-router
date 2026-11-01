@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "brief": "planning/features-to-triage/R7-gapfix.md",
+  "briefSha256": "ec20fe15fb96699e265bea731dbf71a89b04068558c1a5fd92fbbcfbee676944",
+  "assertionDigest": "6345c4358f9d94e9df180362991b8f07d288b00d2b35e6c9b0d2139ba7162740",
+  "reviewer": "Codex agent /root/mac_updates (manual source review; independent assessment pending)",
+  "reviewedAt": "2026-11-01T17:07:02.687721+00:00",
+  "sourceRevision": "fbcc80b1cbf456289114b608959b68fcae09c6ce",
+  "subjectRead": "Gemini httpUrl detection, unreadable-config JSON and enforcement of the harness write boundary across lexical escapes.",
+  "decision": "unknown; no absence certification",
+  "closestCandidates": [
+    {
+      "id": "SURF-025",
+      "assessment": "The Harnesses board is not the CLI engine, but its displayed route facts are a real overlap.",
+      "publicRegistryVariants": [
+        {
+          "registry": "surfaces.in.json",
+          "kind": "surface",
+          "canonicalRowSha256": "362ab2e73a69276f8a6286ea783d9e50b2b911a06d77ba46d8514f002f8191dc",
+          "subject": {
+            "title": "Mac Harnesses board"
+          }
+        },
+        {
+          "registry": "inventory.surface",
+          "kind": "surface",
+          "canonicalRowSha256": "f94a3815f590ced7f24ddf6ec93f3acefe839446352fdcd31087cd9e70ae7826",
+          "subject": {
+            "title": "Mac Harnesses board"
+          }
+        }
+      ]
+    },
+    {
+      "id": "REQ-030",
+      "assessment": "Per-harness profile projection is not routing reconciliation; using it as a target needs a real contract comparison.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.requirement",
+          "kind": "requirement",
+          "canonicalRowSha256": "bc8ad7f7693378b677976f2f4bae3fcdd71ea50c9e47a7e7d9344ae6cf9b3c48",
+          "subject": {
+            "text": "A named profile selects over the extensions this router holds and the upstreams it serves, and its projection says what each harness would have to hold without changing any of them. A symlink in a harness skills directory whose target has gone is reported as dangling and projected as a repair naming that target, never as an absent entry; a harness with no skills directory at all is named rather than omitted, and a directory that could not be opened is carried apart from an empty one. Every projected step states its reach: durable where the bytes would land and nothing makes a live session re-read them, tell-elsewhere where the protocol's own announcement exists in the TypeScript router and not in this one, and refused where the step would need another program's MCP configuration rewritten. Nothing applies a projection."
+          }
+        }
+      ]
+    },
+    {
+      "id": "REQ-019",
+      "assessment": "Visible write refusal is only part of the requested JSON/error/write-boundary behavior.",
+      "publicRegistryVariants": [
+        {
+          "registry": "requirements.in.json",
+          "kind": "requirement",
+          "canonicalRowSha256": "a87969162db187c56be0dd92c1d2e93ecac4202394f40f105fcfa6cf7f7b7033",
+          "subject": {
+            "text": "A refused write is shown as the server's refusal. Success affordances are not shown for work that did not happen."
+          }
+        },
+        {
+          "registry": "inventory.requirement",
+          "kind": "requirement",
+          "canonicalRowSha256": "c1c1dad9c452d44ac2ed28c2c15dee1366c61ce9a7af1202c255ac322297e5ae",
+          "subject": {
+            "text": "A refused write is shown as the server's refusal. Success affordances are not shown for work that did not happen."
+          }
+        }
+      ]
+    }
+  ],
+  "registryFilesAtReview": {
+    "planning/test-campaign/flows.in.json": "b99054f398af0ac1599f956f8847925c31d3b0a7e194f22f84eee38e24f3044c",
+    "planning/test-campaign/requirements.in.json": "d78258ddc9504ff3393c837942f70ce5df381bf70fcaf3ffff3d26699821941d",
+    "planning/test-campaign/surfaces.in.json": "b79873888cb1ea7042033e26d0feff6a16a391a592bc469c32f46f33acdd2b0e",
+    "planning/test-campaign/cases.json": "31973ea78557b57b56dc9a0599dbecd3ab7e0b1157ff9509d6501b666405ceea",
+    "planning/test-campaign/components.in.json": "535556b2c2b31b50d4f0333ca3b8fba685f1859b8b3d2840584331bd0351ba4b",
+    "planning/test-campaign/inventory.json": "41556c54cba3c596bb6995c2bfafd859a840297d074dc0e4c1835b1c0a2ce0ac",
+    "planning/test-campaign/cases.in.json": "f94ccf575abc5035c0d2a39808ac4321e91e294f90249f1a7a9c5caef5d6bc6a",
+    "planning/test-campaign/defects.in.json": "6d6975f1288ddd4613db993080aa91fabe62e277a7dadf265988744fdea5a135"
+  },
+  "limits": [
+    "This review concerns registry entity identity, not implementation, retirement, campaign acceptance or a newly created join.",
+    "Literal subject scopes are explicit freshness boundaries, not a semantic search guarantee. A changed relevant projection reopens a reviewed record.",
+    "Candidate comparison is an agent source review; independent assessment has not yet been performed."
+  ],
+  "whyUnknown": "The declaration's blanket claim that there is no harness-reconciliation entity is too broad to certify while the current registry includes harness/profile and write-refusal contracts. The available partial candidates do not yet establish a traceable complete join."
+}

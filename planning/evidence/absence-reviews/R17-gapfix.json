@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "brief": "planning/features-to-triage/R17-gapfix.md",
+  "briefSha256": "6a0fd64e5fd11f6021dce52cb190806f37cf47814358af25acc0f5b9f4897144",
+  "assertionDigest": "e1adf6126d4d9508da945fbe0da6ee05b9a512c7a48ad944a3361214910d4802",
+  "reviewer": "Codex agent /root/mac_updates (manual source review; independent assessment pending)",
+  "reviewedAt": "2026-11-01T17:07:02.687721+00:00",
+  "sourceRevision": "fbcc80b1cbf456289114b608959b68fcae09c6ce",
+  "subjectRead": "Record attribution for missing watcher rows plus a distinct stale manifest snapshot mechanism and a node/Swift failure-retention divergence.",
+  "decision": "unknown; no absence certification",
+  "closestCandidates": [
+    {
+      "id": "DEF-049",
+      "assessment": "Manifest persistence failure is not identical to watcher row deletion, but is a real overlapping data-loss subject.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "e4c8c5150ff01be0cce79f7fc180f10e95a0179fff59d70d35a742dab00686bb",
+          "subject": {
+            "text": "`MCPRouterCLI index` reports a clean index and exits 0 when the manifest write does not land, and prints two counts that disagree with each other in the same output."
+          }
+        }
+      ]
+    },
+    {
+      "id": "REQ-013",
+      "assessment": "The named config-file atomicity differs from manifest snapshots, so it cannot be inserted as a guessed join.",
+      "publicRegistryVariants": [
+        {
+          "registry": "requirements.in.json",
+          "kind": "requirement",
+          "canonicalRowSha256": "479134c27931223deae265a319f3e07819435d85129a8058a968378c0f9d9093",
+          "subject": {
+            "text": "Mutations to servers.json use atomic staging and a lock so concurrent writers cannot clobber."
+          }
+        },
+        {
+          "registry": "inventory.requirement",
+          "kind": "requirement",
+          "canonicalRowSha256": "1b39c0ef2f40cd0b259a745cab38378ad5c737db9e6b14811ccd47580682e7ac",
+          "subject": {
+            "text": "Mutations to servers.json use atomic staging and a lock so concurrent writers cannot clobber."
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-033",
+      "assessment": "The cited OAuth parity nondeterminism overlaps the verification story, not the full watcher claim.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "897abd4dcd249643174f714ffec699d8b2df242061ecec7fc7ae08947c1a3604",
+          "subject": {
+            "title": "the OAuth parity lane failed once inside a full gate and has not reproduced",
+            "text": "Observed once, in one of two whole-gate runs, and not reproduced by: a standalone run of `parity-oauth.sh`, a second standalone run of it immediately afterwards (which exercised the same port-reuse wait, 9s and 12s), a standalone run of `parity-suite.sh`, or a second whole `parity-gate.sh` on the same tree. The second gate reported 82 of 83, 0 DIVERGED, and its suite lane reported the citation clean.\n\n**What it is not.** The lane distinguishes an environment failure from a finding on purpose, and this was the finding branch: `record control-auth-post-http fail` at `parity-oauth.sh:329`, reached only when the reference side completed an authorization and the Swift side did not. An unbindable port exits 2 through `wait_for_ports_bindable` and records `blocked`, not `fail`, so the port-reuse race is ruled out by the code path that fired.\n\n**Why it went undiagnosed, and what changed.** `parity-suite.sh`'s `run_script` sent both streams to `/dev/null` and printed `the gate reported findings` — a verdict with no evidence under it. The bytes naming which guard failed had already been thrown away by the time anyone read the gate's summary. `run_script` now keeps the log, prints its last 20 lines inline and names the file it kept, armed 20 Aug 2026 against a deliberately failing citation. A recurrence will say which of the 21 checks went red.\n\n**Why the duplicate run stays.** `control-auth-post-http` is proven on the wire by its own lane and also cites the script, so the gate runs it twice. That is now documented in `parity-suite.sh` rather than deduplicated, because the duplicate is what caught this: a single run would have reported a clean 82 of 83 and nobody would have known. Both record under the same row id and a `fail` wins.\n\n**Burn-in, 20 Aug 2026: 8 standalone runs of the lane, all green, 21 checks each.** Three immediately after the failure and five consecutively afterwards, plus one clean whole gate. One failure in roughly ten whole-lane executions, cause unrecoverable because that invocation's stdout was discarded. A green burn-in does not close this: the original failure is uninspectable, so the runs measure only that the lane is not reliably broken. What would close it is a captured reproduction, or a stated gate met — several consecutive whole gates including the cold port-reuse path — decided as its own question rather than inferred from a streak, which is the `install-launchd-watch` mistake this repository already paid for once (G1: name a fix per term and fix a bound IN ADVANCE, never a green streak). Not a UI defect and not a blocker on the cutover count — CASE-0036's measurement is the second run — but it is an unexplained non-determinism in the router or the lane, and it is recorded rather than absorbed."
+          }
+        }
+      ]
+    }
+  ],
+  "registryFilesAtReview": {
+    "planning/test-campaign/flows.in.json": "b99054f398af0ac1599f956f8847925c31d3b0a7e194f22f84eee38e24f3044c",
+    "planning/test-campaign/requirements.in.json": "d78258ddc9504ff3393c837942f70ce5df381bf70fcaf3ffff3d26699821941d",
+    "planning/test-campaign/surfaces.in.json": "b79873888cb1ea7042033e26d0feff6a16a391a592bc469c32f46f33acdd2b0e",
+    "planning/test-campaign/cases.json": "31973ea78557b57b56dc9a0599dbecd3ab7e0b1157ff9509d6501b666405ceea",
+    "planning/test-campaign/components.in.json": "535556b2c2b31b50d4f0333ca3b8fba685f1859b8b3d2840584331bd0351ba4b",
+    "planning/test-campaign/inventory.json": "41556c54cba3c596bb6995c2bfafd859a840297d074dc0e4c1835b1c0a2ce0ac",
+    "planning/test-campaign/cases.in.json": "f94ccf575abc5035c0d2a39808ac4321e91e294f90249f1a7a9c5caef5d6bc6a",
+    "planning/test-campaign/defects.in.json": "6d6975f1288ddd4613db993080aa91fabe62e277a7dadf265988744fdea5a135"
+  },
+  "limits": [
+    "This review concerns registry entity identity, not implementation, retirement, campaign acceptance or a newly created join.",
+    "Literal subject scopes are explicit freshness boundaries, not a semantic search guarantee. A changed relevant projection reopens a reviewed record.",
+    "Candidate comparison is an agent source review; independent assessment has not yet been performed."
+  ],
+  "whyUnknown": "The old assertion calls the entire work order a record-only pass, but its body includes multiple production mechanisms and a new parity scenario. Exact target/absence adequacy for that composite needs further adjudication; no current review is certified."
+}

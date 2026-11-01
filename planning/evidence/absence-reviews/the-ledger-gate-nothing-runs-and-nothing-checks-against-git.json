@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "brief": "planning/features-to-triage/the-ledger-gate-nothing-runs-and-nothing-checks-against-git.md",
+  "briefSha256": "f4814accc49b8cba24f1c133a0577edbc2db1c3978190bd6badbd2e1573d807b",
+  "assertionDigest": "8d3eca91b4b7a280a362dc02d5dd799bbbbf9888c56e645f386686b89a319364",
+  "reviewer": "Codex agent /root/mac_updates (manual source review; independent assessment pending)",
+  "reviewedAt": "2026-11-01T17:07:02.687721+00:00",
+  "sourceRevision": "fbcc80b1cbf456289114b608959b68fcae09c6ce",
+  "subjectRead": "Invoke ledger reconciliation and compare lifecycle status with Git even when both trackers agree incorrectly; detect contradictory leading status and row body.",
+  "decision": "unknown; no absence certification",
+  "closestCandidates": [
+    {
+      "id": "DEF-442",
+      "assessment": "A real registered R21 brief/status/body contradiction against a shipped change directly overlaps the old no-entity assertion.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "39fcb957ba046f2ad3baf097928602a500dc930a5817c751ec548f0b860d67a6",
+          "subject": {
+            "title": "R21's LEDGER row records the status change and instructs against it in the same cell, and the brief it points at still forbids what shipped",
+            "text": "`planning/features-to-triage/LEDGER.md:145` opens with **Done** - merged `5a51776` ... handleApprove answers 500 when ManifestIO.save fails and closes with **Do not move the status code** - `ControlApproveDispatchTests.swift:114-118` at `1d95734` pins 200 deliberately. One cell, two instructions, and the second is about the change the first records as merged. `planning/features-to-triage/R21-approve-answers-200-over-a-discarded-write.md` still carries `Status: Ready for AI` and the same prohibition, plus an acceptance line reading `ControlApproveDispatchTests` stays green unedited - and commit `5a51776c` edited that very test, replacing the 200 expectation with 500."
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-360",
+      "assessment": "The tracker records a nonexistent merge object, another concrete Git-coordinate mismatch.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "caf9ca9567bb34da95443007e034f0e93d4b1e23067d0ca860848e1d5f59e137",
+          "subject": {
+            "title": "A merge sha cited in both trackers resolves to no object in this repository"
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-361",
+      "assessment": "Merged but ungraded rows are a different authority axis, but the record explicitly discusses the reconciler's shared-file status agreement.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "08500ecfc2d25669263a54d9df43411530f3acadab9626abe6bb5db343201bf4",
+          "subject": {
+            "title": "Twelve wave-slot landings merged to main with no verify verdict recorded anywhere"
+          }
+        }
+      ]
+    }
+  ],
+  "registryFilesAtReview": {
+    "planning/test-campaign/flows.in.json": "b99054f398af0ac1599f956f8847925c31d3b0a7e194f22f84eee38e24f3044c",
+    "planning/test-campaign/requirements.in.json": "d78258ddc9504ff3393c837942f70ce5df381bf70fcaf3ffff3d26699821941d",
+    "planning/test-campaign/surfaces.in.json": "b79873888cb1ea7042033e26d0feff6a16a391a592bc469c32f46f33acdd2b0e",
+    "planning/test-campaign/cases.json": "31973ea78557b57b56dc9a0599dbecd3ab7e0b1157ff9509d6501b666405ceea",
+    "planning/test-campaign/components.in.json": "535556b2c2b31b50d4f0333ca3b8fba685f1859b8b3d2840584331bd0351ba4b",
+    "planning/test-campaign/inventory.json": "41556c54cba3c596bb6995c2bfafd859a840297d074dc0e4c1835b1c0a2ce0ac",
+    "planning/test-campaign/cases.in.json": "f94ccf575abc5035c0d2a39808ac4321e91e294f90249f1a7a9c5caef5d6bc6a",
+    "planning/test-campaign/defects.in.json": "6d6975f1288ddd4613db993080aa91fabe62e277a7dadf265988744fdea5a135"
+  },
+  "limits": [
+    "This review concerns registry entity identity, not implementation, retirement, campaign acceptance or a newly created join.",
+    "Literal subject scopes are explicit freshness boundaries, not a semantic search guarantee. A changed relevant projection reopens a reviewed record.",
+    "Candidate comparison is an agent source review; independent assessment has not yet been performed."
+  ],
+  "whyUnknown": "The literal no-case/requirement/defect-covers-status-versus-Git claim is not safely supported by the current DEF442/360 records. Suggest these as traceable candidate relations for independent review; do not invent an authoritative join or certify the absence."
+}

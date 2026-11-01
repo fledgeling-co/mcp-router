@@ -144,10 +144,52 @@ func bitmap(_ path: String) -> NSBitmapImageRep? {
     return NSBitmapImageRep(data: tiff)
 }
 
+/// Bind the AX window to its PID, frame and CG title; refuse ambiguous or contradictory identity.
+func namedCGWindowID(_ windows: [[String: Any]], pid: pid_t, title: String, frame: CGRect) -> Int? {
+    let candidates = windows.filter { window in
+        guard (window[kCGWindowOwnerPID as String] as? pid_t) == pid,
+              (window[kCGWindowLayer as String] as? Int) == 0,
+              let bounds = window[kCGWindowBounds as String] as? [String: Any],
+              let x = bounds["X"] as? Double, let y = bounds["Y"] as? Double,
+              let w = bounds["Width"] as? Double, let h = bounds["Height"] as? Double
+        else { return false }
+        return abs(x - frame.minX) < 1 && abs(y - frame.minY) < 1
+            && abs(w - frame.width) < 1 && abs(h - frame.height) < 1
+    }
+    let titled = candidates.filter { ($0[kCGWindowName as String] as? String) == title }
+    if titled.count == 1 { return titled[0][kCGWindowNumber as String] as? Int }
+    // Some hosts redact CG titles. A unique frame remains usable only without a contradicting title.
+    if candidates.count == 1,
+       (candidates[0][kCGWindowName as String] as? String ?? "").isEmpty
+    { return candidates[0][kCGWindowNumber as String] as? Int }
+    return nil
+}
+
 guard args.count >= 2 else { die("usage: axkit <command> …") }
 
 switch args[1] {
 // ------------------------------------------------------------------ observation
+
+case "window-identity-selftest":
+    let frame = CGRect(x: 40, y: 60, width: 900, height: 450)
+    func row(_ id: Int, _ title: String, _ pid: pid_t = 42) -> [String: Any] {
+        [kCGWindowOwnerPID as String: pid, kCGWindowLayer as String: 0,
+         kCGWindowName as String: title, kCGWindowNumber as String: id,
+         kCGWindowBounds as String: ["X": 40.0, "Y": 60.0, "Width": 900.0, "Height": 450.0]]
+    }
+    let settings = row(1, "Settings"), insights = row(2, "Insights")
+    let controls = [
+        namedCGWindowID([settings, insights], pid: 42, title: "Settings", frame: frame) == 1,
+        namedCGWindowID([settings, insights], pid: 42, title: "Insights", frame: frame) == 2,
+        namedCGWindowID([settings, row(3, "Settings")], pid: 42, title: "Settings", frame: frame) == nil,
+        namedCGWindowID([row(4, "")], pid: 42, title: "Settings", frame: frame) == 4,
+        namedCGWindowID([row(4, ""), row(5, "")], pid: 42, title: "Settings", frame: frame) == nil,
+        namedCGWindowID([row(6, "Settings", 99), insights], pid: 42, title: "Settings", frame: frame) == nil,
+        namedCGWindowID([insights], pid: 42, title: "Settings", frame: frame) == nil,
+        namedCGWindowID([settings], pid: 42, title: "Settings", frame: frame.offsetBy(dx: 4, dy: 0)) == nil
+    ]
+    guard controls.allSatisfy(\.self) else { die("window identity control failed", 1) }
+    print("window identity: \(controls.count) controls passed")
 
 case "trusted":
     print(AXIsProcessTrusted() ? "yes" : "no")
@@ -162,6 +204,9 @@ case "session":
 case "front":
     // The guard the whole gate rests on: if this ever answers "MCP Router", the run took the screen.
     print(NSWorkspace.shared.frontmostApplication?.localizedName ?? "?")
+
+case "front-pid":
+    print(NSWorkspace.shared.frontmostApplication?.processIdentifier ?? -1)
 
 case "windows":
     // Every window this app has, by title — the reading a second window makes necessary. Printed
@@ -291,32 +336,19 @@ case "winid":
     // rather than whatever is on top of its screen region.
     guard let pid = pid_t(args[2]) else { die("bad pid") }
     if args.count >= 4 {
-        // A NAMED window. CGWindowList will not reliably give another process's window titles, so the
-        // match is on the frame the accessibility tree reports for that window, which is the same
-        // global coordinate space. It must match exactly one on-screen window or the verb refuses.
+        // CG titles disambiguate two same-sized windows restored to the same position. A host that
+        // redacts titles still needs a unique frame; neither path chooses the first ambiguous match.
         let (_, app) = application(args[2])
         guard let named = namedWindow(app, args[3]),
               let origin = pair(named, kAXPositionAttribute as String),
               let size = pair(named, kAXSizeAttribute as String)
         else { die("no window titled '\(args[3])'", 1) }
-        var matches: [Int] = []
-        for window in (CGWindowListCopyWindowInfo([.optionAll, .excludeDesktopElements], kCGNullWindowID)
-            as? [[String: Any]]) ?? []
-        {
-            guard (window[kCGWindowOwnerPID as String] as? pid_t) == pid,
-                  (window[kCGWindowLayer as String] as? Int) == 0,
-                  let bounds = window[kCGWindowBounds as String] as? [String: Any],
-                  let x = bounds["X"] as? Double, let y = bounds["Y"] as? Double,
-                  let w = bounds["Width"] as? Double, let h = bounds["Height"] as? Double,
-                  let id = window[kCGWindowNumber as String] as? Int else { continue }
-            if abs(x - origin.0) < 1, abs(y - origin.1) < 1, abs(w - size.0) < 1, abs(h - size.1) < 1 {
-                matches.append(id)
-            }
-        }
-        guard matches.count == 1 else {
-            die("\(matches.count) on-screen windows sit at the frame of '\(args[3])', expected one", 1)
-        }
-        print(matches[0])
+        let windows = CGWindowListCopyWindowInfo([.optionAll, .excludeDesktopElements], kCGNullWindowID)
+            as? [[String: Any]] ?? []
+        guard let id = namedCGWindowID(windows, pid: pid, title: args[3], frame: CGRect(
+            x: origin.0, y: origin.1, width: size.0, height: size.1
+        )) else { die("no unique PID/title/frame identity for window '\(args[3])'", 1) }
+        print(id)
         exit(0)
     }
     let info = CGWindowListCopyWindowInfo([.optionAll, .excludeDesktopElements], kCGNullWindowID)

@@ -45,7 +45,10 @@ struct MCPRouterApp: App {
         // `BuildIdentity` is constructed here because this file is the one permitted to name
         // `Bundle` (A36), and it travels in as a value rather than being read inside the window.
         Settings {
-            SettingsWindow(model: model, buildIdentity: BuildIdentity(bundle: .main))
+            SettingsWindow(
+                model: model, buildIdentity: BuildIdentity(bundle: .main),
+                store: ShellClientFactory.makeSettingsTokenStore()
+            )
         }
 
         // The glanceable instrument. `isInserted` is the gating API — `SceneBuilder` has no

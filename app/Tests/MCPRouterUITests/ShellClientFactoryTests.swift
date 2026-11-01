@@ -14,6 +14,40 @@
     /// A18's reasoning condemns an invented non-zero more strongly than the zero it names.
     @Suite("Shell control-client selection")
     struct ShellClientFactoryTests {
+        @Test("Settings keeps its normal store unless Debug verification explicitly opts in")
+        func settingsTokenStoreRequiresDebugOptIn() {
+            #expect(ShellClientFactory.settingsTokenStore(isDebugBuild: true, environment: [:]) == nil)
+            for flag in ["1", "0", "true", ""] {
+                let environment = [ShellClientFactory.scratchSettingsTokenVariable: flag]
+                #expect(ShellClientFactory
+                    .settingsTokenStore(isDebugBuild: false, environment: environment) == nil)
+                if flag != "1" {
+                    #expect(ShellClientFactory.settingsTokenStore(
+                        isDebugBuild: true,
+                        environment: environment
+                    ) == nil)
+                }
+            }
+        }
+
+        @Test("explicit Debug Settings token reads and writes remain in a new memory store")
+        func scratchSettingsTokensAreEphemeral() async throws {
+            let environment = [ShellClientFactory.scratchSettingsTokenVariable: "1"]
+            let store = try #require(ShellClientFactory.settingsTokenStore(
+                isDebugBuild: true,
+                environment: environment
+            ))
+            #expect(store is InMemoryTokenStore)
+            #expect(try await store.read() == nil)
+            try await store.write("isolated-settings-fixture")
+            #expect(try await store.read() == "isolated-settings-fixture")
+            let other = try #require(ShellClientFactory.settingsTokenStore(
+                isDebugBuild: true,
+                environment: environment
+            ))
+            #expect(try await other.read() == nil)
+        }
+
         @Test("a Release build is live, and the environment cannot change that")
         func releaseIsAlwaysLive() {
             let shipping = ShellClientFactory.Choice.live(ShellClientFactory.shippingEndpoint)

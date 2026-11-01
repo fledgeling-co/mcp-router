@@ -77,6 +77,45 @@ describe('connection-time Warden credential resolution',()=>{
     });
   }
 
+  test('inherited URI-shaped values are not fetched or allowed to block unrelated configured credentials',async()=>{
+    const directory=scratch(),u=target(directory);
+    const oldWarden=process.env.INHERITED_WARDEN_REFERENCE,oldOp=process.env.INHERITED_OP_REFERENCE;
+    process.env.INHERITED_WARDEN_REFERENCE='warden://must-not-be-fetched';
+    process.env.INHERITED_OP_REFERENCE='op://must-not-block';
+    const pool=new UpstreamPool(new Map([[u.name,u]]),0,3000,new WardenCredentialResolver(fixture(directory)));
+    try {
+      await pool.acquire(u.name);
+      const receipt=JSON.parse(readFileSync(join(directory,'receipt'),'utf8'));
+      assert.equal(receipt.inheritedWarden,'warden://must-not-be-fetched');
+      assert.equal(receipt.inheritedOp,'op://must-not-block');
+      assert.equal(readFileSync(join(directory,'audit'),'utf8').trim().split('\n').length,1);
+    } finally {
+      await pool.shutdown();
+      if(oldWarden===undefined)delete process.env.INHERITED_WARDEN_REFERENCE;else process.env.INHERITED_WARDEN_REFERENCE=oldWarden;
+      if(oldOp===undefined)delete process.env.INHERITED_OP_REFERENCE;else process.env.INHERITED_OP_REFERENCE=oldOp;
+      rmSync(directory,{recursive:true,force:true});
+    }
+  });
+
+  test('a missing explicit project prevents broker access rather than borrowing daemon cwd',async()=>{
+    const directory=scratch();let called=false;
+    const resolver=new WardenCredentialResolver(async()=>{called=true;throw new Error('not reached');});
+    await assert.rejects(resolver.resolve({KEY:'warden://key'},{upstream:'unscoped'}),/credentialProject/);
+    assert.equal(called,false);
+    rmSync(directory,{recursive:true,force:true});
+  });
+
+  test('eight concurrent cold acquires share one broker and one target; chatty broker stderr is drained',async()=>{
+    const directory=scratch(),u=target(directory);
+    const pool=new UpstreamPool(new Map([[u.name,u]]),0,3000,new WardenCredentialResolver(fixture(directory,'chatty')));
+    try {
+      const handles=await Promise.all(Array.from({length:8},()=>pool.acquire(u.name)));
+      assert.equal(new Set(handles).size,1);
+      assert.equal(readFileSync(join(directory,'audit'),'utf8').trim().split('\n').length,1);
+      assert.equal(readFileSync(join(directory,'receipt'),'utf8').trim().split('\n').length,1);
+    } finally {await pool.shutdown();rmSync(directory,{recursive:true,force:true});}
+  });
+
   test('each fresh target connection re-resolves and gets a distinct broker session',async()=>{
     const directory=scratch(),u=target(directory);
     const pool=new UpstreamPool(new Map([[u.name,u]]),0,3000,new WardenCredentialResolver(fixture(directory,'ok',['first-rotating-key','second-rotating-key'])));
@@ -100,6 +139,25 @@ describe('connection-time Warden credential resolution',()=>{
     rmSync(directory,{recursive:true,force:true});
   });
 
+  test('HTTP401 replay of a resolved header never reaches pending auth or log diagnostics',async()=>{
+    const directory=scratch(),secret='synthetic-credential-12345';
+    const server=createServer((_req,res)=>res.writeHead(401,{'content-type':'text/plain'}).end('unauthorized '+secret));
+    await new Promise<void>(resolve=>server.listen(0,'127.0.0.1',resolve));
+    const port=(server.address() as {port:number}).port;
+    const u:HttpUpstream={transport:'http',name:'refused-http',url:`http://127.0.0.1:${port}`,oauth:false,
+      credentialProject:directory,headers:{Authorization:'Bearer warden://http-key'}};
+    const logfile=join(directory,'diagnostics');configureLogging(logfile,true);
+    const pool=new UpstreamPool(new Map([[u.name,u]]),0,3000,new WardenCredentialResolver(fixture(directory)));
+    try {
+      await assert.rejects(pool.acquire(u.name),error=>{assert.equal(String(error).includes(secret),false);return true;});
+      assert.equal(JSON.stringify(pool.pending()).includes(secret),false);
+      assert.equal(readFileSync(logfile,'utf8').includes(secret),false);
+    } finally {
+      await pool.shutdown();configureLogging(undefined,false);server.closeAllConnections();
+      await new Promise<void>(resolve=>server.close(()=>resolve()));rmSync(directory,{recursive:true,force:true});
+    }
+  });
+
   test('HTTP initialize receives a resolved bearer header without changing its configured URI',async()=>{
     const directory=scratch();let received='';
     const server=createServer(async(req,res)=>{
@@ -112,13 +170,12 @@ describe('connection-time Warden credential resolution',()=>{
     });
     await new Promise<void>(resolve=>server.listen(0,'127.0.0.1',resolve));
     const address=server.address() as {port:number};
-    const u:HttpUpstream={transport:'http',name:'http',url:`http://127.0.0.1:${address.port}`,oauth:false,headers:{Authorization:'Bearer warden://http-key'}};
-    const original=process.cwd();process.chdir(directory);
+    const u:HttpUpstream={transport:'http',name:'http',url:`http://127.0.0.1:${address.port}`,oauth:false,credentialProject:directory,headers:{Authorization:'Bearer warden://http-key'}};
     const pool=new UpstreamPool(new Map([[u.name,u]]),0,3000,new WardenCredentialResolver(fixture(directory)));
     try {
       await pool.acquire(u.name);
       assert.equal(received,'Bearer synthetic-credential-12345');
       assert.equal(u.headers.Authorization,'Bearer warden://http-key');
-    } finally {await pool.shutdown();process.chdir(original);server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));rmSync(directory,{recursive:true,force:true});}
+    } finally {await pool.shutdown();server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));rmSync(directory,{recursive:true,force:true});}
   });
 });

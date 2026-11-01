@@ -6,6 +6,8 @@ Both output copies and in-place changes require a trusted runtime. No secret is 
 """
 from __future__ import annotations
 import argparse
+import hashlib
+import datetime
 import json
 import os
 import shutil
@@ -35,20 +37,20 @@ def is_secret_uri(value: str) -> bool:
         ord(c) < 32 or ord(c) == 127 or c in '?#<>' for c in name)
 
 
-def runtime_preflight(runtime: str) -> bool:
+def runtime_preflight(runtime: str, config_path: str | None = None) -> bool:
     entry = os.path.join(runtime, 'dist', 'credential-preflight.js')
     if not os.path.isfile(entry):
         print('REFUSING: installed TypeScript runtime has no credential resolver preflight.')
         return False
     try:
-        result = subprocess.run(['node', entry], capture_output=True, text=True, timeout=20)
+        result = subprocess.run(['node', entry, '--config', config_path or os.path.expanduser('~/.claude/mcp-router/servers.json')], capture_output=True, text=True, timeout=20)
         evidence = json.loads(result.stdout)
         valid = result.returncode == 0 and evidence == {
             'supported': True, 'scheme': 'warden', 'trusted': True}
     except (OSError, subprocess.SubprocessError, ValueError):
         valid = False
     if not valid:
-        print('REFUSING: installed Warden has not passed Gatekeeper and the pinned Developer ID check.')
+        print('REFUSING: Warden trust or the running router/runtime/configuration match has not been established.')
     return valid
 
 
@@ -71,27 +73,36 @@ def main(args=None, *, plan_path=PLAN, runtime_check=runtime_preflight) -> int:
             print('REFUSING: --in-place requires --backup.')
             return 1
         # This runs before opening the credential-bearing source or any output, including copies.
-        if not runtime_check(options.runtime):
+        if not runtime_check(options.runtime, config_path):
             return 1
-        with open(config_path, encoding='utf-8') as file:
-            doc = json.load(file)
+        with open(config_path, 'rb') as file:
+            source_bytes = file.read()
+        source_digest = hashlib.sha256(source_bytes).hexdigest()
+        if plan.get('configSha256') != source_digest:
+            print('REFUSING: configuration changed since the plan was written; prepare a fresh plan.')
+            return 1
+        doc = json.loads(source_bytes)
         for row in credentials:
-            block = doc['mcpServers'][row['upstream']][row['block']]
+            server = doc['mcpServers'][row['upstream']]
+            is_stdio = server.get('type', 'http' if server.get('url') else 'stdio') == 'stdio'
+            project = server.get('credentialProject') or (server.get('cwd') if is_stdio else None)
+            if not isinstance(project, str) or not os.path.isabs(project) or not os.path.isdir(project):
+                print('REFUSING: credential-bearing upstream needs an explicit absolute credentialProject or stdio cwd.')
+                return 1
+            block = server[row['block']]
             if row['key'] not in block:
                 print('REFUSING: migration plan no longer matches the configured key names.')
                 return 1
             block[row['key']] = row['uri']
         if options.in_place:
-            backup_path = config_path + '.pre-warden'
-            # Preserve a previous rollback copy instead of silently replacing it.
-            if os.path.exists(backup_path):
-                print('REFUSING: a pre-warden backup already exists; preserve it before retrying.')
-                return 1
+            stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S.%fZ')
+            backup_path = config_path + '.pre-warden-' + stamp + '-' + source_digest[:12]
             descriptor = os.open(backup_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-            with os.fdopen(descriptor, 'wb') as backup_file, open(config_path, 'rb') as source:
-                shutil.copyfileobj(source, backup_file)
+            with os.fdopen(descriptor, 'wb') as backup_file:
+                backup_file.write(source_bytes)
                 backup_file.flush()
                 os.fsync(backup_file.fileno())
+            print(f'Rollback snapshot: {backup_path}')
             target = config_path
         else:
             target = options.out or os.path.join(HERE, 'servers.migrated.json')
@@ -103,7 +114,17 @@ def main(args=None, *, plan_path=PLAN, runtime_check=runtime_preflight) -> int:
                 file.write('\n')
                 file.flush()
                 os.fsync(file.fileno())
+            if options.in_place:
+                with open(config_path, 'rb') as source:
+                    if hashlib.sha256(source.read()).hexdigest() != source_digest:
+                        print('REFUSING: configuration changed while preparing the migration.')
+                        return 1
             os.replace(temporary, target)
+            directory = os.open(os.path.dirname(os.path.abspath(target)), os.O_RDONLY)
+            try:
+                os.fsync(directory)
+            finally:
+                os.close(directory)
         finally:
             if os.path.exists(temporary):
                 os.unlink(temporary)

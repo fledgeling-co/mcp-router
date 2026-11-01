@@ -30,7 +30,7 @@ nothing here can know which item is which. Every row is emitted with its URI lef
 Exit codes: 0 plan written, 2 the config could not be read or a placeholder survived --apply.
 """
 from __future__ import annotations
-import json, os, sys, shutil
+import hashlib, json, os, sys, shutil
 
 CONFIG = os.path.expanduser('~/.claude/mcp-router/servers.json')
 
@@ -80,7 +80,9 @@ def main() -> int:
     if not os.path.exists(CONFIG):
         print(f'environment: no config at {CONFIG}')
         return 2
-    doc = load()
+    with open(CONFIG, 'rb') as source:
+        source_bytes = source.read()
+    doc = json.loads(source_bytes)
     rows = plan(doc)
     secrets = [r for r in rows if r['is_secret']]
     config_rows = [r for r in rows if not r['is_secret']]
@@ -99,8 +101,9 @@ def main() -> int:
 
     out = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'migration-plan.json')
     with open(out, 'w', encoding='utf-8') as fh:
-        json.dump({'config': CONFIG, 'rows': rows}, fh, indent=1)
+        json.dump({'config': CONFIG, 'configSha256': hashlib.sha256(source_bytes).hexdigest(), 'rows': rows}, fh, indent=1)
         fh.write('\n')
+    os.chmod(out, 0o600)
     print(f'\nwrote {out}')
     print('Fill each <CHOOSE> with the vault URI for that credential, then apply with')
     print('  python3 scripts/warden/apply-migration.py --backup')

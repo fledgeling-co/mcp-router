@@ -51,7 +51,12 @@
         /// Minimum readable row columns, their five gaps and two insets, plus the inspector.
         static var inlineInspectorMinimumWidth: Double {
             tile + nameColumn / 2 + kindColumn + reasonColumn / 3 + actionColumn
-                + rowPadding * 7 + panePadding * 2 + inspectorWidth
+                + rowPadding * 7 + panePadding * 2 + inspectorWidth + hairline
+        }
+
+        static var checksInlineInspectorMinimumWidth: Double {
+            tile + nameColumn / 2 + kindColumn + tallyColumn + stampColumn
+                + rowPadding * 7 + panePadding * 2 + inspectorWidth + hairline
         }
 
         static var sheetWidth: Double { MetricToken.sidebar.leadingScalar * 2 }

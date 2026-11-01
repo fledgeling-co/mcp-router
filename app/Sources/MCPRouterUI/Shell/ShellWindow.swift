@@ -111,7 +111,7 @@
 
     struct ContentZone: View {
         @Bindable var model: ShellModel
-        @State private var viewportWidth: Double = 0
+        @State private var viewportSize: CGSize = .zero
 
         var body: some View {
             Group {
@@ -127,10 +127,10 @@
                     outerScroll { board }
                 }
             }
-            .environment(\.detailViewportWidth, viewportWidth)
-            .onGeometryChange(for: Double.self) { geometry in
-                Double(geometry.size.width)
-            } action: { viewportWidth = $0 }
+            .environment(\.detailViewportWidth, Double(viewportSize.width))
+            .onGeometryChange(for: CGSize.self) { geometry in
+                geometry.size
+            } action: { viewportSize = $0 }
             .overlay(alignment: .top) {
                 ScrollEdgeSeparator(isVisible: model.scrollEdge.isSeparatorVisible)
             }
@@ -167,46 +167,19 @@
             .background(ShellChrome.contentBackground.color)
         }
 
-        /// Tall enough that the content zone always has somewhere to scroll, so A34's exercised half
-        /// has a real scroll to drive rather than a view that fits and never moves.
-        private var scrollableMinHeight: Double {
-            MetricToken.sidebar.leadingScalar * 3
-        }
-
         /// Boards that install their own `ScrollView` because they have chrome that must not move.
         ///
         /// Kept as data rather than an `if` chain so a board joining is one line, and so the
         /// distinction is legible: it is about sticky chrome, not about which item shipped it.
         private static let boardsThatScrollThemselves: Set<Destination> = [.activity]
 
-        /// The shell's own scroll view — the one the scroll-edge separator reads.
-        ///
-        /// **`alignment: .top` is load-bearing, and it was measured before it was added.** The
-        /// `minHeight` above hands every board 768pt whether it wants them or not, and SwiftUI's
-        /// default alignment is `.center` — so a board shorter than that is centred in the surplus.
-        /// Measured on the running app over the accessibility plane: the Servers board's first
-        /// element sat at `y = 400.5` against a content top of 191, a **209.5pt** drop, and its own
-        /// content measures ≈351pt, so `(768 − 351) / 2 = 208.5`. The arithmetic and the AX reading
-        /// agree, which is what makes this the mechanism rather than a guess.
-        ///
-        /// It belongs **here** rather than on the board because the frame that creates the surplus
-        /// is here. Six boards had already worked around it privately, each carrying its own
-        /// `.frame(maxHeight: .infinity, alignment: .topLeading)` — `SkillsBoard` even records "~170pt
-        /// of dead space above the header, measured in the acceptance capture". So one defect was
-        /// patched six times and fixed none, and the seventh board that never added the workaround
-        /// is the one that shipped it. Top alignment is the shell's contract now, so a board added
-        /// later inherits it instead of rediscovering it.
-        ///
-        /// Those six frames are deliberately **kept**, and the reason is scope rather than a
-        /// mechanism this item verified. Each also carries `maxHeight: .infinity`, which governs how
-        /// that board's failure state fills the pane; removing six frames would need six failure-state
-        /// re-measurements, which is a board-by-board pass and not a register one. An out-of-family
-        /// critic was right to challenge the stronger claim this comment used to make, so it is not
-        /// made here. They are now redundant *for top alignment* and that is all that is asserted.
+        /// Fill the visible pane when content is short; scroll only when real content overflows.
+        /// A forced table-sized minimum pushes empty and failure messages below a short window.
+        /// Top alignment keeps populated board headings anchored while wrapped messages use the viewport.
         private func outerScroll(@ViewBuilder _ content: () -> some View) -> some View {
             ScrollView {
                 content()
-                    .frame(maxWidth: .infinity, minHeight: scrollableMinHeight, alignment: .top)
+                    .frame(maxWidth: .infinity, minHeight: viewportSize.height, alignment: .top)
             }
             .onScrollGeometryChange(for: Double.self) { geometry in
                 geometry.contentOffset.y

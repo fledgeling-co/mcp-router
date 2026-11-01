@@ -30,6 +30,7 @@
     /// As with Servers and Skills, every branch comes from `CheckPresentation` and is testable without
     /// a host. This file draws answers; it decides nothing.
     public struct EvalsBoard: View {
+        @Environment(\.detailViewportWidth) private var viewportWidth
         @Bindable private var board: EvalsBoardModel
         @FocusState private var isSearchFocused: Bool
 
@@ -41,16 +42,11 @@
             HStack(alignment: .top, spacing: 0) {
                 boardColumn
                     .frame(maxWidth: .infinity, alignment: .leading)
-                if let selected = board.selectedSubject() {
+                if viewportWidth >= M7BoardMetrics.checksInlineInspectorMinimumWidth,
+                   let selected = board.selectedSubject()
+                {
                     Divider()
-                    EvalsInspector(
-                        subject: selected,
-                        server: server(for: selected),
-                        skill: skill(for: selected),
-                        clients: board.state.reading?.skills?.clients ?? [],
-                        history: board.history(for: selected),
-                        historyError: board.store.loadError
-                    )
+                    inspector(for: selected)
                 }
             }
             .task { await board.load() }
@@ -168,8 +164,13 @@
                             isSelected: board.selection == subject.id,
                             isRechecking: board.recheckingSubject == subject.id
                         )
+                        .popover(isPresented: compactInspection(for: subject.id)) {
+                            inspector(for: subject).fixedSize(horizontal: false, vertical: true)
+                        }
                         .contentShape(Rectangle())
                         .onTapGesture { board.selection = subject.id }
+                        .accessibilityAddTraits(.isButton)
+                        .accessibilityAction { board.selection = subject.id }
                     }
                 }
                 Text(CheckCopy.evalsFooter)
@@ -178,6 +179,27 @@
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, M7BoardMetrics.gap)
             }
+        }
+
+        private func inspector(for subject: CheckPresentation.Subject) -> some View {
+            EvalsInspector(
+                subject: subject, server: server(for: subject), skill: skill(for: subject),
+                clients: board.state.reading?.skills?.clients ?? [],
+                history: board.history(for: subject), historyError: board.store.loadError
+            )
+        }
+
+        private func compactInspection(for id: String) -> Binding<Bool> {
+            Binding(
+                get: {
+                    viewportWidth < M7BoardMetrics.checksInlineInspectorMinimumWidth && board.selection == id
+                },
+                set: { shown in
+                    if !shown, board.selection == id,
+                       viewportWidth < M7BoardMetrics.checksInlineInspectorMinimumWidth
+                    { board.selection = nil }
+                }
+            )
         }
 
         private var header: some View {
@@ -204,7 +226,7 @@
         }
 
         private var controls: some View {
-            HStack(spacing: M7BoardMetrics.gap) {
+            VStack(alignment: .leading, spacing: M7BoardMetrics.gap) {
                 Picker("", selection: $board.filter) {
                     ForEach(CheckPresentation.Filter.allCases) { filter in
                         Text(label(for: filter)).tag(filter)
@@ -212,15 +234,12 @@
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .fixedSize()
 
                 // A real text field, so ⌘F has something to focus. A segmented control cannot take
                 // typed input, which is what the first draft bound the key to.
                 SearchField(text: $board.search, placeholder: "Filter subjects")
-                    .frame(width: M7BoardMetrics.searchWidth)
+                    .frame(maxWidth: .infinity)
                     .focused($isSearchFocused)
-
-                Spacer(minLength: 0)
             }
             .padding(.bottom, M7BoardMetrics.gap)
         }
@@ -241,7 +260,12 @@
         private var columnHeaders: some View {
             HStack(spacing: M7BoardMetrics.rowPadding) {
                 Color.clear.frame(width: M7BoardMetrics.tile, height: 1)
-                Text("subject").frame(width: M7BoardMetrics.nameColumn, alignment: .leading)
+                Text("subject").frame(
+                    minWidth: M7BoardMetrics.nameColumn / 2,
+                    idealWidth: M7BoardMetrics.nameColumn,
+                    maxWidth: M7BoardMetrics.nameColumn,
+                    alignment: .leading
+                )
                 Text("kind").frame(width: M7BoardMetrics.kindColumn, alignment: .leading)
                 Text("checks").frame(width: M7BoardMetrics.tallyColumn, alignment: .leading)
                 Text("checked against").frame(width: M7BoardMetrics.stampColumn, alignment: .leading)

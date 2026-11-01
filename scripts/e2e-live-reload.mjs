@@ -19,7 +19,7 @@
  *
  * Exit 0 clean · 1 findings · 2 the run could not measure what it was asked to.
  */
-import { mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, rmSync, readFileSync, readdirSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
@@ -71,16 +71,15 @@ writeFileSync(
 const run = (args) =>
   spawn('node', [join(REPO, 'dist', 'index.js'), ...args], { env: { ...process.env, HOME }, stdio: 'ignore' });
 
-/**
- * Everything the serving process wrote to stderr, which is where `log.info` goes.
- *
- * The approve arm below needs it, and a notification count cannot replace it: the three-second
- * manifest poller delivers one either way, so `NOTICES.length >= 1` passes whether or not the
- * route announced anything. The log line is what says WHICH mechanism fired — `approved "x"'s new
- * tool surface` against `the tool manifest was rebuilt outside this process`.
- */
+/** Read the isolated router's actual log, including retained rotation generations. */
 const SERVE_LOG = [];
-const serveLog = () => SERVE_LOG.join('');
+const serveLog = () => {
+  const directory = join(HOME, '.claude', 'mcp-router');
+  const files = readdirSync(directory)
+    .filter((name) => /^router\.log(?:\.\d+)?$/.test(name))
+    .sort((a, b) => Number(b.split('.')[2] ?? 0) - Number(a.split('.')[2] ?? 0));
+  return files.map((name) => readFileSync(join(directory, name), 'utf8')).join('');
+};
 const countIn = (needle) => serveLog().split(needle).length - 1;
 
 const runServing = (args) => {
@@ -261,10 +260,11 @@ try {
     `${NOTICES.length} still arriving after ${Date.now() - quietSince}ms of quiet`
   );
 
+  check('the reviewed held surface has a digest', typeof held.pendingDigest === 'string' && held.pendingDigest.length > 0);
   const approvedBefore = countIn('live-reload: approved');
   NOTICES.length = 0;
   const tApprove = Date.now();
-  const approved = await post('/servers/first/approve', {});
+  const approved = await post('/servers/first/approve', { expectedDigest: held.pendingDigest });
   const approvedBody = await approved.json();
   check('approving the held surface succeeds', approved.status === 200, `HTTP ${approved.status}`);
   check('and it reports what it promoted', approvedBody.approved === 1, `approved=${approvedBody.approved}`);
@@ -298,7 +298,7 @@ try {
    */
   const announcedAfterFirst = countIn('live-reload:');
   NOTICES.length = 0;
-  const again = await post('/servers/first/approve', {});
+  const again = await post('/servers/first/approve', { expectedDigest: held.pendingDigest });
   check('a second approve is refused', again.status === 409, `HTTP ${again.status}`);
   await wait(1_200);
   check(

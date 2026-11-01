@@ -115,7 +115,10 @@ public struct PhoneShell<Preview: View>: View {
                                     titles: Tab.allCases.map { tab in tab.title },
                                     identifiers: Tab.allCases.map { tab in "tab-\(tab.rawValue)" }
                                 )
-                                .frame(width: 0, height: 0)
+                                .frame(
+                                    width: PhoneMetric.accessibilityBridgeSize,
+                                    height: PhoneMetric.accessibilityBridgeSize
+                                )
                             }
                     #else
                         content(for: tab)

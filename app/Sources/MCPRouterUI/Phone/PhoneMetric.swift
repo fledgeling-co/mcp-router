@@ -15,6 +15,9 @@ import SwiftUI
 /// the brief rules out. Where a value *does* have a token — radii, control heights — this reads the
 /// token instead of restating it.
 enum PhoneMetric {
+    /// The controller bridge supplies accessibility metadata without occupying layout space.
+    static let accessibilityBridgeSize: Double = 0
+
     /// The 44pt minimum touch target. Not a taste value: it is the floor every interactive element
     /// in this feature is asserted against.
     static let minimumTarget: Double = 44

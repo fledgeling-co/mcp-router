@@ -103,6 +103,7 @@ struct PhoneSourceGuardTests {
         #expect(PhoneMetric.tile == 30, "DESIGN.md §4: row tiles are 30pt")
         #expect(PhoneMetric.tileRadius == 7, "DESIGN.md §4: row tiles are radius 7")
         #expect(PhoneMetric.minimumTarget == 44)
+        #expect(PhoneMetric.accessibilityBridgeSize == 0, "the metadata bridge must occupy no layout area")
     }
 
     // MARK: A2 — no badges

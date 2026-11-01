@@ -29,7 +29,14 @@
                 app.contains("Settings {"),
                 "no `Settings` scene is declared — ⌘, would open nothing"
             )
-            #expect(app.contains("SettingsWindow(model: model, buildIdentity:"))
+            let composition = PhoneSourceGuardTests.stripped(app)
+                .components(separatedBy: .whitespacesAndNewlines).joined()
+            let expected = "Settings{SettingsWindow(model:model,buildIdentity:BuildIdentity(bundle:.main),"
+                + "store:ShellClientFactory.makeSettingsTokenStore())}"
+            #expect(
+                composition.contains(expected),
+                "the Settings scene lost its model, identity or injected store"
+            )
             // The declaration, not the paragraph explaining why there is none: this file argues
             // about `.appSettings` at length, and a whole-file grep for the name would be satisfied
             // by the comment that says it is absent.

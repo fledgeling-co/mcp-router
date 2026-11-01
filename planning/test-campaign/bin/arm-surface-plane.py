@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """The arm for `plane` — plant a misfiled member on a surface of each plane, and watch it redden.
 
+2026-11-02: the two former declared-silence plants below now redden because a new member needs
+a typed production-source binding. The historical explanation records the old limitation. A
+separate paired control proves that a genuinely declared dotted UI label passes the new rule
+while the old name-shape rule refuses it. Source bindings add no case actuations.
+
 WHAT THIS IS FOR
 ----------------
 DEF-131: until 2026-09-03 `bin/control-census.py` decided which field a declared member belonged
@@ -154,10 +159,12 @@ PLANTS = [
      ["SURF-001 declares `plane`: None, which is not one of"], 0, ""),
     ("mixed with no planeNote", plant_mixed_without_note,
      ["SURF-046 is declared `plane`: mixed and carries no `planeNote`"], 0, ""),
-    ("mixed surface declares a control — DECLARED SILENCE, the limit of the field",
-     plant_mixed_declares_control, [], 0, "SURF-046 is declared"),
-    ("PascalCase API-call name under `controls` on a glass surface — COVERAGE GIVEN UP, DEF-420",
-     plant_api_name_on_glass, [], 1, "SURF-002 declares `LogonTaskSupervisor.Register`"),
+    ("mixed surface adds a control without a typed UI binding",
+     plant_mixed_declares_control,
+     ['["SURF-046","control","Reset history"]: new member has no typed source binding'], 0, ""),
+    ("API-call name under controls has no typed UI binding — DEF-420",
+     plant_api_name_on_glass,
+     ['["SURF-002","control","LogonTaskSupervisor.Register"]: new member has no typed source binding'], 1, ""),
 ]
 
 
@@ -176,8 +183,19 @@ def stage(scratch: Path) -> tuple[Path, Path, Path]:
     """A scratch copy of the campaign, plus the previous census beside the current one."""
     camp = scratch / "planning" / "test-campaign"
     (camp / "bin").mkdir(parents=True)
-    for name in ("inventory.json", "cases.json"):
+    for name in ("inventory.json", "cases.json", "member-source-baseline.json", "member-source-bindings.json"):
         shutil.copy2(CAMPAIGN / name, camp / name)
+    sys.path.insert(0, str(CAMPAIGN / 'bin'))
+    from member_source_provenance import audit_files
+    source_report = audit_files(ROOT, CAMPAIGN)
+    if source_report['findings']:
+        raise ValueError('cannot stage invalid source bindings: ' + str(source_report['findings']))
+    shutil.copy2(CAMPAIGN / 'bin/member_source_provenance.py', camp / 'bin/member_source_provenance.py')
+    bindings = json.loads((CAMPAIGN / 'member-source-bindings.json').read_text())['bindings']
+    for binding in bindings.values():
+        target = scratch / binding['path']
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / binding['path'], target)
     new = camp / "bin" / "control-census.py"
     shutil.copy2(CAMPAIGN / "bin" / "control-census.py", new)
     old = camp / "bin" / "control-census-previous.py"
@@ -231,6 +249,44 @@ def check_writer(committed: dict) -> list[str]:
         failures.append(f"WRITER headless: expected one refusal naming SURF-045 and the row left "
                         f"untouched, got written={written} refusals={refusals} "
                         f"unchanged={before == after}")
+    return failures
+
+
+def check_typed_pair(camp: Path, new: Path, old: Path, committed: dict) -> list[str]:
+    """Distinguish typed declaration matching from the retired name-shape regex."""
+    bindings_file = camp / 'member-source-bindings.json'
+    original_bindings = bindings_file.read_text()
+    registry = camp / 'inventory.json'
+    _code, before = run(new)
+    import re
+    before_count = re.search(r'Controls:\s+(\d+) of (\d+)', before)
+    source = camp.parents[1] / 'app/Sources/ArmedDottedControl.swift'
+    source.write_text('import SwiftUI\nstruct ArmedDottedControl: View { var body: some View { Button("Foo.Bar") {} } }\n')
+    inv = json.loads(json.dumps(committed))
+    surface(inv, 'SURF-002')['controls'].append('Foo.Bar')
+    registry.write_text(json.dumps(inv))
+    bindings = json.loads(original_bindings)
+    member = json.dumps(['SURF-002', 'control', 'Foo.Bar'], separators=(',', ':'))
+    bindings['bindings'][member] = {'adapter': 'swift-control-label', 'path': 'app/Sources/ArmedDottedControl.swift',
+                                   'declaration': 'ArmedDottedControl', 'platform': 'macos', 'configuration': 'debug'}
+    bindings_file.write_text(json.dumps(bindings))
+    try:
+        new_code, new_out = run(new)
+        old_code, _old_out = run(old)
+        after_count = re.search(r'Controls:\s+(\d+) of (\d+)', new_out)
+        unchanged_actuation = bool(before_count and after_count and before_count[1] == after_count[1]
+                                  and int(after_count[2]) == int(before_count[2]) + 1)
+        print('TYPED PAIR genuine dotted UI label: new=%d old=%d unchanged actuation=%s'
+              % (new_code, old_code, unchanged_actuation))
+        failures = [] if new_code == 0 and old_code == 1 and unchanged_actuation else [
+            'typed dotted-label pair failed or source evidence changed an actuation count: ' + new_out]
+    finally:
+        registry.write_text(json.dumps(committed))
+        bindings_file.write_text(original_bindings)
+        source.unlink()
+    code, out = run(new)
+    if code:
+        failures.append('typed-pair restoration was not silent: ' + out)
     return failures
 
 
@@ -297,6 +353,7 @@ def main() -> int:
                                 f"still exits {code}. The arm is reporting something other than "
                                 f"the plant:\n{out}")
 
+        failures += check_typed_pair(camp, new, old, committed)
         failures += check_writer(committed)
 
         print(f"\nSILENCE   plant reverted after each of {len(PLANTS)} plant(s): "
@@ -308,8 +365,8 @@ def main() -> int:
             print(f"  · {f}", file=sys.stderr)
         return 1
     print(f"\narm-surface-plane: {len(PLANTS)} plant(s), each seen against both censuses, each "
-          f"reverted and re-run clean, plus the writer's two readings. The field a member belongs "
-          f"in follows from the surface's declared plane — DEF-131.")
+          f"reverted and re-run clean, the typed dotted-label pair and the writer's two readings. "
+          f"Plane and typed-source checks remain separate from observed actuation.")
     return 0
 
 

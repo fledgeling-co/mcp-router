@@ -1,0 +1,36 @@
+{
+  "schema": "mcp-router.member-source/1",
+  "limits": "Typed source declarations only; not build membership, reachability or actuation.",
+  "bindings": {
+    "[\"SURF-003\",\"control\",\"Cancel\"]": {
+      "adapter": "swift-control-label",
+      "path": "app/Sources/MCPRouterUI/Activity/ActivityResetHistorySheet.swift",
+      "declaration": "ActivityResetHistorySheet",
+      "platform": "macos",
+      "configuration": "debug"
+    },
+    "[\"SURF-007\",\"control\",\"Cancel\"]": {
+      "adapter": "swift-control-label",
+      "path": "app/Sources/MCPRouterUI/Boards/CleanupSheets.swift",
+      "declaration": "ResetHistorySheet",
+      "platform": "macos",
+      "configuration": "debug"
+    },
+    "[\"SURF-045\",\"operation\",\"LogonTaskSupervisor.Register\"]": {
+      "adapter": "csharp-method",
+      "path": "app/Windows/MCPRouter.Shell.Live/Lifecycle/LogonTaskSupervisor.cs",
+      "declaration": "LogonTaskSupervisor",
+      "symbol": "Register",
+      "platform": "windows",
+      "configuration": "release"
+    },
+    "[\"SURF-045\",\"operation\",\"LogonTaskSupervisor.Unregister\"]": {
+      "adapter": "csharp-method",
+      "path": "app/Windows/MCPRouter.Shell.Live/Lifecycle/LogonTaskSupervisor.cs",
+      "declaration": "LogonTaskSupervisor",
+      "symbol": "Unregister",
+      "platform": "windows",
+      "configuration": "release"
+    }
+  }
+}

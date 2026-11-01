@@ -158,6 +158,7 @@
             "app/Sources/MCPRouterUI/Settings/PairedDevicesSection.swift",
             "app/Sources/MCPRouterUI/Settings/SettingsWindow.swift",
             "app/Sources/MCPRouterUI/Settings/SettingsWindowModel.swift",
+            "app/Sources/MCPRouterUI/Settings/SettingsResetHistorySheet.swift",
             "app/Sources/MCPRouterUI/Settings/SettingsMetrics.swift",
             "app/Sources/MCPRouterUI/Settings/SettingsParts.swift",
             "app/Sources/MCPRouterUI/Settings/SettingsPaneRow.swift",

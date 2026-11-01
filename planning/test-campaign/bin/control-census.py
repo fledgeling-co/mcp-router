@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 """The control census, printed from this repository's pinned registry (G28).
 
+CURRENT CONTRACT, 2026-11-02
+---------------------------
+The sections below retain the historical rationale and measurements. The current vendor pin is
+0.20.1; this local adapter remains for its dispositions, plane rules and typed source checks.
+`member_source_provenance.py` now checks explicit production declaration bindings independently
+of the case-driven actuation count. The exact legacy design-only population remains UNVERIFIED,
+not silently certified. New members need typed bindings even on mixed planes. A mock, comment,
+unrelated string or method filed as a UI control cannot supply one. Neither source binding nor
+plane membership proves build membership, reachability or an observed action.
+
 WHY THIS EXISTS BESIDE `campaign.py check` RATHER THAN INSTEAD OF IT
 -------------------------------------------------------------------
 `campaign.py check` has counted actuated controls since **test-campaign 0.11.0**, and it is where
@@ -189,6 +199,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from member_source_provenance import audit_files
+
 ROOT = Path(__file__).resolve().parents[3]
 CAMPAIGN = ROOT / "planning" / "test-campaign"
 
@@ -283,6 +296,16 @@ def main() -> int:
     excused: dict[tuple[str, str], dict[str, str]] = {}
     titles: dict[str, str] = {}
     strays: list[str] = []
+    try:
+        source_bindings = audit_files(ROOT, CAMPAIGN)
+    except (ValueError, OSError, KeyError) as error:
+        print('Member source: NOT COMPARED: ' + str(error), file=sys.stderr)
+        return 2
+    strays.extend('source provenance: ' + finding for finding in source_bindings['findings'])
+    for kind, count in source_bindings['counts'].items():
+        print('Member source %ss: %d/%d typed declarations; %d legacy UNVERIFIED. '
+              'This adds no actuations and proves no build membership or reachability.'
+              % (kind, count['source_bound'], count['declared'], count['legacy_unverified']))
 
     # THE PLANE, read per surface before anything is counted. Every surface must carry one:
     # there is no default, because a default is a guess about the denominator that later reads

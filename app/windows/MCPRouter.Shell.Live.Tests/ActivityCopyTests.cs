@@ -133,6 +133,31 @@ public sealed class ActivityCopyTests
     }
 
     [Fact]
+    public void An_empty_backfill_describes_available_records_not_the_absence_of_past_calls()
+    {
+        var model = new ActivityModel();
+        model.Load(new[] { new CallRecord("2026-11-02T01:00:00Z", "fixture", "past-call", true, 20,
+            Cold: false, Pid: 1, Client: "fixture") });
+        Assert.Single(model.Records);
+
+        // Retention or a partially failed reset can remove recent records without proving
+        // no call ever happened. This is a replacement backfill, not a first-use signal.
+        model.Load(Array.Empty<CallRecord>());
+        Assert.Empty(model.Records);
+        Assert.False(model.IsFilteredToNothing());
+        Assert.Equal("No calls to show", ActivityCopy.EmptyTitle);
+        Assert.StartsWith("No call records are available here.", ActivityCopy.EmptyDetail);
+        Assert.Equal("See which harnesses are wired", ActivityCopy.EmptyAction);
+    }
+
+    [Fact]
+    public void The_empty_state_makes_no_unmeasured_delivery_deadline_promise()
+    {
+        Assert.DoesNotContain("second", ActivityCopy.EmptyDetail, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("as they arrive", ActivityCopy.EmptyDetail, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void The_offline_wording_is_the_mac_s_router_not_running_sentence()
     {
         // §6's one name per state: the wording is ControlAPIError.routerNotRunning's, carried

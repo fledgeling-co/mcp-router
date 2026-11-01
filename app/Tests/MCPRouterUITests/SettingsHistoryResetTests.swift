@@ -82,6 +82,25 @@
             #expect(client.calls.usageResets == 2 && client.calls.usageSummaryReads == 2)
         }
 
+        @Test(
+            "a successful write with an unreadable timestamp is remembered and never submitted again on retry"
+        )
+        func malformedAcknowledgementDoesNotRepeatWrite() async {
+            let script = ResetScript()
+            await script.malformedTime()
+            let client = Self.client(script)
+            let model = SettingsWindowModel(store: InMemoryTokenStore(), client: client)
+            model.requestHistoryReset()
+            await model.resetHistory()
+            #expect(model.resetAcknowledgement?.ok == true)
+            #expect(model.resetAcknowledgement?.since == "unreadable-time")
+            #expect(model.resetError != nil && model.resetSummary == nil && model.resetNotice == nil)
+            await model.resetHistory()
+            #expect(client.calls.usageResets == 1 && client.calls.usageSummaryReads == 2)
+            #expect(model.sheet == .resetHistory && model.resetError != nil)
+            #expect(model.resetAcknowledgement?.since == "unreadable-time")
+        }
+
         @Test("older readback and a false acknowledgement cannot certify a reset")
         func staleReadbackAndRefusal() async {
             let script = ResetScript()
@@ -109,6 +128,7 @@
     private actor ResetScript {
         var resetFailure = false
         var falseAcknowledgement = false
+        var malformedTimestamp = false
         var readFailure = false
         var stale = false
         var held = false
@@ -133,6 +153,10 @@
             readFailure = false
         }
 
+        func malformedTime() {
+            malformedTimestamp = true
+        }
+
         func refuseAcknowledgement() {
             falseAcknowledgement = true
         }
@@ -144,7 +168,10 @@
         func reset() async throws(ControlAPIError) -> UsageReset {
             if held { await withCheckedContinuation { gate = $0 } }
             if resetFailure { throw .routerNotRunning }
-            return UsageReset(ok: !falseAcknowledgement, since: "2026-11-02T01:00:00.000Z")
+            return UsageReset(
+                ok: !falseAcknowledgement,
+                since: malformedTimestamp ? "unreadable-time" : "2026-11-02T01:00:00.000Z"
+            )
         }
 
         func summary() throws(ControlAPIError) -> UsageSummary {

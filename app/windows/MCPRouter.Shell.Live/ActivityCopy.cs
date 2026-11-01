@@ -64,12 +64,12 @@ public static class ActivityCopy
 
     // ------------------------------------------------------------------ the states (spec §4)
 
-    /// <summary>The mock's empty state, word for word, with its action - which is real here:
-    /// the shell can perform that navigation.</summary>
-    public const string EmptyTitle = "Nothing has called a tool yet";
+    /// <summary>An empty recent-record window says nothing about earlier calls or delivery
+    /// latency. The action still opens the real Harnesses board.</summary>
+    public const string EmptyTitle = "No calls to show";
 
     public const string EmptyDetail =
-        "Start a session in any wired harness and its calls appear here within a second. The log fills itself; there is nothing to set up.";
+        "No call records are available here. New tool calls will appear as they arrive.";
 
     public const string EmptyAction = "See which harnesses are wired";
 

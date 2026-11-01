@@ -67,6 +67,18 @@ public sealed record SkillsBoardSnapshot
 
     public int MarketplacesCount => Marketplaces?.Count ?? 0;
 
+    /// <summary>Why the update check is not in hand, when it is not. Its own read, so its failure never blanks the board.</summary>
+    public SkillsControlError? UpdatesError { get; init; }
+
+    /// <summary>Every offer the Updates section draws: the register's held versions, then the store's own offers.</summary>
+    public ExtensionUpdatesResponse? Updates { get; init; }
+    public IReadOnlyList<ExtensionUpdateEntry> Offers => SkillPresentation.UpdateOffers(Skills?.SkillList ?? [], Updates?.EntryList ?? []);
+
+    public bool CanCopyToRouter(Skill skill) => Skills?.PromotesFromCache == true
+        && SkillPresentation.HasRouterCopy(skill, Updates?.EntryList ?? []);
+    public IReadOnlyList<Skill> RouterCopyCandidates => SkillPresentation.Updatable(Skills?.SkillList ?? [])
+        .Where(CanCopyToRouter).DistinctBy(skill => $"{skill.Source.AsPlugin!.Plugin}@{skill.Source.AsPlugin.Marketplace}").ToList();
+
     /// <summary>Every skill with a newer version fetched at all - what the Updates tab lists.</summary>
     public IReadOnlyList<Skill> Updated => Skills is null
         ? Array.Empty<Skill>()
@@ -78,7 +90,8 @@ public sealed record SkillsBoardSnapshot
     /// </summary>
     public int UpdateAllCount => Skills is null
         ? 0
-        : SkillPresentation.Updatable(Skills.SkillList).Count;
+        : SkillPresentation.Updatable(Skills.SkillList).Select(skill => skill.Source.AsPlugin).Where(origin => origin is not null)
+            .Select(origin => $"{origin!.Plugin}@{origin.Marketplace}").Distinct(StringComparer.Ordinal).Count();
 
     /// <summary>
     /// Builds the snapshot from the two reads' outcomes, both optional and both allowed to have
@@ -89,7 +102,9 @@ public sealed record SkillsBoardSnapshot
         SkillsResponse? skills,
         SkillsControlError? skillsError,
         MarketplacesResponse? marketplaces,
-        SkillsControlError? marketplacesError)
+        SkillsControlError? marketplacesError,
+        ExtensionUpdatesResponse? updates = null,
+        SkillsControlError? updatesError = null)
     {
         if (skillsError is not null)
         {
@@ -113,6 +128,9 @@ public sealed record SkillsBoardSnapshot
             return new SkillsBoardSnapshot
             {
                 State = SkillsBoardState.Empty,
+                Skills = skills,
+                Updates = updates,
+                UpdatesError = updatesError,
                 Marketplaces = marketplaces?.MarketplaceList,
                 MarketplaceListNote = MarketplaceNote(marketplaces, marketplacesError),
             };
@@ -122,6 +140,8 @@ public sealed record SkillsBoardSnapshot
         {
             State = SkillsBoardState.Populated,
             Skills = skills,
+            Updates = updates,
+            UpdatesError = updatesError,
             Marketplaces = marketplaces?.MarketplaceList,
             MarketplaceListNote = MarketplaceNote(marketplaces, marketplacesError),
             PartialNote = SkillPresentation.PartialNote(skills),

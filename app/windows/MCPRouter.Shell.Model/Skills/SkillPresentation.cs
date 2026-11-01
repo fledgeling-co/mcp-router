@@ -61,6 +61,44 @@ public static class SkillPresentation
         + "author declared. No skill format carries a capability manifest, so this is a reading "
         + "and can be incomplete.";
 
+    // ------------------------------------------------------------------ held-version writes
+
+    public const string PromoteUnavailable = "This router cannot copy cached plugins into its own store.";
+    public const string InstalledPluginUpdatesUnavailable = "Claude Code cannot bind an update to the reviewed version and capabilities. Update it in Claude Code; this router does not change that installation.";
+    public const string NoRouterCopy = "This plugin has no router-owned copy. No installation was changed.";
+    public static bool HasRouterCopy(Skill skill, IReadOnlyList<ExtensionUpdateEntry> entries) =>
+        skill.Source.AsPlugin is { } origin && entries.Any(entry => entry.Kind == StoredExtensionKind.Plugins
+            && entry.Name == $"{origin.Plugin}@{origin.Marketplace}");
+    public const string UpdatesHeading = "Updates available";
+    public const string UpdatesNone = "The update check found no newer version among the plugins Claude has installed and the entries this router holds.";
+
+    public static string Kept(string version) => $"Kept {version}. The router has recorded that you kept it.";
+
+    public static string Promoted(string name, string version) => $"Copied {name} {version} to the router store. Undo restores the previous router copy. Claude Code was not changed.";
+
+    public static string Undone(string name, string? version) => $"Restored the router copy of {name}{(version is null ? "" : $" at {version}")}. Claude Code was not changed.";
+
+    public static string PromotionCanBeUndone(string plugin) => $"The router copy of {plugin} changed. Undo restores the previous router copy.";
+
+    public static string Offered(string available, string installed) => $"{available} is offered and {installed} is installed";
+
+    public static IReadOnlyList<ExtensionUpdateEntry> UpdateOffers(
+        IReadOnlyList<Skill> skills, IReadOnlyList<ExtensionUpdateEntry> stored)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var offers = new List<ExtensionUpdateEntry>();
+        foreach (var skill in skills)
+        {
+            if (skill.Source.AsPlugin is not { } origin || skill.Held is not { } held) continue;
+            var name = $"{origin.Plugin}@{origin.Marketplace}";
+            if (!seen.Add(name)) continue;
+            offers.Add(new(StoredExtensionKind.Plugins, name, "update-available", origin.PluginVersion,
+                held.PluginVersion, true, Offered(held.PluginVersion, origin.PluginVersion), held.Changelog));
+        }
+        offers.AddRange(stored.Where(entry => entry.HasUpdate && !(entry.Kind == StoredExtensionKind.Plugins && seen.Contains(entry.Name))));
+        return offers;
+    }
+
     // ------------------------------------------------------------------ the header
 
     /// <summary>
@@ -301,7 +339,7 @@ public static class SkillPresentation
     public static string Disposition(Skill skill)
     {
         if (skill.Held is not { } held) return "";
-        return held.WantsMore ? "Held for review" : "Promotes on its own";
+        return held.WantsMore ? "Held for review" : "Newer cached version";
     }
 
     /// <summary>

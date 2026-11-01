@@ -1,0 +1,344 @@
+{
+  "capturedFrom": "the router compiled from this tree: extension-routes.ts extensionRoute and skills.ts skillsValue, against a scratch Claude home and router store (installed trawl 2.2.0, cached 2.3.0 with a CHANGELOG). Bodies are the replies as served; statuses are the route status.",
+  "cases": {
+    "skills": {
+      "status": 200,
+      "body": {
+        "skills": [
+          {
+            "name": "trawl",
+            "description": "Mines past sessions for evidence.",
+            "path": "/private/var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/skill-writes-claude-oaflro/plugins/cache/fledgeling-plugins/trawl/2.2.0/skills/trawl",
+            "source": {
+              "kind": "plugin",
+              "plugin": "trawl",
+              "marketplace": "fledgeling-plugins",
+              "pluginVersion": "2.2.0",
+              "installedAt": null,
+              "lastUpdated": null,
+              "commit": null,
+              "siblingSkillCount": 1
+            },
+            "presence": {
+              "claudeCode": "present",
+              "codexCLI": "unreadable",
+              "chatGPTCLI": "unreadable",
+              "cursor": "unreadable",
+              "geminiCLI": "unreadable",
+              "opencode": "unreadable"
+            },
+            "held": {
+              "pluginVersion": "2.3.0",
+              "addedCapabilities": [
+                "capabilities not compared with the installed version"
+              ],
+              "affectedSkillCount": 1,
+              "changelog": {
+                "text": "# Changelog\n\n## 2.3.0\n\n- Reads the session transcripts directly.\n- Adds a date filter.\n",
+                "note": "CHANGELOG.md from the cached 2.3.0 copy"
+              }
+            },
+            "provenance": null
+          }
+        ],
+        "clients": [
+          {
+            "id": "claudeCode",
+            "displayName": "Claude Code",
+            "supportsSkills": true,
+            "root": "/var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/skill-writes-claude-oaflro/skills",
+            "status": "read",
+            "reason": null
+          },
+          {
+            "id": "claudeDesktop",
+            "displayName": "Claude Desktop",
+            "supportsSkills": false,
+            "root": null,
+            "status": "unsupported",
+            "reason": null
+          },
+          {
+            "id": "codexCLI",
+            "displayName": "Codex CLI",
+            "supportsSkills": true,
+            "root": null,
+            "status": "unreadable",
+            "reason": "this router reads Claude Code's skills directory only"
+          },
+          {
+            "id": "chatGPTCLI",
+            "displayName": "ChatGPT CLI",
+            "supportsSkills": true,
+            "root": null,
+            "status": "unreadable",
+            "reason": "this router reads Claude Code's skills directory only"
+          },
+          {
+            "id": "cursor",
+            "displayName": "Cursor",
+            "supportsSkills": true,
+            "root": null,
+            "status": "unreadable",
+            "reason": "this router reads Claude Code's skills directory only"
+          },
+          {
+            "id": "geminiCLI",
+            "displayName": "Gemini CLI",
+            "supportsSkills": true,
+            "root": null,
+            "status": "unreadable",
+            "reason": "this router reads Claude Code's skills directory only"
+          },
+          {
+            "id": "grokCLI",
+            "displayName": "grok",
+            "supportsSkills": false,
+            "root": null,
+            "status": "unsupported",
+            "reason": null
+          },
+          {
+            "id": "opencode",
+            "displayName": "opencode",
+            "supportsSkills": true,
+            "root": null,
+            "status": "unreadable",
+            "reason": "this router reads Claude Code's skills directory only"
+          }
+        ],
+        "promoteFromCache": true
+      }
+    },
+    "skillsAfterKeep": {
+      "status": 200,
+      "body": {
+        "skills": [
+          {
+            "name": "trawl",
+            "description": "Mines past sessions for evidence.",
+            "path": "/private/var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/skill-writes-claude-oaflro/plugins/cache/fledgeling-plugins/trawl/2.2.0/skills/trawl",
+            "source": {
+              "kind": "plugin",
+              "plugin": "trawl",
+              "marketplace": "fledgeling-plugins",
+              "pluginVersion": "2.2.0",
+              "installedAt": null,
+              "lastUpdated": null,
+              "commit": null,
+              "siblingSkillCount": 1
+            },
+            "presence": {
+              "claudeCode": "present",
+              "codexCLI": "unreadable",
+              "chatGPTCLI": "unreadable",
+              "cursor": "unreadable",
+              "geminiCLI": "unreadable",
+              "opencode": "unreadable"
+            },
+            "held": null,
+            "provenance": null
+          }
+        ],
+        "clients": [
+          {
+            "id": "claudeCode",
+            "displayName": "Claude Code",
+            "supportsSkills": true,
+            "root": "/var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/skill-writes-claude-oaflro/skills",
+            "status": "read",
+            "reason": null
+          },
+          {
+            "id": "claudeDesktop",
+            "displayName": "Claude Desktop",
+            "supportsSkills": false,
+            "root": null,
+            "status": "unsupported",
+            "reason": null
+          },
+          {
+            "id": "codexCLI",
+            "displayName": "Codex CLI",
+            "supportsSkills": true,
+            "root": null,
+            "status": "unreadable",
+            "reason": "this router reads Claude Code's skills directory only"
+          },
+          {
+            "id": "chatGPTCLI",
+            "displayName": "ChatGPT CLI",
+            "supportsSkills": true,
+            "root": null,
+            "status": "unreadable",
+            "reason": "this router reads Claude Code's skills directory only"
+          },
+          {
+            "id": "cursor",
+            "displayName": "Cursor",
+            "supportsSkills": true,
+            "root": null,
+            "status": "unreadable",
+            "reason": "this router reads Claude Code's skills directory only"
+          },
+          {
+            "id": "geminiCLI",
+            "displayName": "Gemini CLI",
+            "supportsSkills": true,
+            "root": null,
+            "status": "unreadable",
+            "reason": "this router reads Claude Code's skills directory only"
+          },
+          {
+            "id": "grokCLI",
+            "displayName": "grok",
+            "supportsSkills": false,
+            "root": null,
+            "status": "unsupported",
+            "reason": null
+          },
+          {
+            "id": "opencode",
+            "displayName": "opencode",
+            "supportsSkills": true,
+            "root": null,
+            "status": "unreadable",
+            "reason": "this router reads Claude Code's skills directory only"
+          }
+        ],
+        "promoteFromCache": true
+      }
+    },
+    "updates": {
+      "status": 200,
+      "body": {
+        "checkedAtMs": 1792464111993,
+        "staleAfterMs": 86400000,
+        "summary": {
+          "total": 2,
+          "updatesAvailable": 1,
+          "compared": 1,
+          "uncomparable": 1,
+          "staleCatalogues": 0
+        },
+        "catalogues": [
+          {
+            "name": "fledgeling-plugins",
+            "path": "/var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/skill-writes-router-KHn7dd/extensions/marketplaces/fledgeling-plugins",
+            "newestModifiedMs": 1792464111992.9448,
+            "ageMs": 0.05517578125,
+            "stale": false,
+            "refreshable": false,
+            "offers": 1,
+            "declaredNoVersion": 0,
+            "problem": null,
+            "ageProblem": null
+          }
+        ],
+        "entries": [
+          {
+            "kind": "plugins",
+            "name": "trawl@fledgeling-plugins",
+            "catalogue": "fledgeling-plugins",
+            "state": "update-available",
+            "installed": "2.2.0",
+            "available": "2.3.0",
+            "hasUpdate": true,
+            "compared": true,
+            "reason": "2.3.0 is offered and 2.2.0 is installed",
+            "changelog": {
+              "text": "# Changelog\n\n## 2.3.0\n\n- Reads the session transcripts directly.\n- Adds a date filter.\n",
+              "note": "CHANGELOG.md from the cached 2.3.0 copy"
+            }
+          },
+          {
+            "kind": "marketplaces",
+            "name": "fledgeling-plugins",
+            "catalogue": "fledgeling-plugins",
+            "state": "no-catalogue",
+            "installed": null,
+            "available": null,
+            "hasUpdate": false,
+            "compared": false,
+            "reason": "a marketplace is the catalogue; its freshness is the age of its own tree, reported beside this row",
+            "changelog": null
+          }
+        ],
+        "unreadable": []
+      }
+    },
+    "promote": {
+      "status": 200,
+      "body": {
+        "promoted": "trawl@fledgeling-plugins",
+        "kind": "plugins",
+        "pluginVersion": "2.3.0",
+        "replaced": "2.2.0",
+        "restore": "1002",
+        "files": 3,
+        "bytes": 267
+      }
+    },
+    "undo": {
+      "status": 200,
+      "body": {
+        "restored": "trawl@fledgeling-plugins",
+        "kind": "plugins",
+        "version": "2.2.0",
+        "withdrawn": "2.3.0"
+      }
+    },
+    "keep": {
+      "status": 200,
+      "body": {
+        "kept": "trawl@fledgeling-plugins",
+        "kind": "plugins",
+        "pluginVersion": "2.3.0"
+      }
+    },
+    "refusePromoteMissingVersion": {
+      "status": 404,
+      "body": {
+        "error": "the plugin cache holds no copy of trawl@fledgeling-plugins at 9.9.9",
+        "reason": "noCachedVersion"
+      }
+    },
+    "refusePromoteBadSource": {
+      "status": 400,
+      "body": {
+        "error": "source must be \"cache\" when it is sent, or absent when files are sent"
+      }
+    },
+    "refusePromoteNoVersion": {
+      "status": 400,
+      "body": {
+        "error": "pluginVersion is required"
+      }
+    },
+    "refusePromoteSkillKind": {
+      "status": 400,
+      "body": {
+        "error": "a skill cannot be promoted from the plugin cache, only a plugin can"
+      }
+    },
+    "refuseUndoAbsent": {
+      "status": 404,
+      "body": {
+        "error": "no promotion of plugin \"trawl@fledgeling-plugins\" is recorded at 999",
+        "reason": "unknown"
+      }
+    },
+    "refuseUndoMissing": {
+      "status": 400,
+      "body": {
+        "error": "restore is required, as the restore reference a promotion returned"
+      }
+    },
+    "refuseKeepNoVersion": {
+      "status": 400,
+      "body": {
+        "error": "pluginVersion is required"
+      }
+    }
+  }
+}

@@ -12,7 +12,7 @@ namespace MCPRouter.Shell.Views;
 
 public sealed partial class InboxBoard : UserControl
 {
-    private readonly ControlApiClient _client = new();
+    private readonly ControlApiClient _client = new(new Uri(MCPRouter.Shell.Model.Registry.ControlEndpoint.BaseUrl() + "/"));
     private readonly InboxBoardModel _model;
     private readonly DispatcherTimer _poll = new() { Interval = TimeSpan.FromSeconds(3) };
     private bool _fixture;

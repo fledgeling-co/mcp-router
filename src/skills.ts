@@ -70,19 +70,8 @@ interface Row {
  * placeholder, so an absent provenance and an unrecorded one cannot be confused.
  */
 export function skillsValue(claudeHome: string, store: ExtensionStore): Record<string, unknown> {
-  const register = installedPlugins(join(claudeHome, 'plugins', 'installed_plugins.json'));
-  const roots = register.ok ? pluginRoots(register.value) : [];
+  const { register, listing, rows, siblings } = scanSkills(claudeHome);
   const skillsDirectory = join(claudeHome, 'skills');
-  const listing = claudeSkillNames(skillsDirectory);
-
-  const rows = listing.names.flatMap((name): Row[] => {
-    const row = readRow(skillsDirectory, name, roots);
-    return row === null ? [] : [row];
-  });
-  const siblings = new Map<string, number>();
-  for (const row of rows) {
-    if (row.owner) siblings.set(row.owner.identity, (siblings.get(row.owner.identity) ?? 0) + 1);
-  }
 
   const catalogues = new Map<string, MarketplaceCatalogue | null>();
   const heldFor = new Map<string, Record<string, unknown> | null>();
@@ -203,6 +192,105 @@ interface SkillsListing {
   status: ClientStatus;
   reason: string | null;
   names: string[];
+}
+
+/** What one read of Claude's skills directory and plugin register found, and which plugin each row belongs to. */
+interface SkillScan {
+  register: Reading<InstalledPlugin[]>;
+  listing: SkillsListing;
+  rows: Row[];
+  siblings: Map<string, number>;
+}
+
+function scanSkills(claudeHome: string): SkillScan {
+  const register = installedPlugins(join(claudeHome, 'plugins', 'installed_plugins.json'));
+  const roots = register.ok ? pluginRoots(register.value) : [];
+  const skillsDirectory = join(claudeHome, 'skills');
+  const listing = claudeSkillNames(skillsDirectory);
+
+  const rows = listing.names.flatMap((name): Row[] => {
+    const row = readRow(skillsDirectory, name, roots);
+    return row === null ? [] : [row];
+  });
+  const siblings = new Map<string, number>();
+  for (const row of rows) {
+    if (row.owner) siblings.set(row.owner.identity, (siblings.get(row.owner.identity) ?? 0) + 1);
+  }
+  return { register, listing, rows, siblings };
+}
+
+/*
+ * GET /marketplaces, the list the Mac and Windows Skills boards draw as their Marketplaces tab. The wire is the one both
+ * models decode (SkillModels.swift: Marketplace and MarketplaceSource; SkillModels.cs: Marketplace and MarketplaceSource).
+ *
+ * It reads Claude's registry of followed marketplaces, plugins/known_marketplaces.json, and counts what the skills reader
+ * and the plugin register already attribute to each one, so a count here is the count the Skills board shows. It writes
+ * nothing under Claude's home.
+ */
+
+/** The two source kinds the clients' closed set names. Any other kind is left out, because one kind a client refuses fails the whole list. */
+type MarketplaceSourceWire = { kind: 'github'; repo: string } | { kind: 'directory'; path: string };
+
+interface KnownMarketplace {
+  name: string;
+  source: MarketplaceSourceWire;
+  autoUpdate: boolean;
+}
+
+export function marketplacesValue(claudeHome: string): Reading<{ marketplaces: Record<string, unknown>[] }> {
+  const registry = knownMarketplaces(join(claudeHome, 'plugins', 'known_marketplaces.json'));
+  if (!registry.ok) return registry;
+  const { register, rows } = scanSkills(claudeHome);
+  if (!register.ok) return register;
+
+  const marketplaces = registry.value
+    .map((market) => ({
+      name: market.name,
+      source: market.source,
+      autoUpdate: market.autoUpdate,
+      installedPluginCount: register.value.filter((plugin) => plugin.marketplace === market.name).length,
+      suppliedSkillCount: rows.filter((row) => row.owner?.marketplace === market.name).length,
+    }))
+    .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+  return { ok: true, value: { marketplaces } };
+}
+
+/**
+ * Claude's registry of followed marketplaces. An absent registry is an empty one. A present registry that cannot be
+ * parsed is a problem, not an empty list. An entry with no auto-update record reads as off.
+ */
+function knownMarketplaces(path: string): Reading<KnownMarketplace[]> {
+  const text = readUtf8(path);
+  if (text === null) {
+    return existsSync(path) ? { ok: false, problem: `${path} could not be read` } : { ok: true, value: [] };
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return { ok: false, problem: `${path} is not valid UTF-8 JSON` };
+  }
+  if (!isObject(parsed)) return { ok: false, problem: `${path} carries no marketplace object` };
+
+  const rows: KnownMarketplace[] = [];
+  for (const [name, record] of Object.entries(parsed)) {
+    const source = isObject(record) ? marketplaceSourceOf(record.source) : null;
+    if (source === null) continue;
+    rows.push({ name, source, autoUpdate: isObject(record) && record.autoUpdate === true });
+  }
+  return { ok: true, value: rows };
+}
+
+/** A github or directory source with its address, or null for any other kind or a malformed one. */
+function marketplaceSourceOf(source: unknown): MarketplaceSourceWire | null {
+  if (!isObject(source)) return null;
+  if (source.source === 'github' && typeof source.repo === 'string' && source.repo !== '') {
+    return { kind: 'github', repo: source.repo };
+  }
+  if (source.source === 'directory' && typeof source.path === 'string' && source.path !== '') {
+    return { kind: 'directory', path: source.path };
+  }
+  return null;
 }
 
 /** The skills directory's entries, as Swift's walk reads them: hidden names skipped, absence distinct from failure. */

@@ -58,7 +58,7 @@ import type { PairingListenerStatus } from './pairing-listener.js';
 import { extensionRoute, isExtensionsPath } from './extension-routes.js';
 import type { ExtensionStore } from './extensions.js';
 import { declarationFor, type InboxRow, type InboxStore } from './inbox.js';
-import { skillsValue } from './skills.js';
+import { marketplacesValue, skillsValue } from './skills.js';
 
 export const TOKEN_PATH = join(ROUTER_HOME, 'control.token');
 
@@ -662,6 +662,7 @@ export function isControlPath(pathname: string): boolean {
     pathname.startsWith('/inbox/') ||
     pathname === '/skills' ||
     pathname === '/runtime/credentials' ||
+    pathname === '/marketplaces' ||
     isExtensionsPath(pathname)
   );
 }
@@ -707,6 +708,27 @@ export async function handleControl(
       return true;
     }
     json(res, 200, skillsValue(deps.claudeHome, deps.extensions));
+    return true;
+  }
+
+  // GET /marketplaces names the marketplaces Claude follows and what each supplies, so it is gated on every method, as
+  // /skills is. It is read-only: it reads Claude's registry and writes nothing under Claude's home.
+  if (p === '/marketplaces') {
+    if (!tokenOk(req, token)) {
+      json(res, 401, { error: `unauthorized; the token is in ${TOKEN_PATH}` });
+      return true;
+    }
+    if (req.method !== 'GET') {
+      json(res, 405, { error: `${req.method} not allowed on ${p}` });
+      return true;
+    }
+    if (!deps.claudeHome) {
+      json(res, 503, { error: 'marketplaces are unavailable: this router has no Claude home' });
+      return true;
+    }
+    const listing = marketplacesValue(deps.claudeHome);
+    if (listing.ok) json(res, 200, listing.value);
+    else json(res, 503, { error: listing.problem });
     return true;
   }
 

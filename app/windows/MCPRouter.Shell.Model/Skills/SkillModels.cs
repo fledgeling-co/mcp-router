@@ -14,8 +14,8 @@ namespace MCPRouter.Shell.Model.Skills;
 /// <c>pluginVersion</c> rather than <c>version</c>.
 ///
 /// The wire is camelCase, as the router serves it (<c>src/skills.ts</c>, pinned by
-/// <c>Fixtures/skills.json</c>). The marketplace shapes are the exception still to be decided: the
-/// router serves no <c>/marketplaces</c> route, so they have no captured body to match.
+/// <c>Fixtures/skills.json</c>), and so are the marketplace shapes (<c>src/skills.ts</c>
+/// <c>marketplacesValue</c>, pinned by <c>Fixtures/marketplaces.json</c>).
 ///
 /// What is absent, by construction: there is no <c>runs</c>, <c>last_run</c> or <c>eval</c>
 /// field anywhere in this file. A skill is markdown the client loads into an agent's context; it
@@ -92,7 +92,11 @@ public abstract record SkillSource
         // How many skills this plugin supplies, so a shared version can be explained rather than
         // looking like a coincidence across thirty rows.
         [property: JsonPropertyName("siblingSkillCount")] int SiblingSkillCount)
-        : SkillSource;
+        : SkillSource
+    {
+        /// <summary>The name the router holds this plugin under, <c>plugin@marketplace</c>. A bare plugin name is ambiguous.</summary>
+        public string StoreName => $"{Plugin}@{Marketplace}";
+    }
 
     public sealed record Standalone(
         [property: JsonPropertyName("path")] string Path)
@@ -156,11 +160,22 @@ public sealed record HeldVersion(
     [property: JsonPropertyName("pluginVersion")] string PluginVersion,
     [property: JsonPropertyName("addedCapabilities")] string[] AddedCapabilities,
     // How many skills promoting this plugin would move at once.
-    [property: JsonPropertyName("affectedSkillCount")] int AffectedSkillCount)
+    [property: JsonPropertyName("affectedSkillCount")] int AffectedSkillCount,
+    // The changelog of the offered version, as the router read it from Claude's plugin cache. Absent on a router
+    // that predates the member, so it is nullable rather than a placeholder.
+    [property: JsonPropertyName("changelog")] SkillChangelog? Changelog = null)
 {
     /// <summary>Whether this version may promote without asking.</summary>
     public bool WantsMore => AddedCapabilities.Length > 0;
 }
+
+/// <summary>
+/// The changelog of a held version, as the router read it from Claude's plugin cache. <c>Text</c> is null wherever
+/// the router did not send it, and <c>Note</c> says which case it was.
+/// </summary>
+public sealed record SkillChangelog(
+    [property: JsonPropertyName("text")] string? Text,
+    [property: JsonPropertyName("note")] string Note);
 
 /// <summary>
 /// A marketplace that now resolves somewhere other than where the router first saw it.
@@ -240,12 +255,22 @@ internal sealed class PresenceMapConverter : JsonConverter<IReadOnlyDictionary<s
     }
 }
 
+public sealed record InstalledPluginUpdateCapability(
+    [property: JsonPropertyName("available")] bool Available,
+    [property: JsonPropertyName("reason")] string? Reason);
+
 public sealed record SkillsResponse(
     [property: JsonPropertyName("skills")] Skill[]? Skills,
-    [property: JsonPropertyName("clients")] SkillClient[]? Clients)
+    [property: JsonPropertyName("clients")] SkillClient[]? Clients,
+    [property: JsonPropertyName("promoteFromCache")] bool? PromoteFromCache = null,
+    [property: JsonPropertyName("installedPluginUpdates")] InstalledPluginUpdateCapability? InstalledPluginUpdates = null)
 {
     public IReadOnlyList<Skill> SkillList => Skills ?? Array.Empty<Skill>();
     public IReadOnlyList<SkillClient> ClientList => Clients ?? Array.Empty<SkillClient>();
+
+    /// <summary>Whether the router serves Promote from Claude's plugin cache. An older router omits the member.</summary>
+    public bool PromotesFromCache => PromoteFromCache == true;
+    public string InstalledPluginUpdateReason => InstalledPluginUpdates?.Reason ?? SkillPresentation.InstalledPluginUpdatesUnavailable;
 
     /// <summary>The clients that have a skills mechanism, in the router's order - which is the slot order.</summary>
     public IReadOnlyList<SkillClient> SlotClients =>
@@ -320,9 +345,9 @@ public abstract record MarketplaceSource
 public sealed record Marketplace(
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("source")] MarketplaceSource Source,
-    [property: JsonPropertyName("auto_update")] bool AutoUpdate,
-    [property: JsonPropertyName("installed_plugin_count")] int InstalledPluginCount,
-    [property: JsonPropertyName("supplied_skill_count")] int SuppliedSkillCount);
+    [property: JsonPropertyName("autoUpdate")] bool AutoUpdate,
+    [property: JsonPropertyName("installedPluginCount")] int InstalledPluginCount,
+    [property: JsonPropertyName("suppliedSkillCount")] int SuppliedSkillCount);
 
 public sealed record MarketplacesResponse(
     [property: JsonPropertyName("marketplaces")] Marketplace[]? Marketplaces)

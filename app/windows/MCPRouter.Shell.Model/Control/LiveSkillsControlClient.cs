@@ -59,7 +59,7 @@ public sealed class RouterTokenFile
 /// The status mapping is the Mac's <c>LiveControlAPIClient+Absent.swift</c> rule, carried across
 /// rather than reinvented: <b>404 is version skew, not failure</b>. Every other read treats a
 /// non-2xx as "the router couldn't complete that"; for <c>/skills</c> and
-/// <c>/marketplaces</c> a 404 is the expected answer from the router a user runs today, and the
+/// <c>/marketplaces</c> a 404 is the answer from a router built before the route, and the
 /// honest reading of it is "the router may be newer or older than this app".
 ///
 /// <c>GET /skills</c> is token-gated on every method (<c>src/control.ts</c>), so each read sends the
@@ -96,6 +96,18 @@ public sealed class LiveSkillsControlClient : ISkillsControlClient
     public async Task<MarketplacesResponse> MarketplacesAsync(CancellationToken cancellationToken = default) =>
         await ReadAsync<MarketplacesResponse>("marketplaces", cancellationToken);
 
+    public Task<ExtensionUpdatesResponse> ExtensionUpdatesAsync(CancellationToken cancellationToken = default) =>
+        SendAsync<ExtensionUpdatesResponse>(HttpMethod.Get, "extensions/updates", null, cancellationToken);
+
+    public Task<KeepAck> KeepHeldVersionAsync(string name, string pluginVersion, CancellationToken cancellationToken = default) =>
+        SendAsync<KeepAck>(HttpMethod.Post, $"extensions/plugins/{Uri.EscapeDataString(name)}/keep", new { pluginVersion }, cancellationToken);
+
+    public Task<PromotionAck> PromoteFromCacheAsync(string name, string pluginVersion, CancellationToken cancellationToken = default) =>
+        SendAsync<PromotionAck>(HttpMethod.Post, $"extensions/plugins/{Uri.EscapeDataString(name)}/promote", new { source = "cache", pluginVersion }, cancellationToken);
+
+    public Task<UndoAck> UndoPromotionAsync(string name, string restore, CancellationToken cancellationToken = default) =>
+        SendAsync<UndoAck>(HttpMethod.Post, $"extensions/plugins/{Uri.EscapeDataString(name)}/undo-promote", new { restore }, cancellationToken);
+
     /// <summary>
     /// True when the router's token file is absent, which on a loopback install means the router
     /// has never run here. Reported as not-running rather than fetched-then-failed when it is
@@ -103,12 +115,16 @@ public sealed class LiveSkillsControlClient : ISkillsControlClient
     /// </summary>
     public bool RouterHasNeverRun => _tokenFile is not null && _tokenFile.Read() is null;
 
-    private async Task<T> ReadAsync<T>(string path, CancellationToken cancellationToken)
+    private Task<T> ReadAsync<T>(string path, CancellationToken cancellationToken) =>
+        SendAsync<T>(HttpMethod.Get, path, null, cancellationToken, versionSkew: true);
+
+    private async Task<T> SendAsync<T>(HttpMethod method, string path, object? body, CancellationToken cancellationToken, bool versionSkew = false)
     {
         HttpResponseMessage response;
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, path);
+            using var request = new HttpRequestMessage(method, path);
+            if (body is not null) request.Content = JsonContent.Create(body);
             if (_tokenFile?.Read() is { } token)
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -130,7 +146,7 @@ public sealed class LiveSkillsControlClient : ISkillsControlClient
         {
             if (!response.IsSuccessStatusCode)
             {
-                if ((int)response.StatusCode == 404)
+                if ((int)response.StatusCode == 404 && versionSkew)
                 {
                     throw new SkillsControlError.MalformedResponse(
                         $"this router has no /{path} endpoint").AsException(null);

@@ -1,0 +1,1 @@
+{"marketplaces":[{"name":"fledgeling-plugins","source":{"kind":"github","repo":"fledgeling-co/fledgeling-plugins"},"autoUpdate":true,"installedPluginCount":2,"suppliedSkillCount":3},{"name":"local-dir","source":{"kind":"directory","path":"/Users/example/Dev/local-dir"},"autoUpdate":false,"installedPluginCount":1,"suppliedSkillCount":1}]}

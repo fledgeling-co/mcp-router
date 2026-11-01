@@ -40,7 +40,12 @@ internal sealed class SelfTestDriver
     {
         Directory.CreateDirectory(_directory);
 
-        foreach (var destination in DestinationCatalog.All)
+        var requested = Environment.GetEnvironmentVariable("MCPR_SELFTEST_DESTINATIONS")?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var destinations = requested is null ? DestinationCatalog.All.ToList()
+            : DestinationCatalog.All.Where(destination => requested.Contains(destination.Id, StringComparer.Ordinal)).ToList();
+        if (requested is not null && (destinations.Count == 0 || requested.Any(id => destinations.All(destination => destination.Id != id))))
+            throw new ArgumentException("MCPR_SELFTEST_DESTINATIONS names an unknown destination");
+        foreach (var destination in destinations)
         {
             _window.SelectDestination(destination.Id);
             await SettleAsync();
@@ -82,7 +87,7 @@ internal sealed class SelfTestDriver
         foreach (var theme in new[] { ElementTheme.Light, ElementTheme.Dark })
         {
             _window.RootElement.RequestedTheme = theme;
-            _window.SelectDestination(DestinationCatalog.Default.Id);
+            _window.SelectDestination(requested is null ? DestinationCatalog.Default.Id : destinations[0].Id);
             await SettleAsync();
 
             var png = Path.Combine(_directory, $"appearance-{theme.ToString().ToLowerInvariant()}.png");
@@ -121,7 +126,7 @@ internal sealed class SelfTestDriver
                 "caption buttons, which are not XAML. Neither claim is evidenced by these files.",
             systemTheme = _window.State.ActualTheme,
             rasterizationScale = _window.State.RasterizationScale,
-            destinations = DestinationCatalog.All.Count,
+            destinations = destinations.Count,
             commands = CommandCatalog.All.Count,
             observations = _observations,
             failures = _failures,

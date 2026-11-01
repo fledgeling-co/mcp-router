@@ -161,7 +161,9 @@ public sealed record HeldVersion(
     [property: JsonPropertyName("addedCapabilities")] string[] AddedCapabilities,
     // How many skills promoting this plugin would move at once.
     [property: JsonPropertyName("affectedSkillCount")] int AffectedSkillCount,
-    SkillChangelog? Changelog = null)
+    // The changelog of the offered version, as the router read it from Claude's plugin cache. Absent on a router
+    // that predates the member, so it is nullable rather than a placeholder.
+    [property: JsonPropertyName("changelog")] SkillChangelog? Changelog = null)
 {
     /// <summary>Whether this version may promote without asking.</summary>
     public bool WantsMore => AddedCapabilities.Length > 0;
@@ -171,7 +173,9 @@ public sealed record HeldVersion(
 /// The changelog of a held version, as the router read it from Claude's plugin cache. <c>Text</c> is null wherever
 /// the router did not send it, and <c>Note</c> says which case it was.
 /// </summary>
-public sealed record SkillChangelog(string? Text, string Note);
+public sealed record SkillChangelog(
+    [property: JsonPropertyName("text")] string? Text,
+    [property: JsonPropertyName("note")] string Note);
 
 /// <summary>
 /// A marketplace that now resolves somewhere other than where the router first saw it.
@@ -254,7 +258,7 @@ internal sealed class PresenceMapConverter : JsonConverter<IReadOnlyDictionary<s
 public sealed record SkillsResponse(
     [property: JsonPropertyName("skills")] Skill[]? Skills,
     [property: JsonPropertyName("clients")] SkillClient[]? Clients,
-    bool? PromoteFromCache = null)
+    [property: JsonPropertyName("promoteFromCache")] bool? PromoteFromCache = null)
 {
     public IReadOnlyList<Skill> SkillList => Skills ?? Array.Empty<Skill>();
     public IReadOnlyList<SkillClient> ClientList => Clients ?? Array.Empty<SkillClient>();

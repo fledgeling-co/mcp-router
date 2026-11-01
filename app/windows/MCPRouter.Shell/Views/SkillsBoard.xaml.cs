@@ -13,9 +13,8 @@ namespace MCPRouter.Shell.Views;
 /// each one is live, and the held-for-review state that is a security guarantee rather than
 /// decoration.
 ///
-/// The board is read-only (spec-WIN6 §2.2), and its live reads answer 404 on today's router
-/// (spec-WIN6 §2.1), so a real launch reaches loading, offline and failed; the populated board
-/// draws from the Debug fixture lane. Every control is named from the on-screen vocabulary, so
+/// The board reads the router's current skills, marketplaces and update offers. Held-version
+/// changes go through the router, with review before Promote and an Undo for each promotion. Every control is named from the on-screen vocabulary, so
 /// the automation plane can measure it.
 ///
 /// Fragments are built by string concatenation rather than interpolation on purpose: the XAML is
@@ -58,6 +57,7 @@ public sealed partial class SkillsBoard : UserControl
         + "xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\"";
 
     private readonly ISkillsControlClient _client;
+    private readonly SkillsBoardActions _actions;
     private readonly Action<string> _navigate;
     private readonly Dictionary<Tab, RadioButton> _tabs = new();
     private Tab _selectedTab = Tab.Installed;
@@ -72,6 +72,8 @@ public sealed partial class SkillsBoard : UserControl
 
         _client = client;
         _navigate = navigate;
+        _actions = new SkillsBoardActions(client, RefreshAsync);
+        _actions.Changed += Render;
 
         BuildHeadActions();
         BuildTabs();
@@ -142,10 +144,13 @@ public sealed partial class SkillsBoard : UserControl
         SkillsControlError? skillsError = null;
         MarketplacesResponse? marketplaces = null;
         SkillsControlError? marketplacesError = null;
+        ExtensionUpdatesResponse? updates = null;
+        SkillsControlError? updatesError = null;
 
         // Both reads run; one failing never discards the other's result - §5's Partial row.
         var skillsTask = _client.SkillsAsync();
         var marketplacesTask = _client.MarketplacesAsync();
+        var updatesTask = _client.ExtensionUpdatesAsync();
         try
         {
             skills = await skillsTask;
@@ -162,6 +167,8 @@ public sealed partial class SkillsBoard : UserControl
         {
             marketplacesError = exception.Error;
         }
+        try { updates = await updatesTask; }
+        catch (SkillsControlException exception) { updatesError = exception.Error; }
         if (skills is null && skillsError is null)
         {
             // A client that neither answered nor threw a typed error is broken; a board that
@@ -170,7 +177,7 @@ public sealed partial class SkillsBoard : UserControl
             skillsError = new SkillsControlError.Transport("the read produced nothing");
         }
 
-        _snapshot = SkillsBoardSnapshot.FromResults(skills, skillsError, marketplaces, marketplacesError);
+        _snapshot = SkillsBoardSnapshot.FromResults(skills, skillsError, marketplaces, marketplacesError, updates, updatesError);
         Render(_snapshot);
         _refreshing = false;
     }
@@ -198,6 +205,7 @@ public sealed partial class SkillsBoard : UserControl
         AutomationProperties.SetName(updateAll, "Update all");
         AutomationProperties.SetAutomationId(updateAll, "skills.head.updateAll");
         AutomationProperties.SetHelpText(updateAll, SkillPresentation.WritesNotYetAvailable);
+        updateAll.Click += async (_, _) => await _actions.UpdateAllAsync(_snapshot.Skills?.SkillList ?? []);
         _updateAllButton = updateAll;
 
         HeadActions.Children.Add(doctor);
@@ -217,6 +225,12 @@ public sealed partial class SkillsBoard : UserControl
             // count stays visible so the set it names is not a mystery behind the disabled
             // control (§5 Disabled: dims in place, never disappears).
             updateAll.Content = $"Update all · {_snapshot.UpdateAllCount}";
+            updateAll.IsEnabled = !_actions.Writing && _snapshot.Skills?.PromotesFromCache == true && _snapshot.UpdateAllCount > 0;
+            var reason = _snapshot.Skills?.PromotesFromCache == true
+                ? "Promotes only held plugins asking for no new capabilities. Each promotion can be undone."
+                : SkillPresentation.PromoteUnavailable;
+            ToolTipService.SetToolTip(updateAll, reason);
+            AutomationProperties.SetHelpText(updateAll, reason);
         }
     }
 
@@ -270,6 +284,7 @@ public sealed partial class SkillsBoard : UserControl
         UpdateHead();
         UpdateTabs();
         BannersHost.Children.Clear();
+        AddWriteOutcome();
 
         switch (snapshot.State)
         {
@@ -278,7 +293,12 @@ public sealed partial class SkillsBoard : UserControl
                 break;
 
             case SkillsBoardState.Empty:
-                ContentHost.Content = EmptyState();
+                ContentHost.Content = _selectedTab switch
+                {
+                    Tab.Marketplaces => MarketplacesView(snapshot),
+                    Tab.Updates => UpdatesView(snapshot),
+                    _ => EmptyState(),
+                };
                 break;
 
             case SkillsBoardState.Offline:
@@ -310,10 +330,11 @@ public sealed partial class SkillsBoard : UserControl
             var body = SkillPresentation.HeldBannerBody(skill);
             if (title.Length == 0) continue;
 
-            var seeWhatChanged = new Button { Content = "See what changed…", IsEnabled = false };
+            var seeWhatChanged = new Button { Content = "See what changed…", IsEnabled = !_actions.Writing };
+            seeWhatChanged.Click += async (_, _) => await ReviewHeldAsync(skill);
             AutomationProperties.SetName(seeWhatChanged, "See what changed…");
             AutomationProperties.SetAutomationId(seeWhatChanged, $"skills.held.seeWhatChanged.{skill.Name}");
-            AutomationProperties.SetHelpText(seeWhatChanged, Win16Reason);
+            AutomationProperties.SetHelpText(seeWhatChanged, "Review the held version, its changelog and the capabilities it requests before choosing Keep or Promote.");
 
             var banner = (Border)LoadUi(
                 "<Border " + FragmentNs + " Background=\"{ThemeResource CardBackgroundFillColorDefaultBrush}\""
@@ -834,92 +855,77 @@ public sealed partial class SkillsBoard : UserControl
 
     private FrameworkElement UpdatesView(SkillsBoardSnapshot snapshot)
     {
-        var host = new Grid { ColumnSpacing = 12 };
-        host.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        host.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        host.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(110) });
-        host.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(110) });
-        host.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        host.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
-
-        var headers = new[] { "Skill", "Installed", "Available", "What changed", "" };
-        for (var column = 0; column < headers.Length; column++)
+        var stack = new StackPanel { Spacing = 12 };
+        stack.Children.Add(new TextBlock { Text = SkillPresentation.UpdatesHeading, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+        if (snapshot.UpdatesError is { } failure)
+            stack.Children.Add(new InfoBar { IsOpen = true, IsClosable = false, Severity = InfoBarSeverity.Error,
+                Title = failure.Headline, Message = failure.Advice });
+        foreach (var offer in snapshot.Offers)
         {
-            if (headers[column].Length == 0) continue;
-            var header = SecondaryCaption();
-            header.Text = headers[column];
-            header.VerticalAlignment = VerticalAlignment.Center;
-            AutomationProperties.SetName(header, headers[column]);
-            AutomationProperties.SetAutomationId(header, $"skills.updates.header.{headers[column]}");
-            Grid.SetColumn(header, column);
-            host.Children.Add(header);
+            var row = new StackPanel { Spacing = 6 };
+            row.Children.Add(new TextBlock { Text = offer.Name, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+            row.Children.Add(new TextBlock { Text = $"{offer.Installed ?? "unversioned"} → {offer.Available ?? "unknown version"}", FontFamily = new FontFamily("Consolas") });
+            row.Children.Add(new TextBlock { Text = offer.Reason, TextWrapping = TextWrapping.Wrap });
+            if (offer.Changelog is { } changelog)
+            {
+                row.Children.Add(new TextBlock { Text = changelog.Note, TextWrapping = TextWrapping.Wrap });
+                if (changelog.Text is { } text)
+                    row.Children.Add(new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, IsTextSelectionEnabled = true });
+            }
+            var skill = snapshot.Skills?.SkillList.FirstOrDefault(candidate => candidate.Source.AsPlugin is { } origin &&
+                $"{origin.Plugin}@{origin.Marketplace}" == offer.Name && candidate.Held is not null);
+            if (skill is not null)
+            {
+                var review = new Button { Content = "Review update…", IsEnabled = !_actions.Writing };
+                AutomationProperties.SetName(review, $"Review update for {skill.Name}");
+                review.Click += async (_, _) => await ReviewHeldAsync(skill);
+                row.Children.Add(review);
+            }
+            stack.Children.Add(new Border { Child = row, Padding = new Thickness(12), BorderThickness = new Thickness(1),
+                BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
+                Background = (Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"], CornerRadius = new CornerRadius(4) });
         }
-
-        var row = 1;
-        foreach (var skill in snapshot.Updated)
-        {
-            var held = skill.Held!;
-            var origin = skill.Source.AsPlugin;
-            var installedVersion = origin?.PluginVersion ?? "unversioned";
-            var wantsMore = held.WantsMore;
-
-            var rowGrid = (Grid)LoadUi(
-                "<Grid " + FragmentNs + " Height=\"40\" ColumnSpacing=\"12\">"
-                + "  <TextBlock Grid.Column=\"0\" x:Name=\"UpdateName\" TextTrimming=\"CharacterEllipsis\""
-                + "             VerticalAlignment=\"Center\" FontWeight=\"SemiBold\""
-                + "             Style=\"{StaticResource BodyTextBlockStyle}\""
-                + "             Foreground=\"{ThemeResource TextFillColorPrimaryBrush}\" />"
-                + "  <TextBlock Grid.Column=\"1\" x:Name=\"InstalledVersion\" VerticalAlignment=\"Center\""
-                + "             FontFamily=\"Consolas\" Style=\"{StaticResource BodyTextBlockStyle}\""
-                + "             Foreground=\"{ThemeResource TextFillColorSecondaryBrush}\" />"
-                + "  <TextBlock Grid.Column=\"2\" x:Name=\"AvailableVersion\" VerticalAlignment=\"Center\""
-                + "             FontFamily=\"Consolas\" Style=\"{StaticResource BodyTextBlockStyle}\""
-                + "             Foreground=\"{ThemeResource TextFillColorPrimaryBrush}\" />"
-                + "  <StackPanel Grid.Column=\"3\" Orientation=\"Horizontal\" Spacing=\"6\" VerticalAlignment=\"Center\">"
-                + "    <Ellipse Width=\"8\" Height=\"8\" Fill=\"{ThemeResource "
-                + (wantsMore ? "SystemFillColorCautionBrush" : "SystemFillColorSuccessBrush") + "}\" />"
-                + "    <TextBlock x:Name=\"WhatChanged\" TextTrimming=\"CharacterEllipsis\""
-                + "               VerticalAlignment=\"Center\""
-                + "               Style=\"{StaticResource BodyTextBlockStyle}\""
-                + "               Foreground=\"{ThemeResource TextFillColorPrimaryBrush}\" />"
-                + "  </StackPanel>"
-                + "  <Border Grid.Column=\"4\" CornerRadius=\"4\" Padding=\"8,2,8,2\" VerticalAlignment=\"Center\""
-                + "          HorizontalAlignment=\"Left\" Background=\"{ThemeResource "
-                + (wantsMore ? "SubtleFillColorSecondaryBrush" : "SubtleFillColorSecondaryBrush") + "}\">"
-                + "    <TextBlock x:Name=\"Disposition\" VerticalAlignment=\"Center\""
-                + "               Style=\"{StaticResource CaptionTextBlockStyle}\""
-                + "               Foreground=\"{ThemeResource TextFillColorPrimaryBrush}\" />"
-                + "  </Border>"
-                + "</Grid>");
-
-            ((TextBlock)rowGrid.FindName("UpdateName")!).Text = skill.Name;
-            ((TextBlock)rowGrid.FindName("InstalledVersion")!).Text = installedVersion;
-            ((TextBlock)rowGrid.FindName("AvailableVersion")!).Text = held.PluginVersion;
-            ((TextBlock)rowGrid.FindName("WhatChanged")!).Text = SkillPresentation.WhatChanged(skill);
-            ((TextBlock)rowGrid.FindName("Disposition")!).Text = SkillPresentation.Disposition(skill);
-
-            // The dot is colour on a §2 indicator hue; the word beside it is the only carrier
-            // some readers have, and §6 makes it mandatory rather than decorative.
-            AutomationProperties.SetName(rowGrid,
-                $"{skill.Name}: installed {installedVersion}, available {held.PluginVersion}. "
-                + $"{SkillPresentation.WhatChanged(skill)}. {SkillPresentation.Disposition(skill)}.");
-            AutomationProperties.SetAutomationId(rowGrid, $"skills.update.{skill.Name}");
-
-            host.RowDefinitions.Add(new RowDefinition { Height = new GridLength(40) });
-            Grid.SetRow(rowGrid, row);
-            host.Children.Add(rowGrid);
-            row++;
-        }
-
-        var stack = new StackPanel { Spacing = 8 };
-        stack.Children.Add(host);
-        stack.Children.Add(FooterText(
-            "A new version lands as a shadow copy first. It promotes itself only when its "
-            + "capability set is unchanged; anything that asks for more than the version before "
-            + "it waits for you.",
-            "skills.footer.updates"));
-
+        if (snapshot.Offers.Count == 0) stack.Children.Add(new TextBlock { Text = SkillPresentation.UpdatesNone, TextWrapping = TextWrapping.Wrap });
         return new ScrollViewer { Content = stack, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+    }
+
+    private void AddWriteOutcome()
+    {
+        if (_actions.Notice is { } notice)
+            BannersHost.Children.Add(new InfoBar { IsOpen = true, IsClosable = false, Severity = InfoBarSeverity.Informational, Message = notice });
+        if (_actions.WriteFailure is { } failure)
+            BannersHost.Children.Add(new InfoBar { IsOpen = true, IsClosable = false, Severity = InfoBarSeverity.Error,
+                Title = failure.Headline, Message = failure.Advice });
+        foreach (var error in _actions.BatchFailures)
+            BannersHost.Children.Add(new InfoBar { IsOpen = true, IsClosable = false, Severity = InfoBarSeverity.Error, Message = error });
+        if (_actions.LastPromotion is { } promoted)
+        {
+            var undo = new Button { Content = $"Undo {promoted.Plugin} promotion", IsEnabled = !_actions.Writing };
+            AutomationProperties.SetName(undo, $"Undo {promoted.Plugin} promotion");
+            undo.Click += async (_, _) => await _actions.UndoLastPromotionAsync();
+            BannersHost.Children.Add(undo);
+        }
+    }
+
+    private async Task ReviewHeldAsync(Skill skill)
+    {
+        if (skill.Held is not { } held || skill.Source.AsPlugin is null || _actions.Writing) return;
+        var content = new StackPanel { Spacing = 12, MaxWidth = 560 };
+        content.Children.Add(new TextBlock { Text = SkillPresentation.HeldBannerBody(skill), TextWrapping = TextWrapping.Wrap });
+        foreach (var capability in held.AddedCapabilities)
+            content.Children.Add(new TextBlock { Text = capability, TextWrapping = TextWrapping.Wrap });
+        content.Children.Add(new TextBlock { Text = held.Changelog?.Note ?? "No changelog was reported for this version.", TextWrapping = TextWrapping.Wrap });
+        if (held.Changelog?.Text is { } text)
+            content.Children.Add(new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, IsTextSelectionEnabled = true });
+        var servesCache = _snapshot.Skills?.PromotesFromCache == true;
+        if (!servesCache) content.Children.Add(new TextBlock { Text = SkillPresentation.PromoteUnavailable, TextWrapping = TextWrapping.Wrap });
+        var dialog = new ContentDialog { XamlRoot = XamlRoot, Title = $"Review {skill.Name} {held.PluginVersion}",
+            Content = new ScrollViewer { Content = content, MaxHeight = 480 },
+            PrimaryButtonText = $"Promote to {held.PluginVersion}", IsPrimaryButtonEnabled = servesCache,
+            SecondaryButtonText = "Keep current version", CloseButtonText = "Cancel", DefaultButton = ContentDialogButton.Close };
+        var answer = await dialog.ShowAsync();
+        if (answer == ContentDialogResult.Primary) await _actions.PromoteHeldVersionAsync(skill);
+        else if (answer == ContentDialogResult.Secondary) await _actions.KeepHeldVersionAsync(skill);
     }
 
     // ------------------------------------------------------------------ the load states

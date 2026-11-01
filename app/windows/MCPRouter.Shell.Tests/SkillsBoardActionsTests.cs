@@ -18,6 +18,7 @@ public sealed class SkillsBoardActionsTests
         public List<string> Calls { get; } = [];
         public TaskCompletionSource? Gate { get; set; }
         public SkillsControlError? WriteError { get; set; }
+        public HashSet<string> RefusedNames { get; } = [];
 
         public KeepAck Keep { get; } = new("trawl@fledgeling-plugins", StoredExtensionKind.Plugins, "2.3.0");
         public PromotionAck Promotion { get; } =
@@ -39,8 +40,8 @@ public sealed class SkillsBoardActionsTests
         {
             Calls.Add($"keep {name} {pluginVersion}");
             await Settle();
-            ThrowIfRefused();
-            return Keep;
+            ThrowIfRefused(name);
+            return Keep with { Kept = name };
         }
 
         public async Task<PromotionAck> PromoteFromCacheAsync(
@@ -48,8 +49,8 @@ public sealed class SkillsBoardActionsTests
         {
             Calls.Add($"promote {name} {pluginVersion}");
             await Settle();
-            ThrowIfRefused();
-            return Promotion;
+            ThrowIfRefused(name);
+            return Promotion with { Promoted = name };
         }
 
         public async Task<UndoAck> UndoPromotionAsync(
@@ -57,8 +58,8 @@ public sealed class SkillsBoardActionsTests
         {
             Calls.Add($"undo {name} {restore}");
             await Settle();
-            ThrowIfRefused();
-            return Undo;
+            ThrowIfRefused(name);
+            return Undo with { Restored = name };
         }
 
         private async Task Settle()
@@ -66,8 +67,9 @@ public sealed class SkillsBoardActionsTests
             if (Gate is not null) await Gate.Task;
         }
 
-        private void ThrowIfRefused()
+        private void ThrowIfRefused(string name)
         {
+            if (RefusedNames.Contains(name)) throw new SkillsControlException(new SkillsControlError.Server(409, "the version remains held", null), null);
             if (WriteError is not null) throw new SkillsControlException(WriteError, null);
         }
     }
@@ -254,4 +256,44 @@ public sealed class SkillsBoardActionsTests
         // Once when the write starts, so its controls can say so, and once when it ends.
         Assert.Equal(2, told);
     }
+
+    [Fact]
+    public async Task UpdateAllDeduplicatesPluginsAndNeverPromotesAddedCapabilities()
+    {
+        var first = HeldTrawl() with { Held = new HeldVersion("2.3.0", [], 2) };
+        var sibling = first with { Name = "trawl-extra" };
+        var asksMore = HeldTrawl() with { Name = "unsafe", Source = new SkillSource.PluginOrigin("unsafe", "fledgeling-plugins", "1.0.0", null, null, null, 1) };
+        var client = new RecordingClient();
+        var reloads = 0;
+        var actions = new SkillsBoardActions(client, () => { reloads++; return Task.CompletedTask; });
+        await actions.UpdateAllAsync([first, sibling, asksMore, Standalone()]);
+        Assert.Equal(new[] { "promote trawl@fledgeling-plugins 2.3.0" }, client.Calls);
+        Assert.Empty(actions.BatchFailures);
+        Assert.Equal(1, reloads);
+        Assert.StartsWith("Promoted 1 of 1 plugins.", actions.Notice);
+    }
+
+    [Fact]
+    public async Task APartialUpdateAllKeepsFailuresVisibleAndEachSuccessfulPromotionCanBeUndone()
+    {
+        Skill Offered(string name) => HeldTrawl() with
+        {
+            Name = name, Source = new SkillSource.PluginOrigin(name, "fledgeling-plugins", "2.2.0", null, null, null, 1),
+            Held = new HeldVersion("2.3.0", [], 1),
+        };
+        var client = new RecordingClient();
+        client.RefusedNames.Add("refused@fledgeling-plugins");
+        var actions = new SkillsBoardActions(client, () => Task.CompletedTask);
+        await actions.UpdateAllAsync([Offered("first"), Offered("refused"), Offered("last")]);
+        Assert.StartsWith("Promoted 2 of 3 plugins.", actions.Notice);
+        Assert.Contains("refused:", Assert.Single(actions.BatchFailures));
+        Assert.Equal("last", actions.LastPromotion?.Plugin);
+        await actions.UndoLastPromotionAsync();
+        Assert.Equal("first", actions.LastPromotion?.Plugin);
+        await actions.UndoLastPromotionAsync();
+        Assert.Null(actions.LastPromotion);
+        Assert.EndsWith("last@fledgeling-plugins 1002", client.Calls[^2]);
+        Assert.EndsWith("first@fledgeling-plugins 1002", client.Calls[^1]);
+    }
+
 }

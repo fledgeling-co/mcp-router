@@ -71,7 +71,8 @@ public sealed record SkillsBoardSnapshot
     public SkillsControlError? UpdatesError { get; init; }
 
     /// <summary>Every offer the Updates section draws: the register's held versions, then the store's own offers.</summary>
-    public IReadOnlyList<ExtensionUpdateEntry> Offers => throw new NotImplementedException();
+    public ExtensionUpdatesResponse? Updates { get; init; }
+    public IReadOnlyList<ExtensionUpdateEntry> Offers => SkillPresentation.UpdateOffers(Skills?.SkillList ?? [], Updates?.EntryList ?? []);
 
     /// <summary>Every skill with a newer version fetched at all - what the Updates tab lists.</summary>
     public IReadOnlyList<Skill> Updated => Skills is null
@@ -84,7 +85,8 @@ public sealed record SkillsBoardSnapshot
     /// </summary>
     public int UpdateAllCount => Skills is null
         ? 0
-        : SkillPresentation.Updatable(Skills.SkillList).Count;
+        : SkillPresentation.Updatable(Skills.SkillList).Select(skill => skill.Source.AsPlugin).Where(origin => origin is not null)
+            .Select(origin => $"{origin!.Plugin}@{origin.Marketplace}").Distinct(StringComparer.Ordinal).Count();
 
     /// <summary>
     /// Builds the snapshot from the two reads' outcomes, both optional and both allowed to have
@@ -121,6 +123,9 @@ public sealed record SkillsBoardSnapshot
             return new SkillsBoardSnapshot
             {
                 State = SkillsBoardState.Empty,
+                Skills = skills,
+                Updates = updates,
+                UpdatesError = updatesError,
                 Marketplaces = marketplaces?.MarketplaceList,
                 MarketplaceListNote = MarketplaceNote(marketplaces, marketplacesError),
             };
@@ -130,6 +135,8 @@ public sealed record SkillsBoardSnapshot
         {
             State = SkillsBoardState.Populated,
             Skills = skills,
+            Updates = updates,
+            UpdatesError = updatesError,
             Marketplaces = marketplaces?.MarketplaceList,
             MarketplaceListNote = MarketplaceNote(marketplaces, marketplacesError),
             PartialNote = SkillPresentation.PartialNote(skills),

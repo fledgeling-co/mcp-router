@@ -13,7 +13,7 @@ namespace MCPRouter.Shell.Tests;
 public sealed class SkillWireCapturedTests
 {
     private static SkillsResponse Read(string name) =>
-        JsonSerializer.Deserialize<SkillsResponse>(Body(name), JsonSerializerOptions.Web)!;
+        JsonSerializer.Deserialize<SkillsResponse>(Body(name), new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
 
     [Fact]
     public void AHeldRowCarriesTheChangelogTheRouterRead()
@@ -32,7 +32,7 @@ public sealed class SkillWireCapturedTests
     {
         Assert.True(Read("skills").PromotesFromCache);
         Assert.False(JsonSerializer.Deserialize<SkillsResponse>(
-            "{ \"skills\": [], \"clients\": [] }", JsonSerializerOptions.Web)!.PromotesFromCache);
+            "{ \"skills\": [], \"clients\": [] }", new JsonSerializerOptions(JsonSerializerDefaults.Web))!.PromotesFromCache);
     }
 
     [Fact]

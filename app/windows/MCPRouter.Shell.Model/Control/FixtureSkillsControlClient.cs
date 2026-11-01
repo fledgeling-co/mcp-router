@@ -177,14 +177,14 @@ public sealed class FixtureSkillsControlClient : ISkillsControlClient
         Task.FromResult(Marketplaces);
 
     public Task<ExtensionUpdatesResponse> ExtensionUpdatesAsync(CancellationToken cancellationToken = default) =>
-        throw new NotImplementedException();
+        Task.FromResult(new ExtensionUpdatesResponse([], []));
 
     public Task<KeepAck> KeepHeldVersionAsync(string name, string pluginVersion, CancellationToken cancellationToken = default) =>
-        throw new NotImplementedException();
+        Task.FromException<KeepAck>(new SkillsControlError.Server(409, "Fixture preview does not change installed skills.", null).AsException(null));
 
     public Task<PromotionAck> PromoteFromCacheAsync(string name, string pluginVersion, CancellationToken cancellationToken = default) =>
-        throw new NotImplementedException();
+        Task.FromException<PromotionAck>(new SkillsControlError.Server(409, "Fixture preview does not change installed skills.", null).AsException(null));
 
     public Task<UndoAck> UndoPromotionAsync(string name, string restore, CancellationToken cancellationToken = default) =>
-        throw new NotImplementedException();
+        Task.FromException<UndoAck>(new SkillsControlError.Server(409, "Fixture preview does not change installed skills.", null).AsException(null));
 }

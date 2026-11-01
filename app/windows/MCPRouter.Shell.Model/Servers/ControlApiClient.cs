@@ -196,10 +196,13 @@ public sealed class ControlApiClient : IDisposable
         return await DecodeAsync<HarnessesEnvelope>(response, cancellation);
     }
 
-    public async Task<InsightsEnvelope> GetInsightsAsync(CancellationToken cancellation = default)
+    public Task<InsightsEnvelope> GetInsightsAsync(CancellationToken cancellation = default) =>
+        GetInsightsAsync(InsightsPeriod.Last24Hours, cancellation);
+
+    public async Task<InsightsEnvelope> GetInsightsAsync(InsightsPeriod period, CancellationToken cancellation = default)
     {
         // Gated like /harnesses (src/control.ts): the call log names the process behind every call.
-        using var response = await SendAsync(HttpMethod.Get, "insights", write: false, cancellation, gated: true);
+        using var response = await SendAsync(HttpMethod.Get, $"insights?window={InsightsPresentation.PeriodQuery(period)}", write: false, cancellation, gated: true);
         return await DecodeAsync<InsightsEnvelope>(response, cancellation);
     }
 

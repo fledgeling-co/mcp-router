@@ -21,6 +21,9 @@ public sealed record InsightsEnvelope
     public required string WindowStart { get; init; }
 
     public string? LogHorizon { get; init; }
+    public string? ObservedSince { get; init; }
+    public bool? WindowComplete { get; init; }
+    public InsightsRetentionWire? Retention { get; init; }
 
     public required InsightsChildren Children { get; init; }
 
@@ -149,4 +152,20 @@ public sealed class InsightsLaneWire : ClosedSetWire
 public sealed class InsightsCadenceWire : ClosedSetWire
 {
     public InsightsCadenceWire() : base("manual", "sixHourly", "twelveHourly", "daily") { }
+}
+
+
+public sealed record InsightsRetentionWire
+{
+    public required int Days { get; init; }
+    public required int CapMegabytes { get; init; }
+    public required InsightsCappedWire Capped { get; init; }
+}
+
+public sealed record InsightsCappedWire
+{
+    public required int Generations { get; init; }
+    public required int Records { get; init; }
+    public string? From { get; init; }
+    public string? To { get; init; }
 }

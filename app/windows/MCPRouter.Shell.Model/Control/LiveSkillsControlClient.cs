@@ -97,16 +97,16 @@ public sealed class LiveSkillsControlClient : ISkillsControlClient
         await ReadAsync<MarketplacesResponse>("marketplaces", cancellationToken);
 
     public Task<ExtensionUpdatesResponse> ExtensionUpdatesAsync(CancellationToken cancellationToken = default) =>
-        throw new NotImplementedException();
+        SendAsync<ExtensionUpdatesResponse>(HttpMethod.Get, "extensions/updates", null, cancellationToken);
 
     public Task<KeepAck> KeepHeldVersionAsync(string name, string pluginVersion, CancellationToken cancellationToken = default) =>
-        throw new NotImplementedException();
+        SendAsync<KeepAck>(HttpMethod.Post, $"extensions/plugins/{Uri.EscapeDataString(name)}/keep", new { pluginVersion }, cancellationToken);
 
     public Task<PromotionAck> PromoteFromCacheAsync(string name, string pluginVersion, CancellationToken cancellationToken = default) =>
-        throw new NotImplementedException();
+        SendAsync<PromotionAck>(HttpMethod.Post, $"extensions/plugins/{Uri.EscapeDataString(name)}/promote", new { source = "cache", pluginVersion }, cancellationToken);
 
     public Task<UndoAck> UndoPromotionAsync(string name, string restore, CancellationToken cancellationToken = default) =>
-        throw new NotImplementedException();
+        SendAsync<UndoAck>(HttpMethod.Post, $"extensions/plugins/{Uri.EscapeDataString(name)}/undo-promote", new { restore }, cancellationToken);
 
     /// <summary>
     /// True when the router's token file is absent, which on a loopback install means the router
@@ -115,12 +115,16 @@ public sealed class LiveSkillsControlClient : ISkillsControlClient
     /// </summary>
     public bool RouterHasNeverRun => _tokenFile is not null && _tokenFile.Read() is null;
 
-    private async Task<T> ReadAsync<T>(string path, CancellationToken cancellationToken)
+    private Task<T> ReadAsync<T>(string path, CancellationToken cancellationToken) =>
+        SendAsync<T>(HttpMethod.Get, path, null, cancellationToken, versionSkew: true);
+
+    private async Task<T> SendAsync<T>(HttpMethod method, string path, object? body, CancellationToken cancellationToken, bool versionSkew = false)
     {
         HttpResponseMessage response;
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, path);
+            using var request = new HttpRequestMessage(method, path);
+            if (body is not null) request.Content = JsonContent.Create(body);
             if (_tokenFile?.Read() is { } token)
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -142,7 +146,7 @@ public sealed class LiveSkillsControlClient : ISkillsControlClient
         {
             if (!response.IsSuccessStatusCode)
             {
-                if ((int)response.StatusCode == 404)
+                if ((int)response.StatusCode == 404 && versionSkew)
                 {
                     throw new SkillsControlError.MalformedResponse(
                         $"this router has no /{path} endpoint").AsException(null);

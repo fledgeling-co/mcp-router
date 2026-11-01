@@ -4,6 +4,8 @@ using MCPRouter.Shell.Model.Servers;
 
 namespace MCPRouter.Shell.Model.Insights;
 
+public enum InsightsPeriod { Last24Hours, Last7Days }
+
 /// <summary>What the Insights board is holding at a moment.</summary>
 public enum InsightsBoardState
 {

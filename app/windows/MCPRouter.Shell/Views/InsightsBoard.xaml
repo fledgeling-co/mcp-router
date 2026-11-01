@@ -23,6 +23,8 @@
                                    TextWrapping="Wrap" MaxWidth="720" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
+                        <ComboBox x:Name="PeriodSelector" Header="Period" SelectionChanged="PeriodSelector_SelectionChanged"
+                                  AutomationProperties.Name="Insights period" MinWidth="150" />
                         <TextBlock x:Name="WindowText" VerticalAlignment="Center"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         <Button x:Name="RefreshButton" Content="Refresh" Click="RefreshButton_Click" />

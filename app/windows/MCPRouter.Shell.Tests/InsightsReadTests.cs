@@ -143,7 +143,8 @@ public sealed class InsightsReadTests
         Assert.Equal("claude", analyst.Lane!.Lane);
         Assert.NotNull(analyst.RanAt);
         Assert.Equal(12400, analyst.LinesRead);
-        Assert.Equal(1, analyst.Findings);
+        Assert.Equal(0, analyst.Findings);
+        Assert.Equal(1, analyst.RejectedFindings);
         Assert.False(analyst.UsedFallback);
 
         Assert.Equal(3, analyst.Stores.Count);
@@ -172,8 +173,9 @@ public sealed class InsightsReadTests
     [Fact]
     public async Task ALaneWordTheRouterDoesNotSendFailsTheDecode()
     {
-        var broken = InsightsRouteFixture.PopulatedText()
-            .Replace("\"lane\":\"claude\"", "\"lane\":\"gpt\"", StringComparison.Ordinal);
+        var body = System.Text.Json.Nodes.JsonNode.Parse(InsightsRouteFixture.PopulatedText())!;
+        body["analyst"]!["primary"]!["lane"] = "gpt";
+        var broken = body.ToJsonString();
         using var client = Client(new RecordingHandler(HttpStatusCode.OK, broken));
 
         var failure = await Assert.ThrowsAsync<ControlApiException>(() => client.GetInsightsAsync());
@@ -184,8 +186,9 @@ public sealed class InsightsReadTests
     [Fact]
     public async Task ACadenceWordTheRouterDoesNotSendFailsTheDecode()
     {
-        var broken = InsightsRouteFixture.PopulatedText()
-            .Replace("\"cadence\":\"sixHourly\"", "\"cadence\":\"hourly\"", StringComparison.Ordinal);
+        var body = System.Text.Json.Nodes.JsonNode.Parse(InsightsRouteFixture.PopulatedText())!;
+        body["analyst"]!["cadence"] = "hourly";
+        var broken = body.ToJsonString();
         using var client = Client(new RecordingHandler(HttpStatusCode.OK, broken));
 
         var failure = await Assert.ThrowsAsync<ControlApiException>(() => client.GetInsightsAsync());

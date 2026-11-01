@@ -201,7 +201,7 @@ public sealed class InsightsBoardModelTests
 
         Assert.True(card.Available);
         Assert.Equal(
-            $"Last run at {ShownAt(envelope.Analyst!.RanAt!)}: 12,400 lines read, 1 finding, judged by Claude CLI · haiku.",
+            $"Last run at {ShownAt(envelope.Analyst!.RanAt!)}: 12,400 lines read, 0 findings, judged by Claude CLI · haiku.",
             card.LastRun);
     }
 

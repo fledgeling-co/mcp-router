@@ -18,10 +18,16 @@ public static class InsightsPresentation
     public const string AnalystNeverRun = "The analyst has not run yet.";
 
     /// <summary>The window the router answered over. The router fixes it, so the board names it rather than offering a selector.</summary>
-    public static string WindowLabel(int hours) => $"Last {hours} hours";
+    public static string WindowLabel(int hours) => hours == 168 ? "Last 7 days" : $"Last {hours} hours";
+    public static IReadOnlyList<InsightsPeriod> Periods { get; } = new[] { InsightsPeriod.Last24Hours, InsightsPeriod.Last7Days };
+    public static int PeriodHours(InsightsPeriod period) => period == InsightsPeriod.Last7Days ? 168 : 24;
+    public static string PeriodQuery(InsightsPeriod period) => period == InsightsPeriod.Last7Days ? "7d" : "24h";
+    public static string PeriodTitle(InsightsPeriod period) => WindowLabel(PeriodHours(period));
+    public static string StampedAt(string instant) => DateTimeOffset.TryParse(instant, CultureInfo.InvariantCulture, DateTimeStyles.None, out var at)
+        ? at.ToLocalTime().ToString("d MMM yyyy HH:mm", CultureInfo.InvariantCulture) : instant;
 
     /// <summary>The window's figures are read over, in the words the figures use.</summary>
-    public static string InWindow(int hours) => $"in the last {hours} hours";
+    public static string InWindow(int hours) => hours == 168 ? "in the last 7 days" : $"in the last {hours} hours";
 
     /// <summary>A usage-log line count, in words that match the number.</summary>
     public static string UnreadableLines(int count) =>

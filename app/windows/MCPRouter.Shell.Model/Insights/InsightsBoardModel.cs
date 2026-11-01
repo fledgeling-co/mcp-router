@@ -19,7 +19,8 @@ public static class InsightsBoardModel
     public static InsightsBoardSnapshot Snapshot(
         InsightsEnvelope? lastAnswered,
         ControlApiException? latestError,
-        ControlApiException? analyseFailure = null)
+        ControlApiException? analyseFailure = null,
+        int askedHours = 24)
     {
         if (lastAnswered is null)
         {
@@ -48,7 +49,7 @@ public static class InsightsBoardModel
                 Figures = Figures(lastAnswered),
                 Harnesses = HarnessLines(lastAnswered),
                 Notes = new[] { InsightsPresentation.StaleNote(lastAnswered.GeneratedAt, latestError.Headline) }
-                    .Concat(WindowNotes(lastAnswered))
+                    .Concat(WindowNotes(lastAnswered, askedHours))
                     .ToList(),
                 ReadAt = lastAnswered.GeneratedAt,
                 Error = latestError,
@@ -64,7 +65,7 @@ public static class InsightsBoardModel
             WindowLabel = window,
             Figures = Figures(lastAnswered),
             Harnesses = HarnessLines(lastAnswered),
-            Notes = WindowNotes(lastAnswered),
+            Notes = WindowNotes(lastAnswered, askedHours),
             ReadAt = lastAnswered.GeneratedAt,
             Analyst = analyst,
             AnalyseNowEnabled = lastAnswered.Analyst is not null,
@@ -146,9 +147,15 @@ public static class InsightsBoardModel
     private static string Percent(double value, int decimals) =>
         value.ToString($"F{decimals}", CultureInfo.InvariantCulture) + "%";
 
-    private static IReadOnlyList<string> WindowNotes(InsightsEnvelope envelope)
+    private static IReadOnlyList<string> WindowNotes(InsightsEnvelope envelope, int askedHours)
     {
         var notes = new List<string>();
+        if (envelope.WindowComplete == false && envelope.ObservedSince is { } since)
+            notes.Add($"The router has counted calls only since {InsightsPresentation.StampedAt(since)}, so this {InsightsPresentation.WindowLabel(envelope.WindowHours).ToLowerInvariant()} is not a whole one.");
+        if (envelope.WindowHours != askedHours)
+            notes.Add($"This router answered the {InsightsPresentation.WindowLabel(envelope.WindowHours).ToLowerInvariant()}, not the {InsightsPresentation.WindowLabel(askedHours).ToLowerInvariant()}, so these figures are for the shorter window.");
+        if (envelope.Retention is { Capped.Records: > 0 } retention)
+            notes.Add($"The {retention.CapMegabytes} MB history cap removed {InsightsPresentation.Count(retention.Capped.Records)} records from {InsightsPresentation.StampedAt(retention.Capped.From ?? "unknown time")} to {InsightsPresentation.StampedAt(retention.Capped.To ?? "unknown time")}, so the figures for that span are short.");
 
         if (envelope.Calls.Total == 0)
         {

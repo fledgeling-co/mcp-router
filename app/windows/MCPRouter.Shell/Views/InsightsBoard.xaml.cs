@@ -31,6 +31,8 @@ public sealed partial class InsightsBoard : UserControl
     /// <summary>The last analyse's failure, or null. A failed analyse leaves the reading as it was.</summary>
     private ControlApiException? _analyseFailure;
 
+    private InsightsPeriod _period = InsightsPeriod.Last24Hours;
+    private bool _ready;
     private bool _readInFlight;
     private bool _analyseInFlight;
 
@@ -39,8 +41,18 @@ public sealed partial class InsightsBoard : UserControl
         InitializeComponent();
         TitleText.Text = InsightsPresentation.Title;
         DescriptionText.Text = InsightsPresentation.BoardDescription;
+        PeriodSelector.ItemsSource = InsightsPresentation.Periods.Select(InsightsPresentation.PeriodTitle).ToList();
+        PeriodSelector.SelectedIndex = 0;
+        _ready = true;
         Render();
         _ = ReadAsync();
+    }
+
+    private async void PeriodSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_ready || PeriodSelector.SelectedIndex < 0) return;
+        _period = InsightsPresentation.Periods[PeriodSelector.SelectedIndex];
+        await ReadAsync();
     }
 
     private void RefreshButton_Click(object sender, RoutedEventArgs e) => _ = ReadAsync();
@@ -55,7 +67,7 @@ public sealed partial class InsightsBoard : UserControl
         Render();
         try
         {
-            _lastAnswered = await _client.GetInsightsAsync();
+            _lastAnswered = await _client.GetInsightsAsync(_period);
             _latestError = null;
         }
         catch (ControlApiException failure)
@@ -95,7 +107,8 @@ public sealed partial class InsightsBoard : UserControl
 
     private void Render()
     {
-        var snapshot = InsightsBoardModel.Snapshot(_lastAnswered, _latestError, _analyseFailure);
+        PeriodSelector.IsEnabled = !_readInFlight;
+        var snapshot = InsightsBoardModel.Snapshot(_lastAnswered, _latestError, _analyseFailure, InsightsPresentation.PeriodHours(_period));
 
         NoticeContainer.Children.Clear();
         FigureContainer.Children.Clear();

@@ -61,24 +61,38 @@ public static class SkillPresentation
         + "author declared. No skill format carries a capability manifest, so this is a reading "
         + "and can be incomplete.";
 
-    // ------------------------------------------------------------------ held-version writes (stub)
+    // ------------------------------------------------------------------ held-version writes
 
-    public const string PromoteUnavailable = "";
-    public const string UpdatesHeading = "";
-    public const string UpdatesNone = "";
+    public const string PromoteUnavailable = "Promoting reads the held version from Claude's plugin cache, and this router does not serve that yet.";
+    public const string UpdatesHeading = "Updates available";
+    public const string UpdatesNone = "The update check found no newer version among the plugins Claude has installed and the entries this router holds.";
 
-    public static string Kept(string version) => throw new NotImplementedException();
+    public static string Kept(string version) => $"Kept {version}. The router has recorded that you kept it.";
 
-    public static string Promoted(string name, string version) => throw new NotImplementedException();
+    public static string Promoted(string name, string version) => $"Promoted {name} to {version}. The copy it replaced is kept, and Undo puts it back.";
 
-    public static string Undone(string name, string? version) => throw new NotImplementedException();
+    public static string Undone(string name, string? version) => $"Put {name} back{(version is null ? "" : $" at {version}")}. The promoted copy is kept aside.";
 
-    public static string PromotionCanBeUndone(string plugin) => throw new NotImplementedException();
+    public static string PromotionCanBeUndone(string plugin) => $"{plugin} was promoted. Undo puts back the version it replaced.";
 
-    public static string Offered(string available, string installed) => throw new NotImplementedException();
+    public static string Offered(string available, string installed) => $"{available} is offered and {installed} is installed";
 
     public static IReadOnlyList<ExtensionUpdateEntry> UpdateOffers(
-        IReadOnlyList<Skill> skills, IReadOnlyList<ExtensionUpdateEntry> stored) => throw new NotImplementedException();
+        IReadOnlyList<Skill> skills, IReadOnlyList<ExtensionUpdateEntry> stored)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var offers = new List<ExtensionUpdateEntry>();
+        foreach (var skill in skills)
+        {
+            if (skill.Source.AsPlugin is not { } origin || skill.Held is not { } held) continue;
+            var name = $"{origin.Plugin}@{origin.Marketplace}";
+            if (!seen.Add(name)) continue;
+            offers.Add(new(StoredExtensionKind.Plugins, name, "update-available", origin.PluginVersion,
+                held.PluginVersion, true, Offered(held.PluginVersion, origin.PluginVersion), held.Changelog));
+        }
+        offers.AddRange(stored.Where(entry => entry.HasUpdate && !(entry.Kind == StoredExtensionKind.Plugins && seen.Contains(entry.Name))));
+        return offers;
+    }
 
     // ------------------------------------------------------------------ the header
 

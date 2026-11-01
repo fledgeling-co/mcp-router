@@ -353,6 +353,7 @@ scripts/acceptance/m6-inbox-pairing.sh	lane	scripts/acceptance/m6-inbox-pairing.
 scripts/acceptance/m7-evals-cleanup.sh	lane	scripts/acceptance/m7-evals-cleanup.sh	swift	swiftc	-
 scripts/acceptance/m8-settings-menubar.sh	lane	scripts/acceptance/m8-settings-menubar.sh	swift	swiftc	-
 scripts/acceptance/mac-app.sh	lane	scripts/acceptance/mac-app.sh	static	no router invocation matched	planning/test-campaign/bin/capture-mac-design-size.sh,planning/test-campaign/bin/capture-mac-glass.sh,planning/test-campaign/bin/forced-state.sh,scripts/acceptance/i5-pairing-transport.sh,scripts/acceptance/m2-activity.sh,scripts/acceptance/m22-boards.sh,scripts/acceptance/m5-discover.sh,scripts/acceptance/m6-inbox-pairing.sh,scripts/acceptance/m7-evals-cleanup.sh,scripts/acceptance/m8-settings-menubar.sh,scripts/acceptance/mac-shell.sh
+scripts/acceptance/mac-glass-capture-selftest.py	lane	scripts/acceptance/mac-glass-capture-selftest.py	static	no router invocation matched	-
 scripts/acceptance/mac-shell.sh	lane	scripts/acceptance/mac-shell.sh	swift	swiftc	-
 scripts/acceptance/menu-badge-fixture/axattrs.swift	lane	scripts/acceptance/menu-badge-fixture/axattrs.swift	static	no router invocation matched	-
 scripts/acceptance/menu-badge-fixture/fixture.swift	lane	scripts/acceptance/menu-badge-fixture/fixture.swift	static	no router invocation matched	-

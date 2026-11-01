@@ -12,36 +12,54 @@
 # that reports the wrong reason for going red is the failure this whole item is about.
 #
 # Every arm re-creates a defect this item actually fixed, so each is a regression the sweep owns.
-set -u
-cd "$(git rev-parse --show-toplevel)"
+set -euo pipefail
+SOURCE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+SCRATCH="$(mktemp -d)"
+trap 'rm -rf "$SCRATCH"' EXIT
+# These are negative controls, so their subject must not be the checkout other
+# readers inspect. Keep the sweep's normal relative roots in a private source copy.
+mkdir -p "$SCRATCH/app" "$SCRATCH/design" "$SCRATCH/docs" "$SCRATCH/planning/evidence/M31"
+cp -R "$SOURCE_ROOT/app/Sources" "$SCRATCH/app/Sources"
+cp "$SOURCE_ROOT/design/mcp-router-console.html" "$SOURCE_ROOT/design/banner.html" "$SCRATCH/design/"
+cp "$SOURCE_ROOT/docs/mcp-router-store.html" "$SOURCE_ROOT/docs/index.html" "$SCRATCH/docs/"
+cp "$SOURCE_ROOT/planning/evidence/M31/sweep-prominent-disabled.py" "$SCRATCH/planning/evidence/M31/"
+cd "$SCRATCH"
+RC=0
+ARMS=0
 MOCK=design/mcp-router-console.html
 STORE=docs/mcp-router-store.html
 SWIFT=app/Sources/MCPRouterUI/Controls.swift
 SWEEP=planning/evidence/M31/sweep-prominent-disabled.py
 
 sha(){ shasum -a 256 "$1" | cut -c1-16; }
-verdicts(){ python3 "$SWEEP" 2>&1 | grep -E "^      (DIMS|UNDRAWN|UNREADABLE|DRAWS-AS-ENABLED|MARKER-MISMATCH)|^  FAIL " | sed 's/  */ /g'; }
-fails(){ python3 "$SWEEP" 2>&1 | grep -oE "TOTAL failures=[0-9]+" | grep -oE "[0-9]+"; }
+sweep_report(){ local code=0; python3 "$SWEEP" "$@" 2>&1 || code=$?; [ "$code" -le 1 ]; }
+verdicts(){ sweep_report | grep -E "^      (DIMS|UNDRAWN|UNREADABLE|DRAWS-AS-ENABLED|MARKER-MISMATCH)|^  FAIL " | sed 's/  */ /g'; }
+fails(){ sweep_report | grep -oE "TOTAL failures=[0-9]+" | grep -oE "[0-9]+"; }
 
-BASE_V=$(mktemp); verdicts > "$BASE_V"; BASE_F=$(fails)
+BASE_V="$SCRATCH/baseline.verdicts"
+python3 "$SWEEP" >/dev/null
+verdicts > "$BASE_V"; BASE_F=$(fails)
 
 arm(){ # name  file  sed-expression
   local name="$1" file="$2" expr="$3" before after pf pv
-  before=$(sha "$file"); cp "$file" "/tmp/m31.arm.$$"
+  ARMS=$((ARMS + 1))
+  before=$(sha "$file"); cp "$file" "$SCRATCH/arm.backup"
   sed -i '' "$expr" "$file"
   echo "ARM $name"
   if [ "$(sha "$file")" = "$before" ]; then
     echo "    VACUOUS — the plant did not apply; this arm proves nothing"
-    cp "/tmp/m31.arm.$$" "$file"; rm -f "/tmp/m31.arm.$$"; return 1
+    cp "$SCRATCH/arm.backup" "$file"; rm -f "$SCRATCH/arm.backup"; RC=1; return 0
   fi
   echo "    planted   $file  $before -> $(sha "$file")"
-  pf=$(fails); pv=$(mktemp); verdicts > "$pv"
+  pf=$(fails); pv="$SCRATCH/planted.verdicts"; verdicts > "$pv"
+  if [ "$pf" -le "$BASE_F" ] || cmp -s "$BASE_V" "$pv"; then RC=1; fi
   echo "    failures  $BASE_F -> $pf  $([ "$pf" -gt "$BASE_F" ] && echo 'WENT RED' || echo '*** DID NOT GO RED ***')"
   echo "    verdicts that changed:"
   diff "$BASE_V" "$pv" | grep -E "^[<>]" | sed 's/^/      /' || echo "      (none — the sweep did not notice)"
   rm -f "$pv"
-  cp "/tmp/m31.arm.$$" "$file"; rm -f "/tmp/m31.arm.$$"
+  cp "$SCRATCH/arm.backup" "$file"; rm -f "$SCRATCH/arm.backup"
   after=$(sha "$file")
+  if [ "$after" != "$before" ]; then RC=1; fi
   echo "    restored  $after  $([ "$after" = "$before" ] && echo IDENTICAL || echo '*** DIVERGED ***')"
   echo
 }
@@ -81,6 +99,10 @@ echo "=== RESTORED ===  failures=$(fails)  exit=$(python3 "$SWEEP" >/dev/null 2>
 echo "  $MOCK  $(sha $MOCK)"
 echo "  $STORE  $(sha $STORE)"
 echo "  $SWIFT  $(sha $SWIFT)"
-diff "$BASE_V" <(verdicts) >/dev/null && echo "  verdict table identical to baseline" || echo "  *** VERDICT TABLE DRIFTED ***"
-git status --porcelain "$MOCK" "$STORE" "$SWIFT" | sed 's/^/  git: /'
-rm -f "$BASE_V"
+if diff "$BASE_V" <(verdicts) >/dev/null; then
+  echo "  verdict table identical to baseline"
+else
+  echo "  *** VERDICT TABLE DRIFTED ***"; RC=1
+fi
+echo "  $ARMS planted controls ran in an isolated source copy; original checkout was never written"
+exit "$RC"

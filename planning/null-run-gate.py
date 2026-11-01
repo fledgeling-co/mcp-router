@@ -103,12 +103,6 @@ CLEAN_SWIFT = """enum Wire {
 }
 """
 
-# The same file with no exemption line. `no-wire-codable.sh` cannot survive a tree that records
-# zero exemptions — see the WIRE-zero-exemptions arm.
-UNEXEMPTED_SWIFT = """enum Wire {
-    static func encode(_ value: Int) -> String { String(value) }
-}
-"""
 
 
 @dataclass
@@ -365,15 +359,10 @@ def pin_class_empty(root: Path) -> None:
 LEDGER_MD = "planning/features-to-triage/LEDGER.md"
 RECONCILE = "planning/ledger-reconcile.py"
 ACCOUNTING = "planning/reader-accounting.py"
-WIRE = "scripts/lint/no-wire-codable.sh"
 RAW = "scripts/lint/no-raw-design-values.sh"
 
-# `no-wire-codable.sh` is not derived from: it spells its directories as bare names under its own
-# `ROOT=` and tolerates a missing one (`[ -d ] && present+=`), erroring only when none exist. A
-# stale literal there cannot produce the early exit above, so the arms keep naming the two they
-# mean to plant in. `no-raw-design-values.sh` requires every listed directory, which is what made
-# its list load-bearing — the RAW arms take theirs from `script_dirs`.
-WIRE_DIRS = ("app/Sources/RouterCore/Control", "app/Sources/RouterCore/Registry")
+# The retired Swift router wire serializer gate and its five control arms were
+# removed together. Active raw-design controls remain below.
 
 ARMS: list[Arm] = [
     # ---- the baseline. Every poison below is only evidence because this one is green -------
@@ -470,35 +459,7 @@ ARMS: list[Arm] = [
         empty_accounting_tree, 2, expect="usage error", forbid="accounted —",
         run="tools/reader-accounting.py", repo=True),
 
-    # ---- the two shell lints with no selftest of their own ------------------------------------
-    Arm("BASE-wire", WIRE, "poison", "the scratch tree is clean, so a red under a plant is the plant",
-        lint_tree("no-wire-codable.sh", WIRE_DIRS), 0, expect="no-wire-codable: clean"),
-    Arm("WIRE-codable", WIRE, "poison", "a Codable conformance on a wire path",
-        chain(lint_tree("no-wire-codable.sh", WIRE_DIRS),
-              write("app/Sources/RouterCore/Control/Bad.swift",
-                    "struct Payload: Codable {\n    let name: String\n}\n")),
-        1, expect="Codable conformance"),
-    Arm("WIRE-dictionary", WIRE, "poison", "an unexempted Swift Dictionary on a wire path",
-        chain(lint_tree("no-wire-codable.sh", WIRE_DIRS),
-              write("app/Sources/RouterCore/Control/Bad.swift",
-                    "enum Bag {\n    static var store: [String: Int] = [:]\n}\n")),
-        1, expect="Swift Dictionary loses member order"),
-    # Asserts a DEFECT, on the same principle as P10 in no-harness-config-writes-selftest.sh: a
-    # limit written down as an assertion is visible from a run rather than only from a paragraph,
-    # and closing it turns this arm red on purpose. `no-wire-codable.sh` ends with
-    # `exemptions=$(grep … | wc -l)` under `set -euo pipefail`, so a tree recording zero exemptions
-    # makes grep exit 1, the assignment inherit it and the script die — after printing `clean`.
-    # Exit 1 is its violation code, so a clean scan reports a violation. Found 2026-08-22 by this
-    # gate's first run; the real tree carries exemptions today, which is why nothing has hit it.
-    Arm("WIRE-zero-exemptions", WIRE, "poison",
-        "a clean tree recording no exemption at all — asserts the known defect, not a pass",
-        lint_tree("no-wire-codable.sh", WIRE_DIRS, UNEXEMPTED_SWIFT),
-        1, expect="no-wire-codable: clean"),
-
-    Arm("NULL-wire", WIRE, "null", "none of the scanned directories exist",
-        lint_tree("no-wire-codable.sh", ()), 2,
-        expect="scanned nothing", forbid="no-wire-codable: clean"),
-
+    # ---- the active raw-design shell lint ----------------------------------------------
     Arm("BASE-raw", RAW, "poison", "the scratch tree is clean, so a red under a plant is the plant",
         lint_tree("no-raw-design-values.sh"), 0, expect="no-raw-design-values: clean"),
     Arm("RAW-import", RAW, "poison", "MCPRouterKit importing a UI framework",

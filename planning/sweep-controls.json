@@ -158,7 +158,7 @@
         "bash",
         "planning/evidence/M31/arm-sweep.sh"
       ],
-      "proves": "the file's own named control (`The sweep has its own control in arm-sweep.sh`). Eight arms plant a real defect each into the mock, the store page and Controls.swift, and the assertion is the DIFF of the sweep's verdict lines against baseline plus the movement in its failure count \u2014 never a grep for a word, because grepping was wrong twice in one run. It exists because the sweep's first form could not fail: `failures` was initialised, read twice and never appended to. Every file is restored and the restore is checked back to its pre-plant sha256."
+      "proves": "Seven named mutations run against an isolated copy of the current source, mock and store page. Each must increase the failure count and change the verdict table, and every restore must match its original hash. An unapplied mutation refuses with nonzero exit. The control never writes its parent checkout, so source-reading Swift tests cannot observe its planted defects. The former registry described eight arms; the actual controller contains seven."
     },
     {
       "path": "planning/goals/citations-blocking-check.sh",

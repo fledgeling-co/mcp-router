@@ -43,7 +43,8 @@
                         .transition(.move(edge: .trailing))
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .frame(maxWidth: .infinity, minHeight: 0, maxHeight: .infinity, alignment: .topLeading)
+            // Empty content must accept the pane's proposal rather than raise the split view minimum.
             .accessibilityIdentifier(Self.identifier)
             // Scoped to this board. Leaving Activity cancels both, so no socket is held open behind
             // a surface nobody is looking at, and coming back re-reads rather than showing a list
@@ -71,7 +72,7 @@
                 ActivityFilterBar(model: model)
                 content
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .frame(maxWidth: .infinity, minHeight: 0, maxHeight: .infinity, alignment: .topLeading)
         }
 
         private var header: some View {

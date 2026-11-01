@@ -23,6 +23,7 @@
         var onShowChildPath: () -> Void = {}
         var onResetHistory: () -> Void = {}
         var resetNotice: String?
+        var isResettingHistory = false
 
         private var files: SettingsPresentation.RouterFiles {
             .init(home: routerHome)
@@ -38,9 +39,13 @@
 
         private var historyGroup: some View {
             SettingsGroup("Call history") {
-                Button(CleanupPresentation.resetLabel, action: onResetHistory)
+                Button(
+                    isResettingHistory ? "Updating history…" : CleanupPresentation.resetLabel,
+                    action: onResetHistory
+                )
                     .buttonStyle(StandardButtonStyle())
                     .accessibilityIdentifier("settings-reset-history")
+                    .disabled(isResettingHistory)
                 if let resetNotice {
                     SettingsHelp(resetNotice, id: "history-reset-result")
                 }

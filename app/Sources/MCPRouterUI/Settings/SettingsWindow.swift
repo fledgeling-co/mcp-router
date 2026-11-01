@@ -208,7 +208,8 @@
                     buildIdentity: buildIdentity,
                     onShowChildPath: { model.sheet = .childPath },
                     onResetHistory: model.requestHistoryReset,
-                    resetNotice: model.resetNotice
+                    resetNotice: model.resetNotice,
+                    isResettingHistory: model.isResetting
                 )
             }
         }

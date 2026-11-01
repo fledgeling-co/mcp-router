@@ -1,111 +1,117 @@
-"""Rewrite mcp-router's config so credentials are `warden://` URIs rather than values — W2.
+"""Write a Warden URI migration only after the installed TypeScript runtime passes preflight.
 
-Reads the plan `plan-migration.py` wrote, and produces a config in which every entry the plan
-classified as a credential carries its vault URI instead of its value. Configuration entries are
-copied through untouched.
-
-WRITES A COPY BY DEFAULT. `--out <path>` names it; without `--in-place` the live config is never
-opened for writing. `--in-place` additionally requires `--backup`, which copies the current file
-beside itself with its mode preserved before anything is written — the config is mode 0600 and a
-rewrite that widened it would be a worse defect than the one this closes.
-
-REFUSES WHILE A PLACEHOLDER SURVIVES. A `<CHOOSE>` means nobody has said which vault item that
-credential is, and writing `warden://<CHOOSE>` would produce a config that fails at connection time
-for a reason the error will not explain.
-
-NEVER PRINTS A VALUE. It reports key names, upstream names and URIs. The one thing it will not
-show is the thing it is moving.
-
-VERIFIES WHAT IT WROTE, against the same predicate the router uses. `SecretResolver.isSecretURI`
-accepts a value beginning `warden://` or `op://`, and a `Bearer `-prefixed one is unwrapped first;
-this checks every rewritten entry against that rule rather than against its own idea of a URI, so a
-config it calls good is one the router will accept.
-
-Exit codes: 0 written, 1 a placeholder or an unresolvable row, 2 the plan or config is unreadable.
+The retired Swift resolver does not establish support in the running TypeScript router.
+Only exact-name warden:// references are supported; op:// vault/field paths are refused.
+Both output copies and in-place changes require a trusted runtime. No secret is printed.
 """
 from __future__ import annotations
-import json, os, shutil, sys
+import argparse
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+from urllib.parse import unquote
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PLAN = os.path.join(HERE, 'migration-plan.json')
 
 
 def is_secret_uri(value: str) -> bool:
-    """The router's own rule, in `SecretResolver.isSecretURI` plus its Bearer unwrap."""
-    v = value[len('Bearer '):].strip() if value.startswith('Bearer ') else value
-    return v.startswith('warden://') or v.startswith('op://')
+    v = value
+    if v.lower().startswith('bearer '):
+        v = v.split(None, 1)[1] if len(v.split(None, 1)) == 2 else ''
+    if not v.lower().startswith('warden://'):
+        return False
+    try:
+        import re
+        if re.search(r'%(?![0-9a-fA-F]{2})', v):
+            return False
+        name = unquote(v[len('warden://'):], errors='strict')
+    except (UnicodeError, ValueError):
+        return False
+    return bool(name) and len(name) <= 256 and name == name.strip() and not any(
+        ord(c) < 32 or ord(c) == 127 or c in '?#<>' for c in name)
 
 
-def main() -> int:
-    args = sys.argv[1:]
-    in_place = '--in-place' in args
-    backup = '--backup' in args
-    out = None
-    if '--out' in args:
-        out = args[args.index('--out') + 1]
+def runtime_preflight(runtime: str) -> bool:
+    entry = os.path.join(runtime, 'dist', 'credential-preflight.js')
+    if not os.path.isfile(entry):
+        print('REFUSING: installed TypeScript runtime has no credential resolver preflight.')
+        return False
+    try:
+        result = subprocess.run(['node', entry], capture_output=True, text=True, timeout=20)
+        evidence = json.loads(result.stdout)
+        valid = result.returncode == 0 and evidence == {
+            'supported': True, 'scheme': 'warden', 'trusted': True}
+    except (OSError, subprocess.SubprocessError, ValueError):
+        valid = False
+    if not valid:
+        print('REFUSING: installed Warden has not passed Gatekeeper and the pinned Developer ID check.')
+    return valid
 
-    if not os.path.exists(PLAN):
-        print(f'no plan at {PLAN} — run plan-migration.py first')
+
+def main(args=None, *, plan_path=PLAN, runtime_check=runtime_preflight) -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--out')
+    parser.add_argument('--in-place', action='store_true')
+    parser.add_argument('--backup', action='store_true')
+    parser.add_argument('--runtime', default=os.path.expanduser('~/.local/share/mcp-router'))
+    options = parser.parse_args(sys.argv[1:] if args is None else args)
+    try:
+        with open(plan_path, encoding='utf-8') as file:
+            plan = json.load(file)
+        config_path, rows = plan['config'], plan['rows']
+        credentials = [r for r in rows if r['is_secret']]
+        if any(not isinstance(r.get('uri'), str) or not is_secret_uri(r['uri']) for r in credentials):
+            print('REFUSING: choose an exact-name warden:// URI for each credential; op:// is unsupported.')
+            return 1
+        if options.in_place and not options.backup:
+            print('REFUSING: --in-place requires --backup.')
+            return 1
+        # This runs before opening the credential-bearing source or any output, including copies.
+        if not runtime_check(options.runtime):
+            return 1
+        with open(config_path, encoding='utf-8') as file:
+            doc = json.load(file)
+        for row in credentials:
+            block = doc['mcpServers'][row['upstream']][row['block']]
+            if row['key'] not in block:
+                print('REFUSING: migration plan no longer matches the configured key names.')
+                return 1
+            block[row['key']] = row['uri']
+        if options.in_place:
+            backup_path = config_path + '.pre-warden'
+            # Preserve a previous rollback copy instead of silently replacing it.
+            if os.path.exists(backup_path):
+                print('REFUSING: a pre-warden backup already exists; preserve it before retrying.')
+                return 1
+            descriptor = os.open(backup_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            with os.fdopen(descriptor, 'wb') as backup_file, open(config_path, 'rb') as source:
+                shutil.copyfileobj(source, backup_file)
+                backup_file.flush()
+                os.fsync(backup_file.fileno())
+            target = config_path
+        else:
+            target = options.out or os.path.join(HERE, 'servers.migrated.json')
+        # The temporary file is private from creation and atomically replaces the destination.
+        fd, temporary = tempfile.mkstemp(prefix='.warden-migration-', dir=os.path.dirname(os.path.abspath(target)))
+        try:
+            with os.fdopen(fd, 'w', encoding='utf-8') as file:
+                json.dump(doc, file, indent=2)
+                file.write('\n')
+                file.flush()
+                os.fsync(file.fileno())
+            os.replace(temporary, target)
+        finally:
+            if os.path.exists(temporary):
+                os.unlink(temporary)
+        print(f'wrote mode 0600 output; {len(credentials)} credentials now carry exact-name Warden references')
+        return 0
+    except (OSError, ValueError, KeyError, TypeError):
+        print('REFUSING: plan or configuration could not be read safely; no credential value is displayed.')
         return 2
-    plan = json.load(open(PLAN, encoding='utf-8'))
-    config_path = plan['config']
-    rows = plan['rows']
-
-    pending = [r for r in rows if r['is_secret'] and (not r.get('uri') or r['uri'] == '<CHOOSE>')]
-    if pending:
-        print(f'REFUSING — {len(pending)} credential(s) have no vault URI chosen:')
-        for r in pending:
-            print(f'  {r["upstream"]:<16} {r["block"]:<8} {r["key"]}')
-        print('\nEach needs the vault item it corresponds to. Nothing here can know which is which:')
-        print('`warden import` pulls from 1Password through `op`, so the credential must exist')
-        print('there first, and only you can say which item is which.')
-        return 1
-
-    if in_place and not backup:
-        print('REFUSING — --in-place requires --backup. The config is mode 0600 and holds every')
-        print('credential this rewrite touches; a rewrite with no copy beside it is not reversible.')
-        return 1
-
-    doc = json.load(open(config_path, encoding='utf-8'))
-    changed = 0
-    for r in rows:
-        if not r['is_secret']:
-            continue
-        block = (doc['mcpServers'][r['upstream']].get(r['block']) or {})
-        block[r['key']] = r['uri']
-        changed += 1
-
-    bad = []
-    for r in rows:
-        if not r['is_secret']:
-            continue
-        v = doc['mcpServers'][r['upstream']][r['block']][r['key']]
-        if not is_secret_uri(v):
-            bad.append(f'{r["upstream"]}/{r["key"]}')
-    if bad:
-        print('REFUSING — these would not be recognised as secret URIs by the router:')
-        for b in bad:
-            print(f'  {b}')
-        return 1
-
-    if in_place:
-        mode = os.stat(config_path).st_mode & 0o777
-        shutil.copy2(config_path, config_path + '.pre-warden')
-        os.chmod(config_path + '.pre-warden', mode)
-        print(f'backed up to {config_path}.pre-warden at mode {oct(mode)}')
-        target = config_path
-    else:
-        target = out or os.path.join(HERE, 'servers.migrated.json')
-
-    with open(target, 'w', encoding='utf-8') as fh:
-        json.dump(doc, fh, indent=2)
-        fh.write('\n')
-    os.chmod(target, 0o600)
-    print(f'wrote {target} at mode 0600 — {changed} credential(s) now carry a URI, no value')
-    if not in_place:
-        print('This is a COPY. Nothing the router reads has changed. Review it, then re-run with')
-        print('  --in-place --backup')
-    return 0
 
 
 if __name__ == '__main__':

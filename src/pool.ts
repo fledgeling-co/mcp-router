@@ -7,6 +7,7 @@ import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { isStdio, type UpstreamConfig, type HttpUpstream, type StdioUpstream } from './config.js';
 import { FileOAuthProvider, isAuthFailure } from './auth.js';
 import { log } from './log.js';
+import { CredentialProtectedTransport, WardenCredentialResolver, scrubCredentialText, type CredentialResolver } from './credentials.js';
 import { readEnvFiles } from './envfile.js';
 import type { ChildProcess } from 'node:child_process';
 import { readdirSync, statSync } from 'node:fs';
@@ -217,8 +218,11 @@ export class UpstreamPool {
   constructor(
     private upstreams: Map<string, UpstreamConfig>,
     private defaultIdleMs: number,
-    private startupTimeoutMs: number
+    private startupTimeoutMs: number,
+    private readonly credentials: CredentialResolver = new WardenCredentialResolver()
   ) {}
+
+  private readonly connectionAbort = new AbortController();
 
   /**
    * Environment for a child: the router's own env with PATH augmented, then the server's env
@@ -326,17 +330,18 @@ export class UpstreamPool {
   }
 
   /** Build the transport for one upstream. stdio spawns a process; http/sse do not. */
-  private makeTransport(u: UpstreamConfig): Transport {
+  private makeTransport(u: UpstreamConfig, resolved: Record<string, string>, secrets: string[]): Transport {
     if (isStdio(u)) {
       const t = new ExitReportingStdioTransport({
         command: u.command,
         args: u.args,
-        env: this.buildEnv(u),
+        env: resolved,
         cwd: u.cwd,
         stderr: 'pipe',
       });
       // Drain the child's stderr so a chatty server cannot fill its pipe buffer and wedge.
       t.stderr?.on('data', (chunk: Buffer) => {
+        if (secrets.length) return; // A child can split a secret across stderr chunks.
         const text = chunk.toString().trim();
         if (text) log.debug(`[${u.name}] ${text.slice(0, 400)}`);
       });
@@ -357,7 +362,7 @@ export class UpstreamPool {
         : new FileOAuthProvider(u.name, (url) => {
             this.pendingAuth.set(u.name, {
               server: u.name,
-              url: url.toString(),
+              url: scrubCredentialText(url.toString(), secrets),
               at: new Date().toISOString(),
             });
             log.warn(`upstream "${u.name}" needs authorization — run \`mcp-router auth ${u.name}\``);
@@ -365,7 +370,7 @@ export class UpstreamPool {
 
     const opts = {
       authProvider,
-      requestInit: Object.keys(http.headers).length ? { headers: http.headers } : undefined,
+      requestInit: Object.keys(resolved).length ? { headers: resolved } : undefined,
     };
     return http.transport === 'sse'
       ? new SSEClientTransport(new URL(http.url), opts)
@@ -374,21 +379,27 @@ export class UpstreamPool {
 
   private async open(u: UpstreamConfig): Promise<UpstreamHandle> {
     const t0 = Date.now();
+    const resolved = await this.credentials.resolve(isStdio(u) ? this.buildEnv(u) : u.headers, {
+      upstream: u.name, project: isStdio(u) ? (u.cwd ?? process.cwd()) : process.cwd(),
+      signal: this.connectionAbort.signal,
+    });
+    if (this.shuttingDown) throw new Error('router is shutting down');
     log.info(
       isStdio(u)
         ? `spawning upstream "${u.name}" (${u.command} ${u.args.join(' ')})`.slice(0, 200)
         : `connecting upstream "${u.name}" (${u.transport} ${u.url})`.slice(0, 200)
     );
 
-    const transport = this.makeTransport(u);
+    const rawTransport = this.makeTransport(u, resolved.values, resolved.secrets);
+    const transport = resolved.secrets.length ? new CredentialProtectedTransport(rawTransport, resolved.secrets) : rawTransport;
     const client = new Client({ name: 'mcp-router', version: '0.1.0' }, { capabilities: {} });
 
     const timeoutMs = u.startupTimeoutMs ?? this.startupTimeoutMs;
     // A child that ends before it can answer fails at once rather than running out the budget.
     // HTTP has no child to watch, so its branch never settles.
     const childExit =
-      transport instanceof ExitReportingStdioTransport
-        ? transport.exited.then((exit) => {
+      rawTransport instanceof ExitReportingStdioTransport
+        ? rawTransport.exited.then((exit) => {
             throw new Error(exitedBeforeInitializing(u.name, exit));
           })
         : new Promise<never>(() => {});
@@ -423,6 +434,7 @@ export class UpstreamPool {
           `upstream "${u.name}" is not authorized. Run \`mcp-router auth ${u.name}\` to sign in.`
         );
       }
+      if (resolved.secrets.length) throw new Error('Credential-bound upstream did not initialize');
       throw err;
     } finally {
       if (timer) clearTimeout(timer);
@@ -692,6 +704,7 @@ export class UpstreamPool {
 
   async shutdown(): Promise<void> {
     this.shuttingDown = true;
+    this.connectionAbort.abort();
     const names = [...this.entries.keys()];
 
     /*

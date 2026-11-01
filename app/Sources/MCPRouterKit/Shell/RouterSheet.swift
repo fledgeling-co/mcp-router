@@ -53,11 +53,15 @@ public enum RouterSheet: Equatable, Sendable {
     public enum Skills: Equatable, Sendable, Identifiable {
         case heldVersion(skillID: String)
         case marketplaces
+        case updates
+        case changelog(name: String)
 
         public var id: String {
             switch self {
             case let .heldVersion(skillID): "held:\(skillID)"
             case .marketplaces: "marketplaces"
+            case .updates: "updates"
+            case let .changelog(name): "changelog:\(name)"
             }
         }
     }
@@ -208,6 +212,8 @@ public extension RouterSheet {
             switch sheet {
             case .heldVersion: .capabilityDelta
             case .marketplaces: .addMarketplace
+            case .updates: .capabilityDelta
+            case .changelog: .readme
             }
         case let .cleanup(sheet):
             switch sheet {
@@ -257,6 +263,8 @@ public extension RouterSheet {
             .servers(.document(server: "s")),
             .skills(.heldVersion(skillID: "k")),
             .skills(.marketplaces),
+            .skills(.updates),
+            .skills(.changelog(name: "k")),
             .cleanup(.removeCandidate(name: "s")),
             .cleanup(.resetHistory),
             .cleanup(.provenance(skillPath: "/p")),

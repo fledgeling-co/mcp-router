@@ -19,6 +19,18 @@
                 }
             case .marketplaces:
                 MarketplacesSheet(board: board)
+            case .updates:
+                SkillUpdateReviewSheet(board: board)
+            case let .changelog(name):
+                if let document = board.changelogDocument(named: name) {
+                    CapabilityDocumentSheet(content: .document(document), initialTab: .changelog) {
+                        board.sheet = nil
+                    }
+                } else {
+                    CapabilityDocumentSheet(content: .unavailable(.notFound(capability: name))) {
+                        board.sheet = nil
+                    }
+                }
             }
         }
     }
@@ -78,10 +90,15 @@
                     // The changelog the update check read for this version, with what it observed when it
                     // read none.
                     if let changelog = board.offer(for: skill)?.changelog {
-                        Text(changelog.text ?? changelog.note)
-                            .typeRole(.caption, monospaced: changelog.text != nil)
-                            .foregroundStyle(ColorToken.t2.color)
-                            .fixedSize(horizontal: false, vertical: true)
+                        if changelog.text != nil, let offer = board.offer(for: skill) {
+                            Button("Read changelog…") { board.sheet = .changelog(name: offer.name) }
+                                .buttonStyle(StandardButtonStyle())
+                        } else {
+                            Text(changelog.note)
+                                .typeRole(.caption)
+                                .foregroundStyle(ColorToken.t2.color)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
                 }
 

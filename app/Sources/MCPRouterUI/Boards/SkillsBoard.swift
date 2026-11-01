@@ -111,6 +111,7 @@
                     .padding(.bottom, SkillsBoardMetrics.gap)
             }
 
+            if !board.batchPromotions.isEmpty { batchUndoBar }
             if let promoted = board.lastPromotion {
                 PromotionUndoBar(board: board, promoted: promoted)
                     .padding(.bottom, SkillsBoardMetrics.gap)
@@ -159,6 +160,20 @@
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, SkillsBoardMetrics.gap)
             }
+        }
+
+        private var batchUndoBar: some View {
+            HStack {
+                Text("\(board.batchPromotions.count) plugin updates can be undone")
+                    .typeRole(.callout)
+                Spacer()
+                Button("Review results…") { board.sheet = .updates }
+                    .buttonStyle(StandardButtonStyle())
+                Button("Undo updates") { Task { await board.undoBatchPromotions() } }
+                    .buttonStyle(StandardButtonStyle())
+                    .disabled(board.writing)
+            }
+            .padding(.bottom, SkillsBoardMetrics.gap)
         }
 
         private func header(response: SkillsResponse?) -> some View {

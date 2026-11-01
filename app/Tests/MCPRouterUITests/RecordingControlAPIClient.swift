@@ -35,11 +35,16 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
         public var searchRegistry = 0
         public var pairingIssue = 0
         public var pairingRevoke = 0
+        public var promotions: [String] = []
+        public var undos: [String] = []
 
         public init() {}
     }
 
     private let wrapped: any ControlAPIClient
+    private let extraUpdates: [ExtensionUpdateEntry]
+    private let refusedPromotions: Set<String>
+    private let refusedUndos: Set<String>
     /// Holds a pairing issue in flight after it is counted, so a test can close the sheet while the
     /// router is still answering.
     private let issueGate: (@Sendable () async -> Void)?
@@ -52,10 +57,16 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
 
     public init(
         wrapping wrapped: any ControlAPIClient,
-        issueGate: (@Sendable () async -> Void)? = nil
+        issueGate: (@Sendable () async -> Void)? = nil,
+        extraUpdates: [ExtensionUpdateEntry] = [],
+        refusedPromotions: Set<String> = [],
+        refusedUndos: Set<String> = []
     ) {
         self.wrapped = wrapped
         self.issueGate = issueGate
+        self.extraUpdates = extraUpdates
+        self.refusedPromotions = refusedPromotions
+        self.refusedUndos = refusedUndos
     }
 
     private func record(_ mutate: (inout Calls) -> Void) {
@@ -103,6 +114,35 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
     public func revokePairingCode() async throws(ControlAPIError) -> Bool {
         record { $0.pairingRevoke += 1 }
         return try await wrapped.revokePairingCode()
+    }
+
+    public func promoteFromCache(
+        _ name: String,
+        pluginVersion: String
+    ) async throws(ControlAPIError) -> PromotionAck {
+        record { $0.promotions.append(name) }
+        if refusedPromotions.contains(name) {
+            throw .server(status: 409, message: "cache entry changed", hint: "Review the new version")
+        }
+        return try await wrapped.promoteFromCache(name, pluginVersion: pluginVersion)
+    }
+
+    public func undoPromotion(
+        _ name: String,
+        kind: StoredExtensionKind,
+        restore: String
+    ) async throws(ControlAPIError) -> UndoAck {
+        record { $0.undos.append(name) }
+        if refusedUndos.contains(name) {
+            throw .server(status: 409, message: "restore is unavailable", hint: "Keep the installed copy")
+        }
+        return try await wrapped.undoPromotion(name, kind: kind, restore: restore)
+    }
+
+    public func extensionUpdates() async throws(ControlAPIError) -> ExtensionUpdatesResponse {
+        var response = try await wrapped.extensionUpdates()
+        response.entries += extraUpdates
+        return response
     }
 
     // MARK: - Straight passthrough

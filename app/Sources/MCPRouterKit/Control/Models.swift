@@ -81,6 +81,8 @@ public struct MCPServer: Codable, Hashable, Sendable, Identifiable {
     public var command: String?
     public var args: [String]?
     public var cwd: String?
+    /// Present on routers that explicitly declare whether a local package may be read.
+    public var documentAvailable: Bool?
     public var url: String?
     public var envKeys: [String]?
     public var headerKeys: [String]?

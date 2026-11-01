@@ -49,17 +49,6 @@
       "not_proved": "reckon is a plugin in the machine's cache rather than a vendored dependency. On a checkout with no cache the agreement arm reports NOT RUN by name and the hermetic arms still fire; a green control there is 18 arms, not 19."
     },
     {
-      "path": "planning/carrier-parity-gate.py",
-      "disposition": "waived",
-      "markers": [
-        "V2",
-        "V3",
-        "V4"
-      ],
-      "since": "2026-08-29",
-      "reason": "Control is `bash scripts/acceptance/carrier-parity-selftest.sh`, which calls `shasum`. Git Bash on this machine has no `shasum` (it has `sha1sum`). The gate itself ran and reported 0 findings after the 2026-08-31 row updates; this waiver is of the *control script*, not of the gate. Porting the selftest off `shasum` is owed rather than done here."
-    },
-    {
       "path": "planning/citation-gate.py",
       "disposition": "control",
       "markers": [
@@ -755,27 +744,6 @@
       "since": "2026-08-26"
     },
     {
-      "path": "scripts/acceptance/carrier-census.sh",
-      "disposition": "waived",
-      "markers": [
-        "V1",
-        "V2",
-        "V3"
-      ],
-      "since": "2026-08-29",
-      "reason": "Same control as planning/carrier-parity-gate.py (`carrier-parity-selftest.sh`), same `shasum` absence. Same waiver."
-    },
-    {
-      "path": "scripts/acceptance/carrier-parity-selftest.sh",
-      "disposition": "waived",
-      "markers": [
-        "V1",
-        "V3"
-      ],
-      "since": "2026-08-29",
-      "reason": "It is its own control, and it calls `shasum`, which Git Bash does not ship. Same waiver as the two rows above."
-    },
-    {
       "path": "scripts/acceptance/control-client.sh",
       "disposition": "grandfathered",
       "markers": [
@@ -1000,152 +968,6 @@
       "since": "2026-08-26"
     },
     {
-      "path": "scripts/acceptance/parity-cli.sh",
-      "disposition": "grandfathered",
-      "markers": [
-        "V1",
-        "V3"
-      ],
-      "reason": "predates this gate; carries no control this gate can run",
-      "since": "2026-08-26"
-    },
-    {
-      "path": "scripts/acceptance/parity-divergence.sh",
-      "disposition": "grandfathered",
-      "markers": [
-        "V1",
-        "V2",
-        "V3"
-      ],
-      "reason": "predates this gate; carries no control this gate can run",
-      "since": "2026-08-26"
-    },
-    {
-      "path": "scripts/acceptance/parity-fixture.sh",
-      "disposition": "grandfathered",
-      "markers": [
-        "V2",
-        "V3"
-      ],
-      "reason": "predates this gate; carries no control this gate can run",
-      "since": "2026-08-26"
-    },
-    {
-      "path": "scripts/acceptance/parity-gate.sh",
-      "disposition": "grandfathered",
-      "markers": [
-        "V1",
-        "V2",
-        "V3"
-      ],
-      "reason": "predates this gate; carries no control this gate can run",
-      "since": "2026-08-26"
-    },
-    {
-      "path": "scripts/acceptance/parity-lane-selftest.sh",
-      "disposition": "grandfathered",
-      "markers": [
-        "V1",
-        "V2",
-        "V3"
-      ],
-      "reason": "predates this gate; carries no control this gate can run",
-      "since": "2026-08-26"
-    },
-    {
-      "path": "scripts/acceptance/parity-lock-selftest.sh",
-      "disposition": "grandfathered",
-      "markers": [
-        "V1",
-        "V2"
-      ],
-      "reason": "predates this gate; carries no control this gate can run",
-      "since": "2026-08-26"
-    },
-    {
-      "path": "scripts/acceptance/parity-manifest-check.sh",
-      "disposition": "grandfathered",
-      "markers": [
-        "V1",
-        "V3"
-      ],
-      "reason": "predates this gate; carries no control this gate can run",
-      "since": "2026-08-26"
-    },
-    {
-      "path": "scripts/acceptance/parity-manifest-selftest.sh",
-      "disposition": "grandfathered",
-      "markers": [
-        "V1",
-        "V2"
-      ],
-      "since": "2026-08-27",
-      "reason": "Added 2026-08-15, eleven days before this gate existed, and it is not being brought up to the rule now. It is a real arming and it does run: measured 2026-08-27 in this worktree it plants a removed control delegation, a wrong row pin and a doctored SDK version among others, and reports `manifest selftest: 39 behaved, 0 did not` at exit 0. Two measurements keep it off the `control` list rather than an argument. (1) TIME: that run took 113.6s against this gate's CONTROL_TIMEOUT of 120s, so it clears by 6.4 seconds on an idle machine and would be reported as `control did not finish in 120s` — a rotted control — on a loaded one. A control whose verdict depends on machine load is the instrument this registry exists to distrust. (2) ENVIRONMENT: it reads the mcp method names out of the installed SDK and exits 2 with `environment: the MCP SDK is not installed. Run npm install.` without node_modules. Under `make lint` that is guaranteed by the `tools` target; run standalone, as the gate command in every brief here is, it is not. WHAT WOULD END THE GRANDFATHERING: either the selftest getting under the timeout with real headroom, or this gate growing a per-entry timeout so a slow control can declare its own cost — plus node_modules becoming a stated precondition of a standalone run rather than an accident of whether `make` went first."
-    },
-    {
-      "path": "scripts/acceptance/parity-mcp.sh",
-      "disposition": "grandfathered",
-      "markers": [
-        "V1",
-        "V3"
-      ],
-      "reason": "predates this gate; carries no control this gate can run",
-      "since": "2026-08-26"
-    },
-    {
-      "path": "scripts/acceptance/parity-oauth.sh",
-      "disposition": "grandfathered",
-      "markers": [
-        "V1",
-        "V2",
-        "V3"
-      ],
-      "reason": "predates this gate; carries no control this gate can run",
-      "since": "2026-08-26"
-    },
-    {
-      "path": "scripts/acceptance/parity-pool.sh",
-      "disposition": "grandfathered",
-      "markers": [
-        "V1",
-        "V2",
-        "V3"
-      ],
-      "reason": "predates this gate; carries no control this gate can run",
-      "since": "2026-08-26"
-    },
-    {
-      "path": "scripts/acceptance/parity-registry.sh",
-      "disposition": "grandfathered",
-      "markers": [
-        "V1",
-        "V3"
-      ],
-      "reason": "predates this gate; carries no control this gate can run",
-      "since": "2026-08-26"
-    },
-    {
-      "path": "scripts/acceptance/parity-selftests.sh",
-      "disposition": "waived",
-      "markers": [
-        "V1",
-        "V3"
-      ],
-      "since": "2026-08-27",
-      "reason": "Its only absence claim is the identity `run == enrolled`, and that is armed by construction: the summary table is printed from the same array the verdict is computed from, so there is no total a selftest can be absent from, and PARITY_SELFTESTS / PARITY_SELFTEST_DIR exist for planting selftests with known exits. It cannot be a command this gate runs because it dispatches all five parity selftests: the first exits 2 without node_modules, and parity-lane-selftest.sh takes about four and a half minutes against the TypeScript reference — more than double this gate's 120s control timeout, so the row would report a timeout rather than a verdict."
-    },
-    {
-      "path": "scripts/acceptance/parity-stream.sh",
-      "disposition": "grandfathered",
-      "markers": [
-        "V1",
-        "V2",
-        "V3"
-      ],
-      "reason": "predates this gate; carries no control this gate can run",
-      "since": "2026-08-26"
-    },
-    {
       "path": "scripts/acceptance/r22-diagnostics.sh",
       "disposition": "waived",
       "markers": [
@@ -1336,20 +1158,6 @@
       ],
       "reason": "predates this gate; carries no control this gate can run",
       "since": "2026-08-26"
-    },
-    {
-      "path": "scripts/parity/mutation-gate-selftest.sh",
-      "disposition": "control",
-      "markers": [
-        "V1",
-        "V2"
-      ],
-      "since": "2026-08-27",
-      "control": [
-        "bash",
-        "scripts/parity/mutation-gate-selftest.sh"
-      ],
-      "proves": "11 cases against the real harness with no rebuild: a filter that selects nothing must fail closed rather than report a clean sweep of zero mutations, the mutation count is read from the table rather than asserted, and an unknown option exits 2 instead of being ignored."
     },
     {
       "path": "scripts/red-green.py",

@@ -179,122 +179,6 @@ app/Tests/MCPRouterUITests/SkillsWriteModelTests.swift	swift-suite	app/Tests/MCP
 app/Tests/MCPRouterUITests/TriageFailureTests.swift	swift-suite	app/Tests/MCPRouterUITests/TriageFailureTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/TriageModelTests.swift	swift-suite	app/Tests/MCPRouterUITests/TriageModelTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/TriageSourceGuardTests.swift	swift-suite	app/Tests/MCPRouterUITests/TriageSourceGuardTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/AnalystCorpusTests.swift	swift-suite	app/Tests/RouterCoreTests/AnalystCorpusTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/AnalystEngineTests.swift	swift-suite	app/Tests/RouterCoreTests/AnalystEngineTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ArgvRedactionTests.swift	swift-suite	app/Tests/RouterCoreTests/ArgvRedactionTests.swift	swift	compiled and run by `swift test`; names argv ["node", …], execution unresolved	make:test
-app/Tests/RouterCoreTests/AttributionTests.swift	swift-suite	app/Tests/RouterCoreTests/AttributionTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/AuthCleanupRaceTests.swift	swift-suite	app/Tests/RouterCoreTests/AuthCleanupRaceTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/AuthExpiryMonitorTests.swift	swift-suite	app/Tests/RouterCoreTests/AuthExpiryMonitorTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/AuthExpiryPolicyTests.swift	swift-suite	app/Tests/RouterCoreTests/AuthExpiryPolicyTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/AuthFlowTests.swift	swift-suite	app/Tests/RouterCoreTests/AuthFlowTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/AuthParityTests.swift	swift-suite	app/Tests/RouterCoreTests/AuthParityTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/AuthRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/AuthRoutesTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/AuthServerRedirectTests.swift	swift-suite	app/Tests/RouterCoreTests/AuthServerRedirectTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/AuthSettledFlowTests.swift	swift-suite	app/Tests/RouterCoreTests/AuthSettledFlowTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/AuthStampTests.swift	swift-suite	app/Tests/RouterCoreTests/AuthStampTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/CLIIndexWriteDeniedTests.swift	swift-suite	app/Tests/RouterCoreTests/CLIIndexWriteDeniedTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/CacheFidelityTests.swift	swift-suite	app/Tests/RouterCoreTests/CacheFidelityTests.swift	swift	compiled and run by `swift test`; names argv ["node", …], execution unresolved	make:test
-app/Tests/RouterCoreTests/CacheInvalidationTests.swift	swift-suite	app/Tests/RouterCoreTests/CacheInvalidationTests.swift	swift	compiled and run by `swift test`; names command: "node", execution unresolved	make:test
-app/Tests/RouterCoreTests/CallbackHostileInputTests.swift	swift-suite	app/Tests/RouterCoreTests/CallbackHostileInputTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/CallbackLifecycleTests.swift	swift-suite	app/Tests/RouterCoreTests/CallbackLifecycleTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/CallbackListenerTests.swift	swift-suite	app/Tests/RouterCoreTests/CallbackListenerTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/CallbackWireTests.swift	swift-suite	app/Tests/RouterCoreTests/CallbackWireTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ChildPathSpawnTests.swift	swift-suite	app/Tests/RouterCoreTests/ChildPathSpawnTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ChildPathTests.swift	swift-suite	app/Tests/RouterCoreTests/ChildPathTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ClaudeStagingEntryTests.swift	swift-suite	app/Tests/RouterCoreTests/ClaudeStagingEntryTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ClientProcessNameTests.swift	swift-suite	app/Tests/RouterCoreTests/ClientProcessNameTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ConfigMutationLockTests.swift	swift-suite	app/Tests/RouterCoreTests/ConfigMutationLockTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ConfigParityTests.swift	swift-suite	app/Tests/RouterCoreTests/ConfigParityTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ConfigTrapTests.swift	swift-suite	app/Tests/RouterCoreTests/ConfigTrapTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ContentIdentityTests.swift	swift-suite	app/Tests/RouterCoreTests/ContentIdentityTests.swift	swift	compiled and run by `swift test`; names command: "node", execution unresolved	make:test
-app/Tests/RouterCoreTests/ControlAnalystRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlAnalystRoutesTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ControlApproveCatalogTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlApproveCatalogTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ControlApproveDispatchTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlApproveDispatchTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ControlAuthExpiryRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlAuthExpiryRoutesTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ControlAuthStartDispatchTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlAuthStartDispatchTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ControlBoardRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlBoardRoutesTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ControlCacheRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlCacheRoutesTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ControlDiagnosticsTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlDiagnosticsTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ControlDisableWriteTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlDisableWriteTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ControlDocumentRouteTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlDocumentRouteTests.swift	swift	compiled and run by `swift test`; names argv ["node", …], execution unresolved	make:test
-app/Tests/RouterCoreTests/ControlExtensionRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlExtensionRoutesTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ControlFixtureTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlFixtureTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ControlHealthRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlHealthRoutesTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ControlInvocationRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlInvocationRoutesTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ControlPauseVectorTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlPauseVectorTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ControlProfileRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlProfileRoutesTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ControlReindexDisabledTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlReindexDisabledTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ControlUpdateRoutesTests.swift	swift-suite	app/Tests/RouterCoreTests/ControlUpdateRoutesTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/DesktopEntryTests.swift	swift-suite	app/Tests/RouterCoreTests/DesktopEntryTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/DisabledSweepTests.swift	swift-suite	app/Tests/RouterCoreTests/DisabledSweepTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/DiscoveryTests.swift	swift-suite	app/Tests/RouterCoreTests/DiscoveryTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ExtensionFreshnessScanTests.swift	swift-suite	app/Tests/RouterCoreTests/ExtensionFreshnessScanTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ExtensionFreshnessTests.swift	swift-suite	app/Tests/RouterCoreTests/ExtensionFreshnessTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ExtensionIngestApplyTests.swift	swift-suite	app/Tests/RouterCoreTests/ExtensionIngestApplyTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ExtensionIngestTests.swift	swift-suite	app/Tests/RouterCoreTests/ExtensionIngestTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ExtensionStoreTests.swift	swift-suite	app/Tests/RouterCoreTests/ExtensionStoreTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/HTTPWireTests.swift	swift-suite	app/Tests/RouterCoreTests/HTTPWireTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/HarnessDialectTests.swift	swift-suite	app/Tests/RouterCoreTests/HarnessDialectTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/HarnessEndpointConflictTests.swift	swift-suite	app/Tests/RouterCoreTests/HarnessEndpointConflictTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/HarnessReconciliationTests.swift	swift-suite	app/Tests/RouterCoreTests/HarnessReconciliationTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/HarnessResolutionTests.swift	swift-suite	app/Tests/RouterCoreTests/HarnessResolutionTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ImportConfigWriterLockTests.swift	swift-suite	app/Tests/RouterCoreTests/ImportConfigWriterLockTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ImportConfigWriterTests.swift	swift-suite	app/Tests/RouterCoreTests/ImportConfigWriterTests.swift	swift	compiled and run by `swift test`; names argv ["node", …], execution unresolved	make:test
-app/Tests/RouterCoreTests/ImportPathsTests.swift	swift-suite	app/Tests/RouterCoreTests/ImportPathsTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/IndexFailureRecordTests.swift	swift-suite	app/Tests/RouterCoreTests/IndexFailureRecordTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/InvocationScanTests.swift	swift-suite	app/Tests/RouterCoreTests/InvocationScanTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/InvocationVersionTests.swift	swift-suite	app/Tests/RouterCoreTests/InvocationVersionTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/JSCoercionTests.swift	swift-suite	app/Tests/RouterCoreTests/JSCoercionTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/JSONParityTests.swift	swift-suite	app/Tests/RouterCoreTests/JSONParityTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/LogParityTests.swift	swift-suite	app/Tests/RouterCoreTests/LogParityTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/MCPEndpointDisabledCallTests.swift	swift-suite	app/Tests/RouterCoreTests/MCPEndpointDisabledCallTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ManifestDigestHoldTests.swift	swift-suite	app/Tests/RouterCoreTests/ManifestDigestHoldTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ManifestIOParityTests.swift	swift-suite	app/Tests/RouterCoreTests/ManifestIOParityTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ManifestIndexerWriteFailureTests.swift	swift-suite	app/Tests/RouterCoreTests/ManifestIndexerWriteFailureTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ManifestMutationLockTests.swift	swift-suite	app/Tests/RouterCoreTests/ManifestMutationLockTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ManifestParityTests.swift	swift-suite	app/Tests/RouterCoreTests/ManifestParityTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/MarketplaceCatalogueTests.swift	swift-suite	app/Tests/RouterCoreTests/MarketplaceCatalogueTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/OAuthClientTests.swift	swift-suite	app/Tests/RouterCoreTests/OAuthClientTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/OAuthWireTests.swift	swift-suite	app/Tests/RouterCoreTests/OAuthWireTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/OutsideReviewV1Tests.swift	swift-suite	app/Tests/RouterCoreTests/OutsideReviewV1Tests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/PoolAwaitBoundControlTests.swift	swift-suite	app/Tests/RouterCoreTests/PoolAwaitBoundControlTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/PoolAwaitBoundTests.swift	swift-suite	app/Tests/RouterCoreTests/PoolAwaitBoundTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/PoolDisabledReapingTests.swift	swift-suite	app/Tests/RouterCoreTests/PoolDisabledReapingTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/PoolDutyCycleTests.swift	swift-suite	app/Tests/RouterCoreTests/PoolDutyCycleTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/PoolLifecycleTests.swift	swift-suite	app/Tests/RouterCoreTests/PoolLifecycleTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/PoolReapingTests.swift	swift-suite	app/Tests/RouterCoreTests/PoolReapingTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/PoolTests.swift	swift-suite	app/Tests/RouterCoreTests/PoolTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/PortIdentityTests.swift	swift-suite	app/Tests/RouterCoreTests/PortIdentityTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/PrimitiveBodyTests.swift	swift-suite	app/Tests/RouterCoreTests/PrimitiveBodyTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ProfileProjectionTests.swift	swift-suite	app/Tests/RouterCoreTests/ProfileProjectionTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ProfileStoreTests.swift	swift-suite	app/Tests/RouterCoreTests/ProfileStoreTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/ProjectScopeAdoptionTests.swift	swift-suite	app/Tests/RouterCoreTests/ProjectScopeAdoptionTests.swift	swift	compiled and run by `swift test`; names argv ["node", …], execution unresolved	make:test
-app/Tests/RouterCoreTests/RawFieldParityTests.swift	swift-suite	app/Tests/RouterCoreTests/RawFieldParityTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/RealProcessStartupTests.swift	swift-suite	app/Tests/RouterCoreTests/RealProcessStartupTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/RealProcessTests.swift	swift-suite	app/Tests/RouterCoreTests/RealProcessTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/RegistryEnrichmentTests.swift	swift-suite	app/Tests/RouterCoreTests/RegistryEnrichmentTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/RegistryTests.swift	swift-suite	app/Tests/RouterCoreTests/RegistryTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/RequestAuthorityTests.swift	swift-suite	app/Tests/RouterCoreTests/RequestAuthorityTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/SeamTests.swift	swift-suite	app/Tests/RouterCoreTests/SeamTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/SecretResolverTests.swift	swift-suite	app/Tests/RouterCoreTests/SecretResolverTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/SemanticVersionTests.swift	swift-suite	app/Tests/RouterCoreTests/SemanticVersionTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/SkillRootInventoryTests.swift	swift-suite	app/Tests/RouterCoreTests/SkillRootInventoryTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/StagedErrorAttributionTests.swift	swift-suite	app/Tests/RouterCoreTests/StagedErrorAttributionTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/StandingConstraintsTests.swift	swift-suite	app/Tests/RouterCoreTests/StandingConstraintsTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/TranscriptCorpusTests.swift	swift-suite	app/Tests/RouterCoreTests/TranscriptCorpusTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/UpstreamHealthMonitorTests.swift	swift-suite	app/Tests/RouterCoreTests/UpstreamHealthMonitorTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/UpstreamHealthPolicyTests.swift	swift-suite	app/Tests/RouterCoreTests/UpstreamHealthPolicyTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/UpstreamHealthProbeTests.swift	swift-suite	app/Tests/RouterCoreTests/UpstreamHealthProbeTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/UpstreamRPCErrorTests.swift	swift-suite	app/Tests/RouterCoreTests/UpstreamRPCErrorTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/UsageInsightsTests.swift	swift-suite	app/Tests/RouterCoreTests/UsageInsightsTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/UsageLogTests.swift	swift-suite	app/Tests/RouterCoreTests/UsageLogTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/VectorRegistry.swift	swift-suite	app/Tests/RouterCoreTests/VectorRegistry.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/WatchAdoptionTests.swift	swift-suite	app/Tests/RouterCoreTests/WatchAdoptionTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/WatchCrossProcessTests.swift	swift-suite	app/Tests/RouterCoreTests/WatchCrossProcessTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/WatchPrimitiveTests.swift	swift-suite	app/Tests/RouterCoreTests/WatchPrimitiveTests.swift	swift	compiled and run by `swift test`; names argv ["node", …], execution unresolved	make:test
-app/Tests/RouterCoreTests/WatchRefusalTests.swift	swift-suite	app/Tests/RouterCoreTests/WatchRefusalTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/WatchRestartTests.swift	swift-suite	app/Tests/RouterCoreTests/WatchRestartTests.swift	swift	compiled and run by `swift test`	make:test
-app/Tests/RouterCoreTests/WireGuaranteeTests.swift	swift-suite	app/Tests/RouterCoreTests/WireGuaranteeTests.swift	swift	compiled and run by `swift test`	make:test
 make:acceptance	make-target	Makefile	swift	via scripts/acceptance/acceptance-lanes.sh (swiftc)	-
 make:acceptance-lanes-selftest	make-target	Makefile	static	no router invocation matched	-
 make:build-ios	make-target	Makefile	swift	xcodebuild	-
@@ -305,7 +189,6 @@ make:install-default	make-target	Makefile	static	no router invocation matched	-
 make:lint	make-target	Makefile	node	via planning/instrument-census.py (argv ["node", …])	-
 make:mock-fidelity	make-target	Makefile	swift	via scripts/acceptance/mock-fidelity-gate.sh (swift build)	-
 make:mock-fidelity-selftest	make-target	Makefile	swift	via scripts/acceptance/mock-fidelity-selftest.sh (swift router binary)	-
-make:mutation-selftest	make-target	Makefile	static	no router invocation matched	-
 make:node-e2e	make-target	Makefile	node	npm run	-
 make:parity-regen	make-target	Makefile	node	$MCP_ROUTER_DIST	-
 make:role-intersection	make-target	Makefile	static	no router invocation matched	-
@@ -315,7 +198,6 @@ make:test	make-target	Makefile	swift	swift test	-
 make:tools	make-target	Makefile	static	no router invocation matched	-
 planning/G5-citation-frames.py	gate	planning/G5-citation-frames.py	static	no router invocation matched	-
 planning/brief-target-gate.py	gate	planning/brief-target-gate.py	static	no router invocation matched	make:lint
-planning/carrier-parity-gate.py	gate	planning/carrier-parity-gate.py	static	no router invocation matched	-
 planning/citation-gate.py	gate	planning/citation-gate.py	static	no router invocation matched	make:lint,planning/goals/citations-blocking-check.sh
 planning/claim-sweep.py	gate	planning/claim-sweep.py	static	no router invocation matched	-
 planning/defect-status-vocabulary-gate.py	gate	planning/defect-status-vocabulary-gate.py	static	no router invocation matched	make:lint
@@ -442,15 +324,13 @@ scripts/acceptance/auth-rejection-visible.sh	lane	scripts/acceptance/auth-reject
 scripts/acceptance/axkit.swift	lane	scripts/acceptance/axkit.swift	static	no router invocation matched	-
 scripts/acceptance/board-registry.sh	lane	scripts/acceptance/board-registry.sh	static	no router invocation matched	-
 scripts/acceptance/build-freshness.sh	lane	scripts/acceptance/build-freshness.sh	static	no router invocation matched	make:build-ios,make:build-mac,make:build-mac-release,scripts/acceptance/i5-pairing-transport.sh,scripts/acceptance/m2-activity.sh,scripts/acceptance/m22-boards.sh,scripts/acceptance/m5-discover.sh,scripts/acceptance/m6-inbox-pairing.sh,scripts/acceptance/m7-evals-cleanup.sh,scripts/acceptance/m8-settings-menubar.sh,scripts/acceptance/mac-shell.sh,scripts/acceptance/shells.sh
-scripts/acceptance/carrier-census.sh	lane	scripts/acceptance/carrier-census.sh	static	no router invocation matched	-
-scripts/acceptance/carrier-parity-selftest.sh	lane	scripts/acceptance/carrier-parity-selftest.sh	static	no router invocation matched	-
 scripts/acceptance/control-client.sh	lane	scripts/acceptance/control-client.sh	both	node <path> + swift build	-
-scripts/acceptance/control-differential.sh	lane	scripts/acceptance/control-differential.sh	both	node <path> + swift router binary	scripts/acceptance/parity-control.sh
+scripts/acceptance/control-differential.sh	lane	scripts/acceptance/control-differential.sh	both	node <path> + swift router binary	-
 scripts/acceptance/destination-oracle.swift	lane	scripts/acceptance/destination-oracle.swift	static	no router invocation matched	-
 scripts/acceptance/f6-updates.sh	lane	scripts/acceptance/f6-updates.sh	swift	swift router binary	-
 scripts/acceptance/f8-profiles.sh	lane	scripts/acceptance/f8-profiles.sh	swift	swift router binary	-
 scripts/acceptance/green-streak-selftest.sh	lane	scripts/acceptance/green-streak-selftest.sh	static	no router invocation matched	-
-scripts/acceptance/green-streak.sh	lane	scripts/acceptance/green-streak.sh	both	via scripts/acceptance/parity-gate.sh ($MCP_ROUTER_DIST)	-
+scripts/acceptance/green-streak.sh	lane	scripts/acceptance/green-streak.sh	static	no router invocation matched	-
 scripts/acceptance/i2-phone-discover.sh	lane	scripts/acceptance/i2-phone-discover.sh	swift	xcodebuild	-
 scripts/acceptance/i3-phone-triage.sh	lane	scripts/acceptance/i3-phone-triage.sh	swift	xcodebuild	-
 scripts/acceptance/i5-pairing-transport.sh	lane	scripts/acceptance/i5-pairing-transport.sh	swift	swiftc	-
@@ -483,32 +363,6 @@ scripts/acceptance/p1-auth-routes.sh	lane	scripts/acceptance/p1-auth-routes.sh	s
 scripts/acceptance/p7-mutations.sh	lane	scripts/acceptance/p7-mutations.sh	swift	swift build	-
 scripts/acceptance/pairing-loopback.mjs	lane	scripts/acceptance/pairing-loopback.mjs	static	no router invocation matched	-
 scripts/acceptance/pairing-loopback.sh	lane	scripts/acceptance/pairing-loopback.sh	node	node <path>	-
-scripts/acceptance/parity-authserver.sh	lane	scripts/acceptance/parity-authserver.sh	both	node <path> + swift router binary	scripts/acceptance/parity-gate.sh
-scripts/acceptance/parity-cli.sh	lane	scripts/acceptance/parity-cli.sh	both	node <path> + swift router binary	scripts/acceptance/parity-gate.sh
-scripts/acceptance/parity-control.sh	lane	scripts/acceptance/parity-control.sh	both	via scripts/acceptance/control-differential.sh (node <path> + swift router binary)	scripts/acceptance/parity-gate.sh
-scripts/acceptance/parity-divergence.sh	lane	scripts/acceptance/parity-divergence.sh	both	node <path> + swift router binary	scripts/acceptance/parity-gate.sh
-scripts/acceptance/parity-fixture.sh	lane	scripts/acceptance/parity-fixture.sh	node	via scripts/capture-control-fixtures.sh (node <path>)	scripts/acceptance/parity-gate.sh
-scripts/acceptance/parity-gate.sh	lane	scripts/acceptance/parity-gate.sh	both	$MCP_ROUTER_DIST	scripts/acceptance/green-streak.sh
-scripts/acceptance/parity-install-watch-mutations.sh	lane	scripts/acceptance/parity-install-watch-mutations.sh	swift	swift router binary	-
-scripts/acceptance/parity-install-watch.sh	lane	scripts/acceptance/parity-install-watch.sh	static	no router invocation matched	-
-scripts/acceptance/parity-install.sh	lane	scripts/acceptance/parity-install.sh	both	node <path> + swift router binary	scripts/acceptance/parity-gate.sh
-scripts/acceptance/parity-lane-selftest.sh	lane	scripts/acceptance/parity-lane-selftest.sh	swift	swift router binary	-
-scripts/acceptance/parity-lock-selftest.sh	lane	scripts/acceptance/parity-lock-selftest.sh	static	no router invocation matched	-
-scripts/acceptance/parity-lock.sh	lane	scripts/acceptance/parity-lock.sh	static	no router invocation matched	-
-scripts/acceptance/parity-log.sh	lane	scripts/acceptance/parity-log.sh	both	node <path> + swift router binary	scripts/acceptance/parity-gate.sh
-scripts/acceptance/parity-manifest-check.sh	lane	scripts/acceptance/parity-manifest-check.sh	static	no router invocation matched	scripts/acceptance/parity-gate.sh
-scripts/acceptance/parity-manifest-selftest.sh	lane	scripts/acceptance/parity-manifest-selftest.sh	static	no router invocation matched	-
-scripts/acceptance/parity-mcp.sh	lane	scripts/acceptance/parity-mcp.sh	both	node <path> + swift router binary	scripts/acceptance/parity-gate.sh
-scripts/acceptance/parity-normalise-selftest.sh	lane	scripts/acceptance/parity-normalise-selftest.sh	static	no router invocation matched	-
-scripts/acceptance/parity-oauth.sh	lane	scripts/acceptance/parity-oauth.sh	both	node <path> + swift build	scripts/acceptance/parity-gate.sh
-scripts/acceptance/parity-overlap.sh	lane	scripts/acceptance/parity-overlap.sh	both	node <path> + swift router binary	scripts/acceptance/parity-gate.sh
-scripts/acceptance/parity-pool.sh	lane	scripts/acceptance/parity-pool.sh	node	node <path>	scripts/acceptance/parity-gate.sh
-scripts/acceptance/parity-regen-selftest.sh	lane	scripts/acceptance/parity-regen-selftest.sh	node	node <path>	-
-scripts/acceptance/parity-registry.sh	lane	scripts/acceptance/parity-registry.sh	both	node <path> + swift router binary	scripts/acceptance/parity-gate.sh
-scripts/acceptance/parity-selftests.sh	lane	scripts/acceptance/parity-selftests.sh	static	no router invocation matched	-
-scripts/acceptance/parity-state.sh	lane	scripts/acceptance/parity-state.sh	both	node <path> + swift router binary	scripts/acceptance/parity-gate.sh
-scripts/acceptance/parity-stream.sh	lane	scripts/acceptance/parity-stream.sh	both	node <path> + swift router binary	scripts/acceptance/parity-gate.sh
-scripts/acceptance/parity-suite.sh	lane	scripts/acceptance/parity-suite.sh	swift	swift test	scripts/acceptance/parity-gate.sh
 scripts/acceptance/r21-approve-write-denied.mjs	lane	scripts/acceptance/r21-approve-write-denied.mjs	swift	xcodebuild	-
 scripts/acceptance/r22-diagnostics.sh	lane	scripts/acceptance/r22-diagnostics.sh	swift	swift router binary	-
 scripts/acceptance/r26-auth-expiry.sh	lane	scripts/acceptance/r26-auth-expiry.sh	swift	swift router binary	-
@@ -521,18 +375,17 @@ scripts/acceptance/r32-desktop-entry.sh	lane	scripts/acceptance/r32-desktop-entr
 scripts/acceptance/r6-child-path.sh	lane	scripts/acceptance/r6-child-path.sh	both	node <path> + swift router binary	-
 scripts/acceptance/r7-harness-reconciliation.sh	lane	scripts/acceptance/r7-harness-reconciliation.sh	swift	swift router binary	-
 scripts/acceptance/shells.sh	lane	scripts/acceptance/shells.sh	swift	swiftc	-
-scripts/acceptance/surface-census.sh	lane	scripts/acceptance/surface-census.sh	static	no router invocation matched	-
 scripts/acceptance/window-plane.swift	lane	scripts/acceptance/window-plane.swift	static	no router invocation matched	-
 scripts/acceptance/xcode-outcome.sh	lane	scripts/acceptance/xcode-outcome.sh	static	no router invocation matched	scripts/acceptance/i2-phone-discover.sh,scripts/acceptance/i3-phone-triage.sh
 scripts/build-description-report.py	gate	scripts/build-description-report.py	swift	argv ["swift", …]	make:test
-scripts/capture-control-fixtures.sh	gate	scripts/capture-control-fixtures.sh	node	node <path>	scripts/acceptance/parity-fixture.sh
+scripts/capture-control-fixtures.sh	gate	scripts/capture-control-fixtures.sh	node	node <path>	-
 scripts/e2e-idle.mjs	gate	scripts/e2e-idle.mjs	node	argv ["node", …]	-
 scripts/e2e-live-reload.mjs	gate	scripts/e2e-live-reload.mjs	node	argv ["node", …]	make:node-e2e
 scripts/e2e-platform.mjs	gate	scripts/e2e-platform.mjs	node	node <path>	-
 scripts/e2e-session-push.mjs	gate	scripts/e2e-session-push.mjs	static	no router invocation matched	make:node-e2e
 scripts/e2e-shutdown.mjs	gate	scripts/e2e-shutdown.mjs	node	argv ["node", …]	-
 scripts/e2e.mjs	gate	scripts/e2e.mjs	static	no router invocation matched	-
-scripts/fixtures/call-through-router.mjs	gate	scripts/fixtures/call-through-router.mjs	static	no router invocation matched	scripts/acceptance/parity-log.sh,scripts/acceptance/parity-mcp.sh,scripts/acceptance/parity-pool.sh,scripts/acceptance/parity-state.sh,scripts/capture-control-fixtures.sh
+scripts/fixtures/call-through-router.mjs	gate	scripts/fixtures/call-through-router.mjs	static	no router invocation matched	scripts/capture-control-fixtures.sh
 scripts/fixtures/mcp-fixture-server.mjs	gate	scripts/fixtures/mcp-fixture-server.mjs	static	no router invocation matched	scripts/capture-control-fixtures.sh
 scripts/fixtures/registry-fixture-server.mjs	gate	scripts/fixtures/registry-fixture-server.mjs	static	no router invocation matched	-
 scripts/fixtures/slow-failing-server.mjs	gate	scripts/fixtures/slow-failing-server.mjs	static	no router invocation matched	-
@@ -549,9 +402,7 @@ scripts/m19-red-green.py	gate	scripts/m19-red-green.py	swift	argv ["swift", …]
 scripts/parity/generate-argv-vectors.mjs	gate	scripts/parity/generate-argv-vectors.mjs	node	argv ["node", …]	-
 scripts/parity/generate-auth-vectors.mjs	gate	scripts/parity/generate-auth-vectors.mjs	static	no router invocation matched	-
 scripts/parity/generate-document-vectors.mjs	gate	scripts/parity/generate-document-vectors.mjs	static	no router invocation matched	-
-scripts/parity/generate-vectors.mjs	gate	scripts/parity/generate-vectors.mjs	static	no router invocation matched	make:parity-regen,scripts/acceptance/parity-regen-selftest.sh
-scripts/parity/mutation-gate-selftest.sh	gate	scripts/parity/mutation-gate-selftest.sh	static	no router invocation matched	make:mutation-selftest
-scripts/parity/mutation-gate.sh	gate	scripts/parity/mutation-gate.sh	static	no router invocation matched	-
+scripts/parity/generate-vectors.mjs	gate	scripts/parity/generate-vectors.mjs	static	no router invocation matched	make:parity-regen
 scripts/red-green.py	gate	scripts/red-green.py	swift	argv ["swift", …]	-
 scripts/warden/apply-migration.py	gate	scripts/warden/apply-migration.py	static	no router invocation matched	scripts/warden/plan-migration.py
 scripts/warden/plan-migration.py	gate	scripts/warden/plan-migration.py	static	no router invocation matched	-

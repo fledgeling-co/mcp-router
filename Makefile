@@ -74,7 +74,7 @@ SWIFT_BUILD_SYSTEM ?= native
 SURFACE    ?= servers
 
 .PHONY: node-e2e
-.PHONY: all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity-regen mutation-selftest acceptance acceptance-lanes-selftest mock-fidelity mock-fidelity-selftest role-intersection lint format clean install-default surface-reconcile surface-reconcile-arm
+.PHONY: all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity-regen acceptance acceptance-lanes-selftest mock-fidelity mock-fidelity-selftest role-intersection lint format clean install-default surface-reconcile surface-reconcile-arm
 
 ## G4's two harness gates run inside `lint` rather than as a stage of their own. Both are
 ## hermetic and finish in under ten seconds, and `lint` is where the other four script gates
@@ -286,8 +286,8 @@ SURFACE    ?= servers
 ## views construct.
 ## `parity` and `parity-selftest` left `all` on 2026-10-19. The owner retired the Swift router, and
 ## parity stopped gating a release (plan-retire-swift-router.md, G1). Their targets were removed with
-## the Swift router's build gates (G2), and the scripts stay in the tree.
-all: tools lint build test test-ios test-ios-glass mutation-selftest mock-fidelity-selftest acceptance-lanes-selftest install-default surface-reconcile
+## the Swift router's build gates (G2). Its source and dual-router harness were deleted on 2026-11-01.
+all: tools lint build test test-ios test-ios-glass mock-fidelity-selftest acceptance-lanes-selftest install-default surface-reconcile
 
 ## Fail loudly and specifically when a required tool is missing, rather than skipping the gate.
 ## A silently-skipped lint step is worse than no lint step: it reports success.
@@ -631,34 +631,6 @@ parity-regen:
 	    exit 1; \
 	  fi
 
-## Can the mutation harness's FILTER go red? — G12.
-##
-## `mutation` is what other checks are measured against, so a filter typo silently converting it
-## into the weakest evidence available is worse than an ordinary false pass. Until G12, a filter
-## naming a mutation that does not exist selected nothing, ran nothing, and printed `0 — none` on
-## both oracles with exit 0 — the same success a run that killed all thirty-five produces. It was
-## read as evidence twice in one session before a third filter happened to match.
-##
-## In `all`, unlike the rebuild-bound mutation gate (`scripts/parity/mutation-gate.sh`, which compiles
-## RouterCore and so no longer has a make target), and the reason is the whole point: the harness resolves its
-## filter before the dirty-tree guard and before the baseline, so these eleven cases cost
-## milliseconds and need no build. A selftest that needed a rebuild would be run before a merge —
-## which is exactly when nobody runs it.
-mutation-selftest:
-	./scripts/parity/mutation-gate-selftest.sh
-
-## Can the parity harness itself go red? — P4.
-##
-## The gate reports a coverage fraction over the census in planning/parity/surface.tsv, so the two
-## files that decide that fraction are the two that can move it without anything noticing: the
-## manifest check, and the fixture lane's normaliser. Both are mutated here and both must fail.
-##
-## The case that matters most is a DELETED row. It leaves the numerator alone and shrinks the
-## denominator, so the reported coverage goes UP — measured against the pre-P4 check, four separate
-## row deletions each exited 0 while quietly reporting 82 rows instead of 83.
-##
-## Fast, hermetic and offline: it copies the tree into scratch directories and runs no lane, no
-## router and no build. In `all` for that reason, unlike `mutation` and `acceptance`.
 ## Which router `docs/install.sh` points the two launchd agents at.
 ##
 ## In `all` because that file decides what serves the user's own live Claude Code sessions, and

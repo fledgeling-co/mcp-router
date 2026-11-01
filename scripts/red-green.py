@@ -632,37 +632,12 @@ mut(
 # from it — so an arm that mutated the reference would change the expectation and the port together
 # and prove nothing.
 
-ROUTER_CORE = APP / "Sources" / "RouterCore"
+# RouterCore mutation arms retired with its source on 2026-11-01. They no longer
+# describe a compiled subject and must not be counted as surviving product mutations.
 KIT_SERVERS = APP / "Sources" / "MCPRouterKit" / "Servers"
 
-mut(
-    "DIS-1", "M29", "unionTools asks whether the server is served, not only whether it is in scope",
-    ROUTER_CORE / "Manifest" / "ToolUnion.swift",
-    "        upstream.disabled != true && visibleTo(upstream, cwd: cwd)",
-    "        visibleTo(upstream, cwd: cwd)",
-    "the served union matches the reference",
-)
 
-mut(
-    "DIS-2", "M29", "a warm upstream that is disabled is still armed for reaping",
-    ROUTER_CORE / "Pool" / "UpstreamPoolReaping.swift",
-    "        if config.warm == true, config.disabled != true { return }",
-    "        if config.warm == true { return }",
-    "a warm upstream that is disabled IS armed for reaping",
-)
 
-mut(
-    "DIS-3", "M29", "the switch stays outside the hash material, so the digest does not move",
-    ROUTER_CORE / "Config" / "UpstreamHash.swift",
-    "    public static func hash(_ upstream: UpstreamConfig) -> String {",
-    "    public static func hash(_ upstream: UpstreamConfig) -> String {\n"
-    "        if upstream.disabled == true { return \"0000000000000000\" }",
-    # NOT "fields outside the hash material do not change the hash": that test reads the hashes
-    # RECORDED in the vector file and compares them to each other, so it pins the reference's
-    # exclusion rule and cannot see a mutation of the Swift port at all. The corpus comparison is
-    # the test that actually computes a hash here. Found by this arm reporting WRONG-TEST.
-    "the config hash matches the reference over the whole adversarial corpus",
-)
 
 mut(
     "DIS-4", "M29", "the disabled subtitle outranks the held change rather than sitting below it",
@@ -740,43 +715,8 @@ mut(
     "the in-flight mark is set while the write runs, and it dims the row's action",
 )
 
-mut(
-    "DIS-10", "M29", "the serving process's stale warning does not name a disabled server",
-    ROUTER_CORE / "Service" / "RouterService.swift",
-    "        let stale = upstreams.filter { $0.disabled != true && ToolUnion.isStale(manifest, $0) }",
-    "        let stale = upstreams.filter { ToolUnion.isStale(manifest, $0) }",
-    [
-        "the startup warning names a stale server and never a disabled one",
-        "a router whose only stale servers are disabled warns about nothing",
-    ],
-)
 
-mut(
-    "DIS-11", "M29", "the watcher's sweep spawns no child for a server that serves nobody",
-    ROUTER_CORE / "Watch" / "WatchRun.swift",
-    "            if candidate.upstream.disabled != true,\n"
-    "               ToolUnion.isStale(manifest, candidate.upstream)\n"
-    "            {\n"
-    "                toIndex.append(candidate.upstream)\n"
-    "            }\n",
-    "            if ToolUnion.isStale(manifest, candidate.upstream) {\n"
-    "                toIndex.append(candidate.upstream)\n"
-    "            }\n",
-    "a disabled staged entry is never spawned to be indexed",
-)
 
-mut(
-    "DIS-12", "M29", "reindex is the user asking, so the switch does not stop it",
-    ROUTER_CORE / "Control" / "ControlHandler.swift",
-    '        case ("/reindex", "POST"):\n'
-    "            let outcome = await deps.indexer.index(upstream)",
-    '        case ("/reindex", "POST"):\n'
-    "            if upstream.disabled == true { return .json(200, .object([])) }\n"
-    "            let outcome = await deps.indexer.index(upstream)",
-    # An ADDED guard rather than a removed one: this is the tidy-up the route is exposed to, and
-    # the half of oracle 5 that a sweep-only test would have let through.
-    "a disabled server can still be reindexed, by the user asking for it",
-)
 
 mut(
     "DIS-13", "M29", "the withheld count reaches a screen reader as words",
@@ -852,47 +792,10 @@ mut(
 # Three arms rather than one, because `applyPatchFields` decides the switch with three separate
 # mechanisms and a single deletion only reaches the first.
 
-CONTROL = ROUTER_CORE / "Control"
 
-mut(
-    "DIS-18", "M29", "the switch is written to the user's config at all",
-    CONTROL / "ControlHandlerPatchFields.swift",
-    '        if let disabled = supplied("disabled") {\n'
-    "            // Shaped like `warm` rather than like `idleMs`: a falsy value removes the\n"
-    "            // member instead of writing `false`, so turning a server back on leaves the\n"
-    "            // config as it found it.\n"
-    '            set("disabled", (disabled?.isTruthy ?? false) ? disabled : nil)\n'
-    "        }\n",
-    "",
-    # The exact deletion that left 688 tests green. Both directions redden: the switch never
-    # arrives, and a server already switched off can never be switched back on.
-    [
-        "disabling a server writes the switch to the config and stops it being served",
-        "enabling a server removes the member rather than writing false",
-    ],
-)
 
-mut(
-    "DIS-19", "M29", "a falsy switch removes the member rather than writing false",
-    CONTROL / "ControlHandlerPatchFields.swift",
-    '            set("disabled", (disabled?.isTruthy ?? false) ? disabled : nil)',
-    '            set("disabled", disabled)',
-    # Assigned as given — the way `idleMs` is assigned eight lines above, which is the tidy-up this
-    # arm is exposed to. The server IS served again, so `isServed` alone stays green and only the
-    # byte-level assertion bites; the reference is diffed against this file byte for byte.
-    "enabling a server removes the member rather than writing false",
-)
 
-mut(
-    "DIS-20", "M29", "a PATCH that does not carry the key does not write the switch away",
-    CONTROL / "ControlHandlerPatchFields.swift",
-    '        if let disabled = supplied("disabled") {',
-    '        do {\n            let disabled = supplied("disabled") ?? nil',
-    # The key-presence gate, which is a third mechanism: without it every PATCH reads an absent
-    # `disabled` as falsy and removes the member, so the row's *Keep warm* toggle silently switches
-    # a disabled server back on.
-    "a PATCH that does not name the switch leaves it exactly as it was",
-)
+
 
 
 # ---------------------------------------------------------------- M38: the promotion at the catalog
@@ -912,56 +815,10 @@ mut(
 # decoration exposed. This harness gets it right (`COMPILE_RE` demotes a non-compiling mutation),
 # and the arm below is the form that compiles and kills.
 
-mut(
-    "APP-1", "M38", "the promotion writes the pending tools, so the session is served them",
-    ROUTER_CORE / "Auth" / "AuthRoutes.swift",
-    '        updated.set("tools", pending.member("tools") ?? .array([]))',
-    "",
-    ["a held surface is not served", "a second approve is refused"],
-)
 
-mut(
-    "APP-2", "M38", "the promotion lands on the named entry and no other",
-    ROUTER_CORE / "Auth" / "AuthRoutes.swift",
-    "        manifest.setEntry(server.string, updated)",
-    "        for entry in manifest.serverEntries { manifest.setEntry(entry.name.string, updated) }",
-    # The sibling control. Without it every assertion about `held` is also passed by a route that
-    # promoted the whole manifest.
-    "a held surface is not served",
-)
 
-mut(
-    "APP-3", "M38", "R21 stays fixed: a refused write is reported rather than answered 200",
-    ROUTER_CORE / "Auth" / "AuthRoutes.swift",
-    "        do {\n"
-    "            try ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)\n"
-    "        } catch {\n"
-    '            let msg = "failed to write manifest: \\(error.localizedDescription)"\n'
-    "            return Promotion(status: 500, body: .object([\n"
-    '                JSONMember(key: "error", value: .string(JSString(msg)))\n'
-    "            ]), approved: 0)\n"
-    "        }\n",
-    "        try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)\n",
-    "a refused manifest write leaves the served catalog",
-)
 
-mut(
-    "APP-4", "M38", "an entry with nothing pending is refused rather than promoted again",
-    ROUTER_CORE / "Auth" / "AuthRoutes.swift",
-    "            let pending = entry.pending,\n            pending.isTruthy",
-    "            let pending = entry.pending ?? .object([]) as JSONValue?,\n            true",
-    "a second approve is refused",
-)
 
-mut(
-    "APP-5", "M38", "the served catalog is read through a store that re-reads the moved file",
-    ROUTER_CORE / "Manifest" / "ManifestStore.swift",
-    "        guard current != stamp else { return manifest }",
-    "        guard false, current != stamp else { return manifest }",
-    # The arm that proves the read-back is the SERVING path rather than a fresh load: a store that
-    # never notices the file moved keeps answering the pre-approval catalog.
-    ["a held surface is not served", "a second approve is refused"],
-)
 
 
 RESULTS = []

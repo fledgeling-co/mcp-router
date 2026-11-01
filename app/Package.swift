@@ -24,11 +24,9 @@ let measureDefine: [SwiftSetting] = measuring ? [.define("MEASURE")] : []
 /// frameworks so the router's own tests can import it. Putting the shared views in each app instead
 /// would give the product two design systems that drift, so both app targets link this one.
 ///
-/// The Swift router (`RouterCore`, `MCPRouterCLI`, `ControlDiff` and `RouterCoreTests`) is retired and
-/// not built. The owner decided on 2026-10-19 to keep its sources in the tree and take them out of
-/// every build and release gate (`planning/plans/plan-retire-swift-router.md`, G2). Its targets are
-/// not declared here, so nothing in it compiles, and the MCP SDK it alone depended on is not
-/// resolved. `app/Retired/README.md` says what to restore to build it again.
+/// TypeScript is the only router. The retired Swift router sources were removed after its
+/// client-facing routes were ported or explicitly dropped. Golden vectors and the pause-action
+/// pin remain under Tests/RouterCoreTests because active TypeScript and UI checks read them.
 let package = Package(
     name: "MCPRouterKit",
     platforms: [.macOS(.v15), .iOS(.v18)],

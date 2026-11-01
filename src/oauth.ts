@@ -317,6 +317,10 @@ export function reportUpstreams(cfg: RouterConfig, manifest: Manifest): Upstream
           command: `${verb} auth ${u.name}`,
           detail: indexError,
         };
+      case 'reauthorization-required':
+        return { name: u.name, tools: 0, kind: 'half-authorised', headline: 'reauthorisation required',
+          remedy: 'The saved OAuth credentials have no trusted issuer binding. Sign in again; the existing record is retained.',
+          command: `${verb} auth ${u.name}`, detail: indexError };
       case 'started':
         return {
           name: u.name,

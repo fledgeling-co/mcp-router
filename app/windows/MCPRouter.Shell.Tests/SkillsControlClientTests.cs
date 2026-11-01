@@ -153,6 +153,29 @@ public sealed class SkillsControlClientTests
     }
 
     [Fact]
+    public async Task MarketplacesDecodeTheRoutersBodyAndCarryTheControlToken()
+    {
+        // The router gates GET /marketplaces on the token, so the read sends it when the token file is present.
+        var home = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(home);
+        try
+        {
+            File.WriteAllText(Path.Combine(home, "control.token"), "test-token");
+            var handler = new StubHandler(_ => Json(200, RepoRoot.Read("app/windows/MCPRouter.Shell.Tests/Fixtures/marketplaces.json")));
+            var client = new LiveSkillsControlClient(new HttpClient(handler), tokenFile: new RouterTokenFile(home));
+
+            var response = await client.MarketplacesAsync();
+
+            Assert.Equal(2, response.MarketplaceList.Count);
+            Assert.Equal("Bearer test-token", handler.LastRequest?.Headers.Authorization?.ToString());
+        }
+        finally
+        {
+            Directory.Delete(home, recursive: true);
+        }
+    }
+
+    [Fact]
     public async Task A401IsUnauthorized()
     {
         var exception = await RunAsync(new StubHandler(_ => Json(401, "{}")));

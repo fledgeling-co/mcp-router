@@ -14,8 +14,8 @@ namespace MCPRouter.Shell.Model.Skills;
 /// <c>pluginVersion</c> rather than <c>version</c>.
 ///
 /// The wire is camelCase, as the router serves it (<c>src/skills.ts</c>, pinned by
-/// <c>Fixtures/skills.json</c>). The marketplace shapes are the exception still to be decided: the
-/// router serves no <c>/marketplaces</c> route, so they have no captured body to match.
+/// <c>Fixtures/skills.json</c>), and so are the marketplace shapes (<c>src/skills.ts</c>
+/// <c>marketplacesValue</c>, pinned by <c>Fixtures/marketplaces.json</c>).
 ///
 /// What is absent, by construction: there is no <c>runs</c>, <c>last_run</c> or <c>eval</c>
 /// field anywhere in this file. A skill is markdown the client loads into an agent's context; it
@@ -320,9 +320,9 @@ public abstract record MarketplaceSource
 public sealed record Marketplace(
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("source")] MarketplaceSource Source,
-    [property: JsonPropertyName("auto_update")] bool AutoUpdate,
-    [property: JsonPropertyName("installed_plugin_count")] int InstalledPluginCount,
-    [property: JsonPropertyName("supplied_skill_count")] int SuppliedSkillCount);
+    [property: JsonPropertyName("autoUpdate")] bool AutoUpdate,
+    [property: JsonPropertyName("installedPluginCount")] int InstalledPluginCount,
+    [property: JsonPropertyName("suppliedSkillCount")] int SuppliedSkillCount);
 
 public sealed record MarketplacesResponse(
     [property: JsonPropertyName("marketplaces")] Marketplace[]? Marketplaces)

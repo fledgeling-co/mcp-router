@@ -1,82 +1,59 @@
-# vendor/
+# Vendored campaign instrument
 
-`test-campaign` 0.9.2 lives here, pinned to one upstream commit, so the gates
-`planning/test-campaign/` reports can be re-run from a clone of this repository rather than from
-whatever version happens to be installed on the machine.
+`test-campaign` **0.20.1** is copied without modifications from
+[`fledgeling-co/fledgeling-plugins`](https://github.com/fledgeling-co/fledgeling-plugins),
+commit `a9e30330e013b8c9ecf903e5a5ba544b13c4429e`, directory `plugins/test-campaign/`.
+The release was published on 20 October 2026. This replaces the 0.9.2 pin.
 
-## The pin
+`test-campaign.pin.json` records the upstream commit, 168 file digests and the tree checksum:
+`6667067af04f16c0db78dfc6674e67043d67e1579d56f7f147e9b828388b4515`.
+The checksum hashes sorted lines containing each file's SHA-256, two spaces, its
+`./`-prefixed relative path and a newline. Generated Python bytecode is outside the archive.
 
-| | |
-|---|---|
-| Package | `test-campaign` |
-| Version | **0.9.2** |
-| Upstream | `https://github.com/fledgeling-co/fledgeling-plugins` |
-| Commit | `28ecd6753386ff6d480a98d6646a5b73c62dc299` — 2026-08-20, *"fix(test-campaign): 0.9.2 — the blind-mutation check was measuring itself"* |
-| Vendored | 2026-08-22, from `plugins/test-campaign/` at that commit, unmodified |
-| Size | 85 files, 9.0 MB. The plugin-root `assets/` is 8.2 MB of it — the plugin's own icon and audit imagery, which no gate reads, and not to be confused with `skills/test-campaign/assets/`, which the gates do. `skills/` as a whole is 456 KB. |
-| Tree checksum | `b9acf61682d9757616c6e0cc15924e4137c5839c13d6a749d8093e3065977ce9` |
-
-Nothing under `vendor/test-campaign/` is edited here. A change to the instrument belongs upstream,
-because a script that behaves one way in this repository and another way everywhere else stops
-being evidence of anything. The provenance above is what makes the copy checkable, and an edit
-without a matching upstream release breaks it.
-
-## Checking the pin
-
-The checksum is a SHA-256 over the sorted per-file digests:
+Check the copy and its negative controls:
 
 ```sh
-cd vendor/test-campaign && find . -type f -print0 | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+python3 scripts/check-test-campaign-pin.py
+python3 scripts/check-test-campaign-pin.py --selftest
 ```
 
-Against upstream, given a clone of `fledgeling-plugins` at `$UP`:
+The archive comes from Git, rather than a working tree or plugin cache:
 
 ```sh
-rm -rf /tmp/tc-check && mkdir -p /tmp/tc-check          # tar will not create -C, and a stale
-                                                        # extract diffs against the wrong tree
-git -C "$UP" archive 28ecd6753386ff6d480a98d6646a5b73c62dc299 plugins/test-campaign \
-  | tar -x -C /tmp/tc-check --strip-components=2
-diff -r /tmp/tc-check vendor/test-campaign               # exit 0, no output
+git -C /path/to/fledgeling-plugins archive \
+  a9e30330e013b8c9ecf903e5a5ba544b13c4429e plugins/test-campaign
 ```
 
-Against the plugin cache, if the machine still holds `0.9.2`, two more `--exclude` flags are needed —
-`diff`'s `--exclude` matches basenames, and the harness leaves a `.in_use` lock directory and an
-`.orphaned_at` marker inside every cached version:
+Changes to the instrument belong upstream. A later update must copy another complete
+committed release and replace the pin in the same change. The two repository guards that
+read the instrument's effect vocabulary and mock-exclusion expressions also pin their source
+files. Their digests were updated after confirming both rules are unchanged.
+
+Run the instrument's own regression suite:
 
 ```sh
-C=~/.claude/plugins/cache/fledgeling-plugins/test-campaign/0.9.2
-diff -r --exclude=__pycache__ --exclude=.in_use --exclude=.orphaned_at vendor/test-campaign "$C"
+bash vendor/test-campaign/tests/run.sh
 ```
 
-Which version that cache currently holds is not recorded here — it is shared, and it moves. Read it with
-`jq -r '.plugins["test-campaign@fledgeling-plugins"][0].version' ~/.claude/plugins/installed_plugins.json`.
-The pin above is the fixed point.
+The suite includes one upstream monorepo catalogue test. In a router clone that test
+reports a missing `plugins/test-campaign/` or `site/lib/catalogue.json`; it needs the
+upstream release layout. Do not fabricate a catalogue row to clear it.
 
-## Running the gates
-
-Four scripts produce the numbers `planning/test-campaign/RUN-2026-08-20.md` quotes. Each takes the
-campaign directory as its first argument and writes nothing without an explicit `--set-ratchet`:
+Run the campaign gates from this copy:
 
 ```sh
 S=vendor/test-campaign/skills/test-campaign/scripts
-python3 $S/campaign.py check planning/test-campaign        # case accounting, arming, oracle rungs
-python3 $S/strict-check.py planning/test-campaign          # checked-vs-unchecked, against the ratchet
-python3 $S/capture-lineage.py planning/test-campaign --gate # every published capture names its subject
-python3 $S/vacuity-check.py planning/test-campaign         # guarantees asserted over absent capabilities
+python3 "$S/campaign.py" check planning/test-campaign
+python3 "$S/strict-check.py" planning/test-campaign
+python3 "$S/capture-lineage.py" planning/test-campaign --gate
+python3 "$S/vacuity-check.py" planning/test-campaign --tests app
 ```
 
-`SKILL.md` and `references/` under `skills/test-campaign/` carry what each gate means and why it
-exists.
+The newer instrument requires a judge identity before counting a historical visual verdict
+as judged. A newly red gate is an evidence finding; this upgrade does not rewrite cases,
+requirements, verdicts, brief joins or ratchet snapshots. The remaining non-test-function and
+assertion-position limits of the Swift blind scanner remain recorded in the upstream changelog.
 
-## What this does not do
-
-**Invoking the `test-campaign` skill still loads from the machine's plugin cache.** A skill
-resolves its own `scripts/` directory relative to wherever the harness loaded it, so an agent that
-runs the campaign runs the installed version and not this one. The copy here is for running the
-gates by hand, or from a wrapper this repository owns — that wrapper is `G5-C1`, and it does not
-exist yet.
-
-**The other skills the pipeline uses are not vendored.** `mockup-fidelity`, `mac-craft`,
-`design-craft` and `ux-craft` exist only in the `.claude/plugins/fledgeling-plugins` submodule,
-which every worktree in this fleet leaves uninitialised on purpose — 546 MB of plugin skills where
-Claude Code loads them kills the runner on context. In practice they are machine dependencies.
+Invoking the installed skill still loads its installed package. The vendored scripts and this
+pin establish what a clone can reproduce; they do not establish which installed skill a runner
+invoked. The old `.claude/plugins` submodule is a separate historical artifact and is unchanged.

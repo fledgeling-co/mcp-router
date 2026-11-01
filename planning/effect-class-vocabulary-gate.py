@@ -99,7 +99,7 @@ ROOT = Path(__file__).resolve().parent.parent
 INVENTORY = ROOT / "planning/test-campaign/inventory.json"
 CASES = ROOT / "planning/test-campaign/cases.json"
 CAMPAIGN_PY = ROOT / "vendor/test-campaign/skills/test-campaign/scripts/campaign.py"
-CAMPAIGN_PY_SHA = "f26ddf2402ef2c2ffdb9b1ebe95bdf3a600eb1500ded6e2098b95394eefeb982"
+CAMPAIGN_PY_SHA = "4c28ed150125297b000f47b0c32ea8283660b508472d66185c11547222980484"
 RATCHET = ROOT / "planning/effect-class-case-ratchet.json"
 
 

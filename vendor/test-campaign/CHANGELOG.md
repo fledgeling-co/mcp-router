@@ -2,6 +2,695 @@
 
 All notable changes to the `test-campaign` plugin.
 
+## 0.20.1 — 2026-10-20
+
+Fixes the instrument defects that the mcp-router campaign registry recorded against 0.20.0,
+so the next re-vendor carries them. Each has a regression in `tests/test_instrument_defects.py`
+or `tests/test_swift_bodies.py`, run by `tests/run.sh`, and each was watched to fail against
+the 0.20.0 scripts before its fix.
+
+- **DEF-501.** Every registry read and write names `encoding="utf-8"`. On a Windows host with a
+  non-UTF-8 codepage, the read died on the first byte outside that codepage.
+- **DEF-061.** `capture-lineage.py` `tie()` treats a `{name}`, `:name` or `*` route segment as one
+  non-empty target segment, so a parameterised surface ties to any one of its addresses. Literal
+  segments, the source-file refusal and normalisation are unchanged.
+- **DEF-051.** `witness-worklist.py` counts a pair as judgeable only when its build capture is
+  recorded and on disk, not only its design reference.
+- **DEF-054.** `attach-shots.py` prints the file behind each uncorroborated surface beside its id.
+  The `mock/` exclusion rule is unchanged.
+- **DEF-056.** `campaign.py report` prints every case, including those filed under no surface or
+  under an id the inventory does not hold.
+- **DEF-052.** The ledger counts open cases and open defects separately and lists the open
+  defects. `evidence-page.py` renders the registry's open defects beside the failing cases. A
+  defect is closed when its status begins `fixed`, `closed`, `answered` or `superseded`; any other
+  status stays open.
+- **DEF-055, in part.** The blind-mutation pass reads a Swift implicit member (`.reset(.clear)`) as
+  a value, not a mutation; a mutation inside a `defer` block is observed by no read in its body;
+  and helpers are judged across the corpus, so a shared stub called from other suites is not
+  reported blind. Two causes are not changed here. The pass still examines uncalled non-test Swift
+  functions as candidates, which the existing fixtures pin, and assertion-embedded and loop-tail
+  mutations are still read by position.
+
+Not changed: capture-lineage counts a verdict as judged only when it names a judge (from 0.19.0).
+That is the intended rule. The red `--gate` it produces in mcp-router is missing judge fields in
+the verdict data, and recording them is the owner's call.
+
+## 0.20.0 — 2026-09-30
+
+Added `test-campaign:ui-regression`, a focused reusable journey for navigation,
+keyboard, light/dark and compact/wide regression. Preserves requested scope,
+current app/build identity, capture lineage and blocked variant denominators.
+No monitor or release is configured.
+
+## 0.19.0 — 2026-09-06
+
+Gates for the demands one owner made more than once. Sourced from a week of sessions in
+which this skill ran on Opus, Fable and Gemini across seventeen projects, mined for every
+turn the owner had to take, weighted by the demands he restated and by the follow-ups that
+said a delivered result was not good enough.
+
+The corpus: 69 sessions, 17 projects, 2026-08-30 to 2026-09-06; 1,649 interventions, 1,571
+after removing compaction echoes of live turns; 1,229 judged preventable by a gate; 28
+demands made in two or more sessions or three or more times in one, 21 of them about
+testing; 99 asks made straight after the assistant had claimed completion or verification.
+Read by 59 Opus extractors, clustered into 16 candidate gates, each candidate handed to an
+Opus refuter told to drop it, then re-ranked by the repeated asks each would have cut. No
+candidate was dropped whole; ten were reworded, six merged into an existing rule, and the
+ledger added seven the clustering had not named. The full method, every session id, the
+chains and the ranked list: `docs/evidence-2026-09-06-intervention-mining.md`.
+
+The demand at the top, in the owner's words in four projects, each time after a campaign had
+reported itself complete on a surface count: *"every screen at a minimum has a loading state,
+empty state, content state and then any menus, selected tabs, filters"*. The coverage model had
+called State the single highest-yield axis for a year while nothing in `campaign.py` read a
+`states` field. Beside it, in the same words across nine projects: *"the visual screen
+comparison should be up in the several hundreds based on all of the variations"*, over a
+population the campaign had taken from the shots directory rather than from the sample. And
+the instruction to keep going, restated 82 times in 11 projects while `check` had already
+printed *Finish them… never silently* into those sessions 8, 16, 30 and 87 times.
+
+### What `campaign.py check` now counts and refuses
+
+Every one of these is an exit code or a printed denominator, because the week's prose rules
+were in the file the whole time.
+
+- **The state census.** A surface declares `states` against the floor `loading · empty ·
+  populated · error` plus each menu, tab, filter and drawer it opens, or `statesNotApplicable`
+  with a reason; a case names its `state`; a capture records it. `check` prints `States: 14 of
+  22 declared state cell(s) proved · 9 captured` and refuses a surface declaring no states
+  while the state axis is sampled, a floor state neither declared nor excused, a case naming a
+  state its surface never declared, and a declared cell no passing effect-rung case proves.
+- **A raster pass owes a reading.** `comparison.reader`, `comparison.expectation` and the
+  long edge the reader saw (`--comparison-judged-long-edge`); `Comparisons: 12 of 14
+  raster-visual pass(es) name what read both images`; a pass missing either is refused, and a
+  reading over a downscaled frame is inconclusive. A pairing script had written `pass` onto
+  2,853 rows whose two files existed.
+- **A fail closes on evidence the failure never stood on.** `set` stamps `closedFrom` (status,
+  rung, evidence hashes) when a red case goes green; `check` refuses a pass whose artifacts
+  are that set, or whose rung is lower.
+- **A finding leaves with somewhere to go.** A red case or a `DEF-*` row carries `brief` (a
+  path that exists) or `waived` (who decided); `card` is printed and not verified. `Routed: 7
+  of 9 finding(s) filed as a brief · 2 waived`, refused while any finding has neither.
+- **The run's own ask.** `init --directive` and `--stop-when` are the first two lines `check`
+  prints; `NOT DECLARED` names what to record.
+- **A blocked row records an attempt.** `set --clearing-command/-exit/-output/-lifts/-owner`;
+  a blocked case with no recorded command is refused; a block naming a credential owes
+  `--clearing-searched`, what the env files and the secrets broker were found to hold.
+- **A case that writes names a declared target.** `init --mutable-target` or
+  `--no-mutable-target <reason>`; a case sets `mutates` and `target`; `set --armed` refuses a
+  mutating case against an undeclared target; `Write targets:` prints the census.
+- **Which phases ran.** `campaign.py phase --ran 0,1,2 --skipped "4: reason"`; `Phases: ran …
+  · skipped … · unrecorded …`; a skip with no reason is refused.
+- **What is left.** `campaign.py next` prints `remaining N · blocked B · next: <id>` and exits
+  3 while an unblocked row remains — its own exit code, because `check`'s exit 1 carries
+  forty conditions and was observed non-zero with zero open cases. `check --line` is the
+  one-line form for a turn in flight; `Remaining:` prints on every run.
+- **Printed, not refused:** `Root:`, `Design of record:`, `Corpus: 38 of 41 document(s) read`
+  (`campaign.py corpus`), `Runs: 3 recorded · last … exit 0` (`campaign.py ran`) — and with no
+  run recorded, `Runs: NOT DECLARED — 74 passing case(s) and no recorded run`. A refusal there
+  opened red on every existing campaign in the gate suite, which is the gate that gets switched
+  off within a week. `campaign.py reopen --surfaces … --by "wave 3"` returns a touched
+  surface's passes to `open`, so a merged wave re-enters `next`.
+
+### What `capture-lineage.py` now sees
+
+- **Fabricated.** The capture template's `shoot()` counts every script call made to the page
+  between navigation and shutter and records the steps that reached the state under
+  `provenance`; a published capture with `provenance.scriptCalls` above zero is a hard
+  failure, in this gate and in `check`. Seven cards on one project had been moved to Verified
+  on captures whose state the script had written with `page.evaluate`, or onto which it had
+  painted a box reading *"Verified: …"*; every other field on those entries was correct. All
+  seven were retracted on the board the same day.
+- **Unpaired.** The seventh pass counts subjects with no capture against the subject
+  population — `pairs 29 of 31 subject(s) captured · missing 2 · excused 0` — so a surface
+  that produced no picture counts against the denominator instead of leaving it.
+  `unpairedReason` excuses a subject and is counted apart; `missing` ratchets beside `judged`
+  and `provenanced`; `--seed-drop SURF-ID` watches the pass fail.
+- **A verdict names its judge.** A verdict row with no judge named, or marked advisory, is a
+  pairing record and counts as unjudged.
+
+`assets/judge-contract.md` gains the control that a capture testifying about itself is
+`not-evidence`; `evidence-page.py` prints the `open -a "Google Chrome"` command beside the
+path it wrote. The gate suite goes from 129 to 180 cases, each new gate proved to fire and to
+clear.
+
+### What changed in the text
+
+`SKILL.md` (+300 lines): the directive and stop condition under *Before the phases*; phase 0's
+three facts, the write target, and the root and design-of-record lines; phase 1's corpus
+denominator; phase 3's state floor; phase 5's raster-pass reading and the blocked-row attempt;
+phase 6's recorded run; phase 8a's sixth and seventh passes; phase 9's new refusals, the
+sixteen printed lines and the phase record; two obligations in *What counts as done*
+(findings routed; and, restated, unchecked is failed); and six standing rules — *Print the
+denominator, and the remaining set before the pass count*; *A turn ends on the next item, or on
+a blocker that covers every remaining one*; *A run states its own finish line*; *Characterise,
+do not assert-correct, and let the re-run close it*; *Delegate sparingly, and account for every
+agent you dispatched*; *A phase in flight says so*; *A state the capture script wrote is not a
+state the product reached*. Every skill named as something to invoke now carries its
+`plugin:skill` form, because a bare name fails the Skill tool silently — 53 of 77 invocations
+across 51,763 transcripts failed that way. `references/capture-lineage.md` and
+`references/coverage-model.md` carry the two new measurements. `gemini.md` is refreshed
+against the new file (302 lines, over the 150–250 target because the count contract grew by
+ten printed lines; quote gate 22 of 22).
+
+### What this release does not do
+
+The wave dispatch/return census stays prose in *Delegate sparingly* and
+`references/campaign-estimates.md`; no script here reads a workflow journal. The pair
+population is subjects — surfaces and flow steps — so a state cell without its own `shot`
+counts in `States:` and not in `pairs`. The `Runs:` and `Corpus:` figures are self-reported.
+And nothing here can see a turn end: `next`'s exit 3 is for a goal loop to read.
+
+## 0.18.0 — 2026-09-05
+
+Enforces active test execution and rendered reference mock pairing in Gemini-calibrated campaigns,
+closing the loopholes that allowed runs to claim completion without executing active tests.
+
+- **Anti-passive-audit enforcement.** `campaign.py check` over existing files verifies only JSON schema
+  well-formedness; it is barred from standing as active campaign execution. The campaign only clears when
+  active phases (harness runs, test execution, visual captures) have completed.
+- **Rendered mock raster pipeline.** All reference mock screens must be rendered to disk rasters
+  (`evidence/shots/mock/<id>.png`) before comparison. Unrendered HTML files cannot be evaluated;
+  `witness-worklist.py` must exit 0 with zero demoted references.
+- **Surface pairing manifest.** Mandates `evidence/shots/pairs.json` mapping 100% of inventory surfaces,
+  with evaluated verdicts in `witness-verdicts.json` and a strictly positive capture-lineage ratchet.
+- **On-paper vs on-glass invariant.** Prohibits substituting HTML mocks for implementation captures on display
+  servers. A platform lacking a display server must record `shot: null` with an explicit structural reason.
+- **Vacuous requirements treated as unbuilt scope.** When external effects lack production providers,
+  requirements are treated as unbuilt capabilities and routed to `shipyard:intake` rather than passing tests.
+
+## 0.17.0 — 2026-09-02
+
+Adds the UI-flow-campaign standard: how coverage of user journeys is counted, calibrated,
+sized, defended and published in any project that invokes the skill. Sourced from a
+four-day campaign that took a Next.js app from 52 journeys run to a 925-journey catalogue.
+
+Its state on release, stated the way this version insists on: **914 journeys bound to a
+test title, 552 wired into a blocking CI step, 521 able to fail a build.** Those last two
+are different axes and the gap between them is 31 journeys whose file is listed in a
+blocking step while every case carrying them is parked. An earlier draft of this entry
+said "889 bound and 552 able to fail a build" — the first figure predated a fix to the
+comment stripper, and the second quoted the wiring axis under the failure axis's name.
+That is the conflation this release exists to prevent, committed in the entry announcing
+the prevention, which is the most honest evidence available that the rule is needed.
+
+`SKILL.md` gains one section, two standing rules and five reference rows (+117 lines).
+The section states the four rules that have to be in every context — coverage is eight
+separately denominated axes and never one blended percent; a test is enforced only when
+its file is in a blocking step's explicit list *and* that same step passes a filter
+selecting it, evaluated per step and with the filter's match pattern read minus its ignore
+pattern; an instrument is calibrated against planted defects before its figures are
+quoted; a red is made green by changing the product rather than the statement — and points
+at the seven JSON Schemas at the plugin root that make a campaign readable by a generic
+reader rather than one written for the project, with the `ajv` command and two negative
+controls to keep the schema gate honest.
+
+Five new reference files:
+
+- `references/flow-coverage-axes.md` — the eight axes with their measured populations, why
+  a blend hides the weakest, named against bound, a park against a runtime guard, a title
+  with no check, the waiver that points at a parked test, and the four ways one CI number
+  was got wrong in a single day (published 460 where the truth was 434).
+- `references/instrument-calibration.md` — the specimen of six planted defects, `truth`
+  against `known`, drift as the only thing that sets an exit code, condemnation as a
+  withdrawal rather than a footnote, an unguarded axis as a written finding, containment
+  proved rather than asserted, and the shell and parsing traps that fake a zero.
+- `references/campaign-estimates.md` — the three shapes of work with their measured rates,
+  what a duration figure is (wall-clock for one lane, a range, no failure rate), serial
+  against parallel totals, the two concurrency measurements that appear to conflict, and
+  deriving deaths from `started − results` rather than an error field.
+- `references/campaign-prohibitions.md` — the moves that raise a number and lower what the
+  suite knows, each with its reason, arranged as five shapes to locate in a diff.
+- `references/progress-reporting.md` — the eight things a report owes, denominator per
+  row, "ruled out by decision" as a third category kept visible, publishing the
+  visual-judging axis including its negative result, and routing a defect to a card.
+
+Seven JSON Schemas at the plugin root (`schemas/`) make a project's campaign readable by a
+generic reader rather than one written for that project — `flow-specification`,
+`coverage-axes`, `instrument-calibration`, `remaining-work`, `reckon-ledger`,
+`defect-cards`, `work-schedule` — with `schemas/README.md` and a minimal two-file worked
+example. Three of them enforce rather than describe:
+
+- `coverage-axes` requires all eight named axes, forbids additional properties, and
+  rejects a top-level `coverage`, `coveragePct`, `overall`, `percent`, `score` or
+  `summary`, so a single blended number cannot be recorded at all. Armed rather than
+  asserted: adding `"coverage": 0.83` to the clean example is refused at rc=1 while the
+  clean example validates at rc=0.
+- `flow-specification` makes `status: "covered"` require at least one spec file, and adds
+  `waiverAudit` — `followed`, `targetRuns`, `caseTitle`, `instrument`, `checkedAt`,
+  `liftWhen` — so a waiver carries both its target and the condition that would lift it.
+  It exists because 196 of that campaign's waivers pointed at a file where nothing
+  unparked carried the journey; 190 were stale pointers and 6 were real, and no instrument
+  could tell the two apart until the pointer was followed.
+- `instrument-calibration` models `truth` against `known`, so an instrument declares its
+  own blindness and `known` may only be raised to `truth` in the same change as the fix.
+
+Nothing in them is specific to the source project: `featureArea`, `lane`, `priority`,
+`actor`, `severity` and tracker `state` are open vocabularies carrying examples, and a
+flow id is a pattern. Closed vocabularies are methodological only — the three coverage
+statuses, the eight reconciliation classes, the work kinds and the estimate tiers.
+
+Six of the seven validate against real campaign artefacts at rc=0. The seventh,
+`reckon-ledger`, fails on 189 of 1067 rows carrying an empty `title` — all 188 surface
+rows plus one defect. That is published as a finding about the data rather than fixed by
+loosening the schema, because 39 of those untitled surfaces are the `unmeasured` class the
+ledger exists to protect and a reader would render them as blank rows.
+
+Evidence: `docs/evidence-2026-09-02-ui-flow-campaign.md`, 842 lines, every claim carrying a
+session id with a quoted line or a repository path, and a closing section naming what was
+searched for and could not be sourced — including that the source project published no
+JSON Schema at all, which is what these seven answer.
+
+The generated site catalogue row for this plugin was two versions behind `plugin.json`,
+which the test suite checks; it is regenerated here.
+
+## 0.16.3 - 2026-09-01
+
+Refreshes `gemini.md` against a `SKILL.md` that had changed since it was written. Written by the `geminify` Mode A procedure and gated by `verify_quotes.py`.
+
+## 0.16.2 — 2026-09-01
+
+`armed` now accepts only an exact JSON boolean. Truthy strings, numbers, arrays and
+objects fail the gate and never receive mutation credit. A project-specific control
+disposition validator can publish a v1 receipt binding permanent exceptions to every
+source, registry, containment and validator input it read. A committed receipt cannot
+attest itself: `check` grants exceptions only after executing a validator whose SHA-256
+and complete dependency-manifest SHA-256 were supplied independently by the caller.
+The generated receipt must name exactly that manifest and every current digest must
+match before an excepted control leaves owed work. Arbitrary or unexecuted validators,
+incomplete manifests, forged minimal receipts, stale dependencies, and non-integer
+`validatorExit` values fail closed. Controls remain declared and unactuated.
+Validator stdout/stderr is discarded and never included in campaign findings; failures report only
+the numeric exit or a bounded generic execution/timeout reason.
+
+Swift blind-pass findings can now carry explicit per-call scopes from a campaign's
+`blindScopeFile`. Each record binds one body and call occurrence plus reviewed producer
+or contract hashes. Only that call is removed before earlier mutators are reconsidered;
+stale, ambiguous, duplicate or unjustified records fail the gate. Reports count scoped
+failure sentinels, fixture/value calls, direct-output contracts and attributed helpers
+separately. Attributed helpers also bind the exact current caller body and helper-call
+fingerprint, so a helper cannot borrow an unrelated reader as its justification. Boolean
+schema integers and configured-but-falsy scope paths fail closed. A bound caller must itself
+contain an executable configured reader call after the named helper call: arbitrary identifier
+substrings, bare reader names, control conditions such as `if read {}`, enum-case patterns such as
+`.read(let x)`, and nested references such as `#selector(read(_:))` cannot justify attribution.
+Configured readers require parenthesized call syntax at a conservative statement, simple
+assignment, return or assertion-macro context. Swift function-reference placeholders such as
+`read(_:)` (including Unicode or escaped labels), accessor declarations such as `get {}`, and nested default arguments are refused. Target and caller records bind
+their current explicit-test posture. A helper call must be a direct, top-level parenthesized call;
+readers in its arguments are before the helper mutation and cannot count as later observations.
+Trailing-closure and nested control-flow helper calls are refused because lexical structure cannot
+prove whether or when they execute relative to the scoped mutation. Caller calls must remain
+executable after comments and literals are masked. A helper in a `return` or `throw` expression is
+also refused because no later statement in that caller can observe it. More conservatively, any
+earlier masked `return` or `throw` in the caller refuses helper attribution: bounded lexical analysis
+cannot prove whether a preceding nested terminal executes. No mutator name is
+excluded globally, unknown top-level/record fields fail the versioned schema, and raw candidate
+artifacts remain valid.
+
+Configured-reader credit is limited to the caller body's top lexical brace level. A reader merely
+stored inside an uninvoked closure does not justify attribution; ambiguous nested control and
+immediately-invoked closure bodies are conservatively refused.
+Readers inside conditional-compilation regions are also refused because this scanner does not
+evaluate the active Swift build configuration.
+Top-level `return` and `throw` also terminate later-reader credit.
+
+## 0.16.1 — 2026-09-01
+
+Swift blind-pass candidates now use balanced function bodies. A following private
+helper no longer contributes its writes to the preceding test; nested declarations
+cannot supply their parent with readers. Comments and literal text are masked,
+while executable ordinary/raw/multiline string interpolation remains visible.
+Modifiers, attributes, generic signatures and default closures retain body boundaries.
+
+The gate reports unsupported or malformed Swift files as NOT MEASURED, with a
+file/reason and a separate denominator, including mixed corpora. Empty scans fail.
+Regex and ambiguous slash operators remain outside the bounded lexer; ordinary
+arithmetic division is supported. Named functions are candidates, not a test-runner
+census: called-helper exclusions remain heuristic, while @Test and test* entries
+are retained. This does not establish control flow, transitive effects or reader
+independence. Other-language extraction and provider rules are unchanged.
+
+The portable fixture group runs in the standing gate. An actual next-declaration
+mutant fails the nested-body falsifier. Two stale control-diagnostic expectations
+now name their respective missing-drive and driven-without-passing-effect errors;
+an actual structural-actuation-credit mutant still fails. The historical pinned
+baseline remains 111 passed / 2 failed, rather than being rewritten as green.
+
+## 0.16.0 — 2026-08-28
+
+**A board is a different starting question from a diff.** "Is this product
+correct" selects by surface; "these 228 tasks say they are done, prove it"
+selects by task, and the campaign had no entry point for the second. It has one
+now, measured over 228 closed cards on one product across three weeks.
+
+`references/task-bound-flows.md` carries the chain: discovering the flows a task
+corpus needs, binding a task to a flow, extending a flow without breaking the
+precondition that walks it, reading a mock for intent, and comparing the result.
+The findings that changed how it is written:
+
+- **Binding by route is not evidence.** One card bound to 67 flows, another to
+  55. That says the card touches a page some flows visit — shared vocabulary, not
+  a check. A binding is a card id in the title of ONE live case whose assertion
+  fails when that card's producer breaks. A card id in a COMMENT over-reported by
+  18 cards, because comments are invisible to the runner.
+- **One contract entry failed eighteen specs.** An entry pointed at a region the
+  pinned tenant could never render; the warm-up precondition waited its full 90s
+  ceiling and Playwright skipped every dependent spec. All eighteen reported
+  `passed=4 failed=1`, identical — and identical counts across independent specs
+  mean one shared cause. Read the counts before the verdicts.
+- **A written assertion can measure nothing.** One case asserted no sparkline
+  painted a flat rule, passed, was armed against the exact defect, and passed
+  again: it had matched 107 ICON paths and parsed arc parameters as coordinates,
+  over a surface that rendered no sparkline at all. Only arming finds this.
+- **An environmental fault contaminates every verdict.** 44 failures across one
+  suite traced to a single endpoint 400ing on an exhausted model credential — 36
+  of one spec's 52. Those specs were not broken, and a run in that state cannot
+  say whether they are.
+- **A tracked-file gate cannot see an untracked file.** Instruments enumerating
+  via `git ls-files` are blind to a new spec until it is staged.
+
+`scripts/geometry-gate.py` is new and portable by construction — pure image maths
+over a pair of same-size images, no browser and no project layout. It decides a
+visual difference on its bounding box and the fill density inside it rather than
+a whole-frame ratio, because a real one-step spacing change is 558 pixels of
+1,296,000: a ratio of 0.00043 that every threshold passes, in a 114x13 box at
+density 0.377 that is unmistakable. `--stable` scores two renders and reports
+`agrees` / `defect` / `unstable`, because a defect needs two renders that agree.
+7 of 7 selftest rules fire without any files.
+
+Also: a third capture verdict. A picture that cannot prove its subject is
+`invalid-capture` — not a pass, not a failure. On its first run it caught a
+capture of `/dashboard?settings=account` filed as `/settings`, which is real
+redirect behaviour rather than a gate to relax.
+
+**One manifest, not two.** test-campaign carried both `plugin.json` and
+`.claude-plugin/plugin.json`. The second is the one that counts —
+`site/scripts/build-catalogue.mjs` reads it and fails the build when it is
+missing, and nothing reads the root copy — so the root copy is gone. Its only
+extra key was `category`, which lives in marketplace.json where it is actually
+consumed. Manifest and marketplace now agree at 0.16.0, checked across all 52
+entries.
+
+Worth knowing if you maintain another plugin here: 22 of the 26 plugins carrying
+both files have drifted, and in every case the root copy is BEHIND the canonical
+one. Not one is ahead, which is what marks the root file as a copy that stopped
+being maintained rather than a second source.
+
+And a third CI state, because the two that existed were both bad: wired, where
+one environmental red trains everyone to ignore the build, or not run at all —
+which is how an 867-step flow apparatus came to exist and execute nowhere. A
+suite can now run and record without being able to fail the job, and earns the
+blocking list by running clean.
+
+## 0.14.0 — 2026-08-24
+
+**Seven projects, one week, the same false finish.** Each was orchestrated to a
+drained backlog and reported implemented, verified and tested. Asked directly
+whether every feature worked, the honest answer in all seven was no: a compiler
+suite standing for a desktop application, a mock peer standing for live Drive
+sync, 2,375 passing Swift tests over an app whose buttons ran empty closures, an
+in-tree slice retiring a brief whose stated intent was a system daemon.
+
+None of those campaigns was lying, and that is the point. Every case really did
+assert an outcome, really was armed, really was watched to fail. It asserted it
+against a double. The registry had no field for the difference.
+
+**`plane` is that field, and it is orthogonal to the oracle rung.** The rung says
+what a case checked; the plane says what it checked it against — `in-tree`,
+`hermetic`, `live-glass`, `live-external`. A requirement declares the planes its
+intent spans, and `check` refuses to clear when a declared plane has no passing
+case on it. `add` refuses a plane outside the closed list, and the census prints
+on every run: `Planes: in-tree 12 · hermetic 4 · live-glass 6`, or NOT DECLARED
+where nothing says what it was measured against.
+
+Each of the seven sessions independently proposed roughly this fix and none of
+them landed it, which is why it is a gate rather than a paragraph.
+
+113 gate tests, four of them new: an in-tree pass does not satisfy a live-glass
+requirement; reaching the declared plane clears it; the census prints; an
+unrecognised plane is refused at `add`.
+
+## 0.13.0 — 2026-08-24
+
+**The history axis, built rather than described.** 0.12.0 added one sweep and a
+reference file naming thirteen methods; that changed what the skill *said* and
+not what it *ran*. This adds the sweeps and the gates.
+
+Six new sweeps, each with its own mechanics, assertions and printed denominator:
+**O** journey prefix, interruption and process death · **P** previous-build
+differential · **Q** event order, adjacency and repetition · **R** mid-session
+revocation, offline, time and pseudo-locale · **S** telemetry contract · **T**
+resource slope and endurance · and **U** event races and schedule interleaving.
+
+Four mechanical gates in `campaign.py`, on the ranks the research says may gate
+rather than advise. `journey` is a registry entity (`JRN-*`) with its own
+denominator, because no per-surface count can see a history. A **critical journey
+uncut at any of the five durable boundaries** blocks — `request-issued`,
+`server-committed`, `provider-effect`, `client-persisted`, `user-acknowledged`. A
+**previous-build comparison with no `changeIntentManifest`** blocks. A journey no
+case drives blocks, and a boundary name outside the closed list blocks. 109 gate
+tests, eight of them new, each proved to fire and then proved to clear.
+
+The numbers that decided each gate, and their limits. **RegDroid**: 121
+adjacent-version pairs, 205 reports, 73 true and 132 false — a **64%
+false-positive rate of which 93% were intended changes** — yielding 14 unique
+functional bugs, ten previously unknown and all ten fixed. That is why P carries
+three dispositions and the manifest is a gate. **The Android data-loss
+benchmark**: 110 reproducible faults across 54 releases of 48 apps, 98 with an
+automated oracle — prevalence and reproducibility, explicitly not a yield trial.
+**TimeMachine**: 199 unique crashes against 140/121/48 for Sapienz, Stoat and
+Monkey over 68 apps, and its client-only state restoration is why O keeps the
+effect ledger outside the restored snapshot. **AjaxRacer**: 152 tests, 65 harmful
+races across 12 of 20 pages, 7 false positives — the only addition whose measured
+false-positive rate is low enough to block on directly. **NIST**: 14 tests cover
+all three-event orderings of ten events against 10! exhaustive, and one
+eight-step system went from ~7,000 permutations to a 19-case suite.
+
+The model-oracle section is rewritten from the panel and corrects both CLI lanes.
+The `~96%` figure is **GenA11y at 95.2% precision / 87.69% recall on semantic
+accessibility**, against axe-core's 12.74% recall on the same corpus — 148 pages
+deliberately seeded with known issues, so a conformance benchmark rather than a
+live distribution. Precision is not a false-positive rate, and the class-
+conditional rates are recorded `MISSING_DATA`. The architecture: model-assisted,
+deterministically executed — the model selects journeys, generates input and
+ranks diffs; the trace is replayed without it; a deterministic confirmation
+precedes any release-blocking verdict.
+
+`references/journeys.md` records where the four backends disagreed, unresolved:
+pseudo-localisation at rank 1 or rank 6, race detection at 4 / 7 / gate-worthy,
+and record-replay as useful or a maintenance sink. With 111 sources at 1% overlap
+between members, disagreement is the stronger signal and it is kept rather than
+averaged away.
+
+Research provenance in `docs/deep-research/2026-08-24-panel-*.md`: four backends
+at max tier, 111 sources over 38 independent domains. Gemini's 57 citations are
+~45 opaque grounding redirects and its identifiable sourcing is nearer 12; the
+OpenAI member was citation-checked at 42 dereferenced, 0 fabricated, 0 dead. The
+`agy` lane refused to start on an unidentified binary.
+
+## 0.12.0 — 2026-08-24
+
+**A campaign cleared every gate over an application whose every control was
+inert.** 32 of 32 cases passing and armed, 19 of 19 requirements cited, 8 of 8
+surfaces covered, 8 of 8 external effects witnessed, `reckon` at 0 unmeasured and
+0 unjoined, the repository gate 19 of 19. The owner opened the signed build and
+found three defects in nine minutes: six sidebar destinations opening one
+placeholder view, every button running an empty closure, and a folder picker that
+set a banner and read nothing. Nothing in the campaign was false.
+`references/inert-ui.md` records the measurement, why each of six instruments
+passed, and the three shapes.
+
+Three things a surface and a case may now declare, all optional, all reported as
+NOT DECLARED rather than clean when absent: `controls` on a surface, `actuates` on
+a case, `destinationOf` on a destination surface. `check` refuses to clear on a
+surface whose declared controls no passing effect-rung case actuates, on a case
+actuating a control its surface never declared, on two destinations of one shell
+publishing one identical image — a declared share does not excuse it there — and
+on a destination no case reaches. A case below `outcome` that names an actuation
+does not move the census: driving a control and asserting the control is still
+there has measured the click and not the effect.
+
+Two denominators now print on every run, green or red, because the campaign this
+came from was green and what mattered sat in a number nobody printed: a per-lane
+row carrying that lane's cases, passes, effect-rung passes, armed count and
+oracle mix, and the control census. A lane with no effect-rung pass is reported
+and **not** blocked, and that is a measurement rather than a softening — the
+native lane on that campaign did carry an effect-witness case, so a rule of the
+form "every lane owes one effect rung" would have cleared it and the app would
+still have shipped.
+
+**The blind-mutation pass could not see an arrow-style test.** `pass_blind`
+matched `fn|def|func|function` only, so `it('…', () => {` and
+`test("…", async () =>` were invisible. Measured on two repositories: one
+monorepo's API tests held 224 declaration-style blocks against 2,179 arrow-style
+ones, so `blind=0` there was a statement about 9% of the corpus; a second held
+4,741 arrow-style blocks and zero declarations, where the false clean was total.
+The pass now reads both, prints the split (`blocks: declaration-style 224 ·
+arrow-style it/test 2179`), and reports `NOT MEASURED` rather than `blind=0` when
+it recognises no block in a corpus that has files in it.
+
+`references/journeys.md` is new, and it is the first axis this skill has added
+that is not a state. Two model families were asked independently what still
+escapes the methodology and both ranked the same answer first: model the journey,
+generate action sequences over it with sequence covering arrays, cut at every
+durable boundary, and replay each sequence against the previous accepted build.
+The file carries the journey state model and its four properties, the thirteen
+ranked additions the two lanes converged on, and the measured ceiling on
+model-based oracles with citations — OwlEye at 85/84 on its own corpus, Nighthawk
+at 0.59 AP for localisation, MLLMs near random on WiserUI-Bench, axe-core at
+57.38% by Deque's own count. Sweep N in `sweeps.md` is the runnable half. The two
+panels and their prompt are in `docs/deep-research/`.
+
+Sweep C gains the control census, the acknowledgement-only shape and a native
+lane block, including the AX finding carried over from `acceptance-e2e`: 13
+sidebar identifiers all resolved while the element carrying one of them was an
+`AXStaticText` with an empty actions list, so `name of every action of e` must
+contain `AXPress` for anything interactive. The promotion section gains two rules
+from the same skill: a gate nothing invokes is documentation, and a promoted
+sweep derives its subject list from the router or manifest rather than a
+hand-list. `detector-defects.md` gains §15 and §16. 101 gate tests, 13 of them
+new and each proved in both directions.
+
+## 0.9.6 — 2026-08-22
+
+**The provider census resolved on its own prose.** Providers are written
+`<claim> — <what it does>`, and `provider_targets` offered *every word of the
+description* to the symbol matcher. `has_symbol` accepts any token of three
+characters or more that appears anywhere in production source, and English
+source is full of English — so `the`, `file`, `that` and `there` all matched,
+and a provider resolved on its adjectives rather than on its claim. Measured on
+a real campaign the moment 0.9.5's census was first pointed at a source root:
+**nine of nine providers reported resolved**, one of them via the symbol `the`,
+and `totally/made/up/path.swift — the window server is another process` resolved
+just as happily as a real file. The census 0.9.5 added to catch a dead predicate
+had become one on its first run.
+
+Only the claim before the em dash, en dash or ` - ` now supplies paths and
+symbols. The description is prose and is read by people, not by the matcher.
+
+**A provider naming a module directory could not resolve.** `SourceIndex`
+indexed files only, so `crates/core/src/tui` — a legitimate way to name a module
+— failed against a tree that plainly contains it, which would have pushed
+authors to name an arbitrary file inside it instead. Directories are indexed
+too.
+
+Four tests, and the fixture is the point: the first version of them passed with
+the fix reverted, because a one-line fixture file contains none of the English
+the description uses, so the defect could not fire and the test measured
+nothing. The fixture source now carries an ordinary comment, and the tests are
+red without the fix and green with it. 84 → 88.
+
+## 0.9.5 — 2026-08-22
+
+Four checks that read a field without reading what the field pointed at, all four found by
+running this plugin's own gates over a real campaign and reading the numbers rather than the
+verdicts.
+
+**A provider that named nothing counted as a provider.** `vacuity-check.py`'s census reported a
+requirement whose `provider` was *empty* and never asked whether a non-empty one resolved to
+anything, so `isolation/macos.rs:88 spawn_guest` cleared whether or not that file or that symbol
+existed anywhere. A census could then report every external-effect requirement as provided while
+several of them named a file nobody had written — the same vacuity the script exists to find, one
+level up. A provider now has to resolve: a path that exists under the campaign's `sourceRoot`, or
+a symbol some production file under it contains, with the test tree excluded because a test double
+naming itself as the thing it stands in for is not a provider. The run prints
+`providers: 2 of 2 named, 1 resolved`, and prints `NOT CHECKED` rather than a clean line when no
+root says where production source is.
+
+**A capture authorised its own duplicate.** `capture-lineage.py`'s shared pass exempted two
+subjects publishing one image when each named the other in `sharesWith` — a declaration written
+into the very registry the pass reads. `sharesReason` was demanded by the blocker's own remedy
+text and read by no code at all, so the reason was required by documentation and enforced nowhere,
+while `campaign.py` has required it since 0.9.3 and the two gates disagreed about the same
+declaration. A share is now admissible only where every member names every other member, every
+member records a reason, and something outside the declaration agrees they are one address: the
+target the channel recorded at capture time, falling back to the subjects' declared routes. Two
+shutters pointed at two addresses whose bytes happen to match no longer clear on a note the
+photographer wrote about their own photograph.
+
+**A gate whose whole population was the published captures.** `unsourced`, `untied` and `shared`
+are all derived from captures a subject publishes, so an image sitting in the shots directory that
+no manifest entry names contributed to no finding. Measured: `published captures: 0 · files in
+shots dir: 11`, exit 0, and the sentence "Every published capture names a target that ties to its
+subject" — true, and covering nothing. An image nothing publishes is now a finding; a campaign
+that means to keep one records `unpublishedReason` on its `captures.json` entry, so the escape is
+in the file rather than in somebody's memory. And a ratchet of 0 is refused the way
+`strict-check.py` refuses an empty campaign, because a floor nothing has ever passed under cannot
+fall and pinning it records an armed gate where there is none.
+
+**A corpus that could disagree with the vocabulary silently.** The blind pass's test root was a
+command-line argument and lived nowhere else, while the vocabulary that has to match it lived in
+`campaign.json`. Pointing a campaign whose vocabulary is one language at another language's test
+tree produced 32 findings, identical in shape and confidence to genuine ones; the same command
+against its own corpus returned 0, and nothing warned, because the generic half of the vocabulary
+matched and the project's own half never did. `campaign.json` now carries `testRoot` beside
+`blindVocabulary`, `--tests` overrides it and says so, and when fewer than a quarter of the
+declared mutators appear anywhere under the root the run reports the mismatch instead of a number.
+
+Seventeen new gate tests in `tests/run.sh`, each watched red on a fixture built to trip it and
+green on one that should pass. One existing fixture changed with them: the declared-share case
+wrote `shareReason`, a key no script has ever read, over two subjects at two different addresses —
+its assertion is unchanged and the fixture now describes a share that is one.
+
+`plugin.json` said 0.9.3 while `.claude-plugin/plugin.json` and this file said 0.9.4, and 0.9.4's
+code is what shipped. Both files carry 0.9.5.
+
+## 0.9.4 — 2026-08-21
+
+Two ways this gate could report a clean result over a population it never examined.
+
+**A capped list read as a population.** `check` printed at most twelve unwitnessed requirements
+and said nothing about the cut. A team scoped a wave of work off that printed list against a real
+set of eighteen, and ten requirements were named by no item. Raising the cap does not fix it —
+the next set outgrows the next cap — so every capped list now carries its own denominator:
+`… (showing 12 of 18)` when it truncates, and `(showing 3 of 3)` when it does not, because a
+reader who has to work out whether anything was cut is back in the position that caused the loss.
+That covers the unwitnessed-requirement list, the hollow witnesses, the unevidenced passes, the
+legacy-rung cases, the open cases, the duplicate and declared-share groups, the pixel claims, and
+the lists carried inside blocker sentences.
+
+**An oracle rung that was not on the ladder.** Four cases arrived recording `static-analysis` and
+counted `unrated` — the bucket meaning the tool does not know what a case checked — while being
+real, armed instruments: a source classifier that exits 1 on a one-line mutation and 0 on the file
+as written. `source-analysis` is now a rung, and it sits off `ORACLE_RUNGS` rather than at a
+position on it. The ladder is one axis, what a case checked against the running product, weakest
+first; a reader of source text is neither weaker than `structural-visual` nor stronger than
+`presence`, and giving it a rank would invent a comparison the coverage model does not have.
+`SOURCE_RUNGS` is a parallel set alongside `EFFECT_RUNGS` and `RASTER_RUNGS`, printed on its own
+`Off-ladder:` line, absent from `EFFECT_RUNGS` and staying absent.
+
+Two guards keep it from becoming the cheap rung a campaign fills up on. A passing source-analysis
+case owes the analyzer that ran and the number of units it examined, the same obligation shape
+`effect-witness` carries for its recorder and count, because a search with no denominator cannot
+tell an empty result from an empty search. And a requirement claiming an effect outside the
+process may not rest on source analysis alone.
+
+Five new gate tests in `tests/run.sh`, each watched red on a fixture built to trip it and green
+once the fixture is repaired.
+
+## 0.9.3 — 2026-08-21
+
+`campaign.py check` and `capture-lineage.py --gate` disagreed about declared shares, and the
+disagreement made one of them unfollowable.
+
+**The blocker told you to do something it could not read.** Two published surfaces resolving to
+one address produce one image under two subject ids, which the shared pass is built to accept
+once it is declared: `capture-lineage.py` reads `sharesWith` + `sharesReason` from
+`captures.json` and counts the group apart. `check` read neither, blocked unconditionally, and
+printed *"Declare a genuine share in captures.json, or capture each subject"* — where the first
+branch was ignored and the second reproduces the same bytes, because a genuinely shared surface
+photographs identically however many times you point the shutter at it. Neither branch of the
+instruction could clear the gate it was attached to. Measured on a real campaign where
+`/settings` and `/settings/account` both resolve to `/dashboard?settings=account`: seven share
+groups, all declared, gate green, `check` red with nothing to do about it.
+
+`check` now reads the same declaration, requires every member of a group to name the others —
+declaring one side of a pair is not a declaration — and reports declared shares as their own
+counted line rather than folding them into the duplicate-shot blocker. An undeclared duplicate
+still blocks, and still blocks with the same message, so the only thing that changed is that
+the message now has a satisfiable branch.
+
 ## 0.9.2 — 2026-08-20
 
 The blind-mutation check from 0.9.0 was measuring itself. Run against a real suite it reported

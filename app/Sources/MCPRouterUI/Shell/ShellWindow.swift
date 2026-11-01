@@ -26,6 +26,9 @@
         public var body: some View {
             NavigationSplitView(columnVisibility: columnVisibility) {
                 Sidebar(model: model)
+                    // The footer's wrapped error must not raise the split view's minimum above
+                    // the window. The sidebar list scrolls within the available column height.
+                    .frame(minHeight: 0, maxHeight: .infinity, alignment: .top)
                     .navigationSplitViewColumnWidth(MetricToken.sidebar.leadingScalar)
                     .accessibilityIdentifier(Self.focusOrder[0])
             } detail: {

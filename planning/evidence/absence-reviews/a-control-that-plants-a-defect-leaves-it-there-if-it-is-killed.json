@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "brief": "planning/features-to-triage/a-control-that-plants-a-defect-leaves-it-there-if-it-is-killed.md",
+  "briefSha256": "771dd3b81516d3d93a011e4e02490082ff9d7bbb80b2d9d97662ef9376727418",
+  "assertionDigest": "23b4772862ff9d0a55a2cea3e045604169ab5c7d9cff41282db4469858a1b221",
+  "reviewer": "Codex agent /root/mac_updates (manual source review; independent assessment pending)",
+  "reviewedAt": "2026-11-01T17:07:02.687721+00:00",
+  "sourceRevision": "fbcc80b1cbf456289114b608959b68fcae09c6ce",
+  "subjectRead": "An interrupted M31 arm must not strand its CSS mutation or accept an already poisoned baseline as restored; the lint control chain must detect that hygiene failure.",
+  "decision": "unknown; no absence certification",
+  "closestCandidates": [
+    {
+      "id": "CASE-0352",
+      "assessment": "Finally restoration and a final green reader run do not test interruption or detect an already poisoned input baseline.",
+      "publicRegistryVariants": [
+        {
+          "registry": "cases.json",
+          "kind": "case",
+          "canonicalRowSha256": "e4e9a461783ce6c10a91f2753408a398aa266f748c0f0e95848c77319cc348e7",
+          "subject": {
+            "oracle": "metamorphic",
+            "cell": "execution-plane=static-source-read - data-shape=one registry fact removed per arm"
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-443",
+      "assessment": "The arm's comparison to moving HEAD is a separate differential-reference failure.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "2a872629d82ea58598422dbded487411f8e5dcfa92f343a58686b3645f590f94",
+          "subject": {
+            "title": "arm-surface-plane compared the new census against HEAD, so it stopped being a differential the moment the census it tested was committed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-444",
+      "assessment": "Timeout classification does not assert working-tree restoration after interruption.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "29a5c46942abf2dacdd99e46595e0fca814e87372f3d35f735d7df0abeed8b50",
+          "subject": {
+            "title": "sweep-control-gate reported a control that timed out as a control that does not pass, which is the unmeasured-read-as-failed conflation arriving inside one of the campaign's own gates"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CASE-0292",
+      "assessment": "Its armedBy record explicitly says MarkdownInline.swift was hashed identical before and after each of three runs. This is a real before/after source-cleanliness observation, although no kill/crash interruption is tested.",
+      "publicRegistryVariants": [
+        {
+          "registry": "cases.json",
+          "kind": "case",
+          "canonicalRowSha256": "130a2a2f276584c5bdad7a53460f57769f5cdf94991aa70abc6ad321fd2302b3",
+          "subject": {
+            "oracle": "outcome",
+            "cell": {
+              "surface": "SURF-028",
+              "state": "populated",
+              "viewport": "1024x768",
+              "theme": "light",
+              "role": "operator",
+              "dataShape": "hostile",
+              "executionPlane": "headless"
+            }
+          }
+        },
+        {
+          "registry": "cases.in.json",
+          "kind": "case",
+          "canonicalRowSha256": "130a2a2f276584c5bdad7a53460f57769f5cdf94991aa70abc6ad321fd2302b3",
+          "subject": {
+            "oracle": "outcome",
+            "cell": {
+              "surface": "SURF-028",
+              "state": "populated",
+              "viewport": "1024x768",
+              "theme": "light",
+              "role": "operator",
+              "dataShape": "hostile",
+              "executionPlane": "headless"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "registryFilesAtReview": {
+    "planning/test-campaign/flows.in.json": "b99054f398af0ac1599f956f8847925c31d3b0a7e194f22f84eee38e24f3044c",
+    "planning/test-campaign/requirements.in.json": "d78258ddc9504ff3393c837942f70ce5df381bf70fcaf3ffff3d26699821941d",
+    "planning/test-campaign/surfaces.in.json": "b79873888cb1ea7042033e26d0feff6a16a391a592bc469c32f46f33acdd2b0e",
+    "planning/test-campaign/cases.json": "31973ea78557b57b56dc9a0599dbecd3ab7e0b1157ff9509d6501b666405ceea",
+    "planning/test-campaign/components.in.json": "535556b2c2b31b50d4f0333ca3b8fba685f1859b8b3d2840584331bd0351ba4b",
+    "planning/test-campaign/inventory.json": "41556c54cba3c596bb6995c2bfafd859a840297d074dc0e4c1835b1c0a2ce0ac",
+    "planning/test-campaign/cases.in.json": "f94ccf575abc5035c0d2a39808ac4321e91e294f90249f1a7a9c5caef5d6bc6a",
+    "planning/test-campaign/defects.in.json": "6d6975f1288ddd4613db993080aa91fabe62e277a7dadf265988744fdea5a135"
+  },
+  "limits": [
+    "This review concerns registry entity identity, not implementation, retirement, campaign acceptance or a newly created join.",
+    "Literal subject scopes are explicit freshness boundaries, not a semantic search guarantee. A changed relevant projection reopens a reviewed record.",
+    "Candidate comparison is an agent source review; independent assessment has not yet been performed."
+  ],
+  "whyUnknown": "The body's interruption/poison scenario is not covered by a normal finally path, but the no-target reason claims no case observes tree cleanliness after a gate. CASE0292 records identical before/after file hashes, and CASE0352 requires restoration plus a final green reader. A current review cannot certify that broad preserved claim without adjudicating the scope conflict."
+}

@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "brief": "planning/features-to-triage/M15-gapfix.md",
+  "briefSha256": "229bf2bcceb3b3c4183fd19cf46307c94b50ceaa43ccb3b74d5b23450f4b7760",
+  "assertionDigest": "20f2a191bd22e1b6dcfbe65d7ca8c5ea273d00caeb8362d58419b146ecb04c58",
+  "reviewer": "Codex agent /root/mac_updates (manual source review; independent assessment pending)",
+  "reviewedAt": "2026-11-01T17:07:02.687721+00:00",
+  "sourceRevision": "fbcc80b1cbf456289114b608959b68fcae09c6ce",
+  "subjectRead": "Composite fidelity allowances, four count records, duplicate Settings menu/chord regression guard and missing acceptance artifact.",
+  "decision": "unknown; no absence certification",
+  "closestCandidates": [
+    {
+      "id": "CASE-0001",
+      "assessment": "It now names the Settings menu chord, so the broad old reason cannot dismiss all menu-related coverage without a finer review.",
+      "publicRegistryVariants": [
+        {
+          "registry": "cases.json",
+          "kind": "case",
+          "canonicalRowSha256": "f025774245468183db55c8d611da0daffea197fef651db44423d716578be17f9",
+          "subject": {
+            "oracle": "outcome",
+            "cell": {
+              "surface": "SURF-001",
+              "state": "populated",
+              "viewport": "1024x768",
+              "theme": "light",
+              "role": "operator",
+              "dataShape": "typical",
+              "executionPlane": "on-glass"
+            }
+          }
+        },
+        {
+          "registry": "cases.in.json",
+          "kind": "case",
+          "canonicalRowSha256": "3994cd18b9a77bc5a6f509ecb5d914ee2e450da8a481b584e5457039cf33f5bd",
+          "subject": {
+            "oracle": "outcome",
+            "cell": {
+              "surface": "SURF-001",
+              "state": "populated",
+              "viewport": "1024x768",
+              "theme": "light",
+              "role": "operator",
+              "dataShape": "typical",
+              "executionPlane": "on-glass"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "REQ-003",
+      "assessment": "Mac navigation is a genuine overlapping product requirement, although no exact duplicate-chord guard is named.",
+      "publicRegistryVariants": [
+        {
+          "registry": "requirements.in.json",
+          "kind": "requirement",
+          "canonicalRowSha256": "b29905f24e39b5960f9f70f00a6a24fc64b652d5e878a61aed493bf3a917582f",
+          "subject": {
+            "text": "The Mac shell navigates eight destinations — Activity, Servers, Skills, Discover, Inbox, Checks, Cleanup, Settings — via the sidebar and ⌘1–7 / ⌘,."
+          }
+        },
+        {
+          "registry": "inventory.requirement",
+          "kind": "requirement",
+          "canonicalRowSha256": "b29905f24e39b5960f9f70f00a6a24fc64b652d5e878a61aed493bf3a917582f",
+          "subject": {
+            "text": "The Mac shell navigates eight destinations — Activity, Servers, Skills, Discover, Inbox, Checks, Cleanup, Settings — via the sidebar and ⌘1–7 / ⌘,."
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-058",
+      "assessment": "Stale pre-M22 evidence is not allowance adjudication, but overlaps the same acceptance record.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "d1d8857e0cfbb3cb0eb7f6adccc6df8c87ae07a16f7103eeb6c566c6f1cb0491",
+          "subject": {
+            "title": "the macos-glass lane is green over window evidence captured from a pre-M22 build, and four of its cases assert a shell that no longer ships"
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-059",
+      "assessment": "Wrong Settings capture routing is narrower than this multi-axis gap-fix.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "414e6d642976515f0781e04139f1f3652305db354b0a6bf5c07f230c259a0800",
+          "subject": {
+            "title": "`Settings` is no longer a sidebar row, so the glass capture filed a neighbouring board's pixels under SURF-011 — and the committed glass evidence predates M22"
+          }
+        }
+      ]
+    }
+  ],
+  "registryFilesAtReview": {
+    "planning/test-campaign/flows.in.json": "b99054f398af0ac1599f956f8847925c31d3b0a7e194f22f84eee38e24f3044c",
+    "planning/test-campaign/requirements.in.json": "d78258ddc9504ff3393c837942f70ce5df381bf70fcaf3ffff3d26699821941d",
+    "planning/test-campaign/surfaces.in.json": "b79873888cb1ea7042033e26d0feff6a16a391a592bc469c32f46f33acdd2b0e",
+    "planning/test-campaign/cases.json": "31973ea78557b57b56dc9a0599dbecd3ab7e0b1157ff9509d6501b666405ceea",
+    "planning/test-campaign/components.in.json": "535556b2c2b31b50d4f0333ca3b8fba685f1859b8b3d2840584331bd0351ba4b",
+    "planning/test-campaign/inventory.json": "41556c54cba3c596bb6995c2bfafd859a840297d074dc0e4c1835b1c0a2ce0ac",
+    "planning/test-campaign/cases.in.json": "f94ccf575abc5035c0d2a39808ac4321e91e294f90249f1a7a9c5caef5d6bc6a",
+    "planning/test-campaign/defects.in.json": "6d6975f1288ddd4613db993080aa91fabe62e277a7dadf265988744fdea5a135"
+  },
+  "limits": [
+    "This review concerns registry entity identity, not implementation, retirement, campaign acceptance or a newly created join.",
+    "Literal subject scopes are explicit freshness boundaries, not a semantic search guarantee. A changed relevant projection reopens a reviewed record.",
+    "Candidate comparison is an agent source review; independent assessment has not yet been performed."
+  ],
+  "whyUnknown": "The declaration describes only allowance machinery while the full work order also demands a product menu uniqueness guard. I cannot certify one sufficient absence scope for the whole composite assertion or choose a real join from those partial overlaps."
+}

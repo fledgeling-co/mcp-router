@@ -1,0 +1,153 @@
+{
+  "version": 1,
+  "brief": "planning/features-to-triage/a-second-inertness-clause-is-unfailable-for-the-same-reason.md",
+  "briefSha256": "a57daba9e03cdb9899abd206daa34f0edd5807b46791fd599c204f5780bfff28",
+  "assertionDigest": "216a0188be9ce10bd7cc60f05e113d51d5e2cfda326136d337aee38c5f4ddca2",
+  "reviewer": "Codex agent /root/mac_updates (manual source review; independent assessment pending)",
+  "reviewedAt": "2026-11-01T17:07:02.687721+00:00",
+  "sourceRevision": "fbcc80b1cbf456289114b608959b68fcae09c6ce",
+  "subjectRead": "The imageAttributeStripped assertion must become capable of detecting imageURL passthrough, or explicitly name the different layer that actually owns image safety.",
+  "decision": "scoped absence supported",
+  "closestCandidates": [
+    {
+      "id": "CASE-0292",
+      "assessment": "It measures htmlIsInert and its A10 mutation; its discussion of an old imageURL assertion does not register imageAttributeStripped or a passthrough mutation for it.",
+      "publicRegistryVariants": [
+        {
+          "registry": "cases.json",
+          "kind": "case",
+          "canonicalRowSha256": "130a2a2f276584c5bdad7a53460f57769f5cdf94991aa70abc6ad321fd2302b3",
+          "subject": {
+            "oracle": "outcome",
+            "cell": {
+              "surface": "SURF-028",
+              "state": "populated",
+              "viewport": "1024x768",
+              "theme": "light",
+              "role": "operator",
+              "dataShape": "hostile",
+              "executionPlane": "headless"
+            }
+          }
+        },
+        {
+          "registry": "cases.in.json",
+          "kind": "case",
+          "canonicalRowSha256": "130a2a2f276584c5bdad7a53460f57769f5cdf94991aa70abc6ad321fd2302b3",
+          "subject": {
+            "oracle": "outcome",
+            "cell": {
+              "surface": "SURF-028",
+              "state": "populated",
+              "viewport": "1024x768",
+              "theme": "light",
+              "role": "operator",
+              "dataShape": "hostile",
+              "executionPlane": "headless"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "REQ-027",
+      "assessment": "The package document/image behavior is a broad product contract, not whether this individual guard can fail.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.requirement",
+          "kind": "requirement",
+          "canonicalRowSha256": "085fc32c359ae573a7bbe77aa5ef4db12e8953de1f118e3225efc2264f857b62",
+          "subject": {
+            "text": "A capability's own read me, changelog and capability list are read out of the package directory its server declares and drawn in the document panel; images resolve from inside that package and nothing else is fetched, and every refusal names which one it is."
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-055",
+      "assessment": "A blind Swift detector is not the Markdown attribute allowlist assertion.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "2b24c1a93dbcc7ac603b9e5658556b00c52881d5d2e595f582a12908c17be53e",
+          "subject": {
+            "title": "vacuity-check's blind-mutation pass examines non-tests and mis-reads Swift idiom; 7 of 7 sampled findings are false positives"
+          }
+        }
+      ]
+    }
+  ],
+  "registryFilesAtReview": {
+    "planning/test-campaign/flows.in.json": "b99054f398af0ac1599f956f8847925c31d3b0a7e194f22f84eee38e24f3044c",
+    "planning/test-campaign/requirements.in.json": "d78258ddc9504ff3393c837942f70ce5df381bf70fcaf3ffff3d26699821941d",
+    "planning/test-campaign/surfaces.in.json": "b79873888cb1ea7042033e26d0feff6a16a391a592bc469c32f46f33acdd2b0e",
+    "planning/test-campaign/cases.json": "31973ea78557b57b56dc9a0599dbecd3ab7e0b1157ff9509d6501b666405ceea",
+    "planning/test-campaign/components.in.json": "535556b2c2b31b50d4f0333ca3b8fba685f1859b8b3d2840584331bd0351ba4b",
+    "planning/test-campaign/inventory.json": "41556c54cba3c596bb6995c2bfafd859a840297d074dc0e4c1835b1c0a2ce0ac",
+    "planning/test-campaign/cases.in.json": "f94ccf575abc5035c0d2a39808ac4321e91e294f90249f1a7a9c5caef5d6bc6a",
+    "planning/test-campaign/defects.in.json": "6d6975f1288ddd4613db993080aa91fabe62e277a7dadf265988744fdea5a135"
+  },
+  "limits": [
+    "This review concerns registry entity identity, not implementation, retirement, campaign acceptance or a newly created join.",
+    "Literal subject scopes are explicit freshness boundaries, not a semantic search guarantee. A changed relevant projection reopens a reviewed record.",
+    "Candidate comparison is an agent source review; independent assessment has not yet been performed."
+  ],
+  "scope": "inline-image-guard",
+  "selectedRegistryIDs": [
+    "CASE-0110",
+    "CASE-0178",
+    "CASE-0179",
+    "CASE-0180",
+    "CASE-0181",
+    "CASE-0182",
+    "CASE-0183",
+    "CASE-0184",
+    "CASE-0185",
+    "CASE-0186",
+    "CASE-0187",
+    "CASE-0188",
+    "CASE-0189",
+    "CASE-0190",
+    "CASE-0191",
+    "CASE-0192",
+    "CASE-0193",
+    "CASE-0194",
+    "CASE-0198",
+    "CASE-0200",
+    "CASE-0205",
+    "CASE-0292",
+    "CASE-0342",
+    "CASE-0346",
+    "CASE-0349",
+    "CASE-0366",
+    "CASE-0367",
+    "CASE-0368",
+    "CASE-0369",
+    "CASE-0370",
+    "CASE-0371",
+    "CASE-0379",
+    "CASE-0420",
+    "CASE-0421",
+    "CASE-0422",
+    "CASE-0423",
+    "CASE-0424",
+    "CASE-0425",
+    "CASE-0426",
+    "DEF-008",
+    "DEF-013",
+    "DEF-018",
+    "DEF-040",
+    "DEF-051",
+    "DEF-054",
+    "DEF-056",
+    "DEF-060",
+    "DEF-061",
+    "DEF-062",
+    "DEF-065",
+    "FLOW-006",
+    "REQ-026",
+    "REQ-027"
+  ],
+  "rationale": "The imageAttributeStripped assertion must become capable of detecting imageURL passthrough, or explicitly name the different layer that actually owns image safety. The nearest candidates differ as recorded individually; none supplies an entity for this specific mechanism and observable."
+}

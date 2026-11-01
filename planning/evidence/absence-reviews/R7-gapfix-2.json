@@ -1,0 +1,200 @@
+{
+  "version": 1,
+  "brief": "planning/features-to-triage/R7-gapfix-2.md",
+  "briefSha256": "9f40d62b23c269c21eb4e96cf20da2503d8ac04552c25b6bb5d05d70be98c371",
+  "assertionDigest": "6acfe9a55d014e91bfa88ec94d758705a34570ddb23d91482d7d076c8329e6cd",
+  "reviewer": "Codex agent /root/mac_updates (manual source review; independent assessment pending)",
+  "reviewedAt": "2026-11-01T17:07:02.687721+00:00",
+  "sourceRevision": "fbcc80b1cbf456289114b608959b68fcae09c6ce",
+  "subjectRead": "Gemini config-file precedence and serverUrl dialect identity must reflect the file the harness actually consumes without broadening other clients' endpoint keys.",
+  "decision": "scoped absence supported",
+  "closestCandidates": [
+    {
+      "id": "SURF-025",
+      "assessment": "The Mac Harnesses board is an output surface, not a registered two-file Gemini precedence test.",
+      "publicRegistryVariants": [
+        {
+          "registry": "surfaces.in.json",
+          "kind": "surface",
+          "canonicalRowSha256": "362ab2e73a69276f8a6286ea783d9e50b2b911a06d77ba46d8514f002f8191dc",
+          "subject": {
+            "title": "Mac Harnesses board"
+          }
+        },
+        {
+          "registry": "inventory.surface",
+          "kind": "surface",
+          "canonicalRowSha256": "f94a3815f590ced7f24ddf6ec93f3acefe839446352fdcd31087cd9e70ae7826",
+          "subject": {
+            "title": "Mac Harnesses board"
+          }
+        }
+      ]
+    },
+    {
+      "id": "REQ-030",
+      "assessment": "Profile selection/projection does not state settings.json versus mcp_config.json precedence or serverUrl recognition.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.requirement",
+          "kind": "requirement",
+          "canonicalRowSha256": "bc8ad7f7693378b677976f2f4bae3fcdd71ea50c9e47a7e7d9344ae6cf9b3c48",
+          "subject": {
+            "text": "A named profile selects over the extensions this router holds and the upstreams it serves, and its projection says what each harness would have to hold without changing any of them. A symlink in a harness skills directory whose target has gone is reported as dangling and projected as a repair naming that target, never as an absent entry; a harness with no skills directory at all is named rather than omitted, and a directory that could not be opened is carried apart from an empty one. Every projected step states its reach: durable where the bytes would land and nothing makes a live session re-read them, tell-elsewhere where the protocol's own announcement exists in the TypeScript router and not in this one, and refused where the step would need another program's MCP configuration rewritten. Nothing applies a projection."
+          }
+        }
+      ]
+    },
+    {
+      "id": "CASE-0351",
+      "assessment": "Windows destination/control-source reconciliation does not inspect harness endpoint config files.",
+      "publicRegistryVariants": [
+        {
+          "registry": "cases.json",
+          "kind": "case",
+          "canonicalRowSha256": "2547c7fe2f783e0fe86d791afaee3dfb0f2b1af048348afb4baee8020ccf6fe7",
+          "subject": {
+            "oracle": "structural",
+            "cell": "execution-plane=static-source-read - data-shape=the registry as committed"
+          }
+        }
+      ]
+    }
+  ],
+  "registryFilesAtReview": {
+    "planning/test-campaign/flows.in.json": "b99054f398af0ac1599f956f8847925c31d3b0a7e194f22f84eee38e24f3044c",
+    "planning/test-campaign/requirements.in.json": "d78258ddc9504ff3393c837942f70ce5df381bf70fcaf3ffff3d26699821941d",
+    "planning/test-campaign/surfaces.in.json": "b79873888cb1ea7042033e26d0feff6a16a391a592bc469c32f46f33acdd2b0e",
+    "planning/test-campaign/cases.json": "31973ea78557b57b56dc9a0599dbecd3ab7e0b1157ff9509d6501b666405ceea",
+    "planning/test-campaign/components.in.json": "535556b2c2b31b50d4f0333ca3b8fba685f1859b8b3d2840584331bd0351ba4b",
+    "planning/test-campaign/inventory.json": "41556c54cba3c596bb6995c2bfafd859a840297d074dc0e4c1835b1c0a2ce0ac",
+    "planning/test-campaign/cases.in.json": "f94ccf575abc5035c0d2a39808ac4321e91e294f90249f1a7a9c5caef5d6bc6a",
+    "planning/test-campaign/defects.in.json": "6d6975f1288ddd4613db993080aa91fabe62e277a7dadf265988744fdea5a135"
+  },
+  "limits": [
+    "This review concerns registry entity identity, not implementation, retirement, campaign acceptance or a newly created join.",
+    "Literal subject scopes are explicit freshness boundaries, not a semantic search guarantee. A changed relevant projection reopens a reviewed record.",
+    "Candidate comparison is an agent source review; independent assessment has not yet been performed."
+  ],
+  "scope": "harness-endpoint-dialects",
+  "selectedRegistryIDs": [
+    "CASE-0022",
+    "CASE-0036",
+    "CASE-0144",
+    "CASE-0160",
+    "CASE-0161",
+    "CASE-0162",
+    "CASE-0163",
+    "CASE-0164",
+    "CASE-0165",
+    "CASE-0166",
+    "CASE-0167",
+    "CASE-0184",
+    "CASE-0185",
+    "CASE-0188",
+    "CASE-0189",
+    "CASE-0207",
+    "CASE-0209",
+    "CASE-0210",
+    "CASE-0211",
+    "CASE-0216",
+    "CASE-0223",
+    "CASE-0224",
+    "CASE-0225",
+    "CASE-0226",
+    "CASE-0262",
+    "CASE-0263",
+    "CASE-0264",
+    "CASE-0270",
+    "CASE-0271",
+    "CASE-0272",
+    "CASE-0273",
+    "CASE-0274",
+    "CASE-0275",
+    "CASE-0308",
+    "CASE-0319",
+    "CASE-0324",
+    "CASE-0325",
+    "CASE-0326",
+    "CASE-0327",
+    "CASE-0328",
+    "CASE-0329",
+    "CASE-0330",
+    "CASE-0331",
+    "CASE-0332",
+    "CASE-0333",
+    "CASE-0334",
+    "CASE-0335",
+    "CASE-0336",
+    "CASE-0337",
+    "CASE-0342",
+    "CASE-0343",
+    "CASE-0344",
+    "CASE-0345",
+    "CASE-0346",
+    "CASE-0347",
+    "CASE-0348",
+    "CASE-0350",
+    "CASE-0351",
+    "CASE-0352",
+    "CASE-0355",
+    "CASE-0356",
+    "CASE-0366",
+    "CASE-0367",
+    "CASE-0368",
+    "CASE-0369",
+    "CASE-0370",
+    "CASE-0371",
+    "CASE-0386",
+    "CASE-0387",
+    "CASE-0396",
+    "CASE-0404",
+    "CASE-0405",
+    "CASE-0420",
+    "CASE-0421",
+    "CASE-0422",
+    "CASE-0423",
+    "CASE-0424",
+    "CASE-0425",
+    "CASE-0426",
+    "CASE-0440",
+    "CASE-0476",
+    "CASE-0477",
+    "CASE-0490",
+    "CASE-0491",
+    "CASE-0492",
+    "CASE-0493",
+    "CASE-0530",
+    "CASE-0532",
+    "DEF-002",
+    "DEF-017",
+    "DEF-019",
+    "DEF-030",
+    "DEF-032",
+    "DEF-033",
+    "DEF-034",
+    "DEF-058",
+    "DEF-059",
+    "DEF-061",
+    "DEF-070",
+    "DEF-074",
+    "DEF-076",
+    "DEF-078",
+    "DEF-087",
+    "DEF-088",
+    "DEF-102",
+    "DEF-361",
+    "DEF-421",
+    "DEF-522",
+    "REQ-030",
+    "REQ-031",
+    "REQ-035",
+    "REQ-038",
+    "REQ-040",
+    "SURF-017",
+    "SURF-025",
+    "SURF-038",
+    "SURF-039"
+  ],
+  "rationale": "Gemini config-file precedence and serverUrl dialect identity must reflect the file the harness actually consumes without broadening other clients' endpoint keys. The nearest candidates differ as recorded individually; none supplies an entity for this specific mechanism and observable."
+}

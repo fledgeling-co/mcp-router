@@ -1,0 +1,152 @@
+{
+  "version": 1,
+  "brief": "planning/features-to-triage/a-killed-mutation-run-leaves-a-mutation-git-status-cannot-show.md",
+  "briefSha256": "f57b791421e524f01d446485bf01243ade2ace111545259af42ecc0bae27f201",
+  "assertionDigest": "2ddf4d143b55346ca27abb32b285b77c3f0310fcd71f2d649ca528fb48486e3e",
+  "reviewer": "Codex agent /root/mac_updates (manual source review; independent assessment pending)",
+  "reviewedAt": "2026-11-01T17:07:02.687721+00:00",
+  "sourceRevision": "fbcc80b1cbf456289114b608959b68fcae09c6ce",
+  "subjectRead": "m19-red-green crash safety, pre-run fingerprints and concurrent-run refusal must reveal a mutation inside an already-dirty source file.",
+  "decision": "scoped absence supported",
+  "closestCandidates": [
+    {
+      "id": "CASE-0292",
+      "assessment": "The A10 HTML-inertness arm is the product predicate being tested, not crash safety of the harness that mutates it.",
+      "publicRegistryVariants": [
+        {
+          "registry": "cases.json",
+          "kind": "case",
+          "canonicalRowSha256": "130a2a2f276584c5bdad7a53460f57769f5cdf94991aa70abc6ad321fd2302b3",
+          "subject": {
+            "oracle": "outcome",
+            "cell": {
+              "surface": "SURF-028",
+              "state": "populated",
+              "viewport": "1024x768",
+              "theme": "light",
+              "role": "operator",
+              "dataShape": "hostile",
+              "executionPlane": "headless"
+            }
+          }
+        },
+        {
+          "registry": "cases.in.json",
+          "kind": "case",
+          "canonicalRowSha256": "130a2a2f276584c5bdad7a53460f57769f5cdf94991aa70abc6ad321fd2302b3",
+          "subject": {
+            "oracle": "outcome",
+            "cell": {
+              "surface": "SURF-028",
+              "state": "populated",
+              "viewport": "1024x768",
+              "theme": "light",
+              "role": "operator",
+              "dataShape": "hostile",
+              "executionPlane": "headless"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CASE-0352",
+      "assessment": "Another arm's finally/restore path does not cover a killed M19 process or dirty-baseline ambiguity.",
+      "publicRegistryVariants": [
+        {
+          "registry": "cases.json",
+          "kind": "case",
+          "canonicalRowSha256": "e4e9a461783ce6c10a91f2753408a398aa266f748c0f0e95848c77319cc348e7",
+          "subject": {
+            "oracle": "metamorphic",
+            "cell": "execution-plane=static-source-read - data-shape=one registry fact removed per arm"
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-443",
+      "assessment": "Its differential identity does not cover process interruption or poisoned source.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "2a872629d82ea58598422dbded487411f8e5dcfa92f343a58686b3645f590f94",
+          "subject": {
+            "title": "arm-surface-plane compared the new census against HEAD, so it stopped being a differential the moment the census it tested was committed"
+          }
+        }
+      ]
+    }
+  ],
+  "registryFilesAtReview": {
+    "planning/test-campaign/flows.in.json": "b99054f398af0ac1599f956f8847925c31d3b0a7e194f22f84eee38e24f3044c",
+    "planning/test-campaign/requirements.in.json": "d78258ddc9504ff3393c837942f70ce5df381bf70fcaf3ffff3d26699821941d",
+    "planning/test-campaign/surfaces.in.json": "b79873888cb1ea7042033e26d0feff6a16a391a592bc469c32f46f33acdd2b0e",
+    "planning/test-campaign/cases.json": "31973ea78557b57b56dc9a0599dbecd3ab7e0b1157ff9509d6501b666405ceea",
+    "planning/test-campaign/components.in.json": "535556b2c2b31b50d4f0333ca3b8fba685f1859b8b3d2840584331bd0351ba4b",
+    "planning/test-campaign/inventory.json": "41556c54cba3c596bb6995c2bfafd859a840297d074dc0e4c1835b1c0a2ce0ac",
+    "planning/test-campaign/cases.in.json": "f94ccf575abc5035c0d2a39808ac4321e91e294f90249f1a7a9c5caef5d6bc6a",
+    "planning/test-campaign/defects.in.json": "6d6975f1288ddd4613db993080aa91fabe62e277a7dadf265988744fdea5a135"
+  },
+  "limits": [
+    "This review concerns registry entity identity, not implementation, retirement, campaign acceptance or a newly created join.",
+    "Literal subject scopes are explicit freshness boundaries, not a semantic search guarantee. A changed relevant projection reopens a reviewed record.",
+    "Candidate comparison is an agent source review; independent assessment has not yet been performed."
+  ],
+  "scope": "mutation-restore-safety",
+  "selectedRegistryIDs": [
+    "CASE-0001",
+    "CASE-0005",
+    "CASE-0007",
+    "CASE-0008",
+    "CASE-0009",
+    "CASE-0016",
+    "CASE-0017",
+    "CASE-0018",
+    "CASE-0023",
+    "CASE-0030",
+    "CASE-0031",
+    "CASE-0032",
+    "CASE-0033",
+    "CASE-0034",
+    "CASE-0035",
+    "CASE-0037",
+    "CASE-0101",
+    "CASE-0111",
+    "CASE-0198",
+    "CASE-0200",
+    "CASE-0275",
+    "CASE-0292",
+    "CASE-0308",
+    "CASE-0341",
+    "CASE-0352",
+    "CASE-0440",
+    "CASE-0460",
+    "CASE-0461",
+    "CASE-0470",
+    "CASE-0471",
+    "CASE-0472",
+    "CASE-0473",
+    "CASE-0474",
+    "CASE-0475",
+    "CASE-0476",
+    "CASE-0477",
+    "DEF-011",
+    "DEF-029",
+    "DEF-035",
+    "DEF-040",
+    "DEF-048",
+    "DEF-050",
+    "DEF-055",
+    "DEF-057",
+    "DEF-058",
+    "DEF-059",
+    "DEF-081",
+    "DEF-131",
+    "DEF-420",
+    "DEF-421",
+    "DEF-444"
+  ],
+  "rationale": "m19-red-green crash safety, pre-run fingerprints and concurrent-run refusal must reveal a mutation inside an already-dirty source file. The nearest candidates differ as recorded individually; none supplies an entity for this specific mechanism and observable."
+}

@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "brief": "planning/features-to-triage/build-description-report-on-swiftbuild.md",
+  "briefSha256": "475dd6c2d4f31d3f6691b5a577eb1940b6542d6fd9507864a9d27684b7092899",
+  "assertionDigest": "3d385ae5a973e574f873e4ffa20da669f99ec561aa8973951907fefc0b0e788c",
+  "reviewer": "Codex agent /root/mac_updates (manual source review; independent assessment pending)",
+  "reviewedAt": "2026-11-01T17:07:02.687721+00:00",
+  "sourceRevision": "fbcc80b1cbf456289114b608959b68fcae09c6ce",
+  "subjectRead": "Port build-description source/object attribution from llbuild debug.yaml to SwiftPM swiftbuild .build/out, preserving meaningful poison controls.",
+  "decision": "scoped absence supported",
+  "closestCandidates": [
+    {
+      "id": "DEF-035",
+      "assessment": "Enum cache invalidation does not parse swiftbuild object layout or source attribution.",
+      "publicRegistryVariants": [
+        {
+          "registry": "defects.in.json",
+          "kind": "defect",
+          "canonicalRowSha256": "ccfe0976f42c8bfb073fb46f53c9e81ce46c6945fd098c905d8d4b973e706fa3",
+          "subject": {
+            "title": "an incremental Swift build after adding an enum case reports impossible test failures",
+            "text": "Adding a 14th case to `Scenario` made `make test` fail with 31 issues, two of which cannot be true of the source: `Expectation failed: (… → .live) == (.live → .fixture(…cleanupSkills))` in ShellClientFactoryTests and TriageSourceGuardTests, both asserting a Release-posture guard that returns .live unconditionally. `git stash` of the two changed source files → 19 tests pass; unstash → the same failures return, which reads as a real regression. It is not. `Choice.live` is encoded in the spare inhabitants of `Scenario`'s tag, so a new Scenario case shifts that encoding, and stale MCPRouterUI object files compiled against the old layout compare a value that no longer means what they think. `rm -rf app/.build` then rebuild: 5/5 pass, then 1512/1512. The hazard for this campaign is the mirror case — a stale build can as easily produce a green — so any test evidence taken across an enum change is taken from a clean build. MITIGATED 2026-08-20: `app/Scripts/enum-layout-stamp.py` hashes the ordered case list of every enum in the package (212 of them) and removes `app/.build` when that hash moves; `make test` now depends on it. The stamp is the case lists rather than the source, so it holds still for an ordinary edit and for a `switch` over the enum — the false positive a naive grep for `^\\s*case` would hit — and moves for an added or renamed case. Armed on all four: comment SAME, switch statement SAME, added Scenario case MOVED, renamed Scenario case MOVED, restore back to baseline. The SwiftPM behaviour itself is unchanged and still upstream; what is fixed is this repo's exposure to it."
+          }
+        },
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "ada60883e66d8b78d6111eeb071f85c002814899edca9776852eb2164fedb926",
+          "subject": {
+            "title": "an incremental Swift build after adding an enum case reports impossible test failures",
+            "text": "Adding a 14th case to `Scenario` made `make test` fail with 31 issues, two of which cannot be true of the source: `Expectation failed: (… → .live) == (.live → .fixture(…cleanupSkills))` in ShellClientFactoryTests and TriageSourceGuardTests, both asserting a Release-posture guard that returns .live unconditionally. `git stash` of the two changed source files → 19 tests pass; unstash → the same failures return, which reads as a real regression. It is not. `Choice.live` is encoded in the spare inhabitants of `Scenario`'s tag, so a new Scenario case shifts that encoding, and stale MCPRouterUI object files compiled against the old layout compare a value that no longer means what they think. `rm -rf app/.build` then rebuild: 5/5 pass, then 1512/1512. The hazard for this campaign is the mirror case — a stale build can as easily produce a green — so any test evidence taken across an enum change is taken from a clean build. MITIGATED 2026-08-20: `app/Scripts/enum-layout-stamp.py` hashes the ordered case list of every enum in the package (212 of them) and removes `app/.build` when that hash moves; `make test` now depends on it. The stamp is the case lists rather than the source, so it holds still for an ordinary edit and for a `switch` over the enum — the false positive a naive grep for `^\\s*case` would hit — and moves for an added or renamed case. Armed on all four: comment SAME, switch statement SAME, added Scenario case MOVED, renamed Scenario case MOVED, restore back to baseline. The SwiftPM behaviour itself is unchanged and still upstream; what is fixed is this repo's exposure to it."
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-058",
+      "assessment": "Stale captured app evidence is a freshness problem, not build-plan/object-description support.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "d1d8857e0cfbb3cb0eb7f6adccc6df8c87ae07a16f7103eeb6c566c6f1cb0491",
+          "subject": {
+            "title": "the macos-glass lane is green over window evidence captured from a pre-M22 build, and four of its cases assert a shell that no longer ships"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CASE-0032",
+      "assessment": "A runtime pool outcome has no compiler build-description assertion.",
+      "publicRegistryVariants": [
+        {
+          "registry": "cases.json",
+          "kind": "case",
+          "canonicalRowSha256": "02de00d4ef4e2cba52ca7f11286f40511dad5229b112abd476f6643fb703ed57",
+          "subject": {
+            "oracle": "outcome",
+            "cell": {
+              "surface": "SURF-015",
+              "state": "populated",
+              "viewport": "n/a",
+              "theme": "n/a",
+              "role": "daemon",
+              "dataShape": "typical",
+              "executionPlane": "headless"
+            }
+          }
+        },
+        {
+          "registry": "cases.in.json",
+          "kind": "case",
+          "canonicalRowSha256": "fc092e7d26b125cfb7546d61a391c57ca1f72599a587611acbe1324baa8881a3",
+          "subject": {
+            "oracle": "outcome",
+            "cell": {
+              "surface": "SURF-015",
+              "state": "populated",
+              "viewport": "n/a",
+              "theme": "n/a",
+              "role": "daemon",
+              "dataShape": "typical",
+              "executionPlane": "headless"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "registryFilesAtReview": {
+    "planning/test-campaign/flows.in.json": "b99054f398af0ac1599f956f8847925c31d3b0a7e194f22f84eee38e24f3044c",
+    "planning/test-campaign/requirements.in.json": "d78258ddc9504ff3393c837942f70ce5df381bf70fcaf3ffff3d26699821941d",
+    "planning/test-campaign/surfaces.in.json": "b79873888cb1ea7042033e26d0feff6a16a391a592bc469c32f46f33acdd2b0e",
+    "planning/test-campaign/cases.json": "31973ea78557b57b56dc9a0599dbecd3ab7e0b1157ff9509d6501b666405ceea",
+    "planning/test-campaign/components.in.json": "535556b2c2b31b50d4f0333ca3b8fba685f1859b8b3d2840584331bd0351ba4b",
+    "planning/test-campaign/inventory.json": "41556c54cba3c596bb6995c2bfafd859a840297d074dc0e4c1835b1c0a2ce0ac",
+    "planning/test-campaign/cases.in.json": "f94ccf575abc5035c0d2a39808ac4321e91e294f90249f1a7a9c5caef5d6bc6a",
+    "planning/test-campaign/defects.in.json": "6d6975f1288ddd4613db993080aa91fabe62e277a7dadf265988744fdea5a135"
+  },
+  "limits": [
+    "This review concerns registry entity identity, not implementation, retirement, campaign acceptance or a newly created join.",
+    "Literal subject scopes are explicit freshness boundaries, not a semantic search guarantee. A changed relevant projection reopens a reviewed record.",
+    "Candidate comparison is an agent source review; independent assessment has not yet been performed."
+  ],
+  "scope": "swiftpm-build-description",
+  "selectedRegistryIDs": [
+    "CASE-0198",
+    "CASE-0461",
+    "DEF-035"
+  ],
+  "rationale": "Port build-description source/object attribution from llbuild debug.yaml to SwiftPM swiftbuild .build/out, preserving meaningful poison controls. The nearest candidates differ as recorded individually; none supplies an entity for this specific mechanism and observable."
+}

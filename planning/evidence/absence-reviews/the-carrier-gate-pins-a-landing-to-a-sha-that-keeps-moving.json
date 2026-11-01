@@ -1,0 +1,158 @@
+{
+  "version": 1,
+  "brief": "planning/features-to-triage/the-carrier-gate-pins-a-landing-to-a-sha-that-keeps-moving.md",
+  "briefSha256": "f28556f22163d5eb0dfe5273802f4e6aef16ac54b60cbf36828c299e7dcf26b6",
+  "assertionDigest": "cdeacfeedb89107e8651c012da9658c15d2e3730a59a223f9d3246e2ce00935b",
+  "reviewer": "Codex agent /root/mac_updates (manual source review; independent assessment pending)",
+  "reviewedAt": "2026-11-01T17:07:02.687721+00:00",
+  "sourceRevision": "fbcc80b1cbf456289114b608959b68fcae09c6ce",
+  "subjectRead": "A one-sided router landing needs a stable disposition identity across integration hops, while new undispositioned work must still trigger the carrier gate.",
+  "decision": "scoped absence supported",
+  "closestCandidates": [
+    {
+      "id": "DEF-360",
+      "assessment": "A sha that resolves to no object is not a valid sha whose introduction identity changes across merge carriers.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "caf9ca9567bb34da95443007e034f0e93d4b1e23067d0ca860848e1d5f59e137",
+          "subject": {
+            "title": "A merge sha cited in both trackers resolves to no object in this repository"
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-443",
+      "assessment": "An arm comparing to HEAD after commit is another reference instability, not carrier disposition identity.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "2a872629d82ea58598422dbded487411f8e5dcfa92f343a58686b3645f590f94",
+          "subject": {
+            "title": "arm-surface-plane compared the new census against HEAD, so it stopped being a differential the moment the census it tested was committed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "REQ-014",
+      "assessment": "Router differential parity does not state how carrier ledger rows are keyed through merges.",
+      "publicRegistryVariants": [
+        {
+          "registry": "requirements.in.json",
+          "kind": "requirement",
+          "canonicalRowSha256": "4acbcb83b31eacc7e0f64df3c69e9a14ff2c18402af2cba8b9f538244f07d08c",
+          "subject": {
+            "text": "Swift RouterCore matches the TypeScript reference on the parity corpus; the cutover target is 82 of 83 with fixture-registry-search a standing exclusion."
+          }
+        },
+        {
+          "registry": "inventory.requirement",
+          "kind": "requirement",
+          "canonicalRowSha256": "4acbcb83b31eacc7e0f64df3c69e9a14ff2c18402af2cba8b9f538244f07d08c",
+          "subject": {
+            "text": "Swift RouterCore matches the TypeScript reference on the parity corpus; the cutover target is 82 of 83 with fixture-registry-search a standing exclusion."
+          }
+        }
+      ]
+    }
+  ],
+  "registryFilesAtReview": {
+    "planning/test-campaign/flows.in.json": "b99054f398af0ac1599f956f8847925c31d3b0a7e194f22f84eee38e24f3044c",
+    "planning/test-campaign/requirements.in.json": "d78258ddc9504ff3393c837942f70ce5df381bf70fcaf3ffff3d26699821941d",
+    "planning/test-campaign/surfaces.in.json": "b79873888cb1ea7042033e26d0feff6a16a391a592bc469c32f46f33acdd2b0e",
+    "planning/test-campaign/cases.json": "31973ea78557b57b56dc9a0599dbecd3ab7e0b1157ff9509d6501b666405ceea",
+    "planning/test-campaign/components.in.json": "535556b2c2b31b50d4f0333ca3b8fba685f1859b8b3d2840584331bd0351ba4b",
+    "planning/test-campaign/inventory.json": "41556c54cba3c596bb6995c2bfafd859a840297d074dc0e4c1835b1c0a2ce0ac",
+    "planning/test-campaign/cases.in.json": "f94ccf575abc5035c0d2a39808ac4321e91e294f90249f1a7a9c5caef5d6bc6a",
+    "planning/test-campaign/defects.in.json": "6d6975f1288ddd4613db993080aa91fabe62e277a7dadf265988744fdea5a135"
+  },
+  "limits": [
+    "This review concerns registry entity identity, not implementation, retirement, campaign acceptance or a newly created join.",
+    "Literal subject scopes are explicit freshness boundaries, not a semantic search guarantee. A changed relevant projection reopens a reviewed record.",
+    "Candidate comparison is an agent source review; independent assessment has not yet been performed."
+  ],
+  "scope": "carrier-landing-identity",
+  "selectedRegistryIDs": [
+    "CASE-0036",
+    "CASE-0110",
+    "CASE-0123",
+    "CASE-0139",
+    "CASE-0141",
+    "CASE-0183",
+    "CASE-0210",
+    "CASE-0223",
+    "CASE-0224",
+    "CASE-0225",
+    "CASE-0226",
+    "CASE-0262",
+    "CASE-0263",
+    "CASE-0264",
+    "CASE-0314",
+    "CASE-0315",
+    "CASE-0316",
+    "CASE-0317",
+    "CASE-0318",
+    "CASE-0319",
+    "CASE-0320",
+    "CASE-0334",
+    "CASE-0339",
+    "CASE-0342",
+    "CASE-0348",
+    "CASE-0349",
+    "CASE-0351",
+    "CASE-0352",
+    "CASE-0377",
+    "CASE-0379",
+    "CASE-0440",
+    "CASE-0441",
+    "CASE-0530",
+    "CASE-0531",
+    "CASE-0532",
+    "DEF-002",
+    "DEF-006",
+    "DEF-009",
+    "DEF-013",
+    "DEF-017",
+    "DEF-021",
+    "DEF-022",
+    "DEF-027",
+    "DEF-029",
+    "DEF-030",
+    "DEF-032",
+    "DEF-033",
+    "DEF-034",
+    "DEF-035",
+    "DEF-037",
+    "DEF-038",
+    "DEF-039",
+    "DEF-046",
+    "DEF-047",
+    "DEF-054",
+    "DEF-059",
+    "DEF-060",
+    "DEF-063",
+    "DEF-070",
+    "DEF-071",
+    "DEF-078",
+    "DEF-089",
+    "DEF-274",
+    "DEF-275",
+    "DEF-360",
+    "DEF-361",
+    "DEF-380",
+    "DEF-381",
+    "DEF-402",
+    "DEF-441",
+    "REQ-014",
+    "REQ-020",
+    "REQ-030",
+    "REQ-034",
+    "SURF-017",
+    "SURF-030"
+  ],
+  "rationale": "A one-sided router landing needs a stable disposition identity across integration hops, while new undispositioned work must still trigger the carrier gate. The nearest candidates differ as recorded individually; none supplies an entity for this specific mechanism and observable."
+}

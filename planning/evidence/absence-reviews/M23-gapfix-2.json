@@ -1,0 +1,152 @@
+{
+  "version": 1,
+  "brief": "planning/features-to-triage/M23-gapfix-2.md",
+  "briefSha256": "4a126b3c18f346ef9acd8dd9f666e6ff51589288a2b52407cf4148f8983f58b5",
+  "assertionDigest": "fee6cd6d01b98b46da70795a715c855ea9785b20aec071e53c30262d615a3337",
+  "reviewer": "Codex agent /root/mac_updates (manual source review; independent assessment pending)",
+  "reviewedAt": "2026-11-01T17:07:02.687721+00:00",
+  "sourceRevision": "fbcc80b1cbf456289114b608959b68fcae09c6ce",
+  "subjectRead": "Zero scan counts, default-ignorable label equality, a too-narrow exception boundary and non-injective affordance/node pairing in the conversion engine.",
+  "decision": "scoped absence supported",
+  "closestCandidates": [
+    {
+      "id": "CASE-0185",
+      "assessment": "Document panel identity/content does not exercise these conversion-engine properties.",
+      "publicRegistryVariants": [
+        {
+          "registry": "cases.json",
+          "kind": "case",
+          "canonicalRowSha256": "ac0a500976726646875be0a65ea6f1b9f6ee1bdddc8af7e54b7dd89a4b710b74",
+          "subject": {
+            "oracle": "structural-visual",
+            "cell": {
+              "surface": "SURF-028",
+              "state": "populated",
+              "viewport": "900x820",
+              "theme": "dark",
+              "role": "operator",
+              "dataShape": "served-package",
+              "executionPlane": "headless"
+            }
+          }
+        },
+        {
+          "registry": "cases.in.json",
+          "kind": "case",
+          "canonicalRowSha256": "3d28ac538d5fa04e0ded0c723b992d6ec6b7ed779a96827491c0cb447454803e",
+          "subject": {
+            "oracle": "raster-visual",
+            "cell": {
+              "surface": "SURF-028",
+              "state": "populated",
+              "viewport": "900x820",
+              "theme": "dark",
+              "role": "operator",
+              "dataShape": "served-package",
+              "executionPlane": "headless"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-038",
+      "assessment": "Prescan framing checks do not observe zero-file token lint or one-to-one pairing.",
+      "publicRegistryVariants": [
+        {
+          "registry": "defects.in.json",
+          "kind": "defect",
+          "canonicalRowSha256": "d81b68ea228524869afc4e7a883791644b05b747ec44e44f107b0a5a73456269",
+          "subject": {
+            "title": "the rendered-quality gate has never been able to run, and nothing said why",
+            "text": "The campaign names design-review and be-my-witness as gates and has never run either, and the reason was never measured — it read as a skip. It is not. be-my-witness 0.2.0's deterministic prescan over all 16 pairs that hold both halves reports isEvidence 16/16, settled 16/16, framingComparable 0/16, proceed 0/16. Not a dead predicate: the scale ratios differ per lane (0.466x on the SURF-001 sidebar crop, 1.64x on the Mac boards, 0.942x on the phone) rather than returning a constant. Every reference was rasterised at a 1280x720 dpr-1 viewport, inside which prototype.html draws a fixed artboard rather than filling the frame, so rendering larger pads rather than enlarges. Re-rendering the reference does not fix it either: the design's Mac window is #win at 1156x680, aspect 1.700, and the build's is 980x620, aspect 1.581. The build half crops exactly — scale=(2096-1376)/(980-620)=2.0, margin=(2096-980*2)/2=68, content rect (68,68,1960,1240), precisely 2x the AX frame — but no crop reconciles two different window shapes. What would make them comparable is re-capturing the app at the design's window size, which means driving the app again and photographing a window shape the product does not use. Left unresolved deliberately: the structural and lexical differential in evidence/differential.md is the comparison that is valid here, and it ran."
+          }
+        },
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "0535ec305d809d8621ab9c3ffc09871f56bd9fac6c8126d95df446b776029655",
+          "subject": {
+            "title": "the rendered-quality gate has never been able to run, and nothing said why",
+            "text": "The campaign names design-review and be-my-witness as gates and has never run either, and the reason was never measured — it read as a skip. It is not. be-my-witness 0.2.0's deterministic prescan over all 16 pairs that hold both halves reports isEvidence 16/16, settled 16/16, framingComparable 0/16, proceed 0/16. Not a dead predicate: the scale ratios differ per lane (0.466x on the SURF-001 sidebar crop, 1.64x on the Mac boards, 0.942x on the phone) rather than returning a constant. Every reference was rasterised at a 1280x720 dpr-1 viewport, inside which prototype.html draws a fixed artboard rather than filling the frame, so rendering larger pads rather than enlarges. Re-rendering the reference does not fix it either: the design's Mac window is #win at 1156x680, aspect 1.700, and the build's is 980x620, aspect 1.581. The build half crops exactly — scale=(2096-1376)/(980-620)=2.0, margin=(2096-980*2)/2=68, content rect (68,68,1960,1240), precisely 2x the AX frame — but no crop reconciles two different window shapes. What would make them comparable is re-capturing the app at the design's window size, which means driving the app again and photographing a window shape the product does not use. Left unresolved deliberately: the structural and lexical differential in evidence/differential.md is the comparison that is valid here, and it ran."
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEF-055",
+      "assessment": "Blind Swift mutation parsing has another scanner and no conversion ledger.",
+      "publicRegistryVariants": [
+        {
+          "registry": "inventory.defect",
+          "kind": "defect",
+          "canonicalRowSha256": "2b24c1a93dbcc7ac603b9e5658556b00c52881d5d2e595f582a12908c17be53e",
+          "subject": {
+            "title": "vacuity-check's blind-mutation pass examines non-tests and mis-reads Swift idiom; 7 of 7 sampled findings are false positives"
+          }
+        }
+      ]
+    }
+  ],
+  "registryFilesAtReview": {
+    "planning/test-campaign/flows.in.json": "b99054f398af0ac1599f956f8847925c31d3b0a7e194f22f84eee38e24f3044c",
+    "planning/test-campaign/requirements.in.json": "d78258ddc9504ff3393c837942f70ce5df381bf70fcaf3ffff3d26699821941d",
+    "planning/test-campaign/surfaces.in.json": "b79873888cb1ea7042033e26d0feff6a16a391a592bc469c32f46f33acdd2b0e",
+    "planning/test-campaign/cases.json": "31973ea78557b57b56dc9a0599dbecd3ab7e0b1157ff9509d6501b666405ceea",
+    "planning/test-campaign/components.in.json": "535556b2c2b31b50d4f0333ca3b8fba685f1859b8b3d2840584331bd0351ba4b",
+    "planning/test-campaign/inventory.json": "41556c54cba3c596bb6995c2bfafd859a840297d074dc0e4c1835b1c0a2ce0ac",
+    "planning/test-campaign/cases.in.json": "f94ccf575abc5035c0d2a39808ac4321e91e294f90249f1a7a9c5caef5d6bc6a",
+    "planning/test-campaign/defects.in.json": "6d6975f1288ddd4613db993080aa91fabe62e277a7dadf265988744fdea5a135"
+  },
+  "limits": [
+    "This review concerns registry entity identity, not implementation, retirement, campaign acceptance or a newly created join.",
+    "Literal subject scopes are explicit freshness boundaries, not a semantic search guarantee. A changed relevant projection reopens a reviewed record.",
+    "Candidate comparison is an agent source review; independent assessment has not yet been performed."
+  ],
+  "scope": "mock-conversion-guard",
+  "selectedRegistryIDs": [
+    "CASE-0006",
+    "CASE-0018",
+    "CASE-0035",
+    "CASE-0036",
+    "CASE-0109",
+    "CASE-0128",
+    "CASE-0129",
+    "CASE-0131",
+    "CASE-0133",
+    "CASE-0135",
+    "CASE-0139",
+    "CASE-0142",
+    "CASE-0143",
+    "CASE-0144",
+    "CASE-0185",
+    "CASE-0187",
+    "CASE-0188",
+    "CASE-0189",
+    "CASE-0213",
+    "CASE-0279",
+    "CASE-0282",
+    "CASE-0285",
+    "CASE-0329",
+    "CASE-0351",
+    "CASE-0530",
+    "DEF-021",
+    "DEF-033",
+    "DEF-034",
+    "DEF-038",
+    "DEF-040",
+    "DEF-046",
+    "DEF-049",
+    "DEF-050",
+    "DEF-054",
+    "DEF-055",
+    "DEF-057",
+    "DEF-064",
+    "DEF-401",
+    "DEF-441",
+    "REQ-008",
+    "REQ-019",
+    "SURF-035"
+  ],
+  "rationale": "Zero scan counts, default-ignorable label equality, a too-narrow exception boundary and non-injective affordance/node pairing in the conversion engine. The nearest candidates differ as recorded individually; none supplies an entity for this specific mechanism and observable."
+}

@@ -63,17 +63,22 @@ public static class SkillPresentation
 
     // ------------------------------------------------------------------ held-version writes
 
-    public const string PromoteUnavailable = "Promoting reads the held version from Claude's plugin cache, and this router does not serve that yet.";
+    public const string PromoteUnavailable = "This router cannot copy cached plugins into its own store.";
+    public const string InstalledPluginUpdatesUnavailable = "Claude Code cannot bind an update to the reviewed version and capabilities. Update it in Claude Code; this router does not change that installation.";
+    public const string NoRouterCopy = "This plugin has no router-owned copy. No installation was changed.";
+    public static bool HasRouterCopy(Skill skill, IReadOnlyList<ExtensionUpdateEntry> entries) =>
+        skill.Source.AsPlugin is { } origin && entries.Any(entry => entry.Kind == StoredExtensionKind.Plugins
+            && entry.Name == $"{origin.Plugin}@{origin.Marketplace}");
     public const string UpdatesHeading = "Updates available";
     public const string UpdatesNone = "The update check found no newer version among the plugins Claude has installed and the entries this router holds.";
 
     public static string Kept(string version) => $"Kept {version}. The router has recorded that you kept it.";
 
-    public static string Promoted(string name, string version) => $"Promoted {name} to {version}. The copy it replaced is kept, and Undo puts it back.";
+    public static string Promoted(string name, string version) => $"Copied {name} {version} to the router store. Undo restores the previous router copy. Claude Code was not changed.";
 
-    public static string Undone(string name, string? version) => $"Put {name} back{(version is null ? "" : $" at {version}")}. The promoted copy is kept aside.";
+    public static string Undone(string name, string? version) => $"Restored the router copy of {name}{(version is null ? "" : $" at {version}")}. Claude Code was not changed.";
 
-    public static string PromotionCanBeUndone(string plugin) => $"{plugin} was promoted. Undo puts back the version it replaced.";
+    public static string PromotionCanBeUndone(string plugin) => $"The router copy of {plugin} changed. Undo restores the previous router copy.";
 
     public static string Offered(string available, string installed) => $"{available} is offered and {installed} is installed";
 
@@ -334,7 +339,7 @@ public static class SkillPresentation
     public static string Disposition(Skill skill)
     {
         if (skill.Held is not { } held) return "";
-        return held.WantsMore ? "Held for review" : "Promotes on its own";
+        return held.WantsMore ? "Held for review" : "Newer cached version";
     }
 
     /// <summary>

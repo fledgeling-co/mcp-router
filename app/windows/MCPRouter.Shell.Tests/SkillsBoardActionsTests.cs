@@ -18,6 +18,7 @@ public sealed class SkillsBoardActionsTests
         public List<string> Calls { get; } = [];
         public TaskCompletionSource? Gate { get; set; }
         public SkillsControlError? WriteError { get; set; }
+        public string[] RouterCopies { get; set; } = ["trawl@fledgeling-plugins", "first@fledgeling-plugins", "refused@fledgeling-plugins", "last@fledgeling-plugins", "same@market"];
         public HashSet<string> RefusedNames { get; } = [];
 
         public KeepAck Keep { get; } = new("trawl@fledgeling-plugins", StoredExtensionKind.Plugins, "2.3.0");
@@ -33,7 +34,7 @@ public sealed class SkillsBoardActionsTests
             Task.FromResult(new MarketplacesResponse([]));
 
         public Task<ExtensionUpdatesResponse> ExtensionUpdatesAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult(new ExtensionUpdatesResponse([], []));
+            Task.FromResult(new ExtensionUpdatesResponse(RouterCopies.Select(name => new ExtensionUpdateEntry(StoredExtensionKind.Plugins, name, "current", "1.0.0", "1.0.0", false, "current router copy", null)).ToArray(), []));
 
         public async Task<KeepAck> KeepHeldVersionAsync(
             string name, string pluginVersion, CancellationToken cancellationToken = default)
@@ -88,6 +89,44 @@ public sealed class SkillsBoardActionsTests
         Path: "~/.claude/skills/graphify",
         Source: new SkillSource.Standalone("~/.claude/skills/graphify"),
         Presence: new Dictionary<string, SkillPresence>());
+
+    [Fact]
+    public async Task BatchCopyReportsMissingRouterOwnershipWithoutMakingAWrite()
+    {
+        var client = new RecordingClient { RouterCopies = [] };
+        var actions = new SkillsBoardActions(client, () => Task.CompletedTask);
+        await actions.UpdateAllAsync([HeldTrawl() with { Held = new HeldVersion("2.3.0", [], 1) }]);
+        Assert.Empty(client.Calls);
+        Assert.Contains(SkillPresentation.NoRouterCopy, Assert.Single(actions.BatchFailures));
+        Assert.StartsWith("Copied 0 of 1 plugins to the router store.", actions.Notice);
+        Assert.Null(actions.LastPromotion);
+    }
+
+    [Fact]
+    public void RouterOwnershipUsesExactPluginAndMarketplaceEvenWithoutAnUpdateOffer()
+    {
+        var row = new ExtensionUpdateEntry(StoredExtensionKind.Plugins, "trawl@fledgeling-plugins", "current", "2.2.0", "2.2.0", false, "current", null);
+        Assert.True(SkillPresentation.HasRouterCopy(HeldTrawl(), [row]));
+        Assert.False(SkillPresentation.HasRouterCopy(HeldTrawl(), [row with { Name = "trawl@other" }]));
+        Assert.False(SkillPresentation.HasRouterCopy(HeldTrawl(), [row with { Kind = StoredExtensionKind.Skills }]));
+        var snapshot = SkillsBoardSnapshot.FromResults(new SkillsResponse([HeldTrawl()], [], true), null, null, null, new ExtensionUpdatesResponse([row], []));
+        Assert.True(snapshot.CanCopyToRouter(HeldTrawl()));
+        Assert.False((snapshot with { Updates = null }).CanCopyToRouter(HeldTrawl()));
+    }
+
+    [Fact]
+    public async Task ClaudeOnlyPluginCannotBeCopiedOrReportedAsInstalled()
+    {
+        var client = new RecordingClient { RouterCopies = [] };
+        var reloads = 0;
+        var actions = new SkillsBoardActions(client, () => { reloads++; return Task.CompletedTask; });
+        await actions.PromoteHeldVersionAsync(HeldTrawl());
+        Assert.Empty(client.Calls);
+        Assert.Null(actions.Notice);
+        Assert.Null(actions.LastPromotion);
+        Assert.Contains(SkillPresentation.NoRouterCopy, actions.WriteFailure!.UserFacingDescription);
+        Assert.Equal(0, reloads);
+    }
 
     [Fact]
     public async Task KeepRecordsItsNoticeAndSendsTheHeldVersion()
@@ -148,7 +187,7 @@ public sealed class SkillsBoardActionsTests
             new SkillsBoardActions.PromotedEntry("trawl", "trawl@fledgeling-plugins", "1002"),
             actions.LastPromotion);
         Assert.Equal(
-            "Promoted trawl to 2.3.0. The copy it replaced is kept, and Undo puts it back.",
+            "Copied trawl 2.3.0 to the router store. Undo restores the previous router copy. Claude Code was not changed.",
             actions.Notice);
         Assert.Equal(1, reloads);
     }
@@ -183,7 +222,7 @@ public sealed class SkillsBoardActionsTests
             new[] { "promote trawl@fledgeling-plugins 2.3.0", "undo trawl@fledgeling-plugins 1002" },
             client.Calls);
         Assert.Null(actions.LastPromotion);
-        Assert.Equal("Put trawl back at 2.2.0. The promoted copy is kept aside.", actions.Notice);
+        Assert.Equal("Restored the router copy of trawl at 2.2.0. Claude Code was not changed.", actions.Notice);
         Assert.Equal(2, reloads);
     }
 
@@ -270,7 +309,7 @@ public sealed class SkillsBoardActionsTests
         Assert.Equal(new[] { "promote trawl@fledgeling-plugins 2.3.0" }, client.Calls);
         Assert.Empty(actions.BatchFailures);
         Assert.Equal(1, reloads);
-        Assert.StartsWith("Promoted 1 of 1 plugins.", actions.Notice);
+        Assert.StartsWith("Copied 1 of 1 plugins to the router store.", actions.Notice);
     }
 
     [Fact]
@@ -285,7 +324,7 @@ public sealed class SkillsBoardActionsTests
         client.RefusedNames.Add("refused@fledgeling-plugins");
         var actions = new SkillsBoardActions(client, () => Task.CompletedTask);
         await actions.UpdateAllAsync([Offered("first"), Offered("refused"), Offered("last")]);
-        Assert.StartsWith("Promoted 2 of 3 plugins.", actions.Notice);
+        Assert.StartsWith("Copied 2 of 3 plugins to the router store.", actions.Notice);
         Assert.Contains("refused:", Assert.Single(actions.BatchFailures));
         Assert.Equal("last", actions.LastPromotion?.Plugin);
         await actions.UndoLastPromotionAsync();

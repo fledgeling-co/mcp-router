@@ -201,11 +201,11 @@ public sealed partial class SkillsBoard : UserControl
         AutomationProperties.SetAutomationId(addMarketplace, "skills.head.addMarketplace");
         AutomationProperties.SetHelpText(addMarketplace, Win7Reason);
 
-        var updateAll = new Button { Content = "Update all · 0", IsEnabled = false };
-        AutomationProperties.SetName(updateAll, "Update all");
+        var updateAll = new Button { Content = "Copy cached plugins to router · 0", IsEnabled = false };
+        AutomationProperties.SetName(updateAll, "Copy cached plugins to router");
         AutomationProperties.SetAutomationId(updateAll, "skills.head.updateAll");
         AutomationProperties.SetHelpText(updateAll, SkillPresentation.WritesNotYetAvailable);
-        updateAll.Click += async (_, _) => await _actions.UpdateAllAsync(_snapshot.Skills?.SkillList ?? []);
+        updateAll.Click += async (_, _) => await _actions.UpdateAllAsync(_snapshot.RouterCopyCandidates);
         _updateAllButton = updateAll;
 
         HeadActions.Children.Add(doctor);
@@ -224,10 +224,10 @@ public sealed partial class SkillsBoard : UserControl
             // The count is real and the action is not available: the board is read-only. The
             // count stays visible so the set it names is not a mystery behind the disabled
             // control (§5 Disabled: dims in place, never disappears).
-            updateAll.Content = $"Update all · {_snapshot.UpdateAllCount}";
-            updateAll.IsEnabled = !_actions.Writing && _snapshot.Skills?.PromotesFromCache == true && _snapshot.UpdateAllCount > 0;
+            updateAll.Content = $"Copy cached plugins to router · {_snapshot.RouterCopyCandidates.Count}";
+            updateAll.IsEnabled = !_actions.Writing && _snapshot.Skills?.PromotesFromCache == true && _snapshot.RouterCopyCandidates.Count > 0;
             var reason = _snapshot.Skills?.PromotesFromCache == true
-                ? "Promotes only held plugins asking for no new capabilities. Each promotion can be undone."
+                ? "Copies only router-owned plugins asking for no new capabilities. Claude Code is not changed."
                 : SkillPresentation.PromoteUnavailable;
             ToolTipService.SetToolTip(updateAll, reason);
             AutomationProperties.SetHelpText(updateAll, reason);
@@ -334,7 +334,7 @@ public sealed partial class SkillsBoard : UserControl
             seeWhatChanged.Click += async (_, _) => await ReviewHeldAsync(skill);
             AutomationProperties.SetName(seeWhatChanged, "See what changed…");
             AutomationProperties.SetAutomationId(seeWhatChanged, $"skills.held.seeWhatChanged.{skill.Name}");
-            AutomationProperties.SetHelpText(seeWhatChanged, "Review the held version, its changelog and the capabilities it requests before choosing Keep or Promote.");
+            AutomationProperties.SetHelpText(seeWhatChanged, "Review the held version, its changelog and the capabilities it requests before choosing Keep or Copy to router.");
 
             var banner = (Border)LoadUi(
                 "<Border " + FragmentNs + " Background=\"{ThemeResource CardBackgroundFillColorDefaultBrush}\""
@@ -857,6 +857,7 @@ public sealed partial class SkillsBoard : UserControl
     {
         var stack = new StackPanel { Spacing = 12 };
         stack.Children.Add(new TextBlock { Text = SkillPresentation.UpdatesHeading, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+        stack.Children.Add(new TextBlock { Text = snapshot.Skills?.InstalledPluginUpdateReason ?? SkillPresentation.InstalledPluginUpdatesUnavailable, TextWrapping = TextWrapping.Wrap });
         if (snapshot.UpdatesError is { } failure)
             stack.Children.Add(new InfoBar { IsOpen = true, IsClosable = false, Severity = InfoBarSeverity.Error,
                 Title = failure.Headline, Message = failure.Advice });
@@ -900,8 +901,8 @@ public sealed partial class SkillsBoard : UserControl
             BannersHost.Children.Add(new InfoBar { IsOpen = true, IsClosable = false, Severity = InfoBarSeverity.Error, Message = error });
         if (_actions.LastPromotion is { } promoted)
         {
-            var undo = new Button { Content = $"Undo {promoted.Plugin} promotion", IsEnabled = !_actions.Writing };
-            AutomationProperties.SetName(undo, $"Undo {promoted.Plugin} promotion");
+            var undo = new Button { Content = $"Undo {promoted.Plugin} router copy", IsEnabled = !_actions.Writing };
+            AutomationProperties.SetName(undo, $"Undo {promoted.Plugin} router copy");
             undo.Click += async (_, _) => await _actions.UndoLastPromotionAsync();
             BannersHost.Children.Add(undo);
         }
@@ -917,11 +918,12 @@ public sealed partial class SkillsBoard : UserControl
         content.Children.Add(new TextBlock { Text = held.Changelog?.Note ?? "No changelog was reported for this version.", TextWrapping = TextWrapping.Wrap });
         if (held.Changelog?.Text is { } text)
             content.Children.Add(new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, IsTextSelectionEnabled = true });
-        var servesCache = _snapshot.Skills?.PromotesFromCache == true;
-        if (!servesCache) content.Children.Add(new TextBlock { Text = SkillPresentation.PromoteUnavailable, TextWrapping = TextWrapping.Wrap });
+        var servesCache = _snapshot.CanCopyToRouter(skill);
+        content.Children.Add(new TextBlock { Text = _snapshot.Skills?.InstalledPluginUpdateReason ?? SkillPresentation.InstalledPluginUpdatesUnavailable, TextWrapping = TextWrapping.Wrap });
+        if (!servesCache) content.Children.Add(new TextBlock { Text = _snapshot.Skills?.PromotesFromCache == true ? SkillPresentation.NoRouterCopy : SkillPresentation.PromoteUnavailable, TextWrapping = TextWrapping.Wrap });
         var dialog = new ContentDialog { XamlRoot = XamlRoot, Title = $"Review {skill.Name} {held.PluginVersion}",
             Content = new ScrollViewer { Content = content, MaxHeight = 480 },
-            PrimaryButtonText = $"Promote to {held.PluginVersion}", IsPrimaryButtonEnabled = servesCache,
+            PrimaryButtonText = $"Copy cached plugin {held.PluginVersion} to router", IsPrimaryButtonEnabled = servesCache,
             SecondaryButtonText = "Keep current version", CloseButtonText = "Cancel", DefaultButton = ContentDialogButton.Close };
         var answer = await dialog.ShowAsync();
         if (answer == ContentDialogResult.Primary) await _actions.PromoteHeldVersionAsync(skill);

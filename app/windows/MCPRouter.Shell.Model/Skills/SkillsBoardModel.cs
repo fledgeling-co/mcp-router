@@ -74,6 +74,11 @@ public sealed record SkillsBoardSnapshot
     public ExtensionUpdatesResponse? Updates { get; init; }
     public IReadOnlyList<ExtensionUpdateEntry> Offers => SkillPresentation.UpdateOffers(Skills?.SkillList ?? [], Updates?.EntryList ?? []);
 
+    public bool CanCopyToRouter(Skill skill) => Skills?.PromotesFromCache == true
+        && SkillPresentation.HasRouterCopy(skill, Updates?.EntryList ?? []);
+    public IReadOnlyList<Skill> RouterCopyCandidates => SkillPresentation.Updatable(Skills?.SkillList ?? [])
+        .Where(CanCopyToRouter).DistinctBy(skill => $"{skill.Source.AsPlugin!.Plugin}@{skill.Source.AsPlugin.Marketplace}").ToList();
+
     /// <summary>Every skill with a newer version fetched at all - what the Updates tab lists.</summary>
     public IReadOnlyList<Skill> Updated => Skills is null
         ? Array.Empty<Skill>()

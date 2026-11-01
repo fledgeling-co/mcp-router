@@ -58,6 +58,9 @@ public sealed class SkillsBoardActions
         if (skill.Source.AsPlugin is not { } origin || skill.Held is not { } held || !BeginWrite()) return;
         try
         {
+            var store = await _client.ExtensionUpdatesAsync();
+            if (!SkillPresentation.HasRouterCopy(skill, store.EntryList))
+                throw new SkillsControlException(new SkillsControlError.Server(409, SkillPresentation.NoRouterCopy, null), null);
             var ack = await _client.PromoteFromCacheAsync(StoreName(origin), held.PluginVersion);
             _promotions.Push(new(origin.Plugin, ack.Promoted, ack.Restore));
             Notice = SkillPresentation.Promoted(origin.Plugin, ack.PluginVersion);
@@ -85,13 +88,16 @@ public sealed class SkillsBoardActions
 
     public async Task UpdateAllAsync(IEnumerable<Skill> skills)
     {
-        var eligible = skills.Where(skill => skill.Source.AsPlugin is not null && skill.Held is { WantsMore: false })
+        var candidates = skills.Where(skill => skill.Source.AsPlugin is not null && skill.Held is { WantsMore: false })
             .DistinctBy(skill => StoreName(skill.Source.AsPlugin!)).ToList();
-        if (eligible.Count == 0 || !BeginWrite()) return;
+        if (candidates.Count == 0 || !BeginWrite()) return;
         var failures = new List<string>();
         var promoted = 0;
         try
         {
+            var store = await _client.ExtensionUpdatesAsync();
+            var eligible = candidates.Where(skill => SkillPresentation.HasRouterCopy(skill, store.EntryList)).ToList();
+            foreach (var missing in candidates.Except(eligible)) failures.Add($"{missing.Name}: {SkillPresentation.NoRouterCopy}");
             foreach (var skill in eligible)
             {
                 var origin = skill.Source.AsPlugin!;
@@ -104,7 +110,7 @@ public sealed class SkillsBoardActions
                 catch (SkillsControlException failure) { failures.Add($"{origin.Plugin}: {failure.Error.UserFacingDescription}"); }
                 catch (Exception failure) { failures.Add($"{origin.Plugin}: {Unexpected(failure).UserFacingDescription}"); }
             }
-            Notice = $"Promoted {promoted} of {eligible.Count} plugins. Undo puts back each promoted copy in reverse order.";
+            Notice = $"Copied {promoted} of {candidates.Count} plugins to the router store. Undo restores router copies in reverse order. Claude Code was not changed.";
             BatchFailures = failures;
             if (promoted > 0) await _reload();
         }

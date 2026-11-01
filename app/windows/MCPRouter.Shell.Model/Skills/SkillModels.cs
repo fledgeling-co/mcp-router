@@ -255,16 +255,22 @@ internal sealed class PresenceMapConverter : JsonConverter<IReadOnlyDictionary<s
     }
 }
 
+public sealed record InstalledPluginUpdateCapability(
+    [property: JsonPropertyName("available")] bool Available,
+    [property: JsonPropertyName("reason")] string? Reason);
+
 public sealed record SkillsResponse(
     [property: JsonPropertyName("skills")] Skill[]? Skills,
     [property: JsonPropertyName("clients")] SkillClient[]? Clients,
-    [property: JsonPropertyName("promoteFromCache")] bool? PromoteFromCache = null)
+    [property: JsonPropertyName("promoteFromCache")] bool? PromoteFromCache = null,
+    [property: JsonPropertyName("installedPluginUpdates")] InstalledPluginUpdateCapability? InstalledPluginUpdates = null)
 {
     public IReadOnlyList<Skill> SkillList => Skills ?? Array.Empty<Skill>();
     public IReadOnlyList<SkillClient> ClientList => Clients ?? Array.Empty<SkillClient>();
 
     /// <summary>Whether the router serves Promote from Claude's plugin cache. An older router omits the member.</summary>
     public bool PromotesFromCache => PromoteFromCache == true;
+    public string InstalledPluginUpdateReason => InstalledPluginUpdates?.Reason ?? SkillPresentation.InstalledPluginUpdatesUnavailable;
 
     /// <summary>The clients that have a skills mechanism, in the router's order - which is the slot order.</summary>
     public IReadOnlyList<SkillClient> SlotClients =>

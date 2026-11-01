@@ -11,6 +11,14 @@ namespace MCPRouter.Shell.Tests;
 public sealed class SkillPresentationWriteTests
 {
     [Fact]
+    public void MissingInstalledUpdaterCapabilityIsExplicitlyUnavailable()
+    {
+        var response = System.Text.Json.JsonSerializer.Deserialize<SkillsResponse>("{\"skills\":[],\"clients\":[],\"promoteFromCache\":true}")!;
+        Assert.Equal(SkillPresentation.InstalledPluginUpdatesUnavailable, response.InstalledPluginUpdateReason);
+        Assert.True(response.PromotesFromCache);
+    }
+
+    [Fact]
     public void TheKeptCopyNamesWhatTheRouterRecordedAndClaimsNoBadgeCleared()
     {
         Assert.Equal("Kept 2.3.0. The router has recorded that you kept it.", SkillPresentation.Kept("2.3.0"));
@@ -20,7 +28,7 @@ public sealed class SkillPresentationWriteTests
     public void ThePromotedCopyNamesTheCopyKeptAndTheUndo()
     {
         Assert.Equal(
-            "Promoted trawl to 2.3.0. The copy it replaced is kept, and Undo puts it back.",
+            "Copied trawl 2.3.0 to the router store. Undo restores the previous router copy. Claude Code was not changed.",
             SkillPresentation.Promoted("trawl", "2.3.0"));
     }
 
@@ -28,21 +36,21 @@ public sealed class SkillPresentationWriteTests
     public void TheUndoCopyNamesTheVersionPutBackWhenTheRouterSaysIt()
     {
         Assert.Equal(
-            "Put trawl back at 2.2.0. The promoted copy is kept aside.",
+            "Restored the router copy of trawl at 2.2.0. Claude Code was not changed.",
             SkillPresentation.Undone("trawl", "2.2.0"));
     }
 
     [Fact]
     public void TheUndoCopyDoesNotInventAVersionTheRouterDidNotSend()
     {
-        Assert.Equal("Put trawl back. The promoted copy is kept aside.", SkillPresentation.Undone("trawl", null));
+        Assert.Equal("Restored the router copy of trawl. Claude Code was not changed.", SkillPresentation.Undone("trawl", null));
     }
 
     [Fact]
     public void TheUndoBarCopyNamesThePluginThatWasPromoted()
     {
         Assert.Equal(
-            "trawl was promoted. Undo puts back the version it replaced.",
+            "The router copy of trawl changed. Undo restores the previous router copy.",
             SkillPresentation.PromotionCanBeUndone("trawl"));
     }
 

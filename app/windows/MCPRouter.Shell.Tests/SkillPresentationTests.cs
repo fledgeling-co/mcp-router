@@ -159,7 +159,7 @@ public sealed class SkillPresentationTests
         Assert.Equal("Wants network access", SkillPresentation.WhatChanged(held));
         Assert.Equal("Held for review", SkillPresentation.Disposition(held));
         Assert.Equal("No capability change", SkillPresentation.WhatChanged(promotable));
-        Assert.Equal("Promotes on its own", SkillPresentation.Disposition(promotable));
+        Assert.Equal("Newer cached version", SkillPresentation.Disposition(promotable));
     }
 
     [Fact]

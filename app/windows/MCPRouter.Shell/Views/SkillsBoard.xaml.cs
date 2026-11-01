@@ -533,11 +533,11 @@ public sealed partial class SkillsBoard : UserControl
             + "               Foreground=\"{ThemeResource TextFillColorPrimaryBrush}\" />"
             + "    <ContentControl Grid.Column=\"3\" x:Name=\"SlotsCell\" IsTabStop=\"False\""
             + "                    VerticalAlignment=\"Center\" HorizontalContentAlignment=\"Left\" />"
-            + "    <TextBlock Grid.Column=\"4\" x:Name=\"AutoUpdateCell\" VerticalAlignment=\"Center\""
-            + "               HorizontalAlignment=\"Left\" Padding=\"6,2,6,2\" CornerRadius=\"4\""
-            + "               Background=\"{ThemeResource SubtleFillColorSecondaryBrush}\""
-            + "               Style=\"{StaticResource CaptionTextBlockStyle}\""
-            + "               Foreground=\"{ThemeResource TextFillColorPrimaryBrush}\" />"
+            + "    <Border Grid.Column=\"4\" VerticalAlignment=\"Center\" HorizontalAlignment=\"Left\""
+            + "            Padding=\"6,2,6,2\" CornerRadius=\"4\" Background=\"{ThemeResource SubtleFillColorSecondaryBrush}\">"
+            + "      <TextBlock x:Name=\"AutoUpdateCell\" Style=\"{StaticResource CaptionTextBlockStyle}\""
+            + "                 Foreground=\"{ThemeResource TextFillColorPrimaryBrush}\" />"
+            + "    </Border>"
             + "  </Grid>"
             + "</Button>");
 

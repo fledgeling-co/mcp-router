@@ -13,6 +13,58 @@
     /// wrote anything.
     @Suite("The check history store")
     struct CheckHistoryStoreTests {
+        @MainActor
+        @Test("Debug verification history persists only beneath its scratch router HOME")
+        func verificationHistoryIsIsolated() throws {
+            let root = try Self.scratch()
+            defer { try? FileManager.default.removeItem(at: root) }
+            let owner = root.appendingPathComponent("owner-support")
+            let home = root.appendingPathComponent("scratch-router")
+            let directory = CheckHistoryStore.observationDirectory(
+                isDebugBuild: true,
+                environment: [
+                    ShellClientFactory.scratchSettingsTokenVariable: "1",
+                    "MCP_ROUTER_HOME": home.path
+                ],
+                applicationSupport: owner, temporary: root
+            )
+            #expect(directory == home.appendingPathComponent("app-observations", isDirectory: true))
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            let store = CheckHistoryStore(directory: directory)
+            #expect(store.record(subject: Self.subject, stamp: Stamp("isolated"), results: Self.results()))
+            #expect(FileManager.default
+                .fileExists(atPath: directory.appendingPathComponent("check-history.json").path))
+            #expect(CheckHistoryStore(directory: directory).history(for: Self.subject).count == 1)
+            #expect(!FileManager.default.fileExists(atPath: owner.path))
+        }
+
+        @MainActor
+        @Test("Release ignores verification flags and incomplete Debug launches never select owner history")
+        func verificationHistoryBoundaries() throws {
+            let root = try Self.scratch()
+            defer { try? FileManager.default.removeItem(at: root) }
+            let owner = root.appendingPathComponent("owner-support")
+            #expect(CheckHistoryStore.observationDirectory(
+                isDebugBuild: true, environment: [:], applicationSupport: owner, temporary: root
+            ) == owner.appendingPathComponent("MCPRouter", isDirectory: true))
+            for home in ["", "/", "/tmp/..", "relative", root.appendingPathComponent("scratch").path] {
+                let environment = [
+                    ShellClientFactory.scratchSettingsTokenVariable: "1",
+                    "MCP_ROUTER_HOME": home
+                ]
+                let release = CheckHistoryStore.observationDirectory(
+                    isDebugBuild: false, environment: environment, applicationSupport: owner, temporary: root
+                )
+                #expect(release == owner.appendingPathComponent("MCPRouter", isDirectory: true))
+                let debug = CheckHistoryStore.observationDirectory(
+                    isDebugBuild: true, environment: environment, applicationSupport: owner, temporary: root
+                )
+                #expect(debug.path.hasPrefix(root.path + "/"))
+                #expect(!debug.path.hasPrefix(owner.path))
+            }
+            #expect(!FileManager.default.fileExists(atPath: owner.path))
+        }
+
         private static func scratch() throws -> URL {
             let directory = FileManager.default.temporaryDirectory
                 .appendingPathComponent("m7-history-\(UUID().uuidString)", isDirectory: true)

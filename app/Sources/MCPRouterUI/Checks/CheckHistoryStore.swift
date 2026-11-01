@@ -43,9 +43,37 @@
         public static func defaultDirectory() -> URL {
             let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)
                 .first ?? URL(fileURLWithPath: NSTemporaryDirectory())
-            let directory = base.appendingPathComponent("MCPRouter", isDirectory: true)
+            #if DEBUG
+                let isDebugBuild = true
+            #else
+                let isDebugBuild = false
+            #endif
+            let directory = observationDirectory(
+                isDebugBuild: isDebugBuild, environment: ProcessInfo.processInfo.environment,
+                applicationSupport: base, temporary: FileManager.default.temporaryDirectory
+            )
             try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
             return directory
+        }
+
+        static func observationDirectory(
+            isDebugBuild: Bool, environment: [String: String], applicationSupport: URL, temporary: URL
+        ) -> URL {
+            guard isDebugBuild, environment[ShellClientFactory.scratchSettingsTokenVariable] == "1" else {
+                return applicationSupport.appendingPathComponent("MCPRouter", isDirectory: true)
+            }
+            if let home = environment["MCP_ROUTER_HOME"], home.hasPrefix("/"),
+               !home.split(separator: "/").contains(".."),
+               URL(fileURLWithPath: home).standardizedFileURL.path != "/"
+            {
+                return URL(fileURLWithPath: home, isDirectory: true).standardizedFileURL
+                    .appendingPathComponent("app-observations", isDirectory: true)
+            }
+            // An incomplete verification launch stays isolated rather than falling back to owner history.
+            return temporary.appendingPathComponent(
+                "MCPRouterVerification-\(ProcessInfo.processInfo.processIdentifier)",
+                isDirectory: true
+            )
         }
 
         // MARK: - Reading

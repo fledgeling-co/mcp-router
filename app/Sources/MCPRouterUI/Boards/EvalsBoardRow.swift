@@ -37,7 +37,12 @@
                         .lineLimit(1)
                         .truncationMode(.tail)
                 }
-                .frame(width: M7BoardMetrics.nameColumn, alignment: .leading)
+                .frame(
+                    minWidth: M7BoardMetrics.nameColumn / 2,
+                    idealWidth: M7BoardMetrics.nameColumn,
+                    maxWidth: M7BoardMetrics.nameColumn,
+                    alignment: .leading
+                )
 
                 Text(subject.kind.label)
                     .typeRole(.caption)

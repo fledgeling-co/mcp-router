@@ -176,7 +176,9 @@
                         && board.selection == id && board.sheet == nil
                 },
                 set: { shown in
-                    if !shown, board.sheet == nil { board.selection = nil }
+                    if !shown, board.sheet == nil, board.selection == id,
+                       viewportWidth < M7BoardMetrics.inlineInspectorMinimumWidth
+                    { board.selection = nil }
                 }
             )
         }

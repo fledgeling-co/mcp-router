@@ -187,7 +187,10 @@ struct PopoverContentTests {
         )
         #expect(content.counts?.running == 1)
         #expect(content.calls.isEmpty)
-        #expect(content.message?.title == MenuBarPresentation.emptyLogTitle)
+        #expect(content.message?.title == "No calls to show")
+        #expect(content.message?.detail ==
+            "No call records are available here. New tool calls will appear as they arrive.")
+        #expect(content.message?.detail.contains("Nothing is running") == false)
     }
 
     // MARK: - A20, A21 · the call column

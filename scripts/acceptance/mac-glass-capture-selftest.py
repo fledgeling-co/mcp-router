@@ -96,6 +96,19 @@ def main():
             "MCP_ROUTER_HOME=" + launch_env["MCP_ROUTER_HOME"],
             "MCP_ROUTER_URL=" + launch_env["MCP_ROUTER_URL"],
         ]
+        for changes in [
+            {"MCP_ROUTER_HOME": ""},
+            {"MCP_ROUTER_URL": "http://192.0.2.1:8879"},
+            {"MCP_ROUTER_URL": "http://127.0.0.1"},
+        ]:
+            probe = subprocess.run(["/bin/bash", str(script)],
+                                   env={**launch_env, "MCP_ROUTER_GLASS_INBOX_SCENARIO": "live", **changes},
+                                   capture_output=True, text=True)
+            assert probe.returncode == 2, probe.stdout + probe.stderr
+        probe = subprocess.run(["/bin/bash", str(script)],
+                               env={**launch_env, "MCP_ROUTER_GLASS_INBOX_SCENARIO": "live"},
+                               capture_output=True, text=True)
+        assert probe.returncode == 77, probe.stdout + probe.stderr
 
         # The app's display name is deliberately different: only its PID can guard the shutter.
         toolkit.write_text('''#!/bin/bash
@@ -130,7 +143,7 @@ esac
                                    capture_output=True, text=True)
             assert probe.returncode == expected_status, probe.stdout + probe.stderr
             assert image.exists() == (expected_status == 0)
-    print("mac glass capture: ordering green/red, portable paths, isolated launch and renamed target PID shutter controls passed")
+    print("mac glass capture: subject ordering, portable paths, isolated live Inbox launch and renamed target PID shutter controls passed")
 
 
 if __name__ == "__main__":

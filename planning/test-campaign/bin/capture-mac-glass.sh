@@ -32,6 +32,30 @@ APP_ENV=()
 for key in MCP_ROUTER_HOME MCP_ROUTER_URL; do
   if [ -n "${!key:-}" ]; then APP_ENV+=("$key=${!key}"); fi
 done
+INBOX_SCENARIO="${MCP_ROUTER_GLASS_INBOX_SCENARIO:-populated}"
+case "$INBOX_SCENARIO" in
+  populated) ;;
+  live)
+    [ -n "${MCP_ROUTER_HOME:-}" ] && [ -n "${MCP_ROUTER_URL:-}" ] || {
+      echo 'live Inbox capture requires explicit isolated MCP_ROUTER_HOME and MCP_ROUTER_URL' >&2
+      exit 2
+    }
+    python3 - <<'ENDPOINT'
+import os
+import sys
+from urllib.parse import urlparse
+try:
+    url = urlparse(os.environ["MCP_ROUTER_URL"])
+    valid = url.scheme == "http" and url.hostname in ("127.0.0.1", "localhost", "::1") and bool(url.port)
+except ValueError:
+    valid = False
+if not valid:
+    print("live Inbox capture requires an explicit HTTP loopback port", file=sys.stderr)
+    raise SystemExit(2)
+ENDPOINT
+    ;;
+  *) echo 'Inbox capture scenario must be populated or live' >&2; exit 2 ;;
+esac
 # shellcheck source=scripts/acceptance/mac-app.sh
 source "$ROOT/scripts/acceptance/mac-app.sh"
 
@@ -47,6 +71,7 @@ FRONT_BEFORE="$("$AXKIT" front)"
 echo "frontmost before: $FRONT_BEFORE"
 
 mac_app_launch "$MAC_APP" "$AXKIT" "MCPROUTER_SCENARIO=populated" ${APP_ENV[@]+"${APP_ENV[@]}"}
+ACTIVE_SCENARIO=populated
 echo "attached pid=$PID"
 WINID="$("$AXKIT" winid "$PID")"
 echo "winid=$WINID"
@@ -161,6 +186,15 @@ for pair in \
 do
   sid="${pair%%:*}"
   row="${pair##*:}"
+  desired_scenario=populated
+  if [ "$row" = "Inbox" ]; then desired_scenario="$INBOX_SCENARIO"; fi
+  if [ "$ACTIVE_SCENARIO" != "$desired_scenario" ]; then
+    "$AXKIT" terminate "$PID"
+    mac_app_wait_gone "$MAC_APP"
+    mac_app_launch "$MAC_APP" "$AXKIT" "MCPROUTER_SCENARIO=$desired_scenario" ${APP_ENV[@]+"${APP_ENV[@]}"}
+    ACTIVE_SCENARIO="$desired_scenario"
+    WINID="$("$AXKIT" winid "$PID")"
+  fi
   echo "select $row -> $sid"
   SELECTED=1
   "$AXKIT" select "$PID" "$row" || { SELECTED=0; echo "  select failed for $row"; }
@@ -192,9 +226,9 @@ do
   # the gate requires every subject in a share to name the others, which is what
   # makes the wall say "one picture, two cells" from either side of it.
   if [ "$sid" = "SURF-002" ]; then
-    capture "${sid}.build" "$sid" READBACK "SURF-001" "$SHELL_SHARE_REASON"
+    SCENARIO="$ACTIVE_SCENARIO" capture "${sid}.build" "$sid" READBACK "SURF-001" "$SHELL_SHARE_REASON"
   else
-    capture "${sid}.build" "$sid" READBACK
+    SCENARIO="$ACTIVE_SCENARIO" capture "${sid}.build" "$sid" READBACK
   fi
   if [ "$sid" = "SURF-002" ]; then
     # The shell is the same window and the same pixels. Declared, not hidden.

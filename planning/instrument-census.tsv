@@ -68,6 +68,7 @@ app/Tests/MCPRouterKitTests/MockTokenMetricMapTests.swift	swift-suite	app/Tests/
 app/Tests/MCPRouterKitTests/MockTokenParityTests.swift	swift-suite	app/Tests/MCPRouterKitTests/MockTokenParityTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/NetworkPairingSocketTests.swift	swift-suite	app/Tests/MCPRouterKitTests/NetworkPairingSocketTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/NetworkPairingTransportTests.swift	swift-suite	app/Tests/MCPRouterKitTests/NetworkPairingTransportTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterKitTests/PairedDeviceWireTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairedDeviceWireTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingBehaviourTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingBehaviourTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingCodeTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingCodeTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterKitTests/PairingCodeWireTests.swift	swift-suite	app/Tests/MCPRouterKitTests/PairingCodeWireTests.swift	swift	compiled and run by `swift test`	make:test
@@ -140,6 +141,8 @@ app/Tests/MCPRouterUITests/M7BoardHonestyTests.swift	swift-suite	app/Tests/MCPRo
 app/Tests/MCPRouterUITests/M7ExercisedRequestTests.swift	swift-suite	app/Tests/MCPRouterUITests/M7ExercisedRequestTests.swift	swift	compiled and run by `swift test`; names command: "node", execution unresolved	make:test
 app/Tests/MCPRouterUITests/MenuBadgeTrailingAreaTests.swift	swift-suite	app/Tests/MCPRouterUITests/MenuBadgeTrailingAreaTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/MockButtonFidelityTests.swift	swift-suite	app/Tests/MCPRouterUITests/MockButtonFidelityTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterUITests/PairedDevicesModelTests.swift	swift-suite	app/Tests/MCPRouterUITests/PairedDevicesModelTests.swift	swift	compiled and run by `swift test`	make:test
+app/Tests/MCPRouterUITests/PairedDevicesRouterTests.swift	swift-suite	app/Tests/MCPRouterUITests/PairedDevicesRouterTests.swift	swift	compiled and run by `swift test`; names argv ["node", …], execution unresolved	make:test
 app/Tests/MCPRouterUITests/PairingExpiryTests.swift	swift-suite	app/Tests/MCPRouterUITests/PairingExpiryTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/PairingRouterCodeTests.swift	swift-suite	app/Tests/MCPRouterUITests/PairingRouterCodeTests.swift	swift	compiled and run by `swift test`	make:test
 app/Tests/MCPRouterUITests/PairingSheetTests.swift	swift-suite	app/Tests/MCPRouterUITests/PairingSheetTests.swift	swift	compiled and run by `swift test`	make:test

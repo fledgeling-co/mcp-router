@@ -45,10 +45,9 @@ public final class LibraryModel {
 
 /// Library: what the paired Mac has declared, read-only from here.
 ///
-/// **Servers, not skills.** There is no skills index and no `/skills` route on either router, so
-/// the skills absence is stated as a fact rather than drawn as an empty list. **And nothing here
-/// mutates anything**: the phone queues and never installs, and this is the narrowest surface in
-/// the app — its only control is a client-side filter.
+/// This consumer reads declared servers only, even when the router also serves a skills index.
+/// It states that scope rather than presenting an empty skills list. Nothing here mutates the
+/// router: the phone queues for review, and Library only filters the list it read.
 public struct LibraryScreen: View {
     @State private var model: LibraryModel
 

@@ -1,0 +1,69 @@
+{
+  "sourceBase": "bb98fa13e595cec08077059a6920eec18fb0ca93",
+  "sourceHashes": {
+    "app/Sources/MCPRouterKit/Triage/LibraryCopy.swift": "c7be0370fc32b3781ef7b4dc9c72d44f0f036d9f8f9e1f55efcfecc74ec9b24d",
+    "app/Sources/MCPRouterUI/Phone/Library/LibraryScreen.swift": "c54ef80c0170d3c190eaeb68cc16af27081470cd534bb8fa41ac3431fc00f477",
+    "app/MCPRouterIOSUITests/PhoneGlassTests.swift": "daa7ba773cd1f87380979c6b0d9bf2b55c74f0dd2927123bfebcf03c19bd047a"
+  },
+  "scope": "Phone Library skills-absence copy only; server listing and skills capabilities unchanged",
+  "contractEvidence": {
+    "producer": "src/control.ts GET /skills is authenticated; returns skillsValue when stores exist,503 otherwise",
+    "consumer": "LibraryModel.load reads client.servers only; LiveControlAPIClient.skills already supports the separate index"
+  },
+  "nativeSummary": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "40549058-27C8-4D83-AAE7-B310860566E3",
+          "deviceName": "MCPRouter-TabIdentity-20261102",
+          "modelName": "iPhone 17 Pro",
+          "osBuildNumber": "24A434",
+          "osVersion": "27.0",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "passedTests": 1,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "MCPRouterIOSGlass \u00b7 Built with macOS 27.0",
+    "expectedFailures": 0,
+    "failedTests": 0,
+    "finishTime": 1793545623.318,
+    "passedTests": 1,
+    "result": "Passed",
+    "runtimeWarnings": [],
+    "skippedTests": 0,
+    "startTime": 1793545600.988,
+    "statistics": [],
+    "testFailures": [],
+    "title": "Test - MCPRouterIOSGlass",
+    "topInsights": [],
+    "totalTestCount": 1
+  },
+  "copyManifestTests": {
+    "command": "swift test --package-path app --jobs2 --filter TriageCopyManifestTests",
+    "passed": 14,
+    "failed": 0
+  },
+  "screenshot": {
+    "file": "library.png",
+    "sha256": "37acab5df1f751d89643a8662bf43b37f94faf6a375503aa7e511e2ff6c3f68f",
+    "testIdentifier": "PhoneGlassTests/testLibrarySkillsCopyDescribesThePhoneScope()",
+    "timestamp": 1793545621.915,
+    "originalExportedFileName": "A00AE2B3-3333-477E-A227-677F7184C0F8.png",
+    "visuallyInspected": true
+  },
+  "rawResultBundle": "/tmp/mcpr-tab-identifiers-20261102/library-skills-copy.xcresult",
+  "limits": [
+    "fixture catalogue data only",
+    "no physical device or live router acceptance",
+    "no unrelated screen actuated"
+  ]
+}

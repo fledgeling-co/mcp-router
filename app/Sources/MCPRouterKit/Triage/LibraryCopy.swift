@@ -195,8 +195,8 @@ public enum LibraryCopy {
             Entry(
                 headline: "Skills are not listed here.",
                 body: """
-                The router publishes no skills endpoint, so this phone has nothing to read. Your Mac's \
-                Skills board is the only place they appear.
+                This phone's Library lists servers only. Use the Skills board on your Mac to review \
+                installed skills.
                 """
             )
         }

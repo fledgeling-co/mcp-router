@@ -43,9 +43,9 @@
                     isResettingHistory ? "Updating history…" : CleanupPresentation.resetLabel,
                     action: onResetHistory
                 )
-                    .buttonStyle(StandardButtonStyle())
-                    .accessibilityIdentifier("settings-reset-history")
-                    .disabled(isResettingHistory)
+                .buttonStyle(StandardButtonStyle())
+                .accessibilityIdentifier("settings-reset-history")
+                .disabled(isResettingHistory)
                 if let resetNotice {
                     SettingsHelp(resetNotice, id: "history-reset-result")
                 }

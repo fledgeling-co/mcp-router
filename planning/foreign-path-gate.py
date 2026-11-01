@@ -49,6 +49,8 @@ Every scratch-path occurrence lands in exactly one class. The set is a partition
 
   RUNTIME     the token is in an executable or a source file. A committed script that writes to
               `/tmp` is re-runnable, which is the property that was missing. Not a citation.
+  UPSTREAM    the token is in Markdown copied byte-for-byte from the supported, fully validated
+              pinned archive. Counted separately; not this repository's evidence claim.
   GENERATED   the token is in a file a script regenerates. A stale path there is fixed by
               re-running its generator, not by a writer. Counted by name, never dropped in silence.
   SUBJECT     the token is in a hand-written record but is a VALUE in the described system — an
@@ -97,6 +99,8 @@ Exit 0 when N5 holds no `CITED` occurrences; exit 1 otherwise; exit 2 if any pre
 import argparse
 import fnmatch
 import glob as globmod
+import hashlib
+import json
 import os
 import pathlib
 import re
@@ -175,10 +179,157 @@ BINARY_SUFFIX = frozenset(
     ".png .jpg .jpeg .webp .gif .ico .icns .pdf .zip .tar .gz .woff .woff2 .ttf .otf "
     ".mp4 .mov .car .dat .bin .sqlite".split())
 
-CLASSES = ("RUNTIME", "GENERATED", "SUBJECT", "CITED", "WITHDRAWN")
+CLASSES = ("RUNTIME", "GENERATED", "UPSTREAM", "SUBJECT", "CITED", "WITHDRAWN")
 BLOCKING = ("CITED",)
 
-SEVERITY = {"RUNTIME": 0, "GENERATED": 0, "SUBJECT": 1, "WITHDRAWN": 2, "CITED": 3}
+SEVERITY = {"RUNTIME": 0, "GENERATED": 0, "UPSTREAM": 0, "SUBJECT": 1, "WITHDRAWN": 2, "CITED": 3}
+
+
+# Only this reviewed archive identity can supply copied-record provenance. Updating a
+# dependency pin requires an explicit review here; an arbitrary self-consistent manifest
+# cannot designate locally authored prose as upstream material.
+UPSTREAM_ROOT = "vendor/test-campaign"
+UPSTREAM_PIN = UPSTREAM_ROOT + ".pin.json"
+# A complete committed copy, independent of the checkout's mutable HEAD and the requested --rev.
+UPSTREAM_CONTROL_REV = "9b5f4ee3a97021440d9487f05c192d30b16e1136"
+SUPPORTED_UPSTREAM = {
+    "package": "test-campaign", "version": "0.20.1",
+    "upstream": "https://github.com/fledgeling-co/fledgeling-plugins",
+    "commit": "a9e30330e013b8c9ecf903e5a5ba544b13c4429e",
+    "path": "plugins/test-campaign",
+    "treeSha256": "6667067af04f16c0db78dfc6674e67043d67e1579d56f7f147e9b828388b4515",
+    "fileCount": 168, "unmodifiedArchive": True,
+}
+
+
+class UpstreamRefused(ValueError):
+    pass
+
+
+def pin_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise UpstreamRefused("duplicate archive pin key: " + key)
+        result[key] = value
+    return result
+
+
+def validate_upstream(blobs):
+    """Validate the complete raw-byte archive before granting any Markdown provenance."""
+    try:
+        pin = json.loads(blobs[UPSTREAM_PIN].decode("utf-8"), object_pairs_hook=pin_object)
+        if (not isinstance(pin, dict) or type(pin.get("fileCount")) is not int
+                or pin.get("unmodifiedArchive") is not True
+                or any(pin.get(k) != v for k, v in SUPPORTED_UPSTREAM.items())):
+            raise UpstreamRefused("unsupported archive pin identity")
+        expected = pin.get("files")
+        if not isinstance(expected, dict) or any(
+                not isinstance(name, str) or not name or name.startswith("/")
+                or ".." in name.split("/") or not isinstance(digest, str)
+                or re.fullmatch(r"[0-9a-f]{64}", digest) is None
+                for name, digest in expected.items()):
+            raise UpstreamRefused("invalid pinned file map")
+        lines = "".join(sorted("%s  ./%s\n" % (digest, name)
+                               for name, digest in expected.items()))
+        if (len(expected) != pin["fileCount"]
+                or hashlib.sha256(lines.encode()).hexdigest() != pin["treeSha256"]):
+            raise UpstreamRefused("pin file count or tree checksum disagrees")
+        actual = {name[len(UPSTREAM_ROOT) + 1:]: body for name, body in blobs.items()
+                  if name.startswith(UPSTREAM_ROOT + "/")}
+        if set(actual) != set(expected):
+            raise UpstreamRefused("archive population differs: missing %s; extra %s" % (
+                sorted(set(expected) - set(actual)), sorted(set(actual) - set(expected))))
+        for name, body in actual.items():
+            if hashlib.sha256(body).hexdigest() != expected[name]:
+                raise UpstreamRefused("archived file changed: " + name)
+        for name in ("plugin.json", ".claude-plugin/plugin.json", ".cursor-plugin/plugin.json"):
+            if name in actual:
+                manifest = json.loads(actual[name].decode("utf-8"))
+                if not isinstance(manifest, dict) or manifest.get("version") != pin["version"]:
+                    raise UpstreamRefused("archive manifest version disagrees: " + name)
+        records = {UPSTREAM_ROOT + "/" + name for name in expected if name.endswith(".md")}
+        return records, pin
+    except (KeyError, UnicodeError, json.JSONDecodeError, TypeError) as error:
+        raise UpstreamRefused("missing or malformed archive pin/content: " + str(error)) from error
+
+
+def upstream_blobs(root, rev="HEAD", worktree=False):
+    """Read complete raw bytes from the same Git tree/disk source as the gate."""
+    ignored_caches = []
+    if worktree:
+        pin = root / UPSTREAM_PIN
+        archive = root / UPSTREAM_ROOT
+        if (root / "vendor").is_symlink() or pin.is_symlink() or archive.is_symlink():
+            raise UpstreamRefused("archive or pin is a symlink")
+        blobs = {UPSTREAM_PIN: pin.read_bytes()}
+        for path in archive.rglob("*"):
+            if path.is_symlink():
+                raise UpstreamRefused("archive symlink: " + path.relative_to(root).as_posix())
+            if path.is_file():
+                if "__pycache__" in path.parts and path.suffix == ".pyc":
+                    ignored_caches.append(path.relative_to(root).as_posix())
+                    continue  # counted interpreter cache; same exclusion as the pin validator
+                blobs[path.relative_to(root).as_posix()] = path.read_bytes()
+        index = subprocess.run(["git", "-C", str(root), "ls-files", "--stage", "-z", "--",
+                                UPSTREAM_ROOT, UPSTREAM_PIN], capture_output=True)
+        if index.returncode:
+            raise UpstreamRefused("archive index population cannot be read")
+        tracked = set()
+        for entry in index.stdout.split(b"\0")[:-1]:
+            meta, name_raw = entry.split(b"\t", 1)
+            mode, oid, stage = meta.split()
+            name = name_raw.decode("utf-8")
+            if mode not in (b"100644", b"100755") or stage != b"0":
+                raise UpstreamRefused("non-regular or unresolved indexed archive member: " + name)
+            tracked.add(name)
+        if tracked != set(blobs):
+            raise UpstreamRefused("archive disk/index population differs: absent from index %s; absent from disk %s"
+                                  % (sorted(set(blobs) - tracked), sorted(tracked - set(blobs))))
+        return blobs, ignored_caches
+    result = subprocess.run(["git", "-C", str(root), "ls-tree", "-r", "-z", rev,
+                             "--", UPSTREAM_ROOT, UPSTREAM_PIN], capture_output=True)
+    if result.returncode:
+        raise UpstreamRefused("selected Git tree cannot be read")
+    blobs = {}
+    process = subprocess.Popen(["git", "-C", str(root), "cat-file", "--batch"],
+                               stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    try:
+        for entry in result.stdout.split(b"\0")[:-1]:
+            meta, name_raw = entry.split(b"\t", 1)
+            mode, kind, oid = meta.split()
+            name = name_raw.decode("utf-8")
+            if kind != b"blob" or mode not in (b"100644", b"100755"):
+                raise UpstreamRefused("non-regular archive member: " + name)
+            process.stdin.write(oid + b"\n")
+            process.stdin.flush()
+            header = process.stdout.readline().split()
+            if len(header) != 3 or header[1] != b"blob":
+                raise UpstreamRefused("archive blob cannot be read: " + name)
+            size = int(header[2])
+            content = process.stdout.read(size)
+            if len(content) != size or process.stdout.read(1) != b"\n":
+                raise UpstreamRefused("archive blob is incomplete: " + name)
+            blobs[name] = content
+    finally:
+        process.stdin.close()
+        process.wait()
+    if process.returncode:
+        raise UpstreamRefused("archive blob reader failed")
+    return blobs, ignored_caches
+
+
+def upstream_records(root, files_data, rev="HEAD", worktree=False):
+    present = UPSTREAM_PIN in files_data or any(
+        name.startswith(UPSTREAM_ROOT + "/") for name in files_data)
+    if not present:
+        return set(), None  # ordinary repositories and old trees have no copied archive
+    try:
+        blobs, ignored_caches = upstream_blobs(root, rev, worktree)
+        records, pin = validate_upstream(blobs)
+        return records, {**pin, "ignoredInterpreterCaches": ignored_caches}
+    except (OSError, UnicodeError) as error:
+        raise UpstreamRefused("archive cannot be read: " + str(error)) from error
 
 
 # ------------------------------------------------------------------------ the wrap-tolerant reader
@@ -314,7 +465,7 @@ def in_span(spans, off):
     return any(a <= off < b for a, b in spans)
 
 
-def scan_collapsed(path, raw):
+def scan_collapsed(path, raw, upstream=()):
     """Every scratch occurrence on the wrap-tolerant view, classified. This is the gate's reading."""
     fences = fenced_spans(raw)
     view, offsets = normalise(raw)
@@ -328,7 +479,8 @@ def scan_collapsed(path, raw):
         tail = view[end:min(limit, end + WINDOW)]
         head = view[max(0, start - 40):start]
         raw_off = offsets[min(start, len(offsets) - 1)]
-        cls = "SUBJECT" if in_span(fences, raw_off) else classify(path, tok, head, tail)
+        cls = ("UPSTREAM" if path in upstream else
+               "SUBJECT" if in_span(fences, raw_off) else classify(path, tok, head, tail))
         out.append({
             "file": path,
             "token": tok,
@@ -338,7 +490,7 @@ def scan_collapsed(path, raw):
     return out
 
 
-def scan_lines(path, raw):
+def scan_lines(path, raw, upstream=()):
     """The same scan, line-anchored — what a `grep` sees. Reported as N1 and used by the control to
     prove the collapsed reader is doing work a line reader cannot."""
     out, fences, off = [], fenced_spans(raw), 0
@@ -353,12 +505,13 @@ def scan_lines(path, raw):
             end = start + len(tok)
             tail = line[end:min(len(line), end + WINDOW)]
             head = line[max(0, start - 40):start]
-            cls = "SUBJECT" if in_span(fences, base + start) else classify(path, tok, head, tail)
+            cls = ("UPSTREAM" if path in upstream else
+                   "SUBJECT" if in_span(fences, base + start) else classify(path, tok, head, tail))
             out.append({"file": path, "token": tok, "line": n, "class": cls})
     return out
 
 
-def scan_file(path, raw):
+def scan_file(path, raw, upstream=()):
     """The gate's reading of one file. THE SINGLE SEAM: `main` reads a file only through here.
 
     Before this existed, `main` called `scan_collapsed` directly and the control called
@@ -367,7 +520,7 @@ def scan_file(path, raw):
     line-anchored one survived every plant green. Keeping one seam is half the fix; the other
     half is `driver_arm` below, which runs the driver over a corpus the two readers disagree on.
     """
-    return scan_collapsed(path, raw)
+    return scan_collapsed(path, raw, upstream)
 
 
 def dedupe(occurrences):
@@ -577,6 +730,150 @@ def driver_arm(d):
     return ok, expected, actual
 
 
+def upstream_control(directory):
+    """Exercise provenance and real driver refusals against an isolated copy of the pinned bytes."""
+    blobs, ignored_caches = upstream_blobs(ROOT, UPSTREAM_CONTROL_REV)
+    records, pin = validate_upstream(blobs)
+    rows = []
+
+    def check(name, condition):
+        rows.append(("(upstream) " + name, "HELD", "HELD" if condition else "MISSED",
+                     "fired" if condition else "MISSED", "copied provenance never certifies local evidence"))
+
+    def refuses(changed):
+        try:
+            validate_upstream(changed)
+            return False
+        except UpstreamRefused:
+            return True
+
+    upstream_path = UPSTREAM_ROOT + "/docs/evidence-2026-09-06-intervention-mining.md"
+    body = blobs[upstream_path].decode("utf-8")
+    check("complete supported archive", len(blobs) == 169 and len(records) == 52)
+    check("copied Markdown counted", scan_file(upstream_path, body, records)[0]["class"] == "UPSTREAM")
+    check("identical authored copy blocks", scan_file("planning/local-copy.md", body, records)[0]["class"] == "CITED")
+    check("runtime unchanged", scan_file(UPSTREAM_ROOT + "/local.py", body, records)[0]["class"] == "RUNTIME")
+    check("other vendor untrusted", scan_file("vendor/unknown/record.md", body, records)[0]["class"] == "CITED")
+    for name, replacement in (("unknown pin", {**pin, "version": "999"}),
+                              ("boolean count", {**pin, "fileCount": True})):
+        changed = dict(blobs)
+        changed[UPSTREAM_PIN] = json.dumps(replacement).encode()
+        check(name, refuses(changed))
+    changed = dict(blobs)
+    changed.pop(UPSTREAM_PIN)
+    check("missing pin", refuses(changed))
+    changed = dict(blobs)
+    changed[UPSTREAM_PIN] = b"{malformed"
+    check("malformed pin", refuses(changed))
+    changed[UPSTREAM_PIN] = blobs[UPSTREAM_PIN].replace(b'"version": "0.20.1"',
+        b'"version": "999", "version": "0.20.1"')
+    check("duplicate pin identity refuses", changed[UPSTREAM_PIN] != blobs[UPSTREAM_PIN] and refuses(changed))
+    target = UPSTREAM_ROOT + "/skills/test-campaign/scripts/campaign.py"
+    for name, changed in (
+            ("missing archive file", {k: v for k, v in blobs.items() if k != target}),
+            ("changed archive file", {**blobs, target: blobs[target] + b"# changed"}),
+            ("extra archive file", {**blobs, UPSTREAM_ROOT + "/extra.txt": b"extra"})):
+        check(name, refuses(changed))
+
+    repo = directory / "upstream-driver"
+    repo.mkdir()
+    for name, content in blobs.items():
+        path = repo / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(content)
+    git = ["git", "-C", str(repo), "-c", "user.name=Control", "-c", "user.email=control@test.com",
+           "-c", "commit.gpgsign=false"]
+    subprocess.run(git + ["init", "-q"], check=True, capture_output=True)
+    subprocess.run(git + ["add", "-f", "."], check=True)
+    subprocess.run(git + ["commit", "-qm", "supported archive"], check=True)
+    original = subprocess.check_output(git + ["rev-parse", "HEAD"], text=True).strip()
+
+    def driver(root, *arguments):
+        return subprocess.run([sys.executable, str(HERE), "--root", str(root),
+                               "--skip-control", "--quiet", *arguments],
+                              capture_output=True, text=True, encoding="utf-8")
+
+    baseline = driver(repo)
+    check("driver baseline", baseline.returncode == 0 and "UPSTREAM         1" in baseline.stdout)
+    ignored_log = next(name for name in blobs if name.endswith(".log"))
+    (repo / ".gitignore").write_text("*.log\n", encoding="utf-8")
+    for label, name in (("scratch Markdown", upstream_path), ("ignored log", ignored_log),
+                        ("pin", UPSTREAM_PIN)):
+        subprocess.run(git + ["rm", "--cached", "-q", "-f", "--", name], check=True)
+        missing_index = driver(repo, "--worktree")
+        check("unindexed " + label + " refuses", (repo / name).is_file()
+              and missing_index.returncode == 2 and "UPSTREAM_REFUSED" in missing_index.stdout)
+        subprocess.run(git + ["add", "-f", "--", name], check=True)
+        restored = driver(repo, "--worktree")
+        check("indexed " + label + " restoration", restored.returncode == 0
+              and "UPSTREAM         1" in restored.stdout)
+    (repo / "local-copy.md").write_text(body, encoding="utf-8")
+    # The worktree corpus is indexed; enroll the authored copy before invoking the driver.
+    subprocess.run(git + ["add", "local-copy.md"], check=True)
+    local = driver(repo, "--worktree")
+    check("driver local citation", local.returncode == 1 and "CITED       local-copy.md:" in local.stdout)
+    subprocess.run(git + ["rm", "-q", "-f", "local-copy.md"], check=True)
+
+    damaged = repo / target
+    damaged.write_bytes(blobs[target] + b"# dirty")
+    dirty_head = driver(repo)
+    dirty_disk = driver(repo, "--worktree")
+    check("HEAD ignores dirty disk", dirty_head.returncode == 0 and "UPSTREAM         1" in dirty_head.stdout)
+    check("worktree rejects changed bytes", dirty_disk.returncode == 2 and "UPSTREAM_REFUSED" in dirty_disk.stdout)
+    subprocess.run(git + ["add", target], check=True)
+    subprocess.run(git + ["commit", "-qm", "changed archive"], check=True)
+    clone = directory / "upstream-clone"
+    subprocess.run(["git", "clone", "--shared", "-q", str(repo), str(clone)], check=True)
+    historical = driver(clone, "--rev", original)
+    current = driver(clone)
+    check("clone selected rev", historical.returncode == 0 and "UPSTREAM         1" in historical.stdout)
+    check("committed changed archive refuses", current.returncode == 2 and "UPSTREAM_REFUSED" in current.stdout)
+    damaged.write_bytes(blobs[target])
+    damaged.unlink()
+    damaged.symlink_to("missing-target")
+    symlink = driver(repo, "--worktree")
+    check("worktree symlink refuses", symlink.returncode == 2 and "UPSTREAM_REFUSED" in symlink.stdout)
+    damaged.unlink()
+    damaged.write_bytes(blobs[target])
+    pin_path = repo / UPSTREAM_PIN
+    pin_path.unlink()
+    pin_path.symlink_to("test-campaign/.claude-plugin/plugin.json")
+    pin_link = driver(repo, "--worktree")
+    check("pin symlink refuses", pin_link.returncode == 2 and "UPSTREAM_REFUSED" in pin_link.stdout)
+    pin_path.unlink()
+    missing = driver(repo, "--worktree")
+    check("driver missing pin refuses", missing.returncode == 2 and "UPSTREAM_REFUSED" in missing.stdout)
+    pin_path.write_bytes(json.dumps({**pin, "version": "999"}).encode())
+    unknown = driver(repo, "--worktree")
+    check("driver unknown pin refuses", unknown.returncode == 2 and "UPSTREAM_REFUSED" in unknown.stdout)
+    pin_path.write_bytes(blobs[UPSTREAM_PIN])
+    damaged.unlink()
+    missing_file = driver(repo, "--worktree")
+    check("driver missing file refuses", missing_file.returncode == 2 and "UPSTREAM_REFUSED" in missing_file.stdout)
+    damaged.write_bytes(blobs[target])
+    extra = repo / UPSTREAM_ROOT / "extra.txt"
+    extra.write_bytes(b"extra")
+    extra_file = driver(repo, "--worktree")
+    check("driver untracked extra refuses", extra_file.returncode == 2 and "UPSTREAM_REFUSED" in extra_file.stdout)
+    extra.unlink()
+    # Git archive export-ignore must not hide a committed extra from the full population check.
+    extra.write_bytes(b"extra")
+    (repo / ".gitattributes").write_text(UPSTREAM_ROOT + "/extra.txt export-ignore\n", encoding="utf-8")
+    subprocess.run(git + ["add", ".gitattributes", UPSTREAM_ROOT + "/extra.txt"], check=True)
+    subprocess.run(git + ["commit", "-qm", "extra with export-ignore"], check=True)
+    hidden = driver(repo)
+    check("Git attributes cannot hide extra", hidden.returncode == 2 and "UPSTREAM_REFUSED" in hidden.stdout)
+    extra.unlink()
+    damaged.unlink()
+    damaged.symlink_to("missing-target")
+    subprocess.run(git + ["add", "-u", UPSTREAM_ROOT], check=True)
+    subprocess.run(git + ["commit", "-qm", "archive symlink"], check=True)
+    committed_link = driver(repo)
+    check("committed symlink refuses", committed_link.returncode == 2
+          and "non-regular archive member" in committed_link.stdout)
+    return rows
+
+
 def run_control(verbose=True):
     """Plant test cases and run the 2-way checkout control in a throwaway repo."""
     rows, ok = [], True
@@ -678,6 +975,14 @@ def run_control(verbose=True):
                      "fired" if two_way_ok else "MISSED",
                      "committed blob reading guarantees deterministic verdicts across checkouts"))
 
+        try:
+            upstream_rows = upstream_control(d)
+        except (UpstreamRefused, OSError) as error:
+            upstream_rows = [("(upstream) immutable control fixture", "AVAILABLE", "UNAVAILABLE", "MISSED",
+                              "control fixture " + UPSTREAM_CONTROL_REV + " unavailable; no user-tree verdict: " + str(error))]
+        rows.extend(upstream_rows)
+        ok &= all(row[3] == "fired" for row in upstream_rows)
+
         driver_ok, driver_expect, driver_actual = driver_arm(d)
         ok &= driver_ok
         rows.append(("(driver) reader choice, end to end", driver_expect, driver_actual,
@@ -694,6 +999,45 @@ def run_control(verbose=True):
     return ok
 
 
+def provenance_selftest():
+    """Normal CLI witness kept separate from automatic controls to avoid recursive controls."""
+    with tempfile.TemporaryDirectory(prefix="foreign-upstream-normal-cli-") as directory:
+        clone = pathlib.Path(directory) / "clone"
+        subprocess.run(["git", "clone", "--shared", "-q", str(ROOT), str(clone)], check=True)
+        source = clone / "planning/foreign-path-gate.py"
+        source.write_bytes(HERE.read_bytes())
+        git = ["git", "-C", str(clone), "-c", "user.name=Control", "-c", "user.email=control@test.com",
+               "-c", "commit.gpgsign=false"]
+
+        def normal(*arguments):
+            result = subprocess.run([sys.executable, str(source), "--root", str(clone), "--quiet",
+                                     *arguments], capture_output=True, text=True, encoding="utf-8")
+            # Print complete child evidence, including its controls and exact failure/refusal.
+            print("normal CLI", " ".join(arguments) or "HEAD", "exit", result.returncode)
+            print(result.stdout, end="")
+            print(result.stderr, end="", file=sys.stderr)
+            return result
+
+        baseline = normal("--rev", UPSTREAM_CONTROL_REV)
+        target = clone / UPSTREAM_ROOT / "skills/test-campaign/scripts/campaign.py"
+        target.write_bytes(target.read_bytes() + b"\n# isolated changed HEAD\n")
+        subprocess.run(git + ["add", str(source.relative_to(clone)), str(target.relative_to(clone))], check=True)
+        subprocess.run(git + ["commit", "-qm", "isolated changed archive"], check=True)
+        old = normal("--rev", UPSTREAM_CONTROL_REV)
+        changed = normal()
+
+        def counts(output):
+            return [line for line in output.splitlines()
+                    if re.match(r"  (?:N[1-5] |RUNTIME\s|GENERATED\s|UPSTREAM\s+\d|SUBJECT\s|CITED\s|WITHDRAWN\s)", line)]
+
+        good = (baseline.returncode == 0 and old.returncode == 0
+                and counts(baseline.stdout) == counts(old.stdout)
+                and "control: ALL PLANTS FIRED" in old.stdout
+                and changed.returncode == 2 and "UPSTREAM_REFUSED" in changed.stdout)
+        print("normal CLI provenance selftest:", "HELD" if good else "MISSED")
+        return 0 if good else 2
+
+
 # ------------------------------------------------------------------------------------------- driver
 
 def main():
@@ -706,12 +1050,16 @@ def main():
                     help="scan working tree files on disk rather than committed git blobs")
     ap.add_argument("--control", action="store_true",
                     help="run only the presence control and exit")
+    ap.add_argument("--provenance-selftest", action="store_true",
+                    help="normal CLI historical-revision witness in an isolated changed-HEAD clone")
     ap.add_argument("--skip-control", action="store_true",
                     help=argparse.SUPPRESS)  # used by the driver arm; a run of the driver arm
                                              # that ran the control would recurse forever
     ap.add_argument("--quiet", action="store_true", help="counts and verdict only")
     args = ap.parse_args()
 
+    if args.provenance_selftest:
+        return provenance_selftest()
     control_ok = True if args.skip_control else run_control()
     if args.control:
         return 0 if control_ok else 2
@@ -720,8 +1068,22 @@ def main():
         return 2
 
     root_path = pathlib.Path(args.root).resolve()
+    selected_tree = args.rev
+    if not args.worktree:
+        resolved = subprocess.run(["git", "-C", str(root_path), "rev-parse", "--verify",
+                                   args.rev + "^{tree}"], capture_output=True, text=True)
+        if resolved.returncode:
+            print("TREE_REFUSED — cannot resolve the selected committed tree")
+            return 2
+        selected_tree = resolved.stdout.strip()
     files_data, dropped, undecodable, is_dirty, dirty_count = read_corpus(
-        root=root_path, rev=args.rev, worktree=args.worktree)
+        root=root_path, rev=selected_tree, worktree=args.worktree)
+
+    try:
+        upstream, upstream_pin = upstream_records(root_path, files_data, selected_tree, args.worktree)
+    except UpstreamRefused as error:
+        print("UPSTREAM_REFUSED — " + str(error))
+        return 2
 
     n1 = n2 = 0
     occurrences, line_occurrences, machine_files = [], [], []
@@ -731,15 +1093,15 @@ def main():
             machine_files.append(path)
         if "/tmp/" not in raw and "/var/folders/" not in raw and "$TMPDIR/" not in raw:
             continue
-        lhits = scan_lines(path, raw)
+        lhits = scan_lines(path, raw, upstream)
         n1 += len(lhits)
         line_occurrences.extend(lhits)
-        hits = scan_file(path, raw)
+        hits = scan_file(path, raw, upstream)
         n2 += len(hits)
         occurrences.extend(hits)
 
     n3 = dedupe(occurrences)
-    n4 = [h for h in n3 if file_kind(h["file"]) == "RECORD"]
+    n4 = [h for h in n3 if file_kind(h["file"]) == "RECORD" and h["class"] != "UPSTREAM"]
     extensionless_in_records = len([h for h in n4 if not is_pointer(h["token"])])
     fenced_pointers = len([h for h in n4 if h["class"] == "SUBJECT" and is_pointer(h["token"])])
     n5 = [h for h in n4 if h["class"] in ("CITED", "WITHDRAWN")]
@@ -764,6 +1126,8 @@ def main():
 
     print("COUNTS — five readings of one corpus, each answering a different question")
     print("  corpus scanned:                                       %s" % corpus_desc)
+    if not args.worktree:
+        print("  resolved committed tree:                              %s" % selected_tree)
     if is_dirty:
         if args.worktree:
             print("  NOTICE: working tree has %d uncommitted change(s)    (scanned disk as requested)" % dirty_count)
@@ -774,7 +1138,21 @@ def main():
     print("  N1  occurrences, line-anchored regex                 %5d" % n1)
     print("  N2  occurrences, wrap-tolerant reader                %5d" % n2)
     print("  N3  N2 deduplicated by (citing file, token)          %5d" % len(n3))
-    print("  N4  N3 in hand-written records (.md, not generated)  %5d   in %d files"
+    if upstream_pin:
+        print("  UPSTREAM verified archive: %s %s, %d files, %d Markdown records, commit %s"
+              % (upstream_pin["package"], upstream_pin["version"], upstream_pin["fileCount"],
+                 len(upstream), upstream_pin["commit"]))
+        print("  UPSTREAM interpreter caches omitted from worktree archive check: %d"
+              % len(upstream_pin["ignoredInterpreterCaches"]))
+        for cache in upstream_pin["ignoredInterpreterCaches"]:
+            print("      " + cache)
+        copied = [h for h in n3 if h["class"] == "UPSTREAM"]
+        print("  UPSTREAM copied scratch paths: %d raw, %d deduplicated in %d files (counted; not local evidence)"
+              % (sum(h["class"] == "UPSTREAM" for h in occurrences), len(copied),
+                 len({h["file"] for h in copied})))
+        for hit in copied:
+            print("      %s:%d %s" % (hit["file"], hit["line"], hit["token"]))
+    print("  N4  N3 in local hand-written records                %5d   in %d files"
           % (len(n4), len({h["file"] for h in n4})))
     print("  N5  N4 in a citing position — blocking-eligible      %5d   in %d files"
           % (len(n5), len({h["file"] for h in n5})))
@@ -826,7 +1204,7 @@ def main():
         print("so a reader can tell unrecoverable evidence from evidence never gathered.")
         return 1
 
-    print("PASS — no hand-written record cites a scratch path without saying what became of it.")
+    print("PASS — no local hand-written record cites a scratch path without saying what became of it.")
     return 0
 
 

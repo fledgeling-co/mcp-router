@@ -2,6 +2,7 @@ using System.Net;
 using MCPRouter.Shell.Model.Control;
 using MCPRouter.Shell.Model.Skills;
 using Xunit;
+using static MCPRouter.Shell.Tests.SkillWritesFixture;
 
 namespace MCPRouter.Shell.Tests;
 
@@ -18,13 +19,18 @@ public sealed class SkillsControlClientTests
     {
         public HttpRequestMessage? LastRequest { get; private set; }
         public int CallCount { get; private set; }
+        /// <summary>The request body as sent, read before the client disposes the request.</summary>
+        public string? LastBody { get; private set; }
+        public string? LastContentType { get; private set; }
 
-        protected override Task<HttpResponseMessage> SendAsync(
+        protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request, CancellationToken cancellationToken)
         {
             CallCount++;
             LastRequest = request;
-            return Task.FromResult(respond(request));
+            LastBody = request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken);
+            LastContentType = request.Content?.Headers.ContentType?.MediaType;
+            return respond(request);
         }
     }
 
@@ -254,5 +260,187 @@ public sealed class SkillsControlClientTests
         Assert.Equal(
             System.IO.Path.Combine("C:/tmp/router-home", "control.token"),
             tokenFile.FilePath);
+    }
+
+    // ------------------------------------------------------------------ the held-version routes
+
+    private static LiveSkillsControlClient TokenedClient(StubHandler handler, string home)
+    {
+        File.WriteAllText(System.IO.Path.Combine(home, "control.token"), "test-token-value");
+        return new LiveSkillsControlClient(new HttpClient(handler), tokenFile: new RouterTokenFile(home));
+    }
+
+    private static async Task<SkillsControlException> FailureOf(
+        StubHandler handler, Func<LiveSkillsControlClient, Task> call)
+    {
+        var client = new LiveSkillsControlClient(new HttpClient(handler));
+        return await Assert.ThrowsAsync<SkillsControlException>(() => call(client));
+    }
+
+    [Fact]
+    public async Task TheUpdateCheckDecodesTheBodyTheRouterServes()
+    {
+        var (status, body) = SkillWritesFixture.Captured("updates");
+        var handler = new StubHandler(_ => Json(status, body));
+        var client = new LiveSkillsControlClient(new HttpClient(handler));
+
+        var updates = await client.ExtensionUpdatesAsync();
+
+        Assert.EndsWith("/extensions/updates", handler.LastRequest!.RequestUri!.ToString());
+        var offer = Assert.Single(updates.EntryList, entry => entry.HasUpdate);
+        Assert.Equal(StoredExtensionKind.Plugins, offer.Kind);
+        Assert.Equal("trawl@fledgeling-plugins", offer.Name);
+        Assert.Equal("2.2.0", offer.Installed);
+        Assert.Equal("2.3.0", offer.Available);
+        // The changelog of the version offered, exactly as the router read it from Claude's cache.
+        Assert.Equal(
+            "# Changelog\n\n## 2.3.0\n\n- Reads the session transcripts directly.\n- Adds a date filter.\n",
+            offer.Changelog?.Text);
+        Assert.Equal("CHANGELOG.md from the cached 2.3.0 copy", offer.Changelog?.Note);
+    }
+
+    [Fact]
+    public async Task AnUpdateCheckRefusalIsAServerErrorNotVersionSkew()
+    {
+        // The update check is not one of the two skew reads. A 404 there is an answer the router gave, and the
+        // Mac's shared send reads it as a refusal carrying the router's own sentence.
+        var exception = await FailureOf(
+            new StubHandler(_ => Json(404, "{ \"error\": \"no such route\" }")),
+            client => client.ExtensionUpdatesAsync());
+
+        var server = Assert.IsType<SkillsControlError.Server>(exception.Error);
+        Assert.Equal(404, server.Status);
+        Assert.Equal("no such route", server.Message);
+    }
+
+    [Fact]
+    public async Task KeepSendsTheVersionAsJsonToThePluginEntryWithTheToken()
+    {
+        var (status, body) = SkillWritesFixture.Captured("keep");
+        var handler = new StubHandler(_ => Json(status, body));
+        var client = TokenedClient(handler, NewHome());
+
+        var ack = await client.KeepHeldVersionAsync("trawl@fledgeling-plugins", "2.3.0");
+
+        Assert.Equal(HttpMethod.Post, handler.LastRequest!.Method);
+        Assert.EndsWith(
+            "/extensions/plugins/trawl%40fledgeling-plugins/keep",
+            handler.LastRequest.RequestUri!.ToString());
+        Assert.Equal("{\"pluginVersion\":\"2.3.0\"}", handler.LastBody);
+        Assert.Equal("application/json", handler.LastContentType);
+        Assert.Equal("Bearer test-token-value", handler.LastRequest.Headers.Authorization?.ToString());
+        Assert.Equal("trawl@fledgeling-plugins", ack.Kept);
+        Assert.Equal("2.3.0", ack.PluginVersion);
+    }
+
+    [Fact]
+    public async Task PromoteFromCacheSendsTheCacheSourceAndTheVersionOnly()
+    {
+        // The board never holds the files it installs: nothing is sent but the version and the source.
+        var (status, body) = SkillWritesFixture.Captured("promote");
+        var handler = new StubHandler(_ => Json(status, body));
+        var client = TokenedClient(handler, NewHome());
+
+        var ack = await client.PromoteFromCacheAsync("trawl@fledgeling-plugins", "2.3.0");
+
+        Assert.EndsWith(
+            "/extensions/plugins/trawl%40fledgeling-plugins/promote",
+            handler.LastRequest!.RequestUri!.ToString());
+        Assert.Equal("{\"source\":\"cache\",\"pluginVersion\":\"2.3.0\"}", handler.LastBody);
+        Assert.Equal("application/json", handler.LastContentType);
+        Assert.Equal("trawl@fledgeling-plugins", ack.Promoted);
+        Assert.Equal("2.2.0", ack.Replaced);
+        Assert.Equal("1002", ack.Restore);
+    }
+
+    [Fact]
+    public async Task UndoSendsTheRestoreReferenceAndReadsWhatWasWithdrawn()
+    {
+        var (status, body) = SkillWritesFixture.Captured("undo");
+        var handler = new StubHandler(_ => Json(status, body));
+        var client = TokenedClient(handler, NewHome());
+
+        var ack = await client.UndoPromotionAsync("trawl@fledgeling-plugins", "1002");
+
+        Assert.EndsWith(
+            "/extensions/plugins/trawl%40fledgeling-plugins/undo-promote",
+            handler.LastRequest!.RequestUri!.ToString());
+        Assert.Equal("{\"restore\":\"1002\"}", handler.LastBody);
+        Assert.Equal("2.2.0", ack.Version);
+        Assert.Equal("2.3.0", ack.Withdrawn);
+    }
+
+    [Fact]
+    public async Task AWriteRefusalIsAServerErrorWithTheRoutersOwnSentence()
+    {
+        // A version the cache does not hold. On a write a 404 names what the caller asked for, so it is a refusal
+        // and never version skew.
+        var (status, body) = SkillWritesFixture.Captured("refusePromoteMissingVersion");
+        var exception = await FailureOf(
+            new StubHandler(_ => Json(status, body)),
+            client => client.PromoteFromCacheAsync("trawl@fledgeling-plugins", "9.9.9"));
+
+        var server = Assert.IsType<SkillsControlError.Server>(exception.Error);
+        Assert.Equal(404, server.Status);
+        Assert.Equal("the plugin cache holds no copy of trawl@fledgeling-plugins at 9.9.9", server.Message);
+        Assert.Equal("The router couldn't complete that", exception.Error.Headline);
+    }
+
+    [Fact]
+    public async Task AWriteRefusalKeepsTheRoutersHint()
+    {
+        var exception = await FailureOf(
+            new StubHandler(_ => Json(409, "{ \"error\": \"a kept version already exists\", \"hint\": \"undo first\" }")),
+            client => client.KeepHeldVersionAsync("trawl@fledgeling-plugins", "2.3.0"));
+
+        var server = Assert.IsType<SkillsControlError.Server>(exception.Error);
+        Assert.Equal(409, server.Status);
+        Assert.Equal("undo first", server.Hint);
+        Assert.Contains("undo first", exception.Error.Advice);
+    }
+
+    [Fact]
+    public async Task AnUndoRefusalCarriesTheSentenceTheRouterGave()
+    {
+        var (status, body) = SkillWritesFixture.Captured("refuseUndoAbsent");
+        var exception = await FailureOf(
+            new StubHandler(_ => Json(status, body)),
+            client => client.UndoPromotionAsync("trawl@fledgeling-plugins", "999"));
+
+        var server = Assert.IsType<SkillsControlError.Server>(exception.Error);
+        Assert.Equal("no promotion of plugin \"trawl@fledgeling-plugins\" is recorded at 999", server.Message);
+    }
+
+    [Fact]
+    public async Task AWriteOn401IsUnauthorized()
+    {
+        var exception = await FailureOf(
+            new StubHandler(_ => Json(401, "{}")),
+            client => client.KeepHeldVersionAsync("trawl@fledgeling-plugins", "2.3.0"));
+
+        Assert.IsType<SkillsControlError.Unauthorized>(exception.Error);
+    }
+
+    [Fact]
+    public async Task AWriteWithNoRouterRunningIsRouterNotRunning()
+    {
+        HttpResponseMessage Throw(HttpRequestMessage _) =>
+            throw new HttpRequestException("Connection refused", inner: null);
+
+        var exception = await FailureOf(
+            new StubHandler(Throw),
+            client => client.PromoteFromCacheAsync("trawl@fledgeling-plugins", "2.3.0"));
+
+        Assert.IsType<SkillsControlError.RouterNotRunning>(exception.Error);
+    }
+
+    [Fact]
+    public async Task AWriteWhoseReplyDoesNotDecodeIsMalformedNotServer()
+    {
+        var exception = await FailureOf(
+            new StubHandler(_ => Json(200, "{ not json")),
+            client => client.KeepHeldVersionAsync("trawl@fledgeling-plugins", "2.3.0"));
+
+        Assert.IsType<SkillsControlError.MalformedResponse>(exception.Error);
     }
 }

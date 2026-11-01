@@ -175,4 +175,16 @@ public sealed class FixtureSkillsControlClient : ISkillsControlClient
 
     public Task<MarketplacesResponse> MarketplacesAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult(Marketplaces);
+
+    public Task<ExtensionUpdatesResponse> ExtensionUpdatesAsync(CancellationToken cancellationToken = default) =>
+        throw new NotImplementedException();
+
+    public Task<KeepAck> KeepHeldVersionAsync(string name, string pluginVersion, CancellationToken cancellationToken = default) =>
+        throw new NotImplementedException();
+
+    public Task<PromotionAck> PromoteFromCacheAsync(string name, string pluginVersion, CancellationToken cancellationToken = default) =>
+        throw new NotImplementedException();
+
+    public Task<UndoAck> UndoPromotionAsync(string name, string restore, CancellationToken cancellationToken = default) =>
+        throw new NotImplementedException();
 }

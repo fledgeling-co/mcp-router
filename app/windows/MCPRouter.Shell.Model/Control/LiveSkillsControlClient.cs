@@ -96,6 +96,18 @@ public sealed class LiveSkillsControlClient : ISkillsControlClient
     public async Task<MarketplacesResponse> MarketplacesAsync(CancellationToken cancellationToken = default) =>
         await ReadAsync<MarketplacesResponse>("marketplaces", cancellationToken);
 
+    public Task<ExtensionUpdatesResponse> ExtensionUpdatesAsync(CancellationToken cancellationToken = default) =>
+        throw new NotImplementedException();
+
+    public Task<KeepAck> KeepHeldVersionAsync(string name, string pluginVersion, CancellationToken cancellationToken = default) =>
+        throw new NotImplementedException();
+
+    public Task<PromotionAck> PromoteFromCacheAsync(string name, string pluginVersion, CancellationToken cancellationToken = default) =>
+        throw new NotImplementedException();
+
+    public Task<UndoAck> UndoPromotionAsync(string name, string restore, CancellationToken cancellationToken = default) =>
+        throw new NotImplementedException();
+
     /// <summary>
     /// True when the router's token file is absent, which on a loopback install means the router
     /// has never run here. Reported as not-running rather than fetched-then-failed when it is

@@ -1,0 +1,242 @@
+{
+  "sourceBase": "2b8a52a34983b003d0dd60a64cfb56a532801489",
+  "sourceHashes": {
+    "app/Sources/MCPRouterUI/Phone/PhoneShell.swift": "a68180cd41ba437c927487b55f5ac3e6796b5cb8cdb36d1ca858975ad0f1f1c6",
+    "app/Sources/MCPRouterUI/Phone/PhoneTabIdentityBridge.swift": "e0b13e797159503e782628b893ce487cf05e7fa635aa15ca7417cf4496b89c99",
+    "app/MCPRouterIOSUITests/PhoneTabIdentifierTests.swift": "c2901d022d58eaaa374a136f3ae2bfc7c09aba23411cb7e9d3d710ac92d16221"
+  },
+  "uiSummary": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "40549058-27C8-4D83-AAE7-B310860566E3",
+          "deviceName": "MCPRouter-TabIdentity-20261102",
+          "modelName": "iPhone 17 Pro",
+          "osBuildNumber": "24A434",
+          "osVersion": "27.0",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "passedTests": 1,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "MCPRouterIOSGlass \u00b7 Built with macOS 27.0",
+    "expectedFailures": 0,
+    "failedTests": 0,
+    "finishTime": 1793544759.795,
+    "passedTests": 1,
+    "result": "Passed",
+    "runtimeWarnings": [],
+    "skippedTests": 0,
+    "startTime": 1793544577.147,
+    "statistics": [],
+    "testFailures": [],
+    "title": "Test - MCPRouterIOSGlass",
+    "topInsights": [],
+    "totalTestCount": 1
+  },
+  "nativeSummary": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "40549058-27C8-4D83-AAE7-B310860566E3",
+          "deviceName": "MCPRouter-TabIdentity-20261102",
+          "modelName": "iPhone 17 Pro",
+          "osBuildNumber": "24A434",
+          "osVersion": "27.0",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "passedTests": 4,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "MCPRouterIOS \u00b7 Built with macOS 27.0",
+    "expectedFailures": 0,
+    "failedTests": 0,
+    "finishTime": 1793544982.829,
+    "passedTests": 4,
+    "result": "Passed",
+    "runtimeWarnings": [],
+    "skippedTests": 0,
+    "startTime": 1793544976.394,
+    "statistics": [],
+    "testFailures": [],
+    "title": "Test - MCPRouterIOS",
+    "topInsights": [],
+    "totalTestCount": 4
+  },
+  "negativeBaselineSummary": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "40549058-27C8-4D83-AAE7-B310860566E3",
+          "deviceName": "MCPRouter-TabIdentity-20261102",
+          "modelName": "iPhone 17 Pro",
+          "osBuildNumber": "24A434",
+          "osVersion": "27.0",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 1,
+        "passedTests": 0,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "MCPRouterIOSGlass \u00b7 Built with macOS 27.0",
+    "expectedFailures": 0,
+    "failedTests": 1,
+    "finishTime": 1793544318.188,
+    "passedTests": 0,
+    "result": "Failed",
+    "runtimeWarnings": [],
+    "skippedTests": 0,
+    "startTime": 1793544274.771,
+    "statistics": [],
+    "testFailures": [
+      {
+        "failureText": "XCTAssertEqual failed: (\"[\"\", \"\", \"\", \"\", \"\"]\") is not equal to (\"[\"tab-discover\", \"tab-triage\", \"tab-queue\", \"tab-library\", \"tab-settings\"]\")",
+        "targetName": "MCPRouterIOSUITests",
+        "testIdentifier": 1,
+        "testIdentifierString": "PhoneTabIdentifierTests/testIdentifiersLabelsAndDestinationsSurviveRevisitsAndRelaunch()",
+        "testIdentifierURL": "test://com.apple.xcode/MCPRouter/MCPRouterIOSUITests/PhoneTabIdentifierTests/testIdentifiersLabelsAndDestinationsSurviveRevisitsAndRelaunch",
+        "testName": "testIdentifiersLabelsAndDestinationsSurviveRevisitsAndRelaunch()"
+      }
+    ],
+    "title": "Test - MCPRouterIOSGlass",
+    "topInsights": [],
+    "totalTestCount": 1
+  },
+  "modernTabOnlySummary": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "40549058-27C8-4D83-AAE7-B310860566E3",
+          "deviceName": "MCPRouter-TabIdentity-20261102",
+          "modelName": "iPhone 17 Pro",
+          "osBuildNumber": "24A434",
+          "osVersion": "27.0",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 1,
+        "passedTests": 0,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "MCPRouterIOSGlass \u00b7 Built with macOS 27.0",
+    "expectedFailures": 0,
+    "failedTests": 1,
+    "finishTime": 1793544955.098,
+    "passedTests": 0,
+    "result": "Failed",
+    "runtimeWarnings": [],
+    "skippedTests": 0,
+    "startTime": 1793544340.986,
+    "statistics": [],
+    "testFailures": [
+      {
+        "failureText": "XCTAssertEqual failed: (\"[\"\", \"\", \"\", \"\", \"\"]\") is not equal to (\"[\"tab-discover\", \"tab-triage\", \"tab-queue\", \"tab-library\", \"tab-settings\"]\")",
+        "targetName": "MCPRouterIOSUITests",
+        "testIdentifier": 1,
+        "testIdentifierString": "PhoneTabIdentifierTests/testIdentifiersLabelsAndDestinationsSurviveRevisitsAndRelaunch()",
+        "testIdentifierURL": "test://com.apple.xcode/MCPRouter/MCPRouterIOSUITests/PhoneTabIdentifierTests/testIdentifiersLabelsAndDestinationsSurviveRevisitsAndRelaunch",
+        "testName": "testIdentifiersLabelsAndDestinationsSurviveRevisitsAndRelaunch()"
+      }
+    ],
+    "title": "Test - MCPRouterIOSGlass",
+    "topInsights": [],
+    "totalTestCount": 1
+  },
+  "inventories": [
+    "TAB-IDENTITY ids=[\"tab-discover\", \"tab-triage\", \"tab-queue\", \"tab-library\", \"tab-settings\"] labels=[\"Discover\", \"Triage\", \"Queue\", \"Library\", \"Settings\"]",
+    "TAB-IDENTITY ids=[\"tab-discover\", \"tab-triage\", \"tab-queue\", \"tab-library\", \"tab-settings\"] labels=[\"Discover\", \"Triage\", \"Queue\", \"Library\", \"Settings\"]",
+    "TAB-IDENTITY ids=[\"tab-discover\", \"tab-triage\", \"tab-queue\", \"tab-library\", \"tab-settings\"] labels=[\"Discover\", \"Triage\", \"Queue\", \"Library\", \"Settings\"]",
+    "TAB-IDENTITY ids=[\"tab-discover\", \"tab-triage\", \"tab-queue\", \"tab-library\", \"tab-settings\"] labels=[\"Discover\", \"Triage\", \"Queue\", \"Library\", \"Settings\"]"
+  ],
+  "exactIdentifierTapCount": 30,
+  "targetTransitionsFromDifferentDestination": 15,
+  "revisitPasses": 1,
+  "appRelaunches": 1,
+  "screenshots": [
+    {
+      "tabIdentifier": "tab-settings",
+      "file": "tab-settings.png",
+      "sha256": "442996a8c2680ad18dd14f58611cc0007fbf38a901d9c616574a99b6850f253b",
+      "testIdentifier": "PhoneTabIdentifierTests/testIdentifiersLabelsAndDestinationsSurviveRevisitsAndRelaunch()",
+      "deviceId": "40549058-27C8-4D83-AAE7-B310860566E3",
+      "timestamp": 1793544644.022,
+      "originalExportedFileName": "49FCDFCF-541D-41CA-A425-EEDEC8F0ED88.png"
+    },
+    {
+      "tabIdentifier": "tab-library",
+      "file": "tab-library.png",
+      "sha256": "693b0ef636dc77ae5fd7182c8b1200603f7a032739d52cd30738239adbf1bdf7",
+      "testIdentifier": "PhoneTabIdentifierTests/testIdentifiersLabelsAndDestinationsSurviveRevisitsAndRelaunch()",
+      "deviceId": "40549058-27C8-4D83-AAE7-B310860566E3",
+      "timestamp": 1793544633.415,
+      "originalExportedFileName": "A1D326D8-0722-4316-91B3-F7085F8C9523.png"
+    },
+    {
+      "tabIdentifier": "tab-queue",
+      "file": "tab-queue.png",
+      "sha256": "e0bf117dc2190195159d1b905a6462e027b67a338464c28ef9e58a16a09c051c",
+      "testIdentifier": "PhoneTabIdentifierTests/testIdentifiersLabelsAndDestinationsSurviveRevisitsAndRelaunch()",
+      "deviceId": "40549058-27C8-4D83-AAE7-B310860566E3",
+      "timestamp": 1793544622.457,
+      "originalExportedFileName": "D6CE6F33-FFC7-4409-AC55-BC814A5E5E49.png"
+    },
+    {
+      "tabIdentifier": "tab-triage",
+      "file": "tab-triage.png",
+      "sha256": "3901776dd4ee465ebcd0d645a9f40f3c248b89a40cf864b2f6bf99882513cf7b",
+      "testIdentifier": "PhoneTabIdentifierTests/testIdentifiersLabelsAndDestinationsSurviveRevisitsAndRelaunch()",
+      "deviceId": "40549058-27C8-4D83-AAE7-B310860566E3",
+      "timestamp": 1793544611.788,
+      "originalExportedFileName": "9CCF5C65-0341-45D6-9153-B0665870D58A.png"
+    },
+    {
+      "tabIdentifier": "tab-discover",
+      "file": "tab-discover.png",
+      "sha256": "0a7fb6d6568d6c11e7c1c4bbbb1f5b48d93d285699c45352cbe46c36bfeb96f9",
+      "testIdentifier": "PhoneTabIdentifierTests/testIdentifiersLabelsAndDestinationsSurviveRevisitsAndRelaunch()",
+      "deviceId": "40549058-27C8-4D83-AAE7-B310860566E3",
+      "timestamp": 1793544601.028,
+      "originalExportedFileName": "FCE621A6-291C-42E6-B426-285A74C513A2.png"
+    }
+  ],
+  "artifactsRoot": "/tmp/mcpr-tab-identifiers-20261102",
+  "hostFrontmostBefore": "com.google.Chrome",
+  "hostFrontmostAfter": "app.fledgeling.warden.test-host",
+  "simulatorAppPidsAfter": "",
+  "limits": [
+    "iPhone17Pro simulator/iOS27.0 only",
+    "published accessibility labels measured; VoiceOver speech not separately exercised",
+    "physical devices and other iOS runtimes not measured",
+    "fixture screen data is not live service acceptance"
+  ],
+  "postVerificationArtifactReveal": "open -R planning/evidence/DEF008-tab-identifiers.md, after all native checks, per supplied AGENTS.md"
+}

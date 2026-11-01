@@ -8,8 +8,8 @@ import UIKit
 /// The shell is `PhoneShell`, drawn entirely from the shared design system, and everything
 /// device-bound is injected here rather than reached for from inside the views: the camera adapter,
 /// the scanner preview, and the one call that leaves the app for iOS Settings. That is what lets
-/// every surface be exercised on a macOS test host, and it is why `MCPRouterUI` carries no `UIKit`
-/// import of its own.
+/// every surface be exercised on a macOS test host. The iOS tab-identifier bridge stays inside
+/// PhoneShell and changes only its enclosing controller’s accessibility identifiers.
 ///
 /// **Pairing is the live service in every Release build.** `PhonePairingFactory` composes
 /// `LivePairingService` over `NetworkPairingTransport`, pinned to the QR's fingerprint (plan §2.2).

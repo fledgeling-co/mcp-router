@@ -1,0 +1,126 @@
+{
+  "version": 1,
+  "note": "Separate historical UNKNOWN allowance, not an absence-certification floor. Only these exact unreviewed proposal hashes are carried. New briefs, changed assertions, missing/altered records and stale reviewed projections receive no allowance. The old brief-target ratchet is unchanged.",
+  "carriedUnreviewed": {
+    "planning/features-to-triage/G3-gapfix-2.md#0ca4be0bd172cf4c04db0350446168f165acb398e918324ea8d978149a547680": {
+      "proposalDigest": "1d0880f00265719c0cbbf28c86d5d714a0a50f908c73651c4a2602ecad80c224",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/G3-gapfix-3.md#f66825af06256060660bb1d574d3b4d07b2d12535ad83c2a1081241dca932294": {
+      "proposalDigest": "57cf2cb62d14b5365f6bf47b448584d369384fa06eadf73f91cb92ef57a3ad1f",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/G3-gapfix.md#c7154ee896b3ed983ab5dfbb8390b62389260b85697916bd13ef660a28ad1116": {
+      "proposalDigest": "6ad571ebcab33303b1403164d9b5c5f77aafbdfb71fe79b220ffbb045afc39f0",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/G4-gapfix-2.md#9620a70c3d713bacf68db4d90b67751b42f39b60a6626cb97b768313ddf47b50": {
+      "proposalDigest": "9183e7394cd50b2d9ecd55b0ef51c2e13c41a1107ee54c1cb8be3e82c9531c5b",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/G4-gapfix.md#6aa8459f3737c43c1f834d37b589aa4d7a99a2bb1298b3a3ca0f019963575277": {
+      "proposalDigest": "7285dfa79cde76da5a9ede1f72d4124a826a1c3054bbe4bd5a23289e12b7bd3f",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/G5-gapfix-2.md#a6e8a8fb571d3c66af8c7d47f32bc6a7bd2747213d7cd2ae6c2482ff5f44d3a7": {
+      "proposalDigest": "dc5bc42f037b92c2697de0e59c461b473082ce5010560f04434a5afddeeb11da",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/M15-gapfix.md#20f2a191bd22e1b6dcfbe65d7ca8c5ea273d00caeb8362d58419b146ecb04c58": {
+      "proposalDigest": "b79e2314cc78338a278f2ae4445db8e815b25ef3272e1a8e7fda4c6266a0fbcc",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/M23-gapfix-2.md#fee6cd6d01b98b46da70795a715c855ea9785b20aec071e53c30262d615a3337": {
+      "proposalDigest": "d26d705ea79d3112a88ee462bd9bd4ffab4e83eba8e150990a992e80f0fba470",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/M23-gapfix-3.md#96523d62de8f08de1b0681cfbe3e00982c1adda76dca614fe5ceb0c840a2a378": {
+      "proposalDigest": "35c0253978e37c58a1b8dd750ea3123032873085f144b4f74e604f726735b163",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/M23-gapfix-4.md#1067901775b462c0c1ec03e052cc59041f6770a6c6584ef2932b1be451d5a883": {
+      "proposalDigest": "ed85d4ac944e9918ba68b46b58d30e56cf06b315440302b5f3b5366245ae9e89",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/M23-gapfix-5.md#dfa391440716458f8218608155dc50571fa675fe1e7f870d902e8f0c79660ef6": {
+      "proposalDigest": "ba131032e165c7da3b1be5c222150cc86d5f2098cb3067f662b3eac50ad3d0e4",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/M23-gapfix-6.md#ba8f17805f3d396f1eac57808859ccae27f897199b407ebfa4bd7b658ba26ccd": {
+      "proposalDigest": "afb5f51ab868342a87cf10697c2e4c2f22e4d5c102f708ea306fa24e451f2350",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/M23-gapfix-7.md#4e3a9175f1ab4091d89c4f3ee841110eede56a125e59c2c595ac635b6729c7ee": {
+      "proposalDigest": "c9182d3972f577141dab4fb597c6ab288e83f63ff603141b08a69adf847e91c2",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/M23-gapfix-8.md#c75e53b4c587d877d242a6a941cd97cb967488eabd88f6d6203e8f98eaee4192": {
+      "proposalDigest": "abf762071c743ce74cfb4c4c9b187f2111bc053ae4a6de1f2fe25c38c788bda7",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/M23-gapfix.md#34fba491f7ccd33f7e4bab45230f9eaae5a436ae50ed4bbdc2523076cf24ffbc": {
+      "proposalDigest": "efd1282d8ebaeabaade82831ec4e1e0c7e401cb88994dfd583c4dcd6fd8c9cdd",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/R17-gapfix-2.md#7afa4825486e310cdae27cf8ec0fee8e80d301497d48c9c90793d79841ec8dfd": {
+      "proposalDigest": "64845ec95686fac96bc59e9941fc5cec129cc77e247d8f8ce0e6bc65efa2b750",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/R17-gapfix-3.md#a02638e27160f6d826f4c2b2608fa836ed766b6c89e4ca71472d39262aa6a734": {
+      "proposalDigest": "1e5542e992c256681cecb6bc33a8d7b894be55064098cd9506e4d417ad816713",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/R17-gapfix-4.md#62b634d58622e4e29258e2150a72386d03bd9fc5b9e27649ea39d59df9e119d1": {
+      "proposalDigest": "6c7ccb279e4290beac6a6172ab26590e6111d0a943b5712e4723c1c29d76c87c",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/R17-gapfix.md#e1adf6126d4d9508da945fbe0da6ee05b9a512c7a48ad944a3361214910d4802": {
+      "proposalDigest": "07159f8b82ed18f69788809b3b72a47fa037e84cc5b7dd9d4babf1691695edbe",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/R7-gapfix-2.md#6acfe9a55d014e91bfa88ec94d758705a34570ddb23d91482d7d076c8329e6cd": {
+      "proposalDigest": "394f600d355c1ec38c726ce858131ef70a4ef756db2b23a2d411261ae1b91d3a",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/R7-gapfix.md#6345c4358f9d94e9df180362991b8f07d288b00d2b35e6c9b0d2139ba7162740": {
+      "proposalDigest": "4c3020f2d43dd831a62cd3d516310faeb37cd85c4e55839be9e3206b990e4641",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/a-control-that-plants-a-defect-leaves-it-there-if-it-is-killed.md#23b4772862ff9d0a55a2cea3e045604169ab5c7d9cff41282db4469858a1b221": {
+      "proposalDigest": "a34fdb4f11dd90eb147067aa878578ad19236e1566b2e027f0f55dbb2a31776d",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/a-killed-gate-strands-its-mutation-in-the-tree.md#29e565782fbe42ea3b52901c5e6fc0b26750102d68106302af1aceab9519207c": {
+      "proposalDigest": "66469738a118498d64a9063adbf4555b97257f5e8bdc29234e827e02ab8584b8",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/a-killed-mutation-run-leaves-a-mutation-git-status-cannot-show.md#2ddf4d143b55346ca27abb32b285b77c3f0310fcd71f2d649ca528fb48486e3e": {
+      "proposalDigest": "d55d59693ef7dccfa59d6dbc6871cd0b90e4d6e19a6c38554a8bf78551b60d70",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/a-second-inertness-clause-is-unfailable-for-the-same-reason.md#216a0188be9ce10bd7cc60f05e113d51d5e2cfda326136d337aee38c5f4ddca2": {
+      "proposalDigest": "8bed812b3427dfca096b62233bbd70941ad9dc83397f4c9e7b0b3b5f3f05ca5e",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/a-verification-lane-ran-in-the-writers-own-family.md#595176358bc82c794b788c89cd5e0829bad55436fedfe95a5afa158241dde16a": {
+      "proposalDigest": "17529bbdc8834deec3b83453b86f081f9563e0801394a9d8ea2838522d1ab7dd",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/build-description-report-on-swiftbuild.md#3d385ae5a973e574f873e4ffa20da669f99ec561aa8973951907fefc0b0e788c": {
+      "proposalDigest": "91b22fb4d9b992a99cb0948e9bf2054a8c9dfcba368bbce118e6fba2e1ecf51a",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/gates-ran-with-their-verdict-discarded.md#4002e76349cc08499a641b2b50b986384895fea96a65b44fe5edb58aed4c84ca": {
+      "proposalDigest": "b1908a2419edc280f7fb065c6a686b5f16580f89ce931ac0c68bbd05efeba889",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/the-carrier-gate-pins-a-landing-to-a-sha-that-keeps-moving.md#5c8c6e4a167415792bd45698faf4813e9af52ac1315bba10665e6d7229f20ea2": {
+      "proposalDigest": "62c063a1a144622bbdc8871211c00e8d2130ed10ce4597ca5608f43f83294ff1",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    },
+    "planning/features-to-triage/the-ledger-gate-nothing-runs-and-nothing-checks-against-git.md#8d3eca91b4b7a280a362dc02d5dd799bbbbf9888c56e645f386686b89a319364": {
+      "proposalDigest": "183a2419be592bbf7d3b2d578b568553014fe5b899c78b966bde4b80d1e64fc8",
+      "reason": "Existing NO_TARGET assertion carried as unreviewed/unknown during DEF521 migration."
+    }
+  }
+}

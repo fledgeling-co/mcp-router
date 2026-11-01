@@ -64,10 +64,11 @@ answering to two classes must answer to exactly one:
   PROSE_CITED    no frontmatter channel; the body cites >=1 resolving id outside a fence, an HTML
                  comment and a struck-through span. `reckon` will make the same edge from the same
                  text, so demanding the field as well would be demanding a form rather than a join.
-  NO_TARGET      the brief declares `registry-target: none` AND a reason of substance. Counted,
-                 never blocked. This is the second acceptance clause of the brief and it is a
-                 DIFFERENT FACT from `unjoined`: somebody read this and recorded that no evidence
-                 exists for it yet, which a reader can act on.
+  NO_TARGET      the brief declares `registry-target: none` AND a reason of substance. This old
+                 partition is retained, but its word is not current verification of absence.
+                 The separate scoped review assessment below reopens missing, unreviewed or
+                 changed reviews as STALE_ABSENCE. Only the exact initial unreviewed proposals
+                 have a separate carried-UNKNOWN allowance; none is certified or joined.
   FOREIGN_ONLY   no frontmatter channel; every id in the prose belongs to a registry declared
                  foreign by `target-resolution-gate`. Reported, not blocked — see below.
   ABSENT_ONLY    no frontmatter channel; the prose ids resolve to nothing and none is declared
@@ -126,6 +127,15 @@ mechanism, and the only part of it that touches a runner writing a brief tomorro
 Writing the floor is `--set-floor`, never a side effect of checking. A gate that mutates the tree
 cannot be run between two merges (`registry-drop-gate`, 2026-08-27).
 
+Absence review has its own sidecars: absence-review-scopes.json defines explicit literal subject
+scopes; absence-reviews.json records per-brief/assertion reviews and canonical scoped snapshots;
+absence-review-unreviewed-baseline.json carries only the exact initial unknown proposals. Checking
+never stamps these. --absence-proposals emits unreviewed migration data; --absence-proposal requires
+an explicitly declared --scope and still emits an unreviewed proposal, not a certification. A later
+review requires a named reviewer, dated rationale and repository evidence pinned by content hash.
+This is freshness within the chosen scope, not proof that a reviewer chose a sufficient scope,
+not a citation channel, and not campaign acceptance. Exact reverse references are advisory only.
+
 ## The corpus
 
 The git INDEX, `git ls-files` under `planning/features-to-triage/`, filtered by `reckon`'s own
@@ -168,6 +178,8 @@ FLOOR = ROOT / "planning" / "brief-target-ratchet.json"
 
 sys.path.insert(0, str(HERE.parent))
 from input_accounting import Tally  # noqa: E402  — the drop contract, not an optional import
+import absence_review as absence
+from absence_review_tests import control as absence_control
 
 # The verdict below is UTF-8, and the console's codepage does not get a vote in it: on a
 # non-UTF-8 terminal an unencodable rule character would raise UnicodeEncodeError and this
@@ -653,11 +665,44 @@ def main() -> int:
                     help="cross-tabulate this gate's classes against reckon's over the REAL queue. "
                          "Out of `make lint` because it runs reckon over every brief; it is how "
                          "the correspondence stays a measurement rather than a claim in a doc.")
+    proposals = ap.add_mutually_exclusive_group()
+    proposals.add_argument("--absence-proposals", action="store_true",
+                           help="emit unreviewed migration proposals as JSON; writes no files or joins")
+    proposals.add_argument("--absence-proposal", metavar="BRIEF",
+                           help="emit one unreviewed proposal for an explicit subject scope")
+    ap.add_argument("--scope", metavar="SCOPE", help="explicit key in absence-review-scopes.json")
     args = ap.parse_args()
 
     root = pathlib.Path(args.root).resolve()
+    if args.absence_proposals or args.absence_proposal:
+        try:
+            config = absence.read_json(root, absence.CONFIG)
+            absence.validate_config(config)
+            registry, _ = absence.registry_rows(root)
+            candidates = [r for r in sweep(root)["rows"] if r["class"] == "NO_TARGET"]
+            entries = {}
+            if args.absence_proposal:
+                candidates = [r for r in candidates if r["file"] == args.absence_proposal]
+                if len(candidates) != 1:
+                    raise ValueError("the per-brief proposal must name an indexed NO_TARGET brief")
+            elif args.scope:
+                raise ValueError("a scoped proposal is per brief; bulk proposals remain unreviewed and unscoped")
+            for row in candidates:
+                parsed = parse_brief((root / row["file"]).read_text(encoding="utf-8"))
+                record = absence.proposal(config, registry, row["file"], parsed, args.scope,
+                                          require_scope=bool(args.absence_proposal))
+                entries[absence.key_for(row["file"], record["assertionDigest"])] = record
+            print(json.dumps({"version": 1, "projectionVersion": 1, "entries": entries}, ensure_ascii=False, indent=2))
+            return 0
+        except (OSError, ValueError, TypeError, re.error) as exc:
+            print("REFUSING ABSENCE PROPOSAL: %s" % exc, file=sys.stderr)
+            return CONTROL_FAILED
+    if args.scope:
+        ap.error("--scope requires --absence-proposal")
     if not control(root, verbose=not args.quiet):
         print("REFUSING TO REPORT: the control did not fire, so a zero here means nothing.")
+        return CONTROL_FAILED
+    if not absence_control(verbose=not args.quiet):
         return CONTROL_FAILED
     if args.control:
         return 0
@@ -667,6 +712,28 @@ def main() -> int:
     if not rows:
         print("REFUSING TO REPORT: no brief was read, so every class below would be a zero over "
               "an empty set.")
+        return CONTROL_FAILED
+
+    try:
+        config, reviews, absence_base, registry, absence_tally = absence.load(root)
+        absence_rows = []
+        absence_inputs = Tally("absence assertions", "the complete existing brief partition")
+        for row in rows:
+            if row["class"] != "NO_TARGET":
+                absence_inputs.drop(row["file"], "not an active NO_TARGET declaration")
+                continue
+            absence_inputs.keep(row["file"])
+            absence_rows.append(absence.assess(root, config, registry, row["file"],
+                                parse_brief((root / row["file"]).read_text(encoding="utf-8")), reviews, absence_base))
+        active_keys = {r["key"] for r in absence_rows}
+        review_inputs = Tally("absence review records", "the review sidecar")
+        for key in reviews["entries"]:
+            if key in active_keys:
+                review_inputs.keep(key)
+            else:
+                review_inputs.drop(key, "not this revision's active NO_TARGET assertion; retained as history, not applied")
+    except (OSError, ValueError, TypeError, KeyError, re.error) as exc:
+        print("REFUSING ABSENCE VERDICT: %s" % exc)
         return CONTROL_FAILED
 
     tally = {c: 0 for c in CLASSES}
@@ -703,6 +770,30 @@ def main() -> int:
           % (joined, len(rows), 100.0 * joined / len(rows)))
     print("  retirement claims below 50%, so that figure is what decides whether shipping can")
     print("  move the remaining-work total at all.")
+    print()
+
+    reopened = [r for r in absence_rows if r["class"] == "STALE_ABSENCE" and not r["carriedUnknown"]]
+    carried = sum(r["carriedUnknown"] for r in absence_rows)
+    print("ABSENCE REVIEW — separate from citations and historical NO_TARGET declarations")
+    print("  %s" % absence_tally.line())
+    print("  %s" % absence_inputs.line())
+    print("  %s" % review_inputs.line())
+    print("  REVIEWED_ABSENCE %d; STALE_ABSENCE %d; carried UNKNOWN %d; blocking reopened %d" %
+          (sum(r["class"] == "REVIEWED_ABSENCE" for r in absence_rows),
+           sum(r["class"] == "STALE_ABSENCE" for r in absence_rows), carried, len(reopened)))
+    print("  Carried unknowns are exact unreviewed proposals, never current verified absence.")
+    print("  Freshness within a declared scope is not a citation, a join, or campaign acceptance.")
+    for row in absence_rows:
+        if not args.quiet or row in reopened or (args.list or "").upper() == row["class"]:
+            print("  %s %s%s — %s" % (row["class"], row["brief"],
+                  " (carried UNKNOWN)" if row["carriedUnknown"] else "", row["reason"]))
+            if row.get("delta"):
+                print("      projection delta: %s" % json.dumps(row["delta"], sort_keys=True))
+            if row.get("projectionAccounting"):
+                print("      %s" % row["projectionAccounting"])
+            print("      %s" % row["advisoryAccounting"])
+            for hit in row["advisory"]:
+                print("      advisory only: %s %s fields=%s" % (hit["id"], hit["registry"], ",".join(hit["fields"])))
     print()
 
     for c in REPORTED:
@@ -754,6 +845,9 @@ def main() -> int:
     now = by_file(rows, BLOCKING_RATCHETED)
 
     if args.set_floor:
+        if reopened:
+            print("REFUSING FLOOR WRITE: stale absence reviews cannot be ratcheted away.")
+            return FINDINGS
         FLOOR.write_text(json.dumps({
             "note": "Briefs that name nothing the registry holds, per FILE. Written by "
                     "planning/brief-target-gate.py --set-floor. Each file's count may only fall, "
@@ -768,7 +862,7 @@ def main() -> int:
         print("floor: written — %d undeclared brief(s)" % len(now))
         return 0
 
-    rc = 0
+    rc = FINDINGS if reopened else 0
     if not FLOOR.exists():
         print("floor: no baseline at %s — run --set-floor to set one"
               % FLOOR.relative_to(ROOT).as_posix())

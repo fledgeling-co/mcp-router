@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "projectionVersion": 1,
+  "projectIdPattern": "\\b[A-Z]+\\d+[A-Z]?\\b",
+  "scopeContract": {
+    "selector": "Each scope declares description, nonempty kinds and literal anyText terms. Relevant rows match subject terms or explicitly back-reference the brief. Existing inbound req/surface/flow/component relations include linked cases and dependent rows; they never create a brief join.",
+    "reviewCreation": "Declare a stable scope key before requesting a per-brief proposal. No scope is inferred or automatically certified."
+  },
+  "scopes": {}
+}

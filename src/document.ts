@@ -257,18 +257,31 @@ export interface DocumentBody {
  * knowing about a package you are deciding whether to trust.
  */
 export function readPackageDocuments(root: string): DocumentBody | DocumentRefusal {
+  try {
+    return readPackageDocumentsAt(root);
+  } catch {
+    return { status: 404, error: 'the declared package could not be read', reason: 'packageUnreadable' };
+  }
+}
+
+function readPackageDocumentsAt(root: string): DocumentBody | DocumentRefusal {
   if (!existsSync(root) || !statSync(root).isDirectory()) {
     return {
       status: 404,
-      error: `the directory this server declares is not there: ${root}`,
+      error: 'the declared package directory is unavailable',
       reason: 'packageUnreadable',
     };
   }
 
+  const canonicalRoot = realpathSync(root);
   const documents: DocumentBody['documents'] = [];
   for (const { tab, file } of DOCUMENT_FILES) {
     const path = join(root, file);
     if (!existsSync(path) || !statSync(path).isFile()) continue;
+    const canonicalDocument = realpathSync(path);
+    if (!canonicalDocument.startsWith(canonicalRoot + sep)) {
+      return { status: 403, error: `${file} points outside the declared package`, reason: 'escapesPackage', file };
+    }
     const size = statSync(path).size;
     if (documentOverCap(size)) {
       return {

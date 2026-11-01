@@ -296,6 +296,7 @@ function describe(u: UpstreamConfig, deps: ControlDeps, needles: Needle[]) {
     ...(isStdio(u)
       ? { command: u.command, args: redactArgs(u.args, needles), cwd: u.cwd, envKeys: Object.keys(u.env).sort(), envFiles: u.envFiles }
       : { url: u.url, headerKeys: Object.keys(u.headers).sort() }),
+    documentAvailable: isStdio(u) && !!(u.packageRoot || u.cwd),
     hash: upstreamHash(u),
     tools: entry?.error ? 0 : (entry?.tools.length ?? 0),
     toolNames: entry?.error ? [] : entry?.tools.map((t) => t.name) ?? [],
@@ -766,11 +767,9 @@ export async function handleControl(
     /*
      * The capability document. M30's route, and the first one that reads a package's own files.
      *
-     * The package root is the server's declared `cwd` and nothing else. It is the one directory
-     * any wire type carries, and the router already uses it — it is what the child process is
-     * started in. Deriving a root from `args[0]`'s directory was considered and refused: it is a
-     * guess about a packaging convention this router does not otherwise use, and `DESIGN.md` §6
-     * turns on where a figure came from rather than on how plausible it is.
+     * The root is explicitly declared as `packageRoot`, falling back to the process `cwd`.
+     * Neither executable arguments nor package caches grant access to documentation.
+     * A separate root leaves child startup and env-file discovery unchanged.
      *
      * The response carries bytes and never a path, so nothing the app receives can be opened.
      * Every refusal names its own `reason`, and the size refusal names which of the three
@@ -778,15 +777,16 @@ export async function handleControl(
      * already crossed, so it cannot be the transport's bound.
      */
     if (sub === '/document' && req.method === 'GET') {
-      if (!isStdio(u) || !u.cwd) {
+      const packageRoot = isStdio(u) ? u.packageRoot ?? u.cwd : undefined;
+      if (!packageRoot) {
         json(res, 404, {
-          error: 'this server declares no directory, so there is no package to read documentation from',
+          error: 'this server declares no packageRoot or working directory for documentation',
           reason: 'noPackageDirectory',
           server: name,
         });
         return true;
       }
-      const outcome = readPackageDocuments(u.cwd);
+      const outcome = readPackageDocuments(packageRoot);
       if (isRefusal(outcome)) {
         const { status, ...body } = outcome;
         json(res, status, { ...body, server: name });

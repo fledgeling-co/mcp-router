@@ -1,6 +1,6 @@
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { isAbsolute, join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { resolveEnvFiles, envFilesDigest } from './envfile.js';
 import { DEFAULT_LOG_POLICY, type LogPolicy } from './log.js';
@@ -62,6 +62,8 @@ export interface StdioUpstream extends UpstreamBase {
   args: string[];
   env: Record<string, string>;
   cwd?: string;
+  /** Owner-declared documentation root; does not change the child working directory. */
+  packageRoot?: string;
   /**
    * Env files read at every spawn, merged under `env`. Resolved once at parse time from
    * `envFile` or the package root's `.env` / `.env.local`; see envfile.ts.
@@ -216,6 +218,8 @@ export interface RawServer {
   args?: string[];
   env?: Record<string, string>;
   cwd?: string;
+  /** Owner-declared documentation root; does not change the child working directory. */
+  packageRoot?: string;
   envFile?: string | string[] | false;
   url?: string;
   headers?: Record<string, string>;
@@ -249,6 +253,9 @@ export function parseServer(name: string, s: RawServer): { upstream: UpstreamCon
 
   const type = s.type ?? (s.url ? 'http' : 'stdio');
 
+  if (s.packageRoot !== undefined && (type !== 'stdio' || typeof s.packageRoot !== 'string' || !isAbsolute(s.packageRoot))) {
+    return { reason: 'packageRoot must be an absolute directory on a stdio upstream' };
+  }
   if (type === 'stdio') {
     if (!s.command) return { reason: 'stdio server has no command' };
     return {
@@ -259,6 +266,7 @@ export function parseServer(name: string, s: RawServer): { upstream: UpstreamCon
         args: s.args ?? [],
         env: s.env ?? {},
         cwd: s.cwd,
+        packageRoot: s.packageRoot,
         envFiles: resolveEnvFiles(s.command, s.args ?? [], s.cwd, s.envFile),
         idleMs: s.idleMs,
         startupTimeoutMs: s.startupTimeoutMs,

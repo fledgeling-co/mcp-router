@@ -22,6 +22,7 @@ const KEPT_FIELDS = [
   'type',
   'command',
   'cwd',
+  'packageRoot',
   'envFile',
   'oauth',
   'idleMs',

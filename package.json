@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "engines": { "node": ">=20.19.0" },
   "description": "One shared HTTP MCP endpoint that lazily spawns stdio upstreams on first use and reaps them when idle.",
   "bin": { "mcp-router": "dist/index.js" },
   "scripts": {

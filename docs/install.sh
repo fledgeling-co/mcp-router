@@ -26,10 +26,11 @@ die()  { printf '%sxxx%s %s\n' "$RED" "$RST" "$1" >&2; exit 1; }
 # ---------------------------------------------------------------- prerequisites
 # Node is a prerequisite on every path: the TypeScript router is always built, and it is the daemon.
 # A fallback you cannot run is not a fallback, so Node is required on the one path there is.
-command -v node >/dev/null 2>&1 || die "node not found on PATH. Install Node 20 or newer."
+command -v node >/dev/null 2>&1 || die "node not found on PATH. Install Node 20.19 or newer."
 NODE_BIN="$(command -v node)"
-NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]')"
-(( NODE_MAJOR >= 20 )) || die "Node $NODE_MAJOR is too old; this needs 20 or newer (tested on 22)."
+NODE_VERSION="$(node -p 'process.versions.node')"
+IFS=. read -r NODE_MAJOR NODE_MINOR NODE_PATCH <<< "$NODE_VERSION"
+(( NODE_MAJOR > 20 || (NODE_MAJOR == 20 && NODE_MINOR >= 19) )) || die "Node $NODE_VERSION is too old; this needs 20.19 or newer (tested on 22)."
 
 # Which router the two launchd agents run. Only `node` is offered. `swift` was the opt-in until the
 # owner retired the Swift router on 2026-10-19 (planning/plans/plan-retire-swift-router.md). It is

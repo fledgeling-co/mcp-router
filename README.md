@@ -62,7 +62,7 @@ Start a new Claude Code session afterwards. A session already attached to the ro
 
 Already have a clone? `./docs/install.sh` from inside it works the same way and skips the fetch, so the agents point at your working copy.
 
-**The two launchd agents run the TypeScript router.** It is the only router the installer builds and points them at. The Swift router was retired on 2026-10-19 and its sources stay in the tree unbuilt, so the installer refuses `MCPR_ROUTER=swift` before it builds anything. Node 20+ is required.
+**The two launchd agents run the TypeScript router.** It is the only router the installer builds and points them at. The retired Swift router and its obsolete checks have been removed, so the installer refuses `MCPR_ROUTER=swift` before it builds anything. Node 20.19 or newer is required.
 
 **Note:** the installer is macOS-only because it uses launchd. On Linux, `npm run build` then run `node dist/index.js serve` under systemd; everything else in the router is platform-neutral.
 

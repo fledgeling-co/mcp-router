@@ -1,0 +1,583 @@
+{
+  "version": 1,
+  "kind": "dismissed-candidate freshness supplement; no new entity, join or product verdict",
+  "reviewedInputsRevision": "8e6037f91cbf83c40651328fb1a0185fd96c26bf",
+  "canonicalCandidateContract": "review.candidateRows in planning/absence-reviews.json; must match all candidate IDs/source variants in its SHA-pinned review.candidateEvidence assessment exactly, including brief/assertion identity. Evidence extra JSON fields cannot override this contract.",
+  "candidateVariantsPinned": 86,
+  "unchangedReviewsCurrent": 23,
+  "unchangedOriginalUnknowns": 7,
+  "outsideScopeReviewsExercised": 15,
+  "outsideScopeChanges": [
+    {
+      "brief": "planning/features-to-triage/G3-gapfix-2.md",
+      "candidate": "DEF-030",
+      "change": "title changed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/G3-gapfix-2.md",
+      "candidate": "DEF-030",
+      "change": "relation added",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/G3-gapfix-2.md",
+      "candidate": "DEF-030",
+      "change": "candidate removed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/G3-gapfix-3.md",
+      "candidate": "DEF-035",
+      "change": "title changed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/G3-gapfix-3.md",
+      "candidate": "DEF-035",
+      "change": "relation added",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/G3-gapfix-3.md",
+      "candidate": "DEF-035",
+      "change": "candidate removed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/G4-gapfix-2.md",
+      "candidate": "DEF-090",
+      "change": "title changed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/G4-gapfix-2.md",
+      "candidate": "DEF-090",
+      "change": "relation added",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/G4-gapfix-2.md",
+      "candidate": "DEF-090",
+      "change": "candidate removed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-3.md",
+      "candidate": "DEF-056",
+      "change": "title changed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-3.md",
+      "candidate": "DEF-056",
+      "change": "relation added",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-3.md",
+      "candidate": "DEF-056",
+      "change": "candidate removed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-4.md",
+      "candidate": "DEF-061",
+      "change": "title changed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-4.md",
+      "candidate": "DEF-061",
+      "change": "relation added",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-4.md",
+      "candidate": "DEF-061",
+      "change": "candidate removed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-6.md",
+      "candidate": "DEF-055",
+      "change": "title changed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-6.md",
+      "candidate": "DEF-055",
+      "change": "relation added",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-6.md",
+      "candidate": "DEF-055",
+      "change": "candidate removed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-7.md",
+      "candidate": "DEF-444",
+      "change": "title changed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-7.md",
+      "candidate": "DEF-444",
+      "change": "relation added",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-7.md",
+      "candidate": "DEF-444",
+      "change": "candidate removed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-8.md",
+      "candidate": "DEF-443",
+      "change": "title changed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-8.md",
+      "candidate": "DEF-443",
+      "change": "relation added",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-8.md",
+      "candidate": "DEF-443",
+      "change": "candidate removed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/R17-gapfix-2.md",
+      "candidate": "DEF-090",
+      "change": "title changed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/R17-gapfix-2.md",
+      "candidate": "DEF-090",
+      "change": "relation added",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/R17-gapfix-2.md",
+      "candidate": "DEF-090",
+      "change": "candidate removed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/R17-gapfix-3.md",
+      "candidate": "DEF-090",
+      "change": "title changed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/R17-gapfix-3.md",
+      "candidate": "DEF-090",
+      "change": "relation added",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/R17-gapfix-3.md",
+      "candidate": "DEF-090",
+      "change": "candidate removed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/a-killed-gate-strands-its-mutation-in-the-tree.md",
+      "candidate": "DEF-443",
+      "change": "title changed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/a-killed-gate-strands-its-mutation-in-the-tree.md",
+      "candidate": "DEF-443",
+      "change": "relation added",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/a-killed-gate-strands-its-mutation-in-the-tree.md",
+      "candidate": "DEF-443",
+      "change": "candidate removed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/a-killed-mutation-run-leaves-a-mutation-git-status-cannot-show.md",
+      "candidate": "DEF-443",
+      "change": "title changed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/a-killed-mutation-run-leaves-a-mutation-git-status-cannot-show.md",
+      "candidate": "DEF-443",
+      "change": "relation added",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/a-killed-mutation-run-leaves-a-mutation-git-status-cannot-show.md",
+      "candidate": "DEF-443",
+      "change": "candidate removed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/a-second-inertness-clause-is-unfailable-for-the-same-reason.md",
+      "candidate": "DEF-055",
+      "change": "title changed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/a-second-inertness-clause-is-unfailable-for-the-same-reason.md",
+      "candidate": "DEF-055",
+      "change": "relation added",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/a-second-inertness-clause-is-unfailable-for-the-same-reason.md",
+      "candidate": "DEF-055",
+      "change": "candidate removed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/build-description-report-on-swiftbuild.md",
+      "candidate": "CASE-0032",
+      "change": "title changed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/build-description-report-on-swiftbuild.md",
+      "candidate": "CASE-0032",
+      "change": "relation added",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/build-description-report-on-swiftbuild.md",
+      "candidate": "CASE-0032",
+      "change": "candidate removed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/the-carrier-gate-pins-a-landing-to-a-sha-that-keeps-moving.md",
+      "candidate": "DEF-443",
+      "change": "title changed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/the-carrier-gate-pins-a-landing-to-a-sha-that-keeps-moving.md",
+      "candidate": "DEF-443",
+      "change": "relation added",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/the-carrier-gate-pins-a-landing-to-a-sha-that-keeps-moving.md",
+      "candidate": "DEF-443",
+      "change": "candidate removed",
+      "textScopeUnchanged": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    }
+  ],
+  "oldImplementationExpectedRed": [
+    {
+      "change": "title changed",
+      "oldActual": "REVIEWED_ABSENCE",
+      "required": "STALE_ABSENCE",
+      "expectedRed": true
+    },
+    {
+      "change": "relation added",
+      "oldActual": "REVIEWED_ABSENCE",
+      "required": "STALE_ABSENCE",
+      "expectedRed": true
+    },
+    {
+      "change": "candidate removed",
+      "oldActual": "REVIEWED_ABSENCE",
+      "required": "STALE_ABSENCE",
+      "expectedRed": true
+    }
+  ],
+  "checks": [
+    {
+      "command": "python3 planning/absence_review_tests.py",
+      "result": "35 tests pass, including outside-scope edits, relations, deletion, replacement, added variant, duplicate/conflicting tuples, malformed/empty contract, partial candidate omission, assessment identity/completeness and evidence-extra-field rejection"
+    },
+    {
+      "command": "python3 planning/brief-target-gate.py --quiet",
+      "result": "23 current reviews / 7 original carried unknowns; no reopened blockers; NO_TARGET30 and joins63/220 unchanged"
+    },
+    {
+      "command": "python3 planning/reader-accounting.py",
+      "result": "0 unaccounted readers"
+    }
+  ],
+  "limits": [
+    "Historical per-candidate assessment files and their source revisions remain unchanged.",
+    "Candidate changes require a new explicit review; no proposal or check stamps them automatically.",
+    "Seven unknown assertions and the original floor29 remain unchanged."
+  ],
+  "omittedDismissalControls": [
+    {
+      "brief": "planning/features-to-triage/G3-gapfix-2.md",
+      "omittedCandidate": "DEF-055",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/G3-gapfix-3.md",
+      "omittedCandidate": "DEF-055",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/G4-gapfix.md",
+      "omittedCandidate": "DEF-052",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/G4-gapfix-2.md",
+      "omittedCandidate": "DEF-361",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/G5-gapfix-2.md",
+      "omittedCandidate": "DEF-057",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix.md",
+      "omittedCandidate": "DEF-038",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-2.md",
+      "omittedCandidate": "DEF-038",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-3.md",
+      "omittedCandidate": "CASE-0185",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-4.md",
+      "omittedCandidate": "DEF-052",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-5.md",
+      "omittedCandidate": "DEF-052",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-6.md",
+      "omittedCandidate": "DEF-055",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-7.md",
+      "omittedCandidate": "DEF-444",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/M23-gapfix-8.md",
+      "omittedCandidate": "DEF-443",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/R17-gapfix-2.md",
+      "omittedCandidate": "DEF-090",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/R17-gapfix-3.md",
+      "omittedCandidate": "DEF-090",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/R17-gapfix-4.md",
+      "omittedCandidate": "DEF-442",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/R7-gapfix-2.md",
+      "omittedCandidate": "CASE-0351",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/a-killed-gate-strands-its-mutation-in-the-tree.md",
+      "omittedCandidate": "DEF-444",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/a-killed-mutation-run-leaves-a-mutation-git-status-cannot-show.md",
+      "omittedCandidate": "CASE-0292",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/a-second-inertness-clause-is-unfailable-for-the-same-reason.md",
+      "omittedCandidate": "REQ-027",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/a-verification-lane-ran-in-the-writers-own-family.md",
+      "omittedCandidate": "DEF-038",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/build-description-report-on-swiftbuild.md",
+      "omittedCandidate": "CASE-0032",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    },
+    {
+      "brief": "planning/features-to-triage/the-carrier-gate-pins-a-landing-to-a-sha-that-keeps-moving.md",
+      "omittedCandidate": "DEF-443",
+      "remainingContractNonempty": true,
+      "actual": "STALE_ABSENCE",
+      "restored": "REVIEWED_ABSENCE"
+    }
+  ],
+  "oldImplementationRegression": {
+    "sourceRevision": "8e6037f91cbf83c40651328fb1a0185fd96c26bf",
+    "exit": 1,
+    "expected": "three subtests fail: outside-scope candidate title edit, relation addition, removal incorrectly remain REVIEWED_ABSENCE"
+  },
+  "implementationInputs": {
+    "planning/absence_review.py": "94be9fe22e8c5a67f6e94e2cf8075f2f4ca2acd8f07a08b269983ae7ff07d8aa",
+    "planning/absence_review_tests.py": "fec7298619c75dc3c0bdafea7eb14afffb8e0842cda30a7816c6f346ddd36c9f"
+  }
+}

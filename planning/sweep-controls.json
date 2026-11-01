@@ -1205,6 +1205,22 @@
       ],
       "since": "2026-11-02",
       "reason": "This wrapper starts a private router and registry, waits for affirmative listener readiness, then launches the pairing-loopback.mjs protocol assertions. V1 is the positive grep-q readiness wait over its own scratch logs; V3 is the word absent in assertions that a scratch compiled mutation anchor exists before it is changed. Neither enumerates this repository or claims a corpus-wide absence. Protocol and mutation behavior are tested by the driver; this row does not certify physical-phone or production pairing acceptance."
+    },
+    {
+      "path": "planning/foreign-path-gate.py",
+      "disposition": "control",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "since": "2026-11-02",
+      "control": [
+        "python3",
+        "planning/foreign-path-gate.py",
+        "--provenance-selftest"
+      ],
+      "proves": "The normal CLI witness runs ordinary controls in an isolated changed-HEAD clone: the original revision passes, the same selected old revision retains identical counts after HEAD archive mutation, and the changed current revision refuses. Its ordinary child invocations run the 18 existing classification controls and 33 pinned-archive controls, including an identical authored local pointer blocking, complete raw-byte and index membership checks, unknown/missing/extra/changed/symlink refusal, dirty HEAD versus worktree separation and unavailable immutable control fixtures. The original cache/fixture and missing-index regressions were separately watched to fail these controls.",
+      "not_proved": "UPSTREAM proves copied archive provenance only. It does not retain or certify upstream raw research artifacts, validate their substantive claims, or establish physical-device acceptance. Missing required history is an explicit unavailable control, not a product verdict."
     }
   ]
 }

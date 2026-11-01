@@ -1,3 +1,4 @@
+using MCPRouter.Shell.Model;
 using MCPRouter.Shell.Model.Control;
 using MCPRouter.Shell.Model.Skills;
 using Xunit;

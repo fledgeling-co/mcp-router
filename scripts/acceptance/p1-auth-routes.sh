@@ -1,35 +1,13 @@
 #!/usr/bin/env bash
 #
-# P1 — the two auth routes, over a real socket.
-#
-# `control-differential.sh` proves these two routes against the running TypeScript reference, and
-# that is the stronger oracle for *agreement*. But it drives `ControlDiff`, an in-process binary
-# that constructs a `ControlDeps` and calls `ControlHandler.handle` directly — it never opens a
-# socket. That gap is registered as `D-r2r-b`: eleven control rows are proven against an oracle
-# that is not the wire.
-#
-# So this script exists to answer one question the differential cannot: does the **daemon** — the
-# real `MCPRouterCLI serve`, its `LoopbackHTTPServer`, its `RouterService.controlResponse` building
-# a real `ControlDeps` — actually route these two paths, or does only the in-process oracle?
-#
-# That distinction is not theoretical here. `RouterServiceDispatch.controlResponse` assembles its
-# `ControlDeps` independently of `ControlDiff`'s, and it is the one that ships. A dispatch arm proven
-# only through the oracle would leave the daemon answering 405 while every check went green.
-#
-# SCOPE: these two routes and the gates in front of them. Nothing else. This item changed no Mac
-# surface, no phone surface and no other route, and re-running checks over surfaces it did not touch
-# is the specific waste the owner has asked runners to stop.
-#
-# Exit codes follow the house pattern:
-#   0  every assertion held
-#   1  the daemon answered, and answered something wrong
-#   2  the environment could not run the check — the binary is missing, or the daemon never bound.
-#      Distinct because a daemon that never started must not read as a passing check.
+# P1: approval and authentication routes over the retained TypeScript daemon's socket.
+# A scratch home isolates configuration, token, manifest and logs from the installed service.
+# Exit 0 means assertions held; 1 means a measured failure; 2 means the lane could not run.
 
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-SWIFT_BIN="${SWIFT_BIN:-$REPO_ROOT/app/.build/debug/MCPRouterCLI}"
+DIST="${MCP_ROUTER_DIST:-$REPO_ROOT/dist}"
 HOME_DIR="$(mktemp -d -t mcprouter-p1)"
 PORT="${PORT:-8983}"
 # The auth callback port is pinned to a scratch one. Without this the daemon binds the REAL 8880
@@ -42,22 +20,20 @@ pass=0
 fail=0
 declare -a failures=()
 
-# D-g1-g. This script binds :8983 with no `lsof` pre-guard of its own — measured, a collision here
-# surfaces as EADDRINUSE from the daemon and an exit 2, which is loud but only after a router has
-# been started and a scratch home built. The lock refuses before any of that.
-. "$REPO_ROOT/scripts/acceptance/parity-lock.sh"
-
 cleanup() {
-  parity_lock_release
   [ -n "$ROUTER_PID" ] && kill "$ROUTER_PID" 2>/dev/null
   wait "$ROUTER_PID" 2>/dev/null
   rm -rf "$HOME_DIR"
 }
 trap cleanup EXIT INT TERM HUP
 
-parity_lock_acquire "p1-auth-routes.sh"
+for bound_port in "$PORT" "$AUTH_PORT"; do
+  if lsof -nP -iTCP:"$bound_port" -sTCP:LISTEN >/dev/null 2>&1; then
+    echo "environment: scratch port $bound_port is already listening"; exit 2
+  fi
+done
 
-[ -x "$SWIFT_BIN" ] || { echo "environment: no MCPRouterCLI at $SWIFT_BIN (run: make build or swift build --package-path app)"; exit 2; }
+[ -f "$DIST/index.js" ] || { echo "environment: build the TypeScript router first (npm run build)"; exit 2; }
 command -v curl >/dev/null 2>&1 || { echo "environment: curl is not installed"; exit 2; }
 
 # One stdio server, and a manifest entry carrying a pending change so BOTH approve paths are
@@ -88,7 +64,7 @@ cat >"$HOME_DIR/manifest.json" <<'JSON'
 JSON
 
 MCP_ROUTER_HOME="$HOME_DIR" MCP_ROUTER_AUTH_PORT="$AUTH_PORT" \
-  "$SWIFT_BIN" serve --port "$PORT" >"$HOME_DIR/serve.out" 2>&1 &
+  node "$DIST/index.js" serve --port "$PORT" >"$HOME_DIR/serve.out" 2>&1 &
 ROUTER_PID=$!
 
 health=""
@@ -121,9 +97,16 @@ check() { # label method target want-status want-body(or "-") [--no-token]
     exit 2
   fi
 
+  local request_body='{}'
+  if [[ "$target" == */approve ]]; then
+    local review_digest
+    review_digest="$(curl -sS -m "$TIMEOUT" "http://127.0.0.1:$PORT${target%/approve}/changes" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("pendingDigest") or "0"*64)')"
+    request_body="{\"expectedDigest\":\"$review_digest\"}"
+  fi
+
   local -a args=(-sS -m "$TIMEOUT" -o "$HOME_DIR/body" -w '%{http_code}' -X "$method"
                  "http://127.0.0.1:$PORT$target" -H 'content-type: application/json'
-                 --data-binary '{}')
+                 --data-binary "$request_body")
   [ -z "$no_token" ] && args+=(-H "x-mcpr-token: $TOKEN")
 
   local status; status="$(curl "${args[@]}" 2>/dev/null || echo 000)"
@@ -195,7 +178,7 @@ check "approving twice is 409 the second time" POST "/servers/p1-held/approve" \
 # into `ControlDeps`, but until this change `RouterServiceDispatch.controlResponse` built its deps
 # without one, so the daemon — the only process that ships — passed nil and the line was
 # unemittable. Every unit test still passed. This is the assertion that catches that class.
-if grep -q 'approved "p1-held"'"'"'s new tool surface (2 tools)' "$HOME_DIR/serve.out"; then
+if grep -q 'approved "p1-held"'"'"'s new tool surface (2 tools)' "$HOME_DIR/router.log"; then
   printf '  ok   %-52s logged\n' "B94: the approval is on the record"
   pass=$((pass + 1))
 else

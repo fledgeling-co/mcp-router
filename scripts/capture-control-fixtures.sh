@@ -176,8 +176,10 @@ save server-pending-change.json  grab "http://127.0.0.1:$PORT/servers/fixture-to
 # Approving is captured from the one state where it succeeds, which only exists for as long as the
 # change above is held — so it runs here, and the "nothing to approve" conflict runs on a server
 # that never had one.
-save approve.json                grab -X POST "${auth[@]}" "http://127.0.0.1:$PORT/servers/fixture-tools/approve"
-save approve-conflict.json       grab -X POST "${auth[@]}" "http://127.0.0.1:$PORT/servers/fixture-stdio/approve"
+review_digest="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["pendingDigest"])' "$OUT/changes-pending.json")"
+approval_body="{\"expectedDigest\":\"$review_digest\"}"
+save approve.json                grab -X POST "${auth[@]}" --data-binary "$approval_body" "http://127.0.0.1:$PORT/servers/fixture-tools/approve"
+save approve-conflict.json       grab -X POST "${auth[@]}" --data-binary "$approval_body" "http://127.0.0.1:$PORT/servers/fixture-stdio/approve"
 
 # --- an authorization the router is part-way through -------------------------------------------
 # Opening the OAuth upstream makes the router record a flow rather than open a browser: it runs

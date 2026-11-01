@@ -54,11 +54,21 @@ public struct PairingListener: Sendable, Equatable {
     public let enabled: Bool
     public let port: Int?
     public let advertising: Bool
+    public let host: String?
+    public let fingerprint: String?
 
-    public init(enabled: Bool, port: Int?, advertising: Bool) {
+    public init(
+        enabled: Bool,
+        port: Int?,
+        advertising: Bool,
+        host: String? = nil,
+        fingerprint: String? = nil
+    ) {
         self.enabled = enabled
         self.port = port
         self.advertising = advertising
+        self.host = host
+        self.fingerprint = fingerprint
     }
 }
 

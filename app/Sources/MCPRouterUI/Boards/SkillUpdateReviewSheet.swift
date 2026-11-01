@@ -98,6 +98,7 @@
                     Spacer()
                     Button("Close") { board.sheet = nil }
                         .buttonStyle(StandardButtonStyle())
+                        .keyboardShortcut(.cancelAction)
                     Button(board.writing ? "Updating…" : "Update selected plugins") {
                         let approved = selected
                         selected = []

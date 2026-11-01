@@ -139,7 +139,7 @@ struct MenuReasonBadgePairingTests {
         #expect(generic.count == 2, "the two generic sentences collapsed onto \(generic.sorted())")
         #expect(generic.contains(CommandAvailability.surfaceAbsent.reason ?? ""))
         #expect(generic.contains(CommandAvailability.needsServerSelection.reason ?? ""))
-        #expect(specialised.count == 9, "the specialised sentences are \(specialised.sorted())")
+        #expect(specialised.count == 8, "the specialised sentences are \(specialised.sorted())")
         // The generic `.featureUnbuilt` sentence is a string the app can never utter, because
         // `reason(in:)` specialises that answer for every command. The lane's vocabulary therefore
         // omits it deliberately, and this is what keeps that omission correct.

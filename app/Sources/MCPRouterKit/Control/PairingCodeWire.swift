@@ -66,13 +66,21 @@ struct PairingListenerWire: Codable {
     let enabled: Bool
     let port: Int?
     let advertising: Bool
+    let host: String?
+    let fingerprint: String?
 
     var listener: PairingListener {
-        PairingListener(enabled: enabled, port: port, advertising: advertising)
+        PairingListener(
+            enabled: enabled,
+            port: port,
+            advertising: advertising,
+            host: host,
+            fingerprint: fingerprint
+        )
     }
 
     private enum CodingKeys: String, CodingKey {
-        case enabled, port, advertising
+        case enabled, port, advertising, host, fingerprint
     }
 
     func encode(to encoder: any Encoder) throws {
@@ -80,6 +88,8 @@ struct PairingListenerWire: Codable {
         try container.encode(enabled, forKey: .enabled)
         try container.encode(port, forKey: .port)
         try container.encode(advertising, forKey: .advertising)
+        try container.encodeIfPresent(host, forKey: .host)
+        try container.encodeIfPresent(fingerprint, forKey: .fingerprint)
     }
 }
 

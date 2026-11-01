@@ -254,7 +254,7 @@ function applyObservation(
    * Afterwards a changed surface is held as `pending` rather than served, so the
    * approved bytes keep going out while the user decides.
    */
-  if (!prev || (!prev.digest && prev.tools.length === 0) || toolsDigest(prev.tools) === digest) {
+  if (!prev || (!prev.digest && prev.tools.length === 0) || prev.digest === digest || toolsDigest(prev.tools) === digest) {
     manifest.servers[u.name] = {
       hash: upstreamHash(u),
       bin: binaryStamp(u),

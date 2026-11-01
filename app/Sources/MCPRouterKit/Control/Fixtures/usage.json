@@ -1,1 +1,1 @@
-{"since":"2026-10-20T02:25:52.578Z","records":[{"ts":"2026-10-20T02:25:59.774Z","server":"fixture-tools","tool":"ping","ok":true,"ms":84,"cold":true,"pid":59739,"cwd":"/Volumes/LLMs/Dev/mcp-router-wt/pairing-listener-state","project":"pairing-listener-state","client":"node"}]}
+{"since":"2026-11-01T13:03:49.472Z","records":[{"ts":"2026-11-01T13:03:52.762Z","server":"fixture-tools","tool":"ping","ok":true,"ms":136,"cold":true,"pid":67243,"cwd":"/Volumes/LLMs/Dev/mcp-router-wt/remaining-core","project":"remaining-core","client":"node"}]}

@@ -35,7 +35,7 @@
             "ChildPathSheet", "DiscoverDetailSheet", "HeldChangeSheet", "HeldVersionSheet",
             "InboxReviewSheet", "MarketplacesSheet", "MissingSubjectSheet", "OfficialMarkSheet",
             "PairingSheet", "RemoveServerDialog", "RemoveServerSheet", "ResetHistorySheet",
-            "ServerDocumentSheet", "ShimExplanationSheet", "SkillProvenanceSheet"
+            "ServerDocumentSheet", "ShimExplanationSheet", "SkillProvenanceSheet", "SkillUpdateReviewSheet"
         ]
 
         /// Sheets whose Escape path is the panel they host, in another file.

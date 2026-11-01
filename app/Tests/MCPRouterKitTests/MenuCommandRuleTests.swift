@@ -30,7 +30,7 @@ struct MenuCommandRuleTests {
             // a promise of a view that does not exist and assigns the call to M1; the mock now
             // draws it with the ellipsis too, so M20 records the agreement rather than settling
             // somebody else's question in passing.
-            "Review Held Changes…"
+            "Review Held Changes…", "Update All Skills…"
         ]
         for command in MenuCommand.allCases {
             #expect(
@@ -76,7 +76,8 @@ struct MenuCommandRuleTests {
     @Test("every unbuilt command says what is unbuilt, in words of its own")
     func unbuiltCommandsNameTheirSubject() {
         let unbuilt = MenuCommand.allCases.filter { $0.availability == .featureUnbuilt }
-        #expect(unbuilt.count >= 9, "only \(unbuilt.count) commands are featureUnbuilt")
+        #expect(unbuilt.count == 8, "only \(unbuilt.count) commands are featureUnbuilt")
+        #expect(MenuCommand.updateAllSkills.availability != .featureUnbuilt)
         var sentences: Set<String> = []
         for command in unbuilt {
             guard let reason = command.reason() else {

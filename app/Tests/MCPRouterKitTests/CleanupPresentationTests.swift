@@ -139,6 +139,8 @@ struct CleanupPresentationTests {
         #expect(consequence.contains("no way to bring them back"))
         // It also warns about the aftermath this very pane will show.
         #expect(consequence.contains("never-used"))
+        #expect(consequence.contains("Cleanup may propose"))
+        #expect(!consequence.contains("this list"), "the shared consequence must also make sense in Settings")
     }
 
     /// The defect this asserts against was live: `Reading.recordedCalls` was a non-optional `Int`
@@ -159,6 +161,8 @@ struct CleanupPresentationTests {
         // Every consequence survives the missing figure — this drops the number, not the disclosure.
         #expect(consequence.contains("no way to bring them back"))
         #expect(consequence.contains("never-used"))
+        #expect(consequence.contains("Cleanup may propose"))
+        #expect(!consequence.contains("this list"), "the shared consequence must also make sense in Settings")
         #expect(consequence.contains("has not said how many"))
 
         // And an observed zero is a third sentence, not the first one with a small number in it.

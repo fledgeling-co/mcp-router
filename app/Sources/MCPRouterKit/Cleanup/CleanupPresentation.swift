@@ -242,16 +242,15 @@ public enum CleanupPresentation {
         guard let calls else {
             return "Every call\(span) is discarded — the router has not said how many — and there "
                 + "is no way to bring them back. Every server will read as never-used until calls "
-                + "are recorded again, so this list will propose things that are in daily use."
+                + "are recorded again, so Cleanup may propose things that are in daily use."
         }
         guard calls > 0 else {
             return "No calls have been recorded, so there is nothing to discard. Resetting still "
-                + "restarts the observation window, which is what every reading on this pane is "
-                + "measured against."
+                + "restarts the observation window used by the router's history and Cleanup readings."
         }
         return "\(calls) \(calls == 1 ? "call" : "calls")\(span) are discarded, and there is no way "
             + "to bring them back. Every server will read as never-used until calls are recorded "
-            + "again, so this list will propose things that are in daily use."
+            + "again, so Cleanup may propose things that are in daily use."
     }
 
     public static let resetConfirm = "Reset history"

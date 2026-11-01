@@ -17,7 +17,8 @@ unchanged by the bridge. The shared presentation target also builds on macOS.
 
 The [observation record](DEF008-tab-identifiers/observations.json) retains source hashes,
 XCTest summaries and five attributed screenshots, all visually inspected. Raw result bundles
-remain under `/tmp/mcpr-tab-identifiers-20261102/`:
+remain under `/tmp/mcpr-tab-identifiers-20261102/` (not retained in this repository; owner-local raw bundles).
+The committed observation record and attributed screenshots above are the durable public evidence:
 
 - `baseline-assertions.xcresult`: original implementation, one expected assertion failure.
 - `modern-tab.xcresult`: public TabContent modifier alone, one assertion failure.

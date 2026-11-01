@@ -74,33 +74,8 @@
 
         // MARK: - Paired devices
 
-        /// Read-only, and observed rather than served.
-        ///
-        /// The control API has no devices endpoint. What this Mac genuinely knows is the name on the
-        /// inbox snapshot the shell is already polling, which is the one place a paired phone
-        /// identifies itself. `Manage…` routes to Inbox — the mock's own `data-act="board:inbox"` —
-        /// because that is where the queue and the pairing both live.
         private var pairedGroup: some View {
-            SettingsGroup(SettingsPaneCopy.pairedDevicesGroup) {
-                SettingsCard(id: "paired-card") {
-                    SettingsRow(
-                        label: SettingsPaneCopy.pairedDevicesLabel,
-                        value: shell.inboxBoard.pairedDeviceName ?? SettingsPaneCopy.pairedDevicesNone,
-                        dimmed: shell.inboxBoard.pairedDeviceName == nil
-                    )
-                }
-                HStack {
-                    Spacer(minLength: SettingsMetrics.labelColumn)
-                    Button(SettingsPaneCopy.pairedDevicesAction) { shell.select(.inbox) }
-                        .buttonStyle(StandardButtonStyle())
-                        .measured(
-                            "manage-devices", role: "state-action", kind: .leaf,
-                            type: .body, text: SettingsPaneCopy.pairedDevicesAction
-                        )
-                }
-                .padding(.top, SettingsMetrics.tightGap)
-                SettingsHelp(SettingsPaneCopy.pairedDevicesHelp, id: "paired-help")
-            }
+            PairedDevicesSection(devices: model.devices) { MenuBarRouter.openInbox(on: shell) }
         }
     }
 #endif

@@ -77,10 +77,28 @@ public struct PairingListener: Sendable, Equatable {
 public struct PairingState: Sendable, Equatable {
     public let code: IssuedPairingCode?
     public let listener: PairingListener
+    public let confirmedPhones: [ConfirmedPairedPhone]?
 
-    public init(code: IssuedPairingCode?, listener: PairingListener) {
+    public init(
+        code: IssuedPairingCode?, listener: PairingListener, confirmedPhones: [ConfirmedPairedPhone]? = nil
+    ) {
         self.code = code
         self.listener = listener
+        self.confirmedPhones = confirmedPhones
+    }
+}
+
+/// Confirmed device metadata; a missing list means the router cannot supply it.
+public struct ConfirmedPairedPhone: Sendable, Equatable, Identifiable {
+    public let phoneId: String
+    public let phoneName: String
+    public let pairedAt: Date
+    public var id: String { phoneId }
+
+    public init(phoneId: String, phoneName: String, pairedAt: Date) {
+        self.phoneId = phoneId
+        self.phoneName = phoneName
+        self.pairedAt = pairedAt
     }
 }
 

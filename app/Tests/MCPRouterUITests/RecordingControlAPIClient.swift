@@ -37,6 +37,7 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
         public var pairingRevoke = 0
         public var promotions: [String] = []
         public var undos: [String] = []
+        public var pairingPhoneRevokes: [String] = []
         public var pairingStateReads = 0
 
         public init() {}
@@ -55,6 +56,8 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
     private let listener: PairingListener?
     /// Makes the state read fail, so a test can show the sheet a router it cannot read.
     private let stateFailure: ControlAPIError?
+    private let pairingStateOverride: (@Sendable () async throws(ControlAPIError) -> PairingState)?
+    private let phoneRevokeOverride: (@Sendable (String) async throws(ControlAPIError) -> String)?
     private let lock = NSLock()
     private var _calls = Calls()
 
@@ -70,7 +73,9 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
         refusedPromotions: Set<String> = [],
         refusedUndos: Set<String> = [],
         listener: PairingListener? = nil,
-        stateFailure: ControlAPIError? = nil
+        stateFailure: ControlAPIError? = nil,
+        pairingStateOverride: (@Sendable () async throws(ControlAPIError) -> PairingState)? = nil,
+        phoneRevokeOverride: (@Sendable (String) async throws(ControlAPIError) -> String)? = nil
     ) {
         self.wrapped = wrapped
         self.issueGate = issueGate
@@ -80,6 +85,8 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
         self.refusedUndos = refusedUndos
         self.listener = listener
         self.stateFailure = stateFailure
+        self.pairingStateOverride = pairingStateOverride
+        self.phoneRevokeOverride = phoneRevokeOverride
     }
 
     private func record(_ mutate: (inout Calls) -> Void) {
@@ -123,8 +130,22 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
     public func pairingState() async throws(ControlAPIError) -> PairingState {
         record { $0.pairingStateReads += 1 }
         if let stateFailure { throw stateFailure }
-        let state = try await wrapped.pairingState()
-        return PairingState(code: state.code, listener: listener ?? state.listener)
+        let state: PairingState = if let pairingStateOverride {
+            try await pairingStateOverride()
+        } else {
+            try await wrapped.pairingState()
+        }
+        return PairingState(
+            code: state.code,
+            listener: listener ?? state.listener,
+            confirmedPhones: state.confirmedPhones
+        )
+    }
+
+    public func revokePairedPhone(id: String) async throws(ControlAPIError) -> String {
+        record { $0.pairingPhoneRevokes.append(id) }
+        if let phoneRevokeOverride { return try await phoneRevokeOverride(id) }
+        return try await wrapped.revokePairedPhone(id: id)
     }
 
     public func revokePairingCode() async throws(ControlAPIError) -> Bool {

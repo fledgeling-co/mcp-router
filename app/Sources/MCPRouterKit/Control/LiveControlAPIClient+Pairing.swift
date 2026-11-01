@@ -21,4 +21,12 @@ public extension LiveControlAPIClient {
     func revokePairingCode() async throws(ControlAPIError) -> Bool {
         try await send(.delete, "pairing/codes", as: PairingRevokeWire.self).revoked
     }
+
+    func revokePairedPhone(id: String) async throws(ControlAPIError) -> String {
+        let result = try await send(.delete, "pairing/phones/\(segment(id))", as: PairingPhoneRevokeWire.self)
+        guard result.revoked == id else {
+            throw .malformedResponse(detail: "the router revoked a different phone")
+        }
+        return result.revoked
+    }
 }

@@ -2,11 +2,10 @@
     import MCPRouterKit
     import SwiftUI
 
-    /// The Settings window's own state, which is only ever the control token.
+    /// The Settings window's control-token and confirmed-device state.
     ///
-    /// Everything else the window draws comes from the shell's poll. This owns the one fact the
-    /// router does not serve — whether this Mac has a token stored — and the one action the Security
-    /// pane performs.
+    /// Device reads and revocations use the shell's existing client, so both name the same router.
+    /// Token storage remains local to this window.
     ///
     /// **One instance per window, and a `Settings` scene destroys its window on close**, so `load()`
     /// re-reads the keychain on every `⌘,`. That was the Settings board's behaviour too — it built
@@ -22,6 +21,7 @@
     final class SettingsWindowModel {
         @ObservationIgnored private let store: any ControlTokenStore
         @ObservationIgnored private let file: RouterTokenFile
+        let devices: PairedDevicesModel
 
         private(set) var status: SettingsPresentation.TokenStatus = .absent
 
@@ -33,9 +33,14 @@
         /// hung off `ShellModel` here would drop from the console's titlebar instead.
         var sheet: RouterSheet.Settings?
 
-        init(store: any ControlTokenStore, file: RouterTokenFile = RouterTokenFile()) {
+        init(
+            store: any ControlTokenStore,
+            file: RouterTokenFile = RouterTokenFile(),
+            client: (any ControlAPIClient)? = nil
+        ) {
             self.store = store
             self.file = file
+            devices = PairedDevicesModel(client: client)
         }
 
         /// Where the router keeps its state, derived from the same path the client resolves to find

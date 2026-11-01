@@ -131,13 +131,32 @@ struct PairingStateWire: Codable {
     let code: PairingCodeWire?
     let awaitingAck: [PairingAwaitingAckWire]
     let listener: PairingListenerWire
+    let confirmedPhones: [ConfirmedPhoneWire]?
 
     var state: PairingState {
-        PairingState(code: code?.issued, listener: listener.listener)
+        PairingState(
+            code: code?.issued, listener: listener.listener, confirmedPhones: confirmedPhones?.map(\.phone)
+        )
     }
 
     private enum CodingKeys: String, CodingKey {
-        case code, awaitingAck, listener
+        case code, awaitingAck, listener, confirmedPhones
+    }
+
+    init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        code = try values.decodeIfPresent(PairingCodeWire.self, forKey: .code)
+        awaitingAck = try values.decode([PairingAwaitingAckWire].self, forKey: .awaitingAck)
+        listener = try values.decode(PairingListenerWire.self, forKey: .listener)
+        confirmedPhones = try values.decodeIfPresent([ConfirmedPhoneWire].self, forKey: .confirmedPhones)
+        if let confirmedPhones,
+           Set(confirmedPhones.map(\.phoneId)).count != confirmedPhones.count
+        {
+            throw DecodingError.dataCorrupted(.init(
+                codingPath: decoder.codingPath,
+                debugDescription: "duplicate confirmed phone identities"
+            ))
+        }
     }
 
     func encode(to encoder: any Encoder) throws {
@@ -145,6 +164,7 @@ struct PairingStateWire: Codable {
         try container.encode(code, forKey: .code)
         try container.encode(awaitingAck, forKey: .awaitingAck)
         try container.encode(listener, forKey: .listener)
+        try container.encodeIfPresent(confirmedPhones, forKey: .confirmedPhones)
     }
 }
 
@@ -152,3 +172,38 @@ struct PairingStateWire: Codable {
 struct PairingRevokeWire: Codable {
     let revoked: Bool
 }
+
+struct ConfirmedPhoneWire: Codable {
+    let phoneId: String
+    let phoneName: String
+    let pairedAt: Date
+
+    var phone: ConfirmedPairedPhone {
+        ConfirmedPairedPhone(phoneId: phoneId, phoneName: phoneName, pairedAt: pairedAt)
+    }
+
+    private enum CodingKeys: String, CodingKey { case phoneId, phoneName, pairedAt }
+
+    init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        phoneId = try values.decode(String.self, forKey: .phoneId)
+        phoneName = try values.decode(String.self, forKey: .phoneName)
+        let rawDate = try values.decode(String.self, forKey: .pairedAt)
+        guard !phoneId.isEmpty, !phoneName.isEmpty, let date = ISO8601Instant.parse(rawDate) else {
+            throw DecodingError.dataCorrupted(.init(
+                codingPath: decoder.codingPath,
+                debugDescription: "invalid confirmed phone metadata"
+            ))
+        }
+        pairedAt = date
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(phoneId, forKey: .phoneId)
+        try values.encode(phoneName, forKey: .phoneName)
+        try values.encode(ISO8601Instant.string(from: pairedAt), forKey: .pairedAt)
+    }
+}
+
+struct PairingPhoneRevokeWire: Decodable { let revoked: String }

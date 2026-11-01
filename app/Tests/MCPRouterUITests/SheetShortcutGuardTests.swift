@@ -34,7 +34,8 @@
             "ActivityResetHistorySheet", "AddServerSheet", "CapabilityDocumentSheet",
             "ChildPathSheet", "DiscoverDetailSheet", "HeldChangeSheet", "HeldVersionSheet",
             "InboxReviewSheet", "MarketplacesSheet", "MissingSubjectSheet", "OfficialMarkSheet",
-            "PairingSheet", "RemoveServerDialog", "RemoveServerSheet", "ResetHistorySheet",
+            "PairingSheet", "PairedDeviceRevokeSheet", "RemoveServerDialog", "RemoveServerSheet",
+            "ResetHistorySheet",
             "ServerDocumentSheet", "ShimExplanationSheet", "SkillProvenanceSheet", "SkillUpdateReviewSheet"
         ]
 
@@ -183,7 +184,7 @@
         /// than a control that quietly joined a population and was excused by it.
         static let cancelControlViews: Set<String> = [
             "ActivityResetHistorySheet", "AddServerSheet", "DiscoverDetailSheet", "InboxReviewSheet",
-            "RemoveServerDialog", "RemoveServerSheet", "ResetHistorySheet"
+            "RemoveServerDialog", "RemoveServerSheet", "ResetHistorySheet", "PairedDeviceRevokeSheet"
         ]
 
         /// The style reader and the label reader, each shown reading and shown failing.

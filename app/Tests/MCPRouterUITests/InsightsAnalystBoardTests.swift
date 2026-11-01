@@ -230,9 +230,9 @@
         }
 
         func approvePendingChange(
-            server name: String
+            server name: String, expectedDigest: String
         ) async throws(ControlAPIError) -> ApprovalResult {
-            try await inner.approvePendingChange(server: name)
+            try await inner.approvePendingChange(server: name, expectedDigest: expectedDigest)
         }
 
         func beginAuthorization(

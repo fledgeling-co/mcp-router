@@ -236,6 +236,7 @@ public struct ToolChange: Codable, Hashable, Sendable, Identifiable {
 
 /// The response from `/servers/:name/changes`.
 public struct HeldChanges: Codable, Hashable, Sendable {
+    public var pendingDigest: String?
     public var server: String
     public var pending: Bool
     public var seenAt: String?

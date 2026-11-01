@@ -1,3 +1,4 @@
+import { toolsDigest, toolApprovalDigest, diffTools } from '../src/manifest.js';
 import { test, describe, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -83,7 +84,7 @@ describe('mcp-router index when the manifest write is refused', () => {
 });
 
 const TOKEN = 'test-token';
-const NEW_TOOL = { name: 'new_tool', description: 'arrived after approval', inputSchema: { type: 'object' } };
+const NEW_TOOL = { name: 'new_tool', description: 'arrived after approval', inputSchema: { type: 'object' as const } };
 
 function writePendingManifest(home: string): string {
   const path = join(home, 'manifest.json');
@@ -110,11 +111,15 @@ function writePendingManifest(home: string): string {
 }
 
 /** Drive the approve route in-process and capture what it answered and what it announced. */
-async function approve(manifestPath: string) {
+const TEST_UPSTREAM = { name: 'broken', transport: 'stdio' as const, command: 'x', args: [], env: {}, envFiles: [] };
+async function approve(manifestPath: string, expectedDigest?: unknown) {
+  if (expectedDigest === undefined) {
+    expectedDigest = toolApprovalDigest(TEST_UPSTREAM, JSON.parse(readFileSync(manifestPath, 'utf8')).servers.broken);
+  }
   const announced: string[] = [];
   const deps = {
     cfg: { manifestPath } as unknown as RouterConfig,
-    upstreams: new Map([['broken', { name: 'broken', type: 'stdio', command: 'x', args: [] } as unknown as UpstreamConfig]]),
+    upstreams: new Map([['broken', TEST_UPSTREAM]]),
     pool: {} as ControlDeps['pool'],
     manifest: { fileStamp: () => 'stamp' } as unknown as ControlDeps['manifest'],
     usage: {} as ControlDeps['usage'],
@@ -142,7 +147,7 @@ async function approve(manifestPath: string) {
     req,
     res,
     new URL('http://127.0.0.1/servers/broken/approve'),
-    {},
+    expectedDigest === null ? {} : { expectedDigest },
     deps as unknown as ControlDeps,
     TOKEN
   );
@@ -180,4 +185,32 @@ describe('POST /servers/:name/approve when the manifest write is refused', () =>
     assert.equal(readFileSync(path, 'utf8'), before);
     assert.deepEqual(r.announced, []);
   });
+});
+
+
+test('approve requires the exact reviewed digest and never promotes a replacement surface', async () => {
+  const path = writePendingManifest(scratch());
+  const before = readFileSync(path, 'utf8');
+  const missing = await approve(path, null);
+  assert.equal(missing.status, 428);
+  assert.equal(readFileSync(path, 'utf8'), before);
+  const replaced = await approve(path, '0'.repeat(64));
+  assert.equal(replaced.status, 409);
+  assert.equal(readFileSync(path, 'utf8'), before);
+  assert.deepEqual(replaced.announced, []);
+});
+
+
+test('review tokens bind complete metadata, approved baseline and declaration identity', () => {
+  const tool = { ...NEW_TOOL, annotations: { readOnlyHint: true } };
+  const changed = { ...tool, annotations: { readOnlyHint: false } };
+  assert.notEqual(toolsDigest([tool]), toolsDigest([changed]));
+  assert.equal(diffTools([tool], [changed]).length, 1);
+  assert.match(diffTools([tool], [changed])[0].after!.schema!, /readOnlyHint/);
+  const entry = { hash: 'h', builtAt: 'now', tools: [], pending: { tools: [tool], digest: 'd', seenAt: 'now' } };
+  const reviewed = toolApprovalDigest(TEST_UPSTREAM, entry);
+  assert.notEqual(reviewed, toolApprovalDigest(TEST_UPSTREAM, { ...entry, tools: [NEW_TOOL] }));
+  assert.notEqual(reviewed, toolApprovalDigest({ ...TEST_UPSTREAM, env: { MODE: 'different' } }, entry));
+  assert.notEqual(reviewed, toolApprovalDigest(TEST_UPSTREAM, { ...entry, pending: { ...entry.pending, tools: [changed] } }));
+  assert.equal(toolsDigest([NEW_TOOL]), toolsDigest([{ inputSchema: { type: 'object' }, description: NEW_TOOL.description, name: NEW_TOOL.name }]));
 });

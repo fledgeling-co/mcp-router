@@ -43,7 +43,10 @@ public extension FixtureControlAPIClient {
         return server
     }
 
-    func approvePendingChange(server name: String) async throws(ControlAPIError) -> ApprovalResult {
+    func approvePendingChange(
+        server name: String,
+        expectedDigest: String
+    ) async throws(ControlAPIError) -> ApprovalResult {
         try guardFailure()
         var approval = try decode("approve", as: ApprovalResult.self)
         approval.server = name

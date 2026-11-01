@@ -240,7 +240,8 @@ public protocol ControlAPIClient: Sendable {
     /// as a separate call, and folding it into the patch body would produce a request that looks
     /// like it worked and changes nothing. It returns `ApprovalResult`, which is what the router
     /// actually replies — not a server object.
-    func approvePendingChange(server name: String) async throws(ControlAPIError) -> ApprovalResult
+    func approvePendingChange(server name: String, expectedDigest: String) async throws(ControlAPIError)
+        -> ApprovalResult
 
     /// Begin an OAuth flow for an HTTP upstream. The app opens the returned URL.
     func beginAuthorization(for name: String) async throws(ControlAPIError) -> AuthorizationStart

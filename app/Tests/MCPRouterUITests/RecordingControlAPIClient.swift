@@ -150,8 +150,8 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
         try await wrapped.patch(server: name, patch)
     }
 
-    public func approvePendingChange(server name: String) async throws(ControlAPIError) -> ApprovalResult {
-        try await wrapped.approvePendingChange(server: name)
+    public func approvePendingChange(server name: String, expectedDigest: String) async throws(ControlAPIError) -> ApprovalResult {
+        try await wrapped.approvePendingChange(server: name, expectedDigest: expectedDigest)
     }
 
     public func beginAuthorization(for name: String) async throws(ControlAPIError) -> AuthorizationStart {

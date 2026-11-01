@@ -25,6 +25,8 @@ import {
   manifestCommitter,
   saveManifest,
   diffTools,
+  toolsDigest,
+  toolApprovalDigest,
   placardFor,
   type ManifestStore,
 } from './manifest.js';
@@ -698,12 +700,18 @@ export async function handleControl(
         server: name,
         pending: !!entry?.pending,
         seenAt: entry?.pending?.seenAt,
+        pendingDigest: entry?.pending ? toolApprovalDigest(u, entry) : undefined,
         changes: entry?.pending ? diffTools(entry.tools, entry.pending.tools) : [],
       });
       return true;
     }
 
     if (sub === '/approve' && req.method === 'POST') {
+      const expectedDigest = (body as { expectedDigest?: unknown } | undefined)?.expectedDigest;
+      if (typeof expectedDigest !== 'string' || !/^[a-f0-9]{64}$/.test(expectedDigest)) {
+        json(res, 428, { error: 'review the pending change and send its expectedDigest before approving' });
+        return true;
+      }
       /*
        * R19 — the read is inside the lock, so a re-index landing between it and the write is not
        * clobbered. That matters most here: this route promotes a surface the user has just looked
@@ -722,11 +730,15 @@ export async function handleControl(
           if (!entry?.pending) {
             return { status: 409, body: { error: `no pending change for "${name}"` } };
           }
+          const pendingDigest = toolsDigest(entry.pending.tools);
+          if (toolApprovalDigest(u, entry) !== expectedDigest) {
+            return { status: 409, body: { error: 'the pending tools changed after review; review them again' } };
+          }
           const approved = entry.pending.tools.length;
           manifest.servers[name] = {
             ...entry,
             tools: entry.pending.tools,
-            digest: entry.pending.digest,
+            digest: pendingDigest,
             builtAt: new Date().toISOString(),
             pending: undefined,
           };

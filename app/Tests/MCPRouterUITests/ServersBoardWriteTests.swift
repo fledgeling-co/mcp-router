@@ -245,8 +245,11 @@
         func approveWritesAndKeepingDoesNot() async {
             let client = RecordingClient()
             let board = Self.board(client)
+            await board.loadHeldChanges("fetch-pro")
             await board.approveHeldChange("fetch-pro")
-            #expect(client.calls.map(\.operation) == ["approve"])
+            #expect(client.calls.map(\.operation) == ["heldChanges", "approve"])
+            #expect(client.calls.last?
+                .body == "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
 
             // "Keep serving the old text" closes the sheet. The router is already serving the
             // approved text and the change stays held, so a request would be describing an action

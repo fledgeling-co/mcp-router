@@ -51,11 +51,28 @@ export interface Manifest {
  * answers, it errors on nothing. Only the bytes moved, so the bytes are what is
  * watched.
  */
+function canonical(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).sort(([a], [b]) => compareStrings(a, b)).map(([k, v]) => [k, canonical(v)]));
+  }
+  return value;
+}
+
+function orderedTools(tools: Tool[]): unknown[] {
+  return [...tools].sort((a, b) => compareStrings(a.name, b.name)).map(canonical);
+}
+
 export function toolsDigest(tools: Tool[]): string {
-  const material = [...tools]
-    .map((t) => [t.name, t.description ?? '', JSON.stringify(t.inputSchema ?? {})])
-    .sort((a, b) => compareStrings(a[0], b[0]));
-  return createHash('sha256').update(JSON.stringify(material)).digest('hex').slice(0, 16);
+  return createHash('sha256').update(JSON.stringify(orderedTools(tools))).digest('hex').slice(0, 16);
+}
+
+/** Binds a review to this declaration and both sides of the exact complete diff. */
+export function toolApprovalDigest(upstream: UpstreamConfig, entry: CachedServer): string {
+  return createHash('sha256').update(JSON.stringify({
+    name: upstream.name, identity: upstreamHash(upstream),
+    approved: orderedTools(entry.tools), pending: orderedTools(entry.pending?.tools ?? []),
+  })).digest('hex');
 }
 
 export interface ToolChange {
@@ -85,12 +102,14 @@ export function diffTools(before: Tool[], after: Tool[]): ToolChange[] {
 
   for (const [name, tool] of a) {
     const prev = b.get(name);
-    const nextShape = { description: tool.description, schema: JSON.stringify(tool.inputSchema ?? {}) };
+    const { name: _name, description: _description, ...metadata } = tool;
+    const nextShape = { description: tool.description, schema: JSON.stringify(canonical(metadata)) };
     if (!prev) {
       out.push({ kind: 'added', name, after: nextShape, invisible: invisibleIn(tool.description) });
       continue;
     }
-    const prevShape = { description: prev.description, schema: JSON.stringify(prev.inputSchema ?? {}) };
+    const { name: _oldName, description: _oldDescription, ...oldMetadata } = prev;
+    const prevShape = { description: prev.description, schema: JSON.stringify(canonical(oldMetadata)) };
     if (prevShape.description !== nextShape.description || prevShape.schema !== nextShape.schema) {
       out.push({
         kind: 'changed',
@@ -235,7 +254,7 @@ function applyObservation(
    * Afterwards a changed surface is held as `pending` rather than served, so the
    * approved bytes keep going out while the user decides.
    */
-  if (!prev?.digest || prev.digest === digest) {
+  if (!prev || (!prev.digest && prev.tools.length === 0) || toolsDigest(prev.tools) === digest) {
     manifest.servers[u.name] = {
       hash: upstreamHash(u),
       bin: binaryStamp(u),

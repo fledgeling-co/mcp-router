@@ -99,8 +99,16 @@
         }
 
         func approveHeldChange(_ name: String) async {
+            guard let expectedDigest = heldChanges?.pendingDigest, heldChanges?.server == name else {
+                rowErrors[name] = .server(
+                    status: 428,
+                    message: "Reload the held changes before approving.",
+                    hint: nil
+                )
+                return
+            }
             await write(name) { [client] () async throws(ControlAPIError) in
-                _ = try await client.approvePendingChange(server: name)
+                _ = try await client.approvePendingChange(server: name, expectedDigest: expectedDigest)
             }
             if rowErrors[name] == nil {
                 sheet = nil

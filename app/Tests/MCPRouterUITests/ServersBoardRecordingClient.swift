@@ -92,7 +92,13 @@
 
         func heldChanges(for name: String) async throws(ControlAPIError) -> HeldChanges {
             record(Recorded(operation: "heldChanges", server: name, body: nil))
-            return HeldChanges(server: name, pending: true, seenAt: nil, changes: [])
+            return HeldChanges(
+                pendingDigest: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+                server: name,
+                pending: true,
+                seenAt: nil,
+                changes: []
+            )
         }
 
         func searchRegistry(
@@ -148,8 +154,11 @@
             return patchResponse
         }
 
-        func approvePendingChange(server name: String) async throws(ControlAPIError) -> ApprovalResult {
-            record(Recorded(operation: "approve", server: name, body: nil))
+        func approvePendingChange(
+            server name: String,
+            expectedDigest: String
+        ) async throws(ControlAPIError) -> ApprovalResult {
+            record(Recorded(operation: "approve", server: name, body: expectedDigest))
             return ApprovalResult(server: name, approved: 1)
         }
 

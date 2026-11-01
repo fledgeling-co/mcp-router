@@ -330,11 +330,14 @@ public actor LiveControlAPIClient: ControlAPIClient {
         return try await send(.patch, "servers/\(segment(name))", body: body, as: MCPServer.self)
     }
 
-    public func approvePendingChange(server name: String) async throws(ControlAPIError) -> ApprovalResult {
+    public func approvePendingChange(
+        server name: String,
+        expectedDigest: String
+    ) async throws(ControlAPIError) -> ApprovalResult {
         try await send(
             .post,
             "servers/\(segment(name))/approve",
-            body: Data("{}".utf8),
+            body: encode(["expectedDigest": expectedDigest]),
             as: ApprovalResult.self
         )
     }

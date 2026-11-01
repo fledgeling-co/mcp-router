@@ -116,8 +116,8 @@
             try await inner.patch(server: name, patch)
         }
 
-        func approvePendingChange(server name: String) async throws(ControlAPIError) -> ApprovalResult {
-            try await inner.approvePendingChange(server: name)
+        func approvePendingChange(server name: String, expectedDigest: String) async throws(ControlAPIError) -> ApprovalResult {
+            try await inner.approvePendingChange(server: name, expectedDigest: expectedDigest)
         }
 
         func beginAuthorization(for name: String) async throws(ControlAPIError) -> AuthorizationStart {

@@ -182,7 +182,7 @@
             throw .malformedResponse(detail: "this double performs no patches")
         }
 
-        func approvePendingChange(server name: String) async throws(ControlAPIError) -> ApprovalResult {
+        func approvePendingChange(server name: String, expectedDigest: String) async throws(ControlAPIError) -> ApprovalResult {
             record("approve(\(name))")
             throw .malformedResponse(detail: "this double approves nothing")
         }

@@ -139,8 +139,8 @@ struct ServerStateTrackerTests {
             try await rest.patch(server: name, patch)
         }
 
-        func approvePendingChange(server name: String) async throws(ControlAPIError) -> ApprovalResult {
-            try await rest.approvePendingChange(server: name)
+        func approvePendingChange(server name: String, expectedDigest: String) async throws(ControlAPIError) -> ApprovalResult {
+            try await rest.approvePendingChange(server: name, expectedDigest: expectedDigest)
         }
 
         func beginAuthorization(for name: String) async throws(ControlAPIError) -> AuthorizationStart {

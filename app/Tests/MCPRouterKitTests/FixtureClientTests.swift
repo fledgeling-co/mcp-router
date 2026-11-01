@@ -32,7 +32,7 @@ struct FixtureClientTests {
         #expect(try await subject.remove("beta").removed == "beta")
         #expect(try await subject.reindex("alpha").name == "alpha")
         #expect(try await subject.patch(server: "alpha", ServerPatch(warm: true)).warm == true)
-        #expect(try await subject.approvePendingChange(server: "alpha").server == "alpha")
+        #expect(try await subject.approvePendingChange(server: "alpha", expectedDigest: "0123456789abcdef").server == "alpha")
         #expect(try await subject.beginAuthorization(for: "alpha").authorizationURL.isEmpty == false)
         #expect(try await subject.signOut("alpha").server == "alpha")
         #expect(try await subject.resetUsage().ok)

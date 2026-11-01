@@ -95,7 +95,7 @@ struct ControlSurfaceTests {
         _ = try await subject.remove("a", keepHistory: false)
         _ = try await subject.reindex("a")
         _ = try await subject.patch(server: "a", ServerPatch(warm: true))
-        let approval = try await subject.approvePendingChange(server: "a")
+        let approval = try await subject.approvePendingChange(server: "a", expectedDigest: "0123456789abcdef")
         let auth = try await subject.beginAuthorization(for: "a")
         _ = try await subject.signOut("a")
         _ = try await subject.resetUsage()

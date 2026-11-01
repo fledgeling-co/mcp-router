@@ -19,7 +19,7 @@ def provenance_has_subject(text):
     for line in text.splitlines():
         if line.startswith("relaunch_and_capture "):
             scenario = line.split()[1]
-        if line.startswith('if "$AXKIT" press "$PID" "Read first"'):
+        if line.startswith('if press_cleanup_provenance;'):
             return scenario == "cleanupSkills"
     return False
 
@@ -36,11 +36,40 @@ def main():
     source = CAPTURE.read_text()
     assert provenance_has_subject(source), "Read first is not on cleanupSkills"
     mutant = source.replace(
-        'if "$AXKIT" press "$PID" "Read first"',
+        'if press_cleanup_provenance;',
         'relaunch_and_capture offline SURF-026.failure SURF-026 Insights\n'
-        'if "$AXKIT" press "$PID" "Read first"',
+        'if press_cleanup_provenance;',
     )
     assert not provenance_has_subject(mutant), "ordering control did not reject Insights"
+    assert source.count('"$AXKIT" setframe "$PID" 100 100 1100 728') == 3, "every launch must establish the declared census viewport"
+
+    # Run the actual preparation function: virtualised target needs AX scroll;
+    # an already materialised target does not move, and a failed scroll refuses.
+    function = source[source.index("press_cleanup_provenance() {"):source.index("\nif press_cleanup_provenance;")]
+    with tempfile.TemporaryDirectory(prefix="router provenance scroll ") as tmp:
+        toolkit = Path(tmp) / "axkit"
+        log = Path(tmp) / "calls"
+        toolkit.write_text('''#!/bin/bash
+printf '%s\\n' "$*" >> "$PROBE_CALLS"
+case "$1" in
+ press) [ "$PROBE_MODE" = ready ] || [ -f "$PROBE_SCROLLED" ] ;;
+ scroll) [ "$PROBE_MODE" != refused ] && touch "$PROBE_SCROLLED" ;;
+esac
+''')
+        toolkit.chmod(0o700)
+        for mode, status, calls in [("ready", 0, 1), ("virtualised", 0, 3), ("refused", 1, 2)]:
+            log.unlink(missing_ok=True)
+            scrolled = Path(tmp) / "scrolled"
+            scrolled.unlink(missing_ok=True)
+            probe = subprocess.run(["/bin/bash", "-c", function + "\npress_cleanup_provenance"],
+                                   env={**os.environ, "AXKIT": str(toolkit), "PID": "123",
+                                        "PROBE_MODE": mode, "PROBE_CALLS": str(log),
+                                        "PROBE_SCROLLED": str(scrolled)}, capture_output=True, text=True)
+            assert probe.returncode == status, probe.stderr
+            actual = log.read_text().splitlines()
+            assert len(actual) == calls, actual
+            if calls > 1:
+                assert actual[1] == "scroll 123 1", actual
 
     env = {key: value for key, value in os.environ.items()
            if not key.startswith("MCP_ROUTER_GLASS_")}

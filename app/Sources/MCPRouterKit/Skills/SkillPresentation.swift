@@ -250,7 +250,7 @@ public enum SkillPresentation {
     /// The provenance warning that replaces the source line when a marketplace has moved.
     public static func provenanceLine(for skill: Skill) -> String? {
         guard let provenance = skill.provenance else { return nil }
-        return "Owner changed — was \(provenance.firstSeenSource)"
+        return "Source changed — was \(provenance.firstSeenSource)"
     }
 
     // MARK: - Slots

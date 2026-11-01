@@ -152,7 +152,7 @@
         @ViewBuilder
         private var provenanceSection: some View {
             if let provenance = skill.provenance {
-                section("Owner changed") {
+                section("Marketplace source changed") {
                     // States what is still true before what is worrying. The failure mode of a
                     // supply-chain banner is panic, and the code on disk genuinely has not moved.
                     Text(

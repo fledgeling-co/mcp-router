@@ -169,14 +169,17 @@
             }
         }
 
-        /// Promote a held version over the installed one. The router reads that version from Claude's plugin
-        /// cache and
-        /// keeps the copy it replaces, so the promotion is reversible and needs no confirmation first
-        /// (`DESIGN.md` §9).
-        /// Nothing is sent but the version: the board never holds the files it installs.
+        /// Replace only the router's own copy from Claude's cache; Claude's installation is untouched.
         public func promoteHeldVersion(_ skill: Skill) async {
             guard let origin = skill.source.pluginOrigin, let held = skill.held, beginWrite() else { return }
             defer { writing = false }
+            guard canCopyToRouter(named: origin.storeName) else {
+                writeFailure = .server(
+                    status: 409, message: routerCopyUnavailableReason,
+                    hint: installedPluginUpdateReason
+                )
+                return
+            }
             do throws(ControlAPIError) {
                 let ack = try await client.promoteFromCache(
                     origin.storeName,
@@ -227,11 +230,15 @@
                         .append("\(offer.name): No offered version was returned. Nothing was changed.")
                     continue
                 }
+                guard canCopyToRouter(named: offer.name) else {
+                    batchResults.append("\(offer.name): \(routerCopyUnavailableReason)")
+                    continue
+                }
                 do throws(ControlAPIError) {
                     let ack = try await client.promoteFromCache(offer.name, pluginVersion: version)
                     let promotion = PromotedEntry(plugin: offer.name, name: offer.name, restore: ack.restore)
                     batchPromotions.append(promotion)
-                    batchResults.append("Updated \(offer.name) to \(ack.pluginVersion)")
+                    batchResults.append("Copied \(offer.name) \(ack.pluginVersion) into the router")
                 } catch {
                     batchResults.append("\(offer.name): \(error.headline). \(error.advice)")
                 }
@@ -252,7 +259,7 @@
                         restore: promotion.restore
                     )
                     batchPromotions.removeAll { $0 == promotion }
-                    batchResults.append("Restored \(promotion.name) to \(ack.version)")
+                    batchResults.append(SkillPresentation.undone(name: promotion.name, version: ack.version))
                 } catch {
                     batchResults.append("\(promotion.name): \(error.headline). \(error.advice)")
                 }
@@ -328,6 +335,25 @@
             }
             let next = min(max(index + offset, 0), visible.count - 1)
             selection = visible[next].id
+        }
+    }
+
+    public extension SkillsBoardModel {
+        var installedPluginUpdateReason: String {
+            state.response?.installedPluginUpdates?.reason
+                ?? SkillPresentation.installedPluginUpdateUnavailable
+        }
+
+        /// Only the store report proves a router-owned copy exists. Claude's register does not.
+        func canCopyToRouter(named name: String) -> Bool {
+            promotesFromCache && updates.contains { $0.kind == .plugins && $0.name == name }
+        }
+
+        var routerCopyUnavailableReason: String {
+            if !updatesChecked { return SkillPresentation.routerCopyNotRead }
+            if updatesError != nil { return SkillPresentation.routerCopyUnreadable }
+            if !promotesFromCache { return SkillPresentation.promoteUnavailable }
+            return SkillPresentation.noRouterCopy
         }
     }
 #endif

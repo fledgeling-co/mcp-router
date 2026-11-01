@@ -11,6 +11,19 @@ struct ExtensionUpdatesWireTests {
         try JSONDecoder().decode(type, from: Data(json.utf8))
     }
 
+    @Test("installed-plugin updates have a separate capability from copying into the router")
+    func installedUpdateCapability() throws {
+        let response = try decode(SkillsResponse.self, #"""
+        {"skills":[],"clients":[],"promoteFromCache":true,
+         "installedPluginUpdates":{"available":false,"reason":"Cannot bind the reviewed version"}}
+        """#)
+        #expect(response.promoteFromCache == true)
+        #expect(response.installedPluginUpdates?.available == false)
+        #expect(response.installedPluginUpdates?.reason == "Cannot bind the reviewed version")
+        let old = try decode(SkillsResponse.self, #"{"skills":[],"clients":[],"promoteFromCache":true}"#)
+        #expect(old.installedPluginUpdates == nil)
+    }
+
     @Test("an offer carries its changelog, a current entry carries none, and an unreadable kind is named")
     func updatesDecode() throws {
         let response = try decode(ExtensionUpdatesResponse.self, #"""

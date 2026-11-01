@@ -17,9 +17,9 @@
                         .typeRole(.subheadline)
                         .foregroundStyle(ColorToken.t1.color)
                     Spacer()
-                    Button("Update All…") { board.sheet = .updates }
+                    Button("Review updates…") { board.sheet = .updates }
                         .buttonStyle(StandardButtonStyle())
-                        .disabled(board.writing || !board.promotesFromCache || offers.isEmpty)
+                        .disabled(board.writing || offers.isEmpty)
                 }
 
                 if let error = board.updatesError {

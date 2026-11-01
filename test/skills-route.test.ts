@@ -52,6 +52,7 @@ interface WireClient {
 interface SkillsBody {
   skills: WireSkill[];
   clients: WireClient[];
+  installedPluginUpdates: { available: boolean; reason: string };
 }
 
 function scratch(): string {
@@ -185,7 +186,9 @@ test('S1 — GET /skills answers the members the board decodes, each with the fi
   const body = await getSkills(claude);
 
   // promoteFromCache is the one member the router adds beside the two the board read before it: Promote is enabled on it.
-  assert.deepEqual(Object.keys(body).sort(), ['clients', 'promoteFromCache', 'skills']);
+  assert.deepEqual(Object.keys(body).sort(), ['clients', 'installedPluginUpdates', 'promoteFromCache', 'skills']);
+  assert.equal(body.installedPluginUpdates.available, false);
+  assert.match(body.installedPluginUpdates.reason, /reviewed version and capabilities/);
   assert.ok(body.skills.length >= 2);
   for (const skill of body.skills) {
     // SkillModels.swift: Skill has name, path, source and presence required; description, held and provenance optional.

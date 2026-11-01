@@ -104,9 +104,7 @@
 
                 Divider()
 
-                // Keep records a decision the router holds, and Promote reads the held version from the
-                // plugin cache
-                // and installs it. Each is dimmed in place with its reason where it cannot run (§3.4).
+                // Keep records a decision. Cache copying replaces only a router-owned entry.
                 VStack(alignment: .leading, spacing: SkillsBoardMetrics.tightGap) {
                     if let failure = board.writeFailure {
                         // The router's own refusal, beside the control that made it (§6). Never a success.
@@ -130,7 +128,7 @@
                         promoteControl(to: held.pluginVersion)
                     }
                     if board.lastPromotion != nil {
-                        Button("Undo") { Task { await board.undoLastPromotion() } }
+                        Button("Undo router copy") { Task { await board.undoLastPromotion() } }
                             .buttonStyle(StandardButtonStyle())
                             .disabled(board.writing)
                     }
@@ -151,12 +149,18 @@
         /// not.
         @ViewBuilder
         private func promoteControl(to version: String) -> some View {
-            if board.promotesFromCache {
-                Button("Promote to \(version)") { Task { await board.promoteHeldVersion(skill) } }
+            Text(board.installedPluginUpdateReason)
+                .typeRole(.caption)
+                .foregroundStyle(ColorToken.t2.color)
+                .fixedSize(horizontal: false, vertical: true)
+            if let origin = skill.source.pluginOrigin, board.canCopyToRouter(named: origin.storeName) {
+                Button("Copy cached \(version) to router") { Task { await board.promoteHeldVersion(skill) } }
                     .buttonStyle(StandardButtonStyle())
                     .disabled(board.writing)
             } else {
-                DisabledAction(label: "Promote to \(version)", reason: SkillPresentation.promoteUnavailable)
+                DisabledAction(
+                    label: "Copy cached \(version) to router", reason: board.routerCopyUnavailableReason
+                )
             }
         }
     }

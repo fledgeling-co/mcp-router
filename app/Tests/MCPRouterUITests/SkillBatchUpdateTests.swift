@@ -22,11 +22,31 @@
             await board.promoteSelectedOffers([offer.name])
             #expect(client.calls.promotions == [offer.name])
             #expect(board.batchPromotions.count == 1)
-            #expect(board.batchResults.first?.hasPrefix("Updated ") == true)
+            #expect(board.batchResults.first?.hasPrefix("Copied ") == true)
+            #expect(board.batchResults.first?.contains("router") == true)
             await board.undoBatchPromotions()
             #expect(client.calls.undos == [offer.name])
             #expect(board.batchPromotions.isEmpty)
             #expect(board.batchResults.first?.hasPrefix("Restored ") == true)
+        }
+
+        @Test("a Claude-only plugin never becomes a router copy or a claimed installed update")
+        func claudeOnlyPluginCannotBePromoted() async throws {
+            let client = RecordingControlAPIClient(
+                wrapping: FixtureControlAPIClient(.populated), hideStoredUpdates: true
+            )
+            let board = SkillsBoardModel(client: client)
+            await board.load()
+            let skill = try #require(board.state.response?.skills.first { $0.name == "trawl" })
+            await board.promoteSelectedOffers(["trawl@fledgeling-plugins"])
+            #expect(client.calls.promotions.isEmpty)
+            #expect(board.batchPromotions.isEmpty)
+            #expect(board.batchResults.first?.contains("no router-owned copy") == true)
+            await board.promoteHeldVersion(skill)
+            #expect(client.calls.promotions.isEmpty)
+            #expect(board.lastPromotion == nil)
+            #expect(board.notice == nil)
+            #expect(board.writeFailure != nil)
         }
 
         @Test("unknown names and a router without the promotion route cause no write")

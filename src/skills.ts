@@ -120,7 +120,17 @@ export function skillsValue(claudeHome: string, store: ExtensionStore): Record<s
 
   // `promoteFromCache` says this router serves POST /extensions/plugins/<plugin>@<marketplace>/promote with
   // `source: "cache"`, so the Mac enables Promote only where the route exists. An older router omits the member.
-  return { skills, clients: clientsFor(skillsDirectory, listing, register), promoteFromCache: true };
+  return {
+    skills,
+    clients: clientsFor(skillsDirectory, listing, register),
+    promoteFromCache: true,
+    // Cache promotion changes the router's ExtensionStore, never Claude's installed-plugin register.
+    // Claude's latest-only CLI cannot bind an operation to the version and capabilities just reviewed.
+    installedPluginUpdates: {
+      available: false,
+      reason: 'Claude Code cannot bind an update to the reviewed version and capabilities. Update it in Claude Code; this router does not change that installation.',
+    },
+  };
 }
 
 /** The per-skill presence map: Claude Code is the directory this router listed; every other client is unknown. */

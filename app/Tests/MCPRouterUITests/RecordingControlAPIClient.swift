@@ -44,6 +44,7 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
 
     private let wrapped: any ControlAPIClient
     private let extraUpdates: [ExtensionUpdateEntry]
+    private let hideStoredUpdates: Bool
     private let refusedPromotions: Set<String>
     private let refusedUndos: Set<String>
     /// Holds a pairing issue in flight after it is counted, so a test can close the sheet while the
@@ -65,6 +66,7 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
         wrapping wrapped: any ControlAPIClient,
         issueGate: (@Sendable () async -> Void)? = nil,
         extraUpdates: [ExtensionUpdateEntry] = [],
+        hideStoredUpdates: Bool = false,
         refusedPromotions: Set<String> = [],
         refusedUndos: Set<String> = [],
         listener: PairingListener? = nil,
@@ -73,6 +75,7 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
         self.wrapped = wrapped
         self.issueGate = issueGate
         self.extraUpdates = extraUpdates
+        self.hideStoredUpdates = hideStoredUpdates
         self.refusedPromotions = refusedPromotions
         self.refusedUndos = refusedUndos
         self.listener = listener
@@ -153,6 +156,7 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
     }
 
     public func extensionUpdates() async throws(ControlAPIError) -> ExtensionUpdatesResponse {
+        if hideStoredUpdates { return ExtensionUpdatesResponse() }
         var response = try await wrapped.extensionUpdates()
         response.entries += extraUpdates
         return response
@@ -203,7 +207,10 @@ public final class RecordingControlAPIClient: ControlAPIClient, @unchecked Senda
         try await wrapped.patch(server: name, patch)
     }
 
-    public func approvePendingChange(server name: String, expectedDigest: String) async throws(ControlAPIError) -> ApprovalResult {
+    public func approvePendingChange(
+        server name: String,
+        expectedDigest: String
+    ) async throws(ControlAPIError) -> ApprovalResult {
         try await wrapped.approvePendingChange(server: name, expectedDigest: expectedDigest)
     }
 

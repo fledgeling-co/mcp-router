@@ -58,18 +58,22 @@
             do throws(ControlAPIError) {
                 if resetAcknowledgement == nil {
                     let result = try await client.resetUsage()
-                    guard result.ok, result.since.asControlAPIDate != nil else {
+                    guard result.ok else {
                         throw ControlAPIError
-                            .malformedResponse(detail: "The router did not confirm the reset window.")
+                            .malformedResponse(detail: "The router did not acknowledge the history reset.")
                     }
+                    // An accepted destructive write is remembered even if its timestamp is malformed.
+                    // Retrying may read again, but it must not submit the reset a second time.
                     resetAcknowledgement = result
                 }
                 let summary = try await client.usageSummary()
-                guard let since = summary.since.asControlAPIDate,
-                      let acknowledged = resetAcknowledgement,
-                      let resetSince = acknowledged.since.asControlAPIDate,
-                      since >= resetSince
-                else {
+                guard let resetSince = resetAcknowledgement?.since.asControlAPIDate else {
+                    throw ControlAPIError.malformedResponse(
+                        detail: "The router accepted the reset but reported an unreadable reset time. "
+                            + "The reset will not be submitted again."
+                    )
+                }
+                guard let since = summary.since.asControlAPIDate, since >= resetSince else {
                     throw ControlAPIError
                         .malformedResponse(
                             detail: "The router returned an older or unreadable history window."

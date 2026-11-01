@@ -12,6 +12,14 @@
             return CleanupPresentation.resetConfirm
         }
 
+        private func acknowledgementNote(_ result: UsageReset) -> String {
+            guard result.since.asControlAPIDate != nil else {
+                return "The router accepted the reset. Its reported time is unreadable: \(result.since). "
+                    + "The reset will not be submitted again."
+            }
+            return "Reset confirmed at \(result.since). Read history to finish."
+        }
+
         var body: some View {
             VStack(alignment: .leading, spacing: SettingsMetrics.groupGap) {
                 Text(CleanupPresentation.resetTitle)
@@ -22,11 +30,9 @@
                     .foregroundStyle(ColorToken.t2.color)
                     .fixedSize(horizontal: false, vertical: true)
                 if let acknowledgement = model.resetAcknowledgement {
-                    Text(
-                        "Reset confirmed at \(acknowledgement.since). Read history to finish."
-                    )
-                    .typeRole(.caption)
-                    .fixedSize(horizontal: false, vertical: true)
+                    Text(acknowledgementNote(acknowledgement))
+                        .typeRole(.caption)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 if let error = model.resetError {
                     Text(error.userFacingDescription)

@@ -387,6 +387,7 @@ build-ios: generate
 ## demand, and the `grep` afterwards means an absent report line fails this target instead of
 ## passing quietly — which is the property the whole item is about.
 enum-layout-stamp:
+	@python3 $(APP_DIR)/Scripts/test-enum-layout-stamp.py
 	@python3 $(APP_DIR)/Scripts/enum-layout-stamp.py $(APP_DIR)
 
 test: enum-layout-stamp

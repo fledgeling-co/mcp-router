@@ -238,8 +238,92 @@ def proposal(config, rows, brief, parsed, scope_name=None, require_scope=False):
             "projection": projected["value"] if projected else None, "review": None}
 
 
-def evidence_valid(root, review):
-    if not isinstance(review, dict) or set(review) != {"reviewer", "reviewedAt", "rationale", "evidence"}:
+def candidate_contract(review):
+    """One candidate freshness contract; its pinned assessment proves completeness."""
+    if not isinstance(review, dict) or set(review) != {"reviewer", "reviewedAt", "rationale", "evidence", "candidateRows", "candidateEvidence"}:
+        raise ValueError("review needs provenance and an explicit candidateRows contract")
+    if not isinstance(review["candidateEvidence"], str) or not review["candidateEvidence"]:
+        raise ValueError("review must identify its pinned candidate assessment")
+    candidates = review["candidateRows"]
+    if not isinstance(candidates, list) or not candidates:
+        raise ValueError("review candidateRows must name the dismissed registry candidates")
+    locations = dict(REGISTRIES)
+    locations.update({"inventory." + kind: kind for kind in KINDS})
+    prefixes = {"case": "CASE", "requirement": "REQ", "surface": "SURF", "defect": "DEF",
+                "flow": "FLOW", "component": "(?:CMP|COMP)"}
+    keys = set()
+    for candidate in candidates:
+        if not isinstance(candidate, dict) or set(candidate) != {"registry", "kind", "id", "canonicalRowSha256"}:
+            raise ValueError("invalid candidate row shape")
+        if any(not isinstance(value, str) for value in candidate.values()):
+            raise ValueError("candidate row fields must be strings")
+        kind = candidate["kind"]
+        if locations.get(candidate["registry"]) != kind or kind not in prefixes or not re.fullmatch(prefixes[kind] + r"-\d+", candidate["id"]):
+            raise ValueError("candidate registry, kind or id is invalid")
+        if not re.fullmatch(r"[0-9a-f]{64}", candidate["canonicalRowSha256"]):
+            raise ValueError("candidate row needs its canonical SHA256")
+        key = (candidate["registry"], candidate["kind"], candidate["id"])
+        if key in keys:
+            raise ValueError("duplicate candidate row identity")
+        keys.add(key)
+    return candidates
+
+
+def candidate_freshness(rows, review):
+    """Bind every source variant, including candidates outside the literal subject scope."""
+    try:
+        pinned = candidate_contract(review)
+    except ValueError as exc:
+        return {"reason": str(exc)}
+    expected = {(r["registry"], r["kind"], r["id"]): r["canonicalRowSha256"] for r in pinned}
+    ids = {r["id"] for r in pinned}
+    current = {}
+    for item in rows:
+        row = item["row"]
+        if row["id"] not in ids:
+            continue
+        key = (item["where"], item["kind"], row["id"])
+        if key in current:
+            return {"reason": "candidate registry contains duplicate row identities"}
+        current[key] = digest(row)
+    delta = {"added": [list(k) for k in sorted(set(current) - set(expected))],
+             "removed": [list(k) for k in sorted(set(expected) - set(current))],
+             "changed": [list(k) for k in sorted(set(expected) & set(current)) if expected[k] != current[k]]}
+    if any(delta.values()):
+        return {"reason": "dismissed candidate rows changed; review reopened", "candidateDelta": delta}
+    return None
+
+
+def assessment_candidates(document):
+    """Read only the declared candidate table from an immutable, hash-pinned assessment."""
+    if not isinstance(document, dict) or document.get("version") != VERSION or document.get("decision") != "scoped absence supported":
+        raise ValueError("candidate assessment is not a supported reviewed decision")
+    candidates = document.get("closestCandidates")
+    if not isinstance(candidates, list) or not candidates:
+        raise ValueError("candidate assessment must name its dismissed candidates")
+    out = []
+    ids = set()
+    for candidate in candidates:
+        if not isinstance(candidate, dict) or set(candidate) != {"id", "assessment", "publicRegistryVariants"}:
+            raise ValueError("invalid assessment candidate shape")
+        ident, reason, variants = candidate["id"], candidate["assessment"], candidate["publicRegistryVariants"]
+        if not isinstance(ident, str) or ident in ids or not isinstance(reason, str) or len(normalized(reason)) < 24:
+            raise ValueError("assessment candidate needs a unique identity and substantive dismissal")
+        ids.add(ident)
+        if not isinstance(variants, list) or not variants:
+            raise ValueError("assessment candidate has no reviewed source variants")
+        for variant in variants:
+            if not isinstance(variant, dict) or set(variant) != {"registry", "kind", "canonicalRowSha256", "subject"} or not isinstance(variant["subject"], dict):
+                raise ValueError("invalid assessment candidate variant")
+            out.append({"registry": variant["registry"], "kind": variant["kind"], "id": ident,
+                        "canonicalRowSha256": variant["canonicalRowSha256"]})
+    return out
+
+
+def evidence_valid(root, review, brief=None, assertion=None):
+    try:
+        candidate_contract(review)
+    except ValueError:
         return False
     if any(not isinstance(review.get(k), str) for k in ("reviewer", "reviewedAt", "rationale")):
         return False
@@ -254,6 +338,7 @@ def evidence_valid(root, review):
     artifacts = review["evidence"]
     if not isinstance(artifacts, list) or not artifacts:
         return False
+    candidate_data, paths = None, set()
     for artifact in artifacts:
         if not isinstance(artifact, dict) or set(artifact) != {"path", "sha256"}:
             return False
@@ -263,6 +348,26 @@ def evidence_valid(root, review):
             return False
         if not data or artifact["sha256"] != hashlib.sha256(data).hexdigest():
             return False
+        if artifact["path"] in paths:
+            return False
+        paths.add(artifact["path"])
+        if artifact["path"] == review["candidateEvidence"]:
+            candidate_data = data
+    if candidate_data is None:
+        return False
+    try:
+        document = json.loads(candidate_data)
+        candidates = assessment_candidates(document)
+        copied = dict(review, candidateRows=candidates)
+        candidate_contract(copied)
+        if sorted(candidates, key=canonical) != sorted(review["candidateRows"], key=canonical):
+            return False
+        if brief is not None and document.get("brief") != brief:
+            return False
+        if assertion is not None and document.get("assertionDigest") != assertion:
+            return False
+    except (ValueError, TypeError, UnicodeDecodeError):
+        return False
     return True
 
 
@@ -312,7 +417,9 @@ def assess(root, config, rows, brief, parsed, reviews, baseline):
                            "removed": [list(k) for k in sorted(set(before) - set(after))],
                            "changed": [list(k) for k in sorted(set(before) & set(after)) if before[k] != after[k]],
                            "scopeChanged": pinned.get("scope") != current["value"]["scope"]}
-    elif not evidence_valid(root, record["review"]):
+    elif (candidate_change := candidate_freshness(rows, record["review"])) is not None:
+        result.update(candidate_change)
+    elif not evidence_valid(root, record["review"], brief, assertion):
         result["reason"] = "review provenance/evidence is missing, changed or invalid"
     else:
         result.update({"class": "REVIEWED_ABSENCE", "reason": "recorded review is current within its declared scope"})

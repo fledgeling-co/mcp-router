@@ -254,5 +254,33 @@
     "Seven original assertions remain unknown; their exact unreviewed proposals and original carry baseline are unchanged.",
     "Literal scope sufficiency and candidate judgments still need the independent review commissioned by the parent.",
     "No App source, physical device, owner configuration, credentials or live model calls were changed or used."
-  ]
+  ],
+  "candidateFreshnessContract": {
+    "canonicalField": "absence-reviews.json reviewed entry review.candidateRows",
+    "identity": [
+      "registry",
+      "kind",
+      "id"
+    ],
+    "digest": "canonicalRowSha256 is recomputed over each complete current row using absence_review.digest. All source variants for each named candidate ID must match the contract, including rows outside the literal subject projection.",
+    "reopensOn": [
+      "changed row content or relations",
+      "removed or replaced row",
+      "additional source variant",
+      "duplicate current row identity",
+      "missing or malformed candidate contract"
+    ],
+    "evidenceRole": "closestCandidates assessments in each pinned per-brief evidence JSON contain the substantive dismissal rationale and prove completeness of the candidateRows copy. Those historical JSON files remain unchanged. Runtime current-row comparison uses the one candidateRows contract, which cannot omit or disagree with the pinned assessment table.",
+    "completeness": "review.candidateEvidence names exactly one artifact already SHA-pinned in review.evidence. Its declared closestCandidates source-variant table must match candidateRows exactly; its brief/assertion identity and supported reviewed decision must match the current record. Omitting one dismissed ID or variant, emptying the table, or restamping hashes without the pinned assessment reopens the review."
+  },
+  "rationaleLocation": "Each review.rationale is a short subject summary. The individual assessment alongside each closestCandidates ID in its pinned per-brief evidence JSON explains why that actual entity differs; these are the substantive reasons for dismissal.",
+  "floorMeaning": {
+    "total": 29,
+    "classifier": "UNDECLARED",
+    "unit": "sum of per-file historical undeclared-target counts in brief-target-ratchet.json",
+    "currentUndeclared": 22,
+    "distinction": "The floor is not the 30 NO_TARGET declarations or an allowance for reviewed absences. It remains unchanged."
+  },
+  "candidateFreshnessSupplement": "planning/evidence/absence-reviews/candidate-freshness.json",
+  "historicalSourceReachability": "The original reviewed-input revision fbcc80b1cbf456289114b608959b68fcae09c6ce is retained without repinning historical claims. It is an ancestor of core b90b7729 through the merge of original 8e6037f9; this ancestry was checked with git merge-base --is-ancestor."
 }

@@ -1075,7 +1075,34 @@
             "path": "planning/evidence/absence-reviews/G3-gapfix-2.json",
             "sha256": "ad6c064ac5bcb0d88f0c8671cfe0f052773f8bbee5f3b1cb577814e8eef65cb5"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-055",
+            "canonicalRowSha256": "2b24c1a93dbcc7ac603b9e5658556b00c52881d5d2e595f582a12908c17be53e"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-030",
+            "canonicalRowSha256": "59b1311272644fffa34c916e030a5c19ac676684795344bdcb777fa4e2c1606e"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-035",
+            "canonicalRowSha256": "ada60883e66d8b78d6111eeb071f85c002814899edca9776852eb2164fedb926"
+          },
+          {
+            "registry": "defects.in.json",
+            "kind": "defect",
+            "id": "DEF-035",
+            "canonicalRowSha256": "ccfe0976f42c8bfb073fb46f53c9e81ce46c6945fd098c905d8d4b973e706fa3"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/G3-gapfix-2.json"
       }
     },
     "planning/features-to-triage/G3-gapfix-3.md#f66825af06256060660bb1d574d3b4d07b2d12535ad83c2a1081241dca932294": {
@@ -2080,7 +2107,28 @@
             "path": "planning/evidence/absence-reviews/G3-gapfix-3.json",
             "sha256": "5bbd76ec0b112e0d637e3049103308c2f8dce3bb8bfb1e079db5383a91b2056c"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-055",
+            "canonicalRowSha256": "2b24c1a93dbcc7ac603b9e5658556b00c52881d5d2e595f582a12908c17be53e"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-035",
+            "canonicalRowSha256": "ada60883e66d8b78d6111eeb071f85c002814899edca9776852eb2164fedb926"
+          },
+          {
+            "registry": "defects.in.json",
+            "kind": "defect",
+            "id": "DEF-035",
+            "canonicalRowSha256": "ccfe0976f42c8bfb073fb46f53c9e81ce46c6945fd098c905d8d4b973e706fa3"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/G3-gapfix-3.json"
       }
     },
     "planning/features-to-triage/G4-gapfix.md#6aa8459f3737c43c1f834d37b589aa4d7a99a2bb1298b3a3ca0f019963575277": {
@@ -11567,7 +11615,34 @@
             "path": "planning/evidence/absence-reviews/G4-gapfix.json",
             "sha256": "cc9f1c3643b4155782d6108e10e13c993122e3c3e124d7b6ddd8fe08f4fd95fb"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-052",
+            "canonicalRowSha256": "114edc6f2fdf627912b2fd85aefe08c5f09226ca875ba7907f456c21c25ce74b"
+          },
+          {
+            "registry": "inventory.requirement",
+            "kind": "requirement",
+            "id": "REQ-080",
+            "canonicalRowSha256": "437edb314a2aa8fdc1a82614aa0fbebd1cd9ad13f93a18908cf5df5b645e2b3c"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-056",
+            "canonicalRowSha256": "ac0a35a1380e2e717af1750cbad89afeb26047195cf742246f1f3b0211855b41"
+          },
+          {
+            "registry": "cases.json",
+            "kind": "case",
+            "id": "CASE-0396",
+            "canonicalRowSha256": "d3475a4d00f60c355fe6865546f34e0a6c4071c0fd065bd401f8b7ce2b6fa6c9"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/G4-gapfix.json"
       }
     },
     "planning/features-to-triage/G4-gapfix-2.md#9620a70c3d713bacf68db4d90b67751b42f39b60a6626cb97b768313ddf47b50": {
@@ -21054,7 +21129,28 @@
             "path": "planning/evidence/absence-reviews/G4-gapfix-2.json",
             "sha256": "d72c4182a55301d75524dadf22aa8c2d1d8157195bfc8cb4e599c23dd2374984"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-361",
+            "canonicalRowSha256": "08500ecfc2d25669263a54d9df43411530f3acadab9626abe6bb5db343201bf4"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-090",
+            "canonicalRowSha256": "125990f0f71ef1ae9ff8ca8aaf5809e8cecf296dd68a4ec8ceb505e7d2844542"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-442",
+            "canonicalRowSha256": "39fcb957ba046f2ad3baf097928602a500dc930a5817c751ec548f0b860d67a6"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/G4-gapfix-2.json"
       }
     },
     "planning/features-to-triage/G5-gapfix-2.md#a6e8a8fb571d3c66af8c7d47f32bc6a7bd2747213d7cd2ae6c2482ff5f44d3a7": {
@@ -25694,7 +25790,28 @@
             "path": "planning/evidence/absence-reviews/G5-gapfix-2.json",
             "sha256": "0f6040844640465c9072bcfe15caad5c20394a12946b190c9d409a830f647aa2"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-057",
+            "canonicalRowSha256": "7a2c5620c0cadb0f6c46c679dc814bf5b780a3d6891a911e1c561fbced27c99c"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-501",
+            "canonicalRowSha256": "a05afc451c6b31dd09503531253f428b5d2fe6de0af3a702fb2ff7a8ace3ceeb"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-500",
+            "canonicalRowSha256": "bcdbaa3536056dc0b7631c91f51b09872a77b230477e7d37dce89fd471f52f97"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/G5-gapfix-2.json"
       }
     },
     "planning/features-to-triage/M23-gapfix.md#34fba491f7ccd33f7e4bab45230f9eaae5a436ae50ed4bbdc2523076cf24ffbc": {
@@ -28245,7 +28362,40 @@
             "path": "planning/evidence/absence-reviews/M23-gapfix.json",
             "sha256": "c21d75ae710fc8ed065acd2ab6db6de42e723a8143cac12f2d3e375216bd8585"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-038",
+            "canonicalRowSha256": "0535ec305d809d8621ab9c3ffc09871f56bd9fac6c8126d95df446b776029655"
+          },
+          {
+            "registry": "cases.in.json",
+            "kind": "case",
+            "id": "CASE-0185",
+            "canonicalRowSha256": "3d28ac538d5fa04e0ded0c723b992d6ec6b7ed779a96827491c0cb447454803e"
+          },
+          {
+            "registry": "cases.json",
+            "kind": "case",
+            "id": "CASE-0185",
+            "canonicalRowSha256": "ac0a500976726646875be0a65ea6f1b9f6ee1bdddc8af7e54b7dd89a4b710b74"
+          },
+          {
+            "registry": "defects.in.json",
+            "kind": "defect",
+            "id": "DEF-038",
+            "canonicalRowSha256": "d81b68ea228524869afc4e7a883791644b05b747ec44e44f107b0a5a73456269"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-054",
+            "canonicalRowSha256": "fd58dcad9223c1f0e81153eea3492f42b0e75164f0405af92626e56662d33730"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/M23-gapfix.json"
       }
     },
     "planning/features-to-triage/M23-gapfix-2.md#fee6cd6d01b98b46da70795a715c855ea9785b20aec071e53c30262d615a3337": {
@@ -30796,7 +30946,40 @@
             "path": "planning/evidence/absence-reviews/M23-gapfix-2.json",
             "sha256": "365ad29b9d7c129341cb33e9550bfb0f46ffb1d1c1beca56d694c950a32e14eb"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-038",
+            "canonicalRowSha256": "0535ec305d809d8621ab9c3ffc09871f56bd9fac6c8126d95df446b776029655"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-055",
+            "canonicalRowSha256": "2b24c1a93dbcc7ac603b9e5658556b00c52881d5d2e595f582a12908c17be53e"
+          },
+          {
+            "registry": "cases.in.json",
+            "kind": "case",
+            "id": "CASE-0185",
+            "canonicalRowSha256": "3d28ac538d5fa04e0ded0c723b992d6ec6b7ed779a96827491c0cb447454803e"
+          },
+          {
+            "registry": "cases.json",
+            "kind": "case",
+            "id": "CASE-0185",
+            "canonicalRowSha256": "ac0a500976726646875be0a65ea6f1b9f6ee1bdddc8af7e54b7dd89a4b710b74"
+          },
+          {
+            "registry": "defects.in.json",
+            "kind": "defect",
+            "id": "DEF-038",
+            "canonicalRowSha256": "d81b68ea228524869afc4e7a883791644b05b747ec44e44f107b0a5a73456269"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/M23-gapfix-2.json"
       }
     },
     "planning/features-to-triage/M23-gapfix-3.md#96523d62de8f08de1b0681cfbe3e00982c1adda76dca614fe5ceb0c840a2a378": {
@@ -33347,7 +33530,34 @@
             "path": "planning/evidence/absence-reviews/M23-gapfix-3.json",
             "sha256": "561956e7f5d8855df65f9483369fd8b1730a87f9f68b2848a154223c329f6f5b"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "cases.in.json",
+            "kind": "case",
+            "id": "CASE-0185",
+            "canonicalRowSha256": "3d28ac538d5fa04e0ded0c723b992d6ec6b7ed779a96827491c0cb447454803e"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-056",
+            "canonicalRowSha256": "ac0a35a1380e2e717af1750cbad89afeb26047195cf742246f1f3b0211855b41"
+          },
+          {
+            "registry": "cases.json",
+            "kind": "case",
+            "id": "CASE-0185",
+            "canonicalRowSha256": "ac0a500976726646875be0a65ea6f1b9f6ee1bdddc8af7e54b7dd89a4b710b74"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-061",
+            "canonicalRowSha256": "d371f24ba15ba5b754175cb0f4692f37451e95853b87916f9af57022ee08ea50"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/M23-gapfix-3.json"
       }
     },
     "planning/features-to-triage/M23-gapfix-4.md#1067901775b462c0c1ec03e052cc59041f6770a6c6584ef2932b1be451d5a883": {
@@ -39739,7 +39949,34 @@
             "path": "planning/evidence/absence-reviews/M23-gapfix-4.json",
             "sha256": "2a457ca461f276230da73b9d328765542a049bc42cb91438287b8222d318fea1"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-052",
+            "canonicalRowSha256": "114edc6f2fdf627912b2fd85aefe08c5f09226ca875ba7907f456c21c25ce74b"
+          },
+          {
+            "registry": "cases.in.json",
+            "kind": "case",
+            "id": "CASE-0185",
+            "canonicalRowSha256": "3d28ac538d5fa04e0ded0c723b992d6ec6b7ed779a96827491c0cb447454803e"
+          },
+          {
+            "registry": "cases.json",
+            "kind": "case",
+            "id": "CASE-0185",
+            "canonicalRowSha256": "ac0a500976726646875be0a65ea6f1b9f6ee1bdddc8af7e54b7dd89a4b710b74"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-061",
+            "canonicalRowSha256": "d371f24ba15ba5b754175cb0f4692f37451e95853b87916f9af57022ee08ea50"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/M23-gapfix-4.json"
       }
     },
     "planning/features-to-triage/M23-gapfix-5.md#dfa391440716458f8218608155dc50571fa675fe1e7f870d902e8f0c79660ef6": {
@@ -46131,7 +46368,28 @@
             "path": "planning/evidence/absence-reviews/M23-gapfix-5.json",
             "sha256": "7b0884cbe99e6ea49e4a70512592c7197c56a027ff1a37221980d100b54c9e50"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-052",
+            "canonicalRowSha256": "114edc6f2fdf627912b2fd85aefe08c5f09226ca875ba7907f456c21c25ce74b"
+          },
+          {
+            "registry": "cases.in.json",
+            "kind": "case",
+            "id": "CASE-0185",
+            "canonicalRowSha256": "3d28ac538d5fa04e0ded0c723b992d6ec6b7ed779a96827491c0cb447454803e"
+          },
+          {
+            "registry": "cases.json",
+            "kind": "case",
+            "id": "CASE-0185",
+            "canonicalRowSha256": "ac0a500976726646875be0a65ea6f1b9f6ee1bdddc8af7e54b7dd89a4b710b74"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/M23-gapfix-5.json"
       }
     },
     "planning/features-to-triage/M23-gapfix-6.md#ba8f17805f3d396f1eac57808859ccae27f897199b407ebfa4bd7b658ba26ccd": {
@@ -52523,7 +52781,34 @@
             "path": "planning/evidence/absence-reviews/M23-gapfix-6.json",
             "sha256": "affc4aa9f7ad7c9941bca507ddca9ad0273f24bf62a95b88352d02a11ca1b9e1"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-055",
+            "canonicalRowSha256": "2b24c1a93dbcc7ac603b9e5658556b00c52881d5d2e595f582a12908c17be53e"
+          },
+          {
+            "registry": "cases.in.json",
+            "kind": "case",
+            "id": "CASE-0185",
+            "canonicalRowSha256": "3d28ac538d5fa04e0ded0c723b992d6ec6b7ed779a96827491c0cb447454803e"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-056",
+            "canonicalRowSha256": "ac0a35a1380e2e717af1750cbad89afeb26047195cf742246f1f3b0211855b41"
+          },
+          {
+            "registry": "cases.json",
+            "kind": "case",
+            "id": "CASE-0185",
+            "canonicalRowSha256": "ac0a500976726646875be0a65ea6f1b9f6ee1bdddc8af7e54b7dd89a4b710b74"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/M23-gapfix-6.json"
       }
     },
     "planning/features-to-triage/M23-gapfix-7.md#4e3a9175f1ab4091d89c4f3ee841110eede56a125e59c2c595ac635b6729c7ee": {
@@ -58915,7 +59200,28 @@
             "path": "planning/evidence/absence-reviews/M23-gapfix-7.json",
             "sha256": "b663aa82a16a1967b1939050cf84344671f38a96e230cb141f96b0e8da9df497"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-444",
+            "canonicalRowSha256": "29a5c46942abf2dacdd99e46595e0fca814e87372f3d35f735d7df0abeed8b50"
+          },
+          {
+            "registry": "cases.in.json",
+            "kind": "case",
+            "id": "CASE-0185",
+            "canonicalRowSha256": "3d28ac538d5fa04e0ded0c723b992d6ec6b7ed779a96827491c0cb447454803e"
+          },
+          {
+            "registry": "cases.json",
+            "kind": "case",
+            "id": "CASE-0185",
+            "canonicalRowSha256": "ac0a500976726646875be0a65ea6f1b9f6ee1bdddc8af7e54b7dd89a4b710b74"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/M23-gapfix-7.json"
       }
     },
     "planning/features-to-triage/M23-gapfix-8.md#c75e53b4c587d877d242a6a941cd97cb967488eabd88f6d6203e8f98eaee4192": {
@@ -65307,7 +65613,34 @@
             "path": "planning/evidence/absence-reviews/M23-gapfix-8.json",
             "sha256": "6de378b4cbbacc949eb775c3781a8d2e60302ede663c0419229b478a9c348d63"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-443",
+            "canonicalRowSha256": "2a872629d82ea58598422dbded487411f8e5dcfa92f343a58686b3645f590f94"
+          },
+          {
+            "registry": "cases.in.json",
+            "kind": "case",
+            "id": "CASE-0185",
+            "canonicalRowSha256": "3d28ac538d5fa04e0ded0c723b992d6ec6b7ed779a96827491c0cb447454803e"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-056",
+            "canonicalRowSha256": "ac0a35a1380e2e717af1750cbad89afeb26047195cf742246f1f3b0211855b41"
+          },
+          {
+            "registry": "cases.json",
+            "kind": "case",
+            "id": "CASE-0185",
+            "canonicalRowSha256": "ac0a500976726646875be0a65ea6f1b9f6ee1bdddc8af7e54b7dd89a4b710b74"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/M23-gapfix-8.json"
       }
     },
     "planning/features-to-triage/R17-gapfix-2.md#7afa4825486e310cdae27cf8ec0fee8e80d301497d48c9c90793d79841ec8dfd": {
@@ -73760,7 +74093,28 @@
             "path": "planning/evidence/absence-reviews/R17-gapfix-2.json",
             "sha256": "be4c057c291dd49623e935c5f564d9e612c6e7e4d99d00c4be994c808c6ea341"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-090",
+            "canonicalRowSha256": "125990f0f71ef1ae9ff8ca8aaf5809e8cecf296dd68a4ec8ceb505e7d2844542"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-442",
+            "canonicalRowSha256": "39fcb957ba046f2ad3baf097928602a500dc930a5817c751ec548f0b860d67a6"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-049",
+            "canonicalRowSha256": "e4c8c5150ff01be0cce79f7fc180f10e95a0179fff59d70d35a742dab00686bb"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/R17-gapfix-2.json"
       }
     },
     "planning/features-to-triage/R17-gapfix-3.md#a02638e27160f6d826f4c2b2608fa836ed766b6c89e4ca71472d39262aa6a734": {
@@ -82213,7 +82567,28 @@
             "path": "planning/evidence/absence-reviews/R17-gapfix-3.json",
             "sha256": "4d6311b56974cbbd3a9620ad1169ee86cc1d4aa328399e3d1b4cbdcc2ec907be"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-090",
+            "canonicalRowSha256": "125990f0f71ef1ae9ff8ca8aaf5809e8cecf296dd68a4ec8ceb505e7d2844542"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-442",
+            "canonicalRowSha256": "39fcb957ba046f2ad3baf097928602a500dc930a5817c751ec548f0b860d67a6"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-049",
+            "canonicalRowSha256": "e4c8c5150ff01be0cce79f7fc180f10e95a0179fff59d70d35a742dab00686bb"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/R17-gapfix-3.json"
       }
     },
     "planning/features-to-triage/R17-gapfix-4.md#62b634d58622e4e29258e2150a72386d03bd9fc5b9e27649ea39d59df9e119d1": {
@@ -90666,7 +91041,28 @@
             "path": "planning/evidence/absence-reviews/R17-gapfix-4.json",
             "sha256": "a403ce35135a3848c811cd85b7b0d39b57ffa943ce6927f7bca73cc19e8a36d5"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-442",
+            "canonicalRowSha256": "39fcb957ba046f2ad3baf097928602a500dc930a5817c751ec548f0b860d67a6"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-033",
+            "canonicalRowSha256": "897abd4dcd249643174f714ffec699d8b2df242061ecec7fc7ae08947c1a3604"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-360",
+            "canonicalRowSha256": "caf9ca9567bb34da95443007e034f0e93d4b1e23067d0ca860848e1d5f59e137"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/R17-gapfix-4.json"
       }
     },
     "planning/features-to-triage/R7-gapfix-2.md#6acfe9a55d014e91bfa88ec94d758705a34570ddb23d91482d7d076c8329e6cd": {
@@ -97381,7 +97777,34 @@
             "path": "planning/evidence/absence-reviews/R7-gapfix-2.json",
             "sha256": "7fa63d14fca52a6ccfc50644b66a866a151f38e08ab4373f61b7bee4ff2cf67b"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "cases.json",
+            "kind": "case",
+            "id": "CASE-0351",
+            "canonicalRowSha256": "2547c7fe2f783e0fe86d791afaee3dfb0f2b1af048348afb4baee8020ccf6fe7"
+          },
+          {
+            "registry": "surfaces.in.json",
+            "kind": "surface",
+            "id": "SURF-025",
+            "canonicalRowSha256": "362ab2e73a69276f8a6286ea783d9e50b2b911a06d77ba46d8514f002f8191dc"
+          },
+          {
+            "registry": "inventory.requirement",
+            "kind": "requirement",
+            "id": "REQ-030",
+            "canonicalRowSha256": "bc8ad7f7693378b677976f2f4bae3fcdd71ea50c9e47a7e7d9344ae6cf9b3c48"
+          },
+          {
+            "registry": "inventory.surface",
+            "kind": "surface",
+            "id": "SURF-025",
+            "canonicalRowSha256": "f94a3815f590ced7f24ddf6ec93f3acefe839446352fdcd31087cd9e70ae7826"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/R7-gapfix-2.json"
       }
     },
     "planning/features-to-triage/a-killed-gate-strands-its-mutation-in-the-tree.md#29e565782fbe42ea3b52901c5e6fc0b26750102d68106302af1aceab9519207c": {
@@ -100742,7 +101165,28 @@
             "path": "planning/evidence/absence-reviews/a-killed-gate-strands-its-mutation-in-the-tree.json",
             "sha256": "b0076994cb9f5edb38028873e1e52db3edc1d08b1f4540864001d329f42af83b"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-444",
+            "canonicalRowSha256": "29a5c46942abf2dacdd99e46595e0fca814e87372f3d35f735d7df0abeed8b50"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-443",
+            "canonicalRowSha256": "2a872629d82ea58598422dbded487411f8e5dcfa92f343a58686b3645f590f94"
+          },
+          {
+            "registry": "cases.json",
+            "kind": "case",
+            "id": "CASE-0352",
+            "canonicalRowSha256": "e4e9a461783ce6c10a91f2753408a398aa266f748c0f0e95848c77319cc348e7"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/a-killed-gate-strands-its-mutation-in-the-tree.json"
       }
     },
     "planning/features-to-triage/a-killed-mutation-run-leaves-a-mutation-git-status-cannot-show.md#2ddf4d143b55346ca27abb32b285b77c3f0310fcd71f2d649ca528fb48486e3e": {
@@ -104103,7 +104547,34 @@
             "path": "planning/evidence/absence-reviews/a-killed-mutation-run-leaves-a-mutation-git-status-cannot-show.json",
             "sha256": "8f764f1529e993b9c6b455ffba57a35778493ad34341d260134881bd02710481"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "cases.in.json",
+            "kind": "case",
+            "id": "CASE-0292",
+            "canonicalRowSha256": "130a2a2f276584c5bdad7a53460f57769f5cdf94991aa70abc6ad321fd2302b3"
+          },
+          {
+            "registry": "cases.json",
+            "kind": "case",
+            "id": "CASE-0292",
+            "canonicalRowSha256": "130a2a2f276584c5bdad7a53460f57769f5cdf94991aa70abc6ad321fd2302b3"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-443",
+            "canonicalRowSha256": "2a872629d82ea58598422dbded487411f8e5dcfa92f343a58686b3645f590f94"
+          },
+          {
+            "registry": "cases.json",
+            "kind": "case",
+            "id": "CASE-0352",
+            "canonicalRowSha256": "e4e9a461783ce6c10a91f2753408a398aa266f748c0f0e95848c77319cc348e7"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/a-killed-mutation-run-leaves-a-mutation-git-status-cannot-show.json"
       }
     },
     "planning/features-to-triage/a-second-inertness-clause-is-unfailable-for-the-same-reason.md#216a0188be9ce10bd7cc60f05e113d51d5e2cfda326136d337aee38c5f4ddca2": {
@@ -107585,7 +108056,34 @@
             "path": "planning/evidence/absence-reviews/a-second-inertness-clause-is-unfailable-for-the-same-reason.json",
             "sha256": "ec343d3c9f0c7c23e4bf10ee744f2be0ecbdfb30111511bb7931bb959f7d206e"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "inventory.requirement",
+            "kind": "requirement",
+            "id": "REQ-027",
+            "canonicalRowSha256": "085fc32c359ae573a7bbe77aa5ef4db12e8953de1f118e3225efc2264f857b62"
+          },
+          {
+            "registry": "cases.in.json",
+            "kind": "case",
+            "id": "CASE-0292",
+            "canonicalRowSha256": "130a2a2f276584c5bdad7a53460f57769f5cdf94991aa70abc6ad321fd2302b3"
+          },
+          {
+            "registry": "cases.json",
+            "kind": "case",
+            "id": "CASE-0292",
+            "canonicalRowSha256": "130a2a2f276584c5bdad7a53460f57769f5cdf94991aa70abc6ad321fd2302b3"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-055",
+            "canonicalRowSha256": "2b24c1a93dbcc7ac603b9e5658556b00c52881d5d2e595f582a12908c17be53e"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/a-second-inertness-clause-is-unfailable-for-the-same-reason.json"
       }
     },
     "planning/features-to-triage/a-verification-lane-ran-in-the-writers-own-family.md#595176358bc82c794b788c89cd5e0829bad55436fedfe95a5afa158241dde16a": {
@@ -117472,7 +117970,34 @@
             "path": "planning/evidence/absence-reviews/a-verification-lane-ran-in-the-writers-own-family.json",
             "sha256": "609db62ce8028f59c559705956816ec5f7f2f75cf3ee072b0155ca673bc23f89"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-038",
+            "canonicalRowSha256": "0535ec305d809d8621ab9c3ffc09871f56bd9fac6c8126d95df446b776029655"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-361",
+            "canonicalRowSha256": "08500ecfc2d25669263a54d9df43411530f3acadab9626abe6bb5db343201bf4"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-362",
+            "canonicalRowSha256": "813a5afe5db0ec627d76319ca2faefc3b26f28dfc90e652faa743191a29f689e"
+          },
+          {
+            "registry": "defects.in.json",
+            "kind": "defect",
+            "id": "DEF-038",
+            "canonicalRowSha256": "d81b68ea228524869afc4e7a883791644b05b747ec44e44f107b0a5a73456269"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/a-verification-lane-ran-in-the-writers-own-family.json"
       }
     },
     "planning/features-to-triage/build-description-report-on-swiftbuild.md#3d385ae5a973e574f873e4ffa20da669f99ec561aa8973951907fefc0b0e788c": {
@@ -117739,7 +118264,40 @@
             "path": "planning/evidence/absence-reviews/build-description-report-on-swiftbuild.json",
             "sha256": "9744c1d17d2fabdd6f6453e8b1ac2137db5783b40f3543b5a1554f6553b1ae05"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "cases.json",
+            "kind": "case",
+            "id": "CASE-0032",
+            "canonicalRowSha256": "02de00d4ef4e2cba52ca7f11286f40511dad5229b112abd476f6643fb703ed57"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-035",
+            "canonicalRowSha256": "ada60883e66d8b78d6111eeb071f85c002814899edca9776852eb2164fedb926"
+          },
+          {
+            "registry": "defects.in.json",
+            "kind": "defect",
+            "id": "DEF-035",
+            "canonicalRowSha256": "ccfe0976f42c8bfb073fb46f53c9e81ce46c6945fd098c905d8d4b973e706fa3"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-058",
+            "canonicalRowSha256": "d1d8857e0cfbb3cb0eb7f6adccc6df8c87ae07a16f7103eeb6c566c6f1cb0491"
+          },
+          {
+            "registry": "cases.in.json",
+            "kind": "case",
+            "id": "CASE-0032",
+            "canonicalRowSha256": "fc092e7d26b125cfb7546d61a391c57ca1f72599a587611acbe1324baa8881a3"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/build-description-report-on-swiftbuild.json"
       }
     },
     "planning/features-to-triage/the-carrier-gate-pins-a-landing-to-a-sha-that-keeps-moving.md#cdeacfeedb89107e8651c012da9658c15d2e3730a59a223f9d3246e2ce00935b": {
@@ -121640,7 +122198,34 @@
             "path": "planning/evidence/absence-reviews/the-carrier-gate-pins-a-landing-to-a-sha-that-keeps-moving.json",
             "sha256": "0b1192758926fe5fc3fa6ac12d3081126f4f22a72d14b248681fc8b11d8c2140"
           }
-        ]
+        ],
+        "candidateRows": [
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-443",
+            "canonicalRowSha256": "2a872629d82ea58598422dbded487411f8e5dcfa92f343a58686b3645f590f94"
+          },
+          {
+            "registry": "inventory.requirement",
+            "kind": "requirement",
+            "id": "REQ-014",
+            "canonicalRowSha256": "4acbcb83b31eacc7e0f64df3c69e9a14ff2c18402af2cba8b9f538244f07d08c"
+          },
+          {
+            "registry": "requirements.in.json",
+            "kind": "requirement",
+            "id": "REQ-014",
+            "canonicalRowSha256": "4acbcb83b31eacc7e0f64df3c69e9a14ff2c18402af2cba8b9f538244f07d08c"
+          },
+          {
+            "registry": "inventory.defect",
+            "kind": "defect",
+            "id": "DEF-360",
+            "canonicalRowSha256": "caf9ca9567bb34da95443007e034f0e93d4b1e23067d0ca860848e1d5f59e137"
+          }
+        ],
+        "candidateEvidence": "planning/evidence/absence-reviews/the-carrier-gate-pins-a-landing-to-a-sha-that-keeps-moving.json"
       }
     }
   }

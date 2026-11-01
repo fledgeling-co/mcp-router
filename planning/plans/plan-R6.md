@@ -6,7 +6,7 @@ script.
 
 ## Steps
 
-**1 · `app/Sources/RouterCore/Pool/ChildPath.swift`** (new). A `DirectoryProbing` protocol
+**1 · `app/Sources/RouterCore/Pool/ChildPath.swift` at `7a4f15a286032b0ad505f914396d720925c60937` (historical source)** (new). A `DirectoryProbing` protocol
 with two questions — the entries of a directory, and whether a path is a directory — plus a
 `FileManager`-backed default. `ChildPath.userBinDirectories(home:probe:limit:)` returns the
 sorted, deduplicated, capped list; `ChildPath.augment(_:home:probe:)` returns the merged
@@ -32,7 +32,7 @@ fixes. `spawnFailed` keeps every other use. Acceptance: A5.
 lacks. Synchronous `fs` calls, as the surrounding file already uses, memoised by home so the
 scan does not run on the event loop once per spawn. Acceptance: A1, A7.
 
-**5 · Tests.** `app/Tests/RouterCoreTests/ChildPathTests.swift` drives the probe with a fake:
+**5 · Tests.** `app/Tests/RouterCoreTests/ChildPathTests.swift` at `7a4f15a286032b0ad505f914396d720925c60937` (historical source) drives the probe with a fake:
 discovery, the file-named-`bin` case, dedup against the inherited PATH, append-not-prepend,
 empty components surviving, byte ordering, the cap, an absent home, an empty PATH — and the
 wire-text guard, which asserts `PoolError.commandNotFound.message` is exactly

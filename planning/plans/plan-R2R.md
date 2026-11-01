@@ -1,7 +1,7 @@
 # plan-R2R — Router: the process that actually serves
 
 **Spec:** `planning/specs/spec-R2R.md` (revision 2) · **Branch:** `ai/r2r` · **Tier:** Large
-**Acceptance:** `scripts/acceptance/parity-gate.sh`
+**Acceptance:** `scripts/acceptance/parity-gate.sh` at `6bd711ebc5045ea7c1385dc4080a0ae58e340fec` (historical source)
 
 Out-of-family gate: codex is account-limited until 2026-08-20 and **exits 0 on that limit**, so both
 the spec review and this plan's review ran in-family — a fresh adversarial `claude -p` opus-5
@@ -30,7 +30,7 @@ moment it lands — which is what made it safe to build in this order rather tha
 
 ## 2 · Phase A — the listener
 
-`app/Sources/RouterCore/HTTP/HTTPWire.swift`, `.../LoopbackHTTPServer.swift`.
+`app/Sources/RouterCore/HTTP/HTTPWire.swift` at `6bd711ebc5045ea7c1385dc4080a0ae58e340fec` (historical source), `.../LoopbackHTTPServer.swift`.
 
 `HTTPWire` is pure — parsing and serialising with no socket in the file — because every framing rule
 in it is a decision that can be wrong, and a rule reachable only by binding a port is a rule that
@@ -151,7 +151,7 @@ Each lane carries what the second review demanded and revision 1 lacked:
 
 ### 6.2 The self-test
 
-`scripts/acceptance/parity-lane-selftest.sh` seeds a defect per lane and requires the lane to go red.
+`scripts/acceptance/parity-lane-selftest.sh` at `6bd711ebc5045ea7c1385dc4080a0ae58e340fec` (historical source) seeds a defect per lane and requires the lane to go red.
 It is a script rather than a paragraph in an evidence file because a paragraph is re-run by nothing.
 The defect is injected through a shim on `$SWIFT_BIN`, never through a hook in the router — a
 test-only branch inside the product is a branch that can ship.

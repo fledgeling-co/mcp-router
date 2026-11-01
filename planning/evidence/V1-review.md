@@ -6,7 +6,7 @@
 
 This item is a review. It adds no product surface, so the design stage is empty by construction and
 no mock exists. What it produces is this document, the dispositions below, the fixes the small
-findings earned, and one acceptance file (`app/Tests/RouterCoreTests/OutsideReviewV1Tests.swift`)
+findings earned, and one acceptance file (`app/Tests/RouterCoreTests/OutsideReviewV1Tests.swift` at `7a2c7bb58baa9c8d860e0e4c5724f2cfd6739c26` (historical source))
 covering only what changed.
 
 ---
@@ -279,9 +279,9 @@ Exit codes captured on their own line, never through a pipeline.
 | `make lint` | `Found 0 violations, 0 serious in 434 files` · `no-raw-design-values: clean` · `no-wire-codable: clean` | **0** |
 | `make test` | `Test run with 1362 tests in 167 suites passed` · `executed 1362 tests` | **0** |
 | `swift test --filter OutsideReviewV1Tests` | `Test run with 12 tests in 1 suite passed` | **0** |
-| `scripts/acceptance/control-differential.sh` | `compared 49 rows: 47 ok, 2 failed` — both failures are the script's own named `D-j` rows | 1 |
-| `scripts/acceptance/parity-install.sh` | `both binaries answer the watch agent's supervision identically` | **0** |
-| `scripts/acceptance/parity-gate.sh` | `parity: 70 of 82 rows proven, 11 blocked` | 1 |
+| `scripts/acceptance/control-differential.sh` at `7a2c7bb58baa9c8d860e0e4c5724f2cfd6739c26` (historical source) | `compared 49 rows: 47 ok, 2 failed` — both failures are the script's own named `D-j` rows | 1 |
+| `scripts/acceptance/parity-install.sh` at `7a2c7bb58baa9c8d860e0e4c5724f2cfd6739c26` (historical source) | `both binaries answer the watch agent's supervision identically` | **0** |
+| `scripts/acceptance/parity-gate.sh` at `7a2c7bb58baa9c8d860e0e4c5724f2cfd6739c26` (historical source) | `parity: 70 of 82 rows proven, 11 blocked` | 1 |
 
 **Three tests failed once each across the full-suite runs and none of them survives scrutiny as a
 regression.** `searchIsDebounced` and `reconnectIsNotDeadAfterItsFirstSuccess` failed on the first

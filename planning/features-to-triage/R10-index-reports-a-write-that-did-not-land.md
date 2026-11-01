@@ -22,7 +22,7 @@ nothing in the verb compares them. The summary is the one that happens to be rig
 re-reads the manifest from disk to count, so it reports the truth by accident of how it
 was implemented, while the per-server line reports what the indexer intended to write.
 
-`ManifestIndexer.record` (`app/Sources/RouterCore/Service/ServicePorts.swift:347`) calls
+`ManifestIndexer.record` (`app/Sources/RouterCore/Service/ServicePorts.swift:347` at `255f1b91334b0f4d363b21b1cbef5071b99c1fe6` (historical source)) calls
 `try? ManifestIO.save(...)`. `try?` discards the error, so the one call that makes an
 index durable is the one call whose failure is unobservable from inside the verb.
 
@@ -61,11 +61,11 @@ rather than removing it.
 
 The same swallowed save appears three times:
 
-- `app/Sources/RouterCore/Service/ServicePorts.swift:347` — the indexer. **In scope.**
-- `app/Sources/RouterCore/Watch/WatchIndexing.swift:150` — the file-watch re-index.
+- `app/Sources/RouterCore/Service/ServicePorts.swift:347` at `255f1b91334b0f4d363b21b1cbef5071b99c1fe6` (historical source) — the indexer. **In scope.**
+- `app/Sources/RouterCore/Watch/WatchIndexing.swift:150` at `255f1b91334b0f4d363b21b1cbef5071b99c1fe6` (historical source) — the file-watch re-index.
   Out of scope: it has no output to contradict itself with. Recorded here so the fix is
   not mistaken for a sweep.
-- `app/Sources/RouterCore/Auth/AuthRoutes.swift:120` — the tool-surface **approve**
+- `app/Sources/RouterCore/Auth/AuthRoutes.swift:120` at `255f1b91334b0f4d363b21b1cbef5071b99c1fe6` (historical source) — the tool-surface **approve**
   route, which writes a fresh `builtAt`. Out of scope here and **the one worth
   escalating**, because its failure path produces a false green.
 
@@ -104,7 +104,7 @@ defect is precisely that the happy-path output is indistinguishable from the fai
 so an assertion that only reads stdout on a writable home cannot bite.
 
 The assertion has to read the file system rather than the value the test itself just
-wrote. `app/Tests/RouterCoreTests/ManifestIndexerWriteFailureTests.swift` — untracked in
+wrote. `app/Tests/RouterCoreTests/ManifestIndexerWriteFailureTests.swift` (not retained in the citing Git tree `255f1b91334b0f4d363b21b1cbef5071b99c1fe6`) — untracked in
 the main checkout, author unidentified as of 2026-08-21 — already characterises the CLI
 half without correcting it, and says so in its own doc comment. Read it before writing a
 second one.

@@ -154,7 +154,7 @@ you* means — the user already made the decision the badge would be asking for.
 ### Slice E — the gates' own inputs
 
 `app/Tests/RouterCoreTests/Vectors/parse-server.json` and `upstream-hash.json` gain disabled cases
-(the hash vector's job here is to prove the digest does **not** move). `planning/parity/surface.tsv`
+(the hash vector's job here is to prove the digest does **not** move). `planning/parity/surface.tsv` at `9c48d2d94056ad397113bd85188249948197e8e2` (historical source)
 row `control-server-patch` has its note extended to name the new field; **the census pin does not
 move**, because no row is added or removed — `disabled` is a field on an existing route, not a new
 route, and `parity-manifest-check.sh` derives control rows from route strings.
@@ -171,7 +171,7 @@ route, and `parity-manifest-check.sh` derives control rows from route strings.
 - `app/Tests/MCPRouterKitTests/ServerPresentationTests.swift` — the row rules, over the cross
   product rather than examples, which is how the warm-above-running rule is already asserted.
 - `app/Tests/MCPRouterUITests/ServersBoardWriteTests.swift` — the write path.
-- `scripts/acceptance/parity-control.sh` — the two routers on the wire.
+- `scripts/acceptance/parity-control.sh` at `9c48d2d94056ad397113bd85188249948197e8e2` (historical source) — the two routers on the wire.
 - The TypeScript reference has **no unit harness in this repo** (`package.json` declares no test
   script and there is no `test/`). Its behaviour is gated by `tsc`, by the parity lane comparing it
   against the Swift port, and by `scripts/e2e.mjs`. This is stated rather than worked around: TS

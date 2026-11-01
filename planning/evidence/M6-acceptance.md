@@ -81,7 +81,7 @@ nothing. The only instrument that could see it was a launch and a window measure
 | test | `swift test` (from `app/`) | **0** | **1143 tests / 145 suites passed** (up from main's 1073) |
 | build-mac | `make build-mac` | **0** | `** BUILD SUCCEEDED **` |
 | acceptance | `scripts/acceptance/m6-inbox-pairing.sh` | **0** | 20 passed, 0 failed, never frontmost |
-| parity | `scripts/acceptance/parity-gate.sh` | **2** | **blocked, not passed.** Every lane but `pool` ran and found no divergence; `pool` needs `npm install` for the MCP client SDK. Recorded as blocked because the gate itself refuses to call a skipped lane a pass. M6's diff touches no file under `app/Sources/RouterCore`, `app/Sources/MCPRouterCLI` or `src/` — measured, `git diff --name-only main` over those paths is empty — so this item cannot move parity in either direction. |
+| parity | `scripts/acceptance/parity-gate.sh` at `a1f192bf18300eedb6cade025c3f4c606b962643` (historical source) | **2** | **blocked, not passed.** Every lane but `pool` ran and found no divergence; `pool` needs `npm install` for the MCP client SDK. Recorded as blocked because the gate itself refuses to call a skipped lane a pass. M6's diff touches no file under `app/Sources/RouterCore`, `app/Sources/MCPRouterCLI` or `src/` — measured, `git diff --name-only main` over those paths is empty — so this item cannot move parity in either direction. |
 
 Full-suite repetition: **6 consecutive green runs** on the final tree (4 measured back to back plus 2
 earlier), because one run proves nothing about a suite this size.

@@ -108,7 +108,7 @@ budget (measured at 3.15s against a 3000ms budget, where a command that does not
 
 ## 4. The wire
 
-Two routes, both Swift-only, both declared in `planning/parity/surface.tsv` as `div-r27-inventory`
+Two routes, both Swift-only, both declared in `planning/parity/surface.tsv` at `91b2802d9c9f364d8ca712ab2b3db9ee40abc243` (historical source) as `div-r27-inventory`
 and `div-r27-probe`.
 
 - **`GET /upstreams/health`** — every declared upstream in configuration order, with state, probe

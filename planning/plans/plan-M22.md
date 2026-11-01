@@ -129,11 +129,11 @@ reconcile against the headline total instead of quietly losing calls.
 
 ### 2.7 Both routes are declared divergences, not control rows
 
-`scripts/acceptance/parity-manifest-check.sh` derives the `control` group from `src/control.ts` in
+`scripts/acceptance/parity-manifest-check.sh` at `3c47039e29706cacafc3c51cee7ae96c334ea141` (historical source) derives the `control` group from `src/control.ts` in
 **both** directions, so a `control` row for a route the reference does not answer is a red. These
 are Swift-only surface: the reference answers `404 {"error":"not found; MCP endpoint is /mcp"}`
 and this router answers 200. That is exactly what the `divergence` group is for, it is observable
-on the wire at both binaries, and `scripts/acceptance/parity-divergence.sh` is the lane that
+on the wire at both binaries, and `scripts/acceptance/parity-divergence.sh` at `3c47039e29706cacafc3c51cee7ae96c334ea141` (historical source) is the lane that
 drives it.
 
 Two rows, `div-m22-harnesses` and `div-m22-insights`, `# rows:` moves 92 → 94, and
@@ -169,7 +169,7 @@ anywhere. It is not in the brief's four visualisations. Parked with that reason.
 
 ### `GET /harnesses`
 
-Encoded through `JSONValue`/`JSStringify`, never `Codable` — `scripts/lint/no-wire-codable.sh`
+Encoded through `JSONValue`/`JSStringify`, never `Codable` — `scripts/lint/no-wire-codable.sh` at `3c47039e29706cacafc3c51cee7ae96c334ea141` (historical source)
 scans `RouterCore/Control`. The member set is `HarnessesVerb.json`'s, extracted to
 `RouterCore/Discovery/HarnessReportJSON.swift` so the CLI verb and the route cannot drift, plus
 four additive members the board needs (`displayName`, `bridge`, `capability`, and the envelope's
@@ -282,7 +282,7 @@ Every drift guard added here is broken once and seen red before it is trusted (`
 - `make lint` — swiftformat, swiftlint strict, the three lints, the two Python gates.
 - `scripts/lint/no-harness-config-writes.sh` — the new files sit inside its seam by name; nothing
   in them writes.
-- `scripts/acceptance/parity-manifest-check.sh` — two rows, the pin, and the cutover target.
+- `scripts/acceptance/parity-manifest-check.sh` at `3c47039e29706cacafc3c51cee7ae96c334ea141` (historical source) — two rows, the pin, and the cutover target.
 - `swift test` for the three targets.
 - M23: `planning/fidelity/harnesses.*` and `insights.*`, and two `MeasureDump.Surface` cases.
 

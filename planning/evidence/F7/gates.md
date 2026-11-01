@@ -92,7 +92,7 @@ already writes down, and each is closed rather than waived.
 
 | gate | what it wanted | what was done |
 |---|---|---|
-| `carrier-parity-gate` | this landing touched one router and not the other and carried no row | a row in `planning/parity/carriers.tsv` naming the commit, `swift-only`, `divergent-recorded`, with the reason: `src/control.ts` answers the whole `/insights` family 404 by design (`div-m22-insights`), so there is nothing to diff bytes against and two routers being equally silent is not agreement |
+| `carrier-parity-gate` | this landing touched one router and not the other and carried no row | a row in `planning/parity/carriers.tsv` at `3cc6c1b8545098659cfc5070da54767dc52e48c7` (historical source) naming the commit, `swift-only`, `divergent-recorded`, with the reason: `src/control.ts` answers the whole `/insights` family 404 by design (`div-m22-insights`), so there is nothing to diff bytes against and two routers being equally silent is not agreement |
 | `citation-gate` | three new files each held one bare citation against a baseline of zero | all three framed with anchor **and** tree; the first framing was itself refused as `DANGEROUS` because the quoted anchor spanned two lines and the cited line held only part of it — corrected to an anchor that sits inside the line it names |
 | `instrument-census` | four new instruments unrecorded | `--write`; 464 → 469 |
 

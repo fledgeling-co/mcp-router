@@ -4,7 +4,7 @@
 
 Four files changed, none of them source: `planning/evidence/R17-acceptance.md`,
 `planning/features-to-triage/R19-a-stale-manifest-snapshot-clobbers-a-concurrent-write.md`,
-`planning/parity/surface.tsv` and `ORCHESTRATOR.md`'s deferred register. `git diff --name-only`
+`planning/parity/surface.tsv` at `13e728b6284857646ea0ca0071a67dc5e0430e13` (historical source) and `ORCHESTRATOR.md`'s deferred register. `git diff --name-only`
 names nothing under `src/` or `app/`, so the compiled-parse proof the work order rests on is
 untouched by construction rather than by re-measurement.
 

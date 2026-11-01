@@ -153,9 +153,9 @@ Branch `ai/p3`, 0 commits behind `main` (`7babd97`).
 | `make lint` | **0 violations over 448 files**, exit 0. All four linters ran — `no-raw-design-values: clean` over 107 files, `no-wire-codable: clean` |
 | `make test` | **1414 tests / 173 suites**, exit 0 |
 | `make build-mac` | `** BUILD SUCCEEDED **`, exit 0 |
-| `scripts/acceptance/parity-manifest-check.sh` | **exit 0** — *"83 rows, consistent with control.ts, index.ts, router.ts and the fixture directory; every cited test, script and row id resolves"* |
+| `scripts/acceptance/parity-manifest-check.sh` at `db9074d7c87812965bf242319c09e8455f160bc5` (historical source) | **exit 0** — *"83 rows, consistent with control.ts, index.ts, router.ts and the fixture directory; every cited test, script and row id resolves"* |
 | `make parity-selftest` | **exit 0** — normalise selftest 14 behaved, 0 did not |
-| `scripts/acceptance/parity-gate.sh` | **79 of 83 proven, 4 blocked, 0 DIVERGED. Exit 1 by design** |
+| `scripts/acceptance/parity-gate.sh` at `db9074d7c87812965bf242319c09e8455f160bc5` (historical source) | **79 of 83 proven, 4 blocked, 0 DIVERGED. Exit 1 by design** |
 
 ### Parity, before and after
 

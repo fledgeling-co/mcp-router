@@ -215,7 +215,7 @@ rows carry a non-empty `detail` and a remedy containing "Fix the error below" ra
 
 ## The parity lane, and why it could not have caught this
 
-`scripts/acceptance/parity-cli.sh`'s `watch` verb compared both watchers' stdout, stderr, exit
+`scripts/acceptance/parity-cli.sh` at `1004d10333f26006dd52a9d56303db48831fefb3` (historical source)'s `watch` verb compared both watchers' stdout, stderr, exit
 code, `servers.json` and the remaining `~/.claude.json`, and nothing about `manifest.json`. The row
 both watchers deleted was outside everything the gate measured, so this defect could have gone back
 in without reddening anything.
@@ -305,7 +305,7 @@ R17 is what makes it matter: this change promotes the manifest row from a cache 
 record*, and a record that a concurrent write can erase is a weaker claim than the one this
 document makes for it.
 
-`scripts/acceptance/parity-cli.sh` runs the two binaries **sequentially**, over separate scratch
+`scripts/acceptance/parity-cli.sh` at `b41c588d5ee5769c39487f1e23e0e204a3095484` (historical source) runs the two binaries **sequentially**, over separate scratch
 homes, one after the other. No scenario it can hold reaches a property that only exists while two
 writers overlap, so growing a fifth `watch` scenario would not have found it — and a scenario that
 genuinely *did* overlap a writer would redden this row on a divergence older than R17, which is the
@@ -391,7 +391,7 @@ No writer produces a row with both `error` and a non-empty `tools`, because the 
 clear `error` and the catch zeroes `tools`, so a previously-good server that breaks drops off the
 client's tool list with no `INOPERATIVE` placard.
 
-`app/Sources/RouterCore/Manifest/ToolUnion.swift` on `main` already documents it verbatim, above
+`app/Sources/RouterCore/Manifest/ToolUnion.swift` at `b41c588d5ee5769c39487f1e23e0e204a3095484` (historical source) on `main` already documents it verbatim, above
 `unionTools`, and this branch does not touch that file:
 
 > The skip order is the part worth reading twice: an entry with no approved tools is dropped
@@ -522,8 +522,8 @@ read `tail` rather than the gate. Logs under `/tmp/r17gf/logs/` (gone).
 | `make parity` | 0 | 358 vector cases compared (floor 358) | `z-make-parity.log` |
 | `make acceptance-r6` | 0 | examined=6 failures=0 | `z-acceptance-r6.log` |
 | `scripts/acceptance/r7-harness-reconciliation.sh` | 0 | pass | `z-r7-lane.log` |
-| `scripts/acceptance/parity-cli.sh` | 0 | 18 verbs agreed, 0 did not | `z-parity-cli.log` |
-| `scripts/acceptance/parity-manifest-check.sh` | 0 | 92 rows, every cited test, script and row id resolves | `z-manifest-check.log` |
+| `scripts/acceptance/parity-cli.sh` at `8592e5ce0c8edccf522c645fd89333aac0dbbcc9` (historical source) | 0 | 18 verbs agreed, 0 did not | `z-parity-cli.log` |
+| `scripts/acceptance/parity-manifest-check.sh` at `8592e5ce0c8edccf522c645fd89333aac0dbbcc9` (historical source) | 0 | 92 rows, every cited test, script and row id resolves | `z-manifest-check.log` |
 | `python3 planning/ledger-reconcile.py` | 0 | reconciled — no findings across A…K, 85 ids compared | `z-reconcile.log` |
 
 **The red, named rather than rolled away.** `make test`'s second run exited 2 with one issue:
@@ -558,10 +558,10 @@ new row.
 | `make parity` — 358 vector cases compared (floor 358) | 0 | transcript |
 | `make acceptance-r6` — examined=6 failures=0 | 0 | transcript |
 | `scripts/acceptance/r7-harness-reconciliation.sh` | 0 | transcript |
-| `scripts/acceptance/parity-cli.sh` — 18 verbs agreed, 0 did not | 0 | transcript |
-| `scripts/acceptance/parity-oauth.sh`, standalone, twice — ~~21/21 each~~ **19/21 each** | 0 | corrected 2026-08-22 |
+| `scripts/acceptance/parity-cli.sh` at `1004d10333f26006dd52a9d56303db48831fefb3` (historical source) — 18 verbs agreed, 0 did not | 0 | transcript |
+| `scripts/acceptance/parity-oauth.sh` at `b41c588d5ee5769c39487f1e23e0e204a3095484` (historical source), standalone, twice — ~~21/21 each~~ **19/21 each** | 0 | corrected 2026-08-22 |
 | `python3 planning/ledger-reconcile.py` | 0 | re-run 2026-08-22 |
-| `scripts/acceptance/parity-gate.sh` | **1** | re-run 2026-08-22 |
+| `scripts/acceptance/parity-gate.sh` at `1004d10333f26006dd52a9d56303db48831fefb3` (historical source) | **1** | re-run 2026-08-22 |
 
 `make lint` exited 2 on its first attempt in the transcript with `node_modules is missing — a fresh
 worktree needs it before the parity lanes`, which is the target refusing an environment rather than

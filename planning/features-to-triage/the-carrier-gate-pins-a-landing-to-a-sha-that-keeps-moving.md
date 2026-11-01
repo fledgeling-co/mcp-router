@@ -14,8 +14,8 @@ no-target-reason: the subject is carrier-parity-gate.py's key, an instrument bui
 
 ## What and why
 
-`planning/carrier-parity-gate.py` records a one-sided landing — work that touched one router and
-not the other — as a row in `planning/parity/carriers.tsv` keyed by the landing's commit SHA. The
+`planning/carrier-parity-gate.py` at `3f3a31fbf0c62ac39e96968ba5dad3afcd130703` (historical source) records a one-sided landing — work that touched one router and
+not the other — as a row in `planning/parity/carriers.tsv` at `3f3a31fbf0c62ac39e96968ba5dad3afcd130703` (historical source) keyed by the landing's commit SHA. The
 idea is right and it caught a real thing on its first outing: R27 landed Swift-only with no
 disposition, and the gate said so.
 

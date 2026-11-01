@@ -72,7 +72,7 @@ states**, and this is not a judgement call:
   sixteen operations and none of them is harness-shaped. `src/control.ts` routes `/servers`,
   `/usage`, `/registry` and nothing else; the string `harness` does not occur in it.
 - The reading exists, and it is exactly the brief's three states:
-  `app/Sources/RouterCore/Discovery/HarnessReconciliation.swift:52` declares `HarnessState` with
+  `app/Sources/RouterCore/Discovery/HarnessReconciliation.swift:52` at `f079515962cb9d23b136fa0c8c571b96595d47d6` (historical source) declares `HarnessState` with
   `notWired(overlapping:)`, `wiredViaHTTP`, `wiredViaShim(bridge:)` and
   `wiredWithDuplicates(route:count:)`. But it is in `RouterCore`, which **neither app target
   links**, and it gets there by reading harness config files off disk. (`spec-M22.md`:153 spells
@@ -185,9 +185,9 @@ opened.
 | Path | Why |
 |---|---|
 | `app/Sources/MCPRouterUI/Breaker.swift` | `Breaker`, `BreakerToggle` — the drawing |
-| `app/Sources/MCPRouterKit/Design/BreakerGeometry.swift` | `BreakerGeometry`, `BreakerState` |
-| `app/Tests/MCPRouterKitTests/BreakerGeometryTests.swift` | the construction invariants of a construction that is gone |
-| `app/Tests/MCPRouterKitTests/BreakerParityTests.swift` | named by `DESIGN.md`:385 as retiring with the table |
+| `app/Sources/MCPRouterKit/Design/BreakerGeometry.swift` at `f079515962cb9d23b136fa0c8c571b96595d47d6` (historical source) | `BreakerGeometry`, `BreakerState` |
+| `app/Tests/MCPRouterKitTests/BreakerGeometryTests.swift` at `f079515962cb9d23b136fa0c8c571b96595d47d6` (historical source) | the construction invariants of a construction that is gone |
+| `app/Tests/MCPRouterKitTests/BreakerParityTests.swift` at `f079515962cb9d23b136fa0c8c571b96595d47d6` (historical source) | named by `DESIGN.md`:385 as retiring with the table |
 
 ### Changed
 

@@ -251,7 +251,7 @@ request with them deleted.
    the corpus where R1 left it.
 3. Add the 23 fixtures as a **byte** oracle: each recorded response reproduced from constructed
    dependencies, never from a lookup (S6).
-4. Extend `scripts/parity/mutation-gate.sh` with one mutation per new named behaviour — the
+4. Extend `scripts/parity/mutation-gate.sh` at `16ce49995d66ca7ca7ded20e91dfe185bd7f6a9e` (historical source) with one mutation per new named behaviour — the
    *plausible* wrong implementation, not arbitrary damage: `!= nil` for `ToBoolean(error)`, Swift
    `<` for the code-unit sort, omitting `null` as if undefined, insertion order for S4, last-match
    for first-match, gating before `isControlPath`, rejecting rather than ignoring a PATCH's
@@ -261,7 +261,7 @@ request with them deleted.
 
 ## P7 · Wiring, guardrails, gates
 
-- `scripts/lint/no-wire-codable.sh` — fails on `JSONSerialization`, `JSONEncoder`, `JSONDecoder` or
+- `scripts/lint/no-wire-codable.sh` (planned deliverable: Create) — fails on `JSONSerialization`, `JSONEncoder`, `JSONDecoder` or
   `[String:` under `Sources/RouterCore/{Control,Registry,Usage,Auth}`. The review's most repeated
   defeat was a reasonable Swift default; a lint is what stops a delegated slice reintroducing it.
 - `make all` green; `make parity` reporting a count above R1's 224; `make mutation` green.

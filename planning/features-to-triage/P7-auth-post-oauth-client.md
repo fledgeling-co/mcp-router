@@ -35,7 +35,7 @@ item rather than a fix inside `parity-gate.sh`.
 - The parity lane for `control-auth-post-http` runs against the running Swift router and the
   running TypeScript reference, and both answer identically on the normalised body, the status
   and the redirect.
-- The row moves `blocked → proven` in `planning/parity/surface.tsv` with its evidence, and the
+- The row moves `blocked → proven` in `planning/parity/surface.tsv` at `f8d4fa636bf0f9025d6cf0e064330eaab64995a3` (historical source) with its evidence, and the
   gate's own count moves with it.
 - **The lane is mutation-proven before the row is promoted.** Break the client — drop PKCE,
   change the `state` handling, point the callback at a dead port — and the lane must go red on

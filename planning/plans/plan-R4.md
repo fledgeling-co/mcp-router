@@ -24,7 +24,7 @@ Everything runs inside `.worktrees/R4`. Nothing touches ports 8975/8976, the use
 
 ## P1 · The surface manifest
 
-**Deliver:** `planning/parity/surface.tsv`, and `planning/parity/README.md` explaining what a row means.
+**Deliver:** `planning/parity/surface.tsv` (planned deliverable: Create), and `planning/parity/README.md` explaining what a row means.
 
 TSV rather than JSON so a row is greppable and a diff is readable in a PR. Columns:
 
@@ -47,7 +47,7 @@ Rows are derived, not invented:
 | `log` | one row: log bytes over a live run |
 
 **A1 is the load-bearing clause and needs a real guard.** A manifest hand-maintained against
-`control.ts` drifts the moment a route is added. `scripts/acceptance/parity-manifest-check.sh`
+`control.ts` drifts the moment a route is added. `scripts/acceptance/parity-manifest-check.sh` (planned deliverable: Create)
 extracts the route table from `src/control.ts` mechanically and fails when a route has no row,
 or a row has no route. That is the red-green test A1 asks for.
 
@@ -55,7 +55,7 @@ or a row has no route. That is the red-green test A1 asks for.
 
 ## P2 · The gate
 
-**Deliver:** `scripts/acceptance/parity-gate.sh` — the single entry point.
+**Deliver:** `scripts/acceptance/parity-gate.sh` (planned deliverable: Create) — the single entry point.
 
 Responsibilities, in order:
 
@@ -84,7 +84,7 @@ print a bare "parity" without the fraction — that sentence is what this item e
 
 ## P3 · Control lane — full route coverage
 
-**Deliver:** `scripts/acceptance/parity-control.sh`, adapted from `control-differential.sh`.
+**Deliver:** `scripts/acceptance/parity-control.sh` (planned deliverable: Create), adapted from `control-differential.sh`.
 
 R3's script is good and is EXTENDED rather than rewritten — a second copy of its logic would be a second idea of what "green" means. It is modified in place, which is a cross-item edit and is called out as such in the affected-test sweep. Changes:
 
@@ -108,7 +108,7 @@ was about a bug.
 
 ## P4 · Fixture lane (D-a) and divergence lane (D-g)
 
-**Deliver:** `scripts/acceptance/parity-fixture.sh`, `scripts/acceptance/parity-divergence.sh`. (Singular. The gate resolves lanes by path, so a lane named in a plan and absent on disk is the cheapest possible route to a shrunken denominator.)
+**Deliver:** `scripts/acceptance/parity-fixture.sh` at `6472aacdb01fa214ea7a3b35b867c31c09627d6e` (historical source), `scripts/acceptance/parity-divergence.sh` at `6472aacdb01fa214ea7a3b35b867c31c09627d6e` (historical source). (Singular. The gate resolves lanes by path, so a lane named in a plan and absent on disk is the cheapest possible route to a shrunken denominator.)
 
 **Fixtures.** Each of the 24 files is a recorded body. The recorded set carries no status — that
 is exactly deferred child D-a. The lane replays the request each fixture was captured from against
@@ -130,7 +130,7 @@ recorded as `proven-by-suite` with the test named, which is a weaker verdict and
 
 ## P5 · Pool lane, and the blocked rows
 
-**Deliver:** `scripts/acceptance/parity-pool.sh`.
+**Deliver:** `scripts/acceptance/parity-pool.sh` (planned deliverable: Create).
 
 Spawn/reap is the one behavioural corpus partially reachable without a daemon: `UpstreamPool` is a
 library actor and can be driven in-process by a small oracle, the way `ControlDiff` drives the
@@ -173,7 +173,7 @@ deferred child **R4-C** so it is scheduled rather than forgotten.
 | Lint | `make lint` — **assert the file count is non-zero**; `.swiftformat` excludes `.worktrees`, so a clean lint from inside the worktree can mean nothing was examined |
 | Parity vectors | `make parity` — floor 358 |
 | Shell | `shellcheck` on every new script |
-| The gate itself | `scripts/acceptance/parity-gate.sh` — **expected to exit 1**, with **50 of 81** |
+| The gate itself | `scripts/acceptance/parity-gate.sh` at `6472aacdb01fa214ea7a3b35b867c31c09627d6e` (historical source) — **expected to exit 1**, with **50 of 81** |
 
 ### Affected-test sweep
 

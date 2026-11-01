@@ -11,7 +11,7 @@ different worktrees — not by reading the test.
 
 ## What is wrong
 
-`app/Tests/RouterCoreTests/PoolReapingTests.swift:61`, the test named *P6 — a per-server
+`app/Tests/RouterCoreTests/PoolReapingTests.swift:61` at `305aec8072ec5152aac59a291d022cfe86a4c44a` (historical source), the test named *P6 — a per-server
 idle window overrides the default*, released a lease on a server configured with
 `idleMs: 25`, slept 150 milliseconds and asserted the upstream had been reaped:
 
@@ -418,7 +418,7 @@ An earlier draft wrote 950; the addition is the check.
 
 ## Scope
 
-`app/Sources/RouterCore/Pool/UpstreamPool.swift` and `PoolEntry.swift` (observation only),
+`app/Sources/RouterCore/Pool/UpstreamPool.swift` at `305aec8072ec5152aac59a291d022cfe86a4c44a` (historical source) and `PoolEntry.swift` (observation only),
 and the four pool test files — the gap-fix adds `awaitEvent` and its standing constraint to
 `PoolTestSupport.swift`, five call sites across the three suites, and two doc comments on
 `UpstreamPool.swift` recording that the accessors are unbounded by construction, and

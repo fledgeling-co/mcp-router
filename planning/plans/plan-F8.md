@@ -6,24 +6,24 @@
 
 | # | File | What |
 |---|---|---|
-| 1 | `app/Sources/RouterCore/Profiles/ProfileRecord.swift` (new) | The record, its refusal type, and the `ProfileStoring` port. No Codable — hand-built `JSONValue`, as `no-wire-codable.sh` requires. |
-| 2 | `app/Sources/RouterCore/Profiles/ProfileStore.swift` (new) | `DiskProfileStore` under `<router home>/profiles`. Read, list, write, remove-to-`.removed`. Refusals decided before any byte lands. |
-| 3 | `app/Sources/RouterCore/Profiles/SkillRootInventory.swift` (new) | One harness skill root, classified entry by entry. `SkillRootReading` is the seam; `DiskSkillRoots` is the real one. Read-only. |
-| 4 | `app/Sources/RouterCore/Profiles/SkillRootLocation.swift` (new; planned as plural `SkillRootLocations.swift`, landed singular) | Where each `MCPClient`'s skill root is, with the provenance of the reading — spec §1.1's table, transcribed the way `HTTPCapability.known(for:)` transcribes R7 §1.2. |
-| 5 | `app/Sources/RouterCore/Profiles/ProfileProjection.swift` (new) | Profile × store listing × inventories → `ProfileStep`s carrying `ProfileReach`. `render()` in `ReconciliationPlan`'s not-a-patch shape. |
-| 6 | `app/Sources/RouterCore/Control/ControlProfiles.swift` (new) | Route dispatch for the `/profiles` family. The write is a **POST**: `isMutating` is `POST \|\| DELETE \|\| PATCH` and PUT is not in it, so a PUT route here would be the first unauthenticated write in the API. |
-| 7 | `app/Sources/RouterCore/Control/ControlProfilesJSON.swift` (new) | The bodies. Fixed member order; an unobserved figure is `null`, never `0`. |
-| 8 | `app/Sources/RouterCore/Control/ControlToken.swift` | `/profiles` and `/profiles/` claimed by `isControlPath`. |
-| 9 | `app/Sources/RouterCore/Control/ControlPorts.swift` | `ControlDeps.profiles` and `.skillRoots`, both optional for the reason `extensions` is. |
-| 10 | `app/Sources/RouterCore/Control/ControlHandler.swift` | One arm in `routeReading`, not in `handle` — `handle` is at the complexity cap. |
-| 11 | `app/Sources/RouterCore/Service/RouterServiceDispatch.swift` | Supply both in the one process that ships. The line the acceptance lane exists to see missing. |
-| 12 | `app/Tests/RouterCoreTests/ProfileStoreTests.swift` (new) | A1, A2. |
-| 13 | `app/Tests/RouterCoreTests/SkillRootInventoryTests.swift` (new) | A3, A4. |
-| 14 | `app/Tests/RouterCoreTests/ProfileProjectionTests.swift` (new) | A5. |
-| 15 | `app/Tests/RouterCoreTests/ControlProfileRoutesTests.swift` (new) | The routes through `ControlHandler.handle`. |
-| 16 | `scripts/lint/no-harness-skill-writes.sh` (new) + selftest | A6. |
+| 1 | `app/Sources/RouterCore/Profiles/ProfileRecord.swift` at `735a5de5fdad909aaa351ec9948f1522fcf93c0b` (historical source) (new) | The record, its refusal type, and the `ProfileStoring` port. No Codable — hand-built `JSONValue`, as `no-wire-codable.sh` requires. |
+| 2 | `app/Sources/RouterCore/Profiles/ProfileStore.swift` at `735a5de5fdad909aaa351ec9948f1522fcf93c0b` (historical source) (new) | `DiskProfileStore` under `<router home>/profiles`. Read, list, write, remove-to-`.removed`. Refusals decided before any byte lands. |
+| 3 | `app/Sources/RouterCore/Profiles/SkillRootInventory.swift` at `735a5de5fdad909aaa351ec9948f1522fcf93c0b` (historical source) (new) | One harness skill root, classified entry by entry. `SkillRootReading` is the seam; `DiskSkillRoots` is the real one. Read-only. |
+| 4 | `app/Sources/RouterCore/Profiles/SkillRootLocation.swift` at `a920379d0bead731a3f343b4d530ad89a5bfec13` (historical source) (new; planned as plural `SkillRootLocations.swift`, landed singular) | Where each `MCPClient`'s skill root is, with the provenance of the reading — spec §1.1's table, transcribed the way `HTTPCapability.known(for:)` transcribes R7 §1.2. |
+| 5 | `app/Sources/RouterCore/Profiles/ProfileProjection.swift` at `735a5de5fdad909aaa351ec9948f1522fcf93c0b` (historical source) (new) | Profile × store listing × inventories → `ProfileStep`s carrying `ProfileReach`. `render()` in `ReconciliationPlan`'s not-a-patch shape. |
+| 6 | `app/Sources/RouterCore/Control/ControlProfiles.swift` at `735a5de5fdad909aaa351ec9948f1522fcf93c0b` (historical source) (new) | Route dispatch for the `/profiles` family. The write is a **POST**: `isMutating` is `POST \|\| DELETE \|\| PATCH` and PUT is not in it, so a PUT route here would be the first unauthenticated write in the API. |
+| 7 | `app/Sources/RouterCore/Control/ControlProfilesJSON.swift` at `735a5de5fdad909aaa351ec9948f1522fcf93c0b` (historical source) (new) | The bodies. Fixed member order; an unobserved figure is `null`, never `0`. |
+| 8 | `app/Sources/RouterCore/Control/ControlToken.swift` at `735a5de5fdad909aaa351ec9948f1522fcf93c0b` (historical source) | `/profiles` and `/profiles/` claimed by `isControlPath`. |
+| 9 | `app/Sources/RouterCore/Control/ControlPorts.swift` at `735a5de5fdad909aaa351ec9948f1522fcf93c0b` (historical source) | `ControlDeps.profiles` and `.skillRoots`, both optional for the reason `extensions` is. |
+| 10 | `app/Sources/RouterCore/Control/ControlHandler.swift` at `735a5de5fdad909aaa351ec9948f1522fcf93c0b` (historical source) | One arm in `routeReading`, not in `handle` — `handle` is at the complexity cap. |
+| 11 | `app/Sources/RouterCore/Service/RouterServiceDispatch.swift` at `735a5de5fdad909aaa351ec9948f1522fcf93c0b` (historical source) | Supply both in the one process that ships. The line the acceptance lane exists to see missing. |
+| 12 | `app/Tests/RouterCoreTests/ProfileStoreTests.swift` at `735a5de5fdad909aaa351ec9948f1522fcf93c0b` (historical source) (new) | A1, A2. |
+| 13 | `app/Tests/RouterCoreTests/SkillRootInventoryTests.swift` at `735a5de5fdad909aaa351ec9948f1522fcf93c0b` (historical source) (new) | A3, A4. |
+| 14 | `app/Tests/RouterCoreTests/ProfileProjectionTests.swift` at `735a5de5fdad909aaa351ec9948f1522fcf93c0b` (historical source) (new) | A5. |
+| 15 | `app/Tests/RouterCoreTests/ControlProfileRoutesTests.swift` at `735a5de5fdad909aaa351ec9948f1522fcf93c0b` (historical source) (new) | The routes through `ControlHandler.handle`. |
+| 16 | `scripts/lint/no-harness-skill-writes.sh` at `735a5de5fdad909aaa351ec9948f1522fcf93c0b` (historical source) (new) + selftest | A6. |
 | 17 | `scripts/acceptance/f8-profiles.sh` (new), enrolled in `acceptance-lanes.sh` | A7 — the daemon's own socket. |
-| 18 | `planning/parity/surface.tsv` | One declared-divergence row per new route. |
+| 18 | `planning/parity/surface.tsv` at `735a5de5fdad909aaa351ec9948f1522fcf93c0b` (historical source) | One declared-divergence row per new route. |
 | 19 | `planning/test-campaign/cases.in.json`, `cases.json` | The campaign cases. |
 
 ## Test seams

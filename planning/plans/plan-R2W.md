@@ -261,7 +261,7 @@ Four observations per binary: it ran at load; touching the watched file ran it a
 stay resident; which streams carry bytes. Same scratch labels, same bootout-on-every-path cleanup,
 and the same seeding as `cli-watch` scenario 2 so no real router is restarted.
 
-**`planning/parity/surface.tsv`** — the three verdicts move to `proven` and the owner to `-`,
+**`planning/parity/surface.tsv` at `93cbbf2ab40df86e6d1c909386ff36b8eaccab20` (historical source)** — the three verdicts move to `proven` and the owner to `-`,
 **after** the lanes have reported. `parity-manifest-check.sh` is untouched: it derives control and
 fixture rows from source, and these are cli/divergence/install rows.
 

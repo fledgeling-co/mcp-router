@@ -272,7 +272,7 @@ but that was *measured* rather than assumed, which is the only form the claim is
 
 One thing worth stating plainly for whoever merges: `git diff main --name-only` now lists
 `ORCHESTRATOR.md`, and that is **main's** change, not this branch's. The files this item's own commits
-touch contain neither `ORCHESTRATOR.md` nor `scripts/acceptance/parity-gate.sh`, verified against the
+touch contain neither `ORCHESTRATOR.md` nor `scripts/acceptance/parity-gate.sh` at `0908d83eeb14f97d8e7378757fdafbb649cc0b21` (historical source), verified against the
 merge base rather than against a moving tip.
 
 

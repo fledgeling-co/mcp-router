@@ -24,7 +24,7 @@ formulation under which the answer comes out green.
 
 ## What counts as one whole-gate pass
 
-One invocation of `scripts/acceptance/parity-gate.sh` with `PARITY_LANES` **unset**, so all sixteen
+One invocation of `scripts/acceptance/parity-gate.sh` at `2c333705bf6adb39cfe890375224615d2012f979` (historical source) with `PARITY_LANES` **unset**, so all sixteen
 lanes are dispatched, which:
 
 1. **exits 0 or 1, never 2.** Exit 2 is the gate saying a lane could not run, and a skipped lane is

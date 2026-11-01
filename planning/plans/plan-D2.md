@@ -164,7 +164,7 @@ easier one.
 
 ## Phase 9 — gates
 
-`make lint` · `make test` · `make build-mac` · `scripts/acceptance/parity-manifest-check.sh` ·
+`make lint` · `make test` · `make build-mac` · `scripts/acceptance/parity-manifest-check.sh` at `f2f2ef70d58f762afd57f0ffec7b7945fc6e0de0` (historical source) ·
 `make parity-selftest` · `mac-shell.sh` · `m8-settings-menubar.sh` · `m7-evals-cleanup.sh` ·
 `m6-inbox-pairing.sh`.
 

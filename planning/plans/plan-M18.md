@@ -127,7 +127,7 @@ title, what it will show, and one sentence saying the router does not yet report
 out-of-family review called an excuse against the repo's own two precedents — correctly. And
 **rather than** adding the endpoint here: a new control route is not one file. It needs the Swift
 handler, the node equivalent in `src/control.ts`, a wire type, a client method, a fixture, and it
-has to pass `scripts/acceptance/parity-control.sh`, which gates the two router implementations
+has to pass `scripts/acceptance/parity-control.sh` at `706cefb73e9cf9cddae6aee252f09d27532e29da` (historical source), which gates the two router implementations
 against each other. That is router work with its own parity surface, and it stays out of scope
 (§12).
 
@@ -486,7 +486,7 @@ added after the out-of-family review found §11's first version incomplete.
 - `readme` and its Markdown renderer (M19); `reconcile`, `recommendation`, `analyzer` and their
   boards (M22); the Router menu that would host Stop Router (M20).
 - A control-API endpoint for the child environment (§4.1) — router work with a parity surface of
-  its own (`scripts/acceptance/parity-control.sh`), not a one-file addition.
+  its own (`scripts/acceptance/parity-control.sh` at `706cefb73e9cf9cddae6aee252f09d27532e29da` (historical source)), not a one-file addition.
 - A `publisher` field on `RegistryEntry`, and Discover's Publisher segmented filter (§4.3, D1).
 - Multi-select removal on Cleanup (§4.2).
 - Fidelity surfaces for `pair`, `add-server`, `add-marketplace`, `capability-delta`,
@@ -555,7 +555,7 @@ is a failed review. Verdict: **AMEND**, seven findings.
   next reader does not have to re-derive it.
 - **"Add the minimal `GET /env/path` endpoint — it is trivial."** Rejected on measurement rather
   than on scope. It needs the Swift handler, the node equivalent, a wire type, a client method, a
-  fixture, and it must pass `scripts/acceptance/parity-control.sh`, which gates two independent
+  fixture, and it must pass `scripts/acceptance/parity-control.sh` at `706cefb73e9cf9cddae6aee252f09d27532e29da` (historical source), which gates two independent
   router implementations against each other. The reviewer offered a second option in the same
   row — draw the sheet with an honest status card — and that one is taken.
 - **"Show counts grouped by `source` instead of publisher."** Rejected by the repo's own note:

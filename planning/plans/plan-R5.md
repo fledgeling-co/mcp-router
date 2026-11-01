@@ -260,7 +260,7 @@ the final enum.
 P3 named `CallbackListener.swift` and the first pass did not write it: `CallbackListening` shipped as
 a protocol plus a test double, so all five terminations, the non-termination and both pre-flow
 failures were proven against something that binds no port. Delivered now as
-`app/Sources/RouterCore/Auth/CallbackListener.swift` — `LoopbackCallbackListener`, an `NWListener` on
+`app/Sources/RouterCore/Auth/CallbackListener.swift` at `a13a0d7081f7a8486b26b0c0a4311121e7c69f74` (historical source) — `LoopbackCallbackListener`, an `NWListener` on
 IPv4 loopback, no new dependency. The request semantics stay in `CallbackResponder`; this type reads
 a request target off the wire, hands it to the flow's handler and writes back the `CallbackReply`.
 

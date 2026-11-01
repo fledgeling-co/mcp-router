@@ -111,7 +111,7 @@ Run on this worktree with the working tree in its committed state.
 | `make lint` — `no-harness-config-writes` | 327 examined, 8 name a config, 22 write, 8 in the seam, none writes one | — |
 | `make lint` — selftest | **27 case(s) held** | 27 held ✔ |
 | `planning/ledger-reconcile.py` | **reconciled — no findings across A–L**, exit 0 | 0 across A–L ✔ |
-| `scripts/acceptance/parity-manifest-check.sh` | **exit 0, 92 rows** | exit 0, 92 rows ✔ |
+| `scripts/acceptance/parity-manifest-check.sh` at `090056edbecf2aaabdd72454e7d5fdfa064590c8` (historical source) | **exit 0, 92 rows** | exit 0, 92 rows ✔ |
 
 `make lint` exits 0.
 

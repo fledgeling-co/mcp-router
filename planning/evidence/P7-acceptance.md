@@ -10,7 +10,7 @@ records what was measured, what was not, and what could not be.
 
 | Claim | How it was checked | Result |
 |---|---|---|
-| The only conformer to `AuthTransport` is a test fake | `grep -rn "AuthTransport" --include="*.swift"` | True. `FakeAuthTransport` in `app/Tests/RouterCoreTests/AuthParityTests.swift:99` was the only one; `RouterServiceDispatch` passed `authFlow: nil` and `ControlAuthDispatch.authorize` returned `nil`, leaving the 405 |
+| The only conformer to `AuthTransport` is a test fake | `grep -rn "AuthTransport" --include="*.swift"` | True. `FakeAuthTransport` in `app/Tests/RouterCoreTests/AuthParityTests.swift:99` at `05ef8db27bb69911168c4cefc1c465863281d3a4` (historical source) was the only one; `RouterServiceDispatch` passed `authFlow: nil` and `ControlAuthDispatch.authorize` returned `nil`, leaving the 405 |
 | The vendored Swift SDK cannot produce the reference's byte string | read `node_modules/@modelcontextprotocol/sdk/dist/esm/client/auth.js:689` (`startAuthorization`) against the SDK's `OAuthAuthorizationCodeFlow` | True. The reference sets `response_type, client_id, code_challenge, code_challenge_method, redirect_uri`, then `state` **only if the provider implements it**, then `resource`. `FileOAuthProvider` implements no `state`, so none is emitted |
 
 Both stand. The route needed a client written for it.
@@ -38,20 +38,20 @@ settled, and all three are in the shipped client:
 
 | File | What it is |
 |---|---|
-| `app/Sources/RouterCore/Auth/OAuthWire.swift` | The `URLSearchParams` serializer, URL arithmetic, `checkResourceAllowed`, and the `WWW-Authenticate` field reader |
-| `app/Sources/RouterCore/Auth/OAuthPKCE.swift` | A 43-character verifier over `pkce-challenge`'s own mask, and the unpadded base64url S256 challenge |
-| `app/Sources/RouterCore/Auth/OAuthMetadata.swift` | The two metadata documents, and the schema reorder-and-strip for the two responses that reach disk |
-| `app/Sources/RouterCore/Auth/OAuthDiscovery.swift` | RFC 9728 then RFC 8414, with the reference's fallbacks and candidate order |
-| `app/Sources/RouterCore/Auth/OAuthHTTP.swift` | The request/response types and the ephemeral `URLSession` client |
-| `app/Sources/RouterCore/Auth/OAuthTokenRequest.swift` | Dynamic registration, the code exchange, the refresh grant, client authentication |
-| `app/Sources/RouterCore/Auth/OAuthClient.swift` | The `AuthTransport` conformer — the first outside the test target |
-| `app/Sources/RouterCore/Auth/OAuthFlowStarter.swift` | The `AuthFlowStarting` conformer the daemon supplies, and the authorization-URL box |
-| `scripts/acceptance/parity-oauth.sh` | The lane |
+| `app/Sources/RouterCore/Auth/OAuthWire.swift` at `05ef8db27bb69911168c4cefc1c465863281d3a4` (historical source) | The `URLSearchParams` serializer, URL arithmetic, `checkResourceAllowed`, and the `WWW-Authenticate` field reader |
+| `app/Sources/RouterCore/Auth/OAuthPKCE.swift` at `05ef8db27bb69911168c4cefc1c465863281d3a4` (historical source) | A 43-character verifier over `pkce-challenge`'s own mask, and the unpadded base64url S256 challenge |
+| `app/Sources/RouterCore/Auth/OAuthMetadata.swift` at `05ef8db27bb69911168c4cefc1c465863281d3a4` (historical source) | The two metadata documents, and the schema reorder-and-strip for the two responses that reach disk |
+| `app/Sources/RouterCore/Auth/OAuthDiscovery.swift` at `05ef8db27bb69911168c4cefc1c465863281d3a4` (historical source) | RFC 9728 then RFC 8414, with the reference's fallbacks and candidate order |
+| `app/Sources/RouterCore/Auth/OAuthHTTP.swift` at `05ef8db27bb69911168c4cefc1c465863281d3a4` (historical source) | The request/response types and the ephemeral `URLSession` client |
+| `app/Sources/RouterCore/Auth/OAuthTokenRequest.swift` at `05ef8db27bb69911168c4cefc1c465863281d3a4` (historical source) | Dynamic registration, the code exchange, the refresh grant, client authentication |
+| `app/Sources/RouterCore/Auth/OAuthClient.swift` at `05ef8db27bb69911168c4cefc1c465863281d3a4` (historical source) | The `AuthTransport` conformer — the first outside the test target |
+| `app/Sources/RouterCore/Auth/OAuthFlowStarter.swift` at `05ef8db27bb69911168c4cefc1c465863281d3a4` (historical source) | The `AuthFlowStarting` conformer the daemon supplies, and the authorization-URL box |
+| `scripts/acceptance/parity-oauth.sh` at `05ef8db27bb69911168c4cefc1c465863281d3a4` (historical source) | The lane |
 | `scripts/acceptance/p7-mutations.sh` | The mutation gate over that lane |
 
 ## 4. The lane, and what it compares
 
-`scripts/acceptance/parity-oauth.sh` starts a fixture provider, runs the **reference** router
+`scripts/acceptance/parity-oauth.sh` at `05ef8db27bb69911168c4cefc1c465863281d3a4` (historical source) starts a fixture provider, runs the **reference** router
 through one whole authorization, stops it, waits for the ports to become bindable again, and runs
 the **Swift** router through the same one. 21 checks, `examined=21 failures=0`:
 
@@ -166,15 +166,15 @@ repo's `.gitignore` already anticipates the first; the second was added in the s
 | `make test` | **1490 tests / 184 suites**, 0 failures. `main` is 1467/178, so this adds 23 |
 | `make parity` | 358 vector cases compared, floor 358 |
 | `make build-mac` | `** BUILD SUCCEEDED **` |
-| `scripts/acceptance/parity-oauth.sh` | **21 checks passed, 0 failed** — `examined=21 failures=0` |
+| `scripts/acceptance/parity-oauth.sh` at `6b66431f1fd4196739db762f3fc74a442f1e2778` (historical source) | **21 checks passed, 0 failed** — `examined=21 failures=0` |
 | `scripts/acceptance/p7-mutations.sh` | **6 mutations × 5 trials = 30 lane runs, 30 red** |
 | `scripts/acceptance/p1-auth-routes.sh` | 13 passed, 0 failed |
-| `scripts/acceptance/parity-manifest-check.sh` | 83 rows, consistent with source, exit 0 |
-| `scripts/acceptance/parity-manifest-selftest.sh` | 36 behaved, 0 did not |
-| `scripts/acceptance/parity-lock-selftest.sh` | 12 held, 0 did not |
-| `scripts/acceptance/parity-normalise-selftest.sh` | 14 behaved, 0 did not |
-| `scripts/acceptance/parity-lane-selftest.sh` | exit 0, every seeded lane went red, failability **16 of 19** — unchanged, and the roll-up now names where this row's failability is proved instead |
-| `scripts/acceptance/parity-gate.sh` | **80 of 83 proven, 3 blocked, 0 DIVERGED.** Exits 1 by design while any row is blocked |
+| `scripts/acceptance/parity-manifest-check.sh` at `6b66431f1fd4196739db762f3fc74a442f1e2778` (historical source) | 83 rows, consistent with source, exit 0 |
+| `scripts/acceptance/parity-manifest-selftest.sh` at `6b66431f1fd4196739db762f3fc74a442f1e2778` (historical source) | 36 behaved, 0 did not |
+| `scripts/acceptance/parity-lock-selftest.sh` at `6b66431f1fd4196739db762f3fc74a442f1e2778` (historical source) | 12 held, 0 did not |
+| `scripts/acceptance/parity-normalise-selftest.sh` at `6b66431f1fd4196739db762f3fc74a442f1e2778` (historical source) | 14 behaved, 0 did not |
+| `scripts/acceptance/parity-lane-selftest.sh` at `6b66431f1fd4196739db762f3fc74a442f1e2778` (historical source) | exit 0, every seeded lane went red, failability **16 of 19** — unchanged, and the roll-up now names where this row's failability is proved instead |
+| `scripts/acceptance/parity-gate.sh` at `6b66431f1fd4196739db762f3fc74a442f1e2778` (historical source) | **80 of 83 proven, 3 blocked, 0 DIVERGED.** Exits 1 by design while any row is blocked |
 
 ### The gate's own count moved with the row
 

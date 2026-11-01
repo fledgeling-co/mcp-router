@@ -57,7 +57,7 @@ MAIN_PID=$$
 # that killed the router mid-run would otherwise drop the lock mid-run, letting a second run bind
 # :8973 underneath this one. `parity_lock_release` carries its own BASHPID guard as well, so this
 # is belt and braces on the failure this script already paid for once.
-. "$REPO_ROOT/scripts/acceptance/parity-lock.sh"
+. "$REPO_ROOT/scripts/acceptance/acceptance-lock.sh"
 cleanup() {
   [ "$BASHPID" != "$MAIN_PID" ] && return 0
   parity_lock_release

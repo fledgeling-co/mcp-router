@@ -106,21 +106,12 @@ LANES=(
     control-client.sh
     p1-auth-routes.sh
     mac-shell.sh
-    r7-harness-reconciliation.sh
     m22-boards.sh
     menu-badge-lane.sh
     menu-badge-lane-selftest.sh
     menu-reason-plane.sh
     menu-reason-plane-selftest.sh
-    r27-health.sh
     r28-extensions.sh
-    r31-caches.sh
-    f8-profiles.sh
-    r32-desktop-entry.sh
-    r32-desktop-entry-selftest.sh
-    r30-ingest.sh
-    r22-diagnostics.sh
-    r26-auth-expiry.sh
     f6-updates.sh
     pairing-loopback.sh
 )
@@ -144,13 +135,13 @@ fi
 # — a measurement whose conditions are unrecoverable, which cannot be compared with any other run
 # and so cannot be a ledger. These two lines are printed before the lanes and again under the
 # table, so a pasted table carries them.
-STAMP_CLI="app/.build/debug/MCPRouterCLI"
+STAMP_CLI="dist/index.js"
 environment_stamp() {
     local cli_line plane_line probe
-    if [ -x "$ROOT/$STAMP_CLI" ]; then
+    if [ -f "$ROOT/$STAMP_CLI" ]; then
         cli_line="present — $STAMP_CLI, built $(date -r "$ROOT/$STAMP_CLI" '+%Y-%m-%d %H:%M:%S' 2>/dev/null || echo 'mtime unreadable')"
     else
-        cli_line="absent — no $STAMP_CLI (p1-auth-routes.sh and r7-harness-reconciliation.sh block on this alone)"
+        cli_line="absent — no $STAMP_CLI (build the retained TypeScript router)"
     fi
     probe="$LANES_WORK/window-plane"
     plane_line="unknown — swiftc unavailable, so the window plane was never probed"
@@ -166,10 +157,23 @@ environment_stamp() {
             plane_line="yes — $total on-screen windows, $named named"
         fi
     fi
-    echo "ACCEPTANCE-ENV: MCPRouterCLI in .build: $cli_line"
+    echo "ACCEPTANCE-ENV: TypeScript router artifact: $cli_line"
     echo "ACCEPTANCE-ENV: window plane composites: $plane_line"
 }
 
+# Scope exceptions remain visible; these target the explicitly retired Swift implementation/CLI.
+RETIRED_SWIFT_LANES=(
+    r7-harness-reconciliation.sh
+    r27-health.sh
+    r31-caches.sh
+    f8-profiles.sh
+    r32-desktop-entry.sh
+    r32-desktop-entry-selftest.sh
+    r30-ingest.sh
+    r22-diagnostics.sh
+    r26-auth-expiry.sh
+)
+printf 'RETIRED-SWIFT-LANES: %s (owner-approved drop list, plan-retire-swift-router.md)\n' "${RETIRED_SWIFT_LANES[*]}"
 ENROLLED=${#LANES[@]}
 names=()
 codes=()

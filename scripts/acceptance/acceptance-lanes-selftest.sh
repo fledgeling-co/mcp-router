@@ -255,7 +255,7 @@ plant a.sh 0; plant b.sh 0
 run_lanes "a.sh b.sh"
 env_lines="$(echo "$OUT" | grep -c '^ACCEPTANCE-ENV: ')"
 [ "$env_lines" -eq 4 ] || note_fail "expected 4 ACCEPTANCE-ENV lines (2 facts x preamble+footer), saw $env_lines"
-echo "$OUT" | grep -q '^ACCEPTANCE-ENV: MCPRouterCLI in .build: ' \
+echo "$OUT" | grep -q '^ACCEPTANCE-ENV: TypeScript router artifact: ' \
     || note_fail "no ACCEPTANCE-ENV line names whether MCPRouterCLI was built"
 echo "$OUT" | grep -q '^ACCEPTANCE-ENV: window plane composites: ' \
     || note_fail "no ACCEPTANCE-ENV line names whether the session composites windows"

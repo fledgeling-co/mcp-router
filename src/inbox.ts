@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from '
 import { dirname } from 'node:path';
 import type { RawServer } from './config.js';
 import type { RegistryEntry } from './registry.js';
+import { withExclusiveLock, lockTimeoutMs, DAEMON_TIMEOUT_MS } from './lock.js';
 
 /*
  * The picks a phone has sent this router, held until a Mac or Windows reviewer decides them
@@ -79,11 +80,13 @@ export class InboxStore {
    * returns, so a receipt means the row is on disk.
    */
   add(input: NewInboxRow): 'waiting' | 'duplicate' {
-    const rows = this.rows();
-    if (rows.some((r) => r.id === input.id)) return 'duplicate';
-    rows.push({ ...input, state: 'waiting', reviewDigest: reviewDigestOf(input.resolved) });
-    this.write(retain(rows));
-    return 'waiting';
+    return withExclusiveLock(this.path, lockTimeoutMs(DAEMON_TIMEOUT_MS), () => {
+      const rows = this.rows();
+      if (rows.some((r) => r.id === input.id)) return 'duplicate';
+      rows.push({ ...input, state: 'waiting', reviewDigest: reviewDigestOf(input.resolved) });
+      this.write(retain(rows));
+      return 'waiting';
+    });
   }
 
   /** The row for one id, or undefined when the inbox holds none. */
@@ -96,12 +99,14 @@ export class InboxStore {
    * nothing. The row just decided is never the one retention drops, so a decision cannot make its own row vanish.
    */
   setState(id: string, state: InboxState): boolean {
-    const rows = this.rows();
-    const row = rows.find((r) => r.id === id);
-    if (!row) return false;
-    row.state = state;
-    this.write(retain(rows, id));
-    return true;
+    return withExclusiveLock(this.path, lockTimeoutMs(DAEMON_TIMEOUT_MS), () => {
+      const rows = this.rows();
+      const row = rows.find((r) => r.id === id);
+      if (!row) return false;
+      row.state = state;
+      this.write(retain(rows, id));
+      return true;
+    });
   }
 
   /** Rewrite the file 0600, through a temporary file, so a failed write leaves the previous file whole. */

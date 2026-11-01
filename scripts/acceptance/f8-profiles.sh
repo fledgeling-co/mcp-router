@@ -38,7 +38,7 @@ pass=0
 fail=0
 declare -a failures=()
 
-. "$REPO_ROOT/scripts/acceptance/parity-lock.sh"
+. "$REPO_ROOT/scripts/acceptance/acceptance-lock.sh"
 
 cleanup() {
   parity_lock_release

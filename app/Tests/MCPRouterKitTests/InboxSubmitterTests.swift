@@ -42,10 +42,17 @@ private actor InboxTestChannel: PairingChannel {
     var verified = false
     var dropFirstReceipt: Bool
     var submits = 0
-    init(key: P256.Signing.PublicKey, refuses: Bool = false, dropFirstReceipt: Bool = false) {
+    var transientReason: String?
+    init(
+        key: P256.Signing.PublicKey,
+        refuses: Bool = false,
+        dropFirstReceipt: Bool = false,
+        transientReason: String? = nil
+    ) {
         self.key = key
         self.refuses = refuses
         self.dropFirstReceipt = dropFirstReceipt
+        self.transientReason = transientReason
     }
 
     func send(_ frame: Data) async throws {
@@ -70,6 +77,10 @@ private actor InboxTestChannel: PairingChannel {
 
     func receive() async throws -> Data {
         receives += 1
+        if let reason = transientReason {
+            transientReason = nil
+            return try InboxFrame.encode(["type": "inbox.refused", "v": 1, "reason": reason])
+        }
         if refuses {
             return try InboxFrame.encode(["type": "inbox.refused", "v": 1, "reason": "unknownPhone"])
         }
@@ -204,5 +215,69 @@ extension InboxSubmitterTests {
             Issue.record("missing key was accepted")
         } catch { #expect(error as? InboxSubmitError == .needsPairing) }
         #expect(await channel.receives == 1)
+    }
+}
+
+extension InboxSubmitterTests {
+    @Test func transientNonceRefusalDoesNotRequirePairingAgain() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let queue = FileCapabilityQueueWriter(directory: directory)
+        try await queue.enqueue(QueuedCapability(
+            id: "atlas",
+            displayName: "Atlas",
+            source: .official,
+            install: nil,
+            queuedAt: Date()
+        ))
+        let key = P256.Signing.PrivateKey()
+        let channel = InboxTestChannel(key: key.publicKey, transientReason: "staleNonce")
+        let mac = PairedMac(
+            name: "Mac",
+            pairedAt: Date(),
+            lastSeen: nil,
+            host: "localhost",
+            port: 7333,
+            fingerprint: "SHA256:test",
+            phoneID: "phone-1"
+        )
+        let sender = InboxSubmitter(
+            queue: queue,
+            records: InMemoryPairingStore(.loaded(mac)),
+            keys: InboxTestKeys(key: key),
+            transport: InboxTestTransport(channel: channel)
+        )
+        await #expect(throws: InboxSubmitError.refused("staleNonce")) { try await sender.submitPending() }
+        #expect(try await queue.all().first?.receiptAt == nil)
+        try await sender.submitPending()
+        #expect(try await queue.all().first?.receiptAt != nil)
+    }
+
+    @Test func multibytePicksSplitBelowWireByteLimit() throws {
+        let picks = (0 ..< 50).map { index in
+            QueuedCapability(
+                id: "row-\(index)-" + String(repeating: "🦘", count: 180),
+                displayName: String(repeating: "🦘", count: 180),
+                source: .official,
+                install: nil,
+                queuedAt: Date(timeIntervalSince1970: 123)
+            )
+        }
+        let batches = try InboxFrame.batches(picks, phoneID: "phone-1")
+        #expect(batches.count > 1)
+        #expect(batches.flatMap(\.self).map(\.id) == picks.map(\.id))
+        for batch in batches {
+            let frame = try InboxFrame.encode([
+                "type": "inbox.submit",
+                "v": 1,
+                "phoneId": "phone-1",
+                "nonce": String(repeating: "n", count: 43),
+                "sig": String(repeating: "s", count: 96),
+                "items": InboxFrame.items(batch)
+            ])
+            #expect(frame.count <= InboxFrame.maxBodyLength + 4)
+            #expect(batch.count <= 50)
+        }
     }
 }

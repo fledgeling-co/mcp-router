@@ -26,7 +26,7 @@ ROUTER_PID=""
 
 # D-g1-g. Binds :8973, which parity-control.sh reaches through control-differential.sh, so this
 # script contends with a full gate run even though it is not one of its lanes.
-. "$ROOT/scripts/acceptance/parity-lock.sh"
+. "$ROOT/scripts/acceptance/acceptance-lock.sh"
 
 cleanup() {
   parity_lock_release

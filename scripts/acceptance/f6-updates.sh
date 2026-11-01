@@ -34,7 +34,7 @@
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-SWIFT_BIN="${SWIFT_BIN:-$REPO_ROOT/app/.build/debug/MCPRouterCLI}"
+DIST="${MCP_ROUTER_DIST:-$REPO_ROOT/dist}"
 HOME_DIR="$(mktemp -d -t mcprouter-f6)"
 PORT="${PORT:-8991}"
 ROUTER_PID=""
@@ -43,7 +43,7 @@ pass=0
 fail=0
 declare -a failures=()
 
-. "$REPO_ROOT/scripts/acceptance/parity-lock.sh"
+. "$REPO_ROOT/scripts/acceptance/acceptance-lock.sh"
 
 cleanup() {
   parity_lock_release
@@ -55,7 +55,7 @@ trap cleanup EXIT INT TERM HUP
 
 parity_lock_acquire "f6-updates.sh"
 
-[ -x "$SWIFT_BIN" ] || { echo "environment: no MCPRouterCLI at $SWIFT_BIN (run: make build-cli-debug)"; exit 2; }
+[ -f "$DIST/index.js" ] || { echo "environment: build TypeScript first (npm run build)"; exit 2; }
 command -v curl >/dev/null 2>&1 || { echo "environment: curl is not installed"; exit 2; }
 
 # The operator's own tree, stat'ed before anything runs. Read-only, and the denominator for the
@@ -103,7 +103,7 @@ mkdir -p "$STORE/marketplaces/f6-cloned/.git"
 
 printf '{"mcpServers":{}}' >"$HOME_DIR/servers.json"
 
-MCP_ROUTER_HOME="$HOME_DIR" "$SWIFT_BIN" serve --port "$PORT" >"$HOME_DIR/serve.out" 2>&1 &
+MCP_ROUTER_HOME="$HOME_DIR" node "$DIST/index.js" serve --port "$PORT" >"$HOME_DIR/serve.out" 2>&1 &
 ROUTER_PID=$!
 
 health=""
@@ -173,11 +173,8 @@ check "GET /extensions/updates answers"        GET "/extensions/updates" 200 '"s
 check "and it is NOT read as a kind named updates" GET "/extensions/updates" 200 '"checkedAtMs"'
 absent "no 'unknown kind' reply reached the caller" 'no extension kind named'
 check "an unknown kind is still refused"       GET "/extensions/nonsense" 404 'no extension kind named'
-# The control token guards the MUTATING half of the API (`ControlToken`), so an untokened GET is
-# allowed by design and this family has no other verb. Asserted as the design rather than left
-# untested: a lane that expected 401 here would be enforcing a rule this router does not have, and
-# a later change that DID start refusing reads would break every client without a test saying so.
-check "an untokened read is served, as every GET is" GET "/extensions/updates" 200 '"summary"' --no-token
+# Ported extension routes require the control token for reads as well as writes.
+check "an untokened update read is refused" GET "/extensions/updates" 401 '"error"' --no-token
 
 echo
 echo "all eight verdicts, driven against the fixture the real machine cannot produce"

@@ -23,6 +23,39 @@ public enum InboxFrame {
         return withUnsafeBytes(of: &length) { Data($0) } + body
     }
 
+    static func items(_ batch: [QueuedCapability]) throws -> String {
+        let coordinates = batch.map { ["id": $0.id, "displayName": $0.displayName,
+                                       "queuedAt": ISO8601Instant.string(from: $0.queuedAt)] }
+        let data = try JSONSerialization.data(withJSONObject: coordinates, options: [.sortedKeys])
+        guard let text = String(data: data, encoding: .utf8) else { throw InboxSubmitError.malformed }
+        return text
+    }
+
+    /// Bound the encoded wire bytes as well as the 50-item protocol count.
+    static func batches(_ picks: [QueuedCapability], phoneID: String) throws -> [[QueuedCapability]] {
+        var result: [[QueuedCapability]] = []
+        var batch: [QueuedCapability] = []
+        func fits(_ candidate: [QueuedCapability]) throws -> Bool {
+            let fields: [String: Any] = try ["type": "inbox.submit", "v": 1, "phoneId": phoneID,
+                                             "nonce": String(repeating: "n", count: 128),
+                                             "sig": String(repeating: "s", count: 104),
+                                             "items": items(candidate)]
+            return try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys])
+                .count <= maxBodyLength
+        }
+        for pick in picks {
+            if try batch.count == 50 || !fits(batch + [pick]) {
+                guard !batch.isEmpty else { throw InboxSubmitError.refused("frameTooLarge") }
+                result.append(batch)
+                batch = []
+            }
+            batch.append(pick)
+            guard try fits(batch) else { throw InboxSubmitError.refused("frameTooLarge") }
+        }
+        if !batch.isEmpty { result.append(batch) }
+        return result
+    }
+
     static func decode(_ frame: Data) throws -> [String: Any] {
         guard frame.count >= 4 else { throw InboxSubmitError.malformed }
         let length = frame.prefix(4).reduce(0) { ($0 << 8) | Int($1) }
@@ -75,12 +108,13 @@ public actor InboxSubmitter: InboxSubmitting {
         let key: P256.Signing.PrivateKey
         do { key = try await keys.loadExisting() } catch { throw InboxSubmitError.needsPairing }
         do {
-            for start in stride(from: 0, to: pending.count, by: 50) {
-                let batch = Array(pending[start ..< min(start + 50, pending.count)])
+            for batch in try InboxFrame.batches(pending, phoneID: phoneID) {
                 try await send(batch, to: mac, phoneID: phoneID, key: key)
             }
         } catch let error as InboxSubmitError {
-            if case .refused = error { refusedPairing = mac }
+            if case let .refused(reason) = error, ["badSignature", "unknownPhone"].contains(reason) {
+                refusedPairing = mac
+            }
             throw error
         }
     }
@@ -117,10 +151,7 @@ public actor InboxSubmitter: InboxSubmitting {
             let challenge = try await InboxFrame.decode(channel.receive())
             guard challenge["type"] as? String == "inbox.nonce", let nonce = challenge["nonce"] as? String,
                   !nonce.isEmpty else { throw InboxSubmitError.malformed }
-            let coordinates = batch.map { ["id": $0.id, "displayName": $0.displayName,
-                                           "queuedAt": ISO8601Instant.string(from: $0.queuedAt)] }
-            let data = try JSONSerialization.data(withJSONObject: coordinates, options: [.sortedKeys])
-            guard let items = String(data: data, encoding: .utf8) else { throw InboxSubmitError.malformed }
+            let items = try InboxFrame.items(batch)
             let signature = try key.signature(for: Data(InboxFrame.signedString(
                 nonce: nonce,
                 phoneID: phoneID,

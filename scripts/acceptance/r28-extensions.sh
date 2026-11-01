@@ -26,7 +26,7 @@
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-SWIFT_BIN="${SWIFT_BIN:-$REPO_ROOT/app/.build/debug/MCPRouterCLI}"
+DIST="${MCP_ROUTER_DIST:-$REPO_ROOT/dist}"
 HOME_DIR="$(mktemp -d -t mcprouter-r28)"
 PORT="${PORT:-8986}"
 ROUTER_PID=""
@@ -37,7 +37,7 @@ declare -a failures=()
 
 # The machine-wide parity lock: this binds a fixed port, exactly as the parity lanes do, and two
 # runs contending for it is the failure that prints a number nobody could have measured.
-. "$REPO_ROOT/scripts/acceptance/parity-lock.sh"
+. "$REPO_ROOT/scripts/acceptance/acceptance-lock.sh"
 
 cleanup() {
   parity_lock_release
@@ -49,7 +49,7 @@ trap cleanup EXIT INT TERM HUP
 
 parity_lock_acquire "r28-extensions.sh"
 
-[ -x "$SWIFT_BIN" ] || { echo "environment: no MCPRouterCLI at $SWIFT_BIN (run: make build-cli-debug)"; exit 2; }
+[ -f "$DIST/index.js" ] || { echo "environment: build TypeScript first (npm run build)"; exit 2; }
 command -v curl >/dev/null 2>&1 || { echo "environment: curl is not installed"; exit 2; }
 
 # Two servers, so the inventory's `servers` count is a number this script chose rather than
@@ -63,7 +63,7 @@ cat >"$HOME_DIR/servers.json" <<'JSON'
 }
 JSON
 
-MCP_ROUTER_HOME="$HOME_DIR" "$SWIFT_BIN" serve --port "$PORT" >"$HOME_DIR/serve.out" 2>&1 &
+MCP_ROUTER_HOME="$HOME_DIR" node "$DIST/index.js" serve --port "$PORT" >"$HOME_DIR/serve.out" 2>&1 &
 ROUTER_PID=$!
 
 health=""

@@ -36,11 +36,16 @@ public final class InboxDeliveryModel {
                             Pair this phone again in Settings before sending. \
                             Your picks are still queued.
                             """
-                        case .refused:
-                            error = """
-                            Your Mac refused this phone's delivery. \
-                            Pair again in Settings; your picks are still queued.
-                            """
+                        case let .refused(reason):
+                            if ["badSignature", "unknownPhone"].contains(reason) {
+                                error = "Pair this phone again in Settings. Your picks are still queued."
+                            } else if reason == "unsupportedVersion" {
+                                error = "Update both apps to send these picks. Your picks are still queued."
+                            } else if reason == "frameTooLarge" {
+                                error = "A queued pick is too large to send. Nothing was removed from your queue."
+                            } else {
+                                error = "Delivery wasn't confirmed. Your picks remain queued and will retry."
+                            }
                         case .malformed:
                             error = """
                             Your Mac sent a receipt this phone couldn't read. \

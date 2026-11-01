@@ -159,7 +159,8 @@ planning/evidence/WIN19/run/*.msix
 # in a commit.
 planning/evidence/WIN-SHELL/run/router-home/
 
-# Private local reviews and reconciliation artifacts. docs/ is the public site.
+# New owner-local review and reckoning output stays untracked. Previously tracked
+# historical planning/reckoning fixtures remain public and tracked.
 /planning/reviews/
 /planning/reckoning/
 

@@ -35,7 +35,7 @@
             "ChildPathSheet", "DiscoverDetailSheet", "HeldChangeSheet", "HeldVersionSheet",
             "InboxReviewSheet", "MarketplacesSheet", "MissingSubjectSheet", "OfficialMarkSheet",
             "PairingSheet", "PairedDeviceRevokeSheet", "RemoveServerDialog", "RemoveServerSheet",
-            "ResetHistorySheet",
+            "ResetHistorySheet", "SettingsResetHistorySheet",
             "ServerDocumentSheet", "ShimExplanationSheet", "SkillProvenanceSheet", "SkillUpdateReviewSheet"
         ]
 

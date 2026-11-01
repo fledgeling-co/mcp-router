@@ -196,6 +196,37 @@ struct FixtureClientTests {
         #expect(!servers.servers.isEmpty, "the scenario dropped the servers half of the board")
     }
 
+    @Test("cleanupLongReasons serves a full failed-server reason and moved skill provenance")
+    func cleanupLongReasonsPreservesBothKindsOfLongContent() async throws {
+        let subject = FixtureControlAPIClient(.cleanupLongReasons)
+        let servers = try await subject.servers()
+        #expect(servers.servers.count == 1)
+        let server = try #require(servers.servers.first)
+        let detail = try #require(server.indexError)
+        #expect(detail.contains("spawn ENOENT"))
+        #expect(detail.contains("shared-capabilities/bin/registry-helper"))
+        #expect(detail.hasSuffix("Check the installed command path before removing this server."))
+        guard case let .candidate(reason) = CleanupPresentation.candidacy(for: server) else {
+            Issue.record("the long normal reason is not reachable as a Cleanup candidate")
+            return
+        }
+        #expect(reason.count > 250)
+        #expect(reason.hasSuffix(detail))
+
+        let skills = try await subject.skills()
+        #expect(skills.skills.count == 2)
+        #expect(skills.skills.allSatisfy {
+            CleanupPresentation.candidacy(for: $0, clients: skills.clients).isCandidate
+        })
+        let flagged = skills.skills.filter { SkillChecks.originUnchanged($0).verdict == .failed }
+        #expect(flagged.map(\.name) == ["pr-summariser"])
+        let provenance = try #require(flagged.first?.provenance)
+        #expect(provenance.firstSeenSource.hasPrefix("github:acme-tools/"))
+        #expect(provenance.currentSource.hasPrefix("github:maintained-tools/"))
+        #expect(provenance.firstSeenSource.count + provenance.currentSource.count > 150)
+        #expect(provenance.firstSeenAt == "2026-01-09T09:20:00.000Z")
+    }
+
     @Test("the success scenario reports a write that worked")
     func successReportsSuccess() async throws {
         let result = try await FixtureControlAPIClient(.success).reindex("alpha")
@@ -283,7 +314,7 @@ struct FixtureClientTests {
     func everyScenarioIsCovered() {
         let covered: Set<FixtureControlAPIClient.Scenario> = [
             .populated, .empty, .loading, .partial, .error, .success,
-            .offline, .unauthorized, .overflow, .disabled, .cleanupSkills,
+            .offline, .unauthorized, .overflow, .disabled, .cleanupSkills, .cleanupLongReasons,
             .streamLive, .streamReconnecting, .streamDisconnected
         ]
         let all = Set(FixtureControlAPIClient.Scenario.allCases)
@@ -296,8 +327,8 @@ struct FixtureClientTests {
         // `unauthorized` was silently standing in for the missing `disabled`. It caught the next
         // one too — `cleanupSkills` was added for a capture and this test named it the same day.
         #expect(
-            all.count == 14,
-            "DESIGN.md §5's nine states, plus unauthorized, three stream phases, and cleanupSkills"
+            all.count == 15,
+            "Nine design states, unauthorized, three stream phases, and two Cleanup fixtures"
         )
     }
 }

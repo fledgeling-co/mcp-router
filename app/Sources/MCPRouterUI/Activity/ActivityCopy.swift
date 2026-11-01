@@ -42,17 +42,12 @@ public enum ActivityCopy {
     /// surface which is still a placeholder in this build, or no button. `StateMessage.actionLabel`
     /// is optional for exactly this case — "nil where the state genuinely offers nothing — never a
     /// disabled placeholder button".
-    public static func empty(since: String?) -> StateMessage {
-        // The clause is omitted rather than filled with a placeholder when the router has not said
-        // when its window opened. "Nothing has called a tool since —" states a fact about a moment
-        // nothing observed, which is the one thing this surface may not do.
-        let opened = since.map { " since \($0)" } ?? ""
-        return StateMessage(
-            title: "No calls yet",
-            detail: """
-            Nothing has called a tool\(opened). Servers stay asleep until an agent asks \
-            for one — this list fills itself the moment that happens.
-            """
+    public static func empty(since _: String?) -> StateMessage {
+        // Missing recent records cannot establish that no calls occurred in the counting window:
+        // retention or a partial reset can erase the records while the aggregate remains.
+        StateMessage(
+            title: "No calls to show",
+            detail: "No call records are available here. New tool calls will appear as they arrive."
         )
     }
 
@@ -145,10 +140,9 @@ public enum ActivityCopy {
     /// under two disabled controls is noise, and §3.4 asks for the reason to be discoverable rather
     /// than repeated.
     ///
-    /// It says "yet" and not "since the router started": the trigger is an empty window, which after
-    /// a reset or a log rotation says nothing about when the process began.
+    /// Availability of recent records controls filtering, not the historical aggregate.
     public static let disabledFilters = """
-    Filters need calls to filter. No calls have been recorded yet.
+    Filters need call records. No records are available to filter.
     """
 
     /// How a cold start is said in words, for the inspector and for a screen reader.

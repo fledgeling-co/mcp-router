@@ -87,6 +87,20 @@
             #expect(!subtitle.lowercased().contains("total"))
         }
 
+        @Test("missing recent records never claim that the historical window had no calls")
+        func emptyRecordsDoNotProveNoHistoricalCalls() {
+            for since in [nil, "09:12"] as [String?] {
+                let message = ActivityCopy.empty(since: since)
+                #expect(message.title == "No calls to show")
+                #expect(message.detail ==
+                    "No call records are available here. New tool calls will appear as they arrive.")
+                #expect(!message.detail.contains("09:12"))
+                #expect(!message.detail.contains("Nothing has called"))
+            }
+            #expect(ActivityCopy.disabledFilters ==
+                "Filters need call records. No records are available to filter.")
+        }
+
         @Test("the empty state offers nothing, and is not an error")
         func emptyStateOffersNothing() async {
             let subject = Self.model(.empty)
@@ -95,7 +109,7 @@
             #expect(subject.condition == .empty)
             let message = try? #require(subject.message(for: .empty))
             #expect(message?.actionLabel == nil, "no control here can make an agent call a tool")
-            #expect(message?.title == "No calls yet")
+            #expect(message?.title == "No calls to show")
         }
     }
 #endif

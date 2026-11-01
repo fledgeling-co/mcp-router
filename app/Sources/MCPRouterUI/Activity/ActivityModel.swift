@@ -38,7 +38,7 @@
         @ObservationIgnored let clock: @MainActor () -> Date
 
         /// **`nil` is not empty.** Empty means the router answered and has logged nothing; nil means
-        /// nothing has answered yet. A board that cannot tell them apart shows "No calls yet" while
+        /// nothing has answered yet. A board that cannot tell them apart shows "No calls to show" while
         /// it is still loading, which is a considered statement about a question nobody has asked.
         public private(set) var records: ActivityRecords?
 

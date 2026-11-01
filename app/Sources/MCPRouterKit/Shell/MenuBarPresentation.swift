@@ -259,9 +259,9 @@ public enum MenuBarPresentation {
     // MARK: - Copy
 
     /// The empty log. Counts stay real; only the log is empty.
-    public static let emptyLogTitle = "No calls yet"
+    public static let emptyLogTitle = "No calls to show"
     public static let emptyLogDetail = """
-    Tool calls appear here as your sessions make them. Nothing is running until something asks.
+    No call records are available here. New tool calls will appear as they arrive.
     """
 
     /// The stale header, when the last refresh failed but the servers are still real.

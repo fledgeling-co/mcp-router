@@ -313,7 +313,7 @@ new parity row, and the surface that would draw it is M22, which is untriaged. D
 
 `RouterCore/Discovery` has no counterpart in `src/` and never has: the TypeScript reference reads
 `~/.claude.json` for `import` and `watch` and has no client-discovery layer at all. This item adds
-only to `Discovery` and to the Swift-only verb arm, so **no row of `planning/parity/surface.tsv`
+only to `Discovery` and to the Swift-only verb arm, so **no row of `planning/parity/surface.tsv` at `81368d03cadf4026e854c8aa8249ae7340eb9cf8` (historical source)
 changes and `src/` is not touched**. That is not a licence taken; it is the pre-existing shape of
 this subsystem, and R4-C2 — retiring `src/*.ts` — is held for reasons unrelated to it.
 

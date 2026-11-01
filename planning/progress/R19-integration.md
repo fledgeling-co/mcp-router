@@ -173,7 +173,7 @@ auto-merged that deletion and left R19's call to it sitting inside the locked sp
 tree did not compile until the call went. Removing it is the same decision the node side forced, and
 R17's reason is placed inside the lock where R19 put the code.
 
-**`planning/parity/surface.tsv`** — the file git merged clean, and the reason this was an item.
+**`planning/parity/surface.tsv` at `eb3e42ccd77d8787887258ff324e9f28ddaaa9be` (historical source)** — the file git merged clean, and the reason this was an item.
 
 The `cli-watch` note's `A THIRD DIVERGENCE IS DECLARED HERE` section is deleted. It was false in
 three ways the moment R19 landed: node no longer reads the manifest once per run, so the divergence
@@ -257,7 +257,7 @@ and this is not a licence to touch either one's code.
 **A gate run is two draws, not one, and that is deliberate.** `parity-oauth.sh` executes twice
 inside every full gate — once as the `suite` lane's citation of it, once as the `oauth` lane itself
 — and between the two copies a `fail` wins. The mechanism is written down in
-`scripts/acceptance/parity-suite.sh`, at the comment closing *"which is the right precedence for a
+`scripts/acceptance/parity-suite.sh` at `8294df4c5fb91501910cc8c02e0a2071665af907` (historical source), at the comment closing *"which is the right precedence for a
 finding nobody can explain yet — DEF-033"*, and it is kept rather than deduplicated because on
 20 Aug 2026 the two copies disagreed inside a single gate and a single run would have reported a
 clean 82 of 83 with nobody the wiser. That is the piece the account above was missing: a clean
@@ -430,9 +430,9 @@ stronger than what it replaces — it names which instrument pins which side, an
 needed rather than either alone.* `parity-cli.sh` is differential and would stay green under a
 simultaneous both-side regression, and `IndexFailureRecordTests` is the absolute check that catches
 exactly that case on the Swift side. Read on this tree rather than taken on report:
-`app/Tests/RouterCoreTests/IndexFailureRecordTests.swift` opens `@testable import RouterCore` and
+`app/Tests/RouterCoreTests/IndexFailureRecordTests.swift` at `8294df4c5fb91501910cc8c02e0a2071665af907` (historical source) opens `@testable import RouterCore` and
 drives `WatchWorld.runner` and `ManifestIO`, and
-`scripts/acceptance/parity-cli.sh` runs both binaries into separate `MCP_ROUTER_HOME`s and `diff`s
+`scripts/acceptance/parity-cli.sh` at `8294df4c5fb91501910cc8c02e0a2071665af907` (historical source) runs both binaries into separate `MCP_ROUTER_HOME`s and `diff`s
 the results, which is what makes it blind to a regression both sides share.
 
 **The half of that which said *which* instrument pins which side was itself false, and gap-fix 2
@@ -496,7 +496,7 @@ predicted it would not.
 | gate | result |
 |---|---|
 | `make lint` | **0 violations, 0 serious in 552 files**, exit 0 |
-| `scripts/acceptance/parity-manifest-check.sh` | exit 0 — **94 rows**, consistent with `control.ts`, `index.ts`, `router.ts` and the fixture directory; every cited test, script and row id resolves |
+| `scripts/acceptance/parity-manifest-check.sh` at `8294df4c5fb91501910cc8c02e0a2071665af907` (historical source) | exit 0 — **94 rows**, consistent with `control.ts`, `index.ts`, `router.ts` and the fixture directory; every cited test, script and row id resolves |
 | `planning/claim-sweep.py` | **exit 1, 11 blocking-class hits** — the same 11, the same four files, the same per-class counts |
 | `planning/ledger-reconcile.py` | **exit 1** — one finding, `E`, and it is `main`'s drift rather than this edit's |
 
@@ -691,9 +691,9 @@ delta the merge carries is **`Makefile`**, twelve lines from main's `50f3e8f`, a
 |---|---|
 | `make lint` | **exit 0** — 0 violations, 0 serious in **552 files**. `tools:` printed its version line, so the prerequisite passed rather than being skipped. Main's two new gates ran on this branch for the first time and both are green: `reader-accounting.py` at **20 raw-input readers over 28 discarding iterations, 51 drop sites**, 3 recording their drops, 16 declaring them and **1 recorded as a known gap rather than fixed**; `null-run-gate.py` at **28 assertions armed, 28 changed verdict** under a poisoned or null input, **0 held green** |
 | `make test` | **exit 0** — 1728 tests in 216 suites passed, 10.4s. Unchanged from the pre-merge figure, which is what a merge carrying no code but `Makefile` should do |
-| `scripts/acceptance/parity-cli.sh` | **exit 0** — 18 verbs agreed, 0 did not; all four `cli-watch` scenarios green, the fourth included. This is the matrix's **none** row re-measured here rather than inherited from the verdict |
+| `scripts/acceptance/parity-cli.sh` at `27935748d0128b76cd0c997c7a43e82b775fc632` (historical source) | **exit 0** — 18 verbs agreed, 0 did not; all four `cli-watch` scenarios green, the fourth included. This is the matrix's **none** row re-measured here rather than inherited from the verdict |
 | `scripts/acceptance/parity-overlap.sh` | **exit 0** — 2 agreed, 0 did not; `overlap-watch-index` at `rows=lifeline,slowfail`, neither binary rewrote `servers.json` |
-| `scripts/acceptance/parity-manifest-check.sh` | **exit 0** — 94 rows, consistent with `control.ts`, `index.ts`, `router.ts` and the fixture directory; every cited test, script and row id resolves |
+| `scripts/acceptance/parity-manifest-check.sh` at `27935748d0128b76cd0c997c7a43e82b775fc632` (historical source) | **exit 0** — 94 rows, consistent with `control.ts`, `index.ts`, `router.ts` and the fixture directory; every cited test, script and row id resolves |
 | `planning/ledger-reconcile.py` | **exit 0** — *reconciled, no findings across A–L*; 103 rows in each file, 32 merged `ai/*`. The `E — G4-B (ai/g4b)` finding this branch reads pre-merge is gone, exactly as the brief predicted: branch staleness, cleared by the merge |
 | `planning/claim-sweep.py` | **exit 1** — 11 blocking hits, A1×5 + A2×5 + A3×1, in the same four files, none of which this branch writes |
 | `scripts/acceptance/parity-gate.sh` | **not run — deliberately.** Reasons and cost above |
@@ -862,9 +862,9 @@ note was touched; the after-pass is what the table reports.
 |---|---|
 | `make lint` | **exit 0** — 0 violations, 0 serious in **552 files**; `tools:` printed `Version: 2.45.4 · swiftlint 0.65.0 · swiftformat 0.62.1`, so the prerequisite passed rather than being skipped. `reader-accounting.py`: **20 raw-input readers over 28 discarding iterations, 51 drop sites**; 3 accounting, 16 declaring, **1 known gap**, **0 unaccounted**. `null-run-gate.py`: **28 assertions armed, 28 changed verdict**, **0 held green**, 0 blocked, 4 populations named as not armed |
 | `make test` | **exit 0** — **1728 tests in 216 suites** passed; 11.0s on the after-pass, 13.5s on the before-pass, the difference being machine load rather than anything in the tree |
-| `scripts/acceptance/parity-cli.sh` | **exit 0** — **18 verbs agreed, 0 did not**; all four `cli-watch` scenarios green, the fourth included. The matrix's **none** row, re-measured here |
+| `scripts/acceptance/parity-cli.sh` at `4a4990d776950c821108a01b1b52723d24de8a91` (historical source) | **exit 0** — **18 verbs agreed, 0 did not**; all four `cli-watch` scenarios green, the fourth included. The matrix's **none** row, re-measured here |
 | `scripts/acceptance/parity-overlap.sh` | **exit 0** — **2 agreed, 0 did not**; `overlap-watch-index` at `rows=lifeline,slowfail`, neither binary rewrote `servers.json` |
-| `scripts/acceptance/parity-manifest-check.sh` | **exit 0** — **94 rows**, consistent with `control.ts`, `index.ts`, `router.ts` and the fixture directory; every cited test, script and row id resolves. **It went red once tonight in 12 runs**, spuriously; recorded below rather than dropped |
+| `scripts/acceptance/parity-manifest-check.sh` at `4a4990d776950c821108a01b1b52723d24de8a91` (historical source) | **exit 0** — **94 rows**, consistent with `control.ts`, `index.ts`, `router.ts` and the fixture directory; every cited test, script and row id resolves. **It went red once tonight in 12 runs**, spuriously; recorded below rather than dropped |
 | `planning/ledger-reconcile.py` | **exit 0** — *reconciled, no findings across A–L*. **107 rows in each file**, 32 merged `ai/*`. One non-fatal warning, inherited and not this branch's: `LEDGER.md odd number of backtick quotes (1683) — check D may be stripping more than one quoted span` |
 | `planning/claim-sweep.py` | **exit 1** — **11 blocking hits, A1×5 + A2×5 + A3×1**, across `ORCHESTRATOR.md`, `G4-assertions-that-do-not-read-their-own-quantity.md`, `R17-gapfix-2.md` and `R17-gapfix-3.md`, none of which this branch writes |
 | `scripts/acceptance/parity-gate.sh` | **not run — deliberately.** Cost stated above |
@@ -986,9 +986,9 @@ unarmed control on the same tree in the same session:
 |---|---|---|
 | `scripts/acceptance/parity-cli.sh` | 14 agreed, 4 did not — exit 1 | **13 agreed, 5 did not** — exit 1 |
 | `scripts/acceptance/parity-overlap.sh` | 2 agreed, 0 did not — exit 0 | **RED** — 1 agreed, 1 did not, exit 1 |
-| `scripts/acceptance/parity-state.sh` | exit 0 | exit 0 |
-| `scripts/acceptance/control-differential.sh` | 59 rows, 59 ok — exit 0 | 59 rows, 59 ok — exit 0 |
-| `scripts/acceptance/parity-divergence.sh` (outside the subject set; F4) | 6 as declared, 0 stale — exit 0 | 6 as declared, 0 stale — exit 0 |
+| `scripts/acceptance/parity-state.sh` at `b8903ef2602d72e3a0bf615cfdfbab1875142782` (historical source) | exit 0 | exit 0 |
+| `scripts/acceptance/control-differential.sh` at `b8903ef2602d72e3a0bf615cfdfbab1875142782` (historical source) | 59 rows, 59 ok — exit 0 | 59 rows, 59 ok — exit 0 |
+| `scripts/acceptance/parity-divergence.sh` at `b8903ef2602d72e3a0bf615cfdfbab1875142782` (historical source) (outside the subject set; F4) | 6 as declared, 0 stale — exit 0 | 6 as declared, 0 stale — exit 0 |
 
 Two of those five reds are new information rather than a re-run. **`parity-state.sh` and
 `control-differential.sh` name the manifest write path and do not catch this arm** — which is the
@@ -1028,10 +1028,10 @@ divergence and this item carries no code.
 | `python3 planning/instrument-census.py` | census matches the tree — 444 instruments, exit 0 |
 | `python3 planning/instrument-census.py --control` | 17 of 17 arms fired, exit 0 |
 | `scripts/acceptance/parity-overlap.sh` | 2 agreed, 0 did not — exit 0 |
-| `scripts/acceptance/parity-state.sh` | exit 0 |
-| `scripts/acceptance/control-differential.sh` | 59 rows, 59 ok — exit 0 |
-| `scripts/acceptance/parity-divergence.sh` | 6 as declared, 0 stale — exit 0 |
-| `scripts/acceptance/parity-cli.sh` | **exit 1**, 14 / 4 — the standing `cli-help` red above, unarmed |
+| `scripts/acceptance/parity-state.sh` at `b8903ef2602d72e3a0bf615cfdfbab1875142782` (historical source) | exit 0 |
+| `scripts/acceptance/control-differential.sh` at `b8903ef2602d72e3a0bf615cfdfbab1875142782` (historical source) | 59 rows, 59 ok — exit 0 |
+| `scripts/acceptance/parity-divergence.sh` at `b8903ef2602d72e3a0bf615cfdfbab1875142782` (historical source) | 6 as declared, 0 stale — exit 0 |
+| `scripts/acceptance/parity-cli.sh` at `b8903ef2602d72e3a0bf615cfdfbab1875142782` (historical source) | **exit 1**, 14 / 4 — the standing `cli-help` red above, unarmed |
 
 Every arm reverted and confirmed by blob rather than by eye: `src/watch.ts` back to `9c2012b3…`,
 `WatchIndexing.swift` back to `a57946b1…`, and `git diff --stat HEAD -- src app scripts Makefile`

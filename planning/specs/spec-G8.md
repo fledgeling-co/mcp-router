@@ -94,7 +94,7 @@ enumerate under a root each derives from `__file__`, and read every path back un
 - **Shell is declined.** An anchor in shell is a `cd` three lines earlier, and a text scan cannot
   tell that from its absence. The gate measures how much it is declining — it counts and names
   tracked `.sh` files invoking an enumerating git subcommand, one today
-  (`scripts/acceptance/carrier-census.sh`, which `cd`s to a root it derives). The day a second
+  (`scripts/acceptance/carrier-census.sh` at `b25ceb0a1282aa7229074efd1f32a5ce5761aaf7` (historical source), which `cd`s to a root it derives). The day a second
   appears, that line changes and nobody has to remember this paragraph.
 - **An argv this reader cannot resolve is named, never assumed clean.** Nine today.
 - **Whether the anchored root is the *right* root is out of scope.** A gate rooted at the wrong

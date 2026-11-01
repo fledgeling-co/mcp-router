@@ -69,9 +69,9 @@ today. That is the honest state of the streak as well as of the figure.
 
 ## 3. Which router carries each merged item, and whether it is reachable
 
-Measured from each landing's own diff by `scripts/acceptance/carrier-census.sh`, dispositioned in
-`planning/parity/carriers.tsv`, and re-measured on every `make lint` by
-`planning/carrier-parity-gate.py`.
+Measured from each landing's own diff by `scripts/acceptance/carrier-census.sh` at `2c333705bf6adb39cfe890375224615d2012f979` (historical source), dispositioned in
+`planning/parity/carriers.tsv` at `2c333705bf6adb39cfe890375224615d2012f979` (historical source), and re-measured on every `make lint` by
+`planning/carrier-parity-gate.py` at `2c333705bf6adb39cfe890375224615d2012f979` (historical source).
 
 The five items delivered for the 2026-08-28 goal:
 
@@ -100,9 +100,9 @@ unreachable on any given install, and which one depends on the install rather th
 
 ## 4. What is now armed against this happening again
 
-`planning/carrier-parity-gate.py`, in `make lint`. Every landing on the first-parent line at or
+`planning/carrier-parity-gate.py` at `2c333705bf6adb39cfe890375224615d2012f979` (historical source), in `make lint`. Every landing on the first-parent line at or
 after `afaad59` — the goal that produced these five items — that touched one implementation and not
-the other needs a row in `planning/parity/carriers.tsv` giving its carrier and a reason. The
+the other needs a row in `planning/parity/carriers.tsv` at `2c333705bf6adb39cfe890375224615d2012f979` (historical source) giving its carrier and a reason. The
 carrier is re-measured from the diff on every run, so a row that disagrees with the tree is a
 finding rather than a record.
 

@@ -81,8 +81,8 @@ gate pretends otherwise.
 
 **4. "Something fails when a feature is merged into one implementation and not the other without
 that being recorded."** Done and in `make lint` —
-`planning/carrier-parity-gate.py`. Every landing at or after `afaad59` that touched one
-implementation and not the other needs a row in `planning/parity/carriers.tsv` carrying a reason,
+`planning/carrier-parity-gate.py` at `64ecf8e328c15e20a62db5d9649f5cfc2b8ef1ab` (historical source). Every landing at or after `afaad59` that touched one
+implementation and not the other needs a row in `planning/parity/carriers.tsv` at `64ecf8e328c15e20a62db5d9649f5cfc2b8ef1ab` (historical source) carrying a reason,
 and the carrier is **re-measured from the landing's own diff** on every run, so a row that
 disagrees with the tree is a finding rather than a record. Five in the window, five dispositioned.
 30 one-sided landings before the pin print as a stated backlog with a count, never as a pass.

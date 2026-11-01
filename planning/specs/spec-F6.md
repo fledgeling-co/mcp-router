@@ -160,7 +160,7 @@ pass. Installing is R30's and R29's territory and is not reachable from this rou
 Query parameters: `kind` (one of the three; absent means all three), `staleAfterMs` (default
 `86_400_000`, one day — the interval the brief's own example names), and `name` to ask about one
 entry. It **diverges from `src/control.ts`**, which answers the path 404, declared in
-`planning/parity/surface.tsv` as `div-f6-updates` in the same way the `div-r28-*` and `div-r31-*`
+`planning/parity/surface.tsv` at `182e40f7b87c15dcfc554bad155923b1c77f8b4e` (historical source) as `div-f6-updates` in the same way the `div-r28-*` and `div-r31-*`
 rows are.
 
 The body carries, per entry: `kind`, `name`, the installed `version`, the `available` version, the

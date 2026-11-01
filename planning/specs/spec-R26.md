@@ -97,7 +97,7 @@ belongs, and it is never rounded up to `valid` there.
 
 ## 5. The wire
 
-Two routes, both Swift-only, both declared in `planning/parity/surface.tsv` as `div-r26-inventory`
+Two routes, both Swift-only, both declared in `planning/parity/surface.tsv` at `f684f3297ab0b2a5a250973440c56ae51ff04377` (historical source) as `div-r26-inventory`
 and `div-r26-notify`.
 
 - **`GET /upstreams/auth-expiry`** — every declared upstream in configuration order, with its

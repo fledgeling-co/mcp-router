@@ -527,7 +527,7 @@ override. The reference confirms it loads as `0`.
 
 ### The mutation gate — the plan's exit criterion
 
-`scripts/parity/mutation-gate.sh`, run by `make mutation`. A vector that is present, unique and
+`scripts/parity/mutation-gate.sh` at `2648fd5fdc9307c63def6a4def515389f9d8d33d` (historical source), run by `make mutation`. A vector that is present, unique and
 compared still proves nothing until breaking the behaviour it guards makes it fail. Sixteen
 mutations, each the *plausible* wrong implementation rather than arbitrary damage.
 

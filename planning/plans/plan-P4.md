@@ -4,10 +4,10 @@ Spec: `planning/specs/spec-P4.md`. Branch `ai/p4`, worktree `.worktrees/P4`.
 
 Two files change, both mine this wave:
 
-- `scripts/acceptance/parity-manifest-check.sh` — three new reconciliations (cli, mcp, cited ids)
-- `scripts/acceptance/parity-fixture.sh` — the normaliser
+- `scripts/acceptance/parity-manifest-check.sh` at `7babd977e2227a692b2017ce2a2786e90c2e6a07` (historical source) — three new reconciliations (cli, mcp, cited ids)
+- `scripts/acceptance/parity-fixture.sh` at `7babd977e2227a692b2017ce2a2786e90c2e6a07` (historical source) — the normaliser
 
-One file changes by one line: `scripts/acceptance/parity-gate.sh`, because manifest-check gains a
+One file changes by one line: `scripts/acceptance/parity-gate.sh` at `7babd977e2227a692b2017ce2a2786e90c2e6a07` (historical source), because manifest-check gains a
 new reason to exit 2 and the gate's current message for that would be wrong.
 
 **No router source changes. No `surface.tsv` row is added, edited or deleted.** If a new check
@@ -309,8 +309,8 @@ Each captured directly, `cmd > /tmp/f.txt 2>&1; echo $?`, never through a pipeli
 
 - `bash -n` on all three changed scripts
 - `shellcheck` if present; if absent, said so rather than implied
-- `scripts/acceptance/parity-manifest-check.sh` alone, exit 0, from **both** directories
-- `scripts/acceptance/parity-lane-selftest.sh` — the harness's own self-test
+- `scripts/acceptance/parity-manifest-check.sh` at `7babd977e2227a692b2017ce2a2786e90c2e6a07` (historical source) alone, exit 0, from **both** directories
+- `scripts/acceptance/parity-lane-selftest.sh` at `7babd977e2227a692b2017ce2a2786e90c2e6a07` (historical source) — the harness's own self-test
 - `make lint` — exit code checked, because swiftformat runs first and short-circuits, so
   "0 violations" from the swiftlint half is not a pass
 - `make test`

@@ -25,7 +25,7 @@ pairing as two lines inside the verb where nothing can test it.
 
 ## 1. Phase A — one home, one rule (S1)
 
-### A1 · `ImportPaths` — new, `app/Sources/RouterCore/Config/ImportPaths.swift`
+### A1 · `ImportPaths` — new, `app/Sources/RouterCore/Config/ImportPaths.swift` at `7babd977e2227a692b2017ce2a2786e90c2e6a07` (historical source)
 
 ```swift
 public struct ImportPaths: Sendable {
@@ -60,7 +60,7 @@ let home = paths.routerHome        // was RouterHome()
 `ImportPaths` honours `MCP_ROUTER_HOME` through `RouterHome.init`, so every existing lane behaves
 exactly as before.
 
-### A3 · Tests — `app/Tests/RouterCoreTests/ImportPathsTests.swift`
+### A3 · Tests — `app/Tests/RouterCoreTests/ImportPathsTests.swift` at `7babd977e2227a692b2017ce2a2786e90c2e6a07` (historical source)
 
 | Test | Asserts |
 |---|---|
@@ -74,7 +74,7 @@ exactly as before.
 
 ## 2. Phase B — the import writer (S2)
 
-### B1 · `ImportConfigWriter` — new, `app/Sources/RouterCore/Config/ImportConfigWriter.swift`
+### B1 · `ImportConfigWriter` — new, `app/Sources/RouterCore/Config/ImportConfigWriter.swift` at `7babd977e2227a692b2017ce2a2786e90c2e6a07` (historical source)
 
 ```swift
 public static func write(
@@ -116,7 +116,7 @@ any lock too. **Consequence, stated rather than discovered:** the backup is a sn
 the lock, so under contention it can differ from the pre-image the merge saw. That matches the
 reference and is not worsened here.
 
-### B2 · Tests — `app/Tests/RouterCoreTests/ImportConfigWriterTests.swift`
+### B2 · Tests — `app/Tests/RouterCoreTests/ImportConfigWriterTests.swift` at `7babd977e2227a692b2017ce2a2786e90c2e6a07` (historical source)
 
 | Test | Asserts | Spec |
 |---|---|---|
@@ -171,7 +171,7 @@ ConfigMutationLock.watcherTimeoutMs, processIdentifier: ProcessInfo.processInfo.
 
 ## 3. Phase C — the `~/.claude.json` rewrite (S3)
 
-### C1 · `ClaudeStagingEntry` — new, `app/Sources/RouterCore/Watch/ClaudeStagingEntry.swift`
+### C1 · `ClaudeStagingEntry` — new, `app/Sources/RouterCore/Watch/ClaudeStagingEntry.swift` at `7babd977e2227a692b2017ce2a2786e90c2e6a07` (historical source)
 
 Under `Watch/`, where every other `~/.claude.json` rule already lives.
 
@@ -223,7 +223,7 @@ Thin. `--port` **defaults to `RouterHome.defaultPort`**, `--claude-json` default
 :37-38 ("one arm per verb `src/index.ts` dispatches, and nothing else") is rewritten in the same
 edit to name the eleventh arm and cite P2-D1. `Copy.usage` is **not** touched.
 
-### C4 · Tests — `app/Tests/RouterCoreTests/ClaudeStagingEntryTests.swift`
+### C4 · Tests — `app/Tests/RouterCoreTests/ClaudeStagingEntryTests.swift` at `7babd977e2227a692b2017ce2a2786e90c2e6a07` (historical source)
 
 `rewritten` (pure): entry added to a file with no `mcpServers`; `null` → object; `0`/`false`/`""` →
 object; **`[]` left as an array with no entry**; truthy string left unchanged; legacy `router` on
@@ -243,7 +243,7 @@ Phase E (E6) plus the `cli-help` row itself.
 
 ## 4. Phase D — the lanes (S4)
 
-### D1 · `scripts/acceptance/parity-install.sh`
+### D1 · `scripts/acceptance/parity-install.sh` at `7babd977e2227a692b2017ce2a2786e90c2e6a07` (historical source)
 
 Extend `record()`'s ownership guard to the two new rows, **and update the header's `ROWS THIS LANE
 OWNS` line and the `CAVEAT` paragraph at :31-35**, which currently say this lane does not own
@@ -290,7 +290,7 @@ Three scenarios: no `mcpServers`; legacy `router` on the same url (deleted); leg
 another url (kept). Compared: file bytes, file mode, and a backup on each side whose bytes equal
 that side's pre-image.
 
-### D2 · `scripts/acceptance/parity-divergence.sh` — `div-r1-d3`
+### D2 · `scripts/acceptance/parity-divergence.sh` at `7babd977e2227a692b2017ce2a2786e90c2e6a07` (historical source) — `div-r1-d3`
 
 **Each side gets its own `MCP_ROUTER_HOME`.** `import --from` sets only the *read* path; the write
 goes to `ROUTER_HOME`. Without this the lane writes the developer's real
@@ -322,7 +322,7 @@ test, and the row's manifest note says so.
 | `install-claude-json` | pass a different `--port` to one side → the url differs |
 | `div-r1-d3` | revert `ImportConfigWriter`'s preservation for one run → `no,no,yes` |
 
-### D4 · `planning/parity/surface.tsv`
+### D4 · `planning/parity/surface.tsv` at `7babd977e2227a692b2017ce2a2786e90c2e6a07` (historical source)
 
 Three rows `blocked` → `proven`, each note rewritten to state what the lane drives and what it does
 not. `install-claude-json`'s note carries the caveat verbatim: the lane compares the Swift binary

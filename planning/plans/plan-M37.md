@@ -59,7 +59,7 @@ across all five server states, is bound to `server.disabled`, drives `setDisable
 produces the vector's bytes, dims on the two reasons and not on the third, reads its copy from S1's
 functions rather than from literals, and says `pause` nowhere.
 
-`app/Tests/RouterCoreTests/ControlPauseVectorTests.swift` — the router half: the vector's bytes
+`app/Tests/RouterCoreTests/ControlPauseVectorTests.swift` at `87b35f6e370744b03ebee113122a9c290e66151d` (historical source) — the router half: the vector's bytes
 through the real `ControlHandler`, read back off the filesystem through `ServerParser` and
 `ToolUnion.isServed`, with a live sibling as the control.
 

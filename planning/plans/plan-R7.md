@@ -31,7 +31,7 @@ Acceptance: A1, A2, A6, A7.
 placed beside `install-entry` before `dispatchReferenceVerb`. Absent from `Copy.usage`.
 Acceptance: A4.
 
-**6 · `app/Tests/RouterCoreTests/HarnessReconciliationTests.swift`** (new). All four summaries;
+**6 · `app/Tests/RouterCoreTests/HarnessReconciliationTests.swift` (planned deliverable: Create)** (new). All four summaries;
 route-by-endpoint-not-by-name; the shim with a non-`mcp-remote` bridge; the two real duplicate
 cases from spec §1.3 (`Ref` by identity, `mobbin` by name-not-identity); an unparsable entry
 reported as unparsed; overlap-not-duplicate for a not-wired harness; the plan's rendered diff.

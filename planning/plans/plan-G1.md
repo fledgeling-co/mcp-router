@@ -219,7 +219,7 @@ The spec's §3 proofs were tautological in three places and are re-cut:
 ## 5 · Gates and the numbers to report
 
 `make lint` (expect 0) · `make test` · `make build-mac` ·
-`scripts/acceptance/parity-manifest-check.sh` (expect 0) · `make parity-selftest` (expect 0) ·
+`scripts/acceptance/parity-manifest-check.sh` at `42ea4d316037c9ed0cd2e2f083012c2c5ae157b1` (historical source) (expect 0) · `make parity-selftest` (expect 0) ·
 `parity-gate.sh` — report the **number**, 77 of 83 before, and after.
 
 Watch for the `make lint` order trap: `swiftformat --lint` runs first and short-circuits, and

@@ -137,7 +137,7 @@ dynamic comparison that could only agree fails the first dynamic arm.
 ## 7 · What this run did not measure
 
 - **Shell.** One tracked `.sh` file invokes an enumerating git subcommand
-  (`scripts/acceptance/carrier-census.sh`) and it is anchored by a `cd` to a root it derives — the
+  (`scripts/acceptance/carrier-census.sh` at `b25ceb0a1282aa7229074efd1f32a5ce5761aaf7` (historical source)) and it is anchored by a `cd` to a root it derives — the
   form a text scan cannot distinguish from its absence. Counted and named on every gate run.
 - **Nine argv sites** built from a registry or a parameter, which this reader resolves one binding
   deep and no further. Counted and named on every gate run.

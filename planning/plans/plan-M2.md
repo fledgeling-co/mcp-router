@@ -226,9 +226,9 @@ A definition list of the nine inspector fields — **B24** — reading only, no 
 
 **1. The authored fixture went in the wrong directory, and two merged gates said so.**
 Phase B put `usage-call-log.json` in `app/Sources/MCPRouterKit/Control/Fixtures`. That directory is
-not a bag of JSON: `scripts/acceptance/parity-fixture.sh` replays **every** `*.json` in it against
+not a bag of JSON: `scripts/acceptance/parity-fixture.sh` at `e67d0ded93479e97ee0cecb61fd020259351b43a` (historical source) replays **every** `*.json` in it against
 the running TypeScript reference, and `parity-manifest-check.sh` requires each to carry a row in
-`planning/parity/surface.tsv`. A hand-written body there is a body R4's harness will replay and the
+`planning/parity/surface.tsv` at `e67d0ded93479e97ee0cecb61fd020259351b43a` (historical source). A hand-written body there is a body R4's harness will replay and the
 reference will never reproduce. F4's fixture-immutability guard caught it. The file now lives in
 `Control/Authored`, copied as its own bundle resource and searched after `Fixtures`, and
 `ControlFixtureTests.expected` is untouched after all — so the plan's claim that a merged test had

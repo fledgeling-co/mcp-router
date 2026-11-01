@@ -37,7 +37,7 @@ The bundle carries the copy —
 
 So the entry `install-entry` writes into `~/.claude.json` — `{"type":"http","url":"…/mcp"}` — would
 be accepted by the file, dropped by the app, and visible only in a dialog. `D1` in
-`app/Tests/RouterCoreTests/DesktopEntryTests.swift` asserts that shape is refused before anything is
+`app/Tests/RouterCoreTests/DesktopEntryTests.swift` at `06e9c0879cd96f0ea1c8bba88f506468f315e127` (historical source) asserts that shape is refused before anything is
 written.
 
 Two consequences, both shipped rather than noted:

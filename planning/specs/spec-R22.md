@@ -137,7 +137,7 @@ there is nothing to protect it from either.
 
 ## 4. The wire
 
-Two routes, both Swift-only, both declared in `planning/parity/surface.tsv` as `div-r22-preview`
+Two routes, both Swift-only, both declared in `planning/parity/surface.tsv` at `c28f946ea56b06986ab008310d26c888fac15052` (historical source) as `div-r22-preview`
 and `div-r22-bundle`. `src/control.ts` claims neither path in `isControlPath`, so both fall through
 to `/mcp` and answer 404; there is nothing to compare bytes with, which is why the rows read
 `proven-by-suite` rather than `proven`.

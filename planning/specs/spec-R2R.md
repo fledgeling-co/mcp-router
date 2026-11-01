@@ -36,7 +36,7 @@ R4's, behind its gate and behind a decision the user takes.
 
 ## 2 · Acceptance, and the number
 
-`scripts/acceptance/parity-gate.sh` is the acceptance test. It is merged, adversarially reviewed
+`scripts/acceptance/parity-gate.sh` at `6bd711ebc5045ea7c1385dc4080a0ae58e340fec` (historical source) is the acceptance test. It is merged, adversarially reviewed
 three times, and **is not to be edited to make it pass**.
 
 ### 2.1 The baseline is re-measured, not quoted
@@ -121,7 +121,7 @@ evidence file records the command and result for each:
    the exposure `Matched on GROUP and id, not id alone. Without the group, any lane can write a result for`, `parity-gate.sh:157-159` at `6bd711e` names. An owned set also handles a lane that legitimately
    writes more than one group: the mcp lane owns `pool` and `divergence` rows as well as its own,
    exactly as `parity-pool.sh` writes a `divergence` row through a second helper.
-2. **A negative control with a mechanism.** `scripts/acceptance/parity-lane-selftest.sh` seeds a
+2. **A negative control with a mechanism.** `scripts/acceptance/parity-lane-selftest.sh` at `6bd711ebc5045ea7c1385dc4080a0ae58e340fec` (historical source) seeds a
    defect per lane, runs the lane, and exits non-zero if any lane stays green. Revision 2 promised
    this as a paragraph in an evidence file, which is re-run by nothing. The defect is injected
    through a shim on `$SWIFT_BIN`, never a hook in the router — a test-only branch inside the
@@ -479,7 +479,7 @@ two sides, and what would make it red.
 |---|---|---|
 | F1 · G10 guarantees a property no lane can reach; `control-differential.sh` drives `ControlDiff` in-process, not a socket | blocker | **Not closed.** Reported as deferred child `D-r2r-b` and stated plainly in plan-R2R §8. Closing it means editing a lane this item may not touch, or adding rows to the one group nothing audits. The 11 proven `control` rows describe a handler, not a served endpoint, and this item says so rather than letting the number imply otherwise |
 | F2 · `cli-import` and `cli-index` stdout carry an epoch and an absolute path, so a byte diff is impossible | blocker | Both normalisations are now named per row, in the same class as `Date` and `idleSec`: `<epoch>` for `servers.json.bak-<Date.now()>`, `<home>` for the two scratch directories. Neither becomes a divergence row |
-| F3 · the lane guards do not bind; the negative control is a prose promise | blocker | `scripts/acceptance/parity-lane-selftest.sh` — a script, one seeded defect per lane, non-zero exit if any lane stays green. It has already found two holes in itself. Each lane also declares an explicit owned `(group, id)` set that `record()` enforces |
+| F3 · the lane guards do not bind; the negative control is a prose promise | blocker | `scripts/acceptance/parity-lane-selftest.sh` at `6bd711ebc5045ea7c1385dc4080a0ae58e340fec` (historical source) — a script, one seeded defect per lane, non-zero exit if any lane stays green. It has already found two holes in itself. Each lane also declares an explicit owned `(group, id)` set that `record()` enforces |
 | F4 · the `cli-auth` reassignment costs nothing and is presented as a cost | major | §8 A1 — the reassignment is withdrawn; only the stale note is corrected |
 | F5 · `cli-refresh`'s oracle is same-side | major | §9 — it compares against the reference's `refresh` |
 | F6 · "first four log lines" when §3.5 records three | major | §9 — three, enumerated |

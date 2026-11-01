@@ -173,7 +173,7 @@ mechanism.
 | tests | `cd app && swift test` | 551 tests, 77 suites, 0 failures |
 | format + lint | `make lint` | 0 violations in 175 files, 0/177 require formatting |
 | design values | `scripts/lint/no-raw-design-values.sh` | clean — 21 files scanned, 11 shell files under the extra rules |
-| wire codable | `scripts/lint/no-wire-codable.sh` | clean |
+| wire codable | `scripts/lint/no-wire-codable.sh` at `82f1fecee8de07990f853c625936e548dc18a447` (historical source) | clean |
 | acceptance | `scripts/acceptance/mac-shell.sh` | exit 0, 32 assertions |
 
 The `no-raw-design-values.sh` shell rules carry A36's boundary check: `URLSession`, `Process`,

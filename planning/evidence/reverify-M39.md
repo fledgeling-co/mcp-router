@@ -42,4 +42,4 @@ Tests in that run that cover M39 directly: "no environment value can make a Rele
 
 **Not run:** glass capture (spec §6); the arming harness (M39-13).
 
-**Open for the owner.** DEF-001 (pairing transport) gates the first brief line in a shipped build. Glass evidence is outstanding (CASE-0266, per the ledger row).
+**Open for the owner.** DEF-001 (pairing transport) gates the first brief line in a shipped build. Glass evidence is outstanding (CASE-0266 has no registry row at the audited `63d7e208d85ddbdb9cad50805173242d80dd7f3a`; its historical M39 row is in `planning/test-campaign/cases.in.json` at `c3c7144ab2496de0cdce9b92dd663360bb138b4d`, per the ledger row).

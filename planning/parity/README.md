@@ -52,7 +52,7 @@ A hand-maintained census drifts, and it drifts in the dangerous direction: a rou
 `control.ts` with no row here does not turn the gate red — it shrinks the denominator, and the
 coverage percentage goes **up**.
 
-`scripts/acceptance/parity-manifest-check.sh` therefore derives the control rows from
+`scripts/acceptance/parity-manifest-check.sh` at `b5ad0b31f43c283a27af4b1df5982678adee53a0` (historical source) therefore derives the control rows from
 `src/control.ts` and the fixture rows from the fixture directory, and fails when this file and the
 source disagree **in either direction**. It also resolves every cited test and script, because
 three of this manifest's first six citations named tests that did not exist — written from the

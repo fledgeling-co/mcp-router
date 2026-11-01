@@ -169,3 +169,7 @@ planning/evidence/WIN-SHELL/run/router-home/
 
 # Immutable upstream campaign evidence belongs to the pinned release
 !vendor/test-campaign/docs/evidence/**/*.log
+
+# Generated private project status record and page
+/.status/
+/STATUS.html

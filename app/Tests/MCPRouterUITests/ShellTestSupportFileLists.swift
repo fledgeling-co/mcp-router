@@ -154,6 +154,8 @@
         /// pinned to `Settings/` alone would have left `Settings/Panes/` outside every gate while
         /// reporting the directory covered.
         static let settingsFiles = [
+            "app/Sources/MCPRouterUI/Settings/PairedDevicesModel.swift",
+            "app/Sources/MCPRouterUI/Settings/PairedDevicesSection.swift",
             "app/Sources/MCPRouterUI/Settings/SettingsWindow.swift",
             "app/Sources/MCPRouterUI/Settings/SettingsWindowModel.swift",
             "app/Sources/MCPRouterUI/Settings/SettingsMetrics.swift",

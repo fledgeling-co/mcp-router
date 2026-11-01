@@ -1,6 +1,6 @@
 import readline from 'node:readline';
 import { appendFileSync } from 'node:fs';
-appendFileSync(process.env.RECEIPT, JSON.stringify({key:process.env.TEST_KEY,other:process.env.OTHER})+'\n');
+appendFileSync(process.env.RECEIPT, JSON.stringify({key:process.env.TEST_KEY,other:process.env.OTHER,inheritedWarden:process.env.INHERITED_WARDEN_REFERENCE,inheritedOp:process.env.INHERITED_OP_REFERENCE})+'\n');
 process.stderr.write(process.env.TEST_KEY.slice(0,3));
 setTimeout(()=>process.stderr.write(process.env.TEST_KEY.slice(3)+'\n'),1);
 for await (const line of readline.createInterface({ input: process.stdin })) {

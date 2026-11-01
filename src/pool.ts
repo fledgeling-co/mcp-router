@@ -232,7 +232,7 @@ export class UpstreamPool {
    * The server's own `env` still merges last, so a server that sets PATH wins outright — that
    * override is R6's escape hatch for a prefix the discovery below does not find.
    */
-  private buildEnv(u: StdioUpstream): Record<string, string> {
+  private buildEnv(u: StdioUpstream, declared = { ...readEnvFiles(u.envFiles), ...u.env }): Record<string, string> {
     const env: Record<string, string> = {};
     for (const [k, v] of Object.entries(process.env)) {
       if (typeof v === 'string') env[k] = v;
@@ -240,7 +240,7 @@ export class UpstreamPool {
     if (typeof env.HOME === 'string' && env.HOME !== '') {
       env.PATH = augmentPath(env.PATH ?? '', env.HOME);
     }
-    return { ...env, ...readEnvFiles(u.envFiles), ...u.env };
+    return { ...env, ...declared };
   }
 
   /** Servers currently waiting on a browser authorization, for `/servers` to report. */
@@ -379,8 +379,8 @@ export class UpstreamPool {
 
   private async open(u: UpstreamConfig): Promise<UpstreamHandle> {
     const t0 = Date.now();
-    const resolved = await this.credentials.resolve(isStdio(u) ? this.buildEnv(u) : u.headers, {
-      upstream: u.name, project: isStdio(u) ? (u.cwd ?? process.cwd()) : process.cwd(),
+    const resolved = await this.credentials.resolve(isStdio(u) ? { ...readEnvFiles(u.envFiles), ...u.env } : u.headers, {
+      upstream: u.name, project: u.credentialProject ?? (isStdio(u) ? u.cwd : undefined),
       signal: this.connectionAbort.signal,
     });
     if (this.shuttingDown) throw new Error('router is shutting down');
@@ -390,7 +390,7 @@ export class UpstreamPool {
         : `connecting upstream "${u.name}" (${u.transport} ${u.url})`.slice(0, 200)
     );
 
-    const rawTransport = this.makeTransport(u, resolved.values, resolved.secrets);
+    const rawTransport = this.makeTransport(u, isStdio(u) ? this.buildEnv(u, resolved.values) : resolved.values, resolved.secrets);
     const transport = resolved.secrets.length ? new CredentialProtectedTransport(rawTransport, resolved.secrets) : rawTransport;
     const client = new Client({ name: 'mcp-router', version: '0.1.0' }, { capabilities: {} });
 
@@ -422,12 +422,13 @@ export class UpstreamPool {
       } catch {
         /* already dead */
       }
-      const message = (err as Error).message ?? String(err);
+      const message = scrubCredentialText((err as Error).message ?? String(err), resolved.secrets);
       if (err instanceof UnauthorizedError || isAuthFailure(message)) {
         // Recorded, not just rethrown: the thrown message reaches whoever called, and
         // the caller here is usually the indexer, which writes it into the manifest and
         // moves on. Nothing downstream of that reads it as "needs authorizing".
-        this.noteAuthFailure(u.name, err instanceof UnauthorizedError ? 'unauthorized' : message);
+        this.noteAuthFailure(u.name, err instanceof UnauthorizedError ? 'unauthorized' :
+          (resolved.secrets.length ? 'credential-bound initialization refused' : message));
       }
       if (err instanceof UnauthorizedError) {
         throw new Error(

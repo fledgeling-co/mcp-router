@@ -1,11 +1,13 @@
-import { readFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, existsSync, statSync, realpathSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { join, isAbsolute } from 'node:path';
 import { createHash } from 'node:crypto';
 import { resolveEnvFiles, envFilesDigest } from './envfile.js';
 import { DEFAULT_LOG_POLICY, type LogPolicy } from './log.js';
 
 interface UpstreamBase {
+  /** Explicit directory whose Warden grants this shared upstream may use. */
+  credentialProject?: string;
   /** Logical name; becomes the namespace prefix on every tool it exposes. */
   name: string;
   /** Milliseconds a live upstream may sit unused before it is closed. */
@@ -84,6 +86,9 @@ export const isStdio = (u: UpstreamConfig): u is StdioUpstream => u.transport ==
 export const isHttp = (u: UpstreamConfig): u is HttpUpstream => u.transport !== 'stdio';
 
 export interface RouterConfig {
+  /** Actual server-list path loaded by this instance, used by migration attestation. */
+  configPath?: string;
+  configSha256?: string;
   port: number;
   host: string;
   idleMs: number;
@@ -196,6 +201,7 @@ export function upstreamHash(u: UpstreamConfig): string {
   const material = isStdio(u)
     ? JSON.stringify([
         'stdio',
+        ...(u.credentialProject ? [{ credentialProject: u.credentialProject }] : []),
         u.command,
         u.args,
         u.cwd ?? null,
@@ -204,6 +210,7 @@ export function upstreamHash(u: UpstreamConfig): string {
       ])
     : JSON.stringify([
         u.transport,
+        ...(u.credentialProject ? [{ credentialProject: u.credentialProject }] : []),
         u.url,
         Object.entries(u.headers).sort(([a], [b]) => compareStrings(a, b)),
       ]);
@@ -211,6 +218,7 @@ export function upstreamHash(u: UpstreamConfig): string {
 }
 
 export interface RawServer {
+  credentialProject?: string;
   type?: string;
   command?: string;
   args?: string[];
@@ -248,6 +256,11 @@ export function parseServer(name: string, s: RawServer): { upstream: UpstreamCon
   }
 
   const type = s.type ?? (s.url ? 'http' : 'stdio');
+  if (s.credentialProject !== undefined && (typeof s.credentialProject !== 'string' ||
+      !isAbsolute(s.credentialProject) || s.credentialProject.includes('\0'))) {
+    return { reason: 'credentialProject must be an absolute directory' };
+  }
+
 
   if (type === 'stdio') {
     if (!s.command) return { reason: 'stdio server has no command' };
@@ -255,6 +268,7 @@ export function parseServer(name: string, s: RawServer): { upstream: UpstreamCon
       upstream: {
         transport: 'stdio',
         name,
+        credentialProject: s.credentialProject,
         command: s.command,
         args: s.args ?? [],
         env: s.env ?? {},
@@ -283,6 +297,7 @@ export function parseServer(name: string, s: RawServer): { upstream: UpstreamCon
       upstream: {
         transport: type === 'sse' ? 'sse' : 'http',
         name,
+        credentialProject: s.credentialProject,
         url: s.url,
         headers: s.headers ?? {},
         oauth: s.oauth,
@@ -406,7 +421,8 @@ export function loadConfig(opts: {
     );
   }
 
-  const raw = JSON.parse(readFileSync(configPath, 'utf8')) as {
+  const configBytes = readFileSync(configPath);
+  const raw = JSON.parse(configBytes.toString('utf8')) as {
     mcpServers?: Record<string, RawServer>;
     port?: number;
     host?: string;
@@ -427,6 +443,8 @@ export function loadConfig(opts: {
 
   return {
     config: {
+      configPath: realpathSync(configPath),
+      configSha256: createHash('sha256').update(configBytes).digest('hex'),
       port: opts.port ?? raw.port ?? 8879,
       host: opts.host ?? raw.host ?? '127.0.0.1',
       idleMs: opts.idleMs ?? raw.idleMs ?? 300_000,

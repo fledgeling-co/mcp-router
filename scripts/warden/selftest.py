@@ -2,6 +2,7 @@
 import contextlib
 import importlib.util
 import io
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -16,15 +17,15 @@ with tempfile.TemporaryDirectory(prefix='mcpr-migration-') as root:
     config = directory / 'servers.json'
     plan = directory / 'plan.json'
     literal = 'synthetic-never-a-real-key-0000'
-    config.write_text(json.dumps({'mcpServers': {'scratch': {'env': {'TEST_KEY': literal, 'PATH': '/usr/bin'}}}}))
+    config.write_text(json.dumps({'mcpServers': {'scratch': {'credentialProject': root, 'env': {'TEST_KEY': literal, 'PATH': '/usr/bin'}}}}))
     config.chmod(0o600)
     row = {'upstream': 'scratch', 'block': 'env', 'key': 'TEST_KEY', 'is_secret': True, 'uri': '<CHOOSE>'}
     def run(uri, output, *, trusted=True, extra=()):
         row['uri'] = uri
-        plan.write_text(json.dumps({'config': str(config), 'rows': [row]}))
+        plan.write_text(json.dumps({'config': str(config), 'configSha256': hashlib.sha256(config.read_bytes()).hexdigest(), 'rows': [row]}))
         stdout = io.StringIO()
         with contextlib.redirect_stdout(stdout):
-            rc = migration.main(['--out', str(output), *extra], plan_path=str(plan), runtime_check=lambda _: trusted)
+            rc = migration.main(['--out', str(output), *extra], plan_path=str(plan), runtime_check=lambda *_: trusted)
         assert literal not in stdout.getvalue(), 'a secret escaped to output'
         return rc
     out = directory / 'out.json'
@@ -52,9 +53,29 @@ with tempfile.TemporaryDirectory(prefix='mcpr-migration-') as root:
     assert not migration.runtime_preflight(str(directory / 'absent-runtime'))
     print('ok unsupported runtime cannot report readiness')
     assert run('warden://key', out, extra=['--in-place', '--backup']) == 0
-    rollback = Path(str(config) + '.pre-warden')
+    rollbacks = list(directory.glob('servers.json.pre-warden-*'))
+    assert len(rollbacks) == 1
+    rollback = rollbacks[0]
     assert literal in rollback.read_text() and rollback.stat().st_mode & 0o777 == 0o600
-    assert run('warden://new-key', out, extra=['--in-place', '--backup']) == 1
+    assert run('warden://new-key', out, extra=['--in-place', '--backup']) == 0
+    assert len(list(directory.glob('servers.json.pre-warden-*'))) == 2
     assert literal in rollback.read_text()
-    print('ok in-place preserves an exclusive private rollback copy')
-print('warden-migration selftest: 10 groups passed; live configuration was not opened')
+    print('ok in-place retains independent private rollback snapshots')
+    row['uri'] = 'warden://different'
+    plan.write_text(json.dumps({'config': str(config), 'configSha256': hashlib.sha256(config.read_bytes()).hexdigest(), 'rows': [row]}))
+    changed = json.loads(config.read_text())
+    changed['mcpServers']['scratch']['env']['TEST_KEY'] = 'owner-rotated-synthetic-key'
+    config.write_text(json.dumps(changed))
+    post_rotation = config.read_bytes()
+    stale_out = directory / 'stale.json'
+    with contextlib.redirect_stdout(io.StringIO()):
+        assert migration.main(['--out', str(stale_out)], plan_path=str(plan), runtime_check=lambda *_: True) == 1
+    assert not stale_out.exists() and config.read_bytes() == post_rotation
+    print('ok stale plans refuse before writing even an output copy')
+    unscoped = json.loads(config.read_text())
+    del unscoped['mcpServers']['scratch']['credentialProject']
+    config.write_text(json.dumps(unscoped))
+    assert run('warden://key', directory / 'unscoped.json') == 1
+    assert not (directory / 'unscoped.json').exists()
+    print('ok missing credential project refuses without output')
+print('warden-migration selftest: 12 groups passed; live configuration was not opened')

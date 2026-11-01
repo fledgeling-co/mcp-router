@@ -1,5 +1,6 @@
 import readline from 'node:readline';
-import { appendFileSync } from 'node:fs';
+import { appendFileSync, writeSync } from 'node:fs';
+if (process.env.MODE === 'chatty') writeSync(2, Buffer.alloc(1_048_576, 'x'));
 for await (const line of readline.createInterface({ input: process.stdin })) {
   const message = JSON.parse(line);
   const reply = (result) => process.stdout.write(JSON.stringify({jsonrpc:'2.0', id:message.id, result})+'\n');

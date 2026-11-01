@@ -17,8 +17,8 @@ const CONNECT_MS = 5_000;
 const MAX_BROKER_BYTES = 65_536;
 
 export class CredentialError extends Error {
-  constructor(readonly reason: 'unsupported' | 'untrusted' | 'denied' | 'unavailable' | 'malformed' | 'timeout' | 'cancelled') {
-    super(`Warden credential resolution refused: ${reason}. No target upstream was started.`);
+  constructor(readonly reason: 'unsupported' | 'project' | 'untrusted' | 'denied' | 'unavailable' | 'malformed' | 'timeout' | 'cancelled') {
+    super(`Warden credential resolution refused: ${reason}. ${reason === 'project' ? 'Configure an absolute credentialProject before connecting. ' : ''}No target upstream was started.`);
     this.name = 'CredentialError';
   }
 }
@@ -52,10 +52,11 @@ export async function verifyWardenRuntime(): Promise<void> {
     await exec('/usr/bin/codesign', ['--verify', '--strict', '-R',
       `=identifier "warden-mcp" and ${requirement}`, WARDEN_HELPER], options);
     await exec('/usr/sbin/spctl', ['--assess', '--type', 'execute', WARDEN_APP], options);
+    await exec('/usr/sbin/spctl', ['--assess', '--type', 'execute', WARDEN_HELPER], options);
   } catch { throw new CredentialError('untrusted'); }
 }
 
-export interface CredentialContext { upstream: string; project: string; signal?: AbortSignal }
+export interface CredentialContext { upstream: string; project?: string; signal?: AbortSignal }
 export interface ResolvedCredentials { values: Record<string, string>; secrets: string[] }
 export interface CredentialResolver {
   resolve(values: Record<string, string>, context: CredentialContext): Promise<ResolvedCredentials>;
@@ -91,6 +92,7 @@ export class WardenCredentialResolver implements CredentialResolver {
     });
     if (!refs.length) return { values: { ...values }, secrets: [] };
     if (context.signal?.aborted) throw new CredentialError('cancelled');
+    if (!context.project) throw new CredentialError('project');
     let project: string;
     try { project = realpathSync(context.project); }
     catch { throw new CredentialError('malformed'); }
@@ -186,8 +188,8 @@ export class CredentialProtectedTransport implements Transport {
   constructor(private readonly inner: Transport, private readonly secrets: string[]) {
     inner.onclose = () => this.onclose?.();
     inner.onerror = () => this.onerror?.(new Error('Credential-bound upstream transport failed'));
-    inner.onmessage = (message, extra) => {
-      try { this.onmessage?.(this.scrub(message) as JSONRPCMessage, extra); }
+    inner.onmessage = (message) => {
+      try { this.onmessage?.(this.scrub(message) as JSONRPCMessage); }
       catch { this.onerror?.(new Error('Credential-bound upstream response was refused')); }
     };
   }

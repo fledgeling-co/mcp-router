@@ -48,6 +48,7 @@ import { INSIGHTS_WINDOWS, insightsEnvelope, insightsWindowHours } from './insig
 import { analystEnvelope, ANALYST_UNAVAILABLE, type AnalystPort } from './analyst.js';
 import { AnalystSettingsRefusal } from './analyst-lanes.js';
 import { log } from './log.js';
+import { credentialRuntimeReceipt } from './credential-runtime.js';
 import { wireInstant, type IssuedCode, type Pairing } from './pairing.js';
 import { removePairedPhone } from './paired-phones.js';
 import { extensionRoute, isExtensionsPath } from './extension-routes.js';
@@ -475,6 +476,7 @@ export function isControlPath(pathname: string): boolean {
     pathname === '/inbox' ||
     pathname.startsWith('/inbox/') ||
     pathname === '/skills' ||
+    pathname === '/runtime/credentials' ||
     isExtensionsPath(pathname)
   );
 }
@@ -494,6 +496,15 @@ export async function handleControl(
   const p = url.pathname;
   const mutating = req.method === 'POST' || req.method === 'DELETE' || req.method === 'PATCH';
   if (!isControlPath(p)) return false;
+
+  if (p === '/runtime/credentials') {
+    if (!tokenOk(req, token)) { json(res, 401, { error: 'unauthorized' }); return true; }
+    if (req.method !== 'GET') { json(res, 405, { error: 'read only' }); return true; }
+    const receipt = credentialRuntimeReceipt(deps.cfg.configPath ?? DEFAULT_CONFIG_PATH, deps.cfg.configSha256);
+    if (!receipt) { json(res, 503, { error: 'runtime could not be attested' }); return true; }
+    json(res, 200, receipt);
+    return true;
+  }
 
   // GET /skills names every skill on this machine and the plugin each came from, so it is gated on every method, as the
   // extension family is. It is read-only: nothing it answers writes under Claude's home.

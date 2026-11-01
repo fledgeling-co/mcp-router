@@ -90,7 +90,7 @@ grep -q "^OK$" "$HOME_DIR/live.out" || { cat "$HOME_DIR/live.out"; fail "the pro
 grep -q "server name=acceptance-stdio transport=stdio" "$HOME_DIR/live.out" \
   || { cat "$HOME_DIR/live.out"; fail "the declared server was not decoded off the real response"; }
 echo "PASS  the live client decoded a real router's server list"
-sed -n '1,12p' "$HOME_DIR/live.out" | sed 's/^/      /'
+sed -n '1,12p' "$HOME_DIR/live.out" | sed 's/^/      probe: /'
 
 # ------------------------------------------------------- 3. a rejected credential
 # The other half of the pair. A wrong token must be a *different* value from a dead port, or the

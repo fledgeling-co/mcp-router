@@ -129,7 +129,11 @@ build_freshness_digest() {
         cd "$root" 2>/dev/null || exit 1
         # shellcheck disable=SC2086  # the input list is this file's own, deliberately word-split
         printf '%s\n' $list \
-            | while IFS= read -r p; do [ -e "$p" ] && find "$p" -type f -print; done \
+            | while IFS= read -r p; do
+                if [ -e "$p" ]; then
+                    find "$p" -type f -print || exit 1
+                fi
+            done \
             | LC_ALL=C sort \
             | xargs shasum -a 256 \
             | shasum -a 256 \

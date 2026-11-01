@@ -58,7 +58,7 @@ public sealed class SkillPresentationWriteTests
     public void PromoteIsDimmedWithTheReasonOnARouterThatDoesNotServeTheCache()
     {
         Assert.Equal(
-            "Promoting reads the held version from Claude's plugin cache, and this router does not serve that yet.",
+            "This router cannot copy cached plugins into its own store.",
             SkillPresentation.PromoteUnavailable);
     }
 

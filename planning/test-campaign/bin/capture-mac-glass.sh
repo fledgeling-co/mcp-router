@@ -73,6 +73,9 @@ FRONT_BEFORE="$("$AXKIT" front)"
 echo "frontmost before: $FRONT_BEFORE"
 
 mac_app_launch "$MAC_APP" "$AXKIT" "MCPROUTER_SCENARIO=populated" ${APP_ENV[@]+"${APP_ENV[@]}"}
+# A declared desktop viewport keeps virtualised row populations comparable.
+# Compact900×450 coverage is a separate geometry/action probe, not a five-row census.
+"$AXKIT" setframe "$PID" 100 100 1100 728
 ACTIVE_SCENARIO=populated
 echo "attached pid=$PID"
 WINID="$("$AXKIT" winid "$PID")"
@@ -194,6 +197,7 @@ do
     "$AXKIT" terminate "$PID"
     mac_app_wait_gone "$MAC_APP"
     mac_app_launch "$MAC_APP" "$AXKIT" "MCPROUTER_SCENARIO=$desired_scenario" ${APP_ENV[@]+"${APP_ENV[@]}"}
+    "$AXKIT" setframe "$PID" 100 100 1100 728
     ACTIVE_SCENARIO="$desired_scenario"
     WINID="$("$AXKIT" winid "$PID")"
   fi
@@ -463,6 +467,7 @@ relaunch_and_capture() {
   "$AXKIT" terminate "$PID" || true
   mac_app_wait_gone "$MAC_APP"
   mac_app_launch "$MAC_APP" "$AXKIT" "MCPROUTER_SCENARIO=$scenario" ${APP_ENV[@]+"${APP_ENV[@]}"}
+  "$AXKIT" setframe "$PID" 100 100 1100 728
   WINID="$("$AXKIT" winid "$PID")"
   "$AXKIT" select "$PID" "$destination" || true
   sleep 0.5
@@ -485,7 +490,14 @@ relaunch_and_capture cleanupSkills SURF-007.cleanup-skills SURF-007 Cleanup
 # focused scene, and a press that does not take exits non-zero, so the sheet is either photographed
 # or reported uncaptured. Its own Leave it button closes it without a keyboard event.
 echo "try provenance sheet"
-if "$AXKIT" press "$PID" "Read first" >/dev/null 2>&1; then
+# Full readable reasons make rows taller. SwiftUI may not materialise the flagged
+# skill until the content scroll area reaches it; use AXValue, never a wheel event.
+press_cleanup_provenance() {
+  "$AXKIT" press "$PID" "Read first" >/dev/null 2>&1 && return 0
+  "$AXKIT" scroll "$PID" 1 >/dev/null 2>&1 || return 1
+  "$AXKIT" press "$PID" "Read first" >/dev/null 2>&1
+}
+if press_cleanup_provenance; then
   sleep 0.6
   "$AXKIT" dump "$PID" window > "$AX/SURF-007.provenance-sheet.window.txt"
   SCENARIO=cleanupSkills capture SURF-007.provenance-sheet SURF-007 READBACK

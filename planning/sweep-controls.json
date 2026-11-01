@@ -61,7 +61,7 @@
         "planning/citation-gate.py",
         "--control"
       ],
-      "proves": "twelve citations planted in a throwaway repo, one per class, each answer required exactly; the wrap row must classify RESOLVES whole and something else line-anchored, so a reader that would have answered the same either way fails the control"
+      "proves": "Twelve planted citations reach all seven frame classes in a scratch Git repository, including shifted and absent anchors, plausible wrong text and whole-file versus line-only wrapping. Twenty-three MIRRORED controls distinguish copied JSON subject strings from identical authored rationale/assessment/scope/note claims, refuse malformed or unsupported schemas and boolean versions, check decoded/lexical leaf agreement and Unicode character coordinates, preserve explicit no-mask receipts and source-registry classification, and prove helper imports cannot reuse another checkout module."
     },
     {
       "path": "planning/claim-sweep.py",

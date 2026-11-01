@@ -57,3 +57,31 @@ test('SDK discovery of a different issuer never receives the stored refresh toke
   assert.equal(seen.join('\n').includes('old-secret-marker'), false);
   assert.equal(seen.join('\n').includes('old-access-marker'), false);
 });
+
+for (const boundField of ['tokens', 'clientInformation'] as const) {
+  test(`mixed record with only ${boundField} issuer-bound refuses both ordinary credential reads`, () => {
+    const issuer = 'https://issuer.example.test';
+    const record = {
+      tokens: { access_token: 'mixed-synthetic-access', token_type: 'Bearer', refresh_token: 'mixed-synthetic-refresh', ...(boundField === 'tokens' ? { issuer } : {}) },
+      clientInformation: { client_id: 'mixed-synthetic-client', client_secret: 'mixed-synthetic-secret', ...(boundField === 'clientInformation' ? { issuer } : {}) },
+    };
+    const server = 'scratch-mixed-' + boundField;
+    const path = join(dir, server + '.json'); const bytes = JSON.stringify(record); writeFileSync(path, bytes);
+    const provider = new FileOAuthProvider(server, () => undefined);
+    for (const field of ['tokens', 'clientInformation'] as const) {
+      assert.throws(() => provider[field](), error => {
+        assert.match((error as Error).message, /Authentication required:.*no trusted issuer binding/);
+        assert.doesNotMatch((error as Error).message, /mixed-synthetic-(access|refresh|secret)/);
+        return true;
+      });
+    }
+    assert.equal(hasTokens(server), false); assert.equal(hasRefreshToken(server), false);
+    assert.equal(recordState(server), 'reauthorization-required');
+    assert.equal(readFileSync(path, 'utf8'), bytes);
+    const explicit = new FileOAuthProvider(server, () => undefined, true);
+    assert.deepEqual(explicit[boundField](), record[boundField], 'explicit sign-in may retain the field already bound to its issuer');
+    const unsafeField = boundField === 'tokens' ? 'clientInformation' : 'tokens';
+    assert.equal(explicit[unsafeField](), undefined, 'explicit sign-in must ignore the unsafe field');
+    assert.equal(readFileSync(path, 'utf8'), bytes, 'both ordinary refusal and explicit preparation preserve owner data');
+  });
+}

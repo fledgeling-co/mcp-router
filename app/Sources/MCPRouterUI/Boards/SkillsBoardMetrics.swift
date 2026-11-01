@@ -30,6 +30,7 @@
         static var nameColumn: Double { unit * 8 }
         static var slotsColumn: Double { unit * 5.5 }
         static var versionColumn: Double { unit * 4 }
+        static var actionColumn: Double { unit * 5 }
         static var slotWidth: Double { unit + inset }
         static var searchWidth: Double { unit * 9 }
 

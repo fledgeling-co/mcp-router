@@ -43,7 +43,12 @@
                         .truncationMode(.tail)
                     secondLine
                 }
-                .frame(width: DiscoverBoardMetrics.nameColumn, alignment: .leading)
+                .frame(
+                    minWidth: DiscoverBoardMetrics.nameColumn / 2,
+                    idealWidth: DiscoverBoardMetrics.nameColumn,
+                    maxWidth: DiscoverBoardMetrics.nameColumn,
+                    alignment: .leading
+                )
 
                 ProvenanceMark(entry: entry)
                     .frame(width: DiscoverBoardMetrics.markColumn, alignment: .leading)
@@ -55,20 +60,30 @@
                         Text(figure.text)
                             .typeRole(.callout, monospaced: true)
                             .foregroundStyle(ColorToken.t2.color)
-                            .lineLimit(1)
+                            .lineLimit(2)
                     }
                 }
-                .frame(width: DiscoverBoardMetrics.figureColumn, alignment: .leading)
+                .frame(
+                    minWidth: DiscoverBoardMetrics.figureColumn * 2 / 3,
+                    idealWidth: DiscoverBoardMetrics.figureColumn,
+                    maxWidth: DiscoverBoardMetrics.figureColumn,
+                    alignment: .leading
+                )
 
                 Group {
                     if let dateCell {
                         Text(dateCell.text)
                             .typeRole(.caption)
                             .foregroundStyle(ColorToken.t3.color)
-                            .lineLimit(1)
+                            .lineLimit(2)
                     }
                 }
-                .frame(width: DiscoverBoardMetrics.dateColumn, alignment: .leading)
+                .frame(
+                    minWidth: DiscoverBoardMetrics.stateColumn,
+                    idealWidth: DiscoverBoardMetrics.dateColumn,
+                    maxWidth: DiscoverBoardMetrics.dateColumn,
+                    alignment: .leading
+                )
 
                 Spacer(minLength: 0)
 
@@ -293,16 +308,31 @@
                                 height: TypeToken.caption.size
                             )
                         }
-                        .frame(width: DiscoverBoardMetrics.nameColumn, alignment: .leading)
+                        .frame(
+                            minWidth: DiscoverBoardMetrics.nameColumn / 2,
+                            idealWidth: DiscoverBoardMetrics.nameColumn,
+                            maxWidth: DiscoverBoardMetrics.nameColumn,
+                            alignment: .leading
+                        )
                         bar(width: DiscoverBoardMetrics.markColumn * 0.8, height: TypeToken.body.size)
                             .frame(width: DiscoverBoardMetrics.markColumn, alignment: .leading)
                         bar(
                             width: DiscoverBoardMetrics.figureColumn * 0.65,
                             height: TypeToken.body.size
                         )
-                        .frame(width: DiscoverBoardMetrics.figureColumn, alignment: .leading)
+                        .frame(
+                            minWidth: DiscoverBoardMetrics.figureColumn * 2 / 3,
+                            idealWidth: DiscoverBoardMetrics.figureColumn,
+                            maxWidth: DiscoverBoardMetrics.figureColumn,
+                            alignment: .leading
+                        )
                         bar(width: DiscoverBoardMetrics.dateColumn * 0.6, height: TypeToken.body.size)
-                            .frame(width: DiscoverBoardMetrics.dateColumn, alignment: .leading)
+                            .frame(
+                                minWidth: DiscoverBoardMetrics.stateColumn,
+                                idealWidth: DiscoverBoardMetrics.dateColumn,
+                                maxWidth: DiscoverBoardMetrics.dateColumn,
+                                alignment: .leading
+                            )
                         Spacer(minLength: 0)
                     }
                     .padding(.horizontal, DiscoverBoardMetrics.rowPadding)

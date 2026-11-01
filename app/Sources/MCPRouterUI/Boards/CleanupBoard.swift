@@ -15,6 +15,7 @@
     /// is resident, so it has no figure to subtract from, and inventing one would be the defect this
     /// whole product refuses.
     public struct CleanupBoard: View {
+        @Environment(\.detailViewportWidth) private var viewportWidth
         @Bindable private var board: CleanupBoardModel
         @FocusState private var isSearchFocused: Bool
 
@@ -26,7 +27,9 @@
             HStack(alignment: .top, spacing: 0) {
                 boardColumn
                     .frame(maxWidth: .infinity, alignment: .leading)
-                if let selected = board.selectedCandidate() {
+                if viewportWidth >= M7BoardMetrics.inlineInspectorMinimumWidth,
+                   let selected = board.selectedCandidate()
+                {
                     Divider()
                     CleanupInspector(board: board, candidate: selected)
                 }
@@ -146,6 +149,9 @@
                             // note, and only a skill can carry one.
                             readFirst: { board.sheet = .provenance(skillPath: candidate.key.id) }
                         )
+                        .popover(isPresented: compactInspection(for: candidate.id)) {
+                            compactInspector(candidate)
+                        }
                         .contentShape(Rectangle())
                         .onTapGesture { board.selection = candidate.id }
                     }
@@ -156,6 +162,23 @@
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, M7BoardMetrics.gap)
             }
+        }
+
+        private func compactInspector(_ candidate: CleanupBoardModel.Candidate) -> some View {
+            CleanupInspector(board: board, candidate: candidate)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+
+        private func compactInspection(for id: String) -> Binding<Bool> {
+            Binding(
+                get: {
+                    viewportWidth < M7BoardMetrics.inlineInspectorMinimumWidth
+                        && board.selection == id && board.sheet == nil
+                },
+                set: { shown in
+                    if !shown, board.sheet == nil { board.selection = nil }
+                }
+            )
         }
 
         private var header: some View {
@@ -206,7 +229,7 @@
         }
 
         private var controls: some View {
-            HStack(spacing: M7BoardMetrics.gap) {
+            VStack(alignment: .leading, spacing: M7BoardMetrics.gap) {
                 Picker("", selection: $board.filter) {
                     ForEach(CleanupBoardModel.Filter.allCases) { filter in
                         Text(label(for: filter)).tag(filter)
@@ -214,13 +237,10 @@
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .fixedSize()
 
                 SearchField(text: $board.search, placeholder: "Filter proposal")
-                    .frame(width: M7BoardMetrics.searchWidth)
+                    .frame(maxWidth: .infinity)
                     .focused($isSearchFocused)
-
-                Spacer(minLength: 0)
             }
             .padding(.bottom, M7BoardMetrics.gap)
         }
@@ -233,11 +253,22 @@
         private var columnHeaders: some View {
             HStack(spacing: M7BoardMetrics.rowPadding) {
                 Color.clear.frame(width: M7BoardMetrics.tile, height: 1)
-                Text("capability").frame(width: M7BoardMetrics.nameColumn, alignment: .leading)
+                Text("capability").frame(
+                    minWidth: M7BoardMetrics.nameColumn / 2,
+                    idealWidth: M7BoardMetrics.nameColumn,
+                    maxWidth: M7BoardMetrics.nameColumn,
+                    alignment: .leading
+                )
                 Text("kind").frame(width: M7BoardMetrics.kindColumn, alignment: .leading)
                 // "why it is here" — the observation that proposed it, never a judgement of worth.
-                Text("why it is here").frame(width: M7BoardMetrics.reasonColumn, alignment: .leading)
+                Text("why it is here").frame(
+                    minWidth: M7BoardMetrics.reasonColumn / 3,
+                    idealWidth: M7BoardMetrics.reasonColumn,
+                    maxWidth: M7BoardMetrics.reasonColumn,
+                    alignment: .leading
+                )
                 Spacer(minLength: 0)
+                Color.clear.frame(width: M7BoardMetrics.actionColumn, height: M7BoardMetrics.hairline)
             }
             .typeRole(.caption)
             .foregroundStyle(ColorToken.t3.color)

@@ -178,7 +178,7 @@
         }
 
         private func controls() -> some View {
-            HStack(spacing: DiscoverBoardMetrics.gap) {
+            VStack(alignment: .leading, spacing: DiscoverBoardMetrics.gap) {
                 // A segmented control switches the view in place and is never primary navigation
                 // (§3.6).
                 Picker("", selection: $board.ordering) {
@@ -188,7 +188,6 @@
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .fixedSize()
 
                 // Deliberately "Search the registries", not "Filter" — this is a query to two
                 // third-party indexes, and the copy says so because the behaviour differs.
@@ -199,7 +198,7 @@
                     .frame(
                         minWidth: DiscoverBoardMetrics.searchMinWidth,
                         idealWidth: DiscoverBoardMetrics.searchWidth,
-                        maxWidth: DiscoverBoardMetrics.searchWidth
+                        maxWidth: .infinity
                     )
                     .focused($isSearchFocused)
                     .onChange(of: board.search) { _, _ in board.queryChanged() }
@@ -211,8 +210,6 @@
                 // and opening a definition commits nothing.
                 Button(DiscoverCopy.officialMarkAction) { board.sheet = .officialMark }
                     .buttonStyle(StandardButtonStyle())
-
-                Spacer(minLength: 0)
             }
             .padding(.bottom, DiscoverBoardMetrics.tightGap)
         }
@@ -248,11 +245,30 @@
         private func columnHeaders() -> some View {
             HStack(spacing: DiscoverBoardMetrics.rowPadding) {
                 Color.clear.frame(width: DiscoverBoardMetrics.tile, height: 1)
-                Text("server").frame(width: DiscoverBoardMetrics.nameColumn, alignment: .leading)
+                Text("server").frame(
+                    minWidth: DiscoverBoardMetrics.nameColumn / 2,
+                    idealWidth: DiscoverBoardMetrics.nameColumn,
+                    maxWidth: DiscoverBoardMetrics.nameColumn,
+                    alignment: .leading
+                )
                 Text("source").frame(width: DiscoverBoardMetrics.markColumn, alignment: .leading)
-                Text("measured").frame(width: DiscoverBoardMetrics.figureColumn, alignment: .leading)
-                Text("date").frame(width: DiscoverBoardMetrics.dateColumn, alignment: .leading)
+                Text("measured").frame(
+                    minWidth: DiscoverBoardMetrics.figureColumn * 2 / 3,
+                    idealWidth: DiscoverBoardMetrics.figureColumn,
+                    maxWidth: DiscoverBoardMetrics.figureColumn,
+                    alignment: .leading
+                )
+                Text("date").frame(
+                    minWidth: DiscoverBoardMetrics.stateColumn,
+                    idealWidth: DiscoverBoardMetrics.dateColumn,
+                    maxWidth: DiscoverBoardMetrics.dateColumn,
+                    alignment: .leading
+                )
                 Spacer(minLength: 0)
+                Color.clear.frame(
+                    width: DiscoverBoardMetrics.stateColumn,
+                    height: DiscoverBoardMetrics.hairline
+                )
             }
             // Sentence case, secondary colour, no tracked uppercase (§3.2).
             .typeRole(.caption)

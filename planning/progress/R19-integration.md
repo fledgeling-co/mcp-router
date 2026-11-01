@@ -157,7 +157,7 @@ neither branch made and a merge is the wrong commit to smuggle one into. It woul
 node's writer count from three to two, and `surface.tsv`, this file and R19's own progress note all
 quote that census. The closure carries a comment saying it is a duplicate and why it was left.
 
-**`app/Sources/RouterCore/Watch/WatchIndexing.swift`** — R19's mechanism, R17's inventory, R17's
+**`app/Sources/RouterCore/Watch/WatchIndexing.swift` at `eb3e42ccd77d8787887258ff324e9f28ddaaa9be` (historical source)** — R19's mechanism, R17's inventory, R17's
 declaration removed.
 
 The header takes R19's version of the X4b paragraph, because R19's is the one that is correct about
@@ -182,7 +182,7 @@ keeps both rows on one side and one on the other; and the six-site inventory it 
 zero uncovered sites, because R19 put every writer on both sides inside the lock.
 
 **What replaced it is named, and it is the sentence worth writing:** the property the note said no
-scenario in this harness could reach is now held by `scripts/acceptance/parity-overlap.sh`, R19's
+scenario in this harness could reach is now held by `scripts/acceptance/parity-overlap.sh` at `eb3e42ccd77d8787887258ff324e9f28ddaaa9be` (historical source), R19's
 own lane, whose two `overlap` rows keep two writers live at the same moment. A declared-unreachable
 property became a lane.
 
@@ -190,7 +190,7 @@ property became a lane.
 
 The item named three. There were five.
 
-**`scripts/acceptance/parity-overlap.sh` asserted the pre-R17 manifest contents.** R19's lane
+**`scripts/acceptance/parity-overlap.sh` at `eb3e42ccd77d8787887258ff324e9f28ddaaa9be` (historical source) asserted the pre-R17 manifest contents.** R19's lane
 asserts the row set after the overlap equals `lifeline` exactly. It was written when the watcher
 deleted a failed server's row, so the staged `slowfail` left nothing behind. R17 keeps that row, so
 the set is now `lifeline,slowfail` and the lane went red on its first run against the merged tree —
@@ -330,7 +330,7 @@ one level of indirection, inside a helper every call to which is itself inside o
 
 **6 of 6 covered, exit 0.** "saveManifest(path, current);", `src/manifest.ts:190` at `eb3e42c` in `manifestCommitter`, `src/watch.ts:265` in the
 watcher's closure, "saveManifest(deps.cfg.manifestPath, manifest);", `src/control.ts:465` at `eb3e42c` on approve, `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `app/Sources/RouterCore/Auth/AuthRoutes.swift:173` at `8294df4`
-via `promote()`, `app/Sources/RouterCore/Watch/WatchIndexing.swift:209`,
+via `promote()`, `app/Sources/RouterCore/Watch/WatchIndexing.swift:209` at `8294df4c5fb91501910cc8c02e0a2071665af907` (historical source),
 `try ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `app/Sources/RouterCore/Service/ManifestIndexer.swift:186` at `8294df4`. The three Swift sites were bare
 filenames until gap-fix 1 and now carry their paths, for the reason given there: this repo has two
 Swift modules and a filename alone sends a reader to the wrong one.
@@ -404,7 +404,7 @@ not reachable from `main`). The verifier merged
 them — lint 0 over 552, `make test` 1728 in 216, `parity-cli` 18 verbs 0 disagreed with all four
 `cli-watch` scenarios green, `parity-overlap` 2 of 2, the reconciler clean across A–L — and
 confirmed that its merged tree's `src/`, `app/`, `scripts/`, `Makefile` and `planning/parity/` were
-byte-identical to `eb3e42c`. This gap-fix breaks that for `planning/parity/surface.tsv` alone, by
+byte-identical to `eb3e42c`. This gap-fix breaks that for `planning/parity/surface.tsv` at `8294df4c5fb91501910cc8c02e0a2071665af907` (historical source) alone, by
 one line of citation, and for nothing under `src/`, `app/`, `scripts/` or `Makefile`. **No code
 changed here, and no gate logic.** What was wrong was what two sentences said and what two accounts
 left out.
@@ -446,7 +446,7 @@ recorded accurately.
 
 ### The citation that had rotted three lines
 
-`planning/parity/surface.tsv`'s `cli` / `cli-watch` / `watch` row cited "// stage `lifeline` as well and its row starts disappearing.", `WatchIndexing.swift:206` at `8294df4`
+`planning/parity/surface.tsv` at `7315b9a0c379837e07e2607d6af2c9439ed4bb19` (historical source)'s `cli` / `cli-watch` / `watch` row cited "// stage `lifeline` as well and its row starts disappearing.", `WatchIndexing.swift:206` at `8294df4`
 for the Swift watcher's manifest save. On this tree `:206` is a comment — *stage `lifeline` as well
 and its row starts disappearing* — and the `try? ManifestIO.save(…)` it meant is at **`:209`**. All
 three Swift sites in that pairing were bare filenames, and this repo has two Swift modules; the
@@ -534,7 +534,7 @@ nobody will merge cannot win the race by running faster either.
 ## Gap-fix 2 — the replacement claim was false too, and a static read is what let it through
 
 **2026-08-22, on `ai/r19` at `8294df4`**, after a second **Needs More Work** verdict from a
-fresh-context verifier in `.worktrees/R19V2` (`planning/verification/R19-verdict.md` there, written
+fresh-context verifier in `.worktrees/R19V2` (`planning/verification/R19-verdict.md` at `f3a14b699b3b89f815c90cc9237eb338c9fe06fa` (historical source) there, written
 against `f3a14b6`). Documents only again, and this time one file: this one.
 
 **The verdict's three findings, and which were in scope.** **F1** is the blocking one and is the
@@ -619,7 +619,7 @@ working tree's live arming mutation, and both fired: the diff instrument reporte
 with no control is an assertion, and this one was not. Re-run here after merging `main`, the same
 three directories are still byte-identical to `eb3e42c` and `Makefile` is the only code-path delta.
 
-**`scripts/acceptance/parity-gate.sh` was not run, and that trade is inherited deliberately.** It is
+**`scripts/acceptance/parity-gate.sh` at `27935748d0128b76cd0c997c7a43e82b775fc632` (historical source) was not run, and that trade is inherited deliberately.** It is
 the instrument that would produce a fifth rate for the `control POST /servers/:name/auth` cell — the
 gate runs `parity-oauth.sh` twice with a `fail` winning between the copies, DEF-033 — and that cell
 has now had four successive measurements each contradict the rate published before it. The verifier
@@ -642,7 +642,7 @@ Nothing in that half of gap-fix 1 is disturbed, and neither is any gate figure.
 ### The handover was clean this time, and it is recorded rather than assumed
 
 The previous verifier inherited this worktree **dirty** — an earlier session's Swift arming mutation
-live and uncommitted in `app/Sources/RouterCore/Watch/WatchIndexing.swift`, which would have reddened
+live and uncommitted in `app/Sources/RouterCore/Watch/WatchIndexing.swift` at `27935748d0128b76cd0c997c7a43e82b775fc632` (historical source), which would have reddened
 any gate run there for a reason nothing in the tree recorded. It pasted the patch into its verdict and
 cleared it before gating, which is the right handling and the only reason the hazard is knowable.
 
@@ -692,11 +692,11 @@ delta the merge carries is **`Makefile`**, twelve lines from main's `50f3e8f`, a
 | `make lint` | **exit 0** — 0 violations, 0 serious in **552 files**. `tools:` printed its version line, so the prerequisite passed rather than being skipped. Main's two new gates ran on this branch for the first time and both are green: `reader-accounting.py` at **20 raw-input readers over 28 discarding iterations, 51 drop sites**, 3 recording their drops, 16 declaring them and **1 recorded as a known gap rather than fixed**; `null-run-gate.py` at **28 assertions armed, 28 changed verdict** under a poisoned or null input, **0 held green** |
 | `make test` | **exit 0** — 1728 tests in 216 suites passed, 10.4s. Unchanged from the pre-merge figure, which is what a merge carrying no code but `Makefile` should do |
 | `scripts/acceptance/parity-cli.sh` at `27935748d0128b76cd0c997c7a43e82b775fc632` (historical source) | **exit 0** — 18 verbs agreed, 0 did not; all four `cli-watch` scenarios green, the fourth included. This is the matrix's **none** row re-measured here rather than inherited from the verdict |
-| `scripts/acceptance/parity-overlap.sh` | **exit 0** — 2 agreed, 0 did not; `overlap-watch-index` at `rows=lifeline,slowfail`, neither binary rewrote `servers.json` |
+| `scripts/acceptance/parity-overlap.sh` at `27935748d0128b76cd0c997c7a43e82b775fc632` (historical source) | **exit 0** — 2 agreed, 0 did not; `overlap-watch-index` at `rows=lifeline,slowfail`, neither binary rewrote `servers.json` |
 | `scripts/acceptance/parity-manifest-check.sh` at `27935748d0128b76cd0c997c7a43e82b775fc632` (historical source) | **exit 0** — 94 rows, consistent with `control.ts`, `index.ts`, `router.ts` and the fixture directory; every cited test, script and row id resolves |
 | `planning/ledger-reconcile.py` | **exit 0** — *reconciled, no findings across A–L*; 103 rows in each file, 32 merged `ai/*`. The `E — G4-B (ai/g4b)` finding this branch reads pre-merge is gone, exactly as the brief predicted: branch staleness, cleared by the merge |
 | `planning/claim-sweep.py` | **exit 1** — 11 blocking hits, A1×5 + A2×5 + A3×1, in the same four files, none of which this branch writes |
-| `scripts/acceptance/parity-gate.sh` | **not run — deliberately.** Reasons and cost above |
+| `scripts/acceptance/parity-gate.sh` at `27935748d0128b76cd0c997c7a43e82b775fc632` (historical source) | **not run — deliberately.** Reasons and cost above |
 
 Every gate ran twice. The first pass piped its output and lost the exit codes — `zsh` does not
 populate `PIPESTATUS` — so each was re-run without a pipe. The two passes agree on every figure, and
@@ -863,11 +863,11 @@ note was touched; the after-pass is what the table reports.
 | `make lint` | **exit 0** — 0 violations, 0 serious in **552 files**; `tools:` printed `Version: 2.45.4 · swiftlint 0.65.0 · swiftformat 0.62.1`, so the prerequisite passed rather than being skipped. `reader-accounting.py`: **20 raw-input readers over 28 discarding iterations, 51 drop sites**; 3 accounting, 16 declaring, **1 known gap**, **0 unaccounted**. `null-run-gate.py`: **28 assertions armed, 28 changed verdict**, **0 held green**, 0 blocked, 4 populations named as not armed |
 | `make test` | **exit 0** — **1728 tests in 216 suites** passed; 11.0s on the after-pass, 13.5s on the before-pass, the difference being machine load rather than anything in the tree |
 | `scripts/acceptance/parity-cli.sh` at `4a4990d776950c821108a01b1b52723d24de8a91` (historical source) | **exit 0** — **18 verbs agreed, 0 did not**; all four `cli-watch` scenarios green, the fourth included. The matrix's **none** row, re-measured here |
-| `scripts/acceptance/parity-overlap.sh` | **exit 0** — **2 agreed, 0 did not**; `overlap-watch-index` at `rows=lifeline,slowfail`, neither binary rewrote `servers.json` |
+| `scripts/acceptance/parity-overlap.sh` at `4a4990d776950c821108a01b1b52723d24de8a91` (historical source) | **exit 0** — **2 agreed, 0 did not**; `overlap-watch-index` at `rows=lifeline,slowfail`, neither binary rewrote `servers.json` |
 | `scripts/acceptance/parity-manifest-check.sh` at `4a4990d776950c821108a01b1b52723d24de8a91` (historical source) | **exit 0** — **94 rows**, consistent with `control.ts`, `index.ts`, `router.ts` and the fixture directory; every cited test, script and row id resolves. **It went red once tonight in 12 runs**, spuriously; recorded below rather than dropped |
 | `planning/ledger-reconcile.py` | **exit 0** — *reconciled, no findings across A–L*. **107 rows in each file**, 32 merged `ai/*`. One non-fatal warning, inherited and not this branch's: `LEDGER.md odd number of backtick quotes (1683) — check D may be stripping more than one quoted span` |
 | `planning/claim-sweep.py` | **exit 1** — **11 blocking hits, A1×5 + A2×5 + A3×1**, across `ORCHESTRATOR.md`, `G4-assertions-that-do-not-read-their-own-quantity.md`, `R17-gapfix-2.md` and `R17-gapfix-3.md`, none of which this branch writes |
-| `scripts/acceptance/parity-gate.sh` | **not run — deliberately.** Cost stated above |
+| `scripts/acceptance/parity-gate.sh` at `4a4990d776950c821108a01b1b52723d24de8a91` (historical source) | **not run — deliberately.** Cost stated above |
 
 **One gate went red once and could not be made to do it again, so it is recorded rather than
 dropped.** On the after-edit pass `parity-manifest-check.sh` exited **1** with a single problem —
@@ -984,8 +984,8 @@ unarmed control on the same tree in the same session:
 
 | instrument | unarmed | arm A |
 |---|---|---|
-| `scripts/acceptance/parity-cli.sh` | 14 agreed, 4 did not — exit 1 | **13 agreed, 5 did not** — exit 1 |
-| `scripts/acceptance/parity-overlap.sh` | 2 agreed, 0 did not — exit 0 | **RED** — 1 agreed, 1 did not, exit 1 |
+| `scripts/acceptance/parity-cli.sh` at `b8903ef2602d72e3a0bf615cfdfbab1875142782` (historical source) | 14 agreed, 4 did not — exit 1 | **13 agreed, 5 did not** — exit 1 |
+| `scripts/acceptance/parity-overlap.sh` at `b8903ef2602d72e3a0bf615cfdfbab1875142782` (historical source) | 2 agreed, 0 did not — exit 0 | **RED** — 1 agreed, 1 did not, exit 1 |
 | `scripts/acceptance/parity-state.sh` at `b8903ef2602d72e3a0bf615cfdfbab1875142782` (historical source) | exit 0 | exit 0 |
 | `scripts/acceptance/control-differential.sh` at `b8903ef2602d72e3a0bf615cfdfbab1875142782` (historical source) | 59 rows, 59 ok — exit 0 | 59 rows, 59 ok — exit 0 |
 | `scripts/acceptance/parity-divergence.sh` at `b8903ef2602d72e3a0bf615cfdfbab1875142782` (historical source) (outside the subject set; F4) | 6 as declared, 0 stale — exit 0 | 6 as declared, 0 stale — exit 0 |
@@ -1027,7 +1027,7 @@ divergence and this item carries no code.
 | `make test` | **2100 tests in 267 suites passed**, exit 0 |
 | `python3 planning/instrument-census.py` | census matches the tree — 444 instruments, exit 0 |
 | `python3 planning/instrument-census.py --control` | 17 of 17 arms fired, exit 0 |
-| `scripts/acceptance/parity-overlap.sh` | 2 agreed, 0 did not — exit 0 |
+| `scripts/acceptance/parity-overlap.sh` at `b8903ef2602d72e3a0bf615cfdfbab1875142782` (historical source) | 2 agreed, 0 did not — exit 0 |
 | `scripts/acceptance/parity-state.sh` at `b8903ef2602d72e3a0bf615cfdfbab1875142782` (historical source) | exit 0 |
 | `scripts/acceptance/control-differential.sh` at `b8903ef2602d72e3a0bf615cfdfbab1875142782` (historical source) | 59 rows, 59 ok — exit 0 |
 | `scripts/acceptance/parity-divergence.sh` at `b8903ef2602d72e3a0bf615cfdfbab1875142782` (historical source) | 6 as declared, 0 stale — exit 0 |

@@ -173,7 +173,7 @@ fleet says to run it whole rather than the filter:
 
 4. **The landing is Swift-only and carried no carrier row.** `carrier-parity-gate.py` refused it —
    *a landing that touched one router and not the other is not a defect; not saying so is*. The row
-   is now in `planning/parity/carriers.tsv`, keyed on `182e40f7`, and the reason is structural
+   is now in `planning/parity/carriers.tsv` at `cabadacdb4b0302326ec1ff34e8c72422f6f2b50` (historical source), keyed on `182e40f7`, and the reason is structural
    rather than a scheduling accident: the route reads the Swift store at `<router home>/extensions`,
    which the node router has no concept of, so a TypeScript half would have nothing to read.
 5. **`no-wire-codable.sh` refused two `[String: …]` memos** under `RouterCore/Extensions`, because a

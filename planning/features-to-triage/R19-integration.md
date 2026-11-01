@@ -11,8 +11,8 @@ target-note: DEF-360's evidence quotes `LEDGER.md`'s R19-INT row directly - the 
 ## Why this is an item rather than a merge
 
 R19 is verified Done. `git merge ai/r19` into `main` (at `54666f7`, which now carries R17)
-conflicts in **`src/watch.ts`** and **`app/Sources/RouterCore/Watch/WatchIndexing.swift`**, and
-**`planning/parity/surface.tsv` auto-merges clean** — which is the dangerous half.
+conflicts in **`src/watch.ts`** and **`app/Sources/RouterCore/Watch/WatchIndexing.swift` at `6051f4bf07b5f13d946965891b8a13d9ab2b821a` (historical source)**, and
+**`planning/parity/surface.tsv` at `6051f4bf07b5f13d946965891b8a13d9ab2b821a` (historical source) auto-merges clean** — which is the dangerous half.
 
 **None of the conflicts is a logic conflict.** All three are records, and all three carry evidence
 that took five verifications to make true. R19's base predates R17's merge, so where R19's side

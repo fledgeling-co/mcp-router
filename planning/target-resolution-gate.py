@@ -60,7 +60,9 @@ token that would answer to two classes must answer to exactly one:
   RESOLVES   the path is in the tree at HEAD.
   FRAMED     not at HEAD; the citation names a tree and the path IS in that tree. **Not a defect.**
              This is `M16`'s form doing the work it was adopted for, and it is how a rename is
-             absorbed without touching a historical record.
+             absorbed without touching a historical record. The frame must be immediately after
+             the path, or end the current sentence immediately before it; another backtick token
+             or sentence cannot lend its tree. Repeated paths retain their worst reading and line.
   WITHDRAWN  the record says the target is gone — `foreign-path-gate`'s marker, or an adjacent
              denial clause (see DENIAL). A record may keep a dead pointer if it says so.
   PLANNED    a plan or a spec naming a path under a work verb — `Create`, `Delete`, `New`.
@@ -229,7 +231,10 @@ WORK_VERB = re.compile(
     r"Where\s+the\s+code\s+goes|Files|Add|Adds|Added)\b")
 PLAN_FILE = ("planning/plans/plan-*.md", "planning/specs/spec-*.md")
 
-SHA_IN_WINDOW = re.compile(r"`([0-9a-f]{7,40})`|\bat\s+([0-9a-f]{7,40})\b")
+FRAME_SHA = r"(?:`(?P<sha>[0-9a-f]{7,40})`|(?P<sha2>[0-9a-f]{7,40})\b)"
+TRAILING_FRAME = re.compile(
+    r"^\s*(?:[,;:—–-]\s*|\(\s*)?(?:at|in\s+the\s+tree\s+at|as\s+of|@|in|on)\s+" + FRAME_SHA)
+LEADING_FRAME = re.compile(r"\bat\s+" + FRAME_SHA + r"\s*[(:]?\s*$")
 
 EXTS = ("md", "py", "swift", "ts", "tsx", "js", "mjs", "json", "sh", "zsh", "yml", "yaml",
         "html", "css", "tsv", "txt", "plist", "toml", "png", "svg", "xml", "lock")
@@ -318,6 +323,8 @@ SELF = ("planning/target-resolution-gate.py", "planning/target-resolution-ratche
 PATH_CLASSES = ("SUBJECT", "RESOLVES", "FRAMED", "WITHDRAWN", "PLANNED",
                 "MOVED", "DELETED", "PHANTOM")
 PATH_BLOCKING = ("MOVED", "DELETED", "PHANTOM")
+PATH_SEVERITY = {c: 0 for c in PATH_CLASSES}
+PATH_SEVERITY.update({"DELETED": 1, "MOVED": 2, "PHANTOM": 3})
 ID_CLASSES = ("ID_RESOLVES", "ID_RETIRED", "ID_WITHDRAWN", "ID_FOREIGN", "ID_ABSENT")
 ID_BLOCKING = ("ID_ABSENT",)
 ID_SEVERITY = {"ID_RESOLVES": 0, "ID_FOREIGN": 0, "ID_RETIRED": 1, "ID_WITHDRAWN": 2,
@@ -506,6 +513,22 @@ PATH_ABSENCE = re.compile(
     r"|\bdead\s+(?:path\s+)?(?:target|pointer)s?\b", re.I)
 
 
+def bound_frame(head, tail):
+    """A frame belongs to this citation, not another token or an earlier sentence.
+
+    Prefer an explicit trailing frame, even when its tree is wrong: it cannot borrow a
+    different leading tree to rescue the stated coordinate. The leading suffix admits no
+    intervening backtick token or prose between its SHA and the current path.
+    """
+    trailing = TRAILING_FRAME.match(tail)
+    if trailing:
+        return trailing.group("sha") or trailing.group("sha2")
+    leading = LEADING_FRAME.search(last_clause(head))
+    if leading:
+        return leading.group("sha") or leading.group("sha2")
+    return None
+
+
 def classify_path(citing, path, head, tail, repo, tree, fenced):
     """One class, plus the evidence it rests on. Precedence is the docstring's order."""
     if fenced:
@@ -514,19 +537,13 @@ def classify_path(citing, path, head, tail, repo, tree, fenced):
         return "SUBJECT", "an elided segment cannot be resolved, so it cannot be a citation"
     if path in tree:
         return "RESOLVES", None
-    for window in (tail[:200], head[-200:]):
-        for m in SHA_IN_WINDOW.finditer(window):
-            sha = m.group(1) or m.group(2)
-            if repo.at(sha, path):
-                # Whether the named tree is an ANCESTOR of HEAD is printed rather than folded into
-                # the class. A frame naming a commit reachable only from a side branch is checkable
-                # in this clone and would stop being checkable if that branch were pruned, which is
-                # a weaker guarantee than the same frame on mainline and should not read as the
-                # same fact.
-                return "FRAMED", ("in the tree at %s%s"
-                                  % (sha[:7], "" if repo.ancestor(sha) else
-                                     " (NOT an ancestor of HEAD — reachable only from a side "
-                                     "branch, so a prune would take it)"))
+    sha = bound_frame(head, tail)
+    if sha and repo.at(sha, path):
+        # Side-branch reachability remains a reported limitation, not mainline evidence.
+        return "FRAMED", ("in the tree at %s%s"
+                          % (sha[:7], "" if repo.ancestor(sha) else
+                             " (NOT an ancestor of HEAD — reachable only from a side "
+                             "branch, so a prune would take it)"))
     if WITHDRAW.search(tail[:FPG.WINDOW]) or DENIAL.match(tail[:CLAUSE]) \
             or withdrawn_before(head):
         return "WITHDRAWN", "the record says so"
@@ -646,11 +663,12 @@ def control(verbose=True):
         roots = {"planning"}
         TOK = path_token_re(roots)
 
-        def read(citing, prose):
+        def read(citing, prose, occurrence=0):
             norm, _ = normalise(prose)
-            m = TOK.search(norm)
-            if not m:
+            matches = list(TOK.finditer(norm))
+            if occurrence >= len(matches):
                 return None
+            m = matches[occurrence]
             head, tail = windows(norm, m.start(), m.end())
             return classify_path(citing, m.group(1) + "/" + m.group(2), head, tail,
                                  repo, tree, False)
@@ -718,6 +736,55 @@ def control(verbose=True):
         if not ok:
             failures.append("frame arm: with-tree %s, without %s"
                             % (with_tree, without))
+
+        current = repo._git("rev-parse", "HEAD").stdout.decode().strip()
+        bound_plants = [
+            ("leading frame", "**Work** at `%s` (`planning/vanishes.py`)" % old, "FRAMED", 0),
+            ("parenthesised trailing frame with line range", "`planning/vanishes.py:1-1` (at `%s`)" % old, "FRAMED", 0),
+            ("trailing tree phrase", "`planning/vanishes.py` in the tree at `%s`" % old, "FRAMED", 0),
+            ("trailing as-of bare SHA", "`planning/vanishes.py` as of %s" % old, "FRAMED", 0),
+            ("documented trailing @ form", "`planning/vanishes.py` @ `%s`" % old, "FRAMED", 0),
+            ("documented trailing in form", "`planning/vanishes.py` in `%s`" % old, "FRAMED", 0),
+            ("documented trailing on form", "`planning/vanishes.py` on `%s`" % old, "FRAMED", 0),
+            ("wrapped trailing frame", "`planning/vanishes.py`\nat `%s`" % old, "FRAMED", 0),
+            ("NEGATIVE: wrong snapshot", "`planning/vanishes.py` at `%s`" % current, "DELETED", 0),
+            ("NEGATIVE: foreign path with a valid SHA", "`planning/not-this-project.py` at `%s`" % old, "PHANTOM", 0),
+            ("NEGATIVE: another path interrupts leading frame", "at `%s` (`planning/kept.py`) `planning/vanishes.py`" % old, "DELETED", 1),
+            ("NEGATIVE: leading SHA belongs to previous sentence", "Reviewed at `%s`. `planning/vanishes.py` is current." % old, "DELETED", 0),
+            ("NEGATIVE: another citation cannot lend its frame", "`planning/kept.py` at `%s`; current `planning/vanishes.py`" % old, "DELETED", 1),
+            ("NEGATIVE: backtick token interrupts trailing frame", "`planning/vanishes.py` `planning/kept.py` at `%s`" % old, "DELETED", 0),
+            ("NEGATIVE: trailing SHA belongs to another sentence", "`planning/vanishes.py`. Other review at `%s`." % old, "DELETED", 0),
+            ("NEGATIVE: invalid trailing frame cannot borrow leading one", "at `%s` (`planning/vanishes.py` at `%s`)" % (old, current), "DELETED", 0),
+        ]
+        for label, prose, want, occurrence in bound_plants:
+            got = read("planning/probe.md", prose, occurrence)
+            cls = got[0] if got else "NO CITATION FOUND"
+            rows.append((label, want, cls, cls == want, got[1] if got and got[1] else ""))
+            if cls != want:
+                failures.append("%s: got %s, want %s" % (label, cls, want))
+
+        # Exercise the real sweep, not just the classifier, so a first-wins dedupe cannot hide
+        # a later unframed claim. No sentence boundary separates the first pair.
+        dedupe_plants = [
+            ("NEGATIVE: repeated path without a sentence", "planning/probe.md",
+             "`planning/vanishes.py` at `%s` and `planning/vanishes.py` is current" % old, "DELETED", 1),
+            ("NEGATIVE: repeated path beyond the frame window", "planning/probe.md",
+             "`planning/vanishes.py` at `%s`\n%s\n`planning/vanishes.py` is current" % (old, "separate context " * 30), "DELETED", 3),
+            ("NEGATIVE: later frame cannot erase first refusal", "planning/probe.md",
+             "`planning/vanishes.py` is current\n%s\n`planning/vanishes.py` at `%s`" % ("separate context " * 30, old), "DELETED", 1),
+            ("NEGATIVE: planned first mention does not excuse bare one", "planning/plans/plan-probe.md",
+             "Create `planning/never-was.py`\n%s\n`planning/never-was.py` is current" % ("separate context " * 30), "PHANTOM", 3),
+        ]
+        for label, file, prose, want, line in dedupe_plants:
+            target = pathlib.Path(d) / file
+            target.write_text(prose + "\n", encoding="utf-8")
+            repo._git("add", "--", file)
+            got = [r for r in sweep(pathlib.Path(d))["prows"] if r["file"] == file]
+            ok = len(got) == 1 and got[0]["class"] == want and got[0]["at"] == line
+            actual = "%s:%s" % (got[0]["class"], got[0]["at"]) if len(got) == 1 else "no unique row"
+            rows.append((label, "%s:%d" % (want, line), actual, ok, "worst reading and its actual citing line win"))
+            if not ok:
+                failures.append("%s: got %s, want %s:%d" % (label, actual, want, line))
 
         # ---- the id arm, and the renumber it must survive ----
         #
@@ -811,7 +878,7 @@ def sweep(root, rev=None):
     retired = retirements(root)
 
     p1 = p2 = 0
-    seen = set()
+    seen = {}
     prows = []
     for f, raw in sorted(records.items()):
         p1 += len(TOK.findall(raw))
@@ -821,14 +888,18 @@ def sweep(root, rev=None):
             p2 += 1
             path = m.group(1) + "/" + m.group(2)
             key = (f, path)
-            if key in seen:
-                continue
-            seen.add(key)
             head, tail = windows(norm, m.start(), m.end())
             at = line_of(raw, offsets[m.start()])
             cls, ev = classify_path(f, path, head, tail, repo, tree,
                                     in_span(fences, offsets[m.start()]))
-            prows.append({"file": f, "at": at, "path": path, "class": cls, "evidence": ev})
+            if key in seen:
+                previous = seen[key]
+                if PATH_SEVERITY[cls] > PATH_SEVERITY[previous["class"]]:
+                    previous.update({"at": at, "class": cls, "evidence": ev})
+                continue
+            row = {"file": f, "at": at, "path": path, "class": cls, "evidence": ev}
+            seen[key] = row
+            prows.append(row)
 
     i1 = 0
     iseen = {}

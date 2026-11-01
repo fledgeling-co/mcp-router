@@ -22,7 +22,7 @@ of source.
 
 ### 1.1 `D-l`: the oracle already exists, passes, and the gate has never run it
 
-`scripts/acceptance/parity-stream.sh` was written by R2-R. It opens `GET /usage/stream` at
+`scripts/acceptance/parity-stream.sh` at `42ea4d316037c9ed0cd2e2f083012c2c5ae157b1` (historical source) was written by R2-R. It opens `GET /usage/stream` at
 both routers over a real socket, holds both connections open, drives three identical
 `tools/call`s at each, and diffs the frames. Run by hand from `.worktrees/P3`:
 

@@ -67,7 +67,7 @@ serving predicate.
 **D1 — approve announces, and the Swift half does not.** The announce is added to `src/control.ts`
 only. R29 shipped live-reload as TypeScript-only with the Swift router answering 404 for the whole
 family, and that boundary is R29's, not this item's, so widening it here would be M38 building
-R29's second half under M38's name. Nothing in `planning/parity/surface.tsv` enumerates the
+R29's second half under M38's name. Nothing in `planning/parity/surface.tsv` at `2f718779f64ff0960d1555a7937a16556789ae9e` (historical source) enumerates the
 notification stream, so this adds no divergence row and no census obligation.
 
 **D2 — the count of notifications is not the oracle.** An arm that asserts *the attached session

@@ -33,7 +33,7 @@ Two further things the parent registered as this item's:
 
 ### The three parity rows this unblocks
 
-`planning/parity/surface.tsv` carries three rows whose owner is `R2-W`, and all three are blocked
+`planning/parity/surface.tsv` at `93cbbf2ab40df86e6d1c909386ff36b8eaccab20` (historical source) carries three rows whose owner is `R2-W`, and all three are blocked
 on this item alone:
 
 | Row | Lane | What the lane must show |

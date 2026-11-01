@@ -264,7 +264,7 @@ fail with a readable message when any is absent, never skip the gate silently.
 
 A replacement path, so the old project's behaviours are enumerated rather than assumed to carry.
 
-| Existing behaviour (`app/project.yml`, `app/Info.plist`) | Disposition |
+| Existing behaviour (`app/project.yml`, `app/Info.plist` (not retained in Git; original prototype path)) | Disposition |
 |---|---|
 | App Sandbox **off** (macOS) | **Keep** — restated in new entitlements (A6a) |
 | Hardened runtime **on** | **Keep** — in build settings, where it lives (A6b) |

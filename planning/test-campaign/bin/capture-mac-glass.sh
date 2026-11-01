@@ -17,7 +17,8 @@
 set -euo pipefail
 ROOT="${MCP_ROUTER_GLASS_REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)}"
 CAMPAIGN="${MCP_ROUTER_GLASS_CAMPAIGN:-$ROOT/planning/test-campaign}"
-AXKIT="${MCP_ROUTER_GLASS_AXKIT:-$CAMPAIGN/bin/axkit}"
+AXKIT="${MCP_ROUTER_GLASS_AXKIT:-$ROOT/planning/test-campaign/bin/axkit}"
+GLASS_BUILD_GATE="$ROOT/planning/test-campaign/bin/glass-build-gate.py"
 MAC_APP="${MCP_ROUTER_GLASS_APP:-$ROOT/app/.derived/Build/Products/Debug/MCPRouter.app}"
 export MCP_ROUTER_GLASS_REPO_ROOT="$ROOT" MCP_ROUTER_GLASS_CAMPAIGN="$CAMPAIGN"
 SHOTS="$CAMPAIGN/evidence/shots"
@@ -25,7 +26,7 @@ AX="$CAMPAIGN/evidence/ax"
 MANIFEST="$SHOTS/captures.json"
 LOG="$CAMPAIGN/evidence/runs/mac-glass-capture.log"
 if [ "${1:-}" = "--print-config" ]; then
-  printf 'ROOT=%s\nCAMPAIGN=%s\nAXKIT=%s\nMAC_APP=%s\n' "$ROOT" "$CAMPAIGN" "$AXKIT" "$MAC_APP"
+  printf 'ROOT=%s\nCAMPAIGN=%s\nAXKIT=%s\nMAC_APP=%s\nGLASS_BUILD_GATE=%s\n' "$ROOT" "$CAMPAIGN" "$AXKIT" "$MAC_APP" "$GLASS_BUILD_GATE"
   exit 0
 fi
 APP_ENV=()
@@ -612,7 +613,7 @@ STAMPED=()
 while IFS= read -r f; do STAMPED+=("evidence/ax/${f}"); done < <(cd "$AX" && ls *.txt *.tsv 2>/dev/null || true)
 while IFS= read -r f; do STAMPED+=("evidence/shots/${f}"); done < <(cd "$SHOTS" && ls SURF-*.png 2>/dev/null || true)
 if [ "${#STAMPED[@]}" -gt 0 ]; then
-  python3 "$CAMPAIGN/bin/glass-build-gate.py" --emit "$MAC_APP" "${STAMPED[@]}" || {
+  python3 "$GLASS_BUILD_GATE" --emit "$MAC_APP" "${STAMPED[@]}" || {
     echo "FAIL: this run's pictures could not be stamped with the build they came from."
     echo "      An unstamped capture is one nothing can date, which is DEF-058 exactly."
     exit 1

@@ -65,11 +65,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import sys
 from pathlib import Path
 
-D = Path(__file__).resolve().parent.parent
+D = Path(os.environ.get("MCP_ROUTER_GLASS_CAMPAIGN", Path(__file__).resolve().parent.parent)).resolve()
 AX = D / "evidence" / "ax"
 SHOTS = D / "evidence" / "shots"
 OUT = D / "evidence" / "runs" / "glass-assert.json"

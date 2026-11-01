@@ -52,6 +52,8 @@ def main():
         defaults = config(script, env)
         assert defaults["ROOT"] == str(root)
         assert defaults["CAMPAIGN"] == str(root / "planning/test-campaign")
+        assert defaults["AXKIT"] == str(root / "planning/test-campaign/bin/axkit")
+        assert defaults["GLASS_BUILD_GATE"] == str(root / "planning/test-campaign/bin/glass-build-gate.py")
         assert defaults["MAC_APP"] == str(root / "app/.derived/Build/Products/Debug/MCPRouter.app")
         isolated = {
             "MCP_ROUTER_GLASS_REPO_ROOT": str(root),
@@ -60,6 +62,7 @@ def main():
             "MCP_ROUTER_GLASS_AXKIT": str(Path(tmp) / "private axkit"),
         }
         selected = config(script, {**env, **isolated})
+        assert selected["GLASS_BUILD_GATE"] == defaults["GLASS_BUILD_GATE"]
         for key, value in isolated.items():
             target = {"REPO_ROOT": "ROOT", "CAMPAIGN": "CAMPAIGN",
                       "APP": "MAC_APP", "AXKIT": "AXKIT"}[key.removeprefix("MCP_ROUTER_GLASS_")]
@@ -68,12 +71,14 @@ def main():
         try:
             os.environ.update(isolated)
             gate = runpy.run_path(str(GATE), run_name="glass_path_control")
+            oracle = runpy.run_path(str(GATE.with_name("glass-assert.py")), run_name="glass_oracle_path_control")
         finally:
             os.environ.clear()
             os.environ.update(prior)
         assert gate["ROOT"] == root.resolve()
         assert gate["CAMPAIGN"] == Path(isolated["MCP_ROUTER_GLASS_CAMPAIGN"]).resolve()
         assert gate["RECORD"].parent == gate["CAMPAIGN"] / "evidence/ax"
+        assert oracle["D"] == gate["CAMPAIGN"]
 
         # Observe the real shell's launch arguments, stopping before any app or capture runs.
         helper = root / "scripts/acceptance/mac-app.sh"

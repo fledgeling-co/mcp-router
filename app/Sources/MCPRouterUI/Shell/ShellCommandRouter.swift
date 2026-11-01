@@ -56,6 +56,7 @@
             case removeSelectedServer
             /// Show the Skills board's marketplaces sheet — `⌘⇧N`.
             case showMarketplaces
+            case reviewSkillUpdates
             /// Open the `Settings` scene — `⌘,` and `MCP Router ▸ Settings…`.
             ///
             /// **Not a no-op, and the distinction is the whole reason this case exists.** The menu
@@ -109,6 +110,7 @@
             case .resetServer: .resetSelectedServer
             case .removeServer: .removeSelectedServer
             case .addMarketplace: .showMarketplaces
+            case .updateAllSkills: .reviewSkillUpdates
             case .pairPhone: .openPairing
             case .wakeServer: .wakeSelectedServer
             case .reviewHeldChanges: .reviewSelectedHeldChanges
@@ -119,7 +121,7 @@
                  .exportLibrary,
                  .reindexManifest, .restartRouter, .tripBreaker, .reapChildren,
                  .revealRouterLog, .stopRouter,
-                 .updateAllSkills, .runDoctor, .runAllChecks,
+                 .runDoctor, .runAllChecks,
                  .help, .whatTheRouterDoes, .reportIssue:
                 nil
             }
@@ -138,6 +140,7 @@
             case .showSidebar: .toggleSidebar
             case .about: .aboutPanel
             case .revealRouterLog: .revealRouterLog
+            case .updateAllSkills: .reviewSkillUpdates
             // Seven of these are `.featureUnbuilt` in every context, so the item is dimmed and
             // unreachable and `.none` is the honest mapping rather than a placeholder: inventing an
             // operation for a route the control API does not serve is how a menu item comes to lie
@@ -149,7 +152,7 @@
                  .minimise, .zoom, .bringAllToFront,
                  .exportLibrary,
                  .reindexManifest, .restartRouter, .tripBreaker, .reapChildren, .stopRouter,
-                 .updateAllSkills, .runDoctor, .runAllChecks,
+                 .runDoctor, .runAllChecks,
                  .help, .whatTheRouterDoes, .reportIssue:
                 .none
             }
@@ -174,11 +177,8 @@
                 model?.serversBoard.sheet = .addServer
             case .focusSearch:
                 focusSearch(on: model)
-            case .showMarketplaces:
-                // Same rule as `addServer`: land on the board the sheet belongs to first, so the
-                // sheet never opens over an unrelated pane.
-                model?.select(.skills)
-                model?.skillsBoard.sheet = .marketplaces
+            case .showMarketplaces, .reviewSkillUpdates:
+                performSkillOperation(operation(for: command), on: model)
             case .resetSelectedServer, .removeSelectedServer,
                  .wakeSelectedServer, .reviewSelectedHeldChanges:
                 performServerOperation(operation(for: command), on: model)
@@ -195,6 +195,16 @@
             case .revealRouterLog, .openSettingsScene:
                 performAppOperation(operation(for: command))
             case .none: break
+            }
+        }
+
+        @MainActor
+        private static func performSkillOperation(_ operation: Operation, on model: ShellModel?) {
+            model?.select(.skills)
+            switch operation {
+            case .showMarketplaces: model?.skillsBoard.sheet = .marketplaces
+            case .reviewSkillUpdates: model?.skillsBoard.sheet = .updates
+            default: break
             }
         }
 

@@ -83,7 +83,7 @@ public extension MenuCommand {
         // same rule `addServer` follows for Servers. Before M4 it read "this part of the app isn't
         // built yet", which stops being true the moment the board ships; a menu that keeps saying
         // it is the shell disagreeing with its own window.
-        case .addMarketplace:
+        case .addMarketplace, .updateAllSkills:
             return context.installedDestinations.contains(.skills) ? .enabled : .surfaceAbsent
         // Pairing's sheet is hosted by the Inbox board: `ShellCommandRouter` selects `.inbox` and
         // then calls `inboxBoard.pairing.open()` — the *same* call the board's own always-enabled
@@ -104,7 +104,7 @@ public extension MenuCommand {
              .selectDestination, .showSidebar,
              .exportLibrary, .reindexManifest, .restartRouter, .tripBreaker, .reapChildren,
              .revealRouterLog, .stopRouter,
-             .updateAllSkills, .runDoctor, .runAllChecks,
+             .runDoctor, .runAllChecks,
              .minimise, .zoom, .bringAllToFront,
              .help, .whatTheRouterDoes, .reportIssue:
             return nil
@@ -127,7 +127,7 @@ public extension MenuCommand {
         // `Run Doctor` and `Run All Checks` are bulk verbs over surfaces that only act one subject
         // at a time.
         case .exportLibrary, .reindexManifest, .restartRouter, .tripBreaker, .reapChildren,
-             .stopRouter, .updateAllSkills, .runDoctor, .runAllChecks:
+             .stopRouter, .runDoctor, .runAllChecks:
             .featureUnbuilt
         case .about, .settings, .hide, .hideOthers, .showAll, .quit, .closeWindow,
              .undo, .redo, .cut, .copy, .paste, .selectAll,
@@ -141,7 +141,7 @@ public extension MenuCommand {
         // Every context-dependent command is answered by the other half; reaching this arm would
         // mean one of them started returning nil, which the compiler prevents.
         case .addServer, .find, .resetServer, .removeServer, .addMarketplace, .pairPhone,
-             .wakeServer, .reviewHeldChanges:
+             .updateAllSkills, .wakeServer, .reviewHeldChanges:
             .enabled
         }
     }

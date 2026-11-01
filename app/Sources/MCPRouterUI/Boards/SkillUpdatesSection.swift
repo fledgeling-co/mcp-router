@@ -12,9 +12,15 @@
         var body: some View {
             let offers = board.offers
             VStack(alignment: .leading, spacing: SkillsBoardMetrics.tightGap) {
-                Text(SkillPresentation.updatesHeading)
-                    .typeRole(.subheadline)
-                    .foregroundStyle(ColorToken.t1.color)
+                HStack {
+                    Text(SkillPresentation.updatesHeading)
+                        .typeRole(.subheadline)
+                        .foregroundStyle(ColorToken.t1.color)
+                    Spacer()
+                    Button("Update All…") { board.sheet = .updates }
+                        .buttonStyle(StandardButtonStyle())
+                        .disabled(board.writing || !board.promotesFromCache || offers.isEmpty)
+                }
 
                 if let error = board.updatesError {
                     // The router refused the store's check. Its own two strings, as the marketplaces read
@@ -26,7 +32,7 @@
 
                 if !offers.isEmpty {
                     ForEach(offers) { entry in
-                        UpdateOfferRow(entry: entry)
+                        UpdateOfferRow(entry: entry, board: board)
                     }
                 } else if board.updatesError == nil {
                     Text(SkillPresentation.updatesNone)
@@ -43,6 +49,7 @@
 
     struct UpdateOfferRow: View {
         let entry: ExtensionUpdateEntry
+        @Bindable var board: SkillsBoardModel
 
         var body: some View {
             VStack(alignment: .leading, spacing: SkillsBoardMetrics.hairline) {
@@ -55,14 +62,15 @@
                     .foregroundStyle(ColorToken.t2.color)
                     .fixedSize(horizontal: false, vertical: true)
                 if let changelog = entry.changelog {
-                    // Eight lines on the board, the full text in the held-version sheet. The line limit is
-                    // display
-                    // only; the router sent the whole text the cap allows.
-                    Text(changelog.text ?? changelog.note)
-                        .typeRole(.caption, monospaced: changelog.text != nil)
-                        .foregroundStyle(ColorToken.t3.color)
-                        .lineLimit(8)
-                        .fixedSize(horizontal: false, vertical: true)
+                    if changelog.text != nil {
+                        Button("Read changelog…") { board.sheet = .changelog(name: entry.name) }
+                            .buttonStyle(StandardButtonStyle(scale: .small))
+                    } else {
+                        Text(changelog.note)
+                            .typeRole(.caption)
+                            .foregroundStyle(ColorToken.t3.color)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

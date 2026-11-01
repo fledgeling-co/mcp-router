@@ -75,6 +75,8 @@
         public private(set) var notice: String?
         /// The promotion the board can take back. A promote sets it and its undo clears it.
         public private(set) var lastPromotion: PromotedEntry?
+        public private(set) var batchPromotions: [PromotedEntry] = []
+        public private(set) var batchResults: [String] = []
 
         /// A promotion this board made: the store entry it changed, and the reference its undo needs.
         public struct PromotedEntry: Sendable, Hashable {
@@ -209,6 +211,67 @@
             } catch {
                 writeFailure = error
             }
+        }
+
+        /// Explicit selections are approvals made in the review sheet. Unknown capability changes
+        /// never enter the batch merely because an update exists.
+        public func promoteSelectedOffers(_ selected: Set<String>) async {
+            guard promotesFromCache, beginWrite() else { return }
+            defer { writing = false }
+            batchResults = []
+            let chosen = offers.filter { $0.kind == .plugins && selected.contains($0.name) }
+            for offer in chosen {
+                guard !Task.isCancelled else { break }
+                guard let version = offer.available else {
+                    batchResults
+                        .append("\(offer.name): No offered version was returned. Nothing was changed.")
+                    continue
+                }
+                do throws(ControlAPIError) {
+                    let ack = try await client.promoteFromCache(offer.name, pluginVersion: version)
+                    let promotion = PromotedEntry(plugin: offer.name, name: offer.name, restore: ack.restore)
+                    batchPromotions.append(promotion)
+                    batchResults.append("Updated \(offer.name) to \(ack.pluginVersion)")
+                } catch {
+                    batchResults.append("\(offer.name): \(error.headline). \(error.advice)")
+                }
+            }
+            await load()
+        }
+
+        /// A failed undo remains available, and one refusal never hides another plugin's result.
+        public func undoBatchPromotions() async {
+            guard beginWrite() else { return }
+            defer { writing = false }
+            batchResults = []
+            for promotion in batchPromotions.reversed() {
+                do throws(ControlAPIError) {
+                    let ack = try await client.undoPromotion(
+                        promotion.name,
+                        kind: .plugins,
+                        restore: promotion.restore
+                    )
+                    batchPromotions.removeAll { $0 == promotion }
+                    batchResults.append("Restored \(promotion.name) to \(ack.version)")
+                } catch {
+                    batchResults.append("\(promotion.name): \(error.headline). \(error.advice)")
+                }
+            }
+            await load()
+        }
+
+        public func changes(for offer: ExtensionUpdateEntry) -> [String] {
+            state.response?.skills.first { $0.source.pluginOrigin?.storeName == offer.name }?.held?
+                .addedCapabilities ?? ["Capabilities have not been compared with the installed version"]
+        }
+
+        public func changelogDocument(named name: String) -> CapabilityDocument? {
+            guard let offer = offers.first(where: { $0.name == name }),
+                  let text = offer.changelog?.text else { return nil }
+            return CapabilityDocument(
+                identity: .init(name: offer.name, version: offer.available),
+                tabs: [.changelog: MarkdownParser.blocks(from: text)]
+            )
         }
 
         /// Starts one held-version write, and returns false when one is already in flight so a second press

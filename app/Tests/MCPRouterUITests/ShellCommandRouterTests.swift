@@ -105,7 +105,7 @@
             .union([.addServer, .find, .resetServer, .removeServer])
             // M4 adds the one the Skills board owns — `⌘⇧N`, which opens its marketplaces sheet.
             // The set is narrowed by exactly what shipped, never relaxed.
-            .union([.addMarketplace])
+            .union([.addMarketplace, .updateAllSkills])
             // M6 adds `Pair iPhone…`. M1 shipped the item routing to `.none`, which was honest while
             // nothing could answer it; the Inbox board gives it a surface, so it now claims an
             // operation. This is the set being narrowed by exactly what shipped — the same move M3

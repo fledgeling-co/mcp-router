@@ -87,7 +87,7 @@ internal sealed class SelfTestDriver
         foreach (var theme in new[] { ElementTheme.Light, ElementTheme.Dark })
         {
             _window.RootElement.RequestedTheme = theme;
-            _window.SelectDestination(DestinationCatalog.Default.Id);
+            _window.SelectDestination(requested is null ? DestinationCatalog.Default.Id : destinations[0].Id);
             await SettleAsync();
 
             var png = Path.Combine(_directory, $"appearance-{theme.ToString().ToLowerInvariant()}.png");

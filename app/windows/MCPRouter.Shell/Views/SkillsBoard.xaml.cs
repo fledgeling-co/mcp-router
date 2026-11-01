@@ -462,7 +462,7 @@ public sealed partial class SkillsBoard : UserControl
     private Button SkillRow(Skill skill, IReadOnlyList<SkillClient> slotClients, bool isSelected)
     {
         var version = SkillPresentation.Version(skill);
-        var selectedBrush = isSelected ? "SubtleFillColorSecondaryBrush" : "Transparent";
+        var selectedBrush = isSelected ? "{ThemeResource SubtleFillColorSecondaryBrush}" : "Transparent";
 
         // One slot chip per client the router reports, in the router's order. On shows the
         // letters on a card; off dims them; unknown draws a dash - and the automation name says
@@ -480,9 +480,9 @@ public sealed partial class SkillsBoard : UserControl
             var chip = (Border)LoadUi(
                 "<Border " + FragmentNs + " Width=\"30\" Height=\"22\" CornerRadius=\"4\" BorderThickness=\"1\""
                 + " BorderBrush=\"{ThemeResource ControlStrokeColorDefaultBrush}\""
-                + " Background=\"{ThemeResource "
-                + (state == SkillPresentation.SlotState.On ? "CardBackgroundFillColorDefaultBrush" : "Transparent")
-                + "}\">"
+                + " Background=\""
+                + (state == SkillPresentation.SlotState.On ? "{ThemeResource CardBackgroundFillColorDefaultBrush}" : "Transparent")
+                + "\">"
                 + "  <TextBlock Text=\"" + Escape(letter) + "\" FontFamily=\"Consolas\" FontSize=\"11\""
                 + "             HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\""
                 + "             Foreground=\"{ThemeResource "
@@ -502,7 +502,7 @@ public sealed partial class SkillsBoard : UserControl
 
         var rowButton = (Button)LoadUi(
             "<Button " + FragmentNs + " HorizontalAlignment=\"Stretch\" HorizontalContentAlignment=\"Stretch\""
-            + " Background=\"{ThemeResource " + selectedBrush + "}\""
+            + " Background=\"" + selectedBrush + "\""
             + " BorderThickness=\"0\" Padding=\"8,4,8,4\" CornerRadius=\"4\">"
             + "  <Grid ColumnSpacing=\"12\">"
             + "    <Grid.ColumnDefinitions>"

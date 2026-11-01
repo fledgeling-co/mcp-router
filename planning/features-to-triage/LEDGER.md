@@ -515,3 +515,19 @@ it never tested.
   a runner's to renumber mid-fleet, and picking a direction silently is how the drift got here.
   R7's own children are `R7-C1`…`R7-C4`, following `R4-C1`/`R4-C2`, which cannot collide either way.
   The decision this needs is which namespace yields — that is M28's shape, not a runner's.
+
+## Phone inbox continuation — 2 November 2026
+
+Source and bounded native checks are recorded in `planning/plans/plan-phone-inbox.md`; physical phone delivery and notification acceptance remain unverified. These rows register already allocated plan IDs.
+
+| ID | Title | Brief | Spec | Plan | Status |
+|---|---|---|---|---|---|
+| IB1 | Persistent inbox store and token-gated reads | — | — | `plan-phone-inbox.md` | **Developer Review** — source integrated on `ai/remaining-core-20261101`; Node wire and host tests passed. Mac/Windows acceptance is bounded; physical phone and notification gates remain open. |
+| IB2 | Revoke a confirmed phone | — | — | `plan-phone-inbox.md` | **Developer Review** — source integrated on `ai/remaining-core-20261101`; Node wire and host tests passed. Mac/Windows acceptance is bounded; physical phone and notification gates remain open. |
+| IB3 | Registry lookup and partial rows | — | — | `plan-phone-inbox.md` | **Developer Review** — source integrated on `ai/remaining-core-20261101`; Node wire and host tests passed. Mac/Windows acceptance is bounded; physical phone and notification gates remain open. |
+| IB4 | Signed phone inbox frames and durable receipts | — | — | `plan-phone-inbox.md` | **Developer Review** — source integrated on `ai/remaining-core-20261101`; Node wire and host tests passed. Mac/Windows acceptance is bounded; physical phone and notification gates remain open. |
+| IB5 | Phone retry queue and Sent receipts | — | — | `plan-phone-inbox.md` | **Developer Review** — source integrated on `ai/remaining-core-20261101`; Node wire and host tests passed. Mac/Windows acceptance is bounded; physical phone and notification gates remain open. |
+| IB6 | Reviewed inbox accept, decline and restore | — | — | `plan-phone-inbox.md` | **Developer Review** — source integrated on `ai/remaining-core-20261101`; Node wire and host tests passed. Mac/Windows acceptance is bounded; physical phone and notification gates remain open. |
+| IB7 | Live Mac inbox in Release | — | — | `plan-phone-inbox.md` | **Developer Review** — source integrated on `ai/remaining-core-20261101`; Node wire and host tests passed. Mac/Windows acceptance is bounded; physical phone and notification gates remain open. |
+| IB8 | Live Windows inbox and arrival notifications | — | — | `plan-phone-inbox.md` | **Developer Review** — source integrated on `ai/remaining-core-20261101`; Node wire and host tests passed. Mac/Windows acceptance is bounded; physical phone and notification gates remain open. |
+| IB9 | Inbox round-trip wire acceptance | — | — | `plan-phone-inbox.md` | **Developer Review** — source integrated on `ai/remaining-core-20261101`; Node wire and host tests passed. Mac/Windows acceptance is bounded; physical phone and notification gates remain open. |

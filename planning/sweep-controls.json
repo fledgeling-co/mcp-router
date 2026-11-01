@@ -29,7 +29,7 @@
         "V4"
       ],
       "since": "2026-08-27",
-      "reason": "Re-dispositioned from `grandfathered` on 2026-08-27, because this gate's UNDISCOVERED class blocked on it: registered, still in the tree, and no longer matched by the four readers — it now carries V4 alone against a threshold of 2. The gate is right that the row had to be settled rather than left counted as backlog, and the answer is that the row was wrong from the seed rather than that the readers narrowed. It is an image utility: it slices a 2x2 generated icon sheet into 128px squircle tiles. Its one marker is `if len(ys) == 0:`, which asks whether a luminance-and-saturation mask found any pixels in one quadrant of one PNG. That is a property of an image, not a claim about this corpus, and no presence control over the tracked tree could arm it."
+      "reason": "Re-dispositioned from `grandfathered` on 2026-08-27, because this gate's UNDISCOVERED class blocked on it: registered, still in the tree, and no longer matched by the four readers \u2014 it now carries V4 alone against a threshold of 2. The gate is right that the row had to be settled rather than left counted as backlog, and the answer is that the row was wrong from the seed rather than that the readers narrowed. It is an image utility: it slices a 2x2 generated icon sheet into 128px squircle tiles. Its one marker is `if len(ys) == 0:`, which asks whether a luminance-and-saturation mask found any pixels in one quadrant of one PNG. That is a property of an image, not a claim about this corpus, and no presence control over the tracked tree could arm it."
     },
     {
       "path": "planning/brief-target-gate.py",
@@ -45,7 +45,7 @@
         "planning/brief-target-gate.py",
         "--control"
       ],
-      "proves": "19 planted briefs read back through the real classifier, one per class the gate can print, plus five NEGATIVE arms that a green run must not swallow: the same id inside a fence and inside an HTML comment must NOT read as a citation (reckon blanks both, so counting them would report a join reckon will not make), a terminal status must not excuse a dead declared link, a foreign id beside a resolving one must not read as FOREIGN_ONLY, and `registry-target: none` with no reason of substance must fall back to UNDECLARED. Two arms drive the ratchet itself in both directions, because a file the floor does not name having a floor of zero is the whole of the catch-a-new-brief mechanism and a ratchet nobody has seen fire is a ratchet nobody knows is wired up. The load-bearing arm is the last: it writes a two-brief fixture queue, runs the REAL reckon 1.7.0 over it against the REAL campaign registry, and fails unless the declared brief carries a `cited` edge and the bare one lands `unjoined` — the claim the whole item rests on, that the field this gate demands is the field reckon joins on. That arm caught a real defect on its first run: the reader was looking for edges at the ledger's top level and reckon writes them under `join.edges`, so every agreement would have been silently unmeasured. What it does NOT prove is that the corpus is the right one — the index rather than the working tree is an argument, not a plant — so the untracked briefs are printed by name.",
+      "proves": "19 planted briefs read back through the real classifier, one per class the gate can print, plus five NEGATIVE arms that a green run must not swallow: the same id inside a fence and inside an HTML comment must NOT read as a citation (reckon blanks both, so counting them would report a join reckon will not make), a terminal status must not excuse a dead declared link, a foreign id beside a resolving one must not read as FOREIGN_ONLY, and `registry-target: none` with no reason of substance must fall back to UNDECLARED. Two arms drive the ratchet itself in both directions, because a file the floor does not name having a floor of zero is the whole of the catch-a-new-brief mechanism and a ratchet nobody has seen fire is a ratchet nobody knows is wired up. The load-bearing arm is the last: it writes a two-brief fixture queue, runs the REAL reckon 1.7.0 over it against the REAL campaign registry, and fails unless the declared brief carries a `cited` edge and the bare one lands `unjoined` \u2014 the claim the whole item rests on, that the field this gate demands is the field reckon joins on. That arm caught a real defect on its first run: the reader was looking for edges at the ledger's top level and reckon writes them under `join.edges`, so every agreement would have been silently unmeasured. What it does NOT prove is that the corpus is the right one \u2014 the index rather than the working tree is an argument, not a plant \u2014 so the untracked briefs are printed by name.",
       "not_proved": "reckon is a plugin in the machine's cache rather than a vendored dependency. On a checkout with no cache the agreement arm reports NOT RUN by name and the hermetic arms still fire; a green control there is 18 arms, not 19."
     },
     {
@@ -86,7 +86,7 @@
         "planning/effect-class-vocabulary-gate.py",
         "--selftest"
       ],
-      "proves": "Five arms over planted rows. A clean set must be silent AND count two declared classes, so a reader that stopped resolving the field passes nothing. R1 plants `outbound-sockett` — the one-letter typo actually measured against the instrument, where it moved `vacuity-check.py`'s census from findings=1 to findings=0 — and requires it refused. R2 plants a bad class in the NESTED `witness.effect` a case carries and a good one beside it, and also plants a top-level `effect` on a case which must NOT be mistaken for one, because `campaign.py:702` at `5934c38f` reads only the nested field and an arm that accepted either would report a population the instrument does not have. Two arms drive the ratchet in both directions: an id outside the roster is a rise, and a roster id whose CLASS changed is a rise rather than a carry — the second is the one that stops a row being silently re-spelled inside the floor. WHAT IT DOES NOT PROVE: that the 31 rows on the roster are wrongly classed rather than the vocabulary being too narrow. That is DEF-502's adjudication and this gate deliberately does not make it."
+      "proves": "Five arms over planted rows. A clean set must be silent AND count two declared classes, so a reader that stopped resolving the field passes nothing. R1 plants `outbound-sockett` \u2014 the one-letter typo actually measured against the instrument, where it moved `vacuity-check.py`'s census from findings=1 to findings=0 \u2014 and requires it refused. R2 plants a bad class in the NESTED `witness.effect` a case carries and a good one beside it, and also plants a top-level `effect` on a case which must NOT be mistaken for one, because `campaign.py:702` at `5934c38f` reads only the nested field and an arm that accepted either would report a population the instrument does not have. Two arms drive the ratchet in both directions: an id outside the roster is a rise, and a roster id whose CLASS changed is a rise rather than a carry \u2014 the second is the one that stops a row being silently re-spelled inside the floor. WHAT IT DOES NOT PROVE: that the 31 rows on the roster are wrongly classed rather than the vocabulary being too narrow. That is DEF-502's adjudication and this gate deliberately does not make it."
     },
     {
       "path": "planning/evidence-citation-gate.py",
@@ -101,7 +101,7 @@
         "planning/evidence-citation-gate.py",
         "--control"
       ],
-      "proves": "five citations planted in a throwaway git repository, one per class, plus a carry entry for a tracked path; each answer required exactly. The UNTRACKED arm carries the weight — its artifact IS written to disk in the control repo, so a classifier that consulted the filesystem answers TRACKED and the control exits 2 without printing a verdict. The stale-carry arm proves the carry file is not a one-way valve."
+      "proves": "five citations planted in a throwaway git repository, one per class, plus a carry entry for a tracked path; each answer required exactly. The UNTRACKED arm carries the weight \u2014 its artifact IS written to disk in the control repo, so a classifier that consulted the filesystem answers TRACKED and the control exits 2 without printing a verdict. The stale-carry arm proves the carry file is not a one-way valve."
     },
     {
       "path": "planning/evidence/F6/red-green.py",
@@ -132,7 +132,7 @@
         "V3"
       ],
       "since": "2026-08-27",
-      "reason": "Discovery is answering about the wrong thing on both markers. V3 fired on line 9, a sentence about a DIFFERENT file (`The sweep has its own control in arm-sweep.sh`); the sweep it names is sweep-prominent-disabled.py, which is registered `control` here pointing at that very script. V1 fired on `diff \"$BASE\" \"$now\" | grep -q \"^>\"`, which asserts a difference is PRESENT — a new failing test name appearing after a plant. This file is itself a presence control: it plants eight defects and watches one named Swift test redden for each. It claims no absence, so there is nothing here for a presence control to arm. Separately and outside this row: it sets no verdict exit code — it prints `*** NO TEST REDDENED ***` and still exits 0 — and each arm runs `swift test` twice, so it is minutes rather than seconds."
+      "reason": "Discovery is answering about the wrong thing on both markers. V3 fired on line 9, a sentence about a DIFFERENT file (`The sweep has its own control in arm-sweep.sh`); the sweep it names is sweep-prominent-disabled.py, which is registered `control` here pointing at that very script. V1 fired on `diff \"$BASE\" \"$now\" | grep -q \"^>\"`, which asserts a difference is PRESENT \u2014 a new failing test name appearing after a plant. This file is itself a presence control: it plants eight defects and watches one named Swift test redden for each. It claims no absence, so there is nothing here for a presence control to arm. Separately and outside this row: it sets no verdict exit code \u2014 it prints `*** NO TEST REDDENED ***` and still exits 0 \u2014 and each arm runs `swift test` twice, so it is minutes rather than seconds."
     },
     {
       "path": "planning/evidence/M31/arm-unfilled-variants.sh",
@@ -143,8 +143,8 @@
         "V3"
       ],
       "since": "2026-08-28",
-      "reason": "A presence control, the same shape as arm-guards.sh beside it: it plants four defects into design/mcp-router-console.html and requires the Swift test `theMockDimsTheUnfilledVariants` to redden for each, restoring byte-identically and checking the sha256 back. It asserts a presence — that issue lines appear — and claims no absence, so there is nothing here for a control to arm. Discovery is reading its header prose, which describes the sweep whose blind spot the guard covers rather than sweeping anything itself. Unlike arm-guards.sh it does carry a verdict exit code: a plant that does not redden, a failed restore and a non-green baseline each set RC=1 and the run exits non-zero.",
-      "note": "Arm 4 is why the file exists in this shape. An earlier arm 4 re-declared `.btn.quiet` after the disabled rule — the mechanism by which M31's original defect arrived — and the guard correctly stayed green, because the fix is specificity (0-3-0 over 0-2-0) rather than order and the renderer agreed. The arm was wrong, not the guard. Replacing it with `!important` on the variant found a real hole: the defect rendered (`LIVE fg=rgb(0,96,196) DISA fg=rgb(0,96,196)`) with the guard still green, and closing it added the assertion that arm now covers."
+      "reason": "A presence control, the same shape as arm-guards.sh beside it: it plants four defects into design/mcp-router-console.html and requires the Swift test `theMockDimsTheUnfilledVariants` to redden for each, restoring byte-identically and checking the sha256 back. It asserts a presence \u2014 that issue lines appear \u2014 and claims no absence, so there is nothing here for a control to arm. Discovery is reading its header prose, which describes the sweep whose blind spot the guard covers rather than sweeping anything itself. Unlike arm-guards.sh it does carry a verdict exit code: a plant that does not redden, a failed restore and a non-green baseline each set RC=1 and the run exits non-zero.",
+      "note": "Arm 4 is why the file exists in this shape. An earlier arm 4 re-declared `.btn.quiet` after the disabled rule \u2014 the mechanism by which M31's original defect arrived \u2014 and the guard correctly stayed green, because the fix is specificity (0-3-0 over 0-2-0) rather than order and the renderer agreed. The arm was wrong, not the guard. Replacing it with `!important` on the variant found a real hole: the defect rendered (`LIVE fg=rgb(0,96,196) DISA fg=rgb(0,96,196)`) with the guard still green, and closing it added the assertion that arm now covers."
     },
     {
       "path": "planning/evidence/M31/sweep-prominent-disabled.py",
@@ -158,7 +158,7 @@
         "bash",
         "planning/evidence/M31/arm-sweep.sh"
       ],
-      "proves": "the file's own named control (`The sweep has its own control in arm-sweep.sh`). Eight arms plant a real defect each into the mock, the store page and Controls.swift, and the assertion is the DIFF of the sweep's verdict lines against baseline plus the movement in its failure count — never a grep for a word, because grepping was wrong twice in one run. It exists because the sweep's first form could not fail: `failures` was initialised, read twice and never appended to. Every file is restored and the restore is checked back to its pre-plant sha256."
+      "proves": "the file's own named control (`The sweep has its own control in arm-sweep.sh`). Eight arms plant a real defect each into the mock, the store page and Controls.swift, and the assertion is the DIFF of the sweep's verdict lines against baseline plus the movement in its failure count \u2014 never a grep for a word, because grepping was wrong twice in one run. It exists because the sweep's first form could not fail: `failures` was initialised, read twice and never appended to. Every file is restored and the restore is checked back to its pre-plant sha256."
     },
     {
       "path": "planning/goals/citations-blocking-check.sh",
@@ -169,7 +169,7 @@
         "V3"
       ],
       "since": "2026-08-27",
-      "reason": "It makes no absence claim of its own. The sweep is planning/citation-gate.py, which is registered `control` here with its own twelve planted citations, and this wrapper refuses to report at all unless that gate printed `control: HELD` — it delegates the arming rather than skipping it. Its own reading is a parse of two named count lines that fails CLOSED: a missing DRIFTED or ABSENT line leaves the shell default of 1 and the check exits non-zero, so a reader that stopped seeing its own field reddens rather than reporting a clean zero. A control here would re-arm the same instrument one layer out."
+      "reason": "It makes no absence claim of its own. The sweep is planning/citation-gate.py, which is registered `control` here with its own twelve planted citations, and this wrapper refuses to report at all unless that gate printed `control: HELD` \u2014 it delegates the arming rather than skipping it. Its own reading is a parse of two named count lines that fails CLOSED: a missing DRIFTED or ABSENT line leaves the shell default of 1 and the check exits non-zero, so a reader that stopped seeing its own field reddens rather than reporting a clean zero. A control here would re-arm the same instrument one layer out."
     },
     {
       "path": "planning/goals/lint-except-citation-ratchet.sh",
@@ -180,7 +180,7 @@
         "V3"
       ],
       "since": "2026-08-27",
-      "reason": "It carries a presence control on the only reader it owns — MIN_STEPS=8 against a step list PARSED from the Makefile, exit 2 when fewer steps parse — and it exists because an earlier version of it was itself caught by this gate as an absence sweep with no control. It cannot be a command this gate runs: it executes every step of `make lint` itself, one of which is this gate, so enrolling it makes sweep-control-gate.py invoke sweep-control-gate.py. The recursion aside, a full lint is far past the 120s control timeout."
+      "reason": "It carries a presence control on the only reader it owns \u2014 MIN_STEPS=8 against a step list PARSED from the Makefile, exit 2 when fewer steps parse \u2014 and it exists because an earlier version of it was itself caught by this gate as an absence sweep with no control. It cannot be a command this gate runs: it executes every step of `make lint` itself, one of which is this gate, so enrolling it makes sweep-control-gate.py invoke sweep-control-gate.py. The recursion aside, a full lint is far past the 120s control timeout."
     },
     {
       "path": "planning/goals/liveness-check.sh",
@@ -191,7 +191,7 @@
         "V3"
       ],
       "since": "2026-08-27",
-      "reason": "Its presence control runs on every invocation against real planted directories — a 90-minute-old tree must read silent, a fresh one must read alive, and both age readers must agree — and it exits 2 INCONCLUSIVE with no count printed when they do not. It cannot be a command this gate runs because its exit 0 is a verdict about live worktrees on this machine at this moment: measured 2026-08-27 it exits 1 with `1 stalled of 28 worktree(s) examined`. A stalled runner would be reported here as a rotted control. Its own header already records that the control does not cover the SIGPIPE race it was written for, which is a second reason not to let a green row here read as coverage."
+      "reason": "Its presence control runs on every invocation against real planted directories \u2014 a 90-minute-old tree must read silent, a fresh one must read alive, and both age readers must agree \u2014 and it exits 2 INCONCLUSIVE with no count printed when they do not. It cannot be a command this gate runs because its exit 0 is a verdict about live worktrees on this machine at this moment: measured 2026-08-27 it exits 1 with `1 stalled of 28 worktree(s) examined`. A stalled runner would be reported here as a rotted control. Its own header already records that the control does not cover the SIGPIPE race it was written for, which is a second reason not to let a green row here read as coverage."
     },
     {
       "path": "planning/goals/prove-gates.py",
@@ -219,7 +219,7 @@
         "bash",
         "planning/goals/tests-reader-control.sh"
       ],
-      "proves": "two fixtures and a pattern EXTRACTED from tests-check.sh rather than copied, so an edit to the reader changes this control instead of leaving it testing a dead string. A 7-line green log whose test NAMES contain the word failed must produce 0 matches (the real defect: 59 matches printed under a FAILING TESTS heading), and 3 real failure lines must produce exactly 3 — so a pattern matching nothing fails it too. Exits 2 rather than 0 when the extraction stops working."
+      "proves": "two fixtures and a pattern EXTRACTED from tests-check.sh rather than copied, so an edit to the reader changes this control instead of leaving it testing a dead string. A 7-line green log whose test NAMES contain the word failed must produce 0 matches (the real defect: 59 matches printed under a FAILING TESTS heading), and 3 real failure lines must produce exactly 3 \u2014 so a pattern matching nothing fails it too. Exits 2 rather than 0 when the extraction stops working."
     },
     {
       "path": "planning/goals/win-gates.py",
@@ -241,7 +241,7 @@
         "V3"
       ],
       "since": "2026-08-27",
-      "reason": "Both directions of its classifier are armed on every invocation — a bold terminal verdict must be recognised, and narrative prose about ANOTHER branch being merged must not be — and it exits 2 with no count when either arm fails. That arming exists because the prose case really did trip the finish line. It cannot be a command this gate runs: its exit 0 is a verdict about open ledger rows, and it exits 1 today with `2 of 8 still open`, which is the gate working rather than an instrument failing."
+      "reason": "Both directions of its classifier are armed on every invocation \u2014 a bold terminal verdict must be recognised, and narrative prose about ANOTHER branch being merged must not be \u2014 and it exits 2 with no count when either arm fails. That arming exists because the prose case really did trip the finish line. It cannot be a command this gate runs: its exit 0 is a verdict about open ledger rows, and it exits 1 today with `2 of 8 still open`, which is the gate working rather than an instrument failing."
     },
     {
       "path": "planning/hooks/install.sh",
@@ -252,7 +252,7 @@
         "V3"
       ],
       "since": "2026-08-27",
-      "reason": "Control (`bash planning/hooks/install.sh --gate`) plants hook states and checks the gate fires. On this Windows checkout the `notexec` plant reads OK/0 instead of NOTEXEC/1 — Windows has no executable bit, so a file chmod'd non-executable is still runnable. The control is correct on macOS (where it was written) and cannot fire here. Waived on Windows; not a pass of the hook installer."
+      "reason": "Control (`bash planning/hooks/install.sh --gate`) plants hook states and checks the gate fires. On this Windows checkout the `notexec` plant reads OK/0 instead of NOTEXEC/1 \u2014 Windows has no executable bit, so a file chmod'd non-executable is still runnable. The control is correct on macOS (where it was written) and cannot fire here. Waived on Windows; not a pass of the hook installer."
     },
     {
       "path": "planning/hooks/prove-pre-commit.sh",
@@ -282,7 +282,7 @@
         "planning/instrument-census.py",
         "--control"
       ],
-      "proves": "17 arms against a scratch git repository built to break each reader, because a census that classified everything `static` and found no containment would print a clean run and satisfy this gate. Eight arms require a class to FIRE — a planted swift suite discovered and contained both by an unfiltered `swift test` recipe and by a `--filter` naming its type, a planted lane invoking dist/index.js classed `node` and contained by parity-gate.sh's LANES list, a lane that invokes another lane containing it, reach closing over containment so a recipe running a `swift test` gate reaches swift and says which child carried it, a python gate that subprocess-runs node classed `node`, and the drift comparison going unequal when one row is missing. Five require a class NOT to fire, and they are the ones that matter: a gate that only writes ABOUT dist/index.js, a lane whose only node invocation is a header comment and an echoed repair instruction, a python gate holding a node invocation as a string literal, and a lane that NAMES another instrument without running it must each stay `static` or edgeless. Every one of those was a real over-claim in this reader's first cut, and each would have inflated the very set the census exists to bound."
+      "proves": "17 arms against a scratch git repository built to break each reader, because a census that classified everything `static` and found no containment would print a clean run and satisfy this gate. Eight arms require a class to FIRE \u2014 a planted swift suite discovered and contained both by an unfiltered `swift test` recipe and by a `--filter` naming its type, a planted lane invoking dist/index.js classed `node` and contained by parity-gate.sh's LANES list, a lane that invokes another lane containing it, reach closing over containment so a recipe running a `swift test` gate reaches swift and says which child carried it, a python gate that subprocess-runs node classed `node`, and the drift comparison going unequal when one row is missing. Five require a class NOT to fire, and they are the ones that matter: a gate that only writes ABOUT dist/index.js, a lane whose only node invocation is a header comment and an echoed repair instruction, a python gate holding a node invocation as a string literal, and a lane that NAMES another instrument without running it must each stay `static` or edgeless. Every one of those was a real over-claim in this reader's first cut, and each would have inflated the very set the census exists to bound."
     },
     {
       "path": "planning/ledger-reconcile.py",
@@ -323,7 +323,7 @@
         "planning/mock-exclusion-gate.py",
         "--selftest"
       ],
-      "proves": "Three planted shots trees in a temp directory, one per rule plus a clean one. The clean tree must produce no finding and must count exactly one design render and one build capture, so a gate that had stopped resolving either population fails rather than reporting a quiet zero. R2 plants a design render at `mock-hidpi/` — the literal defect, DEF-054 — and requires it refused; R3 plants a build capture under `mock/` and requires the opposite error refused, because the equality this gate holds has two directions and a one-directional arm would pass a tree where everything had been moved inside the exclusion. Beyond `--selftest`, the blocking run carries R1: the two vendored files whose one line this gate models are checked against recorded SHA-256 digests and the line is required verbatim, and that arm was watched to exit 2 NOT COMPARED against a copy with the exclusion altered. WHAT IT DOES NOT PROVE: that `attach-shots.py` would in fact attach a given file — the arm models the exclusion rule, and the real `--apply` run against a scratchpad copy of the campaign is what measured SURF-009 before and after; that run is in `planning/evidence/WE3/mock-exclusion-gate.baseline.txt` and is not re-run here."
+      "proves": "Three planted shots trees in a temp directory, one per rule plus a clean one. The clean tree must produce no finding and must count exactly one design render and one build capture, so a gate that had stopped resolving either population fails rather than reporting a quiet zero. R2 plants a design render at `mock-hidpi/` \u2014 the literal defect, DEF-054 \u2014 and requires it refused; R3 plants a build capture under `mock/` and requires the opposite error refused, because the equality this gate holds has two directions and a one-directional arm would pass a tree where everything had been moved inside the exclusion. Beyond `--selftest`, the blocking run carries R1: the two vendored files whose one line this gate models are checked against recorded SHA-256 digests and the line is required verbatim, and that arm was watched to exit 2 NOT COMPARED against a copy with the exclusion altered. WHAT IT DOES NOT PROVE: that `attach-shots.py` would in fact attach a given file \u2014 the arm models the exclusion rule, and the real `--apply` run against a scratchpad copy of the campaign is what measured SURF-009 before and after; that run is in `planning/evidence/WE3/mock-exclusion-gate.baseline.txt` and is not re-run here."
     },
     {
       "path": "planning/null-run-gate.py",
@@ -369,7 +369,7 @@
         "V3"
       ],
       "since": "2026-08-27",
-      "reason": "Same shape as surface-reconcile.py and named here rather than left to be inferred: its control() runs before anything is read and the gate exits 2 printing no count when either arm misbehaves, but its exit 0 is a corpus verdict — no id dropped across 230 rows against every parent of HEAD — so a genuine drop would be reported here as a rotted control. It is already run whole by `make lint`. The second reason is worth writing down: that control is set arithmetic over three literals ({'A','B','C'} minus {'A','B'}), so it exercises none of the four extractors that build the sets it compares. Enrolling it would register a command that cannot fail for any reason to do with this gate's readers, which is the decoration this registry exists to refuse."
+      "reason": "Same shape as surface-reconcile.py and named here rather than left to be inferred: its control() runs before anything is read and the gate exits 2 printing no count when either arm misbehaves, but its exit 0 is a corpus verdict \u2014 no id dropped across 230 rows against every parent of HEAD \u2014 so a genuine drop would be reported here as a rotted control. It is already run whole by `make lint`. The second reason is worth writing down: that control is set arithmetic over three literals ({'A','B','C'} minus {'A','B'}), so it exercises none of the four extractors that build the sets it compares. Enrolling it would register a command that cannot fail for any reason to do with this gate's readers, which is the decoration this registry exists to refuse."
     },
     {
       "path": "planning/role-intersection-gate.py",
@@ -399,7 +399,7 @@
         "python3",
         "planning/runnable-path-gate.py"
       ],
-      "proves": "ten fixtures planted in a throwaway repo on every invocation — one per class plus a waived instance, a marker quoted inside a string, and a bare marker with no reason — each answer required exactly; a plant that never reaches the index reads NEVER REACHED THE INDEX and the run exits 2 without printing a verdict"
+      "proves": "ten fixtures planted in a throwaway repo on every invocation \u2014 one per class plus a waived instance, a marker quoted inside a string, and a bare marker with no reason \u2014 each answer required exactly; a plant that never reaches the index reads NEVER REACHED THE INDEX and the run exits 2 without printing a verdict"
     },
     {
       "path": "planning/scope-invariance-gate.py",
@@ -414,7 +414,7 @@
         "planning/scope-invariance-gate.py",
         "--selftest"
       ],
-      "proves": "Eight arms, and the two halves are armed by different mechanisms because the gate has two. Five static arms hand the analyser one planted call each and require the verdict to differ across them: an unanchored `git ls-files` reported, `-C <root>` and `cwd=root` not reported, `cwd=\".\"` REPORTED because a literal relative cwd is the caller's directory under another name, and an unanchored `git rev-parse HEAD` not reported because it enumerates nothing. So a rule that flagged everything and a rule that flagged nothing both fail. Two dynamic arms run a planted script from two directories inside a scratch repository built under mktemp: a cwd-sensitive enumerator must be caught by the comparison and its `-C`-anchored twin must pass it, which is what stops the dynamic half rotting into a comparison that can only agree. The eighth is the null arm — a corpus of zero files must be a refusal rather than a clean report. Nothing in this corpus is read or written by any arm."
+      "proves": "Eight arms, and the two halves are armed by different mechanisms because the gate has two. Five static arms hand the analyser one planted call each and require the verdict to differ across them: an unanchored `git ls-files` reported, `-C <root>` and `cwd=root` not reported, `cwd=\".\"` REPORTED because a literal relative cwd is the caller's directory under another name, and an unanchored `git rev-parse HEAD` not reported because it enumerates nothing. So a rule that flagged everything and a rule that flagged nothing both fail. Two dynamic arms run a planted script from two directories inside a scratch repository built under mktemp: a cwd-sensitive enumerator must be caught by the comparison and its `-C`-anchored twin must pass it, which is what stops the dynamic half rotting into a comparison that can only agree. The eighth is the null arm \u2014 a corpus of zero files must be a refusal rather than a clean report. Nothing in this corpus is read or written by any arm."
     },
     {
       "path": "planning/shipped-brief-gate.py",
@@ -429,7 +429,7 @@
         "planning/shipped-brief-gate.py",
         "--control"
       ],
-      "proves": "ten arms on a synthetic brief queue and a synthetic LEDGER on every invocation — a terminal word with no ledger row, one over a To Do row, one over a sha the branch does not carry, a shipped-by the row does not witness, one over a failing case, and `retired` with no passing case must each be refused, while a measured brief, an unmeasured one, a drifted one, a contested drifted one and an untouched one each stay silent; the finding count is asserted exactly, so a rule that fired twice or matched everything fails the control and no census is printed"
+      "proves": "ten arms on a synthetic brief queue and a synthetic LEDGER on every invocation \u2014 a terminal word with no ledger row, one over a To Do row, one over a sha the branch does not carry, a shipped-by the row does not witness, one over a failing case, and `retired` with no passing case must each be refused, while a measured brief, an unmeasured one, a drifted one, a contested drifted one and an untouched one each stay silent; the finding count is asserted exactly, so a rule that fired twice or matched everything fails the control and no census is printed"
     },
     {
       "path": "planning/sweep-control-gate.py",
@@ -459,7 +459,7 @@
         "planning/target-resolution-gate.py",
         "--control"
       ],
-      "proves": "seventeen arms in a throwaway git repository — one plant per path class and per id class, each answer required exactly. Two carry the weight. The same dead path cited WITH and WITHOUT a tree must answer FRAMED and MOVED and the run fails if they agree, because a frame that changes no answer has demonstrated nothing about the coordinate the whole form rests on. And a renumber that keeps the old registry row must be silent where one that drops it fires, which is what makes this gate survivable in a repository that renumbered three ids in one day. Three arms are negatives: a plan file with no work verb still blocks, a denial clause far from its citation withdraws nothing, and an elided path segment is a value rather than a pointer."
+      "proves": "seventeen arms in a throwaway git repository \u2014 one plant per path class and per id class, each answer required exactly. Two carry the weight. The same dead path cited WITH and WITHOUT a tree must answer FRAMED and MOVED and the run fails if they agree, because a frame that changes no answer has demonstrated nothing about the coordinate the whole form rests on. And a renumber that keeps the old registry row must be silent where one that drops it fires, which is what makes this gate survivable in a repository that renumbered three ids in one day. Three arms are negatives: a plan file with no work verb still blocks, a denial clause far from its citation withdraws nothing, and an elided path segment is a value rather than a pointer."
     },
     {
       "path": "planning/test-campaign/bin/arm-f7-analyst.py",
@@ -468,7 +468,7 @@
         "V2"
       ],
       "since": "2026-08-29",
-      "reason": "It carries a presence control and runs it on every invocation — nothing planted, every filter required GREEN over a NON-ZERO test count, so a filter that selected nothing cannot report twelve kills. The waiver is about where that control can run, not whether it exists: every arm compiles and runs the Swift test suite, so this needs a built test binary and a toolchain, which is the `waived` rather than `control` rule. Running it inside `lint` would put twelve builds behind a lint step. Re-run it directly: `python3 planning/test-campaign/bin/arm-f7-analyst.py`, exit 0 with 12 of 12 killed, 3 if the presence control did not go green."
+      "reason": "It carries a presence control and runs it on every invocation \u2014 nothing planted, every filter required GREEN over a NON-ZERO test count, so a filter that selected nothing cannot report twelve kills. The waiver is about where that control can run, not whether it exists: every arm compiles and runs the Swift test suite, so this needs a built test binary and a toolchain, which is the `waived` rather than `control` rule. Running it inside `lint` would put twelve builds behind a lint step. Re-run it directly: `python3 planning/test-campaign/bin/arm-f7-analyst.py`, exit 0 with 12 of 12 killed, 3 if the presence control did not go green."
     },
     {
       "path": "planning/test-campaign/bin/arm-headless.py",
@@ -488,7 +488,7 @@
         "V2"
       ],
       "since": "2026-08-29",
-      "reason": "WAIVED FOR THE SAME REASON, one layer in: it runs `swift test` seven times and needs the package built, so a control on it inside `make lint` would be a build. It is also not a sweep that makes a claim about the product — it is the instrument that arms R22's cases, and its readings are of the SUITE rather than of the tree.\n\nIT ARMS ITSELF IN BOTH DIRECTIONS ALREADY, which is what a control here would otherwise add. Every arm is required to report a NON-ZERO test count, so a filter that matched nothing is a refusal rather than a silent pass — R27's arming pass recorded four arms reporting `0 tests passed` that would have gone green having compared nothing. Each arm names WHICH cases went red rather than only how many, which is what turns *the two layers are independent* from a claim in a comment into a measurement: ARM 1 reddens CASE-0270 and leaves CASE-0271 green, ARM 2 the reverse. A green baseline runs unmutated at the end, and the restore is checked against copies taken at the top rather than against `git status`, because three of the five files it mutates are new on this branch and git calls an untracked file modified whatever the pass did to it."
+      "reason": "WAIVED FOR THE SAME REASON, one layer in: it runs `swift test` seven times and needs the package built, so a control on it inside `make lint` would be a build. It is also not a sweep that makes a claim about the product \u2014 it is the instrument that arms R22's cases, and its readings are of the SUITE rather than of the tree.\n\nIT ARMS ITSELF IN BOTH DIRECTIONS ALREADY, which is what a control here would otherwise add. Every arm is required to report a NON-ZERO test count, so a filter that matched nothing is a refusal rather than a silent pass \u2014 R27's arming pass recorded four arms reporting `0 tests passed` that would have gone green having compared nothing. Each arm names WHICH cases went red rather than only how many, which is what turns *the two layers are independent* from a claim in a comment into a measurement: ARM 1 reddens CASE-0270 and leaves CASE-0271 green, ARM 2 the reverse. A green baseline runs unmutated at the end, and the restore is checked against copies taken at the top rather than against `git status`, because three of the five files it mutates are new on this branch and git calls an untracked file modified whatever the pass did to it."
     },
     {
       "path": "planning/test-campaign/bin/arm-r26-auth-expiry.py",
@@ -498,7 +498,7 @@
       ],
       "disposition": "waived",
       "since": "2026-08-30",
-      "reason": "It carries a presence control and runs it on every invocation — nothing planted, the three R26 suites required GREEN over a NON-ZERO test count, exiting 3 otherwise, so a filter that selected nothing cannot report eight catches. It also refuses an arm whose search text no longer matches exactly once, which is the specific way this class of driver rots: the source moves, the find string stops matching, and every arm silently applies nothing. Each arm compares the file's sha256 before and after to prove the restore. The waiver is about where that control can run, not whether it exists: every arm compiles and runs the Swift test suite and two of them additionally build the CLI and start a daemon, which is the `waived` rather than `control` rule. Running it inside `lint` would put eight builds behind a lint step. Re-run it directly: `python3 planning/test-campaign/bin/arm-r26-auth-expiry.py`, exit 0 with 8 of 8 arms bitten, 3 if the presence control was not green, 1 if an arm survived. Measured 2026-08-30: 8 of 8, and the run is recorded because one arm found an UNFAILABLE oracle rather than confirming a green — `clamp` reported E22 surviving, and that test was rewritten to resolve its refusals from configuration instead of injecting them."
+      "reason": "It carries a presence control and runs it on every invocation \u2014 nothing planted, the three R26 suites required GREEN over a NON-ZERO test count, exiting 3 otherwise, so a filter that selected nothing cannot report eight catches. It also refuses an arm whose search text no longer matches exactly once, which is the specific way this class of driver rots: the source moves, the find string stops matching, and every arm silently applies nothing. Each arm compares the file's sha256 before and after to prove the restore. The waiver is about where that control can run, not whether it exists: every arm compiles and runs the Swift test suite and two of them additionally build the CLI and start a daemon, which is the `waived` rather than `control` rule. Running it inside `lint` would put eight builds behind a lint step. Re-run it directly: `python3 planning/test-campaign/bin/arm-r26-auth-expiry.py`, exit 0 with 8 of 8 arms bitten, 3 if the presence control was not green, 1 if an arm survived. Measured 2026-08-30: 8 of 8, and the run is recorded because one arm found an UNFAILABLE oracle rather than confirming a green \u2014 `clamp` reported E22 surviving, and that test was rewritten to resolve its refusals from configuration instead of injecting them."
     },
     {
       "path": "planning/test-campaign/bin/arm-r27-health.sh",
@@ -509,7 +509,7 @@
         "V3"
       ],
       "since": "2026-08-29",
-      "reason": "R27's arming pass, and it IS a control rather than a thing needing one — it exists to make five assertions go red and put the sources back. WAIVED because running it needs a Swift toolchain and a build: each arm compiles the mutated tree and one rebuilds `MCPRouterCLI` to re-run an acceptance lane, which is minutes rather than the seconds this gate spends. It carries its own two-way guard: every run reports how many tests it matched and the script exits 1 if an arm matched none. That guard was earned — the first version filtered on `@Suite` display names, swift-testing matched nothing, and all four arms reported `0 tests passed`, which is four arms that compared nothing wearing a green."
+      "reason": "R27's arming pass, and it IS a control rather than a thing needing one \u2014 it exists to make five assertions go red and put the sources back. WAIVED because running it needs a Swift toolchain and a build: each arm compiles the mutated tree and one rebuilds `MCPRouterCLI` to re-run an acceptance lane, which is minutes rather than the seconds this gate spends. It carries its own two-way guard: every run reports how many tests it matched and the script exits 1 if an arm matched none. That guard was earned \u2014 the first version filtered on `@Suite` display names, swift-testing matched nothing, and all four arms reported `0 tests passed`, which is four arms that compared nothing wearing a green."
     },
     {
       "path": "planning/test-campaign/bin/design-controls.py",
@@ -519,7 +519,7 @@
         "V4"
       ],
       "since": "2026-08-27",
-      "reason": "This is the one waiver here that is about cost rather than about an arming that already exists, and it is written plainly because a waiver that hides that is the amnesty this registry refuses. It carries NO presence control. It refuses to print a verdict when obscura is absent (exit 3) rather than reporting a zero, which is honesty about its own blindness but is not a control. A real one would plant the two defects it was written from — DEF-011's Cleanup row actions and SURF-003's `Reset history…` button, both specified by the design and drawn by nothing — into a synthetic harvest and require each reported. It is not enrolled because a run drives obscura over roughly thirty deep-linked states of the design of record at a 180s per-fetch timeout, which is minutes and past this gate's control timeout on the first surface."
+      "reason": "This is the one waiver here that is about cost rather than about an arming that already exists, and it is written plainly because a waiver that hides that is the amnesty this registry refuses. It carries NO presence control. It refuses to print a verdict when obscura is absent (exit 3) rather than reporting a zero, which is honesty about its own blindness but is not a control. A real one would plant the two defects it was written from \u2014 DEF-011's Cleanup row actions and SURF-003's `Reset history\u2026` button, both specified by the design and drawn by nothing \u2014 into a synthetic harvest and require each reported. It is not enrolled because a run drives obscura over roughly thirty deep-linked states of the design of record at a 180s per-fetch timeout, which is minutes and past this gate's control timeout on the first surface."
     },
     {
       "path": "planning/test-campaign/bin/forced-state-assert.py",
@@ -534,7 +534,7 @@
         "planning/test-campaign/bin/forced-state-assert.py",
         "--control"
       ],
-      "proves": "Every check this script makes is planted against, one mutation per check, and the control refuses to report at all if any check has no mutation behind it — so the arm cannot fall behind the assertions it arms. The clean scratch set runs 38 checks and reports none; 38 planted defects are then each required to be seen. The ones that carry the weight are the absences: `stale-claims-running` puts `· 1 running` back into the header of a board whose router has stopped, `stale-sidebar-claims-running` does the same to the sidebar readout, and `cold-claims-totals` gives a board that has never loaded a count. REQ-005 is a promise that a figure is NOT drawn, and an absence check pointed at the wrong file or the wrong state passes exactly as loudly as one that is right. WHAT IT DOES NOT PROVE: that the product behaves this way. This control runs over planted text, never over a rendered board. Only `bin/forced-state.sh` arranges a real router and photographs the app, and that lane needs a build, a display server and an Accessibility grant, so it cannot run here."
+      "proves": "Every check this script makes is planted against, one mutation per check, and the control refuses to report at all if any check has no mutation behind it \u2014 so the arm cannot fall behind the assertions it arms. The clean scratch set runs 38 checks and reports none; 38 planted defects are then each required to be seen. The ones that carry the weight are the absences: `stale-claims-running` puts `\u00b7 1 running` back into the header of a board whose router has stopped, `stale-sidebar-claims-running` does the same to the sidebar readout, and `cold-claims-totals` gives a board that has never loaded a count. REQ-005 is a promise that a figure is NOT drawn, and an absence check pointed at the wrong file or the wrong state passes exactly as loudly as one that is right. WHAT IT DOES NOT PROVE: that the product behaves this way. This control runs over planted text, never over a rendered board. Only `bin/forced-state.sh` arranges a real router and photographs the app, and that lane needs a build, a display server and an Accessibility grant, so it cannot run here."
     },
     {
       "path": "planning/test-campaign/bin/forced-state.sh",
@@ -544,7 +544,7 @@
         "V3"
       ],
       "since": "2026-08-29",
-      "reason": "An acceptance lane rather than a corpus reader, waived on the argument r31-caches.sh and r28-extensions.sh are: its exit 0 is a verdict about a world it arranged, so enrolling it as a command this gate runs would start a node router on :8955, launch the built Debug app and require an Accessibility grant from inside `make lint`, which runs in worktrees that have compiled nothing. Without the .app it exits 2, and a control answering 2 on a clean tree is a rotted control rather than a held one. Its own two sweeps are `grep -q \"tools cached\"` over the index log — a PRESENCE check that refuses to continue when the router cached nothing, so a zero there blocks rather than passing — and the absence vocabulary in its header, which describes REQ-005 rather than sweeping anything. WHAT ARMS IT INSTEAD: `bin/forced-state-assert.py --control`, registered `control` here and run by `make lint`, plants 38 defects into a scratch observation set and requires each to be seen — including `nothing-photographed`, which withholds every frame in a run and requires the raster lane to report that it compared nothing rather than passing vacuously. And `bin/paint-check.py`, which this script calls before it files any frame, refuses a photograph whose window had not laid out; it refused two of the three frames on the run this row was written from, so it is watched failing rather than merely run."
+      "reason": "An acceptance lane rather than a corpus reader, waived on the argument r31-caches.sh and r28-extensions.sh are: its exit 0 is a verdict about a world it arranged, so enrolling it as a command this gate runs would start a node router on :8955, launch the built Debug app and require an Accessibility grant from inside `make lint`, which runs in worktrees that have compiled nothing. Without the .app it exits 2, and a control answering 2 on a clean tree is a rotted control rather than a held one. Its own two sweeps are `grep -q \"tools cached\"` over the index log \u2014 a PRESENCE check that refuses to continue when the router cached nothing, so a zero there blocks rather than passing \u2014 and the absence vocabulary in its header, which describes REQ-005 rather than sweeping anything. WHAT ARMS IT INSTEAD: `bin/forced-state-assert.py --control`, registered `control` here and run by `make lint`, plants 38 defects into a scratch observation set and requires each to be seen \u2014 including `nothing-photographed`, which withholds every frame in a run and requires the raster lane to report that it compared nothing rather than passing vacuously. And `bin/paint-check.py`, which this script calls before it files any frame, refuses a photograph whose window had not laid out; it refused two of the three frames on the run this row was written from, so it is watched failing rather than merely run."
     },
     {
       "path": "planning/test-campaign/bin/insights-live-probe.py",
@@ -554,7 +554,7 @@
         "V3"
       ],
       "since": "2026-08-27",
-      "reason": "Armed by `--arm`, which plants two faults and requires the trace to fail on them, and separately by parsing InsightsBoard.swift for every identifier it draws a figure under so a figure absent from the hand-written map fails rather than escaping the trace. Neither the trace nor the arming has anything to run against without a live Swift router serving GET /insights on a port — the glass lane cannot substitute, because a Debug build always takes a fixture and asserting a fixture proves the fixture. Booting the product is not something a lint member should do."
+      "reason": "Armed by `--arm`, which plants two faults and requires the trace to fail on them, and separately by parsing InsightsBoard.swift for every identifier it draws a figure under so a figure absent from the hand-written map fails rather than escaping the trace. Neither the trace nor the arming has anything to run against without a live Swift router serving GET /insights on a port \u2014 the glass lane cannot substitute, because a Debug build always takes a fixture and asserting a fixture proves the fixture. Booting the product is not something a lint member should do."
     },
     {
       "path": "planning/test-campaign/bin/raster-claim-gate.py",
@@ -564,7 +564,7 @@
         "V3"
       ],
       "since": "2026-08-29",
-      "reason": "Control is the script itself. On Windows it exits 4 (NO VERDICT — a control arm misbehaved) because an inner arm shells to a POSIX-only helper. The Windows lane already files this as NOT-RUN rather than a pass. Waived as a sweep-control rather than left as a failing `control` so this gate reports the same fact the lane already reports."
+      "reason": "Control is the script itself. On Windows it exits 4 (NO VERDICT \u2014 a control arm misbehaved) because an inner arm shells to a POSIX-only helper. The Windows lane already files this as NOT-RUN rather than a pass. Waived as a sweep-control rather than left as a failing `control` so this gate reports the same fact the lane already reports."
     },
     {
       "path": "planning/test-campaign/bin/record-glass-arms.py",
@@ -584,7 +584,7 @@
         "V4"
       ],
       "since": "2026-08-27",
-      "reason": "Its arming is real and runs on every invocation: presence_control plants one defect of each of five classes into a doctored COPY of the world — a shipped-and-unbound address, a bound-but-caseless one, a binding onto a surface id the inventory does not hold, a binding to an address the app does not ship, and a binding onto a sheet no board can present — and the file exits 2 with no verdict printed when an arm does not fire. What is waived is ENROLMENT, not the arming. Its exit 0 is a campaign verdict and not a control result: it compiles a Swift oracle against the shipped sources and exits 1 whenever the campaign's surface set and the product's disagree, which is a live and expected event while the campaign grows. Registered as a control it would report the next real disagreement as a rotted control, which is a worse reading than no row."
+      "reason": "Its arming is real and runs on every invocation: presence_control plants one defect of each of five classes into a doctored COPY of the world \u2014 a shipped-and-unbound address, a bound-but-caseless one, a binding onto a surface id the inventory does not hold, a binding to an address the app does not ship, and a binding onto a sheet no board can present \u2014 and the file exits 2 with no verdict printed when an arm does not fire. What is waived is ENROLMENT, not the arming. Its exit 0 is a campaign verdict and not a control result: it compiles a Swift oracle against the shipped sources and exits 1 whenever the campaign's surface set and the product's disagree, which is a live and expected event while the campaign grows. Registered as a control it would report the next real disagreement as a rotted control, which is a worse reading than no row."
     },
     {
       "path": "planning/test-campaign/bin/vocab-differential.py",
@@ -599,8 +599,8 @@
         "planning/test-campaign/bin/vocab-differential.py",
         "--control"
       ],
-      "proves": "14 arms on dictionaries the control builds, each planting the fault its check is for. The four that matter are the registry's own rules, and they run through `findings_for` rather than re-implementing it — an arm that re-implements the predicate proves the arm and not the gate, which is this item's own subject arriving inside its own fix. Both directions are armed: an extra with a disposition and a well-formed registry row must stay quiet. What it does NOT prove is that the accessibility dumps are of the surfaces they are named for; `capture-lineage.py --gate` owns that, and two of the thirteen dispositions rest on its findings. Was `grandfathered` — 'predates this gate; carries no control this gate can run' — until M32 gave the file a control to run.",
-      "note": "The rewrite dropped this file to one marker (V3) and out of discovery, and the gate said so. It was not narrowing: the file had renamed its denominator from `rows` to `compared` while staying the same absence sweep. Restoring the noun restored V4. Recorded because it is a real property of lexical discovery — a rewrite that strengthens a sweep can hide it — and the remedy was to spell the predicate the way it reads, not to widen the reader."
+      "proves": "14 arms on dictionaries the control builds, each planting the fault its check is for. The four that matter are the registry's own rules, and they run through `findings_for` rather than re-implementing it \u2014 an arm that re-implements the predicate proves the arm and not the gate, which is this item's own subject arriving inside its own fix. Both directions are armed: an extra with a disposition and a well-formed registry row must stay quiet. What it does NOT prove is that the accessibility dumps are of the surfaces they are named for; `capture-lineage.py --gate` owns that, and two of the thirteen dispositions rest on its findings. Was `grandfathered` \u2014 'predates this gate; carries no control this gate can run' \u2014 until M32 gave the file a control to run.",
+      "note": "The rewrite dropped this file to one marker (V3) and out of discovery, and the gate said so. It was not narrowing: the file had renamed its denominator from `rows` to `compared` while staying the same absence sweep. Restoring the noun restored V4. Recorded because it is a real property of lexical discovery \u2014 a rewrite that strengthens a sweep can hide it \u2014 and the remedy was to spell the predicate the way it reads, not to widen the reader."
     },
     {
       "path": "planning/test-campaign/bin/witness-arm-denial.sh",
@@ -641,7 +641,7 @@
         "V2"
       ],
       "since": "2026-08-27",
-      "reason": "Armed in every run by a decoy port: the same recorder is pointed at a port nothing was told to bind, and it must report 0 in the same sample the real port reports 1, or the recorder is answering a question about whether the router is alive rather than about this port. It cannot be a command this gate runs because it needs a built app/.build/debug/MCPRouterCLI (it exits 2 without one), binds two TCP ports, spawns a router process and holds a real socket open across the sample — effects on the machine, which is what a witness is for and what a checking gate must not do."
+      "reason": "Armed in every run by a decoy port: the same recorder is pointed at a port nothing was told to bind, and it must report 0 in the same sample the real port reports 1, or the recorder is answering a question about whether the router is alive rather than about this port. It cannot be a command this gate runs because it needs a built app/.build/debug/MCPRouterCLI (it exits 2 without one), binds two TCP ports, spawns a router process and holds a real socket open across the sample \u2014 effects on the machine, which is what a witness is for and what a checking gate must not do."
     },
     {
       "path": "planning/test-campaign/bin/witness-effects.sh",
@@ -662,7 +662,7 @@
         "V3"
       ],
       "since": "2026-08-29",
-      "reason": "R27's effect witness. WAIVED rather than `control`, and the reason is the one this repository already writes down for a lane needing a built binary: it runs `app/.build/debug/MCPRouterCLI serve` on a reserved port and spawns real python children, so it cannot run in a checkout that has not been built and a control that skips is not a control. WHAT ARMS IT INSTEAD IS INSIDE THE SCRIPT, which is unusual and is the point: its part-4 sabotage drives the same route against a second upstream whose command does not exist and requires all four recorders to flip — no child, no pidfile, an unchanged child count, and `degraded` rather than `healthy`. A witness whose recorder cannot be made to read zero has measured nothing, so the arm is not optional decoration here and the script exits non-zero when it does not hold."
+      "reason": "R27's effect witness. WAIVED rather than `control`, and the reason is the one this repository already writes down for a lane needing a built binary: it runs `app/.build/debug/MCPRouterCLI serve` on a reserved port and spawns real python children, so it cannot run in a checkout that has not been built and a control that skips is not a control. WHAT ARMS IT INSTEAD IS INSIDE THE SCRIPT, which is unusual and is the point: its part-4 sabotage drives the same route against a second upstream whose command does not exist and requires all four recorders to flip \u2014 no child, no pidfile, an unchanged child count, and `degraded` rather than `healthy`. A witness whose recorder cannot be made to read zero has measured nothing, so the arm is not optional decoration here and the script exits non-zero when it does not hold."
     },
     {
       "path": "planning/upstream/reckon-relabel-probe.py",
@@ -672,7 +672,7 @@
         "V3"
       ],
       "since": "2026-08-28",
-      "reason": "It makes no absence claim about this corpus. Its subject is a `reckon` installation in the plugin cache, which is not in this repository and which `make lint` cannot assume a checkout holds — the same argument that waives the four lanes needing a built binary. Its arming is internal and fails CLOSED rather than clean: the `[]` arm is a planted transition the tool must refuse whatever else it does, and a run where that arm is allowed too reports INCONCLUSIVE and exit 2 instead of a verdict, which is what the five pre-1.5.0 versions on this machine currently produce. A control registered here would have to install a plugin tree to arm it, which is a heavier instrument than the thing it guards."
+      "reason": "It makes no absence claim about this corpus. Its subject is a `reckon` installation in the plugin cache, which is not in this repository and which `make lint` cannot assume a checkout holds \u2014 the same argument that waives the four lanes needing a built binary. Its arming is internal and fails CLOSED rather than clean: the `[]` arm is a planted transition the tool must refuse whatever else it does, and a run where that arm is allowed too reports INCONCLUSIVE and exit 2 instead of a verdict, which is what the five pre-1.5.0 versions on this machine currently produce. A control registered here would have to install a plugin tree to arm it, which is a heavier instrument than the thing it guards."
     },
     {
       "path": "planning/verification/G11-corpus-determinism.py",
@@ -682,7 +682,7 @@
         "V3"
       ],
       "since": "2026-08-27",
-      "reason": "Control is the script itself. On this machine it asserts `repo HEAD expected exit 1, got 2` — an environment difference (python vs python3, or a path the script shells to that Windows cannot start), not a corpus finding. Waived on Windows; still a live control on macOS."
+      "reason": "Control is the script itself. On this machine it asserts `repo HEAD expected exit 1, got 2` \u2014 an environment difference (python vs python3, or a path the script shells to that Windows cannot start), not a corpus finding. Waived on Windows; still a live control on macOS."
     },
     {
       "path": "planning/watch-fleet.sh",
@@ -721,7 +721,7 @@
         "bash",
         "scripts/acceptance/acceptance-lanes-selftest.sh"
       ],
-      "proves": "the aggregator's own arming, named by the file in its own words as `what proves the aggregation can actually go red`. The sweep here is the zero-assertion test — a lane reaching exit 0 through a dead shell or an empty loop — and the selftest plants exactly that lane and requires it classed with the failures. It runs the same 19 seconds as the selftest's own row; that row proves the instrument, this one binds the sweep to it, and neither is the other."
+      "proves": "the aggregator's own arming, named by the file in its own words as `what proves the aggregation can actually go red`. The sweep here is the zero-assertion test \u2014 a lane reaching exit 0 through a dead shell or an empty loop \u2014 and the selftest plants exactly that lane and requires it classed with the failures. It runs the same 19 seconds as the selftest's own row; that row proves the instrument, this one binds the sweep to it, and neither is the other."
     },
     {
       "path": "scripts/acceptance/auth-rejection-visible.sh",
@@ -773,21 +773,6 @@
       ],
       "since": "2026-08-31",
       "reason": "An assertion lane over a running daemon's socket (24 checks on F8's profiles store). Discovered because it tests `== 0` on counts it itself produced. Those zeros are per-assertion expected values against a live process, not an absence sweep of a corpus. Adding a presence-control would be testing the test."
-    },
-    {
-      "path": "scripts/acceptance/green-streak.sh",
-      "disposition": "control",
-      "markers": [
-        "V1",
-        "V2",
-        "V3"
-      ],
-      "since": "2026-08-29",
-      "control": [
-        "bash",
-        "scripts/acceptance/green-streak-selftest.sh"
-      ],
-      "proves": "Ten arms against fixture ledgers through GREEN_STREAK_LEDGER, the tracked ledger diffed afterwards. Each of the four pass clauses is planted as the NEWEST run and must end the streak: a DIVERGED row, an exit 2, a blocked count above the standing exclusions, and a proven count short of PARITY_CUTOVER_TARGET - which is read from parity-gate.sh rather than pinned here, so a fixture cannot arm a target the gate no longer holds. Two arms carry the weight the others cannot: an older failure BELOW the newest pass must NOT end the streak, which a reader scanning the whole file for any red would fail; and an empty ledger must exit 2 saying the streak is unmeasured rather than reporting a streak of zero. Two more drive the recorder against parity-gate.sh's own summary shape, requiring the four figures back from a measured run and `?` rather than a helpful zero from a run that withheld coverage. What it does NOT prove is that a real parity-gate.sh run produces that shape; the fixtures are built from the gate's own format strings, and no whole-gate run has been taken."
     },
     {
       "path": "scripts/acceptance/i5-pairing-transport.sh",
@@ -924,7 +909,7 @@
         "bash",
         "scripts/acceptance/menu-reason-plane-selftest.sh"
       ],
-      "proves": "10 arms over doctored accessibility dumps, sourcing menu-reason-plane.sh's five assertions rather than re-implementing them, so an edit to the lane changes what this tests instead of leaving it checking a dead copy. Five arms require each assertion to FIRE — a reason MenuCommandAvailability does not declare, a badge folded into AXTitle, a menu item reporting a real AXSize, a dump of one item, a dump carrying no reason at all — and five require none of them to fire on a dump of the shape today's platform produces. That second half is the two-way control and it is the one that matters: every assertion in this lane asserts an ABSENCE, and a check that CANNOT fire and a check that correctly does not fire are indistinguishable from a green run. It has already earned its place: the badge tripwire used `exit 0` inside an awk rule, awk's `exit` runs END, and `END { exit 1 }` overrode the hit — so the line watching for the one event the lane exists to notice could never fire, and every real run passed. This caught it. Needs no build, no window server and no Accessibility grant; runs against planted files in about a second, which is why it holds a row the lane itself is waived from."
+      "proves": "10 arms over doctored accessibility dumps, sourcing menu-reason-plane.sh's five assertions rather than re-implementing them, so an edit to the lane changes what this tests instead of leaving it checking a dead copy. Five arms require each assertion to FIRE \u2014 a reason MenuCommandAvailability does not declare, a badge folded into AXTitle, a menu item reporting a real AXSize, a dump of one item, a dump carrying no reason at all \u2014 and five require none of them to fire on a dump of the shape today's platform produces. That second half is the two-way control and it is the one that matters: every assertion in this lane asserts an ABSENCE, and a check that CANNOT fire and a check that correctly does not fire are indistinguishable from a green run. It has already earned its place: the badge tripwire used `exit 0` inside an awk rule, awk's `exit` runs END, and `END { exit 1 }` overrode the hit \u2014 so the line watching for the one event the lane exists to notice could never fire, and every real run passed. This caught it. Needs no build, no window server and no Accessibility grant; runs against planted files in about a second, which is why it holds a row the lane itself is waived from."
     },
     {
       "path": "scripts/acceptance/menu-reason-plane.sh",
@@ -934,7 +919,7 @@
         "V3"
       ],
       "since": "2026-08-29",
-      "reason": "An acceptance lane rather than a corpus reader, waived on exactly the argument r28-extensions.sh and r31-caches.sh are: its exit 0 is a verdict about an application it launched, and reaching that verdict needs app/.derived/Build/Products/Debug/MCPRouter.app, an Accessibility grant and a live window server. `make lint` runs in worktrees that have compiled nothing, where this lane exits 2 — and a control answering 2 on a clean tree is a rotted control rather than a held one. It is the fourth lane waived for being a lane. WHAT ARMS IT INSTEAD, and it is a real control rather than an absence of one: menu-reason-plane-selftest.sh, registered `control` in its own row below, sources this file's five assertions and hands each a doctored dump. That selftest needs no build, no GUI session and no grant, which is why it can hold a row this lane cannot. The two are dispatched together by acceptance-lanes.sh."
+      "reason": "An acceptance lane rather than a corpus reader, waived on exactly the argument r28-extensions.sh and r31-caches.sh are: its exit 0 is a verdict about an application it launched, and reaching that verdict needs app/.derived/Build/Products/Debug/MCPRouter.app, an Accessibility grant and a live window server. `make lint` runs in worktrees that have compiled nothing, where this lane exits 2 \u2014 and a control answering 2 on a clean tree is a rotted control rather than a held one. It is the fourth lane waived for being a lane. WHAT ARMS IT INSTEAD, and it is a real control rather than an absence of one: menu-reason-plane-selftest.sh, registered `control` in its own row below, sources this file's five assertions and hands each a doctored dump. That selftest needs no build, no GUI session and no grant, which is why it can hold a row this lane cannot. The two are dispatched together by acceptance-lanes.sh."
     },
     {
       "path": "scripts/acceptance/mock-fidelity-selftest.sh",
@@ -986,7 +971,7 @@
       ],
       "disposition": "waived",
       "since": "2026-08-30",
-      "reason": "A lane needing a built binary is waived, not control: it starts the Swift daemon (MCPRouterCLI, `make build-cli-debug`) on a scratch MCP_ROUTER_HOME and drives 30 assertions over its socket, so a control that re-armed it would put a CLI build behind every sweep-gate run. What stands in place of one is that the lane ARMS ITSELF against the only failure its absences are exposed to. Its absence claims are that nothing was spawned and that a particular server is not among the notices, and an absence asserted alone is satisfied by a feature that does nothing. So no absence here is asserted alone: the zero-children readings sit in the same run as an assertion that the reported expiry MOVED when the planted credential record was rewritten, and every 'X is not among the notices' is read off a reply that carries two other servers by name. It also exits 2 rather than 0 when the binary is missing or the daemon never binds, so an environment that could run nothing cannot report a clean 30. Re-arm it directly: `python3 planning/test-campaign/bin/arm-r26-auth-expiry.py --only wiring --only spawn`, whose two lane arms require this lane to go red — `wiring` by deleting the daemon's own `authExpiry:` line (503s, with the unit suite still green) and `spawn` by warming the stdio fixture (the process-table readings report non-zero). Measured 2026-08-30: both bit."
+      "reason": "A lane needing a built binary is waived, not control: it starts the Swift daemon (MCPRouterCLI, `make build-cli-debug`) on a scratch MCP_ROUTER_HOME and drives 30 assertions over its socket, so a control that re-armed it would put a CLI build behind every sweep-gate run. What stands in place of one is that the lane ARMS ITSELF against the only failure its absences are exposed to. Its absence claims are that nothing was spawned and that a particular server is not among the notices, and an absence asserted alone is satisfied by a feature that does nothing. So no absence here is asserted alone: the zero-children readings sit in the same run as an assertion that the reported expiry MOVED when the planted credential record was rewritten, and every 'X is not among the notices' is read off a reply that carries two other servers by name. It also exits 2 rather than 0 when the binary is missing or the daemon never binds, so an environment that could run nothing cannot report a clean 30. Re-arm it directly: `python3 planning/test-campaign/bin/arm-r26-auth-expiry.py --only wiring --only spawn`, whose two lane arms require this lane to go red \u2014 `wiring` by deleting the daemon's own `authExpiry:` line (503s, with the unit suite still green) and `spawn` by warming the stdio fixture (the process-table readings report non-zero). Measured 2026-08-30: both bit."
     },
     {
       "path": "scripts/acceptance/r27-health.sh",
@@ -1117,44 +1102,11 @@
       "since": "2026-08-26"
     },
     {
-      "path": "scripts/lint/no-harness-skill-writes.sh",
-      "disposition": "waived",
-      "markers": [
-        "V1",
-        "V2"
-      ],
-      "since": "2026-08-31",
-      "reason": "Its sibling selftest (`scripts/lint/no-harness-skill-writes-selftest.sh`) is the presence control, and that selftest starts with `mktemp -d -t f8-skill-writes`. Git Bash's mktemp requires at least three X's in a -t template and rejects this one (`too few X's in template`), then the selftest hangs in a null sandbox. Waived on Windows; the selftest is a live control on macOS BSD mktemp. Porting the template to `mktemp -d` is owed rather than done here — it is F8's instrument, not this fleet's."
-    },
-    {
       "path": "scripts/lint/no-raw-design-values.sh",
       "disposition": "grandfathered",
       "markers": [
         "V2",
         "V3"
-      ],
-      "reason": "predates this gate; carries no control this gate can run",
-      "since": "2026-08-26"
-    },
-    {
-      "path": "scripts/lint/no-telemetry-egress.sh",
-      "disposition": "control",
-      "markers": [
-        "F5"
-      ],
-      "since": "2026-08-29",
-      "control": [
-        "bash",
-        "scripts/lint/no-telemetry-egress-selftest.sh"
-      ],
-      "proves": "Three arms, and the third is the one this gate would otherwise die of. Arm 1 requires exit 0 on the unmutated tree. Arm 2 plants a file carrying URLSession into a SCRATCH COPY of the subject directory and requires exit 1 AND that the offending file is named — a gate that reddened without saying where is a claim rather than a finding. Arm 3 points the gate at a directory holding no Swift and requires exit 2: this gate asserts an ABSENCE, so a gate whose subject directory was renamed keeps exiting 0 forever and every reader downstream reads that as a measurement. It works in a scratch copy throughout, because a gate that mutates the working tree as a side effect of checking is a rule this repository learned the hard way. What it does NOT prove is that the pattern list is complete — a Swift name for reaching the network that is not in PATTERNS is invisible to both the gate and this control."
-    },
-    {
-      "path": "scripts/lint/no-wire-codable.sh",
-      "disposition": "grandfathered",
-      "markers": [
-        "V1",
-        "V2"
       ],
       "reason": "predates this gate; carries no control this gate can run",
       "since": "2026-08-26"
@@ -1239,7 +1191,7 @@
         "V2"
       ],
       "since": "2026-08-28",
-      "reason": "Registry control is `./scripts/worktree-preflight-selftest.sh` — same shebang-as-exe WinError 193. Additionally the selftest uses `mktemp -d -t g32-preflight`, which Git Bash's mktemp rejects (`cd: null directory`). Two Windows incompatibilities; waived rather than ported here."
+      "reason": "Registry control is `./scripts/worktree-preflight-selftest.sh` \u2014 same shebang-as-exe WinError 193. Additionally the selftest uses `mktemp -d -t g32-preflight`, which Git Bash's mktemp rejects (`cd: null directory`). Two Windows incompatibilities; waived rather than ported here."
     },
     {
       "path": "planning/test-campaign/bin/arm-surface-plane.py",

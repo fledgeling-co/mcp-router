@@ -532,7 +532,7 @@ SWIFT
 # The rot arm: a declaration naming a file that is not there.
 build_baseline
 mutant_repo "$WORK/mutant-missing"
-sed "s|'RouterCore/Watch/ClaudeStagingEntry.swift'|'RouterCore/Watch/GoneAway.swift'|" \
+sed "s|^HARNESS_WRITERS=()|HARNESS_WRITERS=('RouterCore/Watch/GoneAway.swift')|" \
   "$GATE" > "$WORK/mutant-missing/scripts/lint/gate.sh"
 chmod +x "$WORK/mutant-missing/scripts/lint/gate.sh"
 "$WORK/mutant-missing/scripts/lint/gate.sh" "$TREE" >/dev/null 2>&1

@@ -30,28 +30,7 @@ public final class InboxDeliveryModel {
                     } catch is CancellationError {
                         return
                     } catch let failure as InboxSubmitError {
-                        switch failure {
-                        case .needsPairing:
-                            error = """
-                            Pair this phone again in Settings before sending. \
-                            Your picks are still queued.
-                            """
-                        case let .refused(reason):
-                            if ["badSignature", "unknownPhone"].contains(reason) {
-                                error = "Pair this phone again in Settings. Your picks are still queued."
-                            } else if reason == "unsupportedVersion" {
-                                error = "Update both apps to send these picks. Your picks are still queued."
-                            } else if reason == "frameTooLarge" {
-                                error = "A queued pick is too large to send. Nothing was removed from your queue."
-                            } else {
-                                error = "Delivery wasn't confirmed. Your picks remain queued and will retry."
-                            }
-                        case .malformed:
-                            error = """
-                            Your Mac sent a receipt this phone couldn't read. \
-                            Your picks are still queued; check both app versions.
-                            """
-                        }
+                        error = Self.message(for: failure)
                     } catch {
                         self.error = """
                         Couldn't send your picks. \
@@ -64,6 +43,31 @@ public final class InboxDeliveryModel {
                 self.error = "Couldn't read the saved queue. Nothing was sent or removed."
             }
             do { try await Task.sleep(for: .seconds(2)) } catch { return }
+        }
+    }
+
+    private static func message(for failure: InboxSubmitError) -> String {
+        switch failure {
+        case .needsPairing:
+            """
+            Pair this phone again in Settings before sending. \
+            Your picks are still queued.
+            """
+        case let .refused(reason):
+            if ["badSignature", "unknownPhone"].contains(reason) {
+                "Pair this phone again in Settings. Your picks are still queued."
+            } else if reason == "unsupportedVersion" {
+                "Update both apps to send these picks. Your picks are still queued."
+            } else if reason == "frameTooLarge" {
+                "A queued pick is too large to send. Nothing was removed from your queue."
+            } else {
+                "Delivery wasn't confirmed. Your picks remain queued and will retry."
+            }
+        case .malformed:
+            """
+            Your Mac sent a receipt this phone couldn't read. \
+            Your picks are still queued; check both app versions.
+            """
         }
     }
 }

@@ -1,8 +1,8 @@
 // swift-tools-version: 6.0
 import PackageDescription
 
-// E1, the TLS exporter and libsodium spike (planning/plans/plan-pairing-typed-spake2.md §5).
-// Finding only: nothing here is product code, and the app package does not depend on it.
+/// E1, the TLS exporter and libsodium spike (planning/plans/plan-pairing-typed-spake2.md §5).
+/// Finding only: nothing here is product code, and the app package does not depend on it.
 let package = Package(
     name: "E1Spike",
     platforms: [.macOS(.v15)],

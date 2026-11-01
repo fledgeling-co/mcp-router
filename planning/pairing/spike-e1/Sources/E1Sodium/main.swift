@@ -17,7 +17,7 @@ func decodeHex(_ text: Substring) -> [UInt8]? {
     var index = text.startIndex
     while index < text.endIndex {
         let next = text.index(index, offsetBy: 2)
-        guard let byte = UInt8(text[index..<next], radix: 16) else { return nil }
+        guard let byte = UInt8(text[index ..< next], radix: 16) else { return nil }
         out.append(byte)
         index = next
     }
@@ -37,6 +37,7 @@ guard sodium_init() >= 0 else {
     fputs("e1-sodium: sodium_init failed\n", stderr)
     exit(2)
 }
+
 print("version \(String(cString: sodium_version_string()))")
 
 while let line = readLine() {
@@ -62,4 +63,5 @@ while let line = readLine() {
         malformed(line)
     }
 }
+
 exit(0)

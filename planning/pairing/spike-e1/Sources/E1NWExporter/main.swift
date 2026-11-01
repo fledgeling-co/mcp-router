@@ -19,6 +19,7 @@ guard CommandLine.arguments.count == 4, let port = UInt16(CommandLine.arguments[
     fputs("usage: e1-nw-exporter <port> <label> <anchor.der>\n", stderr)
     exit(2)
 }
+
 let label = CommandLine.arguments[2]
 let anchorPath = CommandLine.arguments[3]
 
@@ -32,12 +33,13 @@ func hex(_ bytes: [UInt8]) -> String {
 }
 
 guard let anchorData = FileManager.default.contents(atPath: anchorPath),
-      let anchor = SecCertificateCreateWithData(nil, anchorData as CFData) else {
+      let anchor = SecCertificateCreateWithData(nil, anchorData as CFData)
+else {
     fail("cannot read the trust anchor at \(anchorPath)")
 }
 
-// The product's client options, from NetworkPairingTransport.swift: TLS 1.3 minimum. Only the
-// minimum is set, so a server that negotiates anything lower is observed rather than prevented.
+/// The product's client options, from NetworkPairingTransport.swift: TLS 1.3 minimum. Only the
+/// minimum is set, so a server that negotiates anything lower is observed rather than prevented.
 let tls = NWProtocolTLS.Options()
 sec_protocol_options_set_min_tls_protocol_version(tls.securityProtocolOptions, .TLSv13)
 // Trust is evaluated against the one anchor, and nothing else is trusted.
@@ -66,7 +68,9 @@ var output: String?
 connection.stateUpdateHandler = { state in
     switch state {
     case .ready:
-        guard let metadata = connection.metadata(definition: NWProtocolTLS.definition) as? NWProtocolTLS.Metadata else {
+        guard let metadata = connection.metadata(definition: NWProtocolTLS.definition) as? NWProtocolTLS
+            .Metadata
+        else {
             fail("no TLS metadata on a ready connection")
         }
         let secMetadata = metadata.securityProtocolMetadata
@@ -74,15 +78,16 @@ connection.stateUpdateHandler = { state in
         guard version == .TLSv13 else {
             fail("negotiated TLS version is not 1.3 (raw \(version.rawValue))")
         }
-        guard let secret = sec_protocol_metadata_create_secret(secMetadata, label.utf8.count, label, 32) else {
+        guard let secret = sec_protocol_metadata_create_secret(secMetadata, label.utf8.count, label, 32)
+        else {
             fail("sec_protocol_metadata_create_secret returned nil")
         }
         let bytes = [UInt8](secret as DispatchData)
         output = "TLSv1.3 \(hex(bytes))"
         finished.signal()
-    case .failed(let error):
+    case let .failed(error):
         fail("connection failed: \(error)")
-    case .waiting(let error):
+    case let .waiting(error):
         fail("connection waiting on loopback: \(error)")
     default:
         break
@@ -94,6 +99,7 @@ connection.start(queue: DispatchQueue(label: "e1.nw.exporter"))
 guard finished.wait(timeout: .now() + 10) == .success, let line = output else {
     fail("timed out waiting for the TLS handshake")
 }
+
 connection.cancel()
 print(line)
 exit(0)

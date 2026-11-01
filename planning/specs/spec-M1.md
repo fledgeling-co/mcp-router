@@ -94,7 +94,7 @@ what exists and what it is bound to, the model for what it can do right now.
 | Router | Review Held Changes… | — | surfaceAbsent |
 | Router | Reveal Router Log in Finder | — | enabled |
 | Router | Stop Router | — | featureUnbuilt |
-| Library | Update All Skills… | — | surfaceAbsent |
+| Library | Review Skill Updates… | — | surfaceAbsent |
 | Library | Run Doctor | — | featureUnbuilt |
 | Library | Run All Checks | — | featureUnbuilt |
 | Library | Export Library… | — | featureUnbuilt |

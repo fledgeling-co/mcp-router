@@ -114,7 +114,10 @@
             try await inner.patch(server: name, patch)
         }
 
-        func approvePendingChange(server name: String, expectedDigest: String) async throws(ControlAPIError) -> ApprovalResult {
+        func approvePendingChange(
+            server name: String,
+            expectedDigest: String
+        ) async throws(ControlAPIError) -> ApprovalResult {
             try await inner.approvePendingChange(server: name, expectedDigest: expectedDigest)
         }
 
@@ -199,7 +202,10 @@
             try await inner.patch(server: name, patch)
         }
 
-        func approvePendingChange(server name: String, expectedDigest: String) async throws(ControlAPIError) -> ApprovalResult {
+        func approvePendingChange(
+            server name: String,
+            expectedDigest: String
+        ) async throws(ControlAPIError) -> ApprovalResult {
             try await inner.approvePendingChange(server: name, expectedDigest: expectedDigest)
         }
 
@@ -280,7 +286,10 @@
             try await inner.patch(server: name, patch)
         }
 
-        func approvePendingChange(server name: String, expectedDigest: String) async throws(ControlAPIError) -> ApprovalResult {
+        func approvePendingChange(
+            server name: String,
+            expectedDigest: String
+        ) async throws(ControlAPIError) -> ApprovalResult {
             try await inner.approvePendingChange(server: name, expectedDigest: expectedDigest)
         }
 

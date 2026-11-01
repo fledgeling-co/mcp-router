@@ -55,7 +55,8 @@ from input_accounting import Tally  # noqa: E402  — the sys.path line above ha
 # allocator it audits reports absence for rows it cannot see, which is the same denominator
 # failure H's skip list and I's unread list exist to make impossible to report by accident.
 # `WIN` must precede `W`: `W\d+` cannot match `WIN2` anyway, but the ordering says why.
-SERIES = r"(?:WIN|F|R|M|I|P|D|G|V|X|W|J|K|L|N)"
+# IB is the allocated phone-inbox plan series; branch discovery already reads it.
+SERIES = r"(?:WIN|IB|F|R|M|I|P|D|G|V|X|W|J|K|L|N)"
 ID = re.compile(rf"(?<![A-Za-z0-9])({SERIES}\d+(?:-[A-Z]\d*)?)(?![0-9])")
 RANGE = re.compile(rf"({SERIES})(\d+)\s*[–—-]\s*({SERIES})?(\d+)")
 

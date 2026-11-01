@@ -4,6 +4,8 @@ The owner retired the Swift router on 19 October 2026 and authorized the remaini
 
 The unbuilt RouterCore, MCPRouterCLI, ControlDiff and RouterCoreTests Swift sources are removed. Their history remains in Git. Restoring the router would require restoring its source, targets, pinned SDK and gates together.
 
-`app/Tests/RouterCoreTests/Pins/pause-action.json` remains because the active UI pause-action test reads it. The `Vectors/` corpus remains for the TypeScript golden regeneration check. Neither directory compiles a Swift router.
+`app/Tests/RouterCoreTests/Pins/pause-action.json` remains because the active UI pause-action test reads it. The `Vectors/` corpus remains for golden generation; only the argv-redaction vector currently has an active TypeScript test reader. Neither directory compiles a Swift router.
 
 The deleted routes and deferred scope stay recorded in `planning/plans/plan-retire-swift-router.md`. Source deletion is not evidence that those deferred capabilities were implemented.
+
+The Swift-only wire serializer, invocation egress, skill-profile write and cutover green-streak gates were retired with their entire source subsystems. The active harness-config write scanner remains, with no permitted Swift harness writers.

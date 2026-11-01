@@ -196,14 +196,8 @@ NOT_A_FILE_WRITE='FileHandle\.standard(Output|Error)'
 # Adding one here is the commit that says why it exists; nothing else in this gate is allowed to
 # grow a writer quietly.
 #
-#   ClaudeStagingEntry.swift  `install-entry` and `watch` — pre-existing, parity-locked product
-#                             behaviour; it reproduces the installer's `~/.claude.json` step.
-#   DesktopEntryWriter.swift  R32's `desktop-entry` verb. Dry run by default; the write happens only
-#                             under `--apply`, typed by the owner, and no daemon path reaches it.
-HARNESS_WRITERS=(
-  'RouterCore/Watch/ClaudeStagingEntry.swift'
-  'RouterCore/Desktop/DesktopEntryWriter.swift'
-)
+# The retired Swift router owned both former writers. No active Swift writer is allowed.
+HARNESS_WRITERS=()
 
 # What "recognisably about a harness client" means, as tokens rather than as judgement.
 #

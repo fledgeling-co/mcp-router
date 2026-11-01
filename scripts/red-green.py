@@ -772,55 +772,6 @@ mut(
 )
 
 
-# ---------------------------------------------------------------- M29: the strike itself
-#
-# DIS-1..7 proved the READERS of the switch, DIS-8..17 the assertions added after the verdict. All
-# seventeen leave the one write the feature performs untouched: `PATCH /servers/:name {"disabled":…}`.
-#
-# Measured on this branch before these arms existed: deleting the whole `disabled` arm from
-# `applyPatchFields` left ALL 688 RouterCore tests in 106 suites passing. No test in the repository
-# sent a PATCH body carrying `disabled` to the handler; the three router-side suites that mention
-# the field each start from a fixture that is already switched off, so every reader of the switch
-# was witnessed and no writer of it was.
-#
-# `scripts/acceptance/control-differential.sh` does drive this PATCH and diffs `servers.json`
-# against the running reference, so the write was not wholly uncovered. That lane is an
-# EQUIVALENCE, needs a built binary and a live reference, and is not in `make all` — two ports that
-# both stopped writing the member agree with each other and it stays green. These arms are run
-# against `swift test`, which is where the clause had no witness at all.
-#
-# Three arms rather than one, because `applyPatchFields` decides the switch with three separate
-# mechanisms and a single deletion only reaches the first.
-
-
-
-
-
-
-
-# ---------------------------------------------------------------- M38: the promotion at the catalog
-#
-# APP-1..5 arm `ControlApproveCatalogTests`, which reads `POST /servers/:name/approve` back through
-# `MCPEndpoint.listTools()` rather than through the route's own answer. Every arm below mutates the
-# route or the store, never the endpoint's own reader, so a kill says the assertion is watching the
-# write rather than watching itself.
-#
-# Ids outside `M01..M59` on purpose: this file's mutation namespace collides with the fleet's item
-# ids, and `M38` here would read as the thirty-eighth mutation.
-#
-# WHAT PROVING THESE COST, RECORDED BECAUSE IT IS THE FAILURE THIS FILE EXISTS TO REFUSE: APP-3's
-# first form used `if false {` to keep the catch block's braces balanced, which does not compile.
-# A scoped `swift test` run then produced no `recorded an issue` line at all, and a hand harness
-# reading only for reds called that SURVIVED — a mutation that measured nothing, reported as a
-# decoration exposed. This harness gets it right (`COMPILE_RE` demotes a non-compiling mutation),
-# and the arm below is the form that compiles and kills.
-
-
-
-
-
-
-
 RESULTS = []
 
 
